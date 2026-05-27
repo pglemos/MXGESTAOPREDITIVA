@@ -8,10 +8,14 @@ import { Card } from '@/components/molecules/Card'
 import { isAdministradorMx, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { useGoogleCalendar } from '@/hooks/useGoogleCalendar'
 import { useConsultingDriveFiles, type ConsultingDriveFile } from '@/hooks/useConsultingDriveFiles'
+import { downloadEvidenceAttachment, openEvidenceAttachment } from '@/lib/consultoria/evidence-attachments'
+import type { ConsultingVisit, ConsultingVisitAttachment } from '@/features/consultoria/types'
 
 const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024
 
-function formatBytes(value?: string) {
+type VisitEvidenceFile = ConsultingVisitAttachment & { visitNumber: number; visitStatus: string }
+
+function formatBytes(value?: string | number) {
   const bytes = Number(value || 0)
   if (!bytes) return '0 B'
   if (bytes < 1024) return `${bytes} B`
@@ -33,7 +37,16 @@ function getKind(file: ConsultingDriveFile) {
   return 'Arquivo'
 }
 
-export function ConsultingDriveFilesView({ clientId }: { clientId: string }) {
+async function handleEvidenceAction(action: 'open' | 'download', file: ConsultingVisitAttachment) {
+  try {
+    if (action === 'open') await openEvidenceAttachment(file)
+    else await downloadEvidenceAttachment(file)
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : 'Não foi possível acessar o anexo.')
+  }
+}
+
+export function ConsultingDriveFilesView({ clientId, visits = [] }: { clientId: string; visits?: ConsultingVisit[] }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const { role } = useAuth()
   const canUseFiles = isPerfilInternoMx(role)
@@ -50,6 +63,12 @@ export function ConsultingDriveFilesView({ clientId }: { clientId: string }) {
     uploadFiles,
     deleteFile,
   } = useConsultingDriveFiles(canUseFiles ? clientId : null)
+  const visitEvidenceFiles: VisitEvidenceFile[] = visits.flatMap((visit) => (visit.attachments || []).map((attachment) => ({
+    ...attachment,
+    visitNumber: visit.visit_number,
+    visitStatus: visit.status,
+  })))
+  const totalFiles = files.length + visitEvidenceFiles.length
 
   const handleSelectFiles = async (event: ChangeEvent<HTMLInputElement>) => {
     const selected = Array.from(event.target.files || [])
@@ -89,7 +108,7 @@ export function ConsultingDriveFilesView({ clientId }: { clientId: string }) {
             <div className="min-w-0">
               <Typography variant="h3" className="uppercase font-black tracking-widest">Arquivos</Typography>
               <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest">
-                {files.length} {files.length === 1 ? 'item' : 'itens'}
+                {totalFiles} {totalFiles === 1 ? 'item' : 'itens'}
               </Typography>
             </div>
           </div>
@@ -121,15 +140,37 @@ export function ConsultingDriveFilesView({ clientId }: { clientId: string }) {
           </div>
         )}
 
-        {!error && !loading && files.length === 0 && (
+        {!loading && totalFiles === 0 && (
           <div className="mt-mx-lg rounded-mx-xl border border-dashed border-border-default p-mx-xl text-center">
             <FileUp className="h-mx-10 w-mx-10 mx-auto text-text-tertiary mb-mx-sm" />
             <Typography variant="p" tone="muted" className="font-bold">Nenhum arquivo registrado.</Typography>
           </div>
         )}
 
-        {files.length > 0 && (
+        {totalFiles > 0 && (
           <div className="mt-mx-lg overflow-hidden rounded-mx-xl border border-border-subtle">
+            {visitEvidenceFiles.map((file) => (
+              <div key={`visit-${file.id}`} className="grid grid-cols-1 gap-mx-sm border-b border-border-subtle p-mx-md last:border-b-0 lg:grid-cols-[1fr_auto] lg:items-center">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-mx-xs min-w-0">
+                    <Badge variant="brand" className="shrink-0">Visita {file.visitNumber}</Badge>
+                    <Badge variant="outline" className="shrink-0">{file.content_type?.includes('image') ? 'Imagem' : 'Anexo'}</Badge>
+                    <Typography variant="p" className="font-black truncate">{file.filename}</Typography>
+                  </div>
+                  <Typography variant="tiny" tone="muted" className="font-bold uppercase tracking-widest mt-mx-xs">
+                    {formatBytes(file.size_bytes)} • {formatDate(file.uploaded_at)}
+                  </Typography>
+                </div>
+                <div className="flex gap-mx-xs">
+                  <Button variant="outline" size="xs" onClick={() => void handleEvidenceAction('open', file)} icon={<Eye />}>
+                    Abrir
+                  </Button>
+                  <Button variant="outline" size="xs" onClick={() => void handleEvidenceAction('download', file)} icon={<Download />}>
+                    Baixar
+                  </Button>
+                </div>
+              </div>
+            ))}
             {files.map((file) => (
               <div key={file.id} className="grid grid-cols-1 gap-mx-sm border-b border-border-subtle p-mx-md last:border-b-0 lg:grid-cols-[1fr_auto] lg:items-center">
                 <div className="min-w-0">

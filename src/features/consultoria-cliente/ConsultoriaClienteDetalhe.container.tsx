@@ -1,10 +1,12 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { useConsultingClientDetailBySlug } from '@/hooks/useConsultingClientBySlug'
 import { useConsultingModules } from '@/hooks/useConsultingModules'
 import { useConsultingMethodology } from '@/hooks/useConsultingClients'
 import { mergeAgendaOptionLabels, useAgendaOptions } from '@/hooks/useAgendaOptions'
+import { supabase } from '@/lib/supabase'
+import { slugify } from '@/lib/utils'
 import { TabNav } from '@/components/molecules/TabNav'
 import { TABS } from './data/tabs'
 import { useActiveTab } from './hooks/useActiveTab'
@@ -35,7 +37,8 @@ export function ConsultoriaClienteDetalhe() {
   } = useAgendaOptions()
 
   const clientId = client?.id
-  const resolvedStoreId = client?.primary_store_id || client?.store_id || ''
+  const [fallbackStoreId, setFallbackStoreId] = useState('')
+  const resolvedStoreId = client?.primary_store_id || client?.store_id || fallbackStoreId || ''
   const { loading: modulesLoading } = useConsultingModules(clientId)
   const { steps: methodologySteps } = useConsultingMethodology(client?.program_template_key || 'pmr_7')
 
@@ -43,6 +46,43 @@ export function ConsultoriaClienteDetalhe() {
 
   const visitFormApi = useVisitForm({ client, methodologySteps, profileId: profile?.id, upsertVisit })
   const legacyApi = useLegacyCompletion({ client, completeLegacyVisits })
+
+  useEffect(() => {
+    if (!client || client.primary_store_id || client.store_id) {
+      setFallbackStoreId('')
+      return
+    }
+
+    let active = true
+    const resolveStoreByName = async () => {
+      const { data, error } = await supabase
+        .from('lojas')
+        .select('id,name')
+        .eq('active', true)
+
+      if (!active) return
+      if (error) {
+        if (import.meta.env.DEV) console.warn('Store fallback resolution failed:', error)
+        setFallbackStoreId('')
+        return
+      }
+
+      const clientNameSlug = slugify(client.name)
+      const clientSlugValue = client.slug ? slugify(client.slug) : clientNameSlug
+      const matchedStore = (data || []).find((store) => {
+        const storeSlug = slugify(store.name || '')
+        return storeSlug === clientNameSlug || storeSlug === clientSlugValue
+      })
+
+      setFallbackStoreId(matchedStore?.id || '')
+    }
+
+    void resolveStoreByName()
+
+    return () => {
+      active = false
+    }
+  }, [client])
 
   const internalUsers = useMemo(
     () => assignableUsers.filter((user) => isPerfilInternoMx(user.role)),

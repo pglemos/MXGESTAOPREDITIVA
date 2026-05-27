@@ -95,13 +95,13 @@ export function TabContentRouter({
     case 'pdis':
       return (
         <ConsultoriaErrorBoundary sectionName="PDI">
-          <PDIsSection storeId={resolvedStoreId} />
+          <PDIsSection storeId={resolvedStoreId} visits={client.visits || []} />
         </ConsultoriaErrorBoundary>
       )
     case 'files':
       return (
         <ConsultoriaErrorBoundary sectionName="Arquivos">
-          <ConsultingDriveFilesView clientId={clientId} />
+          <ConsultingDriveFilesView clientId={clientId} visits={client.visits || []} />
         </ConsultoriaErrorBoundary>
       )
     default:

@@ -32,6 +32,7 @@ import {
   VISIT_ANALYSIS_PERIOD_PRESETS,
   type VisitAnalysisPeriodPreset,
 } from '@/lib/consultoria/visit-analysis-period'
+import { downloadEvidenceAttachment, openEvidenceAttachment } from '@/lib/consultoria/evidence-attachments'
 import { Modal } from '@/components/organisms/Modal'
 
 import { VisitHeaderBase } from '@/features/consultoria/components/VisitHeaderBase'
@@ -243,6 +244,22 @@ export default function ConsultoriaVisitaExecucao() {
         onClick: () => void executeDeleteAttachment(file),
       },
     })
+  }
+
+  const handleOpenAttachment = async (file: ConsultingVisitAttachment) => {
+    try {
+      await openEvidenceAttachment(file)
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    }
+  }
+
+  const handleDownloadAttachment = async (file: ConsultingVisitAttachment) => {
+    try {
+      await downloadEvidenceAttachment(file)
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    }
   }
 
   const handleToggleCheck = (index: number) => {
@@ -856,7 +873,11 @@ export default function ConsultoriaVisitaExecucao() {
                               <Typography variant="tiny" className="opacity-50 text-mx-micro">{formatFileSize(att.size_bytes)}</Typography>
                            </div>
                         </div>
-                        <Button size="icon" variant="ghost" className="h-mx-8 w-mx-8 opacity-0 group-hover:opacity-100 text-status-error" onClick={() => handleDeleteAttachment(att)} icon={<Trash2 size={14} />} />
+                        <div className="flex items-center gap-mx-xs opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+                          <Button size="icon" variant="ghost" className="h-mx-8 w-mx-8 text-status-info" onClick={() => handleOpenAttachment(att)} aria-label={`Visualizar ${att.filename}`} icon={<Eye size={14} />} />
+                          <Button size="icon" variant="ghost" className="h-mx-8 w-mx-8 text-brand-primary" onClick={() => handleDownloadAttachment(att)} aria-label={`Baixar ${att.filename}`} icon={<Download size={14} />} />
+                          <Button size="icon" variant="ghost" className="h-mx-8 w-mx-8 text-status-error" onClick={() => handleDeleteAttachment(att)} aria-label={`Remover ${att.filename}`} icon={<Trash2 size={14} />} />
+                        </div>
                      </div>
                   ))}
                </div>
