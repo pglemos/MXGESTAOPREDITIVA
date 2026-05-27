@@ -229,6 +229,24 @@
 
   --font-display: 'Plus Jakarta Sans', sans-serif;
   --animate-slide-up: slide-up 0.32s ease-out both;
+
+  /* ==========================================================================
+     MX-1.1 — Tokens semanticos adicionados em 2026-05-27
+     Story: docs/stories/story-MX-01-20260527-tokens-cores.md
+     ADR:   docs/adr/ADR-MX-002-branding-color-decision.md (Opcao B aprovada)
+     PRD:   docs/prd/prd-mx-performance-visao-estrutural-2026-05-27.md §4.6/§4.7
+     ========================================================================== */
+
+  /* Alert Consultive — 4o tipo de alerta (FR-ALERT-1 / .docx §225–§228) */
+  --color-alert-consultive: #6366f1;
+  --color-alert-consultive-surface: rgba(99, 102, 241, 0.05);
+
+  /* MX Score Bands — 5 faixas (FR-SCORE-2 / .docx §244–§249) */
+  --color-score-elite: #22C55E;     /* 90–100 — verde marca (consolidacao) */
+  --color-score-excellent: #4ade80; /* 80–89  — verde claro */
+  --color-score-good: #3b82f6;      /* 70–79  — azul info */
+  --color-score-attention: #f59e0b; /* 60–69  — ambar warning */
+  --color-score-critical: #ef4444;  /* <60    — vermelho error */
 }
 
 /* Mobile / PWA hardening — safe-area, tap highlight, scroll behavior */

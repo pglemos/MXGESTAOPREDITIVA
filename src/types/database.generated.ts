@@ -43,6 +43,30 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_model_daily_usage: {
+        Row: {
+          model: string
+          provider: string
+          requests: number
+          updated_at: string
+          usage_date: string
+        }
+        Insert: {
+          model: string
+          provider: string
+          requests?: number
+          updated_at?: string
+          usage_date: string
+        }
+        Update: {
+          model?: string
+          provider?: string
+          requests?: number
+          updated_at?: string
+          usage_date?: string
+        }
+        Relationships: []
+      }
       arquivos_drive_consultoria: {
         Row: {
           client_id: string
@@ -2240,6 +2264,7 @@ export type Database = {
       logs_auditoria: {
         Row: {
           action: string
+          correlation_id: string | null
           created_at: string | null
           details_json: Json | null
           entity: string
@@ -2249,6 +2274,7 @@ export type Database = {
         }
         Insert: {
           action: string
+          correlation_id?: string | null
           created_at?: string | null
           details_json?: Json | null
           entity: string
@@ -2258,6 +2284,7 @@ export type Database = {
         }
         Update: {
           action?: string
+          correlation_id?: string | null
           created_at?: string | null
           details_json?: Json | null
           entity?: string
@@ -4706,6 +4733,74 @@ export type Database = {
           },
         ]
       }
+      reunioes_google_meet_atas: {
+        Row: {
+          ata_text: string | null
+          client_id: string | null
+          conference_record_name: string | null
+          created_at: string
+          error_message: string | null
+          google_meet_link: string | null
+          id: string
+          meeting_code: string | null
+          processed_at: string | null
+          source_id: string
+          source_kind: string
+          status: string
+          title: string | null
+          transcript_name: string | null
+          transcript_state: string | null
+          transcript_text: string | null
+          updated_at: string
+        }
+        Insert: {
+          ata_text?: string | null
+          client_id?: string | null
+          conference_record_name?: string | null
+          created_at?: string
+          error_message?: string | null
+          google_meet_link?: string | null
+          id?: string
+          meeting_code?: string | null
+          processed_at?: string | null
+          source_id: string
+          source_kind: string
+          status?: string
+          title?: string | null
+          transcript_name?: string | null
+          transcript_state?: string | null
+          transcript_text?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ata_text?: string | null
+          client_id?: string | null
+          conference_record_name?: string | null
+          created_at?: string
+          error_message?: string | null
+          google_meet_link?: string | null
+          id?: string
+          meeting_code?: string | null
+          processed_at?: string | null
+          source_id?: string
+          source_kind?: string
+          status?: string
+          title?: string | null
+          transcript_name?: string | null
+          transcript_state?: string | null
+          transcript_text?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reunioes_google_meet_atas_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes_consultoria"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_assignments_audit: {
         Row: {
           action: string
@@ -4735,24 +4830,232 @@ export type Database = {
       }
       roles: {
         Row: {
+          code: string
           created_at: string | null
           description: string | null
+          hierarchy_level: number
           id: string
+          is_master_loja: boolean
           name: string
+          name_en: string | null
+          name_pt: string | null
+          updated_at: string
         }
         Insert: {
+          code: string
           created_at?: string | null
           description?: string | null
+          hierarchy_level: number
           id?: string
+          is_master_loja?: boolean
           name: string
+          name_en?: string | null
+          name_pt?: string | null
+          updated_at?: string
         }
         Update: {
+          code?: string
           created_at?: string | null
           description?: string | null
+          hierarchy_level?: number
           id?: string
+          is_master_loja?: boolean
           name?: string
+          name_en?: string | null
+          name_pt?: string | null
+          updated_at?: string
         }
         Relationships: []
+      }
+      rpc_error_log: {
+        Row: {
+          caller_id: string | null
+          context: Json | null
+          correlation_id: string | null
+          created_at: string
+          payload: Json | null
+          rpc_name: string
+          sqlerrm: string
+          sqlstate: string
+          trace_id: string
+        }
+        Insert: {
+          caller_id?: string | null
+          context?: Json | null
+          correlation_id?: string | null
+          created_at?: string
+          payload?: Json | null
+          rpc_name: string
+          sqlerrm: string
+          sqlstate: string
+          trace_id?: string
+        }
+        Update: {
+          caller_id?: string | null
+          context?: Json | null
+          correlation_id?: string | null
+          created_at?: string
+          payload?: Json | null
+          rpc_name?: string
+          sqlerrm?: string
+          sqlstate?: string
+          trace_id?: string
+        }
+        Relationships: []
+      }
+      score_calculations: {
+        Row: {
+          band: Database["public"]["Enums"]["score_band"]
+          calculation_version: string
+          computed_at: string
+          dim_disciplina: number | null
+          dim_processo: number | null
+          dim_resultado: number | null
+          id: string
+          period: string
+          scope_id: string
+          scope_type: Database["public"]["Enums"]["score_scope_type"]
+          value: number
+        }
+        Insert: {
+          band: Database["public"]["Enums"]["score_band"]
+          calculation_version: string
+          computed_at?: string
+          dim_disciplina?: number | null
+          dim_processo?: number | null
+          dim_resultado?: number | null
+          id?: string
+          period: string
+          scope_id: string
+          scope_type: Database["public"]["Enums"]["score_scope_type"]
+          value: number
+        }
+        Update: {
+          band?: Database["public"]["Enums"]["score_band"]
+          calculation_version?: string
+          computed_at?: string
+          dim_disciplina?: number | null
+          dim_processo?: number | null
+          dim_resultado?: number | null
+          id?: string
+          period?: string
+          scope_id?: string
+          scope_type?: Database["public"]["Enums"]["score_scope_type"]
+          value?: number
+        }
+        Relationships: []
+      }
+      score_history: {
+        Row: {
+          archived_at: string
+          calculation_id: string
+          id: string
+          snapshot_payload: Json
+        }
+        Insert: {
+          archived_at?: string
+          calculation_id: string
+          id?: string
+          snapshot_payload: Json
+        }
+        Update: {
+          archived_at?: string
+          calculation_id?: string
+          id?: string
+          snapshot_payload?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "score_history_calculation_id_fkey"
+            columns: ["calculation_id"]
+            isOneToOne: false
+            referencedRelation: "score_calculations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      score_inputs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          dimension: Database["public"]["Enums"]["score_dimension"]
+          id: string
+          metric_code: string
+          metric_value: number
+          period: string
+          scope_id: string
+          scope_type: Database["public"]["Enums"]["score_scope_type"]
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          dimension: Database["public"]["Enums"]["score_dimension"]
+          id?: string
+          metric_code: string
+          metric_value: number
+          period: string
+          scope_id: string
+          scope_type: Database["public"]["Enums"]["score_scope_type"]
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          dimension?: Database["public"]["Enums"]["score_dimension"]
+          id?: string
+          metric_code?: string
+          metric_value?: number
+          period?: string
+          scope_id?: string
+          scope_type?: Database["public"]["Enums"]["score_scope_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "score_inputs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      score_observations: {
+        Row: {
+          author_id: string
+          calculation_id: string
+          created_at: string
+          id: string
+          observation_text: string
+        }
+        Insert: {
+          author_id: string
+          calculation_id: string
+          created_at?: string
+          id?: string
+          observation_text: string
+        }
+        Update: {
+          author_id?: string
+          calculation_id?: string
+          created_at?: string
+          id?: string
+          observation_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "score_observations_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "score_observations_calculation_id_fkey"
+            columns: ["calculation_id"]
+            isOneToOne: false
+            referencedRelation: "score_calculations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       snapshots_estoque_consultoria: {
         Row: {
@@ -5366,6 +5669,7 @@ export type Database = {
           notification_preferences: Json | null
           phone: string | null
           role: string
+          role_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -5380,6 +5684,7 @@ export type Database = {
           notification_preferences?: Json | null
           phone?: string | null
           role?: string
+          role_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -5394,9 +5699,18 @@ export type Database = {
           notification_preferences?: Json | null
           phone?: string | null
           role?: string
+          role_id?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "usuarios_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       valores_parametros_consultoria: {
         Row: {
@@ -5825,6 +6139,10 @@ export type Database = {
         Args: { p_payload: Json; p_store_id: string }
         Returns: Json
       }
+      append_audit_log: {
+        Args: { p_action: string; p_details?: Json; p_entity: string }
+        Returns: undefined
+      }
       approve_correction_request: {
         Args: { request_id: string }
         Returns: undefined
@@ -5840,6 +6158,42 @@ export type Database = {
       check_user_role_in_store: {
         Args: { p_roles: string[]; p_store_id: string }
         Returns: boolean
+      }
+      checkin_validation_kit: {
+        Args: {
+          p_caller_id: string
+          p_now?: string
+          p_reference_date: string
+          p_scope?: string
+          p_seller_id: string
+          p_store_id: string
+        }
+        Returns: {
+          error_code: string
+          error_message: string
+          ok: boolean
+        }[]
+      }
+      claim_ai_model_daily_quota: {
+        Args: {
+          p_fallback_daily_limit: number
+          p_fallback_model: string
+          p_force_fallback?: boolean
+          p_primary_daily_limit: number
+          p_primary_model: string
+          p_provider: string
+        }
+        Returns: {
+          daily_limit: number
+          fallback_used: boolean
+          quota_date: string
+          selected_model: string
+          used_requests: number
+        }[]
+      }
+      classify_score: {
+        Args: { v: number }
+        Returns: Database["public"]["Enums"]["score_band"]
       }
       complete_password_change: { Args: never; Returns: Json }
       compute_dre: {
@@ -5909,6 +6263,14 @@ export type Database = {
         }
         Returns: Json
       }
+      configure_google_meet_ata_cron: {
+        Args: {
+          p_cron_secret: string
+          p_function_url: string
+          p_schedule?: string
+        }
+        Returns: undefined
+      }
       configure_monthly_report_cron: {
         Args: {
           p_bearer_token: string
@@ -5941,8 +6303,256 @@ export type Database = {
         Args: { p_sessao_id: string }
         Returns: number
       }
+      get_correlation_id: { Args: never; Returns: string }
+      get_lancamento_por_dia: {
+        Args: {
+          p_reference_date: string
+          p_scope?: string
+          p_seller_id: string
+          p_store_id: string
+        }
+        Returns: {
+          agd_cart: number
+          agd_cart_prev_day: number
+          agd_cart_today: number
+          agd_net: number
+          agd_net_prev_day: number
+          agd_net_today: number
+          created_at: string | null
+          created_by: string | null
+          date: string
+          edit_locked_at: string | null
+          id: string
+          leads: number
+          leads_prev_day: number
+          metric_scope: Database["public"]["Enums"]["checkin_scope"]
+          note: string | null
+          reference_date: string
+          seller_user_id: string
+          store_id: string
+          submission_status: string
+          submitted_at: string
+          submitted_late: boolean
+          updated_at: string | null
+          user_id: string
+          visit_prev_day: number
+          visitas: number
+          vnd_cart: number
+          vnd_cart_prev_day: number
+          vnd_net: number
+          vnd_net_prev_day: number
+          vnd_porta: number
+          vnd_porta_prev_day: number
+          zero_reason: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "lancamentos_diarios"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      get_lancamentos_por_loja_periodo: {
+        Args: {
+          p_end_date: string
+          p_scope?: string
+          p_start_date: string
+          p_store_id: string
+        }
+        Returns: {
+          agd_cart: number
+          agd_cart_prev_day: number
+          agd_cart_today: number
+          agd_net: number
+          agd_net_prev_day: number
+          agd_net_today: number
+          created_at: string | null
+          created_by: string | null
+          date: string
+          edit_locked_at: string | null
+          id: string
+          leads: number
+          leads_prev_day: number
+          metric_scope: Database["public"]["Enums"]["checkin_scope"]
+          note: string | null
+          reference_date: string
+          seller_user_id: string
+          store_id: string
+          submission_status: string
+          submitted_at: string
+          submitted_late: boolean
+          updated_at: string | null
+          user_id: string
+          visit_prev_day: number
+          visitas: number
+          vnd_cart: number
+          vnd_cart_prev_day: number
+          vnd_net: number
+          vnd_net_prev_day: number
+          vnd_porta: number
+          vnd_porta_prev_day: number
+          zero_reason: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "lancamentos_diarios"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_lancamentos_por_vendedor_periodo: {
+        Args: {
+          p_end_date: string
+          p_scope?: string
+          p_seller_id: string
+          p_start_date: string
+          p_store_id: string
+        }
+        Returns: {
+          agd_cart: number
+          agd_cart_prev_day: number
+          agd_cart_today: number
+          agd_net: number
+          agd_net_prev_day: number
+          agd_net_today: number
+          created_at: string | null
+          created_by: string | null
+          date: string
+          edit_locked_at: string | null
+          id: string
+          leads: number
+          leads_prev_day: number
+          metric_scope: Database["public"]["Enums"]["checkin_scope"]
+          note: string | null
+          reference_date: string
+          seller_user_id: string
+          store_id: string
+          submission_status: string
+          submitted_at: string
+          submitted_late: boolean
+          updated_at: string | null
+          user_id: string
+          visit_prev_day: number
+          visitas: number
+          vnd_cart: number
+          vnd_cart_prev_day: number
+          vnd_net: number
+          vnd_net_prev_day: number
+          vnd_porta: number
+          vnd_porta_prev_day: number
+          zero_reason: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "lancamentos_diarios"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_lancamentos_rede_periodo: {
+        Args: { p_end_date: string; p_scope?: string; p_start_date: string }
+        Returns: {
+          agd_cart: number
+          agd_cart_prev_day: number
+          agd_cart_today: number
+          agd_net: number
+          agd_net_prev_day: number
+          agd_net_today: number
+          created_at: string | null
+          created_by: string | null
+          date: string
+          edit_locked_at: string | null
+          id: string
+          leads: number
+          leads_prev_day: number
+          metric_scope: Database["public"]["Enums"]["checkin_scope"]
+          note: string | null
+          reference_date: string
+          seller_user_id: string
+          store_id: string
+          submission_status: string
+          submitted_at: string
+          submitted_late: boolean
+          updated_at: string | null
+          user_id: string
+          visit_prev_day: number
+          visitas: number
+          vnd_cart: number
+          vnd_cart_prev_day: number
+          vnd_net: number
+          vnd_net_prev_day: number
+          vnd_porta: number
+          vnd_porta_prev_day: number
+          zero_reason: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "lancamentos_diarios"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_lancamentos_referencia_dia: {
+        Args: { p_reference_date: string; p_scope?: string }
+        Returns: {
+          agd_cart: number
+          agd_cart_prev_day: number
+          agd_cart_today: number
+          agd_net: number
+          agd_net_prev_day: number
+          agd_net_today: number
+          created_at: string | null
+          created_by: string | null
+          date: string
+          edit_locked_at: string | null
+          id: string
+          leads: number
+          leads_prev_day: number
+          metric_scope: Database["public"]["Enums"]["checkin_scope"]
+          note: string | null
+          reference_date: string
+          seller_user_id: string
+          store_id: string
+          submission_status: string
+          submitted_at: string
+          submitted_late: boolean
+          updated_at: string | null
+          user_id: string
+          visit_prev_day: number
+          visitas: number
+          vnd_cart: number
+          vnd_cart_prev_day: number
+          vnd_net: number
+          vnd_net_prev_day: number
+          vnd_porta: number
+          vnd_porta_prev_day: number
+          zero_reason: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "lancamentos_diarios"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_pdi_form_template: { Args: { p_cargo_id: string }; Returns: Json }
       get_pdi_print_bundle: { Args: { p_sessao_id: string }; Returns: Json }
+      get_score: {
+        Args: {
+          p_period?: string
+          p_scope_id: string
+          p_scope_type: Database["public"]["Enums"]["score_scope_type"]
+        }
+        Returns: {
+          band: Database["public"]["Enums"]["score_band"]
+          calculation_version: string
+          computed_at: string
+          dim_disciplina: number
+          dim_processo: number
+          dim_resultado: number
+          value: number
+        }[]
+      }
       get_suggested_actions: {
         Args: { p_competencia_id: string }
         Returns: Json
@@ -5976,6 +6586,16 @@ export type Database = {
           total_visitas: number
         }[]
       }
+      log_rpc_error: {
+        Args: {
+          p_caller_id?: string
+          p_payload?: Json
+          p_rpc_name: string
+          p_sqlerrm: string
+          p_sqlstate: string
+        }
+        Returns: string
+      }
       modulo_cliente_consultoria_habilitado: {
         Args: { p_cliente_id: string; p_modulo_chave: string }
         Returns: boolean
@@ -6001,6 +6621,10 @@ export type Database = {
           p_store_id: string
           uid?: string
         }
+        Returns: boolean
+      }
+      pode_ler_lancamentos_loja: {
+        Args: { p_store_id: string }
         Returns: boolean
       }
       pode_ver_usuario: {
@@ -6045,6 +6669,9 @@ export type Database = {
     Enums: {
       checkin_scope: "daily" | "adjustment" | "historical"
       correction_status: "pending" | "approved" | "rejected"
+      score_band: "elite" | "excellent" | "good" | "attention" | "critical"
+      score_dimension: "resultado" | "processo" | "disciplina"
+      score_scope_type: "store" | "department" | "individual" | "process"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -6174,6 +6801,9 @@ export const Constants = {
     Enums: {
       checkin_scope: ["daily", "adjustment", "historical"],
       correction_status: ["pending", "approved", "rejected"],
+      score_band: ["elite", "excellent", "good", "attention", "critical"],
+      score_dimension: ["resultado", "processo", "disciplina"],
+      score_scope_type: ["store", "department", "individual", "process"],
     },
   },
 } as const
