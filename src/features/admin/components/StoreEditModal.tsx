@@ -144,7 +144,6 @@ export function StoreEditModal({ open, store, saving = false, onClose, onSubmit 
             <Input
               id="edit-store-name"
               required
-              autoFocus
               value={form.name}
               onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value.toUpperCase() }))}
               className="!pl-14 !h-14 font-black uppercase tracking-widest"

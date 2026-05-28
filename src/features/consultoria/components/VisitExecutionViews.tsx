@@ -462,7 +462,16 @@ export function VisitChecklist({ items, onToggle }: { items: Array<{ task: strin
       {items.map((it, i) => (
         <div
           key={i}
+          role="checkbox"
+          tabIndex={0}
+          aria-checked={it.completed}
           onClick={() => toggle(i)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              toggle(i)
+            }
+          }}
           className={cn(
             "p-mx-md rounded-mx-xl border cursor-pointer transition-all flex items-start gap-mx-sm text-xs font-bold shadow-sm hover:shadow-mx-md active:scale-95 min-h-mx-16",
             it.completed

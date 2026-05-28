@@ -45,7 +45,6 @@ export function CreateStoreModal({ open, newStore, setNewStore, creating, onClos
             id="dashboard-new-store-name"
             name="store_name"
             required
-            autoFocus
             value={newStore.name}
             onChange={event => setNewStore(prev => ({ ...prev, name: event.target.value.toUpperCase() }))}
             className="!h-14 font-black uppercase tracking-widest"

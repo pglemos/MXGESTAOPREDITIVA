@@ -220,20 +220,34 @@ export default function Perfil() {
       </div>
 
       {showPasswordModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-mx-md" onClick={() => setShowPasswordModal(false)}>
-          <div className="bg-white rounded-mx-2xl shadow-mx-xl w-full max-w-md p-mx-xl" onClick={(e) => e.stopPropagation()}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="profile-password-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-mx-md"
+          onClick={() => setShowPasswordModal(false)}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') setShowPasswordModal(false)
+          }}
+        >
+          <div
+            role="presentation"
+            className="bg-white rounded-mx-2xl shadow-mx-xl w-full max-w-md p-mx-xl"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between mb-mx-lg">
-              <Typography variant="h3">Alterar Senha</Typography>
+              <Typography variant="h3" id="profile-password-modal-title">Alterar Senha</Typography>
               <button onClick={() => setShowPasswordModal(false)} className="text-text-tertiary hover:text-text-primary"><X size={20} /></button>
             </div>
 
             <div className="space-y-mx-md">
               <div>
-                <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-1">Nova Senha</label>
+                <label htmlFor="profile-password-modal-new" className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-1">Nova Senha</label>
                 <Input id="profile-password-modal-new" name="new-password" autoComplete="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 10, Aa1#" className="w-full" />
               </div>
               <div>
-                <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-1">Confirmar Senha</label>
+                <label htmlFor="profile-password-modal-confirm" className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-1">Confirmar Senha</label>
                 <Input id="profile-password-modal-confirm" name="confirm-password" autoComplete="new-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repita a nova senha" className="w-full" />
               </div>
             </div>

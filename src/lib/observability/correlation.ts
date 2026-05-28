@@ -37,8 +37,7 @@ export function newCorrelationId(): string {
 function tagSentry(correlationId: string): void {
     try {
         // Lazy require para evitar import circular se Sentry init ainda não rodou
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const sentry = (globalThis as any).Sentry
+        const sentry = (globalThis as unknown as { Sentry?: { setTag?: (k: string, v: string) => void } }).Sentry
         if (sentry && typeof sentry.setTag === 'function') {
             sentry.setTag('correlation_id', correlationId)
         }

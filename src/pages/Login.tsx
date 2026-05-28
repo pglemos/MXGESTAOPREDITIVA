@@ -378,7 +378,6 @@ export default function Login() {
                                 onChange={e => { setEmail(e.target.value); if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: '' })) }}
                                 placeholder="seu@email.com.br"
                                 required
-                                autoFocus={!email}
                                 autoComplete="email"
                                 icon={<Mail size={18} />}
                                 error={fieldErrors.email}
@@ -423,7 +422,6 @@ export default function Login() {
                                     onChange={e => { setNewPassword(e.target.value); if (fieldErrors.newPassword) setFieldErrors(prev => ({ ...prev, newPassword: '' })) }}
                                     placeholder="Mínimo 10, Aa1#"
                                     required
-                                    autoFocus
                                     autoComplete="new-password"
                                     icon={<KeyRound size={18} />}
                                     error={fieldErrors.newPassword}

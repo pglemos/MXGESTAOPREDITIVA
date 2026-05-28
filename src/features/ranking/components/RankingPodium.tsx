@@ -31,7 +31,16 @@ export function RankingPodium({ entries, onSelect }: Props) {
         return (
           <div
             key={seller.user_id}
+            role="button"
+            tabIndex={0}
+            aria-label={`Ver detalhes de ${seller.user_name}`}
             onClick={() => onSelect(seller.user_id)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault()
+                onSelect(seller.user_id)
+              }
+            }}
             className={`flex flex-col items-center group cursor-pointer transition-transform duration-500 hover:-translate-y-2 z-10 ${isFirst ? '-mb-4 sm:-mb-0' : ''}`}
           >
             <div className="relative mb-3 flex flex-col items-center">

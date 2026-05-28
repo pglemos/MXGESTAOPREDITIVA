@@ -27,8 +27,10 @@ export function NotificacaoApprovalCard({
 }: Props) {
   return (
     <div
+      role="presentation"
       className="mt-mx-md rounded-mx-2xl border border-brand-primary/15 bg-white p-mx-md shadow-mx-sm"
       onClick={event => event.stopPropagation()}
+      onKeyDown={event => event.stopPropagation()}
     >
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-mx-sm">
         <div className="flex items-start gap-mx-sm min-w-0">

@@ -16,6 +16,10 @@ const ModalTrigger = React.forwardRef<HTMLDivElement, ModalTriggerProps>(
 
     return (
       <>
+        {/* Wrapper transparente: a interatividade real está nos `children` (botão/link).
+            O onClick captura o evento que sobe via bubbling — não há interação direta
+            no div, portanto não declaramos role nem tabIndex (eslint suprimido). */}
+        {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events */}
         <div
           ref={ref}
           className={cn('inline-flex', className)}

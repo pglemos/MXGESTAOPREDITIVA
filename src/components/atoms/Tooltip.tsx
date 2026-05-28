@@ -32,6 +32,8 @@ const Tooltip = React.forwardRef<HTMLDivElement, TooltipProps>(
     return (
       <div
         ref={ref}
+        role="group"
+        tabIndex={-1}
         className="relative inline-flex"
         onMouseEnter={() => setVisible(true)}
         onMouseLeave={() => setVisible(false)}

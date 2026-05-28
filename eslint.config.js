@@ -58,11 +58,17 @@ export default tseslint.config(
       'jsx-a11y/iframe-has-title': 'error',
       'jsx-a11y/img-redundant-alt': 'error',
       'jsx-a11y/no-redundant-roles': 'error',
-      // NOTE: Story 3.11 / UX-015 — demoted para 'warn' (Rollback Plan #1)
-      // Baseline tinha 26 ocorrencias, muitas falsos positivos com Radix UI / inputs custom.
-      // Plano: promover a 'error' em Sprint 4 apos cleanup pontual (tracking via UX-015B).
-      'jsx-a11y/label-has-associated-control': 'warn',
-      // Warnings (ruidosos — manter rastreável sem bloquear CI inicialmente)
+      // NOTE: Story 3.11 / UX-015 + Blitz 48h 2026-05-28 (Orion):
+      // Configuração reconhece Input/Select/Textarea custom como controles válidos.
+      // Cleanup pontual no Blitz removeu autoFocus + diretivas eslint-disable mortas.
+      'jsx-a11y/label-has-associated-control': ['warn', {
+        labelComponents: ['Label'],
+        labelAttributes: ['htmlFor'],
+        controlComponents: ['Input', 'Select', 'Textarea', 'select', 'input', 'textarea'],
+        assert: 'either',
+        depth: 4,
+      }],
+      // Warnings ainda rastreáveis (cleanup gradual via stories OPS dedicadas)
       'jsx-a11y/click-events-have-key-events': 'warn',
       'jsx-a11y/no-static-element-interactions': 'warn',
       'jsx-a11y/no-autofocus': 'warn',

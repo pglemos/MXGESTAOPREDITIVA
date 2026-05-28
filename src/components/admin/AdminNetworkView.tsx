@@ -65,9 +65,18 @@ export function AdminNetworkView() {
 
         return (
           <Card key={store.store_id} className="overflow-hidden shadow-mx-sm border-border-default bg-white">
-            <div 
+            <div
+              role="button"
+              tabIndex={0}
+              aria-expanded={isExpanded}
               className="p-mx-sm sm:p-mx-md flex items-center justify-between cursor-pointer hover:bg-surface-alt transition-colors"
               onClick={() => setExpandedStoreId(isExpanded ? null : store.store_id)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  setExpandedStoreId(isExpanded ? null : store.store_id)
+                }
+              }}
             >
               <div className="flex items-center gap-mx-sm min-w-0">
                 <div className="w-mx-10 h-mx-10 sm:w-mx-xl sm:h-mx-xl rounded-mx-lg bg-brand-primary/10 flex items-center justify-center text-brand-primary shrink-0">

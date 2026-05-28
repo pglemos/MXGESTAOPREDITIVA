@@ -155,8 +155,10 @@ export function buildStoreColumns({
       align: 'right',
       render: store => (
         <div
+          role="presentation"
           className="flex items-center justify-end gap-mx-tiny sm:gap-mx-xs relative z-10"
           onClick={e => e.stopPropagation()}
+          onKeyDown={e => e.stopPropagation()}
         >
           {store.active ? (
             <>

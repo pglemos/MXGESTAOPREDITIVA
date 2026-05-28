@@ -35,7 +35,6 @@ function useAnimatedNumber(value: number, duration = 900) {
     }
     raf = requestAnimationFrame(step)
     return () => cancelAnimationFrame(raf)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value])
   return display
 }

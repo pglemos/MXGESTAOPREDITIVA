@@ -15,8 +15,10 @@ import { Sentry } from './sentry'
 function reportMetric(metric: Metric): void {
     // Sentry tag + breadcrumb (no-op se Sentry não inicializado)
     if (Sentry && typeof Sentry === 'object') {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const s = Sentry as any
+        const s = Sentry as unknown as {
+            setTag?: (key: string, value: number) => void
+            addBreadcrumb?: (b: Record<string, unknown>) => void
+        }
         s.setTag?.(`web_vitals.${metric.name.toLowerCase()}`, metric.value)
         s.addBreadcrumb?.({
             category: 'web-vitals',
@@ -38,7 +40,6 @@ function reportMetric(metric: Metric): void {
 
     // Console em dev
     if (import.meta.env.DEV) {
-        // eslint-disable-next-line no-console
         console.info(
             `[web-vitals] ${metric.name}=${metric.value.toFixed(2)} (${metric.rating})`
         )

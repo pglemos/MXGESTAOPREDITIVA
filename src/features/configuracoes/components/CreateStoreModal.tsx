@@ -62,7 +62,6 @@ export function CreateStoreModal({ open, onClose, onSubmit }: CreateStoreModalPr
                             id="create-store-name"
                             name="store-name"
                             required
-                            autoFocus
                             value={name}
                             onChange={e => setName(e.target.value.toUpperCase())}
                             placeholder="EX: MX FORTALEZA"

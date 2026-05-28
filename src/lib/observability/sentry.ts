@@ -28,7 +28,6 @@ export function initSentry(config?: SentryConfig): void {
     const dsn = config?.dsn ?? import.meta.env.VITE_SENTRY_DSN
     if (!dsn) {
         if (import.meta.env.PROD) {
-            // eslint-disable-next-line no-console
             console.warn('[sentry] VITE_SENTRY_DSN ausente em produção — observabilidade DESABILITADA (SYS-017)')
         }
         return
@@ -82,8 +81,7 @@ export function initSentry(config?: SentryConfig): void {
 
     // Expõe globalmente para correlation.ts integrar via globalThis.Sentry
     if (typeof globalThis !== 'undefined') {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ;(globalThis as any).Sentry = Sentry
+        ;(globalThis as unknown as { Sentry: typeof Sentry }).Sentry = Sentry
     }
 
     initialized = true

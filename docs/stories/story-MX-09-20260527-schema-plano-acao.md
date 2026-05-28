@@ -2,7 +2,7 @@
 
 ## Status
 
-Ready for Review
+Done
 
 ## Story
 
@@ -107,3 +107,7 @@ Esta story entrega a fundacao de dados do plano de acao. O produto nao deve vira
 
 - 2026-05-27: Story atualizada de `Draft` para `InProgress` com evidência de UI/contrato, schema persistente e hardening RLS.
 - 2026-05-27: Story movida para `Ready for Review` após cobertura de status/origem/histórico.
+
+### Change Log Update — 2026-05-28
+
+- 2026-05-28: QA gate Wave 3 dry-run PASS (358 tests, lint clean, typecheck clean, build OK). Status movido para `Done` por @aiox-master (Orion). Fonte: `docs/reports/qa-gate-mx-wave3-stories-20260528.md`.

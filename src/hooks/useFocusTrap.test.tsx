@@ -9,8 +9,8 @@ import { useFocusTrap } from './useFocusTrap'
 
 // Polyfill rAF para Bun + happy-dom
 if (typeof globalThis.requestAnimationFrame === 'undefined') {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ;(globalThis as any).requestAnimationFrame = (cb: FrameRequestCallback) => setTimeout(() => cb(performance.now()), 0) as unknown as number
+  ;(globalThis as unknown as { requestAnimationFrame: typeof requestAnimationFrame }).requestAnimationFrame =
+    (cb: FrameRequestCallback) => setTimeout(() => cb(performance.now()), 0) as unknown as number
 }
 
 function TestModal({ active }: { active: boolean }) {

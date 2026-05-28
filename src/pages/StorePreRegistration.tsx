@@ -470,7 +470,7 @@ export default function StorePreRegistration() {
                       {step === 0 && (
                         <div className="mx-pre-identity-grid">
                           <div>
-                            <label className="mx-public-label">Foto para avatar (opcional)</label>
+                            <span className="mx-public-label">Foto para avatar (opcional)</span>
                             <motion.div
                               whileHover={{ y: -2 }}
                               className={cn('mx-photo-stage', formErrors.photo && 'is-invalid')}
@@ -518,12 +518,12 @@ export default function StorePreRegistration() {
                             <input readOnly value={store?.name || ''} className="mx-public-input" />
                           </Field>
                           <div>
-                            <label className="mx-public-label">Segmento</label>
-                            <input required value={form.segment} onChange={event => updateForm('segment', event.target.value)} placeholder="Automotivo" className="mx-public-input" />
+                            <label htmlFor="prereg-segment" className="mx-public-label">Segmento</label>
+                            <input id="prereg-segment" required value={form.segment} onChange={event => updateForm('segment', event.target.value)} placeholder="Automotivo" className="mx-public-input" />
                             {formErrors.segment && <FieldError>{formErrors.segment}</FieldError>}
                           </div>
                           <div>
-                            <label className="mx-public-label">Função</label>
+                            <span id="prereg-role-label" className="mx-public-label">Função</span>
                             <div className="mx-role-grid">
                               {roleOptions.map(option => (
                                 <motion.button
@@ -547,16 +547,16 @@ export default function StorePreRegistration() {
                         <div className="mx-pre-field-stack">
                           <div className="mx-pre-two">
                             <div>
-                              <label className="mx-public-label">Tempo na loja</label>
-                              <select required value={form.store_tenure} onChange={event => updateForm('store_tenure', event.target.value)} className="mx-public-input">
+                              <label htmlFor="prereg-tenure" className="mx-public-label">Tempo na loja</label>
+                              <select id="prereg-tenure" required value={form.store_tenure} onChange={event => updateForm('store_tenure', event.target.value)} className="mx-public-input">
                                 <option value="">Selecione</option>
                                 {tenureOptions.map(option => <option key={option} value={option}>{option}</option>)}
                               </select>
                               {formErrors.store_tenure && <FieldError>{formErrors.store_tenure}</FieldError>}
                             </div>
                             <div>
-                              <label className="mx-public-label">Experiência de mercado</label>
-                              <select required value={form.market_experience} onChange={event => updateForm('market_experience', event.target.value)} className="mx-public-input">
+                              <label htmlFor="prereg-market" className="mx-public-label">Experiência de mercado</label>
+                              <select id="prereg-market" required value={form.market_experience} onChange={event => updateForm('market_experience', event.target.value)} className="mx-public-input">
                                 <option value="">Selecione</option>
                                 {marketOptions.map(option => <option key={option} value={option}>{option}</option>)}
                               </select>

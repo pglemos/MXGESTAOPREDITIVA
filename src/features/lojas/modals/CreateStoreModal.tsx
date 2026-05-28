@@ -92,7 +92,6 @@ export function CreateStoreModal({
                       id="store-name"
                       name="store-name"
                       required
-                      autoFocus
                       placeholder="EX: MX SÃO PAULO - LESTE"
                       value={newStore.name}
                       onChange={e =>
