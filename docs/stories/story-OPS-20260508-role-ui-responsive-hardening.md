@@ -66,16 +66,51 @@ quality_gate_tools: ["npm run lint", "npm run typecheck", "npm test", "npm run b
 - `npm run typecheck`: passou.
 - `npm test`: passou, 228 testes.
 - `npm run build`: passou.
+- Revisao cross-role 2026-05-27 aplicada com base nas 6 imagens do modulo do dono e no documento `MX PERFORMANCE - DESENVOLVIMENTO.docx`.
+- Analise funcional registrada em `docs/prd/analise-modulos-dono-gerente-vendedor-2026-05-27.md`, separando o que deve ser Home executiva do dono, central operacional do gerente e fluxo diario do vendedor.
+- Dono: Central MX reorganizada com Planejamento Estrategico, Plano de Acao, Alertas Inteligentes, Benchmarking, Agenda Executiva e Consultor IA; cockpit executivo preserva dados reais e estados pendentes quando nao ha fonte.
+- Gerente: navegacao reorganizada para Central Operacional, Rotina Comercial e Gestao de Gente; KPIs da performance ajustados para Meta, Realizado, Projecao, Agendamentos Hoje, Conversao e MX Score.
+- Vendedor: navegacao reorganizada para Meu Dia e Evolucao, com Meu Dia, Agenda, Funil, Fechar Meu Dia, Ranking, Feedbacks, PDI, Treinamentos e Trilhas.
+- `npm run typecheck`: passou.
+- `npm run lint`: passou com 56 warnings preexistentes de acessibilidade fora do escopo desta revisao.
+- `npm test`: passou, 308 testes, 0 falhas.
+- `npm run build`: passou.
+- Imagem da visao do gerente recebida em 2026-05-27: cockpit operacional criado para `role === gerente`, com Meta do Mes, Ritmo Diario, Conversao Geral, Agendamentos Hoje, MX Score, Desempenho da Equipe, Funil, Alertas, Engajamento, Ranking e Agenda.
+- Header legado de Dashboard Loja ocultado na Home de gerente para preservar a experiencia de painel operacional.
+- Browser: a sessao autenticada atual estava como `dono`; `/simulacao/gerente` retornou 403 corretamente. Regressao do cockpit do dono validada em desktop/mobile sem overflow horizontal. Visao do gerente validada por typecheck, lint, testes e build.
+- `npm run typecheck`: passou.
+- `npm run lint`: passou com 56 warnings preexistentes de acessibilidade fora do escopo desta revisao.
+- `npm test`: passou, 308 testes, 0 falhas.
+- `npm run build`: passou.
+- Imagem da visao do vendedor recebida em 2026-05-27: Home `Meu Dia` redesenhada para meta mensal, comissao pendente quando nao ha regra real, agendamentos, atividades, Score MX, agenda, fechamento do dia, ranking, evolucao, conquistas, treinamentos e ultimo feedback.
+- Hook da Home do vendedor passou a carregar devolutivas junto com metas, check-ins, ranking e treinamentos para sustentar o bloco de feedback sem dados falsos.
+- `npm run typecheck`: passou.
+- `npm run lint`: passou com 56 warnings preexistentes de acessibilidade fora do escopo desta revisao.
+- `npm test`: passou, 308 testes, 0 falhas.
+- `npm run build`: passou.
+- Continuidade 2026-05-27 via `aiox-master`: DOCX completo conferido por extracao textual porque o ambiente nao tem LibreOffice/Poppler/python-docx para renderizacao visual.
+- Contrato de alertas ajustado para cumprir o documento: problema, impacto, recomendacao e acao rapida agora aparecem separados nas leituras de dono e gerente.
+- `npm run typecheck`: passou.
 
 ### File List
 
 - `docs/stories/story-OPS-20260508-role-ui-responsive-hardening.md`
+- `docs/prd/analise-modulos-dono-gerente-vendedor-2026-05-27.md`
 - `src/index.css`
 - `src/components/Layout.tsx`
 - `src/components/molecules/TabNavPill.tsx`
 - `src/pages/DashboardLoja.tsx`
+- `src/features/dashboard-loja/DashboardLoja.container.tsx`
+- `src/features/dashboard-loja/sections/KpisSection.tsx`
+- `src/features/dashboard-loja/sections/ManagerOperationalCockpit.tsx`
+- `src/features/dashboard-loja/sections/OwnerDecisionCards.tsx`
+- `src/features/dashboard-loja/sections/PerformanceAlerts.tsx`
+- `src/features/dashboard-loja/sections/PerformanceTab.tsx`
+- `src/features/dashboard-loja/sections/OwnerExecutiveCockpit.tsx`
 - `src/pages/GerenteFeedback.tsx`
 - `src/pages/GerenteTreinamentos.tsx`
 - `src/pages/Ranking.tsx`
 - `src/pages/RotinaGerente.tsx`
 - `src/pages/VendedorHome.tsx`
+- `src/features/vendedor-home/VendedorHome.container.tsx`
+- `src/features/vendedor-home/hooks/useVendedorHomePage.ts`

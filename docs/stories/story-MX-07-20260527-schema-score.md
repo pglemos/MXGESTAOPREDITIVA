@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft
+InProgress
 
 ## Story
 
@@ -24,49 +24,49 @@ quality_gate_tools: ["supabase migration list", "psql migration verification", "
 
 ## Acceptance Criteria
 
-- [ ] Nova migration em `supabase/migrations/20260527HHMMSS_score_engine_schema.sql` (timestamp sequencial após 20260527100000 de roles)
-- [ ] Tabela `score_inputs`:
+- [x] Nova migration em `supabase/migrations/20260527HHMMSS_score_engine_schema.sql` (timestamp sequencial após 20260527100000 de roles)
+- [x] Tabela `score_inputs`:
   - `id` (uuid PK), `scope_type` (enum: 'store'|'department'|'individual'|'process'), `scope_id` (uuid),
   - `metric_code` (text), `metric_value` (numeric), `dimension` (enum: 'resultado'|'processo'|'disciplina'),
   - `period` (date), `created_at`, `created_by` (uuid FK → profiles)
-- [ ] Tabela `score_calculations`:
+- [x] Tabela `score_calculations`:
   - `id` (uuid PK), `scope_type`, `scope_id`,
   - `value` (numeric, CHECK between 0 and 100),
   - `band` (enum: 'elite'|'excellent'|'good'|'attention'|'critical'),
   - `dim_resultado` (numeric), `dim_processo` (numeric), `dim_disciplina` (numeric),
   - `calculation_version` (text — referência da regra que gerou),
   - `computed_at` (timestamptz), `period` (date)
-- [ ] Tabela `score_history`:
+- [x] Tabela `score_history`:
   - `id` (uuid PK), `calculation_id` (uuid FK → score_calculations),
   - `snapshot_payload` (jsonb — cópia completa imutável),
   - `archived_at` (timestamptz default now())
   - **Imutável:** trigger BEFORE UPDATE/DELETE bloqueando alterações
-- [ ] Tabela `score_observations`:
+- [x] Tabela `score_observations`:
   - `id` (uuid PK), `calculation_id` (uuid FK → score_calculations),
   - `author_id` (uuid FK → profiles, CHECK role = 'consultant' ou 'master'),
   - `observation_text` (text), `created_at`
   - **Garantia:** Consultor MX só pode INSERT aqui; nunca UPDATE em `score_calculations`
-- [ ] **Guard técnico (AC crítico):** Policy ou REVOKE garantindo que **nenhum role (incluindo consultant) pode UPDATE `score_calculations.value`**. Apenas service_role via RPC determinística pode escrever.
-- [ ] RLS habilitada nas 4 tabelas com policy temporária permissiva e `-- TODO: consume EPIC-MX-02 roles when ready` documentado
-- [ ] Function/RPC pública `get_score(scope_type, scope_id, period)` exposta para Frontend (read-only)
-- [ ] Migration **reversível**
-- [ ] Documentação SQL inline em cada tabela explicando dimensões R/P/D, faixas e princípio da automação
+- [x] **Guard técnico (AC crítico):** Policy ou REVOKE garantindo que **nenhum role (incluindo consultant) pode UPDATE `score_calculations.value`**. Apenas service_role via RPC determinística pode escrever.
+- [x] RLS habilitada nas 4 tabelas com policy temporária permissiva e `-- TODO: consume EPIC-MX-02 roles when ready` documentado
+- [x] Function/RPC pública `get_score(scope_type, scope_id, period)` exposta para Frontend (read-only)
+- [x] Migration **reversível**
+- [x] Documentação SQL inline em cada tabela explicando dimensões R/P/D, faixas e princípio da automação
 - [ ] Sem regressão em `npm run typecheck` após `supabase gen types typescript`
 
 ## Tasks / Subtasks
 
-- [ ] Criar ENUM types: `score_scope_type`, `score_dimension`, `score_band`
-- [ ] Implementar `score_inputs` com índice composto (`scope_type`, `scope_id`, `period`)
-- [ ] Implementar `score_calculations` com unique constraint (`scope_type`, `scope_id`, `period`)
-- [ ] Implementar `score_history` com trigger `prevent_update_delete`
-- [ ] Implementar `score_observations` com CHECK em author role
-- [ ] Implementar trigger pós-INSERT em `score_calculations` que arquiva em `score_history`
-- [ ] Implementar guard de imutabilidade: REVOKE UPDATE em `score_calculations.value` de TODOS roles não-service
-- [ ] Implementar RPC `get_score()` exposta para frontend
-- [ ] Habilitar RLS + policies temporárias documentadas
-- [ ] Escrever migration DOWN reversível
+- [x] Criar ENUM types: `score_scope_type`, `score_dimension`, `score_band`
+- [x] Implementar `score_inputs` com índice composto (`scope_type`, `scope_id`, `period`)
+- [x] Implementar `score_calculations` com unique constraint (`scope_type`, `scope_id`, `period`)
+- [x] Implementar `score_history` com trigger `prevent_update_delete`
+- [x] Implementar `score_observations` com CHECK em author role
+- [x] Implementar trigger pós-INSERT em `score_calculations` que arquiva em `score_history`
+- [x] Implementar guard de imutabilidade: REVOKE UPDATE em `score_calculations.value` de TODOS roles não-service
+- [x] Implementar RPC `get_score()` exposta para frontend
+- [x] Habilitar RLS + policies temporárias documentadas
+- [x] Escrever migration DOWN reversível
 - [ ] Regenerar types TypeScript
-- [ ] Testes: tentativa de UPDATE direto em `value` deve falhar; INSERT em observação por consultor deve funcionar; UPDATE em score_history deve falhar
+- [x] Testes: tentativa de UPDATE direto em `value` deve falhar; INSERT em observação por consultor deve funcionar; UPDATE em score_history deve falhar
 
 ## Dev Notes
 
@@ -164,3 +164,37 @@ L (large) — 4 tabelas + 3 ENUMs + triggers + RPC + RLS + testes de policy.
 ## Next Step
 
 Após DoD: @qa `*qa-gate` e desbloqueio das stories 7.2/7.3/7.4 (regras de cálculo Resultado/Processo/Disciplina).
+
+## File List
+
+- `docs/stories/story-MX-07-20260527-schema-score.md`
+- `supabase/migrations/20260527110000_score_engine_schema.sql`
+- `supabase/migrations/20260527130000_score_rls_final.sql`
+- `src/lib/mx-executive-foundation.ts`
+- `src/lib/mx-executive-foundation.test.ts`
+- `src/lib/mx-score-migration.test.ts`
+
+## Dev Agent Record
+
+### Debug Log
+
+- 2026-05-27: Auditada migration `20260527110000_score_engine_schema.sql`, contendo enums `score_scope_type`, `score_dimension`, `score_band`, tabelas `score_inputs`, `score_calculations`, `score_history`, `score_observations`, função `classify_score`, RPC `get_score`, trigger de histórico e trigger de imutabilidade.
+- 2026-05-27: Auditada migration `20260527130000_score_rls_final.sql`; arquivo está documentado como DRAFT/NOT APPLIED e mantém decisões pendentes de RLS final, portanto não foi tratado como evidência de aplicação em produção.
+- 2026-05-27: Adicionada cobertura unitária em `mx-executive-foundation.test.ts` para faixas canônicas, validação de cálculo 0-100/dimensões, snapshot imutável, autor de observação `consultant/master`, bloqueio de mutação e retorno do score mais recente por escopo/período.
+- 2026-05-27: `bun test src/lib/mx-executive-foundation.test.ts` passou com 17 testes.
+- 2026-05-27: `npm run typecheck` passou.
+- 2026-05-27: `supabase status` falhou porque o Docker daemon local não está rodando (`Cannot connect to the Docker daemon at unix:///var/run/docker.sock`); nenhuma operação remota foi executada.
+- 2026-05-27: Corrigido `COMMENT ON FUNCTION` em migrations MX-07/MX-02/MX-08-10 para usar assinatura explícita exigida pelo PostgreSQL.
+- 2026-05-27: Adicionada cobertura estática em `mx-score-migration.test.ts` para validar contratos críticos da migration MX Score: enums, tabelas, triggers de imutabilidade, policy service-only, comment-only para consultor e bloco DOWN.
+- 2026-05-27: `bun test src/lib/mx-score-migration.test.ts src/lib/mx-executive-foundation.test.ts` passou com 21 testes.
+
+### Completion Notes
+
+- O schema persistente e os contratos críticos de imutabilidade/comment-only existem em migration e cobertura unitária.
+- A story permanece `InProgress` porque `npm run gen:db-types` usa Supabase linked remoto; como as migrations locais ainda não estão aplicadas ao remote, a regeneração de `src/types/database.generated.ts` não provaria o schema local novo e poderia gerar drift incorreto.
+- Também falta validação real de migration UP/DOWN/UP em branch Supabase ou banco local antes de mover para `Ready for Review`; tentativa local foi bloqueada por Docker indisponível.
+
+### Change Log
+
+- 2026-05-27: Story atualizada de `Draft` para `InProgress` com checklist técnico reconciliado contra migrations existentes e cobertura unitária adicionada.
+- 2026-05-27: Reforçada validação estática da migration MX Score e documentado bloqueio de Supabase local sem Docker.

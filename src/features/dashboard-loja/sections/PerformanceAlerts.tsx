@@ -9,6 +9,7 @@ import type { UserRole } from '@/types/database'
 export type OwnerPerformanceAlert = {
   title: string
   description: string
+  recommendation: string
   action: string
   variant: 'success' | 'warning' | 'danger' | 'outline'
   impact: 'Alto' | 'Médio' | 'Baixo'
@@ -77,6 +78,9 @@ export function usePerformanceAlerts({
       out.push({
         title: 'Meta abaixo do ritmo',
         description: `${metrics.attainment}% da meta realizada no período selecionado.`,
+        recommendation: isOwner
+          ? 'Concentrar cobrança em meta, ritmo diário e gargalos que impedem volume.'
+          : 'Reorganizar cadência da equipe e priorizar vendedores abaixo do ritmo.',
         action: isOwner
           ? 'Decidir cobrança de plano de recuperação com o gerente.'
           : 'Validar plano de ataque com gerente e vendedores de menor ritmo.',
@@ -91,6 +95,9 @@ export function usePerformanceAlerts({
       out.push({
         title: 'Rotina diária incompleta',
         description: `${metrics.checkedInCount}/${sellerCount} vendedores com registro sincronizado.`,
+        recommendation: isOwner
+          ? 'Cobrar disciplina pelo gerente sem assumir a execução operacional.'
+          : 'Resolver pendências de lançamento antes da reunião de acompanhamento.',
         action: isOwner
           ? 'Acompanhar a cobrança do gerente; não executar a rotina operacional.'
           : 'Cobrar fechamento da puxada diária antes da próxima reunião de gestão.',
@@ -105,6 +112,9 @@ export function usePerformanceAlerts({
       out.push({
         title: 'Baixa conversão de lead',
         description: `${funilData.tx_lead_agd}% contra benchmark de ${funnelBenchmarks.leadAgd}%.`,
+        recommendation: isOwner
+          ? 'Revisar origem, qualidade e tratamento dos leads com decisão comercial.'
+          : 'Auditar tempo de resposta, abordagem inicial e qualidade dos agendamentos.',
         action: isOwner
           ? 'Priorizar decisão comercial sobre origem e tratamento dos leads.'
           : 'Revisar abordagem inicial, tempo de resposta e qualidade dos agendamentos.',
@@ -119,6 +129,9 @@ export function usePerformanceAlerts({
       out.push({
         title: 'Visita não vira venda',
         description: `${funilData.tx_visita_vnd}% contra benchmark de ${funnelBenchmarks.visitaVnd}%.`,
+        recommendation: isOwner
+          ? 'Investigar barreiras de preço, troca, financiamento e fechamento.'
+          : 'Escutar propostas perdidas e treinar fechamento com casos reais.',
         action: isOwner
           ? 'Decidir intervenção em preço, troca, financiamento ou fechamento.'
           : 'Checar proposta, avaliação de troca, financiamento e fechamento.',
@@ -133,6 +146,9 @@ export function usePerformanceAlerts({
       out.push({
         title: 'Sem dados no período',
         description: 'Ainda não há check-ins para sustentar um diagnóstico operacional.',
+        recommendation: isOwner
+          ? 'Validar se a rotina foi executada antes de analisar performance.'
+          : 'Confirmar adesão da equipe ao fechamento diário antes da leitura gerencial.',
         action: isOwner
           ? 'Solicitar ao gerente confirmação da rotina antes de decidir.'
           : 'Validar se a equipe lançou a rotina antes de concluir a leitura.',
@@ -145,6 +161,9 @@ export function usePerformanceAlerts({
       out.push({
         title: 'Operação dentro do esperado',
         description: 'Meta, disciplina e funil sem alerta crítico no período.',
+        recommendation: isOwner
+          ? 'Manter cadência e observar oportunidades de escala.'
+          : 'Preservar rotina e reconhecer vendedores com melhor evolução.',
         action: isOwner
           ? 'Acompanhar execução e cobrar manutenção da cadência.'
           : 'Manter cadência e observar oportunidades individuais no ranking.',
@@ -235,6 +254,7 @@ export function PerformanceAlerts({ role, isOwner, alerts }: PerformanceAlertsPr
                 </Typography>
               )}
               <Typography variant="tiny" tone="muted" className="block mb-mx-sm">{alert.description}</Typography>
+              <Typography variant="tiny" tone="brand" className="mb-mx-xs block font-black uppercase tracking-tight">{alert.recommendation}</Typography>
               <Typography variant="tiny" className="font-black uppercase tracking-tight">{alert.action}</Typography>
               <Button type="button" variant="outline" size="sm" onClick={() => navigate(alert.ctaTo)} className="mt-mx-sm h-mx-9 rounded-mx-lg bg-white">
                 {alert.ctaLabel}

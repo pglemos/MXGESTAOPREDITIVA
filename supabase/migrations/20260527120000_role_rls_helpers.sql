@@ -49,7 +49,7 @@ AS $$
   );
 $$;
 
-COMMENT ON FUNCTION public.current_user_role_code IS
+COMMENT ON FUNCTION public.current_user_role_code(uuid) IS
   'Retorna roles.code canônico do usuário (default auth.uid()). Usa role_id se populado; fallback para mapeamento de usuarios.role string.';
 
 -- ----------------------------------------------------------------------------
@@ -84,7 +84,7 @@ AS $$
   );
 $$;
 
-COMMENT ON FUNCTION public.current_user_role_codes IS
+COMMENT ON FUNCTION public.current_user_role_codes(uuid) IS
   'Retorna array de roles.code canônicos do usuário (default auth.uid()). Combina usuarios.role + vinculos_loja.role (M:N) ativos.';
 
 -- ----------------------------------------------------------------------------
@@ -105,7 +105,7 @@ AS $$
   );
 $$;
 
-COMMENT ON FUNCTION public.user_has_role IS
+COMMENT ON FUNCTION public.user_has_role(text[], uuid) IS
   'True se usuário tem qualquer um dos roles canônicos passados em p_codes.';
 
 -- ----------------------------------------------------------------------------
@@ -127,7 +127,7 @@ AS $$
   );
 $$;
 
-COMMENT ON FUNCTION public.user_has_min_hierarchy IS
+COMMENT ON FUNCTION public.user_has_min_hierarchy(smallint, uuid) IS
   'True se usuário tem algum role com hierarchy_level >= p_min. Master=100, Director=90, admin_mx=95, Sales Mgr=70, Consultant=60, Operations/HR/etc=50, Seller=40.';
 
 -- ----------------------------------------------------------------------------
@@ -150,7 +150,7 @@ AS $$
   );
 $$;
 
-COMMENT ON FUNCTION public.user_is_master_loja IS
+COMMENT ON FUNCTION public.user_is_master_loja(uuid, uuid) IS
   'True se usuário é Master ativo da loja específica (via vinculos_loja). NOTA: produção atualmente permite múltiplos Masters/loja — ver story Master-por-loja.';
 
 COMMIT;

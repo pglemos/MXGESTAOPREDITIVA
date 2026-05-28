@@ -1,4 +1,4 @@
-import type { UserRole } from '@/types/database'
+import type { MxRoleCode, RoleCode, UserRole } from '@/types/database'
 
 export const USER_ROLES = [
   'administrador_geral',
@@ -8,6 +8,24 @@ export const USER_ROLES = [
   'gerente',
   'vendedor',
 ] as const satisfies readonly UserRole[]
+
+export const ROLE_CODES = [
+  'master',
+  'director',
+  'sales_manager',
+  'seller',
+  'marketing',
+  'product',
+  'finance',
+  'hr',
+  'operations',
+  'consultant',
+] as const satisfies readonly RoleCode[]
+
+export const MX_ROLE_CODES = [
+  ...ROLE_CODES,
+  'admin_mx',
+] as const satisfies readonly MxRoleCode[]
 
 const ROLE_ALIASES: Record<string, UserRole> = {
   administrador_geral: 'administrador_geral',
@@ -24,9 +42,51 @@ const ROLE_ALIASES: Record<string, UserRole> = {
   seller: 'vendedor',
 }
 
+const CANONICAL_ROLE_ALIASES: Record<string, MxRoleCode> = {
+  administrador_geral: 'admin_mx',
+  admin_master: 'admin_mx',
+  administrador_mx: 'admin_mx',
+  admin: 'admin_mx',
+  admin_mx: 'admin_mx',
+  consultor_mx: 'consultant',
+  consultor: 'consultant',
+  consultant: 'consultant',
+  dono: 'master',
+  owner: 'master',
+  master: 'master',
+  gerente: 'sales_manager',
+  manager: 'sales_manager',
+  sales_manager: 'sales_manager',
+  vendedor: 'seller',
+  seller: 'seller',
+  director: 'director',
+  diretor: 'director',
+  socio: 'director',
+  sócio: 'director',
+  marketing: 'marketing',
+  product: 'product',
+  produto: 'product',
+  finance: 'finance',
+  financeiro: 'finance',
+  hr: 'hr',
+  rh: 'hr',
+  operations: 'operations',
+  operacoes: 'operations',
+  operações: 'operations',
+}
+
 export function normalizeRole(rawRole: string | null | undefined): UserRole | null {
   const role = (rawRole || '').toLowerCase().trim()
   return ROLE_ALIASES[role] || null
+}
+
+export function toCanonicalRoleCode(rawRole: string | null | undefined): MxRoleCode | null {
+  const role = (rawRole || '').toLowerCase().trim()
+  return CANONICAL_ROLE_ALIASES[role] || null
+}
+
+export function isCanonicalRoleCode(rawRole: string | null | undefined): rawRole is RoleCode {
+  return ROLE_CODES.includes(rawRole as RoleCode)
 }
 
 export function isUserRole(rawRole: string | null | undefined): rawRole is UserRole {

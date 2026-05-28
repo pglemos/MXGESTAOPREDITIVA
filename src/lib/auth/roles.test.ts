@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { isAdministradorMx, isPerfilInternoMx, normalizeRole } from './roles'
+import { isAdministradorMx, isPerfilInternoMx, normalizeRole, toCanonicalRoleCode } from './roles'
 
 describe('role normalization', () => {
   it('maps legacy aliases to canonical roles', () => {
@@ -23,5 +23,14 @@ describe('role normalization', () => {
     expect(isPerfilInternoMx('vendedor')).toBe(false)
     expect(isAdministradorMx('admin_master')).toBe(true)
     expect(isAdministradorMx('consultor_mx')).toBe(false)
+  })
+
+  it('maps legacy roles to the canonical roles table codes without changing legacy normalization', () => {
+    expect(toCanonicalRoleCode('administrador_geral')).toBe('admin_mx')
+    expect(toCanonicalRoleCode('dono')).toBe('master')
+    expect(toCanonicalRoleCode('gerente')).toBe('sales_manager')
+    expect(toCanonicalRoleCode('vendedor')).toBe('seller')
+    expect(toCanonicalRoleCode('consultor_mx')).toBe('consultant')
+    expect(normalizeRole('dono')).toBe('dono')
   })
 })

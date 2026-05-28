@@ -2,11 +2,12 @@ import { isPerfilInternoMx } from '@/hooks/useAuth'
 import type { UserRole, Store } from '@/types/database'
 import { DashboardErrorBoundary } from '../components/DashboardErrorBoundary'
 import { KpisSection } from './KpisSection'
-import { OwnerDecisionCards } from './OwnerDecisionCards'
 import { PerformanceAlerts, usePerformanceAlerts } from './PerformanceAlerts'
 import { FunnelSection } from './FunnelSection'
 import { RankingSection } from './RankingSection'
 import { AdminSettingsCard } from './AdminSettingsCard'
+import { OwnerExecutiveCockpit } from './OwnerExecutiveCockpit'
+import { ManagerOperationalCockpit } from './ManagerOperationalCockpit'
 import type { useDashboardLojaData } from '../hooks/useDashboardLojaData'
 
 type DashboardData = ReturnType<typeof useDashboardLojaData>
@@ -57,6 +58,22 @@ export function PerformanceTab({
     selectedStoreId,
   })
 
+  if (isOwner) {
+    return (
+      <DashboardErrorBoundary sectionName="OwnerExecutiveCockpit">
+        <OwnerExecutiveCockpit data={data} alerts={alerts} />
+      </DashboardErrorBoundary>
+    )
+  }
+
+  if (role === 'gerente') {
+    return (
+      <DashboardErrorBoundary sectionName="ManagerOperationalCockpit">
+        <ManagerOperationalCockpit data={data} alerts={alerts} />
+      </DashboardErrorBoundary>
+    )
+  }
+
   return (
     <>
       {isAdminMx && selectedStore && (
@@ -85,24 +102,21 @@ export function PerformanceTab({
         </DashboardErrorBoundary>
       )}
 
-      {isOwner && (
-        <DashboardErrorBoundary sectionName="OwnerDecision">
-          <OwnerDecisionCards alerts={alerts} hasDRE={!!data.latestDRE} />
-        </DashboardErrorBoundary>
-      )}
-
       <DashboardErrorBoundary sectionName="KPIs">
         <KpisSection
           role={role}
           isOwner={isOwner}
           metrics={data.metrics}
+          funilData={data.funilData}
+          funnelBenchmarks={data.funnelBenchmarks}
+          referenceDate={data.referenceDate}
           sellers={data.sellers}
           pendingDisciplineSellers={data.pendingDisciplineSellers}
           latestDRE={data.latestDRE}
         />
       </DashboardErrorBoundary>
 
-      {(isPerfilInternoMx(role) || role === 'dono' || role === 'gerente') && (
+      {(isPerfilInternoMx(role) || role === 'dono') && (
         <DashboardErrorBoundary sectionName="PerformanceAlerts">
           <PerformanceAlerts role={role} isOwner={isOwner} alerts={alerts} />
         </DashboardErrorBoundary>

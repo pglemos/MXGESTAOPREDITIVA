@@ -44,6 +44,7 @@ export function DashboardLoja() {
     const tab = new URLSearchParams(location.search).get('tab')
     return tab === 'metas' || tab === 'equipe' ? tab : 'performance'
   }, [location.search])
+  const isFocusedRolePerformance = (isOwner || role === 'gerente') && activeTab === 'performance'
 
   const handleTabChange = useCallback((tab: DashboardTab) => {
     const params = new URLSearchParams(location.search)
@@ -87,30 +88,32 @@ export function DashboardLoja() {
 
   return (
     <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt" id="main-content">
-      <DashboardErrorBoundary sectionName="Header">
-        <DashboardHeader
-          role={role}
-          isOwner={isOwner}
-          storeName={data.metrics.storeName}
-          selectedStoreId={selectedStoreId}
-          selectableStores={selectableStores}
-          setActiveStoreId={setActiveStoreId}
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          isRefetching={data.isRefetching}
-          syncWarning={data.syncWarning}
-          lastSyncAt={data.lastSyncAt}
-          lastSyncLabel={data.lastSyncLabel}
-          onRefresh={data.handleRefresh}
-          viewMode={data.viewMode}
-          setViewMode={data.setViewMode}
-          referenceDate={data.referenceDate}
-          startDate={data.startDate}
-          setStartDate={data.setStartDate}
-          endDate={data.endDate}
-          setEndDate={data.setEndDate}
-        />
-      </DashboardErrorBoundary>
+      {!isFocusedRolePerformance && (
+        <DashboardErrorBoundary sectionName="Header">
+          <DashboardHeader
+            role={role}
+            isOwner={isOwner}
+            storeName={data.metrics.storeName}
+            selectedStoreId={selectedStoreId}
+            selectableStores={selectableStores}
+            setActiveStoreId={setActiveStoreId}
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            isRefetching={data.isRefetching}
+            syncWarning={data.syncWarning}
+            lastSyncAt={data.lastSyncAt}
+            lastSyncLabel={data.lastSyncLabel}
+            onRefresh={data.handleRefresh}
+            viewMode={data.viewMode}
+            setViewMode={data.setViewMode}
+            referenceDate={data.referenceDate}
+            startDate={data.startDate}
+            setStartDate={data.setStartDate}
+            endDate={data.endDate}
+            setEndDate={data.setEndDate}
+          />
+        </DashboardErrorBoundary>
+      )}
 
       {activeTab === 'metas' ? (
         <StoreGoalsPanel storeId={selectedStoreId} storeName={data.metrics.storeName} />

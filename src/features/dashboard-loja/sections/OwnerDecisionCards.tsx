@@ -19,6 +19,9 @@ export function OwnerDecisionCards({ alerts, hasDRE }: OwnerDecisionCardsProps) 
         <Typography variant="h3" className="mt-mx-xs uppercase text-status-warning">
           {alerts[0]?.title || 'Sem decisão crítica'}
         </Typography>
+        <Typography variant="p" className="mt-mx-xs text-sm font-black text-status-warning">
+          {alerts[0]?.recommendation || 'Manter a cadência e observar oportunidades.'}
+        </Typography>
         <Typography variant="p" className="mt-mx-xs text-sm text-status-warning">
           {alerts[0]?.action || 'Acompanhe a execução e mantenha a cadência de gestão.'}
         </Typography>

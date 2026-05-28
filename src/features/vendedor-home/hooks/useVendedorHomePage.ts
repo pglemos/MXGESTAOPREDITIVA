@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useCheckins } from '@/hooks/useCheckins'
 import { useGoals } from '@/hooks/useGoals'
 import { useRanking } from '@/hooks/useRanking'
-import { useTrainings } from '@/hooks/useData'
+import { useFeedbacks, useTrainings } from '@/hooks/useData'
 import { useTacticalPrescription } from '@/hooks/useTacticalPrescription'
 import { useSellerMetrics } from '@/hooks/useSellerMetrics'
 import { formatWhatsAppMorningReport } from '@/lib/calculations'
@@ -34,6 +34,7 @@ export function useVendedorHomePage() {
   } = useGoals()
   const { ranking, loading: rankingLoading, refetch: refetchRanking } = useRanking()
   const { treinamentos, loading: trainingsLoading, refetch: refetchTrainings } = useTrainings()
+  const { devolutivas, loading: feedbacksLoading, refetch: refetchFeedbacks } = useFeedbacks()
   const [isRefetching, setIsRefetching] = useState(false)
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null)
 
@@ -94,6 +95,7 @@ export function useVendedorHomePage() {
         refetchGoals(),
         refetchRanking?.() || Promise.resolve(),
         refetchTrainings?.() || Promise.resolve(),
+        refetchFeedbacks?.() || Promise.resolve(),
       ])
       setLastUpdatedAt(new Date())
       toast.success('Cockpit de performance atualizado!')
@@ -102,7 +104,7 @@ export function useVendedorHomePage() {
     } finally {
       setIsRefetching(false)
     }
-  }, [refetchCheckins, refetchGoals, refetchRanking, refetchTrainings])
+  }, [refetchCheckins, refetchFeedbacks, refetchGoals, refetchRanking, refetchTrainings])
 
   const handleShareWhatsApp = useCallback(() => {
     if (!metrics || !profile) return
@@ -132,11 +134,14 @@ export function useVendedorHomePage() {
   }, [metrics, profile, referenceCheckin, referenceDateLabel])
 
   const isLoading =
-    checkisLoading || goalsLoading || rankingLoading || trainingsLoading || !metrics
+    checkisLoading || goalsLoading || rankingLoading || trainingsLoading || feedbacksLoading || !metrics
 
   return {
     profile,
     metrics,
+    ranking,
+    treinamentos,
+    devolutivas,
     todayCheckin,
     tacticalPrescription,
     discipline,

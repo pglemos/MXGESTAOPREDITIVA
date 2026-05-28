@@ -277,7 +277,7 @@ AS $$
   LIMIT 1;
 $$;
 
-COMMENT ON FUNCTION public.get_score IS
+COMMENT ON FUNCTION public.get_score(public.score_scope_type, uuid, date) IS
   'Retorna o MX Score mais recente para um escopo. Read-only — score só é alterado via re-INSERT em score_calculations.';
 
 -- ----------------------------------------------------------------------------

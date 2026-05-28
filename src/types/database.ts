@@ -8,6 +8,19 @@
  */
 
 export type UserRole = 'administrador_geral' | 'administrador_mx' | 'consultor_mx' | 'dono' | 'gerente' | 'vendedor'
+export type RoleCode =
+    | 'master'
+    | 'director'
+    | 'sales_manager'
+    | 'seller'
+    | 'marketing'
+    | 'product'
+    | 'finance'
+    | 'hr'
+    | 'operations'
+    | 'consultant'
+export type MxMetaRoleCode = 'admin_mx'
+export type MxRoleCode = RoleCode | MxMetaRoleCode
 export type MembershipRole = 'dono' | 'gerente' | 'vendedor'
 export type PDIStatus = 'aberto' | 'em_andamento' | 'concluido'
 export type TrainingType = 'prospeccao' | 'agendamento' | 'atendimento' | 'apresentacao' | 'financiamento' | 'carro_de_troca' | 'fechamento' | 'funil' | 'rotina_diaria' | 'crm' | 'institucional' | 'gestao' | 'pre-vendas'
@@ -49,6 +62,7 @@ export interface User {
     name: string
     email: string
     role: UserRole
+    role_id?: string | null
     avatar_url: string | null
     is_venda_loja: boolean
     active: boolean
