@@ -49,13 +49,15 @@ const STATUS_TONE: Record<CentralMxPlanoStatus, string> = {
 
 type Props = {
   storeId: string | null | undefined
+  createRequest?: number
 }
 
-export function CentralMxPlanoSegmentadoPanel({ storeId }: Props) {
+export function CentralMxPlanoSegmentadoPanel({ storeId, createRequest = 0 }: Props) {
   const segmentado = useCentralMxPlanosAcaoSegmentado(storeId)
   const [activeScope, setActiveScope] = useState<CentralMxPlanoScope>('loja')
   const activeList = segmentado.planos[activeScope]
   const [openCreate, setOpenCreate] = useState(false)
+  const [pendingCreateRequest, setPendingCreateRequest] = useState(false)
   const [scopeChoices, setScopeChoices] = useState<
     Array<{ scope: CentralMxPlanoScope; scopeId: string; label: string }>
   >([])
@@ -66,6 +68,7 @@ export function CentralMxPlanoSegmentadoPanel({ storeId }: Props) {
       setScopeChoices([])
       return
     }
+    setScopeChoices([{ scope: 'loja', scopeId: storeId, label: 'Loja' }])
     ;(async () => {
       const [deptRes, sellerRes, lojaRes] = await Promise.all([
         supabase
@@ -118,6 +121,16 @@ export function CentralMxPlanoSegmentadoPanel({ storeId }: Props) {
       }),
     [scopeChoices],
   )
+
+  useEffect(() => {
+    if (createRequest > 0) setPendingCreateRequest(true)
+  }, [createRequest])
+
+  useEffect(() => {
+    if (!pendingCreateRequest || !storeId || orderedChoices.length === 0) return
+    setOpenCreate(true)
+    setPendingCreateRequest(false)
+  }, [pendingCreateRequest, storeId, orderedChoices.length])
 
   return (
     <Card className="rounded-mx-2xl p-mx-lg">

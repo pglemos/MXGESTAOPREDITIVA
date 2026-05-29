@@ -93,7 +93,11 @@ const categoryDescriptions: Record<string, string> = {
   'Central Operacional': 'Meta, realizado, projeção, funil, alertas e ranking da equipe.',
   'Rotina Comercial': 'Agenda operacional, equipe, ranking e cobranças do dia.',
   'Gestão de Gente': 'Devolutivas, PDI, treinamentos e produtos da equipe.',
+  COMERCIAL: 'Home, equipe, agenda, funil, negociações, metas e relatórios.',
+  PESSOAS: 'Feedbacks e desenvolvimento da equipe.',
+  FERRAMENTAS: 'Universidade MX, biblioteca e consultor inteligente.',
   'Meu Dia': 'Agenda, funil, meta, fechamento diário e performance pessoal.',
+  NAVEGAÇÃO: 'Meu dia, agenda, funil, feedbacks, PDI, treinamentos e trilhas.',
   Evolução: 'Feedbacks, PDI, treinamentos e trilhas liberadas.',
 }
 
@@ -192,50 +196,44 @@ const navConfig: Record<string, NavCategory[]> = {
   ],
   gerente: [
     {
-      category: 'Central Operacional', icon: <Home size={22} />,
+      category: 'COMERCIAL', icon: <Home size={22} />,
       items: [
-        { label: 'Home Gerencial', path: STORE_DASHBOARD_PATH, icon: <LayoutDashboard size={16} /> },
-        { label: 'Funil Comercial', path: STORE_DASHBOARD_PATH, icon: <TrendingUp size={16} /> },
-        { label: 'Alertas da Equipe', path: STORE_DASHBOARD_PATH, icon: <Bell size={16} /> },
-      ]
-    },
-    {
-      category: 'Rotina Comercial', icon: <CheckSquare size={22} />,
-      items: [
-        { label: 'Agenda Operacional', path: '/rotina', icon: <CalendarDays size={16} /> },
+        { label: 'Home', path: STORE_DASHBOARD_PATH, icon: <Home size={16} /> },
         { label: 'Equipe', path: STORE_TEAM_PATH, icon: <Users size={16} /> },
-        { label: 'Ranking', path: '/classificacao', icon: <Trophy size={16} /> },
+        { label: 'Agenda', path: '/rotina', icon: <CalendarDays size={16} /> },
+        { label: 'Funil de Vendas', path: STORE_DASHBOARD_PATH, icon: <TrendingUp size={16} /> },
+        { label: 'Negociações', path: '/relatorios/performance-vendedor', icon: <MessageSquare size={16} /> },
+        { label: 'Metas', path: STORE_DASHBOARD_PATH, icon: <Target size={16} /> },
+        { label: 'Relatórios', path: '/relatorio-matinal', icon: <ClipboardList size={16} /> },
       ]
     },
     {
-      category: 'Gestão de Gente', icon: <User size={22} />,
+      category: 'PESSOAS', icon: <Users size={22} />,
       items: [
-        { label: 'Devolutiva Estruturada', path: '/devolutivas', icon: <MessageSquare size={16} /> },
-        { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
+        { label: 'Feedbacks', path: '/devolutivas', icon: <MessageSquare size={16} /> },
         { label: 'Desenvolvimento', path: '/treinamentos', icon: <GraduationCap size={16} /> },
-        { label: 'Produtos Digitais', path: '/produtos', icon: <Package size={16} /> },
+      ]
+    },
+    {
+      category: 'FERRAMENTAS', icon: <BriefcaseBusiness size={22} />,
+      items: [
+        { label: 'Universidade MX', path: '/treinamentos', icon: <GraduationCap size={16} /> },
+        { label: 'Biblioteca', path: '/produtos', icon: <Library size={16} /> },
+        { label: 'Consultor MX IA', path: '/auditoria', icon: <Bot size={16} /> },
       ]
     }
   ],
   vendedor: [
     {
-      category: 'Meu Dia', icon: <Home size={22} />,
+      category: 'NAVEGAÇÃO', icon: <Home size={22} />,
       items: [
         { label: 'Meu Dia', path: '/home', icon: <Home size={16} /> },
         { label: 'Agenda', path: '/home', icon: <CalendarDays size={16} /> },
         { label: 'Funil', path: '/historico', icon: <History size={16} /> },
-        { label: 'Fechar Meu Dia', path: '/lancamento-diario', icon: <CheckSquare size={16} /> },
-        { label: 'Ranking', path: '/classificacao', icon: <Trophy size={16} /> },
-      ]
-    },
-    {
-      category: 'Evolução', icon: <TrendingUp size={22} />,
-      items: [
         { label: 'Feedbacks', path: '/devolutivas', icon: <MessageSquare size={16} /> },
         { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
         { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
         { label: 'Trilhas', path: '/treinamentos', icon: <Package size={16} /> },
-        { label: 'Ajuda', path: '/ajuda', icon: <LifeBuoy size={16} /> },
       ]
     }
   ]
@@ -350,6 +348,31 @@ export default function Layout() {
       navigationSearchRef.current?.focus()
     }, 0)
   }
+
+  const roleSidebarCta = role === 'gerente'
+    ? {
+        label: 'Consultor MX IA',
+        description: 'Pergunte algo para o Consultor MX',
+        buttonLabel: 'Perguntar',
+        icon: <Bot size={18} aria-hidden="true" />,
+        onClick: () => {
+          setIsDrawerOpen(false)
+          setMobileMenuOpen(false)
+          navigate('/auditoria')
+        },
+      }
+    : role === 'vendedor'
+      ? {
+          label: 'DÚVIDAS?',
+          description: 'Fale com seu gerente',
+          buttonLabel: 'Abrir WhatsApp',
+          icon: <LifeBuoy size={18} aria-hidden="true" />,
+          onClick: () => {
+            window.open(`https://wa.me/?text=${encodeURIComponent('Olá, preciso de ajuda com minha rotina no MX Performance.')}`, '_blank', 'noopener,noreferrer')
+          },
+        }
+      : null
+
   return (
     <div className="min-h-screen bg-surface-alt flex flex-col">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-brand-primary focus:text-white focus:rounded-mx-xl focus:shadow-mx-xl">
@@ -473,11 +496,24 @@ export default function Layout() {
               </button>
             ))}
           </nav>
+          {roleSidebarCta && (
+            <button
+              type="button"
+              aria-label={`${roleSidebarCta.label} - ${roleSidebarCta.buttonLabel}`}
+              onClick={roleSidebarCta.onClick}
+              className="mt-auto w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center text-brand-primary bg-brand-primary/10 border border-brand-primary/15 hover:bg-brand-primary hover:text-white transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15"
+            >
+              {roleSidebarCta.icon}
+            </button>
+          )}
           <button 
             type="button" 
             aria-label="Encerrar Sessão do Sistema" 
             onClick={() => signOut()} 
-            className="mt-auto w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center text-text-tertiary hover:bg-status-error-surface hover:text-status-error transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-status-error/15"
+            className={cn(
+              "w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center text-text-tertiary hover:bg-status-error-surface hover:text-status-error transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-status-error/15",
+              !roleSidebarCta && 'mt-auto',
+            )}
           >
             <LogOut size={20} aria-hidden="true" />
           </button>
@@ -531,7 +567,7 @@ export default function Layout() {
               <div className="flex-1 overflow-y-auto p-mx-sm space-y-mx-tiny no-scrollbar">
                 {activeCategoryData?.items.length ? activeCategoryData.items.map(item => (
                   <NavLink
-                    key={item.path} to={item.path} onClick={() => setIsDrawerOpen(false)}
+                    key={`${item.label}-${item.path}`} to={item.path} onClick={() => setIsDrawerOpen(false)}
                     aria-current={location.pathname === item.path ? 'page' : undefined}
                     className={({ isActive }) => cn(
                       "flex items-center gap-mx-xs px-mx-md py-3 rounded-mx-lg text-xs font-black uppercase tracking-tight transition-all focus-visible:ring-2 focus-visible:ring-brand-primary/20 focus-visible:outline-none",
@@ -547,6 +583,28 @@ export default function Layout() {
                   </div>
                 )}
               </div>
+              {roleSidebarCta && (
+                <div className="border-t border-border-subtle p-mx-sm">
+                  <button
+                    type="button"
+                    onClick={roleSidebarCta.onClick}
+                    className="w-full rounded-mx-2xl border border-border-subtle bg-mx-black p-mx-md text-left text-white shadow-mx-sm transition-all hover:bg-brand-secondary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/20"
+                  >
+                    <div className="flex items-center gap-mx-sm">
+                      <span className="flex h-mx-10 w-mx-10 shrink-0 items-center justify-center rounded-mx-xl bg-brand-primary/15 text-brand-primary" aria-hidden="true">
+                        {roleSidebarCta.icon}
+                      </span>
+                      <span className="min-w-0">
+                        <Typography variant="tiny" tone="white" className="block font-black uppercase tracking-widest">{roleSidebarCta.label}</Typography>
+                        <Typography variant="tiny" tone="white" className="block truncate normal-case tracking-normal opacity-70">{roleSidebarCta.description}</Typography>
+                      </span>
+                    </div>
+                    <span className="mt-mx-sm flex h-mx-9 items-center justify-center rounded-mx-xl bg-brand-primary text-sm font-black text-white">
+                      {roleSidebarCta.buttonLabel}
+                    </span>
+                  </button>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -611,7 +669,7 @@ export default function Layout() {
                     <div className="grid grid-cols-1 gap-mx-xs">
                       {cat.items.map(item => (
                         <NavLink
-                          key={item.path} to={item.path} onClick={() => setMobileMenuOpen(false)}
+                          key={`${cat.category}-${item.label}-${item.path}`} to={item.path} onClick={() => setMobileMenuOpen(false)}
                           className={({ isActive }) => cn(
                             "flex items-center gap-mx-sm px-5 py-3 rounded-mx-xl text-sm font-black uppercase tracking-tight transition-all active:scale-[0.98]",
                             isActive ? 'bg-brand-primary text-white shadow-mx-lg' : 'bg-surface-alt text-text-secondary active:bg-border-default'
@@ -627,6 +685,26 @@ export default function Layout() {
                   <div className="rounded-mx-xl border border-dashed border-border-default bg-surface-alt p-mx-md text-center">
                     <Typography variant="p" tone="muted">Nenhum módulo encontrado para a busca atual.</Typography>
                   </div>
+                )}
+                {roleSidebarCta && (
+                  <button
+                    type="button"
+                    onClick={roleSidebarCta.onClick}
+                    className="w-full rounded-mx-2xl border border-border-subtle bg-mx-black p-mx-md text-left text-white shadow-mx-sm transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/20"
+                  >
+                    <div className="flex items-center gap-mx-sm">
+                      <span className="flex h-mx-11 w-mx-11 shrink-0 items-center justify-center rounded-mx-xl bg-brand-primary/15 text-brand-primary" aria-hidden="true">
+                        {roleSidebarCta.icon}
+                      </span>
+                      <span className="min-w-0">
+                        <Typography variant="tiny" tone="white" className="block font-black uppercase tracking-widest">{roleSidebarCta.label}</Typography>
+                        <Typography variant="tiny" tone="white" className="block truncate normal-case tracking-normal opacity-70">{roleSidebarCta.description}</Typography>
+                      </span>
+                    </div>
+                    <span className="mt-mx-sm flex h-mx-10 items-center justify-center rounded-mx-xl bg-brand-primary text-sm font-black text-white">
+                      {roleSidebarCta.buttonLabel}
+                    </span>
+                  </button>
                 )}
                 <button type="button" onClick={() => signOut()} className="w-full flex items-center gap-mx-sm px-5 py-3 rounded-mx-xl bg-status-error-surface text-status-error text-sm font-black uppercase tracking-tight transition-all active:scale-[0.98]">
                   <LogOut size={20} aria-hidden="true" /> Encerrar Sessão

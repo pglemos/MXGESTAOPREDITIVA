@@ -140,6 +140,7 @@ export function useVendedorHomePage() {
 
   return {
     profile,
+    checkins,
     metrics,
     ranking,
     treinamentos,
@@ -148,6 +149,7 @@ export function useVendedorHomePage() {
     isLancamentoGateLocked,
     tacticalPrescription,
     discipline,
+    referenceDate,
     referenceDateLabel,
     weeklyProgressPct,
     isLoading,

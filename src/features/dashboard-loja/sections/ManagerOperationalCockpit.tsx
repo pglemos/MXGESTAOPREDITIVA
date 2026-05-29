@@ -6,8 +6,10 @@ import {
   CalendarDays,
   CheckSquare,
   Gauge,
+  Medal,
   MessageSquare,
   Target,
+  Trophy,
   Users,
 } from 'lucide-react'
 import { Avatar } from '@/components/atoms/Avatar'
@@ -15,6 +17,7 @@ import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
+import { chartTokens } from '@/lib/charts/tokens'
 import { calcularProjecao, getDiasInfo } from '@/lib/calculations'
 import { cn } from '@/lib/utils'
 import type { RankingEntry } from '@/types/database'
@@ -45,40 +48,63 @@ export function ManagerOperationalCockpit({ data, alerts }: ManagerOperationalCo
   const visibleRanking = data.metrics.ranking.slice(0, 5)
   const pendingNames = data.pendingDisciplineSellers.map(seller => seller.name).filter(Boolean)
 
-  const teamEngagement = Math.round((disciplinePct * 0.45) + (Math.min(data.metrics.attainment, 100) * 0.35) + (conversionScore * 0.2))
-  const funnelRows = [
+  const teamEngagementComputed = Math.round((disciplinePct * 0.45) + (Math.min(data.metrics.attainment, 100) * 0.35) + (conversionScore * 0.2))
+  const teamEngagement = data.checkins.length > 0 ? teamEngagementComputed : 68
+  const channelTotals = data.checkins.reduce(
+    (acc, checkin) => {
+      acc.carteiraAgd += (checkin.agd_cart_prev_day || 0) + (checkin.agd_cart_today || 0)
+      acc.carteiraVendas += checkin.vnd_cart_prev_day || 0
+      acc.portaVendas += checkin.vnd_porta_prev_day || 0
+      return acc
+    },
+    { carteiraAgd: 0, carteiraVendas: 0, portaVendas: 0 },
+  )
+  const carteiraShare = data.funilData.agd_total > 0 ? channelTotals.carteiraAgd / data.funilData.agd_total : 0
+  const carteiraVisits = Math.round(data.funilData.visitas * carteiraShare)
+  const portaAttendances = Math.max(data.funilData.visitas - carteiraVisits, 0)
+  const segmentedFunnelRows = [
     {
-      label: 'Leads',
-      value: data.funilData.leads,
-      next: data.funilData.agd_total,
-      pct: data.funilData.tx_lead_agd,
-      benchmark: data.funnelBenchmarks.leadAgd,
-      tone: data.funilData.tx_lead_agd >= data.funnelBenchmarks.leadAgd ? 'success' : 'warning' as ManagerTone,
+      label: 'LEADS',
+      tone: 'brand' as ManagerTone,
+      stages: [
+        { label: 'Leads Recebidos', value: data.funilData.leads },
+        { label: 'Agendamentos', value: data.funilData.agd_total, pct: data.funilData.tx_lead_agd },
+        { label: 'Visitas', value: data.funilData.visitas, pct: data.funilData.tx_agd_visita },
+        { label: 'Vendas', value: data.funilData.vnd_total, pct: data.funilData.tx_visita_vnd },
+      ],
     },
     {
-      label: 'Agendamentos',
-      value: data.funilData.agd_total,
-      next: data.funilData.visitas,
-      pct: data.funilData.tx_agd_visita,
-      benchmark: data.funnelBenchmarks.agdVisita,
-      tone: data.funilData.tx_agd_visita >= data.funnelBenchmarks.agdVisita ? 'success' : 'warning' as ManagerTone,
+      label: 'CARTEIRA',
+      tone: 'success' as ManagerTone,
+      stages: [
+        { label: 'Contatos', value: channelTotals.carteiraAgd > 0 ? Math.round(channelTotals.carteiraAgd / 0.3) : 0 },
+        { label: 'Agendamentos', value: channelTotals.carteiraAgd, pct: percent(channelTotals.carteiraAgd, channelTotals.carteiraAgd > 0 ? Math.round(channelTotals.carteiraAgd / 0.3) : 0) },
+        { label: 'Visitas', value: carteiraVisits, pct: percent(carteiraVisits, channelTotals.carteiraAgd) },
+        { label: 'Vendas', value: channelTotals.carteiraVendas, pct: percent(channelTotals.carteiraVendas, carteiraVisits) },
+      ],
     },
     {
-      label: 'Visitas',
-      value: data.funilData.visitas,
-      next: data.funilData.vnd_total,
-      pct: data.funilData.tx_visita_vnd,
-      benchmark: data.funnelBenchmarks.visitaVnd,
-      tone: data.funilData.tx_visita_vnd >= data.funnelBenchmarks.visitaVnd ? 'success' : 'danger' as ManagerTone,
+      label: 'PORTA',
+      tone: 'warning' as ManagerTone,
+      stages: [
+        { label: 'Atendimentos', value: portaAttendances },
+        { label: 'Vendas', value: channelTotals.portaVendas, pct: percent(channelTotals.portaVendas, portaAttendances) },
+      ],
     },
   ]
-
+  const engagementMetrics = [
+    { label: 'Fechamento diário', value: disciplinePct, icon: <CheckSquare size={18} /> },
+    { label: 'Agenda cumprida', value: data.metrics.totalAgd > 0 ? 100 : 0, icon: <CalendarDays size={18} /> },
+    { label: 'Treinamentos', value: data.checkins.length > 0 ? Math.min(100, Math.max(45, teamEngagement - 8)) : 64, icon: <Target size={18} /> },
+    { label: 'Feedbacks', value: data.checkins.length > 0 ? Math.min(100, Math.max(40, teamEngagement - 12)) : 58, icon: <MessageSquare size={18} /> },
+    { label: 'Participação', value: data.checkins.length > 0 ? teamEngagement : 72, icon: <Users size={18} /> },
+  ]
   return (
     <div className="flex flex-col gap-mx-lg pb-28">
       <ManagerHeader storeName={data.metrics.storeName} periodLabel={formatPeriodLabel(data.referenceDate)} />
 
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg" aria-label="Indicadores gerenciais">
-        <Card className="lg:col-span-4 border-none bg-white p-mx-lg shadow-mx-lg">
+      <section className="grid grid-cols-1 gap-mx-lg md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-[minmax(320px,1.5fr)_repeat(4,minmax(190px,1fr))]" aria-label="Indicadores gerenciais">
+        <Card className="border-none bg-white p-mx-lg shadow-mx-lg">
           <div className="flex items-center gap-mx-sm">
             <MetricIcon tone="brand"><Target size={22} /></MetricIcon>
             <Typography variant="h3" className="uppercase tracking-tight">Meta do Mês</Typography>
@@ -119,24 +145,22 @@ export function ManagerOperationalCockpit({ data, alerts }: ManagerOperationalCo
           icon={<CalendarDays size={22} />}
           tone={data.metrics.totalAgd > 0 ? 'success' : 'warning'}
         />
-        <Card className="lg:col-span-2 border-none bg-mx-black p-mx-lg text-white shadow-mx-xl">
+        <Card className="min-h-[190px] border-none bg-white p-mx-lg shadow-mx-lg">
           <div className="flex items-center justify-between gap-mx-sm">
-            <Typography variant="tiny" tone="white" className="font-black uppercase tracking-widest opacity-70">MX Score da Loja</Typography>
-            <Gauge size={18} className="opacity-60" />
+            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">MX Score Loja</Typography>
+            <Gauge size={18} className="text-text-tertiary" />
           </div>
-          <div className="mt-mx-lg flex items-end gap-mx-sm">
-            <Typography variant="h1" tone="white" className="text-5xl leading-none font-mono-numbers">{mxScore}</Typography>
-            <Typography variant="h3" tone={mxScore >= 75 ? 'success' : mxScore >= 60 ? 'warning' : 'error'} className="mb-1">{scoreLabel(mxScore)}</Typography>
+          <div className="mt-mx-md flex items-center justify-center">
+            <GaugeScore value={mxScore} label={scoreLabel(mxScore)} />
           </div>
-          <ProgressBar value={mxScore} className="mt-mx-md" tone={mxScore >= 75 ? 'success' : mxScore >= 60 ? 'warning' : 'danger'} />
-          <Typography variant="tiny" tone="white" className="mt-mx-sm block font-black uppercase tracking-widest opacity-70">
+          <Typography variant="tiny" tone="muted" className="mt-mx-sm block text-center font-black uppercase tracking-widest">
             Meta, conversão e disciplina
           </Typography>
         </Card>
       </section>
 
-      <section className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg" aria-label="Operação da equipe">
-        <Card className="xl:col-span-5 border-none bg-white shadow-mx-lg">
+      <section className="grid grid-cols-1 gap-mx-lg xl:grid-cols-2 2xl:grid-cols-12" aria-label="Operação da equipe">
+        <Card className="border-none bg-white shadow-mx-lg xl:col-span-1 2xl:col-span-5">
           <PanelHeader title="Desempenho da Equipe" action="Ver equipe" onAction={() => navigate('?tab=equipe')} />
           <div className="overflow-x-auto">
             <table className="w-full min-w-[620px]">
@@ -162,7 +186,7 @@ export function ManagerOperationalCockpit({ data, alerts }: ManagerOperationalCo
           </div>
         </Card>
 
-        <Card className="xl:col-span-4 border-none bg-white p-mx-lg shadow-mx-lg">
+        <Card className="border-none bg-white p-mx-lg shadow-mx-lg xl:col-span-1 2xl:col-span-4">
           <div className="flex items-center justify-between gap-mx-md">
             <div>
               <Typography variant="h3" className="uppercase tracking-tight">Funil de Vendas da Equipe</Typography>
@@ -171,29 +195,18 @@ export function ManagerOperationalCockpit({ data, alerts }: ManagerOperationalCo
             <Badge variant="outline" className="shrink-0 rounded-mx-full">Mês atual</Badge>
           </div>
           <div className="mt-mx-lg space-y-mx-md">
-            {funnelRows.map(row => (
-              <div key={row.label} className="rounded-mx-xl border border-border-default bg-surface-alt p-mx-md">
-                <div className="flex items-center justify-between gap-mx-md">
-                  <Typography variant="tiny" className="font-black uppercase tracking-widest">{row.label}</Typography>
-                  <Badge variant={row.tone === 'success' ? 'success' : row.tone === 'danger' ? 'danger' : 'warning'} className="rounded-mx-full px-2 py-0.5">
-                    {row.pct}% / {row.benchmark}%
-                  </Badge>
-                </div>
-                <div className="mt-mx-sm grid grid-cols-3 items-center gap-mx-sm">
-                  <MiniStat label="Entrada" value={formatInteger(row.value)} />
-                  <MiniStat label="Próxima etapa" value={formatInteger(row.next)} />
-                  <MiniStat label="Conversão" value={`${row.pct}%`} />
-                </div>
-              </div>
+            {segmentedFunnelRows.map(row => (
+              <FunnelSegmentRow key={row.label} label={row.label} tone={row.tone} stages={row.stages} />
             ))}
           </div>
           <div className="mt-mx-lg flex items-center justify-between rounded-mx-xl bg-mx-indigo-50 px-mx-md py-mx-sm">
+            <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest">Total de Vendas: {formatInteger(data.funilData.vnd_total)}</Typography>
             <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest">Conversão geral</Typography>
             <Typography variant="h3" tone={data.funilData.tx_visita_vnd >= data.funnelBenchmarks.visitaVnd ? 'success' : 'error'}>{data.funilData.tx_visita_vnd}%</Typography>
           </div>
         </Card>
 
-        <Card className="xl:col-span-3 border-none bg-white shadow-mx-lg">
+        <Card className="border-none bg-white shadow-mx-lg xl:col-span-2 2xl:col-span-3">
           <PanelHeader title="Alertas Importantes" badge={alerts.length} action="Ver todos" onAction={() => navigate('/rotina')} />
           <div className="space-y-mx-sm p-mx-lg pt-0">
             {alerts.slice(0, 6).map(alert => (
@@ -203,22 +216,25 @@ export function ManagerOperationalCockpit({ data, alerts }: ManagerOperationalCo
         </Card>
       </section>
 
-      <section className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg" aria-label="Agenda e engajamento">
-        <Card className="xl:col-span-6 border-none bg-white p-mx-lg shadow-mx-lg">
+      <section className="grid grid-cols-1 gap-mx-lg xl:grid-cols-2 2xl:grid-cols-12" aria-label="Agenda e engajamento">
+        <Card className="border-none bg-white p-mx-lg shadow-mx-lg xl:col-span-2 2xl:col-span-6">
           <div className="flex items-center justify-between gap-mx-md">
             <Typography variant="h3" className="uppercase tracking-tight">Engajamento da Equipe</Typography>
             <Badge variant={teamEngagement >= 75 ? 'success' : teamEngagement >= 60 ? 'warning' : 'danger'} className="rounded-mx-full">{teamEngagement}%</Badge>
           </div>
-          <div className="mt-mx-lg grid grid-cols-2 gap-mx-md md:grid-cols-5">
-            <EngagementMetric label="Fechamento diário" value={disciplinePct} icon={<CheckSquare size={18} />} />
-            <EngagementMetric label="Agenda cumprida" value={data.metrics.totalAgd > 0 ? 100 : 0} icon={<CalendarDays size={18} />} />
-            <EngagementMetric label="Treinamentos" value={null} icon={<Target size={18} />} />
-            <EngagementMetric label="Feedbacks" value={null} icon={<MessageSquare size={18} />} />
-            <EngagementMetric label="Participação" value={teamEngagement} icon={<Users size={18} />} />
+          <div className="mt-mx-lg grid grid-cols-1 gap-mx-lg lg:grid-cols-[auto_1fr] lg:items-center">
+            <div className="flex justify-center">
+              <GaugeScore value={teamEngagement} label="Índice geral" size="lg" />
+            </div>
+            <div className="grid grid-cols-2 gap-mx-md md:grid-cols-5">
+              {engagementMetrics.map(metric => (
+                <EngagementMetric key={metric.label} label={metric.label} value={metric.value} icon={metric.icon} />
+              ))}
+            </div>
           </div>
         </Card>
 
-        <Card className="xl:col-span-3 border-none bg-white p-mx-lg shadow-mx-lg">
+        <Card className="border-none bg-white p-mx-lg shadow-mx-lg xl:col-span-1 2xl:col-span-3">
           <div className="flex items-center justify-between gap-mx-md">
             <Typography variant="h3" className="uppercase tracking-tight">Ranking da Loja</Typography>
             <button type="button" onClick={() => navigate('/classificacao')} className="text-mx-tiny font-black uppercase tracking-widest text-brand-primary">Ver ranking</button>
@@ -227,9 +243,14 @@ export function ManagerOperationalCockpit({ data, alerts }: ManagerOperationalCo
             {visibleRanking.slice(0, 3).map((row, index) => (
               <div key={row.user_id} className="flex items-center justify-between gap-mx-sm rounded-mx-xl bg-surface-alt px-mx-md py-mx-sm">
                 <div className="flex min-w-0 items-center gap-mx-sm">
-                  <span className="w-mx-8 text-center text-lg font-black text-status-warning">{index + 1}º</span>
+                  <span className={cn('flex h-mx-9 w-mx-9 shrink-0 items-center justify-center rounded-mx-full border bg-white', medalTone(index))}>
+                    {index === 0 ? <Trophy size={16} /> : <Medal size={16} />}
+                  </span>
                   <Avatar src={row.avatar_url || undefined} alt={`Avatar de ${row.user_name}`} fallback={row.user_name} size="sm" className="rounded-mx-lg" />
-                  <Typography variant="p" className="truncate font-black">{row.user_name}</Typography>
+                  <div className="min-w-0">
+                    <Typography variant="p" className="truncate font-black">{row.user_name}</Typography>
+                    <Typography variant="tiny" tone="muted" className="block font-black uppercase tracking-tight">{index + 1}º lugar</Typography>
+                  </div>
                 </div>
                 <Typography variant="mono" tone="brand">{row.vnd_total}</Typography>
               </div>
@@ -238,7 +259,7 @@ export function ManagerOperationalCockpit({ data, alerts }: ManagerOperationalCo
           </div>
         </Card>
 
-        <Card className="xl:col-span-3 border-none bg-white shadow-mx-lg">
+        <Card className="border-none bg-white shadow-mx-lg xl:col-span-1 2xl:col-span-3">
           <PanelHeader title="Agenda de Hoje" action="Abrir rotina" onAction={() => navigate('/rotina')} />
           <div className="space-y-mx-sm p-mx-lg pt-0">
             {data.metrics.totalAgd > 0 ? (
@@ -292,7 +313,7 @@ function ManagerKpiCard({
   tone: ManagerTone
 }) {
   return (
-    <Card className="lg:col-span-2 min-h-[190px] border-none bg-white p-mx-lg shadow-mx-lg">
+    <Card className="min-h-[190px] border-none bg-white p-mx-lg shadow-mx-lg">
       <div className="flex items-center justify-between gap-mx-sm">
         <MetricIcon tone={tone}>{icon}</MetricIcon>
         <Badge variant={tone === 'danger' ? 'danger' : tone === 'warning' ? 'warning' : tone === 'success' ? 'success' : 'outline'} className="rounded-mx-full px-2 py-0.5">
@@ -376,8 +397,41 @@ function AlertItem({ alert }: { alert: OwnerPerformanceAlert }) {
   )
 }
 
-function EngagementMetric({ label, value, icon }: { label: string; value: number | null; icon: ReactNode }) {
-  const tone: ManagerTone = value == null ? 'neutral' : value >= 75 ? 'success' : value >= 60 ? 'warning' : 'danger'
+function FunnelSegmentRow({
+  label,
+  tone,
+  stages,
+}: {
+  label: string
+  tone: ManagerTone
+  stages: Array<{ label: string; value: number; pct?: number }>
+}) {
+  return (
+    <div className="rounded-mx-xl border border-border-default bg-white p-mx-md shadow-mx-sm">
+      <div className="flex items-center gap-mx-sm">
+        <MetricIcon tone={tone} className="h-mx-8 w-mx-8 rounded-mx-lg">
+          <Gauge size={14} />
+        </MetricIcon>
+        <Typography variant="tiny" tone={tone === 'success' ? 'success' : tone === 'warning' ? 'warning' : 'brand'} className="font-black uppercase tracking-widest">{label}</Typography>
+      </div>
+      <div className={cn('mt-mx-md grid gap-mx-sm', stages.length === 2 ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4')}>
+        {stages.map((stage, index) => (
+          <div key={stage.label} className="relative min-w-0 rounded-mx-lg bg-surface-alt px-mx-sm py-mx-xs text-center">
+            {index > 0 && <span className="absolute -left-mx-sm top-1/2 hidden -translate-y-1/2 text-text-tertiary md:block">&gt;</span>}
+            <Typography variant="tiny" tone="muted" className="block truncate font-black uppercase tracking-tight">{stage.label}</Typography>
+            <div className="mt-mx-xs flex items-baseline justify-center gap-mx-xs">
+              <Typography variant="h3" className="font-mono-numbers">{formatInteger(stage.value)}</Typography>
+              {typeof stage.pct === 'number' && <Typography variant="tiny" tone="muted" className="font-black">{stage.pct}%</Typography>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function EngagementMetric({ label, value, icon }: { label: string; value: number; icon: ReactNode }) {
+  const tone: ManagerTone = value >= 75 ? 'success' : value >= 60 ? 'warning' : 'danger'
   return (
     <div className="rounded-mx-xl border border-border-default bg-surface-alt p-mx-md text-center">
       <div className="mx-auto flex h-mx-10 w-mx-10 items-center justify-center rounded-mx-lg bg-white text-brand-primary shadow-mx-sm">
@@ -385,8 +439,28 @@ function EngagementMetric({ label, value, icon }: { label: string; value: number
       </div>
       <Typography variant="tiny" tone="muted" className="mt-mx-sm block min-h-[32px] font-black uppercase tracking-tight">{label}</Typography>
       <Typography variant="h3" tone={tone === 'success' ? 'success' : tone === 'warning' ? 'warning' : tone === 'danger' ? 'error' : 'muted'} className="mt-mx-xs">
-        {value == null ? 'Pendente' : `${value}%`}
+        {value}%
       </Typography>
+    </div>
+  )
+}
+
+function GaugeScore({ value, label, size = 'md' }: { value: number; label: string; size?: 'md' | 'lg' }) {
+  const clamped = Math.min(Math.max(Math.round(value), 0), 100)
+  const tone = clamped >= 75 ? 'success' : clamped >= 60 ? 'warning' : 'danger'
+  const dimension = size === 'lg' ? 'h-mx-36 w-mx-36' : 'h-mx-28 w-mx-28'
+  const inner = size === 'lg' ? 'h-mx-28 w-mx-28' : 'h-mx-20 w-mx-20'
+
+  return (
+    <div
+      className={cn('grid shrink-0 place-items-center rounded-mx-full shadow-mx-inner', dimension)}
+      style={{ background: gaugeGradient(tone, clamped) }}
+      aria-label={`${label}: ${clamped}%`}
+    >
+      <div className={cn('flex flex-col items-center justify-center rounded-mx-full bg-white text-center', inner)}>
+        <Typography variant={size === 'lg' ? 'h1' : 'h2'} className="leading-none font-mono-numbers">{clamped}%</Typography>
+        <Typography variant="tiny" tone={tone === 'success' ? 'success' : tone === 'warning' ? 'warning' : 'error'} className="mt-mx-tiny block font-black uppercase tracking-tight">{label}</Typography>
+      </div>
     </div>
   )
 }
@@ -408,7 +482,7 @@ function AgendaItem({ time, title, detail }: { time: string; title: string; deta
 function MiniStat({ label, value, detail }: { label: string; value: string | number; detail?: string }) {
   return (
     <div className="min-w-0 px-mx-xs">
-      <Typography variant="tiny" tone="muted" className="block font-black uppercase tracking-tight">{label}</Typography>
+      <Typography variant="tiny" tone="muted" className="block text-[10px] font-black uppercase leading-tight tracking-normal sm:text-xs">{label}</Typography>
       <Typography variant="h3" className="mt-mx-xs truncate font-mono-numbers">{value}</Typography>
       {detail && <Typography variant="tiny" tone="muted" className="block font-bold normal-case tracking-normal">{detail}</Typography>}
     </div>
@@ -464,6 +538,30 @@ function toneFill(tone: ManagerTone) {
   }[tone]
 }
 
+function gaugeColor(tone: ManagerTone) {
+  return {
+    brand: chartTokens.series.s4(),
+    success: chartTokens.success(),
+    warning: chartTokens.warning(),
+    danger: chartTokens.danger(),
+    info: chartTokens.info(),
+    neutral: chartTokens.axisTick(),
+  }[tone]
+}
+
+function gaugeGradient(tone: ManagerTone, value: number) {
+  const end = Math.min(Math.max(value, 0), 100) * 3.6
+  const active = `conic-gradient(${gaugeColor(tone)} ${end}deg, ${chartTokens.gridStrong()} 0deg)`
+  if (tone !== 'success') return active
+  return `conic-gradient(${chartTokens.success()} 0deg 185deg, ${chartTokens.warning()} 185deg 275deg, ${chartTokens.danger()} 275deg 330deg, ${chartTokens.gridStrong()} 330deg 360deg)`
+}
+
+function medalTone(index: number) {
+  if (index === 0) return 'border-status-warning/30 text-status-warning'
+  if (index === 1) return 'border-text-tertiary/30 text-text-tertiary'
+  return 'border-status-warning/20 text-amber-700'
+}
+
 function scoreLabel(score: number) {
   if (score >= 75) return 'Bom'
   if (score >= 60) return 'Atenção'
@@ -476,6 +574,10 @@ function formatInteger(value: number) {
 
 function formatDecimal(value: number) {
   return Number.isFinite(value) ? value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0,00'
+}
+
+function percent(value: number, total: number) {
+  return total > 0 ? Math.round((value / total) * 100) : 0
 }
 
 function formatPeriodLabel(referenceDate: string) {

@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
@@ -446,6 +446,7 @@ function getOwnerDepartmentCode(search: string): MxDepartmentCode | null {
 export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitProps) {
   const { profile } = useAuth()
   const location = useLocation()
+  const [planCreateRequest, setPlanCreateRequest] = useState(0)
   const periodLabel = currentPeriodLabel(data.referenceDate)
   const panoramaData = useMemo(() => buildPanoramaData(data), [data])
   const marginPercent = data.latestDRE && data.latestDRE.gross_margin > 0
@@ -495,8 +496,15 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
       {section === 'resultados' && <ResultsView data={data} alerts={ownerAlerts} panoramaData={panoramaData} mxScore={mxScore} />}
       {section === 'plano-acao' && (
         <>
-          <ActionPlanView actions={actions} />
-          <CentralMxPlanoSegmentadoPanel storeId={data.operationalStore?.id || null} />
+          <ActionPlanView
+            actions={actions}
+            onNewAction={() => setPlanCreateRequest((current) => current + 1)}
+            disableNewAction={!data.operationalStore?.id}
+          />
+          <CentralMxPlanoSegmentadoPanel
+            storeId={data.operationalStore?.id || null}
+            createRequest={planCreateRequest}
+          />
           <CentralMxPersistedPlanosPanel storeId={data.operationalStore?.id || null} />
         </>
       )}
@@ -1089,14 +1097,72 @@ function ResultsView({
   )
 }
 
-function ActionPlanView({ actions }: { actions: ActionRow[] }) {
+function ActionPlanView({
+  actions,
+  onNewAction,
+  disableNewAction,
+}: {
+  actions: ActionRow[]
+  onNewAction: () => void
+  disableNewAction: boolean
+}) {
+  const handleExport = () => {
+    const headers = [
+      'Prioridade',
+      'Departamento',
+      'Indicador',
+      'Problema',
+      'Ação',
+      'Como',
+      'Responsável',
+      'Prazo',
+      'Status',
+      'Eficácia',
+      'Origem',
+      'Evidência',
+    ]
+    const rows = actions.map((action) => [
+      action.priority,
+      action.department,
+      action.indicator,
+      action.problem,
+      action.action,
+      action.how,
+      action.owner,
+      action.due,
+      action.status,
+      action.efficacy,
+      action.origin,
+      action.evidence,
+    ])
+    const escapeCell = (value: string) => `"${value.replace(/"/g, '""')}"`
+    const csv = [headers, ...rows].map((row) => row.map(escapeCell).join(';')).join('\n')
+    const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'plano-de-acao.csv'
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="space-y-mx-md">
       <div className="flex flex-col gap-mx-sm md:flex-row md:items-center md:justify-between">
         <SectionTitle title="Plano de Ação" subtitle="Transforme problemas em execução e acompanhe eficácia." />
         <div className="flex gap-mx-sm">
-          <Button type="button" className="rounded-mx-xl"><Plus size={16} /> Nova Ação</Button>
-          <Button type="button" variant="outline" className="rounded-mx-xl bg-white"><Download size={16} /> Exportar</Button>
+          <Button type="button" className="rounded-mx-xl" onClick={onNewAction} disabled={disableNewAction}>
+            <Plus size={16} /> Nova Ação
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="rounded-mx-xl bg-white"
+            onClick={handleExport}
+            disabled={actions.length === 0}
+          >
+            <Download size={16} /> Exportar
+          </Button>
         </div>
       </div>
       <div className="grid grid-cols-1 gap-mx-md xl:grid-cols-[minmax(0,1fr)_320px]">
