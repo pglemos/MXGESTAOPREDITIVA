@@ -186,12 +186,6 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
         { label: 'Biblioteca', path: OWNER_BIBLIOTECA_PATH, icon: <Library size={16} /> },
       ]
-    },
-    {
-      category: 'Falar com Consultor', icon: <MessageSquare size={22} />,
-      items: [
-        { label: 'Falar com Consultor', path: OWNER_CONSULTOR_PATH, icon: <MessageSquare size={16} /> },
-      ]
     }
   ],
   gerente: [
@@ -201,9 +195,7 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Home', path: STORE_DASHBOARD_PATH, icon: <Home size={16} /> },
         { label: 'Equipe', path: STORE_TEAM_PATH, icon: <Users size={16} /> },
         { label: 'Agenda', path: '/rotina', icon: <CalendarDays size={16} /> },
-        { label: 'Funil de Vendas', path: STORE_DASHBOARD_PATH, icon: <TrendingUp size={16} /> },
         { label: 'Negociações', path: '/relatorios/performance-vendedor', icon: <MessageSquare size={16} /> },
-        { label: 'Metas', path: STORE_DASHBOARD_PATH, icon: <Target size={16} /> },
         { label: 'Relatórios', path: '/relatorio-matinal', icon: <ClipboardList size={16} /> },
       ]
     },
@@ -211,7 +203,7 @@ const navConfig: Record<string, NavCategory[]> = {
       category: 'PESSOAS', icon: <Users size={22} />,
       items: [
         { label: 'Feedbacks', path: '/devolutivas', icon: <MessageSquare size={16} /> },
-        { label: 'Desenvolvimento', path: '/treinamentos', icon: <GraduationCap size={16} /> },
+        { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
       ]
     },
     {
