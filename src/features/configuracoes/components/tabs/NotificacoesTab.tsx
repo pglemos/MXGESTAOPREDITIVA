@@ -1,5 +1,5 @@
 import { useState, useEffect, type ReactNode } from 'react'
-import { Bell, Mail, Smartphone, Save, RefreshCw, Calendar, BarChart3, GraduationCap, Trophy, Megaphone, AlertTriangle, type LucideIcon } from 'lucide-react'
+import { Bell, Mail, Smartphone, Save, RefreshCw, Calendar, BarChart3, GraduationCap, Trophy, Megaphone, AlertTriangle, BellOff, BellRing, Loader2, type LucideIcon } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
@@ -7,6 +7,7 @@ import { Card } from '@/components/molecules/Card'
 import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
 import { DEFAULT_NOTIFICATION_PREFERENCES, type NotificationPreferences } from '@/types/database'
+import { usePushNotifications } from '@/features/notificacoes/hooks/usePushNotifications'
 
 const CHANNEL_DEFINITIONS: Array<{
     key: keyof NotificationPreferences
@@ -60,9 +61,50 @@ export function NotificacoesTab() {
 
     const channels = CHANNEL_DEFINITIONS.filter(c => c.section === 'canal')
     const topicos = CHANNEL_DEFINITIONS.filter(c => c.section === 'topico')
+    const push = usePushNotifications(supabaseUser?.id ?? null)
 
     return (
         <div className="space-y-mx-lg">
+            <Card className="p-mx-lg md:p-mx-xl border-none shadow-mx-lg bg-white">
+                <header className="flex items-center gap-mx-sm pb-mx-md border-b border-border-default mb-mx-lg">
+                    <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-indigo-50 text-brand-primary flex items-center justify-center border border-mx-indigo-100 shadow-inner">
+                        <BellRing size={26} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <Typography variant="h3" className="uppercase tracking-tight">Notificações Push do Navegador</Typography>
+                        <Typography variant="caption" tone="muted" className="uppercase tracking-widest font-black">
+                            {push.supported
+                                ? push.subscribed
+                                    ? 'Ativo — você receberá alertas em tempo real.'
+                                    : push.permission === 'denied'
+                                        ? 'Permissão negada — habilite manualmente nas configurações do navegador.'
+                                        : 'Inativo — clique em ativar para receber alertas.'
+                                : 'Navegador sem suporte a Web Push (use Chrome, Firefox ou Edge).'}
+                        </Typography>
+                    </div>
+                    <Button
+                        type="button"
+                        variant={push.subscribed ? 'secondary' : 'primary'}
+                        size="sm"
+                        disabled={!push.supported || push.subscribing}
+                        onClick={() => (push.subscribed ? push.unsubscribe() : push.subscribe())}
+                    >
+                        {push.subscribing ? (
+                            <Loader2 size={14} className="mr-1 animate-spin" />
+                        ) : push.subscribed ? (
+                            <BellOff size={14} className="mr-1" />
+                        ) : (
+                            <BellRing size={14} className="mr-1" />
+                        )}
+                        {push.subscribed ? 'Desativar' : 'Ativar push'}
+                    </Button>
+                </header>
+                {push.error && (
+                    <Typography variant="tiny" className="block font-black text-status-error">
+                        {push.error}
+                    </Typography>
+                )}
+            </Card>
             <Card className="p-mx-lg md:p-mx-xl border-none shadow-mx-lg bg-white">
                 <header className="flex items-center gap-mx-sm pb-mx-md border-b border-border-default mb-mx-lg">
                     <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-indigo-50 text-brand-primary flex items-center justify-center border border-mx-indigo-100 shadow-inner">
