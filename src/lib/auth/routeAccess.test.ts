@@ -27,14 +27,18 @@ describe('route access matrix', () => {
   it('allows gerente to access a scoped store dashboard but not the store index', () => {
     expect(canAccessPath('/lojas/acertt', 'gerente')).toBe(true)
     expect(canAccessPath('/lojas/acertt?tab=equipe', 'gerente')).toBe(true)
+    expect(canAccessPath('/lojas/acertt/consultor-ia', 'gerente')).toBe(true)
     expect(canAccessPath('/lojas', 'gerente')).toBe(false)
   })
 
   it('keeps daily launch restricted to the vendedor operating flow while allowing /home as role entrypoint', () => {
     expect(canAccessPath('/home', 'vendedor')).toBe(true)
     expect(canAccessPath('/home', 'administrador_geral')).toBe(false)
-    expect(canAccessPath('/home', 'gerente')).toBe(false)
-    expect(canAccessPath('/home', 'dono')).toBe(false)
+    expect(canAccessPath('/home', 'gerente')).toBe(true)
+    expect(canAccessPath('/home', 'dono')).toBe(true)
+    expect(canAccessPath('/lojas/acertt/consultor-ia', 'vendedor')).toBe(true)
+    expect(canAccessPath('/lojas/acertt/consultor-ia', 'dono')).toBe(true)
+    expect(canAccessPath('/lojas/acertt/consultor-ia', 'administrador_mx')).toBe(true)
     expect(canAccessPath('/lancamento-diario', 'vendedor')).toBe(true)
     expect(canAccessPath('/historico', 'vendedor')).toBe(true)
     expect(canAccessPath('/historico', 'gerente')).toBe(false)

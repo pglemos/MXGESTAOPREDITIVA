@@ -83,6 +83,16 @@ Esta story cria o catalogo de regras consultivas. A engine de execucao e a UI fi
 - `src/lib/mx-executive-foundation.test.ts`
 - `src/features/dashboard-loja/sections/PerformanceAlerts.tsx`
 - `src/features/dashboard-loja/sections/OwnerExecutiveCockpit.tsx`
+- `src/features/central-mx/sections/ConsultorIaStoreSection.tsx`
+- `src/features/central-mx/StoreConsultorIa.container.tsx`
+- `src/pages/StoreConsultorIa.tsx`
+- `src/components/Layout.tsx`
+- `src/App.tsx`
+- `src/lib/auth/routeAccess.ts`
+- `src/lib/auth/routeAccess.test.ts`
+- `src/test/mx-consultoria-role-smoke.playwright.ts`
+- `src/features/vendedor-home/AgendaVendedor.tsx`
+- `src/features/dashboard-loja/sections/ManagerOperationalCockpit.tsx`
 - `src/lib/calculations.ts`
 - `src/lib/development-content.ts`
 - `supabase/migrations/20260527140000_alerts_engine_schema.sql`
@@ -101,14 +111,19 @@ Esta story cria o catalogo de regras consultivas. A engine de execucao e a UI fi
 - 2026-05-27: Criada migration `20260527180000_departments_planning_consultive_rules_schema.sql` com `catalogo_regras_consultivas`, condições JSON, severidade, mensagem, recomendação, ação sugerida, departamento, explicabilidade e `affects_score = false`.
 - 2026-05-27: Seed inicial inclui regras para estoque acima de 90 dias, conversão lead > agendamento abaixo do benchmark, rotina incompleta e MX Score em atenção/crítico.
 - 2026-05-27: Adicionada cobertura unitária em `mx-executive-foundation.test.ts` para determinismo, rastreabilidade por `sourceRef`, regra de estoque > 90 dias, benchmark e garantia de `affectsScore: false`.
+- 2026-05-29: Unificado o Consultor IA de dono, gerente e vendedor na rota `/lojas/:storeSlug/consultor-ia`, reutilizando o mesmo bloco visual e o mesmo `ConsultorIaChat` rules-based.
+- 2026-05-29: Atualizada navegação lateral/CTA para gerente e vendedor apontarem para a experiência consultiva por loja em vez de `/auditoria` ou WhatsApp.
+- 2026-05-29: Gates executados: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` e `bun test src/lib/auth/routeAccess.test.ts` passaram.
 
 ### Completion Notes
 
 - Existe comportamento rules-based no frontend e nenhum uso obrigatório de LLM para recomendações operacionais.
 - Catálogo persistente/configurável e explicabilidade formal foram adicionados.
 - Testes unitários cobrem determinismo, rastreabilidade e preservação do MX Score.
+- Dono, gerente e vendedor passam a acessar a mesma experiência do Consultor IA por loja em `/lojas/:storeSlug/consultor-ia`.
 
 ### Change Log
 
 - 2026-05-27: Story atualizada de `Draft` para `InProgress` com evidência de regras existentes e pendências do catálogo persistente.
 - 2026-05-27: Story movida para `Ready for Review` após cobertura unitária dos contratos pendentes.
+- 2026-05-29: Correção de roteamento e navegação multi-perfil para o Consultor IA por loja.

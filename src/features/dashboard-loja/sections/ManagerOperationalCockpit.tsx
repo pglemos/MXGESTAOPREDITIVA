@@ -529,9 +529,9 @@ function SemiCircularGauge({ value, label, suffix = '' }: { value: number; label
       <svg viewBox="0 0 160 100" width="160" height="100" role="img" aria-hidden="true">
         <defs>
           <linearGradient id="mx-gauge-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#EF4444" />
-            <stop offset="50%" stopColor="#F59E0B" />
-            <stop offset="100%" stopColor="#10B981" />
+            <stop offset="0%" stopColor={chartTokens.danger()} />
+            <stop offset="50%" stopColor={chartTokens.warning()} />
+            <stop offset="100%" stopColor={chartTokens.success()} />
           </linearGradient>
         </defs>
         {/* Arc track */}
@@ -543,8 +543,8 @@ function SemiCircularGauge({ value, label, suffix = '' }: { value: number; label
           strokeLinecap="round"
         />
         {/* Pointer */}
-        <circle cx={pointerX} cy={pointerY} r={6} fill="#0A0A0B" />
-        <circle cx={pointerX} cy={pointerY} r={3} fill="#ffffff" />
+        <circle cx={pointerX} cy={pointerY} r={6} fill="var(--color-mx-black)" />
+        <circle cx={pointerX} cy={pointerY} r={3} fill="var(--color-pure-white)" />
       </svg>
       <div className="-mt-mx-md flex flex-col items-center">
         <span className="text-4xl font-black font-mono-numbers leading-none text-text-primary">{clamped}{suffix}</span>

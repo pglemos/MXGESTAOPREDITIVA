@@ -36,6 +36,8 @@ const dayShort = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
 
 export default function AgendaVendedor() {
   const { metrics, referenceDate, referenceDateLabel } = useVendedorHomePage()
+  const agendamentosHoje = metrics?.agendamentosHoje ?? 0
+  const atividadesHoje = baseAgenda.length
   const referenceMoment = useMemo(() => {
     const [y, m, d] = referenceDate.split('-').map(Number)
     return new Date(y, (m || 1) - 1, d || 1)
@@ -153,7 +155,7 @@ export default function AgendaVendedor() {
               <Typography variant="tiny" tone="muted" className="mt-mx-xs block font-black uppercase tracking-widest">{baseAgenda.length} compromissos · {hours}h{remaining ? ` ${remaining}min` : ''}</Typography>
             </div>
             <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">
-              {metrics.agendamentosHoje} agendamentos · {metrics.atividadesHoje} atividades
+              {agendamentosHoje} agendamentos · {atividadesHoje} atividades
             </Typography>
           </div>
 

@@ -59,12 +59,14 @@ test.describe('MX Consultoria release gate - authenticated role smoke', () => {
     await login(page, STORE_USERS.dono.email, STORE_USERS.dono.password)
     await expectRoute(page, '/lojas', /\/lojas/)
     await expectRoute(page, `/lojas/${STORE_SLUG}`, new RegExp(`/lojas/${STORE_SLUG}`))
+    await expectRoute(page, `/lojas/${STORE_SLUG}/consultor-ia`, new RegExp(`/lojas/${STORE_SLUG}/consultor-ia`))
 
     await page.context().clearCookies()
     await page.evaluate(() => window.localStorage.clear())
 
     await login(page, STORE_USERS.gerente.email, STORE_USERS.gerente.password)
     await expectRoute(page, `/lojas/${STORE_SLUG}`, new RegExp(`/lojas/${STORE_SLUG}`))
+    await expectRoute(page, `/lojas/${STORE_SLUG}/consultor-ia`, new RegExp(`/lojas/${STORE_SLUG}/consultor-ia`))
     await expectRoute(page, '/rotina', /\/rotina/)
 
     await page.context().clearCookies()
@@ -72,6 +74,7 @@ test.describe('MX Consultoria release gate - authenticated role smoke', () => {
 
     await login(page, STORE_USERS.vendedor.email, STORE_USERS.vendedor.password)
     await expectRoute(page, '/home', /\/home/)
+    await expectRoute(page, `/lojas/${STORE_SLUG}/consultor-ia`, new RegExp(`/lojas/${STORE_SLUG}/consultor-ia`))
     await expectRoute(page, '/lancamento-diario', /\/lancamento-diario/)
     await expectRoute(page, '/treinamentos', /\/treinamentos/)
   })
