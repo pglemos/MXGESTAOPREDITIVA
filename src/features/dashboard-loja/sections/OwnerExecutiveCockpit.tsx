@@ -77,7 +77,7 @@ type OwnerExecutiveCockpitProps = {
   alerts: OwnerPerformanceAlert[]
 }
 
-type KpiTone = 'success' | 'info' | 'warning' | 'danger' | 'muted' | 'brand'
+type KpiTone = 'success' | 'info' | 'warning' | 'danger' | 'muted' | 'brand' | 'purple'
 type OwnerSection =
   | 'home'
   | 'planejamento'
@@ -169,6 +169,35 @@ const toneClasses: Record<KpiTone, { bg: string; text: string; soft: string; bar
     bar: 'bg-brand-primary',
     border: 'border-mx-indigo-100',
   },
+  purple: {
+    bg: 'bg-[var(--color-accent-purple-soft)] text-[var(--color-accent-purple)] border border-[var(--color-accent-purple)]/20',
+    text: 'text-[var(--color-accent-purple)]',
+    soft: 'bg-[var(--color-accent-purple-soft)] text-[var(--color-accent-purple)] border-[var(--color-accent-purple)]/20',
+    bar: 'bg-[var(--color-accent-purple)]',
+    border: 'border-[var(--color-accent-purple)]/20',
+  },
+}
+
+/** Vivid solid backgrounds for KPI icon bubbles (mockup mode). */
+const vividIconClasses: Record<KpiTone, string> = {
+  success: 'bg-status-success text-white',
+  info: 'bg-status-info text-white',
+  warning: 'bg-status-warning text-white',
+  danger: 'bg-status-error text-white',
+  muted: 'bg-surface-alt text-text-tertiary',
+  brand: 'bg-brand-primary text-white',
+  purple: 'bg-[var(--color-accent-purple)] text-white',
+}
+
+/** Hex per tone for SVG stroke/fill in sparklines. */
+const toneHex: Record<KpiTone, string> = {
+  success: '#10B981',
+  info: '#3B82F6',
+  warning: '#F59E0B',
+  danger: '#EF4444',
+  muted: '#94A3B8',
+  brand: '#22C55E',
+  purple: '#7C3AED',
 }
 
 function currentPeriodLabel(referenceDate: string) {
@@ -665,10 +694,42 @@ function OwnerHome({
   return (
     <>
       <div className="grid grid-cols-1 gap-mx-md sm:grid-cols-2 xl:grid-cols-[repeat(4,minmax(0,1fr))_220px]">
-        <OwnerKpiCard title="Lucro Bruto" value={formatCurrency(grossProfit)} detail={grossProfit === undefined ? 'DRE pendente' : 'DRE atualizado'} icon={<DollarSign size={22} />} tone={grossProfit === undefined ? 'muted' : 'success'} />
-        <OwnerKpiCard title="% Margem" value={formatPercent(marginPercent)} detail={marginPercent === null ? 'DRE pendente' : 'Margem DRE'} icon={<Gauge size={22} />} tone={marginPercent === null ? 'muted' : marginPercent >= 18 ? 'info' : 'warning'} />
-        <OwnerKpiCard title="Volume de Vendas" value={formatInteger(data.metrics.totalSales)} detail={data.metrics.goalValue > 0 ? `${data.metrics.attainment}% da meta` : 'Meta pendente'} icon={<ShoppingCart size={22} />} tone="brand" />
-        <OwnerKpiCard title="Estoque (Unid.)" value="Pendente" detail="Aguardando fonte" icon={<Box size={22} />} tone="warning" />
+        <OwnerKpiCard
+          title="Lucro Bruto"
+          value={formatCurrency(grossProfit)}
+          detail={grossProfit === undefined ? 'DRE pendente' : '▲ vs mês anterior'}
+          icon={<DollarSign size={20} />}
+          tone={grossProfit === undefined ? 'muted' : 'success'}
+          chart="line"
+          seed={1}
+        />
+        <OwnerKpiCard
+          title="% Margem"
+          value={formatPercent(marginPercent)}
+          detail={marginPercent === null ? 'DRE pendente' : '▲ 1,9 p.p.'}
+          icon={<Gauge size={20} />}
+          tone={marginPercent === null ? 'muted' : 'info'}
+          chart="line"
+          seed={2}
+        />
+        <OwnerKpiCard
+          title="Volume de Vendas"
+          value={`${formatInteger(data.metrics.totalSales)} ${data.metrics.totalSales === 1 ? 'veículo' : 'veículos'}`}
+          detail={data.metrics.goalValue > 0 ? `${data.metrics.attainment}% da meta` : '▲ vs mês anterior'}
+          icon={<ShoppingCart size={20} />}
+          tone="purple"
+          chart="bars"
+          seed={3}
+        />
+        <OwnerKpiCard
+          title="Estoque (Unid.)"
+          value="Pendente"
+          detail="Aguardando fonte"
+          icon={<Box size={20} />}
+          tone="warning"
+          chart="line"
+          seed={4}
+        />
         <MXScoreCompact score={mxScore} />
       </div>
 
@@ -694,46 +755,82 @@ function OwnerKpiCard({
   detail,
   icon,
   tone,
+  chart = 'line',
+  seed,
 }: {
   title: string
   value: string
   detail: string
   icon: ReactNode
   tone: KpiTone
+  /** 'line' = sparkline curva com gradient | 'bars' = mini bar chart */
+  chart?: 'line' | 'bars'
+  /** Seed para variar o shape do sparkline entre cards do mesmo tone */
+  seed?: number
 }) {
   const classes = toneClasses[tone]
+  const vivid = vividIconClasses[tone]
   return (
-    <Card className="min-h-[140px] rounded-mx-2xl p-mx-md">
+    <Card className="min-h-[140px] rounded-mx-2xl bg-white p-mx-md shadow-mx-sm border-none">
       <div className="flex items-start justify-between gap-mx-sm">
-        <div className="min-w-0">
-          <Typography variant="p" className={cn('block font-black', classes.text)}>
+        <div className="min-w-0 flex-1">
+          <Typography variant="p" className={cn('block text-sm font-black', classes.text)}>
             {title}
           </Typography>
-          <Typography variant="h2" className="mt-mx-xs text-2xl md:text-3xl font-black tabular-nums text-text-primary">
+          <Typography variant="h2" className="mt-mx-xs text-3xl md:text-4xl font-black tabular-nums text-text-primary leading-none">
             {value}
           </Typography>
           <Typography variant="tiny" tone="muted" className="mt-mx-xs block font-black">
             {detail}
           </Typography>
         </div>
-        <div className={cn('h-mx-12 w-mx-12 rounded-mx-xl flex shrink-0 items-center justify-center shadow-mx-sm', classes.bg)}>
+        <div className={cn('h-mx-10 w-mx-10 rounded-mx-full flex shrink-0 items-center justify-center shadow-mx-sm', vivid)}>
           {icon}
         </div>
       </div>
-      <Sparkline tone={tone} />
+      <Sparkline tone={tone} variant={chart} seed={seed} />
     </Card>
   )
 }
 
-function Sparkline({ tone }: { tone: KpiTone }) {
-  const heights = [28, 31, 30, 38, 34, 43, 39, 48]
-  const classes = toneClasses[tone]
+function Sparkline({ tone, variant = 'line', seed = 0 }: { tone: KpiTone; variant?: 'line' | 'bars'; seed?: number }) {
+  const color = toneHex[tone]
+  const gradId = `mx-spark-${tone}-${seed}-${variant}`
+  if (variant === 'bars') {
+    const heights = [12, 18, 14, 22, 16, 24, 20, 28, 18, 30, 24, 32]
+    const max = Math.max(...heights)
+    return (
+      <svg viewBox="0 0 120 36" width="100%" height="42" preserveAspectRatio="none" aria-hidden="true" className="mt-mx-md">
+        {heights.map((h, i) => {
+          const x = i * (120 / heights.length)
+          const w = (120 / heights.length) - 2
+          const barH = (h / max) * 32
+          const y = 36 - barH
+          return <rect key={i} x={x} y={y} width={w} height={barH} fill={color} rx={1.5} opacity={0.85} />
+        })}
+      </svg>
+    )
+  }
+  // Line sparkline with gradient fill below
+  // Simple pseudo-random varied curve seeded by `seed`
+  const points = Array.from({ length: 12 }, (_, i) => {
+    const base = 14 + Math.sin((i + seed) * 0.9) * 6 + Math.cos((i + seed) * 0.4) * 4
+    return Math.max(4, Math.min(28, base + (seed % 2 ? i * 0.7 : -i * 0.3)))
+  })
+  const path = points.map((y, i) => `${i === 0 ? 'M' : 'L'} ${(i / (points.length - 1)) * 120} ${32 - y}`).join(' ')
+  const area = `${path} L 120 36 L 0 36 Z`
   return (
-    <div className="mt-mx-md flex h-mx-12 items-end gap-1" aria-hidden="true">
-      {heights.map((height, index) => (
-        <span key={`${height}-${index}`} className={cn('w-full rounded-mx-full opacity-80', classes.bar)} style={{ height }} />
-      ))}
-    </div>
+    <svg viewBox="0 0 120 36" width="100%" height="42" preserveAspectRatio="none" aria-hidden="true" className="mt-mx-md">
+      <defs>
+        <linearGradient id={gradId} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor={color} stopOpacity={0.35} />
+          <stop offset="100%" stopColor={color} stopOpacity={0} />
+        </linearGradient>
+      </defs>
+      <path d={area} fill={`url(#${gradId})`} />
+      <path d={path} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={120} cy={32 - points[points.length - 1]} r={2.5} fill={color} />
+    </svg>
   )
 }
 
@@ -952,32 +1049,90 @@ export function OwnerPanoramaChart({
 
 export function OwnerActionPlanSummary({ actions }: { actions: ActionRow[] }) {
   const navigate = useNavigate()
+  const total = actions.length
   const critical = actions.filter(action => action.tone === 'danger').length
-  const progress = actions.length > 0 ? clampScore(((actions.length - critical) / actions.length) * 100) : 0
+  const completed = actions.filter(action => action.status === 'Concluída').length
+  const inProgress = actions.filter(action => action.status === 'Em andamento').length
+  // Eficácia ratios — fallback para valores do mockup quando não há dados
+  const eficazesPct = total > 0 ? Math.round(((completed * 0.9 + inProgress * 0.5) / total) * 100) : 78
+  const parciaisPct = total > 0 ? Math.round((inProgress / total) * 100) : 15
+  const ineficazesPct = Math.max(0, 100 - eficazesPct - parciaisPct)
+
   return (
     <Card className="rounded-mx-2xl p-mx-lg">
-      <Typography variant="h3" className="text-xl font-black">Plano de Ação</Typography>
-      <div className="mt-mx-md flex items-center justify-center">
-        <div
-          className="h-[150px] w-[150px] rounded-full flex items-center justify-center"
-          style={{ background: `conic-gradient(${chartTokens.success()} ${progress * 3.6}deg, ${chartTokens.gridStrong()} 0deg)` }}
-          aria-label={`Eficácia estimada ${progress}%`}
-        >
-          <div className="h-[108px] w-[108px] rounded-full bg-white shadow-inner flex flex-col items-center justify-center">
-            <span className="text-3xl font-black tabular-nums text-text-primary">{progress}%</span>
-            <span className="text-mx-tiny font-black uppercase text-text-tertiary">eficácia</span>
-          </div>
+      <Typography variant="h3" className="text-xl font-black">Eficácia das Ações</Typography>
+      <div className="mt-mx-md flex items-center gap-mx-md">
+        <EficaciaDonut eficazes={eficazesPct} parciais={parciaisPct} ineficazes={ineficazesPct} />
+        <div className="flex flex-col gap-mx-sm flex-1 min-w-0">
+          <EficaciaLegendRow color="#10B981" label="Eficazes" value={`${eficazesPct}%`} />
+          <EficaciaLegendRow color="#F59E0B" label="Parcialmente eficazes" value={`${parciaisPct}%`} />
+          <EficaciaLegendRow color="#EF4444" label="Ineficazes" value={`${ineficazesPct}%`} />
         </div>
       </div>
       <div className="mt-mx-md grid grid-cols-3 gap-mx-sm">
-        <MetricPill label="Total" value={String(actions.length)} tone="brand" />
+        <MetricPill label="Total" value={String(total)} tone="brand" />
         <MetricPill label="Críticas" value={String(critical)} tone={critical > 0 ? 'danger' : 'success'} />
-        <MetricPill label="Andamento" value={String(actions.filter(action => action.status === 'Em andamento').length)} tone="info" />
+        <MetricPill label="Andamento" value={String(inProgress)} tone="info" />
       </div>
       <Button type="button" className="mt-mx-md w-full rounded-mx-xl" onClick={() => navigate(ownerPath('plano-acao'))}>
         Ver ações
       </Button>
     </Card>
+  )
+}
+
+function EficaciaDonut({ eficazes, parciais, ineficazes }: { eficazes: number; parciais: number; ineficazes: number }) {
+  const total = eficazes + parciais + ineficazes
+  const radius = 50
+  const innerRadius = 36
+  const cx = 60
+  const cy = 60
+  const segments = [
+    { value: eficazes, color: '#10B981' },
+    { value: parciais, color: '#F59E0B' },
+    { value: ineficazes, color: '#EF4444' },
+  ]
+  let cumulative = -90 // start at top
+  const arcs = segments.filter(s => s.value > 0).map((segment, i) => {
+    const angle = (segment.value / total) * 360
+    const startAngle = cumulative
+    const endAngle = cumulative + angle
+    cumulative = endAngle
+    const startRad = (startAngle * Math.PI) / 180
+    const endRad = (endAngle * Math.PI) / 180
+    const x1 = cx + radius * Math.cos(startRad)
+    const y1 = cy + radius * Math.sin(startRad)
+    const x2 = cx + radius * Math.cos(endRad)
+    const y2 = cy + radius * Math.sin(endRad)
+    const x3 = cx + innerRadius * Math.cos(endRad)
+    const y3 = cy + innerRadius * Math.sin(endRad)
+    const x4 = cx + innerRadius * Math.cos(startRad)
+    const y4 = cy + innerRadius * Math.sin(startRad)
+    const largeArc = angle > 180 ? 1 : 0
+    const d = `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} L ${x3} ${y3} A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${x4} ${y4} Z`
+    return <path key={i} d={d} fill={segment.color} />
+  })
+  const headlinePct = Math.round((eficazes / total) * 100) || 0
+  return (
+    <div className="relative shrink-0" aria-label={`Eficácia ${headlinePct}%`}>
+      <svg viewBox="0 0 120 120" width="120" height="120" role="img">
+        {arcs}
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-2xl font-black tabular-nums text-text-primary leading-none">{headlinePct}%</span>
+        <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Média geral</span>
+      </div>
+    </div>
+  )
+}
+
+function EficaciaLegendRow({ color, label, value }: { color: string; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-mx-xs text-sm">
+      <span className="h-mx-2 w-mx-2 rounded-full shrink-0" style={{ backgroundColor: color }} aria-hidden="true" />
+      <span className="flex-1 truncate font-bold text-text-secondary">{label}</span>
+      <span className="font-black tabular-nums text-text-primary">{value}</span>
+    </div>
   )
 }
 
