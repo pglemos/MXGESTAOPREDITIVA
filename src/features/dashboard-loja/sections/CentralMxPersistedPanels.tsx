@@ -1,5 +1,14 @@
 import { useMemo } from 'react'
-import { Bell, CheckCircle2, ClipboardList, EyeOff, Loader2, RefreshCw } from 'lucide-react'
+import {
+  Bell,
+  CheckCircle2,
+  ClipboardList,
+  CloudOff,
+  EyeOff,
+  Loader2,
+  RefreshCw,
+  Upload,
+} from 'lucide-react'
 import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
@@ -15,6 +24,7 @@ import {
   type CentralMxPlanoAcaoRow,
 } from '../hooks/useCentralMxPlanosAcao'
 import { useCentralMxAgenda, type CentralMxAgendaEvent } from '../hooks/useCentralMxAgenda'
+import { useExecutiveAgendaGoogleSync } from '../hooks/useExecutiveAgendaGoogleSync'
 
 /**
  * Painéis persistidos do Blitz 48h Dia 2.
@@ -326,6 +336,11 @@ function PersistedPlanoRow({
 export function CentralMxPersistedAgendaPanel({ storeId }: Props) {
   const { events, loading, error, refresh, todayCount, upcomingCount } =
     useCentralMxAgenda(storeId, { windowDays: 30 })
+  const { syncing, sync } = useExecutiveAgendaGoogleSync()
+  const handleSync = async (eventId: string, action: 'upsert' | 'delete') => {
+    const ok = await sync(eventId, action)
+    if (ok) refresh()
+  }
   return (
     <Card className="rounded-mx-2xl p-mx-lg">
       <div className="flex items-start justify-between gap-mx-sm">
@@ -360,7 +375,12 @@ export function CentralMxPersistedAgendaPanel({ storeId }: Props) {
 
       <ul className="mt-mx-md space-y-mx-sm">
         {events.map((event) => (
-          <PersistedAgendaRow key={event.id} event={event} />
+          <PersistedAgendaRow
+            key={event.id}
+            event={event}
+            syncing={syncing === event.id}
+            onSync={handleSync}
+          />
         ))}
         {!events.length && !loading && (
           <li className="rounded-mx-xl border border-dashed border-border-default p-mx-md text-center">
@@ -374,7 +394,15 @@ export function CentralMxPersistedAgendaPanel({ storeId }: Props) {
   )
 }
 
-function PersistedAgendaRow({ event }: { event: CentralMxAgendaEvent }) {
+function PersistedAgendaRow({
+  event,
+  syncing,
+  onSync,
+}: {
+  event: CentralMxAgendaEvent
+  syncing: boolean
+  onSync: (eventId: string, action: 'upsert' | 'delete') => void
+}) {
   const startsAt = new Date(event.starts_at)
   const startLabel = startsAt.toLocaleString('pt-BR', {
     day: '2-digit',
@@ -414,9 +442,40 @@ function PersistedAgendaRow({ event }: { event: CentralMxAgendaEvent }) {
             </Typography>
           )}
         </div>
-        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">
-          {startLabel}
-        </Typography>
+        <div className="flex flex-col items-end gap-mx-xs">
+          <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">
+            {startLabel}
+          </Typography>
+          <div className="flex items-center gap-mx-xs">
+            <Button
+              type="button"
+              size="sm"
+              variant={event.integration_status === 'sincronizado' ? 'secondary' : 'primary'}
+              onClick={() => onSync(event.id, 'upsert')}
+              disabled={syncing}
+              aria-label="Sincronizar com Google Calendar"
+            >
+              {syncing ? (
+                <Loader2 size={14} className="mr-1 animate-spin" />
+              ) : (
+                <Upload size={14} className="mr-1" />
+              )}
+              {event.integration_status === 'sincronizado' ? 'Atualizar' : 'Sincronizar'}
+            </Button>
+            {event.google_event_id && (
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() => onSync(event.id, 'delete')}
+                disabled={syncing}
+                aria-label="Remover do Google Calendar"
+              >
+                <CloudOff size={14} />
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
     </li>
   )
