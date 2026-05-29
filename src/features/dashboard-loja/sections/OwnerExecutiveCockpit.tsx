@@ -54,6 +54,12 @@ import type { ExecutiveAlert, MxDepartmentCode } from '@/lib/mx-executive-founda
 import { cn } from '@/lib/utils'
 import type { useDashboardLojaData } from '../hooks/useDashboardLojaData'
 import type { OwnerPerformanceAlert } from './PerformanceAlerts'
+import {
+  CentralMxPersistedAgendaPanel,
+  CentralMxPersistedAlertsPanel,
+  CentralMxPersistedPlanosPanel,
+} from './CentralMxPersistedPanels'
+import { CentralMxBenchmarkInteractive } from './CentralMxBenchmarkInteractive'
 
 type DashboardData = ReturnType<typeof useDashboardLojaData>
 
@@ -470,10 +476,30 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
       )}
       {section === 'planejamento' && <StrategicPlanningView data={data} planningIndicators={centralMx.planningIndicators} />}
       {section === 'resultados' && <ResultsView data={data} alerts={ownerAlerts} panoramaData={panoramaData} mxScore={mxScore} />}
-      {section === 'plano-acao' && <ActionPlanView actions={actions} />}
-      {section === 'alertas' && <AlertsView alerts={ownerAlerts} />}
-      {section === 'benchmarking' && <BenchmarkingView data={data} mxScore={mxScore} marginPercent={marginPercent} />}
-      {section === 'agenda' && <AgendaView alerts={ownerAlerts} />}
+      {section === 'plano-acao' && (
+        <>
+          <ActionPlanView actions={actions} />
+          <CentralMxPersistedPlanosPanel storeId={data.operationalStore?.id || null} />
+        </>
+      )}
+      {section === 'alertas' && (
+        <>
+          <AlertsView alerts={ownerAlerts} />
+          <CentralMxPersistedAlertsPanel storeId={data.operationalStore?.id || null} />
+        </>
+      )}
+      {section === 'benchmarking' && (
+        <>
+          <BenchmarkingView data={data} mxScore={mxScore} marginPercent={marginPercent} />
+          <CentralMxBenchmarkInteractive storeId={data.operationalStore?.id || null} />
+        </>
+      )}
+      {section === 'agenda' && (
+        <>
+          <AgendaView alerts={ownerAlerts} />
+          <CentralMxPersistedAgendaPanel storeId={data.operationalStore?.id || null} />
+        </>
+      )}
       {section === 'departamentos' && <DepartmentsView departments={departments} selectedDepartmentCode={selectedDepartmentCode} />}
       {section === 'visitas' && (
         <OwnerModuleGrid
