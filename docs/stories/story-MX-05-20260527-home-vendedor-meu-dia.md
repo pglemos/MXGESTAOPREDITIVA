@@ -106,3 +106,7 @@ Esta story formaliza a Home pessoal do vendedor. O working tree atual ja indica 
 
 - 2026-05-27: Ajuste responsivo no card "Minha Meta" da Home Vendedor e registro de validacoes.
 - 2026-05-28: Finalizacao D1-T5. Home Vendedor marcada `Done` com trava N3 operacional, gates completos e smoke local mobile/desktop.
+
+### Change Log Update — 2026-05-28
+
+- 2026-05-28: Blitz 48h fechamento. Shell `VendedorHome.container.tsx` (539 linhas) + hook `useVendedorHomePage` (158 linhas) cobre AC-01 a AC-08. Implementada trava operacional N3 (ata Daniel/José §00:48–§00:49): `useVendedorHomePage` expõe `isLancamentoGateLocked`; novo componente `LancamentoGateBanner` renderiza alerta com CTA para `/lancamento-diario` quando vendedor ainda não fez o lançamento do D-1. Lint 0/0, typecheck clean. Browser smoke no QA gate T7. Status `Done` por @aiox-master (Orion).
