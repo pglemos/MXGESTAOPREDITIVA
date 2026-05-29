@@ -14,6 +14,11 @@ import {
   BarChart3,
   Bot,
   Library,
+  Filter,
+  Handshake,
+  FileBarChart,
+  Route as RouteIcon,
+  Compass,
 } from 'lucide-react'
 import { cn, slugify } from '@/lib/utils'
 import { Typography } from './atoms/Typography'
@@ -192,11 +197,14 @@ const navConfig: Record<string, NavCategory[]> = {
     {
       category: 'COMERCIAL', icon: <Home size={22} />,
       items: [
+        // Cada item tem icone unico dentro do papel para identificacao intuitiva
         { label: 'Home', path: '/home', icon: <Home size={16} /> },
         { label: 'Equipe', path: STORE_TEAM_PATH, icon: <Users size={16} /> },
         { label: 'Agenda', path: '/rotina', icon: <CalendarDays size={16} /> },
-        { label: 'Negociações', path: '/relatorios/performance-vendedor', icon: <MessageSquare size={16} /> },
-        { label: 'Relatórios', path: '/relatorio-matinal', icon: <ClipboardList size={16} /> },
+        { label: 'Funil de Vendas', path: '/funil-vendas', icon: <Filter size={16} /> },
+        { label: 'Negociações', path: '/relatorios/performance-vendedor', icon: <Handshake size={16} /> },
+        { label: 'Metas', path: '/metas', icon: <Target size={16} /> },
+        { label: 'Relatórios', path: '/relatorio-matinal', icon: <FileBarChart size={16} /> },
       ]
     },
     {
@@ -219,13 +227,14 @@ const navConfig: Record<string, NavCategory[]> = {
     {
       category: 'NAVEGAÇÃO', icon: <Home size={22} />,
       items: [
+        // Cada item tem icone unico dentro do papel para identificacao intuitiva
         { label: 'Meu Dia', path: '/home', icon: <Home size={16} /> },
         { label: 'Agenda', path: '/agenda-vendedor', icon: <CalendarDays size={16} /> },
-        { label: 'Funil', path: '/historico', icon: <History size={16} /> },
+        { label: 'Funil', path: '/historico', icon: <Filter size={16} /> },
         { label: 'Feedbacks', path: '/devolutivas', icon: <MessageSquare size={16} /> },
         { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
         { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
-        { label: 'Trilhas', path: '/trilhas', icon: <Package size={16} /> },
+        { label: 'Trilhas', path: '/trilhas', icon: <RouteIcon size={16} /> },
       ]
     }
   ]

@@ -28,6 +28,8 @@ const VendedorTreinamentos = lazy(() => import('@/pages/VendedorTreinamentos'))
 const VendedorAjuda = lazy(() => import('@/pages/VendedorAjuda'))
 const AgendaVendedor = lazy(() => import('@/features/vendedor-home/AgendaVendedor'))
 const TrilhasVendedor = lazy(() => import('@/features/vendedor-home/TrilhasVendedor'))
+const FunilVendasGerente = lazy(() => import('@/features/gerente/FunilVendasGerente'))
+const MetasGerente = lazy(() => import('@/features/gerente/MetasGerente'))
 const Notificacoes = lazy(() => import('@/pages/Notificacoes'))
 const Perfil = lazy(() => import('@/pages/Perfil'))
 
@@ -230,6 +232,12 @@ export default function App() {
             </Suspense>} />
             <Route path="trilhas" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<TrilhasVendedor />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
+            </Suspense>} />
+            <Route path="funil-vendas" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<ForbiddenRoute />} gerente={<FunilVendasGerente />} dono={<FunilVendasGerente />} admin={<ForbiddenRoute />} />
+            </Suspense>} />
+            <Route path="metas" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<ForbiddenRoute />} gerente={<MetasGerente />} dono={<MetasGerente />} admin={<ForbiddenRoute />} />
             </Suspense>} />
             <Route path="ajuda" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<VendedorAjuda />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
