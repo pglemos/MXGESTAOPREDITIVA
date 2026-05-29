@@ -60,6 +60,7 @@ import {
   CentralMxPersistedPlanosPanel,
 } from './CentralMxPersistedPanels'
 import { CentralMxBenchmarkInteractive } from './CentralMxBenchmarkInteractive'
+import { CentralMxPlanoSegmentadoPanel } from './CentralMxPlanoSegmentadoPanel'
 import { ConsultorIaChat } from '@/features/central-mx/sections/ConsultorIaChat'
 import { PlanejamentoEstrategico } from '@/features/central-mx/sections/PlanejamentoEstrategico'
 import { CentralMxHub } from '@/features/central-mx/sections/CentralMxHub'
@@ -495,6 +496,7 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
       {section === 'plano-acao' && (
         <>
           <ActionPlanView actions={actions} />
+          <CentralMxPlanoSegmentadoPanel storeId={data.operationalStore?.id || null} />
           <CentralMxPersistedPlanosPanel storeId={data.operationalStore?.id || null} />
         </>
       )}
