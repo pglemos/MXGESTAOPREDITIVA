@@ -5,7 +5,7 @@ import { canManageFeedback } from '@/lib/auth/capabilities'
 import type { FeedbackFormData } from '@/types/database'
 import { parseFeedback, type Feedback } from '@/lib/schemas/feedback.schema'
 
-const FEEDBACK_SELECT = 'id, store_id, manager_id, seller_id, week_reference, leads_week, agd_week, visit_week, vnd_week, tx_lead_agd, tx_agd_visita, tx_visita_vnd, meta_compromisso, team_avg_json, diagnostic_json, commitment_suggested, positives, attention_points, action, notes, acknowledged, acknowledged_at, created_at, updated_at, seller:usuarios!devolutivas_vendedor_id_fkey(name), manager:usuarios!devolutivas_gerente_id_fkey(name)'
+const FEEDBACK_SELECT = 'id, store_id, manager_id, seller_id, week_reference, leads_week, agd_week, visit_week, vnd_week, tx_lead_agd, tx_agd_visita, tx_visita_vnd, meta_compromisso, team_avg_json, diagnostic_json, commitment_suggested, positives, attention_points, action, notes, acknowledged, acknowledged_at, created_at, seller:usuarios!devolutivas_vendedor_id_fkey(name), manager:usuarios!devolutivas_gerente_id_fkey(name)'
 
 export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) {
   const { profile, storeId: authStoreId, role, vinculos_loja } = useAuth()

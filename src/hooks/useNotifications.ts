@@ -10,7 +10,7 @@ const notificationPriorityRank: Record<string, number> = {
   low: 1,
 }
 
-const NOTIFICATION_SELECT = 'id, title, message, type, priority, read, recipient_id, sender_id, store_id, target_role, link, broadcast_id, created_at, updated_at'
+const NOTIFICATION_SELECT = 'id, title, message, type, priority, read, recipient_id, sender_id, store_id, target_role, link, broadcast_id, created_at'
 
 export function sortNotificationsByPriority<T extends Pick<AppNotification, 'priority' | 'created_at'>>(notifications: T[]): T[] {
   return [...notifications].sort((a, b) => {
