@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { Outlet, NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { useNotifications } from '@/hooks/useData'
 
@@ -494,10 +494,9 @@ export default function Layout() {
                       ? pathnameMatches && currentOwnerSection === itemOwnerSection
                       : pathnameMatches && !currentOwnerSection
                     return (
-                      <NavLink
+                      <Link
                         key={`${item.label}-${item.path}`}
                         to={item.path}
-                        end={false}
                         aria-label={`${item.label} (${cat.category})`}
                         aria-current={isActive ? 'page' : undefined}
                         onClick={() => { setIsDrawerOpen(false); setMobileMenuOpen(false); }}
@@ -510,7 +509,7 @@ export default function Layout() {
                         <div className="absolute mx-layout-tooltip-offset px-3 py-1.5 bg-brand-secondary text-white text-mx-micro font-black uppercase tracking-widest rounded-mx-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[70] whitespace-nowrap shadow-mx-lg" role="tooltip">
                           {item.label}
                         </div>
-                      </NavLink>
+                      </Link>
                     )
                   })}
                 </div>
