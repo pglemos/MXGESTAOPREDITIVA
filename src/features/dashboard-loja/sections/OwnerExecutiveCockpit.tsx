@@ -738,29 +738,53 @@ function Sparkline({ tone }: { tone: KpiTone }) {
 }
 
 function MXScoreCompact({ score }: { score: number | null }) {
-  const safeScore = score ?? 0
+  const safeScore = Math.min(Math.max(Math.round(score ?? 0), 0), 100)
+  const status = scoreStatus(score)
+  const statusColor = safeScore >= 75 ? 'text-status-success' : safeScore >= 60 ? 'text-status-warning' : 'text-status-error'
+  // Semicircular pointer angle (mockup): 180deg (left, score=0) → 0deg (right, score=100)
+  const cx = 70
+  const cy = 70
+  const radius = 58
+  const strokeWidth = 12
+  const pointerAngleDeg = 180 - (safeScore / 100) * 180
+  const pointerRad = (pointerAngleDeg * Math.PI) / 180
+  const pointerX = cx + (radius - strokeWidth / 2) * Math.cos(pointerRad)
+  const pointerY = cy - (radius - strokeWidth / 2) * Math.sin(pointerRad)
   return (
-    <Card className="min-h-[140px] rounded-mx-2xl bg-mx-black p-mx-md text-white">
+    <Card className="min-h-[140px] rounded-mx-2xl p-mx-md text-white" style={{ background: 'linear-gradient(160deg, #0E1B33 0%, #0A1428 100%)', border: 'none' }}>
       <div className="flex items-center justify-between">
-        <Typography variant="tiny" tone="white" className="font-black uppercase">
+        <Typography variant="tiny" tone="white" className="font-black uppercase tracking-widest opacity-90">
           MX Score da Loja
         </Typography>
-        <CircleHelp size={16} className="text-white/60" />
+        <CircleHelp size={14} className="text-white/50" />
       </div>
-      <div className="mt-mx-sm flex items-end justify-between gap-mx-sm">
-        <div>
-          <div className="text-5xl font-black tabular-nums">{score ?? '--'}</div>
-          <Typography variant="p" className="font-black text-brand-primary">{scoreStatus(score)}</Typography>
-          <Typography variant="tiny" tone="white" className="mt-mx-xs block opacity-70">Score automático</Typography>
-        </div>
-        <div
-          className="h-[92px] w-[92px] rounded-full flex items-center justify-center"
-          style={{ background: `conic-gradient(${chartTokens.accent()} ${safeScore * 3.6}deg, ${chartTokens.warning()} ${safeScore * 3.6}deg 300deg, ${chartTokens.danger()} 300deg)` }}
-          aria-hidden="true"
-        >
-          <div className="h-[64px] w-[64px] rounded-full bg-mx-black" />
+      <div className="mt-mx-sm flex flex-col items-center">
+        <svg viewBox="0 0 140 85" width="140" height="85" role="img" aria-label={`MX Score ${safeScore}: ${status}`}>
+          <defs>
+            <linearGradient id="owner-mx-gauge-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#EF4444" />
+              <stop offset="50%" stopColor="#F59E0B" />
+              <stop offset="100%" stopColor="#10B981" />
+            </linearGradient>
+          </defs>
+          <path
+            d={`M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`}
+            fill="none"
+            stroke="url(#owner-mx-gauge-grad)"
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+          />
+          <circle cx={pointerX} cy={pointerY} r={5} fill="#ffffff" />
+          <circle cx={pointerX} cy={pointerY} r={2.5} fill="#0E1B33" />
+        </svg>
+        <div className="-mt-mx-sm flex flex-col items-center">
+          <div className="text-3xl font-black font-mono-numbers leading-none">{score ?? '--'}</div>
+          <Typography variant="tiny" className={cn('mt-mx-tiny block font-black uppercase tracking-widest', statusColor)}>{status}</Typography>
         </div>
       </div>
+      <Typography variant="tiny" tone="white" className="mt-mx-xs block text-center opacity-75 normal-case tracking-normal">
+        ▲ Score automático
+      </Typography>
     </Card>
   )
 }
@@ -962,35 +986,68 @@ export function OwnerDepartmentScoreGrid({ departments }: { departments: Departm
   return (
     <Card className="rounded-mx-2xl p-mx-lg">
       <div className="mb-mx-md flex items-center justify-between gap-mx-md">
-        <div>
+        <div className="flex items-center gap-mx-xs">
           <Typography variant="h3" className="text-xl font-black">Desempenho por Departamento</Typography>
-          <Typography variant="p" tone="muted" className="mt-1 font-bold">Comercial, marketing, produto, financeiro, operacional e RH.</Typography>
+          <CircleHelp size={14} className="text-text-tertiary" />
         </div>
         <Button type="button" variant="ghost" size="sm" onClick={() => navigate(ownerPath('departamentos'))}>Ver todas</Button>
       </div>
-      <div className="grid grid-cols-1 gap-mx-sm sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+      <div className="grid grid-cols-1 gap-mx-md sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         {departments.map((department) => {
           const classes = toneClasses[department.tone]
-          const progress = department.score ?? 0
+          const score = department.score ?? 0
+          const statusBadgeTone = score >= 75 ? 'bg-[var(--color-status-success-surface)] text-status-success' : score >= 60 ? 'bg-[var(--color-status-warning-surface)] text-status-warning' : 'bg-[var(--color-status-error-surface)] text-status-error'
           return (
-            <button key={department.name} type="button" onClick={() => navigate(department.path)} className="rounded-mx-2xl border border-border-default bg-white p-mx-md text-left hover:bg-surface-alt transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15">
-              <div className="flex items-center gap-mx-sm">
-                <span className={cn('h-mx-11 w-mx-11 rounded-mx-xl flex shrink-0 items-center justify-center shadow-mx-sm', classes.bg)}>{department.icon}</span>
-                <Typography variant="p" className="font-black">{department.name}</Typography>
+            <button key={department.name} type="button" onClick={() => navigate(department.path)} className="rounded-mx-2xl border border-border-default bg-white p-mx-md text-left hover:shadow-mx-md transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15 flex flex-col items-center">
+              <div className="flex w-full items-center gap-mx-sm">
+                <span className={cn('h-mx-9 w-mx-9 rounded-mx-lg flex shrink-0 items-center justify-center', classes.bg)}>{department.icon}</span>
+                <Typography variant="p" className="font-black text-sm truncate">{department.name}</Typography>
               </div>
-              <div className="mt-mx-sm flex items-end gap-mx-xs">
-                <span className="text-4xl font-black tabular-nums text-text-primary">{department.score ?? '--'}</span>
-                <span className={cn('pb-1 text-mx-tiny font-black uppercase', classes.text)}>{department.status}</span>
+              <div className="mt-mx-sm">
+                <OwnerSemiGauge value={score} />
               </div>
-              <Typography variant="tiny" tone="muted" className="mt-mx-xs block min-h-mx-8 font-bold">{department.detail}</Typography>
-              <div className="mt-mx-sm h-2 rounded-full bg-surface-alt overflow-hidden">
-                <div className={cn('h-full rounded-full', classes.bar)} style={{ width: `${progress}%` }} />
+              <div className="mt-mx-tiny flex flex-col items-center gap-mx-tiny">
+                <span className="text-3xl font-black tabular-nums text-text-primary leading-none">{department.score ?? '--'}</span>
+                <span className={cn('inline-flex items-center rounded-mx-md px-mx-sm py-mx-tiny text-mx-tiny font-black uppercase tracking-tight', statusBadgeTone)}>{department.status}</span>
               </div>
+              <Typography variant="tiny" tone="muted" className="mt-mx-sm block min-h-mx-8 font-bold text-center w-full">{department.detail}</Typography>
             </button>
           )
         })}
       </div>
     </Card>
+  )
+}
+
+function OwnerSemiGauge({ value }: { value: number }) {
+  const clamped = Math.min(Math.max(Math.round(value), 0), 100)
+  const cx = 50
+  const cy = 50
+  const radius = 40
+  const strokeWidth = 9
+  const pointerAngleDeg = 180 - (clamped / 100) * 180
+  const pointerRad = (pointerAngleDeg * Math.PI) / 180
+  const pointerX = cx + (radius - strokeWidth / 2) * Math.cos(pointerRad)
+  const pointerY = cy - (radius - strokeWidth / 2) * Math.sin(pointerRad)
+  return (
+    <svg viewBox="0 0 100 60" width="100" height="60" role="img" aria-hidden="true">
+      <defs>
+        <linearGradient id="owner-dept-gauge" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#EF4444" />
+          <stop offset="50%" stopColor="#F59E0B" />
+          <stop offset="100%" stopColor="#10B981" />
+        </linearGradient>
+      </defs>
+      <path
+        d={`M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`}
+        fill="none"
+        stroke="url(#owner-dept-gauge)"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
+      <circle cx={pointerX} cy={pointerY} r={4} fill="#0A0A0B" />
+      <circle cx={pointerX} cy={pointerY} r={2} fill="#ffffff" />
+    </svg>
   )
 }
 
