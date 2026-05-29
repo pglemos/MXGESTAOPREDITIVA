@@ -26,6 +26,8 @@ const Ranking = lazy(() => import('@/pages/Ranking'))
 const VendedorFeedback = lazy(() => import('@/pages/VendedorFeedback'))
 const VendedorTreinamentos = lazy(() => import('@/pages/VendedorTreinamentos'))
 const VendedorAjuda = lazy(() => import('@/pages/VendedorAjuda'))
+const AgendaVendedor = lazy(() => import('@/features/vendedor-home/AgendaVendedor'))
+const TrilhasVendedor = lazy(() => import('@/features/vendedor-home/TrilhasVendedor'))
 const Notificacoes = lazy(() => import('@/pages/Notificacoes'))
 const Perfil = lazy(() => import('@/pages/Perfil'))
 
@@ -223,6 +225,12 @@ export default function App() {
             </Suspense>} />
             <Route path="historico" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<Historico />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
+            </Suspense>} />
+            <Route path="agenda-vendedor" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<AgendaVendedor />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
+            </Suspense>} />
+            <Route path="trilhas" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<TrilhasVendedor />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
             </Suspense>} />
             <Route path="ajuda" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<VendedorAjuda />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />

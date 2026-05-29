@@ -228,12 +228,12 @@ const navConfig: Record<string, NavCategory[]> = {
       category: 'NAVEGAÇÃO', icon: <Home size={22} />,
       items: [
         { label: 'Meu Dia', path: '/home', icon: <Home size={16} /> },
-        { label: 'Agenda', path: '/home', icon: <CalendarDays size={16} /> },
+        { label: 'Agenda', path: '/agenda-vendedor', icon: <CalendarDays size={16} /> },
         { label: 'Funil', path: '/historico', icon: <History size={16} /> },
         { label: 'Feedbacks', path: '/devolutivas', icon: <MessageSquare size={16} /> },
         { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
         { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
-        { label: 'Trilhas', path: '/treinamentos', icon: <Package size={16} /> },
+        { label: 'Trilhas', path: '/trilhas', icon: <Package size={16} /> },
       ]
     }
   ]

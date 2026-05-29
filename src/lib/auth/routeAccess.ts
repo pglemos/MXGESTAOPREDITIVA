@@ -35,6 +35,8 @@ export const ROUTE_ACCESS_RULES = [
   { pattern: '/home', roles: ['vendedor'] },
   { pattern: '/lancamento-diario', roles: ['vendedor'] },
   { pattern: '/historico', roles: ['vendedor'] },
+  { pattern: '/agenda-vendedor', roles: ['vendedor'] },
+  { pattern: '/trilhas', roles: ['vendedor'] },
   { pattern: '/ajuda', roles: ['vendedor'] },
   { pattern: '/ranking', roles: RANKING_ROLES, capability: 'view_ranking' },
   { pattern: '/classificacao', roles: RANKING_ROLES, capability: 'view_ranking' },
