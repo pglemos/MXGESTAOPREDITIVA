@@ -1,0 +1,255 @@
+import { Award, BookOpen, GraduationCap, Loader2, Radio, RefreshCw, Trophy } from 'lucide-react'
+import { Badge } from '@/components/atoms/Badge'
+import { Button } from '@/components/atoms/Button'
+import { Typography } from '@/components/atoms/Typography'
+import { Card } from '@/components/molecules/Card'
+import { cn } from '@/lib/utils'
+import {
+  useUniversidadeMx,
+  type UniversidadeAulaTipo,
+  type UniversidadePublico,
+} from '../hooks/useUniversidadeMx'
+
+/**
+ * Universidade MX — Sprint 2 (S2-T4).
+ *
+ * Lista trilhas filtradas por público-alvo + aulas (biblioteca/gravada/ao vivo/quiz/desafio)
+ * e certificações emitidas para o usuário. UI orientada a conteúdo (cards).
+ */
+
+const PUBLICO_LABEL: Record<UniversidadePublico, string> = {
+  vendedor: 'Vendedor',
+  gerente: 'Gerente',
+  dono: 'Dono',
+  marketing: 'Marketing',
+  rh: 'RH',
+  operacoes: 'Operações',
+  geral: 'Geral',
+}
+
+const TIPO_LABEL: Record<UniversidadeAulaTipo, string> = {
+  biblioteca: 'Biblioteca',
+  aula_gravada: 'Aula gravada',
+  aula_ao_vivo: 'Ao vivo',
+  quiz: 'Quiz',
+  desafio: 'Desafio',
+}
+
+const TIPO_TONE: Record<UniversidadeAulaTipo, string> = {
+  biblioteca: 'border-border-default bg-surface-alt text-text-secondary',
+  aula_gravada: 'border-brand-primary/30 bg-mx-indigo-50 text-brand-primary',
+  aula_ao_vivo: 'border-status-warning/30 bg-status-warning-surface text-status-warning',
+  quiz: 'border-status-success/30 bg-status-success-surface text-status-success',
+  desafio: 'border-status-error/30 bg-status-error-surface text-status-error',
+}
+
+type Props = {
+  userId?: string | null
+}
+
+export function UniversidadeMx({ userId }: Props) {
+  const {
+    trilhas,
+    aulas,
+    certificacoes,
+    loading,
+    error,
+    refresh,
+    filtros,
+    toggleFiltro,
+  } = useUniversidadeMx(userId)
+
+  return (
+    <section className="space-y-mx-lg" aria-label="Universidade MX">
+      <header className="flex flex-col gap-mx-xs md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-mx-sm">
+          <div className="rounded-mx-xl bg-brand-primary p-mx-sm text-pure-white shadow-mx-md">
+            <GraduationCap size={22} aria-hidden="true" />
+          </div>
+          <div>
+            <Typography variant="h2" className="font-black uppercase tracking-tight">
+              Universidade MX
+            </Typography>
+            <Typography variant="tiny" tone="muted" className="block font-bold normal-case tracking-normal">
+              Biblioteca • Trilhas • Aulas ao vivo • Certificações (`.docx §340`).
+            </Typography>
+          </div>
+        </div>
+        <Button type="button" variant="ghost" size="sm" onClick={refresh} disabled={loading}>
+          {loading ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+          <span className="ml-1">Atualizar</span>
+        </Button>
+      </header>
+
+      {error && (
+        <div className="rounded-mx-md border border-status-error/40 bg-status-error-surface p-mx-sm">
+          <Typography variant="tiny" className="font-black text-status-error">
+            {error}
+          </Typography>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center gap-mx-xs">
+        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">
+          Filtrar por público
+        </Typography>
+        {(Object.keys(PUBLICO_LABEL) as UniversidadePublico[]).map((publico) => (
+          <button
+            key={publico}
+            type="button"
+            onClick={() => toggleFiltro(publico)}
+            className={cn(
+              'rounded-mx-md border px-mx-xs py-mx-tiny text-mx-tiny font-black uppercase tracking-widest transition-colors',
+              filtros.includes(publico)
+                ? 'border-brand-primary bg-brand-primary text-pure-white'
+                : 'border-border-default bg-white text-text-secondary',
+            )}
+            aria-pressed={filtros.includes(publico)}
+          >
+            {PUBLICO_LABEL[publico]}
+          </button>
+        ))}
+      </div>
+
+      {certificacoes.length > 0 && (
+        <Card className="rounded-mx-2xl p-mx-md">
+          <header className="mb-mx-sm flex items-center gap-mx-xs">
+            <div className="rounded-mx-xl bg-status-success-surface p-mx-xs text-status-success">
+              <Trophy size={18} aria-hidden="true" />
+            </div>
+            <Typography variant="h3" className="font-black">
+              Minhas certificações ({certificacoes.length})
+            </Typography>
+          </header>
+          <ul className="grid grid-cols-1 gap-mx-sm md:grid-cols-2 xl:grid-cols-3">
+            {certificacoes.map((cert) => (
+              <li
+                key={cert.id}
+                className="rounded-mx-xl border border-status-success/30 bg-status-success-surface/40 p-mx-sm"
+              >
+                <div className="flex items-center gap-mx-xs">
+                  <Award size={16} className="text-status-success" />
+                  <Typography variant="caption" className="font-black uppercase tracking-widest">
+                    {cert.trilha_id}
+                  </Typography>
+                </div>
+                <Typography variant="tiny" tone="muted" className="block">
+                  Emitida em {new Date(cert.emitida_em).toLocaleDateString('pt-BR')}
+                </Typography>
+                {cert.pontuacao != null && (
+                  <Typography variant="tiny" className="block font-black uppercase tracking-widest">
+                    Pontuação {cert.pontuacao}
+                  </Typography>
+                )}
+                {cert.certificado_url && (
+                  <a
+                    href={cert.certificado_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-mx-xs inline-block text-mx-tiny font-black uppercase tracking-widest text-brand-primary underline"
+                  >
+                    Baixar certificado
+                  </a>
+                )}
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
+      {!trilhas.length ? (
+        <Card className="rounded-mx-2xl p-mx-md">
+          <div className="rounded-mx-md border border-dashed border-border-default p-mx-md text-center">
+            <Typography variant="tiny" tone="muted" className="font-bold uppercase tracking-widest">
+              {filtros.length === 0
+                ? 'Selecione ao menos um público para listar trilhas.'
+                : 'Nenhuma trilha disponível para os filtros atuais.'}
+            </Typography>
+          </div>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 gap-mx-md xl:grid-cols-2">
+          {trilhas.map((trilha) => (
+            <Card key={trilha.id} className="rounded-mx-2xl p-mx-md">
+              <header className="mb-mx-sm">
+                <div className="flex flex-wrap items-center gap-mx-xs">
+                  <Badge variant="outline" className="font-black uppercase tracking-widest">
+                    {PUBLICO_LABEL[trilha.publico_alvo]}
+                  </Badge>
+                  {trilha.duracao_horas != null && (
+                    <Badge variant="outline" className="font-black uppercase tracking-widest">
+                      {trilha.duracao_horas}h
+                    </Badge>
+                  )}
+                </div>
+                <Typography variant="h3" className="mt-mx-xs font-black">
+                  {trilha.titulo}
+                </Typography>
+                {trilha.descricao && (
+                  <Typography variant="tiny" tone="muted" className="block font-bold normal-case tracking-normal">
+                    {trilha.descricao}
+                  </Typography>
+                )}
+              </header>
+              <ul className="space-y-mx-xs">
+                {(aulas[trilha.id] ?? []).map((aula) => (
+                  <li
+                    key={aula.id}
+                    className={cn(
+                      'rounded-mx-xl border p-mx-sm',
+                      TIPO_TONE[aula.tipo],
+                    )}
+                  >
+                    <div className="flex flex-wrap items-center gap-mx-xs">
+                      <Badge variant="outline" className="font-black uppercase tracking-widest">
+                        {aula.ordem.toString().padStart(2, '0')}
+                      </Badge>
+                      <Badge variant="outline" className="font-black uppercase tracking-widest">
+                        {aula.tipo === 'aula_ao_vivo' ? (
+                          <Radio size={10} className="mr-1" />
+                        ) : (
+                          <BookOpen size={10} className="mr-1" />
+                        )}
+                        {TIPO_LABEL[aula.tipo]}
+                      </Badge>
+                      {aula.data_ao_vivo && (
+                        <Badge variant="outline" className="font-black uppercase tracking-widest">
+                          {new Date(aula.data_ao_vivo).toLocaleString('pt-BR', {
+                            day: '2-digit',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </Badge>
+                      )}
+                    </div>
+                    <Typography variant="p" className="mt-mx-xs font-black">
+                      {aula.titulo}
+                    </Typography>
+                    {aula.url_video && (
+                      <a
+                        href={aula.url_video}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-mx-xs inline-block text-mx-tiny font-black uppercase tracking-widest underline"
+                      >
+                        Abrir vídeo
+                      </a>
+                    )}
+                  </li>
+                ))}
+                {!(aulas[trilha.id] ?? []).length && (
+                  <li className="rounded-mx-md border border-dashed border-border-default p-mx-sm text-center">
+                    <Typography variant="tiny" tone="muted" className="font-bold uppercase tracking-widest">
+                      Trilha sem aulas publicadas ainda.
+                    </Typography>
+                  </li>
+                )}
+              </ul>
+            </Card>
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}

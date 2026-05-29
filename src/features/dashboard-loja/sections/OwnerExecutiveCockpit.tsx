@@ -63,6 +63,11 @@ import { CentralMxBenchmarkInteractive } from './CentralMxBenchmarkInteractive'
 import { ConsultorIaChat } from '@/features/central-mx/sections/ConsultorIaChat'
 import { PlanejamentoEstrategico } from '@/features/central-mx/sections/PlanejamentoEstrategico'
 import { CentralMxHub } from '@/features/central-mx/sections/CentralMxHub'
+import { DepartamentoDashboard } from '@/features/departamentos/sections/DepartamentoDashboard'
+import type { DepartamentoCode } from '@/features/departamentos/hooks/useDepartamentoDashboard'
+import { MarketingModulo } from '@/features/marketing/sections/MarketingModulo'
+import { UniversidadeMx } from '@/features/universidade/sections/UniversidadeMx'
+import { CulturaFelicidade } from '@/features/cultura-felicidade/sections/CulturaFelicidade'
 
 type DashboardData = ReturnType<typeof useDashboardLojaData>
 
@@ -511,7 +516,22 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
           <CentralMxPersistedAgendaPanel storeId={data.operationalStore?.id || null} />
         </>
       )}
-      {section === 'departamentos' && <DepartmentsView departments={departments} selectedDepartmentCode={selectedDepartmentCode} />}
+      {section === 'departamentos' && (
+        <>
+          <DepartmentsView departments={departments} selectedDepartmentCode={selectedDepartmentCode} />
+          <DepartamentoDashboard
+            storeId={data.operationalStore?.id || null}
+            code={(selectedDepartmentCode ?? 'comercial') as DepartamentoCode}
+            periodLabel={periodLabel}
+          />
+          {selectedDepartmentCode === 'marketing' && (
+            <MarketingModulo storeId={data.operationalStore?.id || null} />
+          )}
+          {selectedDepartmentCode === 'rh' && (
+            <CulturaFelicidade storeId={data.operationalStore?.id || null} />
+          )}
+        </>
+      )}
       {section === 'visitas' && (
         <OwnerModuleGrid
           title="Visitas"
@@ -524,15 +544,18 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
         />
       )}
       {section === 'biblioteca' && (
-        <OwnerModuleGrid
-          title="Biblioteca"
-          subtitle="Conteúdos, playbooks e trilhas da Universidade MX."
-          items={[
-            { title: 'Playbooks comerciais', detail: 'Abordagem, follow-up e fechamento.', icon: <Target size={20} />, tone: 'brand' },
-            { title: 'Treinamentos liberados', detail: 'Conteúdos para gerente e equipe.', icon: <Users size={20} />, tone: 'info' },
-            { title: 'Materiais da consultoria', detail: 'Modelos e documentos de apoio.', icon: <ShieldCheck size={20} />, tone: 'success' },
-          ]}
-        />
+        <>
+          <UniversidadeMx userId={profile?.id ?? null} />
+          <OwnerModuleGrid
+            title="Biblioteca"
+            subtitle="Conteúdos, playbooks e trilhas da Universidade MX."
+            items={[
+              { title: 'Playbooks comerciais', detail: 'Abordagem, follow-up e fechamento.', icon: <Target size={20} />, tone: 'brand' },
+              { title: 'Treinamentos liberados', detail: 'Conteúdos para gerente e equipe.', icon: <Users size={20} />, tone: 'info' },
+              { title: 'Materiais da consultoria', detail: 'Modelos e documentos de apoio.', icon: <ShieldCheck size={20} />, tone: 'success' },
+            ]}
+          />
+        </>
       )}
       {section === 'consultor' && (
         <>
