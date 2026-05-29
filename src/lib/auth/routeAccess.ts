@@ -40,6 +40,7 @@ export const ROUTE_ACCESS_RULES = [
   { pattern: '/trilhas', roles: ['vendedor'] },
   { pattern: '/funil-vendas', roles: ['gerente', 'dono'] },
   { pattern: '/metas', roles: ['gerente', 'dono'] },
+  { pattern: '/falar-consultor', roles: ['gerente', 'dono'] },
   { pattern: '/ajuda', roles: ['vendedor'] },
   { pattern: '/ranking', roles: RANKING_ROLES, capability: 'view_ranking' },
   { pattern: '/classificacao', roles: RANKING_ROLES, capability: 'view_ranking' },

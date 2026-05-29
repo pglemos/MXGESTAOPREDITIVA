@@ -18,6 +18,7 @@ import {
   Handshake,
   FileBarChart,
   Route as RouteIcon,
+  Activity,
 } from 'lucide-react'
 import { cn, slugify } from '@/lib/utils'
 import { Typography } from './atoms/Typography'
@@ -148,6 +149,8 @@ const navConfig: Record<string, NavCategory[]> = {
   administrador_mx: navegacaoInternaMx,
   consultor_mx: navegacaoInternaMx,
   dono: [
+    // 15 itens diretos na sidebar (sem agrupamento por categoria visual,
+    // mas mantemos secoes para separadores no flat-render).
     {
       category: 'Home', icon: <Home size={22} />,
       items: [
@@ -155,7 +158,7 @@ const navConfig: Record<string, NavCategory[]> = {
       ]
     },
     {
-      category: 'Central MX', icon: <BriefcaseBusiness size={22} />,
+      category: 'CENTRAL MX', icon: <BriefcaseBusiness size={22} />,
       items: [
         { label: 'Planejamento Estratégico', path: OWNER_PLANEJAMENTO_PATH, icon: <BarChart3 size={16} /> },
         { label: 'Plano de Ação', path: OWNER_PLANO_ACAO_PATH, icon: <ClipboardList size={16} /> },
@@ -166,28 +169,21 @@ const navConfig: Record<string, NavCategory[]> = {
       ]
     },
     {
-      category: 'Resultados', icon: <TrendingUp size={22} />,
+      category: 'GESTÃO', icon: <Grid size={22} />,
       items: [
         { label: 'Resultados', path: OWNER_RESULTADOS_PATH, icon: <LayoutDashboard size={16} /> },
-      ]
-    },
-    {
-      category: 'Visitas', icon: <CalendarDays size={22} />,
-      items: [
-        { label: 'Visitas', path: OWNER_VISITAS_PATH, icon: <CalendarDays size={16} /> },
-      ]
-    },
-    {
-      category: 'Departamentos', icon: <Grid size={22} />,
-      items: [
+        { label: 'Visitas', path: OWNER_VISITAS_PATH, icon: <Activity size={16} /> },
         { label: 'Departamentos', path: OWNER_DEPARTAMENTOS_PATH, icon: <Grid size={16} /> },
-      ]
-    },
-    {
-      category: 'Treinamentos', icon: <GraduationCap size={22} />,
-      items: [
         { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
         { label: 'Biblioteca', path: OWNER_BIBLIOTECA_PATH, icon: <Library size={16} /> },
+      ]
+    },
+    {
+      category: 'SUPORTE', icon: <MessageSquare size={22} />,
+      items: [
+        { label: 'Falar com Consultor', path: '/falar-consultor', icon: <MessageSquare size={16} /> },
+        { label: 'Relatórios', path: '/relatorio-matinal', icon: <FileBarChart size={16} /> },
+        { label: 'Configurações', path: '/configuracoes', icon: <Settings size={16} /> },
       ]
     }
   ],
@@ -474,11 +470,11 @@ export default function Layout() {
           aria-label="Menu Lateral Principal"
         >
           <nav className="flex flex-col items-center gap-mx-sm w-full" aria-label="Módulos de Gestão">
-            {role === 'vendedor' || role === 'gerente' ? (
-              // Vendedor + Gerente: items renderizados diretamente como NavLinks
-              // na sidebar (sem drawer). Preserva as secoes do navConfig com
-              // separadores visuais sutis entre grupos (ex: COMERCIAL | PESSOAS
-              // | FERRAMENTAS no gerente).
+            {role === 'vendedor' || role === 'gerente' || role === 'dono' ? (
+              // Vendedor + Gerente + Dono: items renderizados diretamente como
+              // NavLinks na sidebar (sem drawer). Preserva as secoes do navConfig
+              // com separadores visuais sutis entre grupos (ex: Home | CENTRAL MX
+              // | GESTAO | SUPORTE no dono).
               categories.map((cat, catIndex) => (
                 <div key={cat.category} className="flex flex-col items-center gap-mx-sm w-full">
                   {catIndex > 0 && (
