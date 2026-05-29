@@ -35,6 +35,7 @@ const Perfil = lazy(() => import('@/pages/Perfil'))
 
 // Gerente
 const DashboardLoja = lazy(() => import('@/pages/DashboardLoja'))
+const StoreConsultorIa = lazy(() => import('@/pages/StoreConsultorIa'))
 const GerenteFeedback = lazy(() => import('@/pages/GerenteFeedback'))
 const GerentePDI = lazy(() => import('@/pages/GerentePDI'))
 const PDIPrint = lazy(() => import('@/pages/PDIPrint'))
@@ -217,9 +218,10 @@ export default function App() {
             <Route path="team" element={<TeamAliasRedirect />} />
             <Route path="equipe" element={<TeamAliasRedirect />} />
 
-            {/* Home universal — cada papel renderiza seu cockpit em /home */}
+            {/* Home universal — vendedor e gerente renderizam seu cockpit em /home.
+                Dono e admin redirecionam (dono escolhe loja em /lojas, admin vai pra /painel). */}
             <Route path="home" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<VendedorHome />} gerente={<DashboardLoja />} dono={<DashboardLoja />} admin={<RoleRedirect />} />
+              <RoleSwitch vendedor={<VendedorHome />} gerente={<DashboardLoja />} dono={<RoleRedirect />} admin={<RoleRedirect />} />
             </Suspense>} />
             <Route path="lancamento-diario" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<Checkin />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
@@ -256,6 +258,9 @@ export default function App() {
             <Route path="perfil" element={<Suspense fallback={<Spinner />}><Perfil /></Suspense>} />
 
             {/* Gerente */}
+            <Route path="lojas/:storeSlug/consultor-ia" element={<Suspense fallback={<Spinner />}>
+              <StoreConsultorIa />
+            </Suspense>} />
             <Route path="lojas/:storeSlug" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<ForbiddenRoute />} gerente={<DashboardLoja />} dono={<DashboardLoja />} admin={<DashboardLoja />} />
             </Suspense>} />

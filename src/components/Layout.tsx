@@ -5,9 +5,9 @@ import { useNotifications } from '@/hooks/useData'
 
 import { motion, AnimatePresence } from 'motion/react'
 import {
-  Home, CheckSquare, History, Trophy, GraduationCap, MessageSquare,
+  Home, CheckSquare, Trophy, GraduationCap, MessageSquare,
   Bell, Settings, Users, Target, Grid, LayoutDashboard, Database, Search, User,
-  LogOut, Menu, X, Building2, TrendingUp, Package, ClipboardList, SlidersHorizontal, LifeBuoy,
+  LogOut, Menu, X, Building2, TrendingUp, Package, ClipboardList, SlidersHorizontal,
   BriefcaseBusiness,
   CalendarDays,
   MonitorPlay,
@@ -18,7 +18,6 @@ import {
   Handshake,
   FileBarChart,
   Route as RouteIcon,
-  Compass,
 } from 'lucide-react'
 import { cn, slugify } from '@/lib/utils'
 import { Typography } from './atoms/Typography'
@@ -32,7 +31,7 @@ type SubItem = { label: string; path: string; icon?: React.ReactNode }
 type NavCategory = { category: string; icon: React.ReactNode; items: SubItem[] }
 const STORE_DASHBOARD_PATH = '__STORE_DASHBOARD__'
 const STORE_TEAM_PATH = '__STORE_TEAM__'
-const OWNER_CONSULTORIA_PATH = '__OWNER_CONSULTORIA__'
+const STORE_CONSULTOR_IA_PATH = '__STORE_CONSULTOR_IA__'
 const OWNER_PLANEJAMENTO_PATH = '__OWNER_PLANEJAMENTO__'
 const OWNER_RESULTADOS_PATH = '__OWNER_RESULTADOS__'
 const OWNER_PLANO_ACAO_PATH = '__OWNER_PLANO_ACAO__'
@@ -41,7 +40,6 @@ const OWNER_BENCHMARKING_PATH = '__OWNER_BENCHMARKING__'
 const OWNER_AGENDA_PATH = '__OWNER_AGENDA__'
 const OWNER_VISITAS_PATH = '__OWNER_VISITAS__'
 const OWNER_DEPARTAMENTOS_PATH = '__OWNER_DEPARTAMENTOS__'
-const OWNER_CONSULTOR_PATH = '__OWNER_CONSULTOR__'
 const OWNER_BIBLIOTECA_PATH = '__OWNER_BIBLIOTECA__'
 const simulacaoItems: NavCategory = {
   category: 'Simulação', icon: <MonitorPlay size={22} />,
@@ -164,7 +162,7 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Alertas Inteligentes', path: OWNER_ALERTAS_PATH, icon: <Bell size={16} /> },
         { label: 'Benchmarking', path: OWNER_BENCHMARKING_PATH, icon: <TrendingUp size={16} /> },
         { label: 'Agenda Executiva', path: OWNER_AGENDA_PATH, icon: <CalendarDays size={16} /> },
-        { label: 'Consultor IA', path: OWNER_CONSULTOR_PATH, icon: <Bot size={16} /> },
+        { label: 'Consultor IA', path: STORE_CONSULTOR_IA_PATH, icon: <Bot size={16} /> },
       ]
     },
     {
@@ -219,7 +217,7 @@ const navConfig: Record<string, NavCategory[]> = {
       items: [
         { label: 'Universidade MX', path: '/treinamentos', icon: <GraduationCap size={16} /> },
         { label: 'Biblioteca', path: '/produtos', icon: <Library size={16} /> },
-        { label: 'Consultor MX IA', path: '/auditoria', icon: <Bot size={16} /> },
+        { label: 'Consultor MX IA', path: STORE_CONSULTOR_IA_PATH, icon: <Bot size={16} /> },
       ]
     }
   ],
@@ -232,6 +230,7 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Agenda', path: '/agenda-vendedor', icon: <CalendarDays size={16} /> },
         { label: 'Funil', path: '/historico', icon: <Filter size={16} /> },
         { label: 'Feedbacks', path: '/devolutivas', icon: <MessageSquare size={16} /> },
+        { label: 'Consultor IA', path: STORE_CONSULTOR_IA_PATH, icon: <Bot size={16} /> },
         { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
         { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
         { label: 'Trilhas', path: '/trilhas', icon: <RouteIcon size={16} /> },
@@ -268,6 +267,9 @@ export default function Layout() {
 
   const storeDashboardPath = membership?.store?.name ? `/lojas/${slugify(membership.store.name)}` : role === 'gerente' ? '/classificacao' : '/lojas'
   const storeTeamPath = role === 'gerente' ? '/equipe' : storeDashboardPath === '/lojas' ? '/lojas' : `${storeDashboardPath}${storeDashboardPath.includes('?') ? '&' : '?'}tab=equipe`
+  const storeConsultorIaPath = storeDashboardPath.startsWith('/lojas/')
+    ? `${storeDashboardPath}/consultor-ia`
+    : '/lojas'
   const ownerSectionPath = useCallback((section: string) => appendQueryParam(storeDashboardPath, 'ownerSection', section), [storeDashboardPath])
   const categories = React.useMemo(() => {
     const baseCategories = role ? (navConfig[role] || []) : []
@@ -275,7 +277,7 @@ export default function Layout() {
       const items = category.items.map(item => {
         if (item.path === STORE_DASHBOARD_PATH) return { ...item, path: storeDashboardPath }
         if (item.path === STORE_TEAM_PATH) return { ...item, path: storeTeamPath }
-        if (item.path === OWNER_CONSULTORIA_PATH) return { ...item, path: ownerSectionPath('consultoria') }
+        if (item.path === STORE_CONSULTOR_IA_PATH) return { ...item, path: storeConsultorIaPath }
         if (item.path === OWNER_PLANEJAMENTO_PATH) return { ...item, path: ownerSectionPath('planejamento') }
         if (item.path === OWNER_RESULTADOS_PATH) return { ...item, path: ownerSectionPath('resultados') }
         if (item.path === OWNER_PLANO_ACAO_PATH) return { ...item, path: ownerSectionPath('plano-acao') }
@@ -284,13 +286,12 @@ export default function Layout() {
         if (item.path === OWNER_AGENDA_PATH) return { ...item, path: ownerSectionPath('agenda') }
         if (item.path === OWNER_VISITAS_PATH) return { ...item, path: ownerSectionPath('visitas') }
         if (item.path === OWNER_DEPARTAMENTOS_PATH) return { ...item, path: ownerSectionPath('departamentos') }
-        if (item.path === OWNER_CONSULTOR_PATH) return { ...item, path: ownerSectionPath('consultor') }
         if (item.path === OWNER_BIBLIOTECA_PATH) return { ...item, path: ownerSectionPath('biblioteca') }
         return item
       }).filter(item => canAccessPath(item.path, role))
       return { ...category, items }
     }).filter(category => category.items.length > 0)
-  }, [ownerSectionPath, role, storeDashboardPath, storeTeamPath])
+  }, [ownerSectionPath, role, storeConsultorIaPath, storeDashboardPath, storeTeamPath])
   const filteredCategories = React.useMemo(() => {
     const term = navigationSearch.trim().toLowerCase()
     if (!term) return categories
@@ -314,17 +315,18 @@ export default function Layout() {
 
   useEffect(() => {
     if (!categories.length) return
-    for (const cat of categories) {
-      if (cat.items.some(item => {
-        const [path, query] = item.path.split('?')
-        if (!location.pathname.startsWith(path)) return false
-        if (!query) return true
-        return location.search === `?${query}`
-      })) {
-        setActiveCategory(cat.category)
-        break
-      }
-    }
+    const matches = categories.flatMap(category =>
+      category.items
+        .filter(item => {
+          const [path, query] = item.path.split('?')
+          if (location.pathname !== path && !location.pathname.startsWith(`${path}/`)) return false
+          if (!query) return true
+          return location.search === `?${query}`
+        })
+        .map(item => ({ category: category.category, path: item.path.split('?')[0] || item.path })),
+    )
+    const bestMatch = matches.sort((a, b) => b.path.length - a.path.length)[0]
+    if (bestMatch) setActiveCategory(bestMatch.category)
   }, [location.pathname, categories])
 
   if (!profile || !role) return null
@@ -352,24 +354,26 @@ export default function Layout() {
 
   const roleSidebarCta = role === 'gerente'
     ? {
-        label: 'Consultor MX IA',
-        description: 'Pergunte algo para o Consultor MX',
-        buttonLabel: 'Perguntar',
-        icon: <Bot size={18} aria-hidden="true" />,
-        onClick: () => {
-          setIsDrawerOpen(false)
-          setMobileMenuOpen(false)
-          navigate('/auditoria')
-        },
-      }
+          label: 'Consultor MX IA',
+          description: 'Pergunte algo para o Consultor MX',
+          buttonLabel: 'Perguntar',
+          icon: <Bot size={18} aria-hidden="true" />,
+          onClick: () => {
+            setIsDrawerOpen(false)
+            setMobileMenuOpen(false)
+            navigate(storeConsultorIaPath)
+          },
+        }
     : role === 'vendedor'
       ? {
-          label: 'DÚVIDAS?',
-          description: 'Fale com seu gerente',
-          buttonLabel: 'Abrir WhatsApp',
-          icon: <LifeBuoy size={18} aria-hidden="true" />,
+          label: 'Consultor IA',
+          description: 'Mesma orientação consultiva da loja',
+          buttonLabel: 'Perguntar',
+          icon: <Bot size={18} aria-hidden="true" />,
           onClick: () => {
-            window.open(`https://wa.me/?text=${encodeURIComponent('Olá, preciso de ajuda com minha rotina no MX Performance.')}`, '_blank', 'noopener,noreferrer')
+            setIsDrawerOpen(false)
+            setMobileMenuOpen(false)
+            navigate(storeConsultorIaPath)
           },
         }
       : null
@@ -492,7 +496,7 @@ export default function Layout() {
                         isActive ? 'bg-brand-secondary text-white shadow-mx-lg' : 'text-text-tertiary hover:bg-surface-alt hover:text-text-primary'
                       )}
                     >
-                      <span aria-hidden="true">{React.cloneElement(item.icon as React.ReactElement, { size: 22 })}</span>
+                      <span aria-hidden="true">{React.cloneElement(item.icon as React.ReactElement<{ size?: number }>, { size: 22 })}</span>
                       <div className="absolute mx-layout-tooltip-offset px-3 py-1.5 bg-brand-secondary text-white text-mx-micro font-black uppercase tracking-widest rounded-mx-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[70] whitespace-nowrap shadow-mx-lg" role="tooltip">
                         {item.label}
                       </div>

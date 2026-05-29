@@ -24,6 +24,7 @@ export const ROUTE_ACCESS_RULES = [
   { pattern: '/consultoria/*', roles: INTERNAL_ROLES },
   { pattern: '/configuracoes/consultoria-pmr', roles: INTERNAL_ROLES },
   { pattern: '/configuracoes/reprocessamento', roles: INTERNAL_ROLES },
+  { pattern: '/lojas/:storeSlug/consultor-ia', roles: USER_ROLES },
   { pattern: '/lojas/:storeSlug', roles: INTERNAL_AND_LEADERS },
   { pattern: '/lojas', roles: INTERNAL_AND_OWNER },
   { pattern: '/rotina', roles: ['administrador_geral', 'administrador_mx', 'consultor_mx', 'gerente'] },

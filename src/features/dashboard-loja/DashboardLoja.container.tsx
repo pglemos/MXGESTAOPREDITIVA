@@ -48,11 +48,12 @@ export function DashboardLoja() {
 
   const handleTabChange = useCallback((tab: DashboardTab) => {
     const params = new URLSearchParams(location.search)
-    if (selectedStoreId) params.set('id', selectedStoreId)
+    // ?id= eh redundante: o slug na URL ja identifica a loja unicamente
+    params.delete('id')
     if (tab === 'performance') params.delete('tab')
     else params.set('tab', tab)
     navigate({ pathname: location.pathname, search: params.toString() ? `?${params.toString()}` : '' })
-  }, [location.pathname, location.search, navigate, selectedStoreId])
+  }, [location.pathname, location.search, navigate])
 
   const data = useDashboardLojaData({
     selectedStoreId,

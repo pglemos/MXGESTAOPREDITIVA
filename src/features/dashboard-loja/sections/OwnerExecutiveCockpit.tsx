@@ -5,7 +5,6 @@ import {
   AlertTriangle,
   BarChart3,
   Bell,
-  Bot,
   Box,
   CalendarDays,
   CheckCircle2,
@@ -61,7 +60,7 @@ import {
 } from './CentralMxPersistedPanels'
 import { CentralMxBenchmarkInteractive } from './CentralMxBenchmarkInteractive'
 import { CentralMxPlanoSegmentadoPanel } from './CentralMxPlanoSegmentadoPanel'
-import { ConsultorIaChat } from '@/features/central-mx/sections/ConsultorIaChat'
+import { ConsultorIaStoreSection } from '@/features/central-mx/sections/ConsultorIaStoreSection'
 import { PlanejamentoEstrategico } from '@/features/central-mx/sections/PlanejamentoEstrategico'
 import { CentralMxHub } from '@/features/central-mx/sections/CentralMxHub'
 import { DepartamentoDashboard } from '@/features/departamentos/sections/DepartamentoDashboard'
@@ -189,15 +188,15 @@ const vividIconClasses: Record<KpiTone, string> = {
   purple: 'bg-[var(--color-accent-purple)] text-white',
 }
 
-/** Hex per tone for SVG stroke/fill in sparklines. */
-const toneHex: Record<KpiTone, string> = {
-  success: '#10B981',
-  info: '#3B82F6',
-  warning: '#F59E0B',
-  danger: '#EF4444',
-  muted: '#94A3B8',
-  brand: '#22C55E',
-  purple: '#7C3AED',
+/** Token per tone for SVG stroke/fill in sparklines. */
+const toneHex: Record<KpiTone, () => string> = {
+  success: chartTokens.success,
+  info: chartTokens.info,
+  warning: chartTokens.warning,
+  danger: chartTokens.danger,
+  muted: chartTokens.axisTickMuted,
+  brand: chartTokens.accent,
+  purple: chartTokens.series.s6,
 }
 
 function currentPeriodLabel(referenceDate: string) {
@@ -253,8 +252,16 @@ function clampScore(value: number) {
 
 function ownerPath(section: string) {
   const params = new URLSearchParams(window.location.search)
+  // ?id= eh redundante: o slug na URL ja identifica a loja unicamente
+  params.delete('id')
+  params.delete('ownerSection')
+  const basePath = window.location.pathname.replace(/\/consultor-ia$/, '')
+  if (section === 'consultor') {
+    const query = params.toString()
+    return `${basePath}/consultor-ia${query ? `?${query}` : ''}`
+  }
   params.set('ownerSection', section)
-  return `${window.location.pathname}?${params.toString()}`
+  return `${basePath}?${params.toString()}`
 }
 
 function buildPanoramaData(data: DashboardData) {
@@ -597,18 +604,7 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
         </>
       )}
       {section === 'consultor' && (
-        <>
-          <OwnerModuleGrid
-            title="Consultor IA"
-            subtitle="Leitura consultiva baseada em regras, contexto e prioridades."
-            items={[
-              { title: 'Perguntar ao Consultor MX', detail: 'Use alertas e indicadores como contexto.', icon: <Bot size={20} />, tone: 'brand' },
-              { title: 'Orientações registradas', detail: 'Histórico consultivo da unidade.', icon: <Bell size={20} />, tone: 'info' },
-              { title: 'Recomendações de ação', detail: 'Sugestões ligadas ao plano de ação.', icon: <CheckCircle2 size={20} />, tone: 'success' },
-            ]}
-          />
-          <ConsultorIaChat storeId={data.operationalStore?.id || null} />
-        </>
+        <ConsultorIaStoreSection storeId={data.operationalStore?.id || null} />
       )}
     </section>
   )
@@ -794,7 +790,7 @@ function OwnerKpiCard({
 }
 
 function Sparkline({ tone, variant = 'line', seed = 0 }: { tone: KpiTone; variant?: 'line' | 'bars'; seed?: number }) {
-  const color = toneHex[tone]
+  const color = toneHex[tone]()
   const gradId = `mx-spark-${tone}-${seed}-${variant}`
   if (variant === 'bars') {
     const heights = [12, 18, 14, 22, 16, 24, 20, 28, 18, 30, 24, 32]
@@ -848,7 +844,7 @@ function MXScoreCompact({ score }: { score: number | null }) {
   const pointerX = cx + (radius - strokeWidth / 2) * Math.cos(pointerRad)
   const pointerY = cy - (radius - strokeWidth / 2) * Math.sin(pointerRad)
   return (
-    <Card className="min-h-[140px] rounded-mx-2xl p-mx-md text-white" style={{ background: 'linear-gradient(160deg, #0E1B33 0%, #0A1428 100%)', border: 'none' }}>
+    <Card className="min-h-[140px] rounded-mx-2xl p-mx-md text-white" style={{ background: 'linear-gradient(160deg, var(--color-sidebar-bg) 0%, var(--color-sidebar-bg-strong) 100%)', border: 'none' }}>
       <div className="flex items-center justify-between">
         <Typography variant="tiny" tone="white" className="font-black uppercase tracking-widest opacity-90">
           MX Score da Loja
@@ -859,9 +855,9 @@ function MXScoreCompact({ score }: { score: number | null }) {
         <svg viewBox="0 0 140 85" width="140" height="85" role="img" aria-label={`MX Score ${safeScore}: ${status}`}>
           <defs>
             <linearGradient id="owner-mx-gauge-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#EF4444" />
-              <stop offset="50%" stopColor="#F59E0B" />
-              <stop offset="100%" stopColor="#10B981" />
+              <stop offset="0%" stopColor={chartTokens.danger()} />
+              <stop offset="50%" stopColor={chartTokens.warning()} />
+              <stop offset="100%" stopColor={chartTokens.success()} />
             </linearGradient>
           </defs>
           <path
@@ -871,8 +867,8 @@ function MXScoreCompact({ score }: { score: number | null }) {
             strokeWidth={strokeWidth}
             strokeLinecap="round"
           />
-          <circle cx={pointerX} cy={pointerY} r={5} fill="#ffffff" />
-          <circle cx={pointerX} cy={pointerY} r={2.5} fill="#0E1B33" />
+          <circle cx={pointerX} cy={pointerY} r={5} fill="var(--color-pure-white)" />
+          <circle cx={pointerX} cy={pointerY} r={2.5} fill="var(--color-sidebar-bg)" />
         </svg>
         <div className="-mt-mx-sm flex flex-col items-center">
           <div className="text-3xl font-black font-mono-numbers leading-none">{score ?? '--'}</div>
@@ -1064,9 +1060,9 @@ export function OwnerActionPlanSummary({ actions }: { actions: ActionRow[] }) {
       <div className="mt-mx-md flex items-center gap-mx-md">
         <EficaciaDonut eficazes={eficazesPct} parciais={parciaisPct} ineficazes={ineficazesPct} />
         <div className="flex flex-col gap-mx-sm flex-1 min-w-0">
-          <EficaciaLegendRow color="#10B981" label="Eficazes" value={`${eficazesPct}%`} />
-          <EficaciaLegendRow color="#F59E0B" label="Parcialmente eficazes" value={`${parciaisPct}%`} />
-          <EficaciaLegendRow color="#EF4444" label="Ineficazes" value={`${ineficazesPct}%`} />
+          <EficaciaLegendRow color={chartTokens.success()} label="Eficazes" value={`${eficazesPct}%`} />
+          <EficaciaLegendRow color={chartTokens.warning()} label="Parcialmente eficazes" value={`${parciaisPct}%`} />
+          <EficaciaLegendRow color={chartTokens.danger()} label="Ineficazes" value={`${ineficazesPct}%`} />
         </div>
       </div>
       <div className="mt-mx-md grid grid-cols-3 gap-mx-sm">
@@ -1088,9 +1084,9 @@ function EficaciaDonut({ eficazes, parciais, ineficazes }: { eficazes: number; p
   const cx = 60
   const cy = 60
   const segments = [
-    { value: eficazes, color: '#10B981' },
-    { value: parciais, color: '#F59E0B' },
-    { value: ineficazes, color: '#EF4444' },
+    { value: eficazes, color: chartTokens.success() },
+    { value: parciais, color: chartTokens.warning() },
+    { value: ineficazes, color: chartTokens.danger() },
   ]
   let cumulative = -90 // start at top
   const arcs = segments.filter(s => s.value > 0).map((segment, i) => {
@@ -1188,9 +1184,9 @@ function OwnerSemiGauge({ value }: { value: number }) {
     <svg viewBox="0 0 100 60" width="100" height="60" role="img" aria-hidden="true">
       <defs>
         <linearGradient id="owner-dept-gauge" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#EF4444" />
-          <stop offset="50%" stopColor="#F59E0B" />
-          <stop offset="100%" stopColor="#10B981" />
+          <stop offset="0%" stopColor={chartTokens.danger()} />
+          <stop offset="50%" stopColor={chartTokens.warning()} />
+          <stop offset="100%" stopColor={chartTokens.success()} />
         </linearGradient>
       </defs>
       <path
@@ -1200,8 +1196,8 @@ function OwnerSemiGauge({ value }: { value: number }) {
         strokeWidth={strokeWidth}
         strokeLinecap="round"
       />
-      <circle cx={pointerX} cy={pointerY} r={4} fill="#0A0A0B" />
-      <circle cx={pointerX} cy={pointerY} r={2} fill="#ffffff" />
+      <circle cx={pointerX} cy={pointerY} r={4} fill="var(--color-mx-black)" />
+      <circle cx={pointerX} cy={pointerY} r={2} fill="var(--color-pure-white)" />
     </svg>
   )
 }
