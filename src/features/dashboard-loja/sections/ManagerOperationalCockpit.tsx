@@ -92,12 +92,12 @@ export function ManagerOperationalCockpit({ data, alerts }: ManagerOperationalCo
       ],
     },
   ]
-  const engagementMetrics = [
-    { label: 'Fechamento diário', value: disciplinePct, icon: <CheckSquare size={18} /> },
-    { label: 'Agenda cumprida', value: data.metrics.totalAgd > 0 ? 100 : 0, icon: <CalendarDays size={18} /> },
-    { label: 'Treinamentos', value: data.checkins.length > 0 ? Math.min(100, Math.max(45, teamEngagement - 8)) : 64, icon: <Target size={18} /> },
-    { label: 'Feedbacks', value: data.checkins.length > 0 ? Math.min(100, Math.max(40, teamEngagement - 12)) : 58, icon: <MessageSquare size={18} /> },
-    { label: 'Participação', value: data.checkins.length > 0 ? teamEngagement : 72, icon: <Users size={18} /> },
+  const engagementMetrics: Array<{ label: string; value: number; icon: ReactNode; accent: 'info' | 'success' | 'warning' | 'teal' | 'brand' }> = [
+    { label: 'Fechamento diário', value: disciplinePct, icon: <CheckSquare size={18} />, accent: 'info' },
+    { label: 'Agenda cumprida', value: data.metrics.totalAgd > 0 ? 100 : 0, icon: <CalendarDays size={18} />, accent: 'success' },
+    { label: 'Treinamentos', value: data.checkins.length > 0 ? Math.min(100, Math.max(45, teamEngagement - 8)) : 64, icon: <Target size={18} />, accent: 'warning' },
+    { label: 'Feedbacks', value: data.checkins.length > 0 ? Math.min(100, Math.max(40, teamEngagement - 12)) : 58, icon: <MessageSquare size={18} />, accent: 'teal' },
+    { label: 'Participação', value: data.checkins.length > 0 ? teamEngagement : 72, icon: <Users size={18} />, accent: 'brand' },
   ]
   return (
     <div className="flex flex-col gap-mx-lg pb-28">
@@ -228,7 +228,7 @@ export function ManagerOperationalCockpit({ data, alerts }: ManagerOperationalCo
             </div>
             <div className="grid grid-cols-2 gap-mx-md md:grid-cols-5">
               {engagementMetrics.map(metric => (
-                <EngagementMetric key={metric.label} label={metric.label} value={metric.value} icon={metric.icon} />
+                <EngagementMetric key={metric.label} label={metric.label} value={metric.value} icon={metric.icon} accent={metric.accent} />
               ))}
             </div>
           </div>
@@ -330,8 +330,32 @@ function ManagerKpiCard({
 }
 
 function TeamRow({ row }: { row: RankingEntry }) {
+  const meta = row.meta || 0
+  const attainment = meta > 0 ? Math.round((row.vnd_total / meta) * 100) : 0
   const discipline = row.checked_in ? 100 : 0
-  const statusTone: ManagerTone = row.vnd_total > 0 && row.checked_in ? 'success' : row.checked_in ? 'warning' : 'danger'
+  // 4-tier status: Excelente / Bom / Atenção / Crítico (matches mockup pills)
+  const tier: 'excelente' | 'bom' | 'atencao' | 'critico' = !row.checked_in
+    ? 'critico'
+    : attainment >= 90
+      ? 'excelente'
+      : attainment >= 65
+        ? 'bom'
+        : attainment >= 35
+          ? 'atencao'
+          : 'critico'
+  const tierStyles: Record<typeof tier, string> = {
+    excelente: 'bg-[var(--color-status-success-surface)] text-status-success',
+    bom: 'bg-[var(--color-status-info-surface)] text-status-info',
+    atencao: 'bg-[var(--color-status-warning-surface)] text-status-warning',
+    critico: 'bg-[var(--color-status-error-surface)] text-status-error',
+  }
+  const tierLabels: Record<typeof tier, string> = {
+    excelente: 'Excelente',
+    bom: 'Bom',
+    atencao: 'Atenção',
+    critico: 'Crítico',
+  }
+  const disciplineTone: ManagerTone = attainment >= 90 ? 'success' : attainment >= 65 ? 'info' : attainment >= 35 ? 'warning' : 'danger'
   return (
     <tr className="bg-white">
       <td className="px-mx-md py-mx-sm">
@@ -344,12 +368,17 @@ function TeamRow({ row }: { row: RankingEntry }) {
       <td className="px-mx-md py-mx-sm text-center"><Typography variant="mono">{row.meta || '-'}</Typography></td>
       <td className="px-mx-md py-mx-sm text-center"><Typography variant="mono" tone="info">{row.agd_total}</Typography></td>
       <td className="px-mx-md py-mx-sm">
-        <ProgressBar value={discipline} tone={discipline >= 100 ? 'success' : 'danger'} />
+        <div className="flex items-center gap-mx-xs">
+          <ProgressBar value={attainment} tone={disciplineTone} className="flex-1" />
+          <span className="text-mx-tiny font-black text-text-tertiary tabular-nums w-mx-9 text-right">{attainment}%</span>
+        </div>
       </td>
       <td className="px-mx-md py-mx-sm">
-        <Badge variant={statusTone === 'success' ? 'success' : statusTone === 'warning' ? 'warning' : 'danger'} className="rounded-mx-full px-2 py-0.5">
-          {statusTone === 'success' ? 'Excelente' : statusTone === 'warning' ? 'Atenção' : 'Crítico'}
-        </Badge>
+        <span className={cn('inline-flex items-center rounded-mx-full px-mx-sm py-mx-tiny text-mx-tiny font-black uppercase tracking-tight', tierStyles[tier])}>
+          {tierLabels[tier]}
+        </span>
+        {/* discipline reserved for future use */}
+        <span className="sr-only">Disciplina: {discipline}%</span>
       </td>
     </tr>
   )
@@ -429,17 +458,28 @@ function FunnelSegmentRow({
   )
 }
 
-function EngagementMetric({ label, value, icon }: { label: string; value: number; icon: ReactNode }) {
-  const tone: ManagerTone = value >= 75 ? 'success' : value >= 60 ? 'warning' : 'danger'
+function EngagementMetric({ label, value, icon, accent = 'info' }: { label: string; value: number; icon: ReactNode; accent?: 'info' | 'success' | 'warning' | 'teal' | 'brand' }) {
+  const accentClasses: Record<typeof accent, { iconBg: string; iconText: string; bar: string }> = {
+    info: { iconBg: 'bg-[var(--color-status-info-surface)]', iconText: 'text-status-info', bar: 'bg-status-info' },
+    success: { iconBg: 'bg-[var(--color-status-success-surface)]', iconText: 'text-status-success', bar: 'bg-status-success' },
+    warning: { iconBg: 'bg-[var(--color-status-warning-surface)]', iconText: 'text-status-warning', bar: 'bg-status-warning' },
+    teal: { iconBg: 'bg-cyan-50', iconText: 'text-cyan-600', bar: 'bg-cyan-500' },
+    brand: { iconBg: 'bg-[var(--color-brand-primary)]/10', iconText: 'text-brand-primary', bar: 'bg-brand-primary' },
+  }
+  const styles = accentClasses[accent]
+  const clamped = Math.min(Math.max(value, 0), 100)
   return (
-    <div className="rounded-mx-xl border border-border-default bg-surface-alt p-mx-md text-center">
-      <div className="mx-auto flex h-mx-10 w-mx-10 items-center justify-center rounded-mx-lg bg-white text-brand-primary shadow-mx-sm">
+    <div className="rounded-mx-xl bg-white p-mx-sm text-center">
+      <div className={cn('mx-auto flex h-mx-10 w-mx-10 items-center justify-center rounded-mx-lg shadow-mx-sm', styles.iconBg, styles.iconText)}>
         {icon}
       </div>
-      <Typography variant="tiny" tone="muted" className="mt-mx-sm block min-h-[32px] font-black uppercase tracking-tight">{label}</Typography>
-      <Typography variant="h3" tone={tone === 'success' ? 'success' : tone === 'warning' ? 'warning' : tone === 'danger' ? 'error' : 'muted'} className="mt-mx-xs">
-        {value}%
+      <Typography variant="tiny" tone="muted" className="mt-mx-sm block min-h-[28px] font-black uppercase tracking-tight leading-tight">{label}</Typography>
+      <Typography variant="h3" className={cn('mt-mx-xs font-mono-numbers', styles.iconText)}>
+        {clamped}%
       </Typography>
+      <div className="mt-mx-xs h-1.5 w-full overflow-hidden rounded-mx-full bg-surface-alt">
+        <div className={cn('h-full rounded-mx-full transition-all', styles.bar)} style={{ width: `${clamped}%` }} />
+      </div>
     </div>
   )
 }
