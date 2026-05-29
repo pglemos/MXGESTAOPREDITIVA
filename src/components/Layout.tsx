@@ -480,24 +480,39 @@ export default function Layout() {
                   {catIndex > 0 && (
                     <span className="block h-px w-mx-9 bg-border-default" aria-hidden="true" />
                   )}
-                  {cat.items.map((item) => (
-                    <NavLink
-                      key={`${item.label}-${item.path}`}
-                      to={item.path}
-                      end={false}
-                      aria-label={`${item.label} (${cat.category})`}
-                      onClick={() => { setIsDrawerOpen(false); setMobileMenuOpen(false); }}
-                      className={({ isActive }) => cn(
-                        "w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center transition-all relative group focus-visible:ring-4 focus-visible:ring-brand-primary/15 focus-visible:outline-none",
-                        isActive ? 'bg-brand-secondary text-white shadow-mx-lg' : 'text-text-tertiary hover:bg-surface-alt hover:text-text-primary'
-                      )}
-                    >
-                      <span aria-hidden="true">{React.cloneElement(item.icon as React.ReactElement<{ size?: number }>, { size: 22 })}</span>
-                      <div className="absolute mx-layout-tooltip-offset px-3 py-1.5 bg-brand-secondary text-white text-mx-micro font-black uppercase tracking-widest rounded-mx-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[70] whitespace-nowrap shadow-mx-lg" role="tooltip">
-                        {item.label}
-                      </div>
-                    </NavLink>
-                  ))}
+                  {cat.items.map((item) => {
+                    // Match leva em conta tanto pathname quanto query (?ownerSection=X)
+                    // para evitar que multiplos items na mesma URL base fiquem todos
+                    // ativos simultaneamente.
+                    const [itemPathname, itemSearch = ''] = item.path.split('?')
+                    const itemParams = new URLSearchParams(itemSearch)
+                    const itemOwnerSection = itemParams.get('ownerSection')
+                    const currentParams = new URLSearchParams(location.search)
+                    const currentOwnerSection = currentParams.get('ownerSection')
+                    const pathnameMatches = location.pathname === itemPathname
+                    const isActive = itemOwnerSection
+                      ? pathnameMatches && currentOwnerSection === itemOwnerSection
+                      : pathnameMatches && !currentOwnerSection
+                    return (
+                      <NavLink
+                        key={`${item.label}-${item.path}`}
+                        to={item.path}
+                        end={false}
+                        aria-label={`${item.label} (${cat.category})`}
+                        aria-current={isActive ? 'page' : undefined}
+                        onClick={() => { setIsDrawerOpen(false); setMobileMenuOpen(false); }}
+                        className={cn(
+                          "w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center transition-all relative group focus-visible:ring-4 focus-visible:ring-brand-primary/15 focus-visible:outline-none",
+                          isActive ? 'bg-brand-secondary text-white shadow-mx-lg' : 'text-text-tertiary hover:bg-surface-alt hover:text-text-primary'
+                        )}
+                      >
+                        <span aria-hidden="true">{React.cloneElement(item.icon as React.ReactElement<{ size?: number }>, { size: 22 })}</span>
+                        <div className="absolute mx-layout-tooltip-offset px-3 py-1.5 bg-brand-secondary text-white text-mx-micro font-black uppercase tracking-widest rounded-mx-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[70] whitespace-nowrap shadow-mx-lg" role="tooltip">
+                          {item.label}
+                        </div>
+                      </NavLink>
+                    )
+                  })}
                 </div>
               ))
             ) : (
