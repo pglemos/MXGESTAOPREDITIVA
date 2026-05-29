@@ -192,7 +192,7 @@ const navConfig: Record<string, NavCategory[]> = {
     {
       category: 'COMERCIAL', icon: <Home size={22} />,
       items: [
-        { label: 'Home', path: STORE_DASHBOARD_PATH, icon: <Home size={16} /> },
+        { label: 'Home', path: '/home', icon: <Home size={16} /> },
         { label: 'Equipe', path: STORE_TEAM_PATH, icon: <Users size={16} /> },
         { label: 'Agenda', path: '/rotina', icon: <CalendarDays size={16} /> },
         { label: 'Negociações', path: '/relatorios/performance-vendedor', icon: <MessageSquare size={16} /> },
@@ -257,7 +257,7 @@ export default function Layout() {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [mobileMenuOpen, isDrawerOpen])
 
-  const storeDashboardPath = membership?.store?.name ? `/lojas/${slugify(membership.store.name)}${membership.store_id ? `?id=${membership.store_id}` : ''}` : role === 'gerente' ? '/classificacao' : '/lojas'
+  const storeDashboardPath = membership?.store?.name ? `/lojas/${slugify(membership.store.name)}` : role === 'gerente' ? '/classificacao' : '/lojas'
   const storeTeamPath = role === 'gerente' ? '/equipe' : storeDashboardPath === '/lojas' ? '/lojas' : `${storeDashboardPath}${storeDashboardPath.includes('?') ? '&' : '?'}tab=equipe`
   const ownerSectionPath = useCallback((section: string) => appendQueryParam(storeDashboardPath, 'ownerSection', section), [storeDashboardPath])
   const categories = React.useMemo(() => {

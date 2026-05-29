@@ -177,8 +177,7 @@ function TeamAliasRedirect() {
   const { role, membership } = useAuth()
   if (isPerfilInternoMx(role) || role === 'dono') return <Navigate to="/lojas" replace />
   if (role === 'gerente' && membership?.store?.name) {
-    const idParam = membership.store_id ? `?id=${membership.store_id}&tab=equipe` : '?tab=equipe'
-    return <Navigate to={`/lojas/${slugify(membership.store.name)}${idParam}`} replace />
+    return <Navigate to={`/lojas/${slugify(membership.store.name)}?tab=equipe`} replace />
   }
   return <ForbiddenRoute />
 }
@@ -216,9 +215,9 @@ export default function App() {
             <Route path="team" element={<TeamAliasRedirect />} />
             <Route path="equipe" element={<TeamAliasRedirect />} />
 
-            {/* Vendedor */}
+            {/* Home universal — cada papel renderiza seu cockpit em /home */}
             <Route path="home" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<VendedorHome />} gerente={<RoleRedirect />} dono={<RoleRedirect />} admin={<RoleRedirect />} />
+              <RoleSwitch vendedor={<VendedorHome />} gerente={<DashboardLoja />} dono={<DashboardLoja />} admin={<RoleRedirect />} />
             </Suspense>} />
             <Route path="lancamento-diario" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<Checkin />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
