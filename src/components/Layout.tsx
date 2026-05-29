@@ -463,112 +463,60 @@ export default function Layout() {
 
       <div className="flex flex-1 p-mx-sm pb-mx-24 md:p-mx-md gap-mx-md relative">
 
-        {/* Sidebar Dark Navy Expanded — Story UI-redesign 20260529 */}
+        {/* Sidebar Minimalista - Semantic Nav */}
         <aside
-          className="hidden md:flex w-[244px] flex-col shrink-0 bg-[var(--color-sidebar-bg)] rounded-mx-3xl shadow-mx-lg sticky mx-layout-sticky-offset z-[60] overflow-hidden"
+          className="hidden md:flex w-mx-20 flex-col items-center py-mx-md gap-mx-sm shrink-0 bg-white border border-border-default rounded-mx-3xl shadow-mx-sm sticky mx-layout-sticky-offset z-[60]"
           aria-label="Menu Lateral Principal"
         >
-          {/* Logo dentro do sidebar (espelha mockup) */}
-          <div className="px-mx-md pt-mx-md pb-mx-sm flex items-center gap-mx-sm">
-            <img src={MxLogo} alt="MX Performance" className="h-mx-9 w-auto object-contain brightness-0 invert opacity-95" />
-            <span className="text-white text-base font-black tracking-tight uppercase">
-              MX <span className="text-mx-green-500">PERF.</span>
-            </span>
-          </div>
-
-          {/* Navegação por seções */}
-          <nav className="flex-1 overflow-y-auto px-mx-sm py-mx-sm space-y-mx-md no-scrollbar" aria-label="Módulos de Gestão">
+          <nav className="flex flex-col items-center gap-mx-sm w-full" aria-label="Módulos de Gestão">
             {categories.map((cat) => (
-              <div key={cat.category} className="space-y-mx-tiny">
-                <div className="px-mx-sm pt-mx-xs pb-mx-tiny">
-                  <span className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--color-sidebar-section-label)]">
-                    {cat.category}
-                  </span>
+              <button
+                type="button"
+                aria-label={`Abrir módulo: ${cat.category}`}
+                aria-expanded={isDrawerOpen && activeCategory === cat.category}
+                aria-controls="drawer-navigation"
+                key={cat.category}
+                onClick={() => {
+                  if (activeCategory === cat.category && isDrawerOpen) {
+                    setIsDrawerOpen(false);
+                  } else {
+                    setActiveCategory(cat.category);
+                    setIsDrawerOpen(true);
+                  }
+                }}
+                className={cn(
+                  "w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center transition-all relative group focus-visible:ring-4 focus-visible:ring-brand-primary/15 focus-visible:outline-none",
+                  activeCategory === cat.category ? 'bg-brand-secondary text-white shadow-mx-lg' : 'text-text-tertiary hover:bg-surface-alt hover:text-text-primary'
+                )}
+              >
+                {cat.icon}
+                <div className="absolute mx-layout-tooltip-offset px-3 py-1.5 bg-brand-secondary text-white text-mx-micro font-black uppercase tracking-widest rounded-mx-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[70] whitespace-nowrap shadow-mx-lg" role="tooltip">
+                  {cat.category}
                 </div>
-                <div className="space-y-px">
-                  {cat.items.map((item) => (
-                    <NavLink
-                      key={`${item.label}-${item.path}`}
-                      to={item.path}
-                      end={false}
-                      onClick={() => { setActiveCategory(cat.category); setMobileMenuOpen(false); }}
-                      aria-current={location.pathname === item.path.split('?')[0] ? 'page' : undefined}
-                      className={({ isActive }) => cn(
-                        "flex items-center gap-mx-sm rounded-mx-lg px-mx-sm py-2.5 text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-primary)]/40",
-                        isActive
-                          ? 'bg-[var(--color-sidebar-item-active-bg)] text-[var(--color-sidebar-item-active-text)]'
-                          : 'text-white/75 hover:bg-[var(--color-sidebar-item-hover)] hover:text-white'
-                      )}
-                    >
-                      <span className="shrink-0 opacity-90" aria-hidden="true">{item.icon}</span>
-                      <span className="truncate">{item.label}</span>
-                    </NavLink>
-                  ))}
-                </div>
-              </div>
+              </button>
             ))}
           </nav>
-
-          {/* CTA por papel (Consultor IA purple | DUVIDAS WhatsApp green) */}
           {roleSidebarCta && (
-            <div className="px-mx-sm pb-mx-sm">
-              {role === 'gerente' ? (
-                <button
-                  type="button"
-                  onClick={roleSidebarCta.onClick}
-                  aria-label={`${roleSidebarCta.label} — ${roleSidebarCta.buttonLabel}`}
-                  className="w-full rounded-mx-2xl p-mx-sm text-left text-white shadow-mx-md transition-all hover:shadow-mx-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--color-accent-purple)]/30"
-                  style={{ background: 'linear-gradient(135deg, var(--color-accent-purple) 0%, var(--color-accent-purple-strong) 100%)' }}
-                >
-                  <div className="flex items-center gap-mx-sm">
-                    <span className="flex h-mx-9 w-mx-9 shrink-0 items-center justify-center rounded-mx-xl bg-white/15 text-white" aria-hidden="true">
-                      <Bot size={18} />
-                    </span>
-                    <div className="min-w-0">
-                      <div className="text-xs font-black uppercase tracking-widest text-white">CONSULTOR MX <span className="text-mx-amber-300">IA</span></div>
-                      <div className="text-[11px] text-white/75 normal-case tracking-normal truncate">{roleSidebarCta.description}</div>
-                    </div>
-                  </div>
-                  <div className="mt-mx-sm w-full rounded-mx-xl bg-white/15 hover:bg-white/25 transition-all py-2 text-center text-sm font-black text-white">
-                    {roleSidebarCta.buttonLabel}
-                  </div>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={roleSidebarCta.onClick}
-                  aria-label={`${roleSidebarCta.label} — ${roleSidebarCta.buttonLabel}`}
-                  className="w-full rounded-mx-2xl p-mx-sm text-left text-white shadow-mx-md transition-all hover:shadow-mx-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--color-brand-primary)]/30 bg-white/[0.06] border border-white/10"
-                >
-                  <div className="flex items-center gap-mx-sm">
-                    <span className="flex h-mx-9 w-mx-9 shrink-0 items-center justify-center rounded-mx-xl bg-[var(--color-brand-primary)]/20 text-[var(--color-brand-primary)]" aria-hidden="true">
-                      <LifeBuoy size={18} />
-                    </span>
-                    <div className="min-w-0">
-                      <div className="text-xs font-black uppercase tracking-widest text-white">{roleSidebarCta.label}</div>
-                      <div className="text-[11px] text-white/70 normal-case tracking-normal truncate">{roleSidebarCta.description}</div>
-                    </div>
-                  </div>
-                  <div className="mt-mx-sm w-full rounded-mx-xl bg-[var(--color-brand-primary)] hover:bg-[var(--color-brand-primary)]/90 transition-all py-2 text-center text-sm font-black text-white">
-                    {roleSidebarCta.buttonLabel}
-                  </div>
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Logout */}
-          <div className="px-mx-sm pb-mx-md border-t border-[var(--color-sidebar-border)] pt-mx-sm">
             <button
               type="button"
-              aria-label="Encerrar Sessão do Sistema"
-              onClick={() => signOut()}
-              className="w-full flex items-center gap-mx-sm rounded-mx-lg px-mx-sm py-2.5 text-sm font-bold text-white/60 hover:bg-[var(--color-sidebar-item-hover)] hover:text-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-error/30"
+              aria-label={`${roleSidebarCta.label} - ${roleSidebarCta.buttonLabel}`}
+              onClick={roleSidebarCta.onClick}
+              className="mt-auto w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center text-brand-primary bg-brand-primary/10 border border-brand-primary/15 hover:bg-brand-primary hover:text-white transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15"
             >
-              <LogOut size={16} aria-hidden="true" />
-              <span>Sair</span>
+              {roleSidebarCta.icon}
             </button>
-          </div>
+          )}
+          <button
+            type="button"
+            aria-label="Encerrar Sessão do Sistema"
+            onClick={() => signOut()}
+            className={cn(
+              "w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center text-text-tertiary hover:bg-status-error-surface hover:text-status-error transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-status-error/15",
+              !roleSidebarCta && 'mt-auto',
+            )}
+          >
+            <LogOut size={20} aria-hidden="true" />
+          </button>
         </aside>
 
         {/* Workspace Root */}
