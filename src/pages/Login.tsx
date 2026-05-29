@@ -45,16 +45,16 @@ function clearRecoveryTokensFromUrl() {
 }
 
 export default function Login() {
-    const { signIn, profile, loading: authLoading } = useAuth()
+    const { signIn, profile, role, loading: authLoading } = useAuth()
     const navigate = useNavigate()
     const location = useLocation()
     const [mode, setMode] = useState<LoginMode>(() => getInitialMode())
 
     useEffect(() => {
         if (profile && mode !== 'recovery') {
-            navigate(resolvePostLoginRedirect(location.state), { replace: true })
+            navigate(resolvePostLoginRedirect(location.state, role), { replace: true })
         }
-    }, [profile, mode, navigate, location.state])
+    }, [profile, role, mode, navigate, location.state])
 
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')

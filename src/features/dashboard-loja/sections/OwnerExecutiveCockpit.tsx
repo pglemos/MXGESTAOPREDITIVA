@@ -62,7 +62,6 @@ import { CentralMxBenchmarkInteractive } from './CentralMxBenchmarkInteractive'
 import { CentralMxPlanoSegmentadoPanel } from './CentralMxPlanoSegmentadoPanel'
 import { ConsultorIaStoreSection } from '@/features/central-mx/sections/ConsultorIaStoreSection'
 import { PlanejamentoEstrategico } from '@/features/central-mx/sections/PlanejamentoEstrategico'
-import { CentralMxHub } from '@/features/central-mx/sections/CentralMxHub'
 import { DepartamentoDashboard } from '@/features/departamentos/sections/DepartamentoDashboard'
 import type { DepartamentoCode } from '@/features/departamentos/hooks/useDepartamentoDashboard'
 import { MarketingModulo } from '@/features/marketing/sections/MarketingModulo'
@@ -511,7 +510,9 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
 
       {section === 'home' && (
         <>
-          <CentralMxHub storeId={data.operationalStore?.id || null} ownerPath={ownerPath} />
+          {/* Central MX hub removido da home do dono — sidebar ja tem
+              acesso direto a Planejamento, Plano de Acao, Alertas, etc.
+              O hub redundante foi causa de confusao (ver feedback do user). */}
           <OwnerHome
             data={data}
             alerts={ownerAlerts}
