@@ -81,9 +81,12 @@ Esta story cria o modelo de indicadores planejados do Planejamento Estrategico. 
 - `docs/stories/story-MX-13-20260527-modelo-planejamento-estrategico.md`
 - `src/lib/mx-executive-foundation.ts`
 - `src/lib/mx-executive-foundation.test.ts`
+- `src/lib/central-mx-engine.ts`
+- `src/lib/central-mx-engine.test.ts`
 - `src/features/dashboard-loja/sections/OwnerExecutiveCockpit.tsx`
 - `src/features/dashboard-loja/hooks/useDashboardLojaData.ts`
 - `supabase/migrations/20260527180000_departments_planning_consultive_rules_schema.sql`
+- `supabase/migrations/20260529120000_central_mx_catalog_45_and_action_evidence.sql`
 - `supabase/migrations/20260430190000_fundacao_portugues_permissoes_evidencias.sql`
 - `supabase/migrations/20260501002000_store_goals_admin_only.sql`
 
@@ -99,12 +102,15 @@ Esta story cria o modelo de indicadores planejados do Planejamento Estrategico. 
 - 2026-05-27: Gates executados no lote MX: `npm run lint` passou com warnings preexistentes, `npm run typecheck` passou, `npm test` passou com 329 testes e `npm run build` passou.
 - 2026-05-27: Criada migration `20260527180000_departments_planning_consultive_rules_schema.sql` com `catalogo_indicadores_planejamento` e `valores_indicadores_planejamento`, incluindo Meta, Realizado, Ano Anterior, período anual/mensal e RLS por loja/perfil.
 - 2026-05-27: Adicionada cobertura unitária em `mx-executive-foundation.test.ts` para período anual/mensal, indicador completo/parcial/pendente e permissão de escrita por perfil/escopo de loja.
+- 2026-05-29: Catalogo da Central MX foi expandido para 45 indicadores no motor e em migration SQL, com departamento, dimensao de score e direcao de meta.
+- 2026-05-29: `StrategicPlanningView` agora renderiza todos os 45 indicadores com Meta, Realizado, Ano Anterior, Score e Status.
 
 ### Completion Notes
 
 - A UI dos 5 cards e tabela anual existe, com estados pendentes transparentes.
 - A persistência própria de indicadores planejados e RLS foram adicionadas.
 - Testes unitários cobrem período, indicador pendente e permissão por perfil/escopo.
+- Incremento 2026-05-29 alinha o seed SQL ao catalogo completo de 45 indicadores consumido pela Central MX.
 
 ### Change Log
 
@@ -114,3 +120,4 @@ Esta story cria o modelo de indicadores planejados do Planejamento Estrategico. 
 ### Change Log Update — 2026-05-28
 
 - 2026-05-28: QA gate Wave 3 dry-run PASS (358 tests, lint clean, typecheck clean, build OK). Status movido para `Done` por @aiox-master (Orion). Fonte: `docs/reports/qa-gate-mx-wave3-stories-20260528.md`.
+- 2026-05-29: Catalogo de planejamento e tela executiva atualizados para 45 indicadores, com teste de alinhamento entre engine e migration.

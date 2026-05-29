@@ -85,6 +85,8 @@ Esta story entrega o shell visual do Dashboard Executivo. Ela pode consumir dado
 - `src/features/dashboard-loja/sections/PerformanceAlerts.tsx`
 - `src/features/dashboard-loja/sections/PerformanceTab.tsx`
 - `src/features/dashboard-loja/hooks/useDashboardLojaData.ts`
+- `src/lib/central-mx-engine.ts`
+- `src/lib/central-mx-engine.test.ts`
 - `src/lib/auth/routeAccess.ts`
 
 ## Dev Agent Record
@@ -100,14 +102,18 @@ Esta story entrega o shell visual do Dashboard Executivo. Ela pode consumir dado
 - 2026-05-27: Browser audit autenticado ficou pendente porque o bypass local não possui loja/vínculo ativo suficiente para abrir o cockpit autenticado por RLS.
 - 2026-05-28: @aiox-master ratificou D1-T6 sem novo codigo: Dashboard Executivo segue dentro de `OwnerExecutiveCockpit` por `ownerSection`, com KPIs, meta, alertas, score, gargalos, benchmark, evolucao, agenda e observacao consultiva em cards/status.
 - 2026-05-28: Gates do lote executados apos fechamento D1-T5: `npm run lint`, `npm run typecheck`, `npm test` (358 pass), `npm run build`.
+- 2026-05-29: Dashboard Executivo passou a consumir o `central-mx-engine` para MX Score automatico, score por departamento, alertas rules-based, plano de acao e matriz de planejamento de 45 indicadores.
+- 2026-05-29: Browser smoke autenticado validou planejamento, plano de acao, alertas e departamento Marketing em `/lojas/mx-consultoria?...ownerSection=...`.
 
 ### Completion Notes
 
 - Dashboard Executivo foi reconciliado como seção do cockpit do dono, evitando uma rota paralela de BI.
 - O botão de filtros e o contexto de loja/período existem no shell; filtros avançados continuam dependentes das fontes/engines das epics de score, agenda e benchmarking.
 - Dashboard Executivo fechado como shell do Dia 1; auditoria visual autenticada real fica no QA gate D1-T7 por depender de sessão real ou seed local de loja/membership.
+- Incremento 2026-05-29 substituiu parte dos dados rasos por leitura derivada do motor Central MX, mantendo pendencias explicitas para fontes ainda ausentes.
 
 ### Change Log
 
 - 2026-05-27: Story atualizada de `Draft` para `InProgress` com evidência de implementação existente e gates de qualidade.
 - 2026-05-28: Finalizacao D1-T6. Story marcada `Done` como shell pronto, com smoke autenticado real delegado ao QA gate D1-T7.
+- 2026-05-29: Adicionada integracao do cockpit com motor Central MX e smoke autenticado local.

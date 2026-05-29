@@ -85,6 +85,9 @@ Esta story cria o primeiro shell integrador da Central MX. Ela nao precisa final
 - `src/features/dashboard-loja/sections/OwnerExecutiveCockpit.tsx`
 - `src/features/dashboard-loja/sections/PerformanceAlerts.tsx`
 - `src/features/dashboard-loja/sections/PerformanceTab.tsx`
+- `src/lib/central-mx-engine.ts`
+- `src/lib/central-mx-engine.test.ts`
+- `supabase/migrations/20260529120000_central_mx_catalog_45_and_action_evidence.sql`
 
 ## Dev Agent Record
 
@@ -97,13 +100,17 @@ Esta story cria o primeiro shell integrador da Central MX. Ela nao precisa final
 - Browser audit autenticado ficou bloqueado no ambiente local: dev bypass nao possui loja ativa/vinculo via RLS para concluir simulacao executiva.
 - 2026-05-28: @aiox-master ratificou D1-T6 sem novo codigo: `Layout.tsx` expoe Central MX para `dono`, `ownerSection` cobre planejamento, plano de acao, alertas, benchmarking, agenda e consultor, e `OwnerExecutiveCockpit` renderiza os estados pendentes sem mascarar engines futuras.
 - 2026-05-28: Gates do lote executados apos fechamento D1-T5: `npm run lint`, `npm run typecheck`, `npm test` (358 pass), `npm run build`.
+- 2026-05-29: Central MX deixou de ser somente shell visual no cockpit do dono: `central-mx-engine` agora entrega matriz de 45 indicadores, departamentos, score loja/departamento/processo/individual, alertas rules-based e plano de acao derivado.
+- 2026-05-29: Browser smoke autenticado local com dono real validou `ownerSection=planejamento` (45 linhas), `plano-acao`, `alertas` e `departamentos-marketing`.
 
 ### Completion Notes
 
 - Gates de codigo passaram com a implementacao atual da Central MX.
 - Central MX fechada como shell integrador do Dia 1; browser audit autenticado real fica no QA gate D1-T7 por depender de sessao/vinculo de loja real.
+- Incremento 2026-05-29 conectou a tela ao motor deterministico compartilhado e manteve estados pendentes quando a fonte real do indicador ainda nao existe.
 
 ### Change Log
 
 - 2026-05-27: Validacao tecnica do shell Central MX e registro de gates.
 - 2026-05-28: Finalizacao D1-T6. Story marcada `Done` como shell pronto, com smoke autenticado real delegado ao QA gate D1-T7.
+- 2026-05-29: Adicionado motor Central MX compartilhado, catalogo SQL de 45 indicadores e evidencia de browser smoke autenticado.

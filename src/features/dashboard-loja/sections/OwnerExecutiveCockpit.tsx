@@ -43,6 +43,14 @@ import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
 import { useAuth } from '@/hooks/useAuth'
 import { chartTokens } from '@/lib/charts/tokens'
+import {
+  buildCentralMxEngine,
+  type CentralMxActionPlanItem,
+  type CentralMxDepartmentModule,
+  type CentralMxIndicatorUnit,
+  type CentralMxIndicatorValue,
+} from '@/lib/central-mx-engine'
+import type { ExecutiveAlert, MxDepartmentCode } from '@/lib/mx-executive-foundation'
 import { cn } from '@/lib/utils'
 import type { useDashboardLojaData } from '../hooks/useDashboardLojaData'
 import type { OwnerPerformanceAlert } from './PerformanceAlerts'
@@ -69,6 +77,7 @@ type OwnerSection =
   | 'biblioteca'
 
 type DepartmentScore = {
+  code: MxDepartmentCode
   name: string
   icon: ReactNode
   score: number | null
@@ -76,17 +85,29 @@ type DepartmentScore = {
   detail: string
   tone: KpiTone
   path: string
+  indicators: CentralMxIndicatorValue[]
+  dashboardCards: CentralMxDepartmentModule['dashboardCards']
+  checklist: string[]
+  playbook: string[]
+  strategicAgenda: string[]
+  alertCount: number
 }
 
 type ActionRow = {
+  id: string
   priority: 'Crítica' | 'Atenção' | 'Positiva'
+  department: string
+  indicator: string
   problem: string
   recommendation: string
   action: string
+  how: string
   owner: string
   origin: string
   due: string
   status: string
+  efficacy: string
+  evidence: string
   tone: KpiTone
 }
 
@@ -134,8 +155,6 @@ const toneClasses: Record<KpiTone, { bg: string; text: string; soft: string; bar
     border: 'border-mx-indigo-100',
   },
 }
-
-const monthLabels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
 function currentPeriodLabel(referenceDate: string) {
   const date = new Date(`${referenceDate}T12:00:00`)
@@ -222,107 +241,155 @@ function buildPanoramaData(data: DashboardData) {
   })
 }
 
-function buildDepartments(data: DashboardData): DepartmentScore[] {
-  const sellersTotal = data.sellers?.length || 0
-  const disciplineScore = sellersTotal > 0 ? clampScore((data.metrics.checkedInCount / sellersTotal) * 100) : null
-  const leadConversionScore = data.funnelBenchmarks.leadAgd > 0
-    ? clampScore((data.funilData.tx_lead_agd / data.funnelBenchmarks.leadAgd) * 100)
-    : null
-  const visitConversionScore = data.funnelBenchmarks.visitaVnd > 0
-    ? clampScore((data.funilData.tx_visita_vnd / data.funnelBenchmarks.visitaVnd) * 100)
-    : null
-  const salesScore = data.metrics.goalValue > 0 ? clampScore(data.metrics.attainment) : null
-  const commercialValues = [salesScore, leadConversionScore, visitConversionScore].filter((score): score is number => score !== null)
-  const commercialScore = commercialValues.length
-    ? clampScore(commercialValues.reduce((sum, score) => sum + score, 0) / commercialValues.length)
-    : null
-  const marketingScore = leadConversionScore
-  const financeScore = data.latestDRE ? (data.latestDRE.net_profit >= 0 ? 85 : 55) : null
-
-  return [
-    {
-      name: 'Comercial',
-      icon: <Users size={20} />,
-      score: commercialScore,
-      status: scoreStatus(commercialScore),
-      detail: commercialScore === null ? 'Sem meta/funil suficiente' : 'Meta, leads e visita > venda',
-      tone: scoreTone(commercialScore),
-      path: ownerPath('departamentos-comercial'),
-    },
-    {
-      name: 'Marketing',
-      icon: <Megaphone size={20} />,
-      score: marketingScore,
-      status: scoreStatus(marketingScore),
-      detail: marketingScore === null ? 'Benchmark pendente' : 'Lead > agendamento',
-      tone: scoreTone(marketingScore),
-      path: ownerPath('departamentos-marketing'),
-    },
-    {
-      name: 'Produto',
-      icon: <Package size={20} />,
-      score: null,
-      status: 'Pendente',
-      detail: 'Estoque e giro aguardam fonte',
-      tone: 'warning',
-      path: ownerPath('departamentos-produto'),
-    },
-    {
-      name: 'Financeiro',
-      icon: <DollarSign size={20} />,
-      score: financeScore,
-      status: scoreStatus(financeScore),
-      detail: data.latestDRE ? 'DRE financeiro conectado' : 'DRE pendente',
-      tone: scoreTone(financeScore),
-      path: ownerPath('departamentos-financeiro'),
-    },
-    {
-      name: 'Operacional',
-      icon: <Gauge size={20} />,
-      score: disciplineScore,
-      status: scoreStatus(disciplineScore),
-      detail: sellersTotal > 0 ? 'Disciplina de lançamento' : 'Equipe pendente',
-      tone: scoreTone(disciplineScore),
-      path: ownerPath('departamentos-operacional'),
-    },
-    {
-      name: 'RH',
-      icon: <Users size={20} />,
-      score: null,
-      status: 'Pendente',
-      detail: 'PDI, feedback e clima',
-      tone: 'muted',
-      path: ownerPath('departamentos-rh'),
-    },
-  ]
+function departmentIcon(code: MxDepartmentCode) {
+  if (code === 'marketing') return <Megaphone size={20} />
+  if (code === 'produto') return <Package size={20} />
+  if (code === 'financeiro') return <DollarSign size={20} />
+  if (code === 'operacional') return <Gauge size={20} />
+  return <Users size={20} />
 }
 
-function buildActions(alerts: OwnerPerformanceAlert[]): ActionRow[] {
-  if (!alerts.length) {
-    return [{
-      priority: 'Positiva',
-      problem: 'Operação sem alerta crítico',
-      recommendation: 'Manter cadência e usar benchmark para buscar ganho incremental.',
-      action: 'Manter cadência e acompanhar a rotina semanal.',
-      owner: 'Diretor',
-      origin: 'Score',
-      due: 'Contínuo',
-      status: 'Acompanhando',
-      tone: 'success',
-    }]
-  }
+function departmentDetail(department: CentralMxDepartmentModule) {
+  const complete = department.indicators.filter(item => item.status === 'completo').length
+  const partial = department.indicators.filter(item => item.status === 'parcial').length
+  return `${complete} completos, ${partial} parciais, ${department.alertCount} críticos`
+}
 
-  return alerts.map((alert, index) => ({
-    priority: alert.variant === 'danger' ? 'Crítica' : alert.variant === 'warning' ? 'Atenção' : 'Positiva',
-    problem: alert.title,
+function buildCentralMx(data: DashboardData, marginPercent: number | null) {
+  return buildCentralMxEngine({
+    storeId: data.operationalStore?.id || data.metrics.storeName || 'loja-mx',
+    storeName: data.metrics.storeName,
+    period: data.referenceDate.slice(0, 7),
+    metrics: {
+      totalSales: data.metrics.totalSales,
+      totalLeads: data.metrics.totalLeads,
+      totalAgd: data.metrics.totalAgd,
+      totalVis: data.metrics.totalVis,
+      attainment: data.metrics.attainment,
+      goalValue: data.metrics.goalValue,
+      checkedInCount: data.metrics.checkedInCount,
+      sellerCount: data.sellers?.length || 0,
+    },
+    funnel: {
+      leadToSchedule: data.funilData.tx_lead_agd,
+      scheduleToVisit: data.funilData.tx_agd_visita,
+      visitToSale: data.funilData.tx_visita_vnd,
+    },
+    benchmarks: {
+      leadToSchedule: data.funnelBenchmarks.leadAgd,
+      scheduleToVisit: data.funnelBenchmarks.agdVisita,
+      visitToSale: data.funnelBenchmarks.visitaVnd,
+    },
+    financial: data.latestDRE
+      ? {
+        grossProfit: data.latestDRE.gross_profit,
+        grossMarginPct: marginPercent,
+        netProfit: data.latestDRE.net_profit,
+        costPerSale: data.latestDRE.cac,
+      }
+      : null,
+    ranking: data.metrics.ranking.map(row => ({
+      userId: row.user_id,
+      name: row.user_name,
+      attainment: row.atingimento,
+      sales: row.vnd_total,
+      goal: row.meta,
+      checkedIn: row.checked_in,
+    })),
+  })
+}
+
+function departmentFromEngine(department: CentralMxDepartmentModule): DepartmentScore {
+  return {
+    code: department.code,
+    name: department.name,
+    icon: departmentIcon(department.code),
+    score: department.score,
+    status: department.status,
+    detail: departmentDetail(department),
+    tone: scoreTone(department.score),
+    path: ownerPath(`departamentos-${department.code}`),
+    indicators: department.indicators,
+    dashboardCards: department.dashboardCards,
+    checklist: department.checklist,
+    playbook: department.playbook,
+    strategicAgenda: department.strategicAgenda,
+    alertCount: department.alertCount,
+  }
+}
+
+function alertFromEngine(alert: ExecutiveAlert): OwnerPerformanceAlert {
+  const variant: OwnerPerformanceAlert['variant'] =
+    alert.type === 'critical' ? 'danger' : alert.type === 'warning' ? 'warning' : alert.type === 'positive' ? 'success' : 'outline'
+  return {
+    title: alert.problem,
+    description: alert.impact,
     recommendation: alert.recommendation,
-    action: alert.action,
-    owner: index % 2 === 0 ? 'Gerente comercial' : 'Diretor',
-    origin: alert.variant === 'success' ? 'Score' : 'Alerta',
-    due: index === 0 ? 'Hoje' : `${index + 1} dias`,
-    status: alert.variant === 'success' ? 'Acompanhando' : index === 0 ? 'Atrasada' : 'Em andamento',
-    tone: alert.variant === 'danger' ? 'danger' : alert.variant === 'warning' ? 'warning' : 'success',
-  }))
+    action: alert.quickActionLabel,
+    variant,
+    impact: alert.type === 'critical' ? 'Alto' : alert.type === 'warning' ? 'Médio' : 'Baixo',
+    ctaLabel: alert.quickActionLabel,
+    ctaTo: ownerPath('plano-acao'),
+  }
+}
+
+function actionPriorityLabel(priority: CentralMxActionPlanItem['priority']): ActionRow['priority'] {
+  if (priority === 'critica') return 'Crítica'
+  if (priority === 'alta') return 'Atenção'
+  return 'Positiva'
+}
+
+function actionStatusLabel(status: CentralMxActionPlanItem['status']) {
+  const labels: Record<CentralMxActionPlanItem['status'], string> = {
+    pendente: 'Pendente',
+    em_andamento: 'Em andamento',
+    atrasado: 'Atrasada',
+    concluido: 'Concluída',
+    validando_eficacia: 'Validando eficácia',
+  }
+  return labels[status]
+}
+
+function actionOriginLabel(origin: CentralMxActionPlanItem['origin']) {
+  const labels: Record<CentralMxActionPlanItem['origin'], string> = {
+    alertas: 'Alerta',
+    score: 'Score',
+    consultor: 'Consultor MX',
+    manual: 'Manual',
+  }
+  return labels[origin]
+}
+
+function actionFromEngine(action: CentralMxActionPlanItem): ActionRow {
+  return {
+    id: action.id,
+    priority: actionPriorityLabel(action.priority),
+    department: departmentLabel(action.department),
+    indicator: action.indicator,
+    problem: action.problem,
+    recommendation: action.how,
+    action: action.action,
+    how: action.how,
+    owner: action.responsibleLabel,
+    origin: actionOriginLabel(action.origin),
+    due: action.dueLabel,
+    status: actionStatusLabel(action.status),
+    efficacy: action.efficacyScore == null ? 'Pendente' : `${action.efficacyScore}%`,
+    evidence: action.evidenceLabel,
+    tone: action.priority === 'critica' ? 'danger' : action.priority === 'alta' ? 'warning' : action.status === 'validando_eficacia' ? 'success' : 'info',
+  }
+}
+
+function departmentLabel(code: MxDepartmentCode) {
+  const labels: Record<MxDepartmentCode, string> = {
+    comercial: 'Comercial',
+    marketing: 'Marketing',
+    produto: 'Produto',
+    financeiro: 'Financeiro',
+    rh: 'RH',
+    operacional: 'Operacional',
+  }
+  return labels[code]
 }
 
 function getOwnerSection(search: string): OwnerSection {
@@ -345,22 +412,41 @@ function getOwnerSection(search: string): OwnerSection {
   return 'home'
 }
 
+function getOwnerDepartmentCode(search: string): MxDepartmentCode | null {
+  const value = new URLSearchParams(search).get('ownerSection')
+  const code = value?.startsWith('departamentos-') ? value.replace('departamentos-', '') : null
+  if (
+    code === 'comercial' ||
+    code === 'marketing' ||
+    code === 'produto' ||
+    code === 'financeiro' ||
+    code === 'rh' ||
+    code === 'operacional'
+  ) {
+    return code
+  }
+  return null
+}
+
 export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitProps) {
   const { profile } = useAuth()
   const location = useLocation()
   const periodLabel = currentPeriodLabel(data.referenceDate)
   const panoramaData = useMemo(() => buildPanoramaData(data), [data])
-  const departments = useMemo(() => buildDepartments(data), [data])
-  const actions = useMemo(() => buildActions(alerts), [alerts])
-  const scoredDepartments = departments.filter((department) => department.score !== null)
-  const mxScore = scoredDepartments.length
-    ? clampScore(scoredDepartments.reduce((sum, department) => sum + (department.score || 0), 0) / scoredDepartments.length)
-    : null
-  const criticalAlerts = alerts.filter((alert) => alert.variant === 'danger' || alert.variant === 'warning')
   const marginPercent = data.latestDRE && data.latestDRE.gross_margin > 0
     ? (data.latestDRE.net_sales_margin / data.latestDRE.gross_margin) * 100
     : null
+  const centralMx = useMemo(() => buildCentralMx(data, marginPercent), [data, marginPercent])
+  const departments = useMemo(() => centralMx.departments.map(departmentFromEngine), [centralMx.departments])
+  const ownerAlerts = useMemo(() => {
+    const generated = centralMx.alerts.map(alertFromEngine)
+    return generated.length ? generated : alerts
+  }, [alerts, centralMx.alerts])
+  const actions = useMemo(() => centralMx.actionPlanItems.map(actionFromEngine), [centralMx.actionPlanItems])
+  const mxScore = centralMx.scores.store.value
+  const criticalAlerts = ownerAlerts.filter((alert) => alert.variant === 'danger' || alert.variant === 'warning')
   const section = getOwnerSection(location.search)
+  const selectedDepartmentCode = getOwnerDepartmentCode(location.search)
 
   return (
     <section className="min-h-full bg-surface-alt p-mx-sm md:p-mx-lg space-y-mx-md">
@@ -374,7 +460,7 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
       {section === 'home' && (
         <OwnerHome
           data={data}
-          alerts={alerts}
+          alerts={ownerAlerts}
           actions={actions}
           departments={departments}
           panoramaData={panoramaData}
@@ -382,13 +468,13 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
           marginPercent={marginPercent}
         />
       )}
-      {section === 'planejamento' && <StrategicPlanningView data={data} marginPercent={marginPercent} />}
-      {section === 'resultados' && <ResultsView data={data} alerts={alerts} panoramaData={panoramaData} mxScore={mxScore} />}
+      {section === 'planejamento' && <StrategicPlanningView data={data} planningIndicators={centralMx.planningIndicators} />}
+      {section === 'resultados' && <ResultsView data={data} alerts={ownerAlerts} panoramaData={panoramaData} mxScore={mxScore} />}
       {section === 'plano-acao' && <ActionPlanView actions={actions} />}
-      {section === 'alertas' && <AlertsView alerts={alerts} />}
+      {section === 'alertas' && <AlertsView alerts={ownerAlerts} />}
       {section === 'benchmarking' && <BenchmarkingView data={data} mxScore={mxScore} marginPercent={marginPercent} />}
-      {section === 'agenda' && <AgendaView alerts={alerts} />}
-      {section === 'departamentos' && <DepartmentsView departments={departments} />}
+      {section === 'agenda' && <AgendaView alerts={ownerAlerts} />}
+      {section === 'departamentos' && <DepartmentsView departments={departments} selectedDepartmentCode={selectedDepartmentCode} />}
       {section === 'visitas' && (
         <OwnerModuleGrid
           title="Visitas"
@@ -835,54 +921,58 @@ export function OwnerDepartmentScoreGrid({ departments }: { departments: Departm
   )
 }
 
-function StrategicPlanningView({ data, marginPercent }: { data: DashboardData; marginPercent: number | null }) {
-  const rows = [
-    { group: 'VENDAS', metric: 'Vendas Total', value: data.metrics.goalValue || null, actual: data.metrics.totalSales },
-    { group: 'VENDAS', metric: 'Conversão Lead > Agendamento (%)', value: data.funnelBenchmarks.leadAgd, actual: data.funilData.tx_lead_agd },
-    { group: 'ESTOQUE', metric: 'Estoque Total (Unid.)', value: null, actual: null },
-    { group: 'FINANCEIRO', metric: 'Margem Média de Venda (%)', value: marginPercent, actual: marginPercent },
-    { group: 'FINANCEIRO', metric: 'Lucro Líquido', value: data.latestDRE?.net_profit ?? null, actual: data.latestDRE?.net_profit ?? null },
-    { group: 'OPERACIONAL', metric: 'Disciplina de Rotina (%)', value: 100, actual: data.sellers?.length ? (data.metrics.checkedInCount / data.sellers.length) * 100 : null },
-  ]
+function StrategicPlanningView({
+  data,
+  planningIndicators,
+}: {
+  data: DashboardData
+  planningIndicators: CentralMxIndicatorValue[]
+}) {
+  const complete = planningIndicators.filter(indicator => indicator.status === 'completo').length
+  const partial = planningIndicators.filter(indicator => indicator.status === 'parcial').length
+  const pending = planningIndicators.filter(indicator => indicator.status === 'pendente').length
 
   return (
     <div className="space-y-mx-md">
-      <SectionTitle title="Planejamento Estratégico" subtitle="Visão anual Meta / Realizado / Ano Anterior, sem excesso de gráficos." />
+      <SectionTitle title="Planejamento Estratégico" subtitle="45 indicadores com Meta, Realizado e Ano Anterior por departamento." />
       <div className="grid grid-cols-1 gap-mx-md md:grid-cols-2 xl:grid-cols-5">
-        <OwnerKpiCard title="Lucro Líquido" value={formatCurrency(data.latestDRE?.net_profit)} detail={data.latestDRE ? 'DRE conectado' : 'DRE pendente'} icon={<DollarSign size={22} />} tone={data.latestDRE ? 'success' : 'muted'} />
-        <OwnerKpiCard title="Volume de Vendas" value={formatInteger(data.metrics.totalSales)} detail={data.metrics.goalValue > 0 ? `${data.metrics.attainment}% da meta` : 'Meta pendente'} icon={<BarChart3 size={22} />} tone="brand" />
-        <OwnerKpiCard title="Custo p/ Venda" value={formatCurrency(data.latestDRE?.cac)} detail={data.latestDRE ? 'DRE conectado' : 'DRE pendente'} icon={<ShoppingCart size={22} />} tone="warning" />
-        <OwnerKpiCard title="Estoque Total" value="Pendente" detail="Fonte não conectada" icon={<Box size={22} />} tone="muted" />
-        <OwnerKpiCard title="Funcionários" value={formatInteger(data.sellers?.length || 0)} detail="Equipe ativa" icon={<Users size={22} />} tone="info" />
+        <OwnerKpiCard title="Indicadores" value={formatInteger(planningIndicators.length)} detail="matriz estratégica" icon={<BarChart3 size={22} />} tone="brand" />
+        <OwnerKpiCard title="Completos" value={formatInteger(complete)} detail="meta, realizado e ano anterior" icon={<CheckCircle2 size={22} />} tone={complete > 0 ? 'success' : 'muted'} />
+        <OwnerKpiCard title="Parciais" value={formatInteger(partial)} detail="faltam campos de planejamento" icon={<Clock3 size={22} />} tone={partial > 0 ? 'warning' : 'muted'} />
+        <OwnerKpiCard title="Pendentes" value={formatInteger(pending)} detail="precisam de fonte ou meta" icon={<AlertTriangle size={22} />} tone={pending > 0 ? 'danger' : 'success'} />
+        <OwnerKpiCard title="Loja" value={data.metrics.storeName} detail={currentPeriodLabel(data.referenceDate)} icon={<Target size={22} />} tone="info" />
       </div>
       <Card className="rounded-mx-2xl p-mx-lg">
         <div className="flex flex-col gap-mx-sm md:flex-row md:items-center md:justify-between">
-          <Typography variant="h3" className="text-xl font-black">Indicadores Estratégicos</Typography>
+          <Typography variant="h3" className="text-xl font-black">Matriz Meta / Realizado / Ano Anterior</Typography>
           <Button type="button" variant="outline" className="h-mx-10 rounded-mx-xl bg-white"><Download size={16} /> Exportar</Button>
         </div>
         <div className="mt-mx-md overflow-x-auto">
-          <table className="min-w-[980px] w-full border-collapse text-sm">
+          <table className="min-w-[1080px] w-full border-collapse text-sm">
             <thead>
               <tr className="bg-surface-alt text-left text-mx-tiny font-black uppercase text-text-secondary">
+                <th className="border border-border-subtle px-mx-sm py-mx-sm">Departamento</th>
                 <th className="border border-border-subtle px-mx-sm py-mx-sm">Indicador</th>
-                {monthLabels.map(month => <th key={month} className="border border-border-subtle px-mx-sm py-mx-sm text-center">{month}</th>)}
-                <th className="border border-border-subtle px-mx-sm py-mx-sm text-center">Total</th>
+                <th className="border border-border-subtle px-mx-sm py-mx-sm text-center">Meta</th>
+                <th className="border border-border-subtle px-mx-sm py-mx-sm text-center">Realizado</th>
+                <th className="border border-border-subtle px-mx-sm py-mx-sm text-center">Ano Anterior</th>
+                <th className="border border-border-subtle px-mx-sm py-mx-sm text-center">Score</th>
+                <th className="border border-border-subtle px-mx-sm py-mx-sm text-center">Status</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
-                <tr key={`${row.group}-${row.metric}`}>
-                  <td className="border border-border-subtle px-mx-sm py-mx-sm">
-                    <Typography variant="tiny" tone="brand" className="block font-black">{row.group}</Typography>
-                    <Typography variant="p" className="text-sm font-black">{row.metric}</Typography>
-                  </td>
-                  {monthLabels.map((month, index) => (
-                    <td key={`${row.metric}-${month}`} className={cn('border border-border-subtle px-mx-sm py-mx-sm text-center font-bold tabular-nums', index === new Date(`${data.referenceDate}T12:00:00`).getMonth() && 'bg-mx-indigo-50 text-brand-primary')}>
-                      {index === new Date(`${data.referenceDate}T12:00:00`).getMonth() ? formatPlanningValue(row.actual) : formatPlanningValue(row.value)}
-                    </td>
-                  ))}
-                  <td className="border border-border-subtle px-mx-sm py-mx-sm text-center font-black tabular-nums">
-                    {formatPlanningValue(row.value)}
+              {planningIndicators.map((indicator) => (
+                <tr key={indicator.code}>
+                  <td className="border border-border-subtle px-mx-sm py-mx-sm font-black">{departmentLabel(indicator.department)}</td>
+                  <td className="border border-border-subtle px-mx-sm py-mx-sm font-black">{indicator.label}</td>
+                  <td className="border border-border-subtle px-mx-sm py-mx-sm text-center font-bold tabular-nums">{formatPlanningValue(indicator.meta, indicator.unit)}</td>
+                  <td className="border border-border-subtle px-mx-sm py-mx-sm text-center font-bold tabular-nums">{formatPlanningValue(indicator.realizado, indicator.unit)}</td>
+                  <td className="border border-border-subtle px-mx-sm py-mx-sm text-center font-bold tabular-nums">{formatPlanningValue(indicator.anoAnterior, indicator.unit)}</td>
+                  <td className="border border-border-subtle px-mx-sm py-mx-sm text-center font-black tabular-nums">{indicator.score ?? '--'}</td>
+                  <td className="border border-border-subtle px-mx-sm py-mx-sm text-center">
+                    <span className={cn('rounded-mx-md border px-mx-sm py-mx-xs text-mx-tiny font-black', planningStatusTone(indicator.status))}>
+                      {indicator.status === 'completo' ? 'Completo' : indicator.status === 'parcial' ? 'Parcial' : 'Pendente'}
+                    </span>
                   </td>
                 </tr>
               ))}
@@ -894,8 +984,17 @@ function StrategicPlanningView({ data, marginPercent }: { data: DashboardData; m
   )
 }
 
-function formatPlanningValue(value: number | null | undefined) {
+function planningStatusTone(status: CentralMxIndicatorValue['status']) {
+  if (status === 'completo') return toneClasses.success.soft
+  if (status === 'parcial') return toneClasses.warning.soft
+  return toneClasses.muted.soft
+}
+
+function formatPlanningValue(value: number | null | undefined, unit?: CentralMxIndicatorUnit) {
   if (value === null || typeof value === 'undefined' || Number.isNaN(value)) return '--'
+  if (unit === 'currency') return formatCurrency(value)
+  if (unit === 'percent') return formatPercent(value)
+  if (unit === 'days') return `${value.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} dias`
   if (Math.abs(value) >= 1000) return value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })
   return value.toLocaleString('pt-BR', { maximumFractionDigits: 1 })
 }
@@ -939,17 +1038,21 @@ function ActionPlanView({ actions }: { actions: ActionRow[] }) {
         <Card className="rounded-mx-2xl p-mx-lg">
           <ToolbarPlaceholder searchPlaceholder="Buscar ação, problema ou indicador..." />
           <div className="mt-mx-md overflow-x-auto">
-            <table className="min-w-[1080px] w-full text-sm">
+            <table className="min-w-[1480px] w-full text-sm">
               <thead className="bg-surface-alt text-left text-mx-tiny font-black uppercase text-text-secondary">
                 <tr>
                   <th className="px-mx-sm py-mx-sm">Prioridade</th>
-                  <th className="px-mx-sm py-mx-sm">Problema / Indicador</th>
-                  <th className="px-mx-sm py-mx-sm">Recomendação</th>
-                  <th className="px-mx-sm py-mx-sm">Ação Rápida</th>
+                  <th className="px-mx-sm py-mx-sm">Departamento</th>
+                  <th className="px-mx-sm py-mx-sm">Indicador</th>
+                  <th className="px-mx-sm py-mx-sm">Problema</th>
+                  <th className="px-mx-sm py-mx-sm">Ação</th>
+                  <th className="px-mx-sm py-mx-sm">Como</th>
                   <th className="px-mx-sm py-mx-sm">Responsável</th>
-                  <th className="px-mx-sm py-mx-sm">Origem</th>
                   <th className="px-mx-sm py-mx-sm">Prazo</th>
                   <th className="px-mx-sm py-mx-sm">Status</th>
+                  <th className="px-mx-sm py-mx-sm">Eficácia</th>
+                  <th className="px-mx-sm py-mx-sm">Origem</th>
+                  <th className="px-mx-sm py-mx-sm">Evidência</th>
                   <th className="px-mx-sm py-mx-sm">Ações</th>
                 </tr>
               </thead>
@@ -957,15 +1060,19 @@ function ActionPlanView({ actions }: { actions: ActionRow[] }) {
                 {actions.map((action, index) => {
                   const classes = toneClasses[action.tone]
                   return (
-                    <tr key={`${action.problem}-${index}`}>
+                    <tr key={`${action.id}-${index}`}>
                       <td className="px-mx-sm py-mx-sm"><span className={cn('rounded-mx-md border px-mx-sm py-mx-xs text-mx-tiny font-black', classes.soft)}>{action.priority}</span></td>
+                      <td className="px-mx-sm py-mx-sm font-black">{action.department}</td>
+                      <td className="px-mx-sm py-mx-sm text-text-secondary">{action.indicator}</td>
                       <td className="px-mx-sm py-mx-sm font-black">{action.problem}</td>
-                      <td className="px-mx-sm py-mx-sm text-text-secondary">{action.recommendation}</td>
                       <td className="px-mx-sm py-mx-sm text-text-secondary">{action.action}</td>
+                      <td className="px-mx-sm py-mx-sm text-text-secondary">{action.how}</td>
                       <td className="px-mx-sm py-mx-sm font-bold">{action.owner}</td>
-                      <td className="px-mx-sm py-mx-sm">{action.origin}</td>
                       <td className={cn('px-mx-sm py-mx-sm font-black', classes.text)}>{action.due}</td>
                       <td className="px-mx-sm py-mx-sm"><span className={cn('rounded-mx-md border px-mx-sm py-mx-xs text-mx-tiny font-black', classes.soft)}>{action.status}</span></td>
+                      <td className="px-mx-sm py-mx-sm font-bold">{action.efficacy}</td>
+                      <td className="px-mx-sm py-mx-sm">{action.origin}</td>
+                      <td className="px-mx-sm py-mx-sm text-text-secondary">{action.evidence}</td>
                       <td className="px-mx-sm py-mx-sm"><MoreVertical size={18} className="text-text-tertiary" /></td>
                     </tr>
                   )
@@ -1156,11 +1263,73 @@ function AgendaView({ alerts }: { alerts: OwnerPerformanceAlert[] }) {
   )
 }
 
-function DepartmentsView({ departments }: { departments: DepartmentScore[] }) {
+function DepartmentsView({
+  departments,
+  selectedDepartmentCode,
+}: {
+  departments: DepartmentScore[]
+  selectedDepartmentCode: MxDepartmentCode | null
+}) {
+  const selectedDepartment = departments.find(department => department.code === selectedDepartmentCode) || departments[0]
   return (
     <div className="space-y-mx-md">
-      <SectionTitle title="Departamentos" subtitle="Score por área e direcionamento de atenção." />
+      <SectionTitle title="Departamentos" subtitle="Marketing, produto, financeiro, RH, operações e comercial com indicadores, rotina e playbook." />
       <OwnerDepartmentScoreGrid departments={departments} />
+      {selectedDepartment && (
+        <div className="grid grid-cols-1 gap-mx-md xl:grid-cols-[minmax(0,1fr)_360px]">
+          <Card className="rounded-mx-2xl p-mx-lg">
+            <div className="flex flex-col gap-mx-sm md:flex-row md:items-start md:justify-between">
+              <div>
+                <Typography variant="h3" className="text-xl font-black">{selectedDepartment.name}</Typography>
+                <Typography variant="p" tone="muted" className="mt-1 font-bold">{selectedDepartment.detail}</Typography>
+              </div>
+              <span className={cn('w-fit rounded-mx-md border px-mx-sm py-mx-xs text-mx-tiny font-black', toneClasses[selectedDepartment.tone].soft)}>
+                Score {selectedDepartment.score ?? '--'} · {selectedDepartment.status}
+              </span>
+            </div>
+            <div className="mt-mx-md grid grid-cols-1 gap-mx-sm md:grid-cols-2 xl:grid-cols-4">
+              {selectedDepartment.dashboardCards.map(card => (
+                <div key={card.label} className="rounded-mx-xl border border-border-default bg-white p-mx-md">
+                  <Typography variant="tiny" tone="muted" className="block font-black uppercase">{card.label}</Typography>
+                  <Typography variant="h3" className="mt-mx-xs font-black tabular-nums">{formatPlanningValue(card.value, card.unit)}</Typography>
+                  <Typography variant="tiny" tone="muted" className="mt-mx-xs block font-bold">
+                    {card.status === 'completo' ? 'Completo' : card.status === 'parcial' ? 'Parcial' : 'Pendente'}
+                  </Typography>
+                </div>
+              ))}
+            </div>
+            <div className="mt-mx-lg overflow-x-auto">
+              <table className="min-w-[760px] w-full text-sm">
+                <thead className="bg-surface-alt text-left text-mx-tiny font-black uppercase text-text-secondary">
+                  <tr>
+                    <th className="px-mx-sm py-mx-sm">Indicador</th>
+                    <th className="px-mx-sm py-mx-sm">Meta</th>
+                    <th className="px-mx-sm py-mx-sm">Realizado</th>
+                    <th className="px-mx-sm py-mx-sm">Ano anterior</th>
+                    <th className="px-mx-sm py-mx-sm">Score</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border-subtle">
+                  {selectedDepartment.indicators.map(indicator => (
+                    <tr key={indicator.code}>
+                      <td className="px-mx-sm py-mx-sm font-black">{indicator.label}</td>
+                      <td className="px-mx-sm py-mx-sm font-bold tabular-nums">{formatPlanningValue(indicator.meta, indicator.unit)}</td>
+                      <td className="px-mx-sm py-mx-sm font-bold tabular-nums">{formatPlanningValue(indicator.realizado, indicator.unit)}</td>
+                      <td className="px-mx-sm py-mx-sm font-bold tabular-nums">{formatPlanningValue(indicator.anoAnterior, indicator.unit)}</td>
+                      <td className="px-mx-sm py-mx-sm font-black tabular-nums">{indicator.score ?? '--'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+          <div className="space-y-mx-md">
+            <SideList title="Checklist do Departamento" items={selectedDepartment.checklist} />
+            <SideList title="Playbook Operacional" items={selectedDepartment.playbook} />
+            <SideList title="Agenda Estratégica" items={selectedDepartment.strategicAgenda} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

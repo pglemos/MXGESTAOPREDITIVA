@@ -83,6 +83,9 @@ Esta story entrega a fundacao de dados do plano de acao. O produto nao deve vira
 - `src/lib/mx-executive-foundation.test.ts`
 - `supabase/migrations/20260527150000_planos_acao_schema.sql`
 - `supabase/migrations/20260527170000_executive_schema_rls_hardening.sql`
+- `supabase/migrations/20260529120000_central_mx_catalog_45_and_action_evidence.sql`
+- `src/lib/central-mx-engine.ts`
+- `src/lib/central-mx-engine.test.ts`
 - `src/features/dashboard-loja/sections/OwnerExecutiveCockpit.tsx`
 - `src/features/dashboard-loja/sections/PerformanceAlerts.tsx`
 
@@ -97,11 +100,14 @@ Esta story entrega a fundacao de dados do plano de acao. O produto nao deve vira
 - 2026-05-27: Encontrada migration existente `20260527150000_planos_acao_schema.sql` com enums, tabela `planos_acao`, origem, prioridade, status, responsável, prazo, eficácia e vínculos por `origem_ref_id`.
 - 2026-05-27: Criada migration incremental `20260527170000_executive_schema_rls_hardening.sql` com `historico_planos_acao`, trigger de histórico e policies por escopo/loja/responsável.
 - 2026-05-27: Adicionada cobertura unitária em `mx-executive-foundation.test.ts` para derivação de atraso por prazo/status, campos críticos de histórico e criação de ação rastreável a partir de alerta.
+- 2026-05-29: Plano de acao do cockpit passou a ser derivado pelo motor Central MX com departamento, indicador, problema, acao, como, responsavel, prazo, status, eficacia, origem, prioridade e evidencia.
+- 2026-05-29: Criada fundacao SQL `evidencias_planos_acao` para anexos, links e notas de comprovacao por plano, com RLS por escopo/responsavel.
 
 ### Completion Notes
 
 - Existe contrato, UI e modelo persistente de plano de ação com RLS/histórico incremental.
 - Testes específicos cobrem status/origem, histórico crítico e criação futura a partir de alerta.
+- Incremento 2026-05-29 adiciona trilha persistente de evidencias e substitui fixtures rasas por acoes derivadas de alertas/score da Central MX.
 
 ### Change Log
 
@@ -111,3 +117,4 @@ Esta story entrega a fundacao de dados do plano de acao. O produto nao deve vira
 ### Change Log Update — 2026-05-28
 
 - 2026-05-28: QA gate Wave 3 dry-run PASS (358 tests, lint clean, typecheck clean, build OK). Status movido para `Done` por @aiox-master (Orion). Fonte: `docs/reports/qa-gate-mx-wave3-stories-20260528.md`.
+- 2026-05-29: Plano de acao executivo conectado ao motor Central MX e schema expandido com evidencias.
