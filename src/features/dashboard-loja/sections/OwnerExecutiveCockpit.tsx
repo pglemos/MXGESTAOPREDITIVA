@@ -60,6 +60,9 @@ import {
   CentralMxPersistedPlanosPanel,
 } from './CentralMxPersistedPanels'
 import { CentralMxBenchmarkInteractive } from './CentralMxBenchmarkInteractive'
+import { ConsultorIaChat } from '@/features/central-mx/sections/ConsultorIaChat'
+import { PlanejamentoEstrategico } from '@/features/central-mx/sections/PlanejamentoEstrategico'
+import { CentralMxHub } from '@/features/central-mx/sections/CentralMxHub'
 
 type DashboardData = ReturnType<typeof useDashboardLojaData>
 
@@ -464,17 +467,25 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
       />
 
       {section === 'home' && (
-        <OwnerHome
-          data={data}
-          alerts={ownerAlerts}
-          actions={actions}
-          departments={departments}
-          panoramaData={panoramaData}
-          mxScore={mxScore}
-          marginPercent={marginPercent}
-        />
+        <>
+          <CentralMxHub storeId={data.operationalStore?.id || null} ownerPath={ownerPath} />
+          <OwnerHome
+            data={data}
+            alerts={ownerAlerts}
+            actions={actions}
+            departments={departments}
+            panoramaData={panoramaData}
+            mxScore={mxScore}
+            marginPercent={marginPercent}
+          />
+        </>
       )}
-      {section === 'planejamento' && <StrategicPlanningView data={data} planningIndicators={centralMx.planningIndicators} />}
+      {section === 'planejamento' && (
+        <>
+          <StrategicPlanningView data={data} planningIndicators={centralMx.planningIndicators} />
+          <PlanejamentoEstrategico planningIndicators={centralMx.planningIndicators} periodLabel={periodLabel} />
+        </>
+      )}
       {section === 'resultados' && <ResultsView data={data} alerts={ownerAlerts} panoramaData={panoramaData} mxScore={mxScore} />}
       {section === 'plano-acao' && (
         <>
@@ -524,15 +535,18 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
         />
       )}
       {section === 'consultor' && (
-        <OwnerModuleGrid
-          title="Consultor IA"
-          subtitle="Leitura consultiva baseada em regras, contexto e prioridades."
-          items={[
-            { title: 'Perguntar ao Consultor MX', detail: 'Use alertas e indicadores como contexto.', icon: <Bot size={20} />, tone: 'brand' },
-            { title: 'Orientações registradas', detail: 'Histórico consultivo da unidade.', icon: <Bell size={20} />, tone: 'info' },
-            { title: 'Recomendações de ação', detail: 'Sugestões ligadas ao plano de ação.', icon: <CheckCircle2 size={20} />, tone: 'success' },
-          ]}
-        />
+        <>
+          <OwnerModuleGrid
+            title="Consultor IA"
+            subtitle="Leitura consultiva baseada em regras, contexto e prioridades."
+            items={[
+              { title: 'Perguntar ao Consultor MX', detail: 'Use alertas e indicadores como contexto.', icon: <Bot size={20} />, tone: 'brand' },
+              { title: 'Orientações registradas', detail: 'Histórico consultivo da unidade.', icon: <Bell size={20} />, tone: 'info' },
+              { title: 'Recomendações de ação', detail: 'Sugestões ligadas ao plano de ação.', icon: <CheckCircle2 size={20} />, tone: 'success' },
+            ]}
+          />
+          <ConsultorIaChat storeId={data.operationalStore?.id || null} />
+        </>
       )}
     </section>
   )
