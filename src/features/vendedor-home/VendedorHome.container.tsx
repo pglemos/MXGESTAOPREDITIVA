@@ -281,24 +281,35 @@ function ActivitiesCard({ rows }: { rows: Array<{ label: string; value: number; 
 }
 
 function ScoreCard({ score, level, nextLevel }: { score: number; level: string; nextLevel: string }) {
+  const pointsMissing = Math.max(1000 - score, 0)
   return (
     <Card className="border-none bg-white p-mx-lg shadow-mx-lg">
       <div className="flex items-center gap-mx-sm">
-        <IconBubble tone="brand"><Shield size={22} /></IconBubble>
-        <Typography variant="h3" className="uppercase tracking-tight">Score MX Prata</Typography>
+        <span className="flex h-mx-10 w-mx-10 shrink-0 items-center justify-center rounded-mx-xl border border-[var(--color-accent-purple)]/20 bg-[var(--color-accent-purple-soft)] text-[var(--color-accent-purple)]" aria-hidden="true">
+          <Shield size={20} />
+        </span>
+        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Meu Score MX</Typography>
       </div>
       <div className="mt-mx-lg flex items-center gap-mx-md">
-        <div className="flex h-mx-20 w-mx-20 shrink-0 items-center justify-center rounded-mx-3xl bg-mx-indigo-50 text-brand-primary shadow-mx-inner">
+        <div className="flex h-mx-20 w-mx-20 shrink-0 items-center justify-center rounded-mx-3xl text-white shadow-mx-md"
+          style={{ background: 'linear-gradient(135deg, var(--color-accent-purple) 0%, var(--color-accent-purple-strong) 100%)' }}
+          aria-hidden="true"
+        >
           <Shield size={38} />
         </div>
         <div className="min-w-0">
-          <Typography variant="tiny" tone="muted" className="block font-black uppercase tracking-widest">Nível atual</Typography>
-          <Typography variant="h3" className="truncate">{level}</Typography>
-          <Typography variant="tiny" tone="brand" className="mt-mx-xs block font-black">{score}/1000 pts</Typography>
+          <Typography variant="tiny" tone="muted" className="block font-black uppercase tracking-widest">Nível Atual</Typography>
+          <Typography variant="h3" className="truncate text-[var(--color-accent-purple)]">{level}</Typography>
+          <Typography variant="tiny" className="mt-mx-xs block font-black text-text-secondary">{score} <span className="text-text-tertiary">/ 1000 pts</span></Typography>
         </div>
       </div>
-      <ProgressBar value={(score / 1000) * 100} className="mt-mx-md" />
-      <Typography variant="tiny" tone="muted" className="mt-mx-sm block font-black uppercase tracking-tight">Próximo nível: {nextLevel}</Typography>
+      <div className="mt-mx-md h-mx-xs w-full overflow-hidden rounded-mx-full bg-surface-alt">
+        <div className="h-full rounded-mx-full transition-all" style={{ width: `${Math.min((score / 1000) * 100, 100)}%`, background: 'linear-gradient(90deg, var(--color-accent-purple) 0%, var(--color-accent-purple-strong) 100%)' }} />
+      </div>
+      <Typography variant="tiny" tone="muted" className="mt-mx-sm block font-black uppercase tracking-tight">Próximo nível: <span className="text-text-secondary">{nextLevel}</span></Typography>
+      {pointsMissing > 0 && (
+        <Typography variant="tiny" tone="muted" className="mt-mx-tiny block normal-case tracking-normal">Faltam {pointsMissing} pontos</Typography>
+      )}
     </Card>
   )
 }
@@ -336,9 +347,12 @@ function AgendaTodayCard({
           <AgendaRow key={`${row.time}-${row.title}`} {...row} />
         ))}
       </div>
-      <Button asChild className="mt-mx-lg h-mx-12 w-full rounded-mx-xl">
-        <Link to="/lancamento-diario"><Plus size={16} /> Nova Atividade</Link>
-      </Button>
+      <Link
+        to="/lancamento-diario"
+        className="mt-mx-lg flex h-mx-12 w-full items-center justify-center gap-mx-xs rounded-mx-xl bg-status-info text-white text-sm font-black hover:bg-status-info/90 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-status-info/30"
+      >
+        <Plus size={16} /> Nova Atividade
+      </Link>
     </Card>
   )
 }
@@ -354,7 +368,7 @@ function CloseDayCard({
       <Typography variant="p" tone="muted" className="mt-mx-xs text-sm">Registre suas atividades e finalize o dia com foco.</Typography>
       <div className="mt-mx-lg grid grid-cols-1 gap-mx-lg 2xl:grid-cols-[auto_1fr] 2xl:items-center">
         <div className="flex justify-center 2xl:justify-start">
-          <CircularScore value={completion} label="do dia concluído" />
+          <CircularScore value={completion} label="do dia concluído" accent="info" />
         </div>
         <div className="space-y-mx-sm">
           <CheckItem label="Atividades" value="7/10" done />
@@ -362,9 +376,12 @@ function CloseDayCard({
           <CheckItem label="Próximos passos" value="3/3" done />
         </div>
       </div>
-      <Button asChild className="mt-mx-lg h-mx-12 w-full rounded-mx-xl">
-        <Link to="/lancamento-diario">Fechar meu dia</Link>
-      </Button>
+      <Link
+        to="/lancamento-diario"
+        className="mt-mx-lg flex h-mx-12 w-full items-center justify-center rounded-mx-xl bg-status-info text-white text-sm font-black hover:bg-status-info/90 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-status-info/30"
+      >
+        Fechar meu dia
+      </Link>
     </Card>
   )
 }
@@ -586,13 +603,14 @@ function MiniStat({ label, value, detail }: { label: string; value: string | num
   )
 }
 
-function CircularScore({ value, label }: { value: number; label: string }) {
+function CircularScore({ value, label, accent = 'brand' }: { value: number; label: string; accent?: 'brand' | 'info' }) {
   const clamped = Math.min(Math.max(Math.round(value), 0), 100)
   const end = clamped * 3.6
+  const accentColor = accent === 'info' ? chartTokens.info() : chartTokens.series.s4()
   return (
     <div
       className="grid h-mx-24 w-mx-24 shrink-0 place-items-center rounded-mx-full shadow-mx-inner"
-      style={{ background: `conic-gradient(${chartTokens.series.s4()} ${end}deg, ${chartTokens.gridStrong()} 0deg)` }}
+      style={{ background: `conic-gradient(${accentColor} ${end}deg, ${chartTokens.gridStrong()} 0deg)` }}
       aria-label={`${clamped}% ${label}`}
     >
       <div className="flex h-[calc(100%-18px)] w-[calc(100%-18px)] flex-col items-center justify-center rounded-mx-full bg-white text-center">
