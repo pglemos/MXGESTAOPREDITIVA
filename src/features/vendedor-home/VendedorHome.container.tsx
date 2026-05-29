@@ -19,6 +19,7 @@ import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
 import { cn } from '@/lib/utils'
+import { LancamentoGateBanner } from './components/LancamentoGateBanner'
 import { VendedorHomeErrorBoundary } from './components/VendedorHomeErrorBoundary'
 import { VendedorHomeSkeleton } from './sections/VendedorHomeSkeleton'
 import { useVendedorHomePage } from './hooks/useVendedorHomePage'
@@ -36,7 +37,7 @@ export function VendedorHome() {
     return <VendedorHomeSkeleton />
   }
 
-  const { metrics, profile, todayCheckin, discipline, ranking, treinamentos, devolutivas } = home
+  const { metrics, profile, todayCheckin, isLancamentoGateLocked, discipline, ranking, treinamentos, devolutivas } = home
   const firstName = profile?.name?.split(' ')[0] || 'Vendedor'
   const goal = Number(metrics.meta || 0)
   const remaining = Math.max(goal - metrics.vendasMes, 0)
@@ -68,6 +69,13 @@ export function VendedorHome() {
           <SellerHeader firstName={firstName} referenceDateLabel={home.referenceDateLabel} />
         </VendedorHomeErrorBoundary>
 
+        <VendedorHomeErrorBoundary sectionName="Trava de lançamento">
+          <LancamentoGateBanner
+            isLocked={isLancamentoGateLocked}
+            referenceDateLabel={home.referenceDateLabel}
+          />
+        </VendedorHomeErrorBoundary>
+
         <VendedorHomeErrorBoundary sectionName="Indicadores do dia">
           <section className="grid grid-cols-1 gap-mx-lg lg:grid-cols-12" aria-label="Resumo do vendedor">
             <GoalCard
@@ -92,7 +100,11 @@ export function VendedorHome() {
 
         <section className="grid grid-cols-1 gap-mx-lg xl:grid-cols-12" aria-label="Rotina do dia">
           <VendedorHomeErrorBoundary sectionName="Agenda">
-            <AgendaTodayCard agendamentosHoje={metrics.agendamentosHoje} hasTodayCheckin={!!todayCheckin} />
+            <AgendaTodayCard
+              agendamentosHoje={metrics.agendamentosHoje}
+              hasTodayCheckin={!!todayCheckin}
+              isLocked={isLancamentoGateLocked}
+            />
           </VendedorHomeErrorBoundary>
 
           <VendedorHomeErrorBoundary sectionName="Fechar meu dia">
@@ -105,7 +117,11 @@ export function VendedorHome() {
           </VendedorHomeErrorBoundary>
 
           <VendedorHomeErrorBoundary sectionName="Ranking da loja">
-            <RankingCard ranking={visibleRanking} currentUserId={profile?.id} />
+            <RankingCard
+              ranking={visibleRanking}
+              currentUserId={profile?.id}
+              isLocked={isLancamentoGateLocked}
+            />
           </VendedorHomeErrorBoundary>
         </section>
 
@@ -279,12 +295,25 @@ function ScoreCard({ score, level, nextLevel }: { score: number; level: string; 
   )
 }
 
-function AgendaTodayCard({ agendamentosHoje, hasTodayCheckin }: { agendamentosHoje: number; hasTodayCheckin: boolean }) {
+function AgendaTodayCard({
+  agendamentosHoje,
+  hasTodayCheckin,
+  isLocked,
+}: {
+  agendamentosHoje: number
+  hasTodayCheckin: boolean
+  isLocked: boolean
+}) {
   return (
     <Card className="border-none bg-white p-mx-lg shadow-mx-lg xl:col-span-5">
       <PanelHeader title="Minha Agenda de Hoje" to="/historico" label="Ver agenda completa" />
       <div className="mt-mx-lg space-y-mx-sm">
-        {agendamentosHoje > 0 ? (
+        {isLocked ? (
+          <EmptyLine
+            title="Agenda bloqueada até o lançamento"
+            detail="Registre o fechamento diário para liberar a leitura de agenda e leads."
+          />
+        ) : agendamentosHoje > 0 ? (
           <AgendaRow time="Hoje" title={`${agendamentosHoje} agendamentos registrados`} detail="Agenda declarada no fechamento diário." badge="Agendado" tone="success" />
         ) : (
           <EmptyLine title="Nenhum agendamento lançado" detail="A agenda depende do fechamento diário ou integração operacional." />
@@ -328,12 +357,29 @@ function CloseDayCard({
   )
 }
 
-function RankingCard({ ranking, currentUserId }: { ranking: Array<{ user_id: string; user_name: string; avatar_url?: string | null; vnd_total: number }>; currentUserId?: string }) {
+function RankingCard({
+  ranking,
+  currentUserId,
+  isLocked,
+}: {
+  ranking: Array<{ user_id: string; user_name: string; avatar_url?: string | null; vnd_total: number }>
+  currentUserId?: string
+  isLocked: boolean
+}) {
   return (
     <Card className="border-none bg-white p-mx-lg shadow-mx-lg xl:col-span-4">
-      <PanelHeader title="Ranking da Loja" to="/classificacao" label="Ver ranking completo" />
+      <PanelHeader
+        title="Ranking da Loja"
+        to={isLocked ? '/lancamento-diario' : '/classificacao'}
+        label={isLocked ? 'Liberar ranking' : 'Ver ranking completo'}
+      />
       <div className="mt-mx-md space-y-mx-sm">
-        {ranking.length > 0 ? ranking.map((row, index) => (
+        {isLocked ? (
+          <EmptyLine
+            title="Ranking bloqueado"
+            detail="Faça o lançamento diário para liberar comparativos da loja."
+          />
+        ) : ranking.length > 0 ? ranking.map((row, index) => (
           <div key={row.user_id} className={cn('flex items-center justify-between gap-mx-sm rounded-mx-xl px-mx-md py-mx-sm', row.user_id === currentUserId ? 'bg-mx-indigo-50' : 'bg-surface-alt')}>
             <div className="flex min-w-0 items-center gap-mx-sm">
               <span className="w-mx-8 text-center text-lg font-black text-status-warning">{index + 1}º</span>

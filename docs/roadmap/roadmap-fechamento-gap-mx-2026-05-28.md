@@ -58,11 +58,11 @@
 
 **Tarde (3h)**
 - [ ] **03:00–04:30** — Finalizar MX-04 (Home Gerente Comercial) — completar shell InProgress — @dev
-- [ ] **04:30–06:00** — Finalizar MX-05 (Home Vendedor "Meu Dia") + **N3 trava operacional** (sem lançamento ≠ sem leads) — @dev
+- [x] **04:30–06:00** — Finalizar MX-05 (Home Vendedor "Meu Dia") + **N3 trava operacional** (sem lançamento ≠ sem leads) — @dev
 
 **Noite (2h)**
-- [ ] **06:00–07:00** — Finalizar MX-06 (Central MX shell) + MX-12 (Dashboard Executivo shell) — @dev
-- [ ] **07:00–08:00** — Sessão @qa: rodar lint+typecheck+tests+build+smoke em produção
+- [x] **06:00–07:00** — Finalizar MX-06 (Central MX shell) + MX-12 (Dashboard Executivo shell) — @dev
+- [ ] **07:00–08:00** — Sessão @qa: rodar lint+typecheck+tests+build+smoke em produção _(local gate PASS; deploy/prod smoke pendente @devops)_
 - [ ] Commit + push + Vercel deploy → validar https://mxperformance.vercel.app
 
 **Entregáveis do dia 1:**

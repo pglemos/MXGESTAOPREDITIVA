@@ -81,6 +81,8 @@ export function useVendedorHomePage() {
     )
   }, [checkins, profile?.id, referenceDate])
 
+  const isLancamentoGateLocked = !referenceCheckin
+
   const weeklyProgressPct = useMemo(() => {
     if (!metrics?.meta) return 0
     const weeklyGoal = Math.max(Math.round(metrics.meta / 4), 1)
@@ -143,6 +145,7 @@ export function useVendedorHomePage() {
     treinamentos,
     devolutivas,
     todayCheckin,
+    isLancamentoGateLocked,
     tacticalPrescription,
     discipline,
     referenceDateLabel,
