@@ -469,32 +469,56 @@ export default function Layout() {
           aria-label="Menu Lateral Principal"
         >
           <nav className="flex flex-col items-center gap-mx-sm w-full" aria-label="Módulos de Gestão">
-            {categories.map((cat) => (
-              <button
-                type="button"
-                aria-label={`Abrir módulo: ${cat.category}`}
-                aria-expanded={isDrawerOpen && activeCategory === cat.category}
-                aria-controls="drawer-navigation"
-                key={cat.category}
-                onClick={() => {
-                  if (activeCategory === cat.category && isDrawerOpen) {
-                    setIsDrawerOpen(false);
-                  } else {
-                    setActiveCategory(cat.category);
-                    setIsDrawerOpen(true);
-                  }
-                }}
-                className={cn(
-                  "w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center transition-all relative group focus-visible:ring-4 focus-visible:ring-brand-primary/15 focus-visible:outline-none",
-                  activeCategory === cat.category ? 'bg-brand-secondary text-white shadow-mx-lg' : 'text-text-tertiary hover:bg-surface-alt hover:text-text-primary'
-                )}
-              >
-                {cat.icon}
-                <div className="absolute mx-layout-tooltip-offset px-3 py-1.5 bg-brand-secondary text-white text-mx-micro font-black uppercase tracking-widest rounded-mx-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[70] whitespace-nowrap shadow-mx-lg" role="tooltip">
-                  {cat.category}
-                </div>
-              </button>
-            ))}
+            {role === 'vendedor' ? (
+              // Vendedor: items renderizados diretamente como NavLinks na sidebar
+              // (sem drawer), seguindo a lista do mockup (Meu Dia, Agenda, Funil, etc.)
+              categories.flatMap(cat => cat.items).map((item) => (
+                <NavLink
+                  key={`${item.label}-${item.path}`}
+                  to={item.path}
+                  end={false}
+                  aria-label={item.label}
+                  onClick={() => { setIsDrawerOpen(false); setMobileMenuOpen(false); }}
+                  className={({ isActive }) => cn(
+                    "w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center transition-all relative group focus-visible:ring-4 focus-visible:ring-brand-primary/15 focus-visible:outline-none",
+                    isActive ? 'bg-brand-secondary text-white shadow-mx-lg' : 'text-text-tertiary hover:bg-surface-alt hover:text-text-primary'
+                  )}
+                >
+                  <span aria-hidden="true">{React.cloneElement(item.icon as React.ReactElement, { size: 22 })}</span>
+                  <div className="absolute mx-layout-tooltip-offset px-3 py-1.5 bg-brand-secondary text-white text-mx-micro font-black uppercase tracking-widest rounded-mx-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[70] whitespace-nowrap shadow-mx-lg" role="tooltip">
+                    {item.label}
+                  </div>
+                </NavLink>
+              ))
+            ) : (
+              // Demais papéis (gerente/dono/admin): botões de categoria que abrem drawer
+              categories.map((cat) => (
+                <button
+                  type="button"
+                  aria-label={`Abrir módulo: ${cat.category}`}
+                  aria-expanded={isDrawerOpen && activeCategory === cat.category}
+                  aria-controls="drawer-navigation"
+                  key={cat.category}
+                  onClick={() => {
+                    if (activeCategory === cat.category && isDrawerOpen) {
+                      setIsDrawerOpen(false);
+                    } else {
+                      setActiveCategory(cat.category);
+                      setIsDrawerOpen(true);
+                    }
+                  }}
+                  className={cn(
+                    "w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center transition-all relative group focus-visible:ring-4 focus-visible:ring-brand-primary/15 focus-visible:outline-none",
+                    activeCategory === cat.category ? 'bg-brand-secondary text-white shadow-mx-lg' : 'text-text-tertiary hover:bg-surface-alt hover:text-text-primary'
+                  )}
+                >
+                  {cat.icon}
+                  <div className="absolute mx-layout-tooltip-offset px-3 py-1.5 bg-brand-secondary text-white text-mx-micro font-black uppercase tracking-widest rounded-mx-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[70] whitespace-nowrap shadow-mx-lg" role="tooltip">
+                    {cat.category}
+                  </div>
+                </button>
+              ))
+            )}
           </nav>
           {roleSidebarCta && (
             <button
