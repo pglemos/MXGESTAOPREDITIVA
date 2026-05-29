@@ -151,10 +151,10 @@ export function ManagerOperationalCockpit({ data, alerts }: ManagerOperationalCo
             <Gauge size={18} className="text-text-tertiary" />
           </div>
           <div className="mt-mx-md flex items-center justify-center">
-            <GaugeScore value={mxScore} label={scoreLabel(mxScore)} />
+            <SemiCircularGauge value={mxScore} label={scoreLabel(mxScore)} />
           </div>
-          <Typography variant="tiny" tone="muted" className="mt-mx-sm block text-center font-black uppercase tracking-widest">
-            Meta, conversão e disciplina
+          <Typography variant="tiny" tone="muted" className="mt-mx-xs block text-center font-bold normal-case tracking-normal">
+            Meta · Conversão · Disciplina
           </Typography>
         </Card>
       </section>
@@ -312,19 +312,18 @@ function ManagerKpiCard({
   icon: ReactNode
   tone: ManagerTone
 }) {
+  const arrow = tone === 'success' ? '↑' : tone === 'danger' ? '↓' : ''
   return (
-    <Card className="min-h-[190px] border-none bg-white p-mx-lg shadow-mx-lg">
-      <div className="flex items-center justify-between gap-mx-sm">
+    <Card className="min-h-[190px] border-none bg-white p-mx-lg shadow-mx-lg flex flex-col">
+      <div className="flex items-center gap-mx-sm">
         <MetricIcon tone={tone}>{icon}</MetricIcon>
-        <Badge variant={tone === 'danger' ? 'danger' : tone === 'warning' ? 'warning' : tone === 'success' ? 'success' : 'outline'} className="rounded-mx-full px-2 py-0.5">
-          {tone === 'danger' ? 'Crítico' : tone === 'warning' ? 'Atenção' : tone === 'success' ? 'Bom' : 'Info'}
-        </Badge>
+        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">{title}</Typography>
       </div>
-      <Typography variant="tiny" tone="muted" className="mt-mx-lg block font-black uppercase tracking-widest">{title}</Typography>
-      <Typography variant="h1" className="mt-mx-xs text-4xl font-mono-numbers">{value}</Typography>
+      <Typography variant="h1" className="mt-mx-md text-4xl font-mono-numbers text-text-primary">{value}</Typography>
       <Typography variant="p" tone="muted" className="mt-mx-xs text-sm">{detail}</Typography>
-      <div className={cn('mt-mx-md rounded-mx-xl px-mx-md py-mx-sm text-center text-mx-tiny font-black uppercase tracking-widest', toneSurface(tone))}>
-        {status}
+      <div className={cn('mt-mx-md rounded-mx-xl px-mx-md py-mx-sm text-center text-mx-tiny font-black uppercase tracking-widest flex items-center justify-center gap-mx-xs', toneSurface(tone))}>
+        {arrow && <span aria-hidden="true">{arrow}</span>}
+        <span>{status}</span>
       </div>
     </Card>
   )
@@ -460,6 +459,56 @@ function GaugeScore({ value, label, size = 'md' }: { value: number; label: strin
       <div className={cn('flex flex-col items-center justify-center rounded-mx-full bg-white text-center', inner)}>
         <Typography variant={size === 'lg' ? 'h1' : 'h2'} className="leading-none font-mono-numbers">{clamped}%</Typography>
         <Typography variant="tiny" tone={tone === 'success' ? 'success' : tone === 'warning' ? 'warning' : 'error'} className="mt-mx-tiny block font-black uppercase tracking-tight">{label}</Typography>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Semicircular speedometer gauge (red→yellow→green arc) matching the design mockup.
+ * Used for MX Score Loja and similar 0–100 score visualizations.
+ */
+function SemiCircularGauge({ value, label, suffix = '' }: { value: number; label: string; suffix?: string }) {
+  const clamped = Math.min(Math.max(Math.round(value), 0), 100)
+  const radius = 70
+  const strokeWidth = 14
+  const cx = 80
+  const cy = 80
+  // Pointer angle: 180° (left) → 0° (right). value=0 → 180°, value=100 → 0°.
+  const pointerAngleDeg = 180 - (clamped / 100) * 180
+  const pointerRad = (pointerAngleDeg * Math.PI) / 180
+  const pointerX = cx + (radius - strokeWidth / 2) * Math.cos(pointerRad)
+  const pointerY = cy - (radius - strokeWidth / 2) * Math.sin(pointerRad)
+  const labelTone = clamped >= 75
+    ? 'text-status-success'
+    : clamped >= 60
+      ? 'text-status-warning'
+      : 'text-status-error'
+  return (
+    <div className="flex flex-col items-center" aria-label={`${label}: ${clamped}%`}>
+      <svg viewBox="0 0 160 100" width="160" height="100" role="img" aria-hidden="true">
+        <defs>
+          <linearGradient id="mx-gauge-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#EF4444" />
+            <stop offset="50%" stopColor="#F59E0B" />
+            <stop offset="100%" stopColor="#10B981" />
+          </linearGradient>
+        </defs>
+        {/* Arc track */}
+        <path
+          d={`M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`}
+          fill="none"
+          stroke="url(#mx-gauge-grad)"
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+        />
+        {/* Pointer */}
+        <circle cx={pointerX} cy={pointerY} r={6} fill="#0A0A0B" />
+        <circle cx={pointerX} cy={pointerY} r={3} fill="#ffffff" />
+      </svg>
+      <div className="-mt-mx-md flex flex-col items-center">
+        <span className="text-4xl font-black font-mono-numbers leading-none text-text-primary">{clamped}{suffix}</span>
+        <span className={cn('mt-mx-tiny text-mx-tiny font-black uppercase tracking-widest', labelTone)}>{label}</span>
       </div>
     </div>
   )
