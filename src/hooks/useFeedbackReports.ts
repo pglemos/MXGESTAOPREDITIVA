@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import type { WeeklyFeedbackReport } from '@/types/database'
 
-const WEEKLY_FEEDBACK_REPORT_SELECT = 'id, store_id, week_start, week_end, weekly_goal, team_avg_json, email_status, recipients, summary_json, created_at, updated_at'
+const WEEKLY_FEEDBACK_REPORT_SELECT = 'id, store_id, week_start, week_end, weekly_goal, team_avg_json, email_status, recipients, created_at, updated_at'
 
 export function useFeedbackReports(filters?: { storeId?: string }) {
   const { profile, storeId: authStoreId, role, vinculos_loja } = useAuth()
