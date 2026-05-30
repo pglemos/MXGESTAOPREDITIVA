@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import type { ExecutiveAlertType } from '@/lib/mx-executive-foundation'
+import { scopeToDb } from '../lib/scopeType'
 
 /**
  * Hook do Blitz 48h Dia 2 — T2.
@@ -80,7 +81,7 @@ export function useCentralMxAlerts(
         .select(
           'id, scope_type, scope_id, type, problem, impact, recommendation, quick_action_label, status, rule_version, metadata, created_at, acknowledged_at, resolved_at, dismissed_at',
         )
-        .eq('scope_type', 'loja')
+        .eq('scope_type', scopeToDb('loja'))
         .eq('scope_id', storeId)
         .order('created_at', { ascending: false })
         .limit(options.limit ?? 100)

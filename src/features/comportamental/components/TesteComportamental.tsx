@@ -43,8 +43,8 @@ export function TesteComportamental() {
       <form onSubmit={handleAddQuestao} className="rounded-mx-xl border border-border-default bg-surface-alt p-mx-md">
         <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">Adicionar questão ao teste</Typography>
         <div className="mt-mx-sm grid gap-mx-sm md:grid-cols-[1fr_200px_auto]">
-          <Input value={novaQuestao} onChange={e => setNovaQuestao(e.target.value)} placeholder="Enunciado da questão" />
-          <Input value={novaDimensao} onChange={e => setNovaDimensao(e.target.value)} placeholder="Dimensão (ex.: disciplina)" />
+          <Input aria-label="Enunciado da questão" value={novaQuestao} onChange={e => setNovaQuestao(e.target.value)} placeholder="Enunciado da questão" />
+          <Input aria-label="Dimensão da questão" value={novaDimensao} onChange={e => setNovaDimensao(e.target.value)} placeholder="Dimensão (ex.: disciplina)" />
           <Button type="submit" disabled={savingQ}><Plus size={16} className="mr-2" />{savingQ ? '…' : 'Add'}</Button>
         </div>
       </form>

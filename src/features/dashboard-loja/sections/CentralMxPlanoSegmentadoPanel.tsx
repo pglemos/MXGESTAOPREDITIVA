@@ -78,7 +78,7 @@ export function CentralMxPlanoSegmentadoPanel({ storeId, createRequest = 0 }: Pr
           .eq('status', 'ativo'),
         supabase
           .from('vendedores_loja')
-          .select('seller_user_id, usuarios:seller_user_id(full_name)')
+          .select('seller_user_id, usuarios:seller_user_id(name)')
           .eq('store_id', storeId)
           .eq('is_active', true)
           .limit(50),
@@ -98,8 +98,8 @@ export function CentralMxPlanoSegmentadoPanel({ storeId, createRequest = 0 }: Pr
       }
       for (const seller of sellerRes.data ?? []) {
         const rawName = Array.isArray(seller.usuarios)
-          ? (seller.usuarios[0] as { full_name?: string } | undefined)?.full_name
-          : (seller.usuarios as { full_name?: string } | null)?.full_name
+          ? (seller.usuarios[0] as { name?: string } | undefined)?.name
+          : (seller.usuarios as { name?: string } | null)?.name
         choices.push({
           scope: 'vendedor',
           scopeId: seller.seller_user_id as string,

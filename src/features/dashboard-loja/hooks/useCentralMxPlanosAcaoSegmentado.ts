@@ -5,6 +5,7 @@ import type {
   CentralMxPlanoAcaoRow,
   CentralMxPlanoStatus,
 } from './useCentralMxPlanosAcao'
+import { scopeToDb } from '../lib/scopeType'
 
 /**
  * Hook do Sprint 3 — S3-T1 (delta N1 da ata 2026-05-22 §00:25).
@@ -85,7 +86,7 @@ export function useCentralMxPlanosAcaoSegmentado(
       const lojaQuery = supabase
         .from('planos_acao')
         .select(baseSelect)
-        .eq('scope_type', 'loja')
+        .eq('scope_type', scopeToDb('loja'))
         .eq('scope_id', storeId)
         .in('status', statusFilter)
         .order('prazo', { ascending: true, nullsFirst: false })
@@ -95,7 +96,7 @@ export function useCentralMxPlanosAcaoSegmentado(
         ? supabase
             .from('planos_acao')
             .select(baseSelect)
-            .eq('scope_type', 'departamento')
+            .eq('scope_type', scopeToDb('departamento'))
             .in('scope_id', deptIds)
             .in('status', statusFilter)
             .order('prazo', { ascending: true, nullsFirst: false })
@@ -106,7 +107,7 @@ export function useCentralMxPlanosAcaoSegmentado(
         ? supabase
             .from('planos_acao')
             .select(baseSelect)
-            .eq('scope_type', 'vendedor')
+            .eq('scope_type', scopeToDb('vendedor'))
             .in('scope_id', sellerIds)
             .in('status', statusFilter)
             .order('prazo', { ascending: true, nullsFirst: false })

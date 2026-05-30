@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
+import { scopeToDb } from '../lib/scopeType'
 
 /**
  * Hook do Blitz 48h Dia 2 — T1.
@@ -88,7 +89,7 @@ export function useCentralMxPlanosAcao(
         .select(
           'id, scope_type, scope_id, departamento, indicador, problema, acao, como, responsavel_id, prazo, status, prioridade, origem, origem_ref_id, origem_ref_table, eficacia_score, eficacia_nota, created_at, concluido_at',
         )
-        .eq('scope_type', 'loja')
+        .eq('scope_type', scopeToDb('loja'))
         .eq('scope_id', storeId)
         .order('prazo', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: false })

@@ -264,7 +264,9 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                         <div className="flex items-center gap-mx-sm">
                             <div className="w-mx-xl h-mx-xl rounded-mx-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-lg"><Target size={24} /></div>
                             <div>
-                                <Typography variant="h2" className="uppercase tracking-tighter">Sessão PDI MX 360º</Typography>
+                                <Dialog.Title asChild>
+                                    <Typography variant="h2" className="uppercase tracking-tighter">Sessão PDI MX 360º</Typography>
+                                </Dialog.Title>
                                 <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest">{steps[currentStep].label}</Typography>
                             </div>
                         </div>
