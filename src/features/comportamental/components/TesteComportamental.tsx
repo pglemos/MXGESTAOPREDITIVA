@@ -1,0 +1,91 @@
+import { useState } from 'react'
+import { Plus, ClipboardCheck, Send } from 'lucide-react'
+import { toast } from 'sonner'
+import { Button } from '@/components/atoms/Button'
+import { Input } from '@/components/atoms/Input'
+import { Typography } from '@/components/atoms/Typography'
+import { EmptyState } from '@/components/atoms/EmptyState'
+import { useQuestoes, aplicarTeste, type RespostaInput } from '../hooks/useComportamental'
+
+const ESCALA = [1, 2, 3, 4, 5]
+
+export function TesteComportamental() {
+  const { questoes, loading, adicionarQuestao } = useQuestoes()
+  const [novaQuestao, setNovaQuestao] = useState('')
+  const [novaDimensao, setNovaDimensao] = useState('')
+  const [savingQ, setSavingQ] = useState(false)
+  const [respostas, setRespostas] = useState<Record<string, number>>({})
+  const [enviando, setEnviando] = useState(false)
+
+  const handleAddQuestao = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!novaQuestao.trim() || !novaDimensao.trim()) { toast.error('Texto e dimensão são obrigatórios.'); return }
+    setSavingQ(true)
+    const { error } = await adicionarQuestao({ texto: novaQuestao.trim(), dimensao: novaDimensao.trim().toLowerCase(), ordem: questoes.length })
+    setSavingQ(false)
+    if (error) toast.error(error)
+    else { toast.success('Questão adicionada.'); setNovaQuestao(''); setNovaDimensao('') }
+  }
+
+  const handleEnviar = async () => {
+    const faltando = questoes.filter(q => !respostas[q.id])
+    if (faltando.length) { toast.error(`Responda todas as questões (${faltando.length} pendentes).`); return }
+    setEnviando(true)
+    const payload: RespostaInput[] = questoes.map(q => ({ questaoId: q.id, dimensao: q.dimensao, valor: respostas[q.id] }))
+    const { error } = await aplicarTeste(payload)
+    setEnviando(false)
+    if (error) toast.error(error)
+    else { toast.success('Teste registrado! Perfil comportamental salvo.'); setRespostas({}) }
+  }
+
+  return (
+    <div className="space-y-mx-lg">
+      <form onSubmit={handleAddQuestao} className="rounded-mx-xl border border-border-default bg-surface-alt p-mx-md">
+        <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">Adicionar questão ao teste</Typography>
+        <div className="mt-mx-sm grid gap-mx-sm md:grid-cols-[1fr_200px_auto]">
+          <Input value={novaQuestao} onChange={e => setNovaQuestao(e.target.value)} placeholder="Enunciado da questão" />
+          <Input value={novaDimensao} onChange={e => setNovaDimensao(e.target.value)} placeholder="Dimensão (ex.: disciplina)" />
+          <Button type="submit" disabled={savingQ}><Plus size={16} className="mr-2" />{savingQ ? '…' : 'Add'}</Button>
+        </div>
+      </form>
+
+      {loading ? (
+        <p className="text-sm font-bold text-text-tertiary">Carregando questões…</p>
+      ) : questoes.length === 0 ? (
+        <EmptyState icon={<ClipboardCheck size={28} />} title="Nenhuma questão" description="Cadastre as questões do teste comportamental." />
+      ) : (
+        <div className="space-y-mx-md">
+          <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">
+            Aplicar teste (você responde como exemplo de onboarding) — escala 1 (discordo) a 5 (concordo)
+          </Typography>
+          {questoes.map((q, i) => (
+            <div key={q.id} className="rounded-mx-xl border border-border-default p-mx-md">
+              <div className="flex items-start gap-mx-sm">
+                <span className="text-xs font-black text-text-tertiary">{i + 1}.</span>
+                <div className="flex-1">
+                  <p className="font-bold text-text-primary">{q.texto}</p>
+                  <span className="text-xs font-black uppercase tracking-widest text-text-tertiary">{q.dimensao}</span>
+                  <div className="mt-mx-sm flex gap-mx-xs">
+                    {ESCALA.map(v => (
+                      <button
+                        key={v}
+                        type="button"
+                        onClick={() => setRespostas(p => ({ ...p, [q.id]: v }))}
+                        className={`h-9 w-9 rounded-mx-full text-sm font-black transition-colors ${respostas[q.id] === v ? 'bg-brand-primary text-white' : 'bg-surface-alt text-text-secondary hover:bg-border-default'}`}
+                      >
+                        {v}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+          <div className="flex justify-end">
+            <Button type="button" onClick={handleEnviar} disabled={enviando}><Send size={16} className="mr-2" />{enviando ? 'Enviando…' : 'Concluir teste'}</Button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
