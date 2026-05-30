@@ -22,7 +22,7 @@ export default function OrganogramaPage() {
   const lojaSelecionada = lojaId || (lojas.length === 1 ? lojas[0].id : '')
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-mx-md py-mx-lg space-y-mx-lg">
+    <div className="mx-auto w-full max-w-6xl px-mx-md py-mx-lg space-y-mx-lg">
       <PageHeader
         title="Organograma & Plano de Carreira"
         description="Estrutura hierárquica da empresa e a trilha de evolução por cargo."
@@ -51,6 +51,6 @@ export default function OrganogramaPage() {
       ) : (
         <OrganogramaVisual lojaId={lojaSelecionada} />
       )}
-    </main>
+    </div>
   )
 }

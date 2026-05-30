@@ -22,7 +22,7 @@ export default function RemuneracaoPage() {
   const lojaSelecionada = lojaId || (lojas.length === 1 ? lojas[0].id : '')
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-mx-md py-mx-lg space-y-mx-lg">
+    <div className="mx-auto w-full max-w-6xl px-mx-md py-mx-lg space-y-mx-lg">
       <PageHeader
         title="Remuneração Inteligente"
         description="Cadastre o plano de remuneração por cargo e compare com a média de mercado."
@@ -56,6 +56,6 @@ export default function RemuneracaoPage() {
             : <ComparativoMercado lojaId={lojaSelecionada} />}
         </>
       )}
-    </main>
+    </div>
   )
 }
