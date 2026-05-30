@@ -6,6 +6,7 @@ import { Input } from '@/components/atoms/Input'
 import { Typography } from '@/components/atoms/Typography'
 import { supabase } from '@/lib/supabase'
 import type { CentralMxPlanoScope } from '../hooks/useCentralMxPlanosAcaoSegmentado'
+import { scopeToDb } from '../lib/scopeType'
 
 /**
  * Modal de criação rápida de plano de ação — Sprint 3 (S3-T2).
@@ -86,7 +87,7 @@ export function CentralMxCriarPlanoModal({
     setSaving(true)
     try {
       const { error } = await supabase.rpc('criar_plano_acao', {
-        p_scope_type: target.scope,
+        p_scope_type: scopeToDb(target.scope),
         p_scope_id: target.scopeId,
         p_departamento: form.departamento.trim(),
         p_indicador: form.indicador.trim(),
