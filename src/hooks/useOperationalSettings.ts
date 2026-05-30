@@ -40,53 +40,70 @@ export function useOperationalSettings(storeId: string | null) {
     const canManage = isPerfilInternoMx(role)
 
     const fetchSettings = useCallback(async () => {
-        if (!storeId || !canManage) {
+        if (!storeId) {
             setStore(null)
             setDeliveryRules(null)
             setBenchmark(null)
             setMetaRules(null)
             setSellerTenures([])
+            setSellerUsers([])
             setLoading(false)
             return
         }
 
         setLoading(true)
-        const [storeRes, deliveryRes, benchmarkRes, metaRes, tenuresRes, usersRes] = await Promise.all([
-            supabase.from('lojas').select(STORE_SETTINGS_SELECT).eq('id', storeId).maybeSingle(),
-            supabase.from('regras_entrega_loja').select(DELIVERY_RULES_SELECT).eq('store_id', storeId).maybeSingle(),
-            supabase.from('benchmarks_loja').select(BENCHMARK_SELECT).eq('store_id', storeId).maybeSingle(),
-            supabase.from('regras_metas_loja').select(META_RULES_SELECT).eq('store_id', storeId).maybeSingle(),
-            supabase
-                .from('vendedores_loja')
-                .select(SELLER_TENURES_SELECT)
-                .eq('store_id', storeId)
-                .order('is_active', { ascending: false })
-                .order('started_at', { ascending: false }),
-            supabase
-                .from('usuarios')
-                .select(SELLER_USERS_SELECT)
-                .eq('role', 'vendedor')
-                .eq('active', true)
-                .order('name'),
-        ])
 
+        // A loja em si é necessária para identificação operacional (dono/gerente/admin):
+        // sem store.id, a Central MX da loja não habilita ações (criar plano, etc.).
+        // As configurações administrativas (entrega/metas/benchmark/tenures) permanecem
+        // restritas a quem pode gerenciar (perfis internos MX).
+        const storeRes = await supabase.from('lojas').select(STORE_SETTINGS_SELECT).eq('id', storeId).maybeSingle()
         if (storeRes.error) console.error('Audit Error [useOperationalSettings]: store ->', storeRes.error.message)
-        if (deliveryRes.error) console.error('Audit Error [useOperationalSettings]: delivery ->', deliveryRes.error.message)
-        if (benchmarkRes.error) console.error('Audit Error [useOperationalSettings]: benchmark ->', benchmarkRes.error.message)
-        if (metaRes.error) console.error('Audit Error [useOperationalSettings]: meta ->', metaRes.error.message)
-        if (tenuresRes.error) console.error('Audit Error [useOperationalSettings]: tenures ->', tenuresRes.error.message)
-        if (usersRes.error) console.error('Audit Error [useOperationalSettings]: users ->', usersRes.error.message)
+
+        let deliveryData: StoreDeliveryRules | null = null
+        if (canManage) {
+            const [deliveryRes, benchmarkRes, metaRes, tenuresRes, usersRes] = await Promise.all([
+                supabase.from('regras_entrega_loja').select(DELIVERY_RULES_SELECT).eq('store_id', storeId).maybeSingle(),
+                supabase.from('benchmarks_loja').select(BENCHMARK_SELECT).eq('store_id', storeId).maybeSingle(),
+                supabase.from('regras_metas_loja').select(META_RULES_SELECT).eq('store_id', storeId).maybeSingle(),
+                supabase
+                    .from('vendedores_loja')
+                    .select(SELLER_TENURES_SELECT)
+                    .eq('store_id', storeId)
+                    .order('is_active', { ascending: false })
+                    .order('started_at', { ascending: false }),
+                supabase
+                    .from('usuarios')
+                    .select(SELLER_USERS_SELECT)
+                    .eq('role', 'vendedor')
+                    .eq('active', true)
+                    .order('name'),
+            ])
+
+            if (deliveryRes.error) console.error('Audit Error [useOperationalSettings]: delivery ->', deliveryRes.error.message)
+            if (benchmarkRes.error) console.error('Audit Error [useOperationalSettings]: benchmark ->', benchmarkRes.error.message)
+            if (metaRes.error) console.error('Audit Error [useOperationalSettings]: meta ->', metaRes.error.message)
+            if (tenuresRes.error) console.error('Audit Error [useOperationalSettings]: tenures ->', tenuresRes.error.message)
+            if (usersRes.error) console.error('Audit Error [useOperationalSettings]: users ->', usersRes.error.message)
+
+            deliveryData = (deliveryRes.data as StoreDeliveryRules) || null
+            setDeliveryRules(deliveryData)
+            setBenchmark((benchmarkRes.data as StoreBenchmark) || null)
+            setMetaRules((metaRes.data as StoreMetaRules) || null)
+            setSellerTenures((tenuresRes.data as unknown as SellerTenure[]) || [])
+            setSellerUsers((usersRes.data as User[]) || [])
+        } else {
+            setDeliveryRules(null)
+            setBenchmark(null)
+            setMetaRules(null)
+            setSellerTenures([])
+            setSellerUsers([])
+        }
 
         const storeData = (storeRes.data as Store) || null
-        const deliveryData = (deliveryRes.data as StoreDeliveryRules) || null
         const derivedManagerEmail = deliveryData?.matinal_recipients?.[0] || storeData?.manager_email || null
 
         setStore(storeData ? { ...storeData, manager_email: derivedManagerEmail } : null)
-        setDeliveryRules(deliveryData)
-        setBenchmark((benchmarkRes.data as StoreBenchmark) || null)
-        setMetaRules((metaRes.data as StoreMetaRules) || null)
-        setSellerTenures((tenuresRes.data as unknown as SellerTenure[]) || [])
-        setSellerUsers((usersRes.data as User[]) || [])
         setLoading(false)
     }, [storeId, canManage])
 
