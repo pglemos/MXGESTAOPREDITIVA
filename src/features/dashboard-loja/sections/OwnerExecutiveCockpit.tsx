@@ -1560,10 +1560,9 @@ function AgendaView({ alerts }: { alerts: OwnerPerformanceAlert[] }) {
     <div className="space-y-mx-md">
       <div className="flex flex-col gap-mx-sm md:flex-row md:items-center md:justify-between">
         <SectionTitle title="Agenda Executiva" subtitle="Visão diária, semanal e mensal dos compromissos e prioridades." />
-        <div className="flex gap-mx-sm">
-          <Button type="button" className="rounded-mx-xl"><Plus size={16} /> Novo Compromisso</Button>
-          <Button type="button" variant="outline" className="rounded-mx-xl bg-white">Sincronizar Google</Button>
-        </div>
+        {/* Criar compromisso / sincronizar Google ainda não implementados nesta seção
+            (useCentralMxAgenda é read-only). Botões sem handler removidos para não
+            exibir ações sem efeito ao usuário; criar evento é um épico separado. */}
       </div>
       <div className="grid grid-cols-1 gap-mx-md xl:grid-cols-[280px_minmax(0,1fr)_320px]">
         <Card className="rounded-mx-2xl p-mx-lg">
