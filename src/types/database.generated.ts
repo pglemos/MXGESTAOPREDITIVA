@@ -43,6 +43,66 @@ export type Database = {
         }
         Relationships: []
       }
+      agenda_estrategica_marketing: {
+        Row: {
+          acao: string
+          canais: string[]
+          created_at: string
+          data_alvo: string | null
+          id: string
+          loja_id: string
+          mes_referencia: string
+          metadata: Json
+          observacoes: string | null
+          responsavel_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          acao: string
+          canais?: string[]
+          created_at?: string
+          data_alvo?: string | null
+          id?: string
+          loja_id: string
+          mes_referencia: string
+          metadata?: Json
+          observacoes?: string | null
+          responsavel_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          acao?: string
+          canais?: string[]
+          created_at?: string
+          data_alvo?: string | null
+          id?: string
+          loja_id?: string
+          mes_referencia?: string
+          metadata?: Json
+          observacoes?: string | null
+          responsavel_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agenda_estrategica_marketing_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agenda_estrategica_marketing_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_model_daily_usage: {
         Row: {
           model: string
@@ -517,6 +577,47 @@ export type Database = {
         }
         Relationships: []
       }
+      banco_talentos: {
+        Row: {
+          amostra_n: number
+          baseado_em_score: boolean
+          cargo: string | null
+          created_at: string
+          descricao: string | null
+          id: string
+          loja_id: string | null
+          perfil_agregado: Json
+        }
+        Insert: {
+          amostra_n?: number
+          baseado_em_score?: boolean
+          cargo?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          loja_id?: string | null
+          perfil_agregado?: Json
+        }
+        Update: {
+          amostra_n?: number
+          baseado_em_score?: boolean
+          cargo?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          loja_id?: string | null
+          perfil_agregado?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banco_talentos_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       benchmark_snapshots: {
         Row: {
           computation_version: string
@@ -654,6 +755,137 @@ export type Database = {
           },
         ]
       }
+      carreira_niveis: {
+        Row: {
+          cargo: string
+          created_at: string
+          id: string
+          nivel: number
+          nome: string
+          proximo_cargo: string | null
+          requisitos: string | null
+          trilha_mx17: string | null
+        }
+        Insert: {
+          cargo: string
+          created_at?: string
+          id?: string
+          nivel: number
+          nome: string
+          proximo_cargo?: string | null
+          requisitos?: string | null
+          trilha_mx17?: string | null
+        }
+        Update: {
+          cargo?: string
+          created_at?: string
+          id?: string
+          nivel?: number
+          nome?: string
+          proximo_cargo?: string | null
+          requisitos?: string | null
+          trilha_mx17?: string | null
+        }
+        Relationships: []
+      }
+      carteira_empresa: {
+        Row: {
+          canal: string | null
+          contato: string | null
+          created_at: string
+          fluxo_estado: string
+          id: string
+          loja_id: string
+          metadata: Json
+          nome_cliente: string
+          proximo_contato: string | null
+          score: number | null
+          ultimo_contato: string | null
+          updated_at: string
+        }
+        Insert: {
+          canal?: string | null
+          contato?: string | null
+          created_at?: string
+          fluxo_estado?: string
+          id?: string
+          loja_id: string
+          metadata?: Json
+          nome_cliente: string
+          proximo_contato?: string | null
+          score?: number | null
+          ultimo_contato?: string | null
+          updated_at?: string
+        }
+        Update: {
+          canal?: string | null
+          contato?: string | null
+          created_at?: string
+          fluxo_estado?: string
+          id?: string
+          loja_id?: string
+          metadata?: Json
+          nome_cliente?: string
+          proximo_contato?: string | null
+          score?: number | null
+          ultimo_contato?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carteira_empresa_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      catalogo_indicadores_planejamento: {
+        Row: {
+          active: boolean
+          category: string
+          code: string
+          created_at: string
+          department_code: string | null
+          dimension: string | null
+          label: string
+          metadata: Json
+          sort_order: number
+          target_direction: string | null
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category: string
+          code: string
+          created_at?: string
+          department_code?: string | null
+          dimension?: string | null
+          label: string
+          metadata?: Json
+          sort_order?: number
+          target_direction?: string | null
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          code?: string
+          created_at?: string
+          department_code?: string | null
+          dimension?: string | null
+          label?: string
+          metadata?: Json
+          sort_order?: number
+          target_direction?: string | null
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       catalogo_metricas_consultoria: {
         Row: {
           active: boolean
@@ -693,6 +925,66 @@ export type Database = {
           source_scope?: string
           updated_at?: string
           value_type?: string
+        }
+        Relationships: []
+      }
+      catalogo_regras_consultivas: {
+        Row: {
+          active: boolean
+          affects_score: boolean
+          condition_json: Json
+          created_at: string
+          creates_action_suggestion: boolean
+          department_code: string | null
+          explanation_template: string | null
+          id: string
+          message: string
+          metadata: Json
+          recommendation: string
+          rule_code: string
+          severity: string
+          source_indicator: string
+          suggested_action: string
+          target_role_codes: string[]
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          affects_score?: boolean
+          condition_json: Json
+          created_at?: string
+          creates_action_suggestion?: boolean
+          department_code?: string | null
+          explanation_template?: string | null
+          id?: string
+          message: string
+          metadata?: Json
+          recommendation: string
+          rule_code: string
+          severity: string
+          source_indicator: string
+          suggested_action: string
+          target_role_codes?: string[]
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          affects_score?: boolean
+          condition_json?: Json
+          created_at?: string
+          creates_action_suggestion?: boolean
+          department_code?: string | null
+          explanation_template?: string | null
+          id?: string
+          message?: string
+          metadata?: Json
+          recommendation?: string
+          rule_code?: string
+          severity?: string
+          source_indicator?: string
+          suggested_action?: string
+          target_role_codes?: string[]
+          updated_at?: string
         }
         Relationships: []
       }
@@ -888,6 +1180,159 @@ export type Database = {
         }
         Relationships: []
       }
+      comportamental_perfis: {
+        Row: {
+          created_at: string
+          id: string
+          perfil: Json
+          sessao_id: string | null
+          updated_at: string
+          usuario_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          perfil?: Json
+          sessao_id?: string | null
+          updated_at?: string
+          usuario_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          perfil?: Json
+          sessao_id?: string | null
+          updated_at?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comportamental_perfis_sessao_id_fkey"
+            columns: ["sessao_id"]
+            isOneToOne: false
+            referencedRelation: "comportamental_sessoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comportamental_perfis_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: true
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comportamental_questoes: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          dimensao: string
+          id: string
+          ordem: number
+          texto: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          dimensao: string
+          id?: string
+          ordem?: number
+          texto: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          dimensao?: string
+          id?: string
+          ordem?: number
+          texto?: string
+        }
+        Relationships: []
+      }
+      comportamental_respostas: {
+        Row: {
+          id: string
+          questao_id: string
+          respondido_em: string
+          sessao_id: string
+          valor: number
+        }
+        Insert: {
+          id?: string
+          questao_id: string
+          respondido_em?: string
+          sessao_id: string
+          valor: number
+        }
+        Update: {
+          id?: string
+          questao_id?: string
+          respondido_em?: string
+          sessao_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comportamental_respostas_questao_id_fkey"
+            columns: ["questao_id"]
+            isOneToOne: false
+            referencedRelation: "comportamental_questoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comportamental_respostas_sessao_id_fkey"
+            columns: ["sessao_id"]
+            isOneToOne: false
+            referencedRelation: "comportamental_sessoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comportamental_sessoes: {
+        Row: {
+          concluido_em: string | null
+          created_at: string
+          id: string
+          iniciado_em: string | null
+          loja_id: string | null
+          status: Database["public"]["Enums"]["comportamental_status"]
+          usuario_id: string
+        }
+        Insert: {
+          concluido_em?: string | null
+          created_at?: string
+          id?: string
+          iniciado_em?: string | null
+          loja_id?: string | null
+          status?: Database["public"]["Enums"]["comportamental_status"]
+          usuario_id: string
+        }
+        Update: {
+          concluido_em?: string | null
+          created_at?: string
+          id?: string
+          iniciado_em?: string | null
+          loja_id?: string | null
+          status?: Database["public"]["Enums"]["comportamental_status"]
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comportamental_sessoes_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comportamental_sessoes_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       config_drive_central: {
         Row: {
           key: string
@@ -995,6 +1440,69 @@ export type Database = {
           },
         ]
       }
+      consultor_solucoes: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json | null
+          priority: Database["public"]["Enums"]["action_priority"]
+          problem: string
+          rationale: string | null
+          recommendation: string
+          rule_code: string
+          rule_version: string
+          scope_id: string | null
+          scope_type: Database["public"]["Enums"]["score_scope_type"]
+          source_alert_id: string | null
+          source_plano_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          priority?: Database["public"]["Enums"]["action_priority"]
+          problem: string
+          rationale?: string | null
+          recommendation: string
+          rule_code: string
+          rule_version: string
+          scope_id?: string | null
+          scope_type: Database["public"]["Enums"]["score_scope_type"]
+          source_alert_id?: string | null
+          source_plano_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          priority?: Database["public"]["Enums"]["action_priority"]
+          problem?: string
+          rationale?: string | null
+          recommendation?: string
+          rule_code?: string
+          rule_version?: string
+          scope_id?: string | null
+          scope_type?: Database["public"]["Enums"]["score_scope_type"]
+          source_alert_id?: string | null
+          source_plano_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultor_solucoes_source_alert_id_fkey"
+            columns: ["source_alert_id"]
+            isOneToOne: false
+            referencedRelation: "alerts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consultor_solucoes_source_plano_id_fkey"
+            columns: ["source_plano_id"]
+            isOneToOne: false
+            referencedRelation: "planos_acao"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contatos_cliente_consultoria: {
         Row: {
           client_id: string
@@ -1039,6 +1547,60 @@ export type Database = {
           },
         ]
       }
+      cultura_resultado_registros: {
+        Row: {
+          alvo_role: string | null
+          created_at: string
+          data_referencia: string
+          id: string
+          loja_id: string
+          mensagem: string | null
+          metadata: Json
+          tipo: string
+          titulo: string
+          user_id: string | null
+        }
+        Insert: {
+          alvo_role?: string | null
+          created_at?: string
+          data_referencia?: string
+          id?: string
+          loja_id: string
+          mensagem?: string | null
+          metadata?: Json
+          tipo: string
+          titulo: string
+          user_id?: string | null
+        }
+        Update: {
+          alvo_role?: string | null
+          created_at?: string
+          data_referencia?: string
+          id?: string
+          loja_id?: string
+          mensagem?: string | null
+          metadata?: Json
+          tipo?: string
+          titulo?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cultura_resultado_registros_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cultura_resultado_registros_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_lead_volumes: {
         Row: {
           agency_id: string | null
@@ -1070,6 +1632,236 @@ export type Database = {
             columns: ["agency_id"]
             isOneToOne: false
             referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      departamento_biblioteca: {
+        Row: {
+          categoria: string
+          conteudo_md: string
+          created_at: string
+          departamento_id: string
+          id: string
+          metadata: Json
+          ordem: number
+          titulo: string
+          url_externo: string | null
+        }
+        Insert: {
+          categoria: string
+          conteudo_md: string
+          created_at?: string
+          departamento_id: string
+          id?: string
+          metadata?: Json
+          ordem?: number
+          titulo: string
+          url_externo?: string | null
+        }
+        Update: {
+          categoria?: string
+          conteudo_md?: string
+          created_at?: string
+          departamento_id?: string
+          id?: string
+          metadata?: Json
+          ordem?: number
+          titulo?: string
+          url_externo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "departamento_biblioteca_departamento_id_fkey"
+            columns: ["departamento_id"]
+            isOneToOne: false
+            referencedRelation: "departamentos_mx"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      departamento_checklist: {
+        Row: {
+          created_at: string
+          departamento_id: string
+          descricao: string | null
+          id: string
+          metadata: Json
+          obrigatorio: boolean
+          ordem: number
+          titulo: string
+        }
+        Insert: {
+          created_at?: string
+          departamento_id: string
+          descricao?: string | null
+          id?: string
+          metadata?: Json
+          obrigatorio?: boolean
+          ordem?: number
+          titulo: string
+        }
+        Update: {
+          created_at?: string
+          departamento_id?: string
+          descricao?: string | null
+          id?: string
+          metadata?: Json
+          obrigatorio?: boolean
+          ordem?: number
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "departamento_checklist_departamento_id_fkey"
+            columns: ["departamento_id"]
+            isOneToOne: false
+            referencedRelation: "departamentos_mx"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      departamento_fluxograma: {
+        Row: {
+          created_at: string
+          departamento_id: string
+          descricao: string | null
+          id: string
+          metadata: Json
+          passo: number
+          responsavel_papel: string | null
+          titulo: string
+        }
+        Insert: {
+          created_at?: string
+          departamento_id: string
+          descricao?: string | null
+          id?: string
+          metadata?: Json
+          passo: number
+          responsavel_papel?: string | null
+          titulo: string
+        }
+        Update: {
+          created_at?: string
+          departamento_id?: string
+          descricao?: string | null
+          id?: string
+          metadata?: Json
+          passo?: number
+          responsavel_papel?: string | null
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "departamento_fluxograma_departamento_id_fkey"
+            columns: ["departamento_id"]
+            isOneToOne: false
+            referencedRelation: "departamentos_mx"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      departamento_kpi_snapshot: {
+        Row: {
+          ano_anterior: number | null
+          departamento_id: string
+          id: string
+          indicador_code: string
+          meta: number | null
+          metadata: Json
+          period: string
+          realizado: number | null
+          recorded_at: string
+          unidade: string | null
+        }
+        Insert: {
+          ano_anterior?: number | null
+          departamento_id: string
+          id?: string
+          indicador_code: string
+          meta?: number | null
+          metadata?: Json
+          period: string
+          realizado?: number | null
+          recorded_at?: string
+          unidade?: string | null
+        }
+        Update: {
+          ano_anterior?: number | null
+          departamento_id?: string
+          id?: string
+          indicador_code?: string
+          meta?: number | null
+          metadata?: Json
+          period?: string
+          realizado?: number | null
+          recorded_at?: string
+          unidade?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "departamento_kpi_snapshot_departamento_id_fkey"
+            columns: ["departamento_id"]
+            isOneToOne: false
+            referencedRelation: "departamentos_mx"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      departamentos_mx: {
+        Row: {
+          authorized_role_codes: string[]
+          code: string
+          created_at: string
+          id: string
+          loja_id: string
+          metadata: Json
+          name: string
+          notes: string | null
+          responsible_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          authorized_role_codes?: string[]
+          code: string
+          created_at?: string
+          id?: string
+          loja_id: string
+          metadata?: Json
+          name: string
+          notes?: string | null
+          responsible_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          authorized_role_codes?: string[]
+          code?: string
+          created_at?: string
+          id?: string
+          loja_id?: string
+          metadata?: Json
+          name?: string
+          notes?: string | null
+          responsible_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "departamentos_mx_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "departamentos_mx_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -1669,6 +2461,178 @@ export type Database = {
           },
         ]
       }
+      eventos_agenda_executiva: {
+        Row: {
+          alert_id: string | null
+          all_day: boolean
+          created_at: string
+          created_by: string | null
+          ends_at: string | null
+          google_event_id: string | null
+          id: string
+          integration_error: string | null
+          integration_status: Database["public"]["Enums"]["executive_agenda_integration_status"]
+          kind: Database["public"]["Enums"]["executive_agenda_kind"]
+          loja_id: string
+          metadata: Json
+          outlook_event_id: string | null
+          plano_acao_id: string | null
+          private_payload: Json
+          public_summary: string | null
+          responsavel_id: string | null
+          source: Database["public"]["Enums"]["executive_agenda_source"]
+          source_ref: Json
+          starts_at: string
+          title: string
+          updated_at: string
+          visita_id: string | null
+        }
+        Insert: {
+          alert_id?: string | null
+          all_day?: boolean
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string | null
+          google_event_id?: string | null
+          id?: string
+          integration_error?: string | null
+          integration_status?: Database["public"]["Enums"]["executive_agenda_integration_status"]
+          kind: Database["public"]["Enums"]["executive_agenda_kind"]
+          loja_id: string
+          metadata?: Json
+          outlook_event_id?: string | null
+          plano_acao_id?: string | null
+          private_payload?: Json
+          public_summary?: string | null
+          responsavel_id?: string | null
+          source?: Database["public"]["Enums"]["executive_agenda_source"]
+          source_ref?: Json
+          starts_at: string
+          title: string
+          updated_at?: string
+          visita_id?: string | null
+        }
+        Update: {
+          alert_id?: string | null
+          all_day?: boolean
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string | null
+          google_event_id?: string | null
+          id?: string
+          integration_error?: string | null
+          integration_status?: Database["public"]["Enums"]["executive_agenda_integration_status"]
+          kind?: Database["public"]["Enums"]["executive_agenda_kind"]
+          loja_id?: string
+          metadata?: Json
+          outlook_event_id?: string | null
+          plano_acao_id?: string | null
+          private_payload?: Json
+          public_summary?: string | null
+          responsavel_id?: string | null
+          source?: Database["public"]["Enums"]["executive_agenda_source"]
+          source_ref?: Json
+          starts_at?: string
+          title?: string
+          updated_at?: string
+          visita_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eventos_agenda_executiva_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "alerts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_agenda_executiva_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_agenda_executiva_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_agenda_executiva_plano_acao_id_fkey"
+            columns: ["plano_acao_id"]
+            isOneToOne: false
+            referencedRelation: "planos_acao"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_agenda_executiva_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_agenda_executiva_visita_id_fkey"
+            columns: ["visita_id"]
+            isOneToOne: false
+            referencedRelation: "visitas_consultoria"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evidencias_planos_acao: {
+        Row: {
+          created_at: string
+          evidence_url: string | null
+          id: string
+          nome_arquivo: string | null
+          nota: string | null
+          plano_id: string
+          storage_path: string | null
+          tipo: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          evidence_url?: string | null
+          id?: string
+          nome_arquivo?: string | null
+          nota?: string | null
+          plano_id: string
+          storage_path?: string | null
+          tipo?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          evidence_url?: string | null
+          id?: string
+          nome_arquivo?: string | null
+          nota?: string | null
+          plano_id?: string
+          storage_path?: string | null
+          tipo?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evidencias_planos_acao_plano_id_fkey"
+            columns: ["plano_id"]
+            isOneToOne: false
+            referencedRelation: "planos_acao"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evidencias_planos_acao_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       evidencias_visita: {
         Row: {
           caminho_storage: string | null
@@ -1965,6 +2929,51 @@ export type Database = {
           },
         ]
       }
+      historico_planos_acao: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          changed_fields: string[]
+          id: string
+          new_values: Json
+          old_values: Json
+          plano_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          changed_fields?: string[]
+          id?: string
+          new_values: Json
+          old_values: Json
+          plano_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          changed_fields?: string[]
+          id?: string
+          new_values?: Json
+          old_values?: Json
+          plano_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_planos_acao_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historico_planos_acao_plano_id_fkey"
+            columns: ["plano_id"]
+            isOneToOne: false
+            referencedRelation: "planos_acao"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       historico_regras_metas_loja: {
         Row: {
           changed_at: string | null
@@ -2032,6 +3041,60 @@ export type Database = {
             columns: ["log_id"]
             isOneToOne: false
             referencedRelation: "logs_reprocessamento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      indice_felicidade_respostas: {
+        Row: {
+          anonimato: boolean
+          ciclo: string
+          comentario: string | null
+          created_at: string
+          id: string
+          loja_id: string
+          nota_carreira: number | null
+          nota_clima: number
+          nota_lideranca: number | null
+          user_id: string | null
+        }
+        Insert: {
+          anonimato?: boolean
+          ciclo: string
+          comentario?: string | null
+          created_at?: string
+          id?: string
+          loja_id: string
+          nota_carreira?: number | null
+          nota_clima: number
+          nota_lideranca?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          anonimato?: boolean
+          ciclo?: string
+          comentario?: string | null
+          created_at?: string
+          id?: string
+          loja_id?: string
+          nota_carreira?: number | null
+          nota_clima?: number
+          nota_lideranca?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "indice_felicidade_respostas_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "indice_felicidade_respostas_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -3417,6 +4480,61 @@ export type Database = {
           },
         ]
       }
+      organograma_nos: {
+        Row: {
+          cargo: string
+          created_at: string
+          id: string
+          loja_id: string
+          ordem: number
+          parent_id: string | null
+          updated_at: string
+          usuario_id: string | null
+        }
+        Insert: {
+          cargo: string
+          created_at?: string
+          id?: string
+          loja_id: string
+          ordem?: number
+          parent_id?: string | null
+          updated_at?: string
+          usuario_id?: string | null
+        }
+        Update: {
+          cargo?: string
+          created_at?: string
+          id?: string
+          loja_id?: string
+          ordem?: number
+          parent_id?: string | null
+          updated_at?: string
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organograma_nos_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organograma_nos_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "organograma_nos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organograma_nos_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pastas_drive_consultoria: {
         Row: {
           client_id: string
@@ -4252,6 +5370,60 @@ export type Database = {
           },
         ]
       }
+      posicionamento_empresa: {
+        Row: {
+          diferenciais: string | null
+          id: string
+          loja_id: string
+          missao: string | null
+          posicionamento: string | null
+          publico_alvo: string | null
+          updated_at: string
+          updated_by: string | null
+          valores: string | null
+          visao: string | null
+        }
+        Insert: {
+          diferenciais?: string | null
+          id?: string
+          loja_id: string
+          missao?: string | null
+          posicionamento?: string | null
+          publico_alvo?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          valores?: string | null
+          visao?: string | null
+        }
+        Update: {
+          diferenciais?: string | null
+          id?: string
+          loja_id?: string
+          missao?: string | null
+          posicionamento?: string | null
+          publico_alvo?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          valores?: string | null
+          visao?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posicionamento_empresa_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: true
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posicionamento_empresa_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pre_cadastros_loja: {
         Row: {
           approval_note: string | null
@@ -4589,6 +5761,114 @@ export type Database = {
           },
         ]
       }
+      push_notifications_log: {
+        Row: {
+          body: string | null
+          error: string | null
+          id: string
+          payload: Json | null
+          sent_at: string
+          status: string
+          subscription_id: string | null
+          title: string
+          url: string | null
+          user_id: string | null
+        }
+        Insert: {
+          body?: string | null
+          error?: string | null
+          id?: string
+          payload?: Json | null
+          sent_at?: string
+          status: string
+          subscription_id?: string | null
+          title: string
+          url?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          body?: string | null
+          error?: string | null
+          id?: string
+          payload?: Json | null
+          sent_at?: string
+          status?: string
+          subscription_id?: string | null
+          title?: string
+          url?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_notifications_log_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "push_subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_notifications_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          is_active: boolean
+          last_seen_at: string
+          loja_id: string | null
+          p256dh: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          is_active?: boolean
+          last_seen_at?: string
+          loja_id?: string | null
+          p256dh: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          is_active?: boolean
+          last_seen_at?: string
+          loja_id?: string | null
+          p256dh?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recomendacoes_desenvolvimento: {
         Row: {
           created_at: string
@@ -4830,6 +6110,108 @@ export type Database = {
           {
             foreignKeyName: "weekly_feedback_reports_store_id_fkey"
             columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      remuneracao_benchmark: {
+        Row: {
+          cargo: string
+          created_at: string
+          data_referencia: string
+          faixa_max: number
+          faixa_mediana: number
+          faixa_min: number
+          faixa_tamanho: string
+          fonte: string
+          id: string
+          meta: string | null
+          regiao: string
+        }
+        Insert: {
+          cargo: string
+          created_at?: string
+          data_referencia: string
+          faixa_max: number
+          faixa_mediana: number
+          faixa_min: number
+          faixa_tamanho: string
+          fonte: string
+          id?: string
+          meta?: string | null
+          regiao: string
+        }
+        Update: {
+          cargo?: string
+          created_at?: string
+          data_referencia?: string
+          faixa_max?: number
+          faixa_mediana?: number
+          faixa_min?: number
+          faixa_tamanho?: string
+          fonte?: string
+          id?: string
+          meta?: string | null
+          regiao?: string
+        }
+        Relationships: []
+      }
+      remuneracao_planos: {
+        Row: {
+          beneficios: number
+          cargo: string
+          created_at: string
+          created_by: string | null
+          id: string
+          loja_id: string
+          moeda: string
+          observacoes: string | null
+          salario_fixo: number
+          salario_variavel: number
+          updated_at: string
+          vigencia_inicio: string
+        }
+        Insert: {
+          beneficios?: number
+          cargo: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          loja_id: string
+          moeda?: string
+          observacoes?: string | null
+          salario_fixo?: number
+          salario_variavel?: number
+          updated_at?: string
+          vigencia_inicio?: string
+        }
+        Update: {
+          beneficios?: number
+          cargo?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          loja_id?: string
+          moeda?: string
+          observacoes?: string | null
+          salario_fixo?: number
+          salario_variavel?: number
+          updated_at?: string
+          vigencia_inicio?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "remuneracao_planos_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "remuneracao_planos_loja_id_fkey"
+            columns: ["loja_id"]
             isOneToOne: false
             referencedRelation: "lojas"
             referencedColumns: ["id"]
@@ -5900,6 +7282,137 @@ export type Database = {
           },
         ]
       }
+      universidade_aulas: {
+        Row: {
+          ativo: boolean
+          conteudo_md: string | null
+          created_at: string
+          data_ao_vivo: string | null
+          id: string
+          metadata: Json
+          ordem: number
+          tipo: string
+          titulo: string
+          trilha_id: string | null
+          url_video: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          conteudo_md?: string | null
+          created_at?: string
+          data_ao_vivo?: string | null
+          id?: string
+          metadata?: Json
+          ordem?: number
+          tipo: string
+          titulo: string
+          trilha_id?: string | null
+          url_video?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          conteudo_md?: string | null
+          created_at?: string
+          data_ao_vivo?: string | null
+          id?: string
+          metadata?: Json
+          ordem?: number
+          tipo?: string
+          titulo?: string
+          trilha_id?: string | null
+          url_video?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "universidade_aulas_trilha_id_fkey"
+            columns: ["trilha_id"]
+            isOneToOne: false
+            referencedRelation: "universidade_trilhas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      universidade_certificacoes: {
+        Row: {
+          certificado_url: string | null
+          emitida_em: string
+          id: string
+          metadata: Json
+          pontuacao: number | null
+          trilha_id: string
+          user_id: string
+        }
+        Insert: {
+          certificado_url?: string | null
+          emitida_em?: string
+          id?: string
+          metadata?: Json
+          pontuacao?: number | null
+          trilha_id: string
+          user_id: string
+        }
+        Update: {
+          certificado_url?: string | null
+          emitida_em?: string
+          id?: string
+          metadata?: Json
+          pontuacao?: number | null
+          trilha_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "universidade_certificacoes_trilha_id_fkey"
+            columns: ["trilha_id"]
+            isOneToOne: false
+            referencedRelation: "universidade_trilhas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "universidade_certificacoes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      universidade_trilhas: {
+        Row: {
+          ativo: boolean
+          codigo: string
+          created_at: string
+          descricao: string | null
+          duracao_horas: number | null
+          id: string
+          metadata: Json
+          publico_alvo: string
+          titulo: string
+        }
+        Insert: {
+          ativo?: boolean
+          codigo: string
+          created_at?: string
+          descricao?: string | null
+          duracao_horas?: number | null
+          id?: string
+          metadata?: Json
+          publico_alvo: string
+          titulo: string
+        }
+        Update: {
+          ativo?: boolean
+          codigo?: string
+          created_at?: string
+          descricao?: string | null
+          duracao_horas?: number | null
+          id?: string
+          metadata?: Json
+          publico_alvo?: string
+          titulo?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           assigned_at: string | null
@@ -5984,6 +7497,76 @@ export type Database = {
             columns: ["role_id"]
             isOneToOne: false
             referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      valores_indicadores_planejamento: {
+        Row: {
+          ano_anterior: number | null
+          created_at: string
+          created_by: string | null
+          id: string
+          indicator_code: string
+          loja_id: string
+          meta: number | null
+          month: number | null
+          realizado: number | null
+          source: string
+          source_ref: Json
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          ano_anterior?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          indicator_code: string
+          loja_id: string
+          meta?: number | null
+          month?: number | null
+          realizado?: number | null
+          source?: string
+          source_ref?: Json
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          ano_anterior?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          indicator_code?: string
+          loja_id?: string
+          meta?: number | null
+          month?: number | null
+          realizado?: number | null
+          source?: string
+          source_ref?: Json
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "valores_indicadores_planejamento_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "valores_indicadores_planejamento_indicator_code_fkey"
+            columns: ["indicator_code"]
+            isOneToOne: false
+            referencedRelation: "catalogo_indicadores_planejamento"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "valores_indicadores_planejamento_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
             referencedColumns: ["id"]
           },
         ]
@@ -6298,6 +7881,25 @@ export type Database = {
       }
     }
     Views: {
+      indice_felicidade_agregado: {
+        Row: {
+          ciclo: string | null
+          loja_id: string | null
+          media_carreira: number | null
+          media_clima: number | null
+          media_lideranca: number | null
+          total_respostas: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "indice_felicidade_respostas_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       view_daily_team_status: {
         Row: {
           checkin_id: string | null
@@ -6460,6 +8062,14 @@ export type Database = {
         Args: { p_client_id: string }
         Returns: boolean
       }
+      can_access_mx_scope: {
+        Args: {
+          p_scope_id: string
+          p_scope_type: Database["public"]["Enums"]["score_scope_type"]
+          uid?: string
+        }
+        Returns: boolean
+      }
       check_user_role_in_store: {
         Args: { p_roles: string[]; p_store_id: string }
         Returns: boolean
@@ -6592,11 +8202,71 @@ export type Database = {
         Args: { p_bearer_token: string; p_function_url: string }
         Returns: undefined
       }
+      consolidar_dashboard_departamento: {
+        Args: { p_code: string; p_loja_id: string; p_period?: string }
+        Returns: Json
+      }
       consulting_client_module_enabled: {
         Args: { p_client_id: string; p_module_key: string }
         Returns: boolean
       }
+      consultor_ia_sugerir_acao: {
+        Args: { p_period?: string; p_store_id: string }
+        Returns: {
+          priority: Database["public"]["Enums"]["action_priority"]
+          problem: string
+          recommendation: string
+          rule_code: string
+          solucao_id: string
+        }[]
+      }
       create_pdi_session_bundle: { Args: { p_payload: Json }; Returns: string }
+      criar_plano_acao: {
+        Args: {
+          p_acao: string
+          p_como?: string
+          p_departamento: string
+          p_indicador: string
+          p_origem?: Database["public"]["Enums"]["action_origin"]
+          p_origem_ref_id?: string
+          p_origem_ref_table?: string
+          p_prazo?: string
+          p_prioridade?: Database["public"]["Enums"]["action_priority"]
+          p_problema: string
+          p_responsavel_id?: string
+          p_scope_id: string
+          p_scope_type: Database["public"]["Enums"]["score_scope_type"]
+        }
+        Returns: {
+          acao: string
+          como: string | null
+          concluido_at: string | null
+          created_at: string
+          created_by: string | null
+          departamento: string
+          eficacia_nota: string | null
+          eficacia_score: number | null
+          id: string
+          indicador: string
+          origem: Database["public"]["Enums"]["action_origin"]
+          origem_ref_id: string | null
+          origem_ref_table: string | null
+          prazo: string | null
+          prioridade: Database["public"]["Enums"]["action_priority"]
+          problema: string
+          responsavel_id: string | null
+          scope_id: string
+          scope_type: Database["public"]["Enums"]["score_scope_type"]
+          status: Database["public"]["Enums"]["action_status"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "planos_acao"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       current_user_role_code: { Args: { uid?: string }; Returns: string }
       current_user_role_codes: { Args: { uid?: string }; Returns: string[] }
       dismiss_alert: {
@@ -6631,6 +8301,14 @@ export type Database = {
       eh_admin_master_mx: { Args: { uid?: string }; Returns: boolean }
       eh_administrador_mx: { Args: { uid?: string }; Returns: boolean }
       eh_area_interna_mx: { Args: { uid?: string }; Returns: boolean }
+      gerar_alertas_loja: {
+        Args: { p_period?: string; p_store_id: string }
+        Returns: {
+          alert_id: string
+          rule_code: string
+          type: Database["public"]["Enums"]["alert_type"]
+        }[]
+      }
       gerar_recomendacoes_desenvolvimento_feedback: {
         Args: { p_feedback_id: string }
         Returns: number
@@ -6962,6 +8640,32 @@ export type Database = {
         Args: { p_store_id?: string; p_theme: string }
         Returns: string
       }
+      mx_score_atualizar_atraso_plano: {
+        Args: { p_store_id?: string }
+        Returns: number
+      }
+      mx_score_recalcular_loja: {
+        Args: { p_period?: string; p_store_id: string }
+        Returns: {
+          band: Database["public"]["Enums"]["score_band"]
+          calculation_version: string
+          computed_at: string
+          dim_disciplina: number | null
+          dim_processo: number | null
+          dim_resultado: number | null
+          id: string
+          period: string
+          scope_id: string
+          scope_type: Database["public"]["Enums"]["score_scope_type"]
+          value: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "score_calculations"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       normalize_mx_role: { Args: { p_role: string }; Returns: string }
       papel_usuario: { Args: { uid?: string }; Returns: string }
       pode_acessar_cliente_consultoria: {
@@ -7080,7 +8784,24 @@ export type Database = {
         | "melhores"
         | "mercado"
       checkin_scope: "daily" | "adjustment" | "historical"
+      comportamental_status: "pendente" | "em_andamento" | "concluido"
       correction_status: "pending" | "approved" | "rejected"
+      executive_agenda_integration_status:
+        | "conectado"
+        | "pendente"
+        | "erro"
+        | "desconectado"
+      executive_agenda_kind:
+        | "compromisso"
+        | "reuniao"
+        | "lembrete"
+        | "acompanhamento"
+      executive_agenda_source: "manual" | "google_calendar" | "outlook"
+      remuneracao_classificacao:
+        | "abaixo"
+        | "dentro"
+        | "acima"
+        | "sem_referencia"
       score_band: "elite" | "excellent" | "good" | "attention" | "critical"
       score_dimension: "resultado" | "processo" | "disciplina"
       score_scope_type: "store" | "department" | "individual" | "process"
@@ -7231,7 +8952,27 @@ export const Constants = {
         "mercado",
       ],
       checkin_scope: ["daily", "adjustment", "historical"],
+      comportamental_status: ["pendente", "em_andamento", "concluido"],
       correction_status: ["pending", "approved", "rejected"],
+      executive_agenda_integration_status: [
+        "conectado",
+        "pendente",
+        "erro",
+        "desconectado",
+      ],
+      executive_agenda_kind: [
+        "compromisso",
+        "reuniao",
+        "lembrete",
+        "acompanhamento",
+      ],
+      executive_agenda_source: ["manual", "google_calendar", "outlook"],
+      remuneracao_classificacao: [
+        "abaixo",
+        "dentro",
+        "acima",
+        "sem_referencia",
+      ],
       score_band: ["elite", "excellent", "good", "attention", "critical"],
       score_dimension: ["resultado", "processo", "disciplina"],
       score_scope_type: ["store", "department", "individual", "process"],
