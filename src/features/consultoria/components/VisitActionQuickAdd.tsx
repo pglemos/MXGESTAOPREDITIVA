@@ -71,7 +71,7 @@ export function VisitActionQuickAdd({ clientId, visitNumber }: { clientId: strin
           </div>
           <div className="space-y-mx-xs">
             <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Prazo</Typography>
-            <Input type="date" value={form.due_date} onChange={e => setForm({...form, due_date: e.target.value})} className="bg-white" />
+            <Input aria-label="Prazo" type="date" value={form.due_date} onChange={e => setForm({...form, due_date: e.target.value})} className="bg-white" />
           </div>
         </div>
         <div className="flex gap-mx-xs pt-mx-xs">

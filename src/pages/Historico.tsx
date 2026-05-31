@@ -344,31 +344,31 @@ export default function Historico() {
                     <div className="grid grid-cols-2 gap-mx-md">
                         <div className="space-y-mx-xs">
                             <Typography variant="tiny" tone="muted" className="font-black uppercase">Leads Recebidos</Typography>
-                            <Input type="number" min={0} max={CHECKIN_MAX_INPUT_VALUE} value={formData.leads} onChange={(e) => updateCorrectionNumber('leads', e.target.value)} />
+                            <Input aria-label="Leads Recebidos" type="number" min={0} max={CHECKIN_MAX_INPUT_VALUE} value={formData.leads} onChange={(e) => updateCorrectionNumber('leads', e.target.value)} />
                         </div>
                         <div className="space-y-mx-xs">
                             <Typography variant="tiny" tone="muted" className="font-black uppercase">Visitas Realizadas</Typography>
-                            <Input type="number" min={0} max={CHECKIN_MAX_INPUT_VALUE} value={formData.visitas} onChange={(e) => updateCorrectionNumber('visitas', e.target.value)} />
+                            <Input aria-label="Visitas Realizadas" type="number" min={0} max={CHECKIN_MAX_INPUT_VALUE} value={formData.visitas} onChange={(e) => updateCorrectionNumber('visitas', e.target.value)} />
                         </div>
                         <div className="space-y-mx-xs">
                             <Typography variant="tiny" tone="muted" className="font-black uppercase">Vendas Porta</Typography>
-                            <Input type="number" min={0} max={CHECKIN_MAX_INPUT_VALUE} value={formData.vnd_porta} onChange={(e) => updateCorrectionNumber('vnd_porta', e.target.value)} />
+                            <Input aria-label="Vendas Porta" type="number" min={0} max={CHECKIN_MAX_INPUT_VALUE} value={formData.vnd_porta} onChange={(e) => updateCorrectionNumber('vnd_porta', e.target.value)} />
                         </div>
                         <div className="space-y-mx-xs">
                             <Typography variant="tiny" tone="muted" className="font-black uppercase">Vendas Carteira</Typography>
-                            <Input type="number" min={0} max={CHECKIN_MAX_INPUT_VALUE} value={formData.vnd_cart} onChange={(e) => updateCorrectionNumber('vnd_cart', e.target.value)} />
+                            <Input aria-label="Vendas Carteira" type="number" min={0} max={CHECKIN_MAX_INPUT_VALUE} value={formData.vnd_cart} onChange={(e) => updateCorrectionNumber('vnd_cart', e.target.value)} />
                         </div>
                         <div className="space-y-mx-xs">
                             <Typography variant="tiny" tone="muted" className="font-black uppercase">Vendas Internet</Typography>
-                            <Input type="number" min={0} max={CHECKIN_MAX_INPUT_VALUE} value={formData.vnd_net} onChange={(e) => updateCorrectionNumber('vnd_net', e.target.value)} />
+                            <Input aria-label="Vendas Internet" type="number" min={0} max={CHECKIN_MAX_INPUT_VALUE} value={formData.vnd_net} onChange={(e) => updateCorrectionNumber('vnd_net', e.target.value)} />
                         </div>
                         <div className="space-y-mx-xs">
                             <Typography variant="tiny" tone="muted" className="font-black uppercase">Agend. Carteira</Typography>
-                            <Input type="number" min={0} max={CHECKIN_MAX_INPUT_VALUE} value={formData.agd_cart} onChange={(e) => updateCorrectionNumber('agd_cart', e.target.value)} />
+                            <Input aria-label="Agend. Carteira" type="number" min={0} max={CHECKIN_MAX_INPUT_VALUE} value={formData.agd_cart} onChange={(e) => updateCorrectionNumber('agd_cart', e.target.value)} />
                         </div>
                         <div className="space-y-mx-xs">
                             <Typography variant="tiny" tone="muted" className="font-black uppercase">Agend. Internet</Typography>
-                            <Input type="number" min={0} max={CHECKIN_MAX_INPUT_VALUE} value={formData.agd_net} onChange={(e) => updateCorrectionNumber('agd_net', e.target.value)} />
+                            <Input aria-label="Agend. Internet" type="number" min={0} max={CHECKIN_MAX_INPUT_VALUE} value={formData.agd_net} onChange={(e) => updateCorrectionNumber('agd_net', e.target.value)} />
                         </div>
                     </div>
 

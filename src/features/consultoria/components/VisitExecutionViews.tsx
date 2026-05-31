@@ -138,7 +138,7 @@ export function VisitFourExecution({ storeId, onGenerateSummary }: { storeId: st
         <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
           <div className="space-y-mx-md">
             <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Dados do Vendedor</Typography>
-            <select value={v} onChange={e => setV(e.target.value)} disabled={!storeId || loading} className="w-full h-mx-10 px-mx-md rounded-mx-lg border border-border-default bg-white text-sm font-bold disabled:opacity-60">
+            <select aria-label="Dados do Vendedor" value={v} onChange={e => setV(e.target.value)} disabled={!storeId || loading} className="w-full h-mx-10 px-mx-md rounded-mx-lg border border-border-default bg-white text-sm font-bold disabled:opacity-60">
               <option value="">{loading ? 'Carregando vendedores...' : 'Selecione o vendedor...'}</option>
               {sellers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
@@ -151,19 +151,19 @@ export function VisitFourExecution({ storeId, onGenerateSummary }: { storeId: st
             <div className="grid grid-cols-2 gap-mx-sm">
               <div className="space-y-mx-xs">
                 <Typography variant="tiny" tone="muted">LEADS</Typography>
-                <Input type="number" value={funnel.leads} onChange={e => setFunnel({...funnel, leads: parseInt(e.target.value) || 0})} className="h-mx-10 font-bold" />
+                <Input aria-label="LEADS" type="number" value={funnel.leads} onChange={e => setFunnel({...funnel, leads: parseInt(e.target.value) || 0})} className="h-mx-10 font-bold" />
               </div>
               <div className="space-y-mx-xs">
                 <Typography variant="tiny" tone="muted">AGEND.</Typography>
-                <Input type="number" value={funnel.agd} onChange={e => setFunnel({...funnel, agd: parseInt(e.target.value) || 0})} className="h-mx-10 font-bold" />
+                <Input aria-label="AGEND." type="number" value={funnel.agd} onChange={e => setFunnel({...funnel, agd: parseInt(e.target.value) || 0})} className="h-mx-10 font-bold" />
               </div>
               <div className="space-y-mx-xs">
                 <Typography variant="tiny" tone="muted">VISITAS</Typography>
-                <Input type="number" value={funnel.visit} onChange={e => setFunnel({...funnel, visit: parseInt(e.target.value) || 0})} className="h-mx-10 font-bold" />
+                <Input aria-label="VISITAS" type="number" value={funnel.visit} onChange={e => setFunnel({...funnel, visit: parseInt(e.target.value) || 0})} className="h-mx-10 font-bold" />
               </div>
               <div className="space-y-mx-xs">
                 <Typography variant="tiny" tone="muted">VENDAS</Typography>
-                <Input type="number" value={funnel.sale} onChange={e => setFunnel({...funnel, sale: parseInt(e.target.value) || 0})} className="h-mx-10 font-bold" />
+                <Input aria-label="VENDAS" type="number" value={funnel.sale} onChange={e => setFunnel({...funnel, sale: parseInt(e.target.value) || 0})} className="h-mx-10 font-bold" />
               </div>
             </div>
           </div>
@@ -178,7 +178,7 @@ export function VisitFourExecution({ storeId, onGenerateSummary }: { storeId: st
         <div className="flex gap-mx-md items-end border-t border-border-subtle pt-mx-md">
           <div className="w-1/3 md:w-1/4">
             <Typography variant="tiny" tone="muted" className="mb-1 block uppercase text-mx-tiny">META ACORDADA</Typography>
-            <Input type="number" value={m} onChange={e => setM(parseInt(e.target.value) || 0)} className="h-mx-12 font-black text-brand-primary text-center text-xl" />
+            <Input aria-label="META ACORDADA" type="number" value={m} onChange={e => setM(parseInt(e.target.value) || 0)} className="h-mx-12 font-black text-brand-primary text-center text-xl" />
           </div>
           <Button className="flex-1 h-mx-12 shadow-mx-md text-sm font-black" variant="primary" onClick={save} loading={s} icon={<CheckCircle2 size={16} />}>SALVAR FEEDBACK NO CRM</Button>
         </div>
@@ -239,7 +239,7 @@ export function VisitFiveExecution({ storeId, onGenerateSummary }: { storeId: st
         <div className="space-y-mx-md">
           <div className="space-y-mx-xs">
             <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Vendedor / Gerente</Typography>
-            <select value={sellerId} onChange={e => setSellerId(e.target.value)} disabled={!storeId || loading} className="w-full h-mx-10 px-mx-md rounded-mx-lg border border-border-default bg-white text-sm font-bold disabled:opacity-60">
+            <select aria-label="Vendedor / Gerente" value={sellerId} onChange={e => setSellerId(e.target.value)} disabled={!storeId || loading} className="w-full h-mx-10 px-mx-md rounded-mx-lg border border-border-default bg-white text-sm font-bold disabled:opacity-60">
               <option value="">{loading ? 'Carregando vendedores...' : 'Selecione o vendedor...'}</option>
               {sellers.map(seller => <option key={seller.id} value={seller.id}>{seller.name}</option>)}
             </select>
@@ -314,7 +314,7 @@ export function VisitSixExecution({ onGenerateSummary }: { onGenerateSummary: (t
         </div>
         <div className="space-y-mx-xs">
           <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Prazo de início</Typography>
-          <Input type="date" value={plan.startDate} onChange={e => setPlan({ ...plan, startDate: e.target.value })} className="h-mx-10 font-bold" />
+          <Input aria-label="Prazo de início" type="date" value={plan.startDate} onChange={e => setPlan({ ...plan, startDate: e.target.value })} className="h-mx-10 font-bold" />
         </div>
         <div className="space-y-mx-xs">
           <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Ação de tráfego pago</Typography>
@@ -445,7 +445,7 @@ export function VisitEightExecution({ onGenerateSummary }: { onGenerateSummary: 
           </div>
           <div className="space-y-mx-xs">
             <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Proxima data</Typography>
-            <Input type="date" value={review.nextDate} onChange={e => setReview({ ...review, nextDate: e.target.value })} className="h-mx-10 font-bold" />
+            <Input aria-label="Proxima data" type="date" value={review.nextDate} onChange={e => setReview({ ...review, nextDate: e.target.value })} className="h-mx-10 font-bold" />
           </div>
         </div>
       </div>

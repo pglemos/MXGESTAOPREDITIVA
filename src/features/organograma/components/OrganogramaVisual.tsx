@@ -62,7 +62,7 @@ export function OrganogramaVisual({ lojaId }: { lojaId: string }) {
           </label>
           <label className="block space-y-mx-xs md:col-span-1">
             <span className="block px-1 text-xs font-black uppercase tracking-widest text-text-tertiary">Reporta a</span>
-            <select
+            <select aria-label="Reporta a"
               value={parentId}
               onChange={e => setParentId(e.target.value)}
               className="w-full h-mx-14 px-mx-sm bg-white border border-border-default rounded-mx-xl font-black uppercase text-xs focus:outline-none focus:border-brand-primary appearance-none cursor-pointer"

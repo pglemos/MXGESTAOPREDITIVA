@@ -168,7 +168,7 @@ export function ConsultingActionPlanView({ clientId }: Props) {
         <form onSubmit={handleCreate} className="space-y-mx-md">
           <div className="space-y-mx-xs">
             <Typography as="label" htmlFor="pmr-action" variant="caption">Acao *</Typography>
-            <Textarea
+            <Textarea aria-label="Acao *"
               id="pmr-action"
               value={form.action}
               onChange={(event) => setForm((current) => ({ ...current, action: event.target.value }))}
@@ -177,7 +177,7 @@ export function ConsultingActionPlanView({ clientId }: Props) {
           </div>
           <div className="space-y-mx-xs">
             <Typography as="label" htmlFor="pmr-action-how" variant="caption">Como sera executado</Typography>
-            <Textarea
+            <Textarea aria-label="Como sera executado"
               id="pmr-action-how"
               value={form.how}
               onChange={(event) => setForm((current) => ({ ...current, how: event.target.value }))}
@@ -187,11 +187,11 @@ export function ConsultingActionPlanView({ clientId }: Props) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md">
             <div className="space-y-mx-xs">
               <Typography as="label" htmlFor="pmr-action-owner" variant="caption">Responsavel</Typography>
-              <Input id="pmr-action-owner" value={form.owner_name} onChange={(event) => setForm((current) => ({ ...current, owner_name: event.target.value }))} />
+              <Input aria-label="Responsavel" id="pmr-action-owner" value={form.owner_name} onChange={(event) => setForm((current) => ({ ...current, owner_name: event.target.value }))} />
             </div>
             <div className="space-y-mx-xs">
               <Typography as="label" htmlFor="pmr-action-due" variant="caption">Prazo</Typography>
-              <Input id="pmr-action-due" type="date" value={form.due_date} onChange={(event) => setForm((current) => ({ ...current, due_date: event.target.value }))} />
+              <Input aria-label="Prazo" id="pmr-action-due" type="date" value={form.due_date} onChange={(event) => setForm((current) => ({ ...current, due_date: event.target.value }))} />
             </div>
           </div>
           <Select
@@ -215,7 +215,7 @@ export function ConsultingActionPlanView({ clientId }: Props) {
           </Select>
           <div className="space-y-mx-xs">
             <Typography as="label" htmlFor="pmr-action-efficacy" variant="caption">Eficacia esperada</Typography>
-            <Input id="pmr-action-efficacy" value={form.efficacy} onChange={(event) => setForm((current) => ({ ...current, efficacy: event.target.value }))} />
+            <Input aria-label="Eficacia esperada" id="pmr-action-efficacy" value={form.efficacy} onChange={(event) => setForm((current) => ({ ...current, efficacy: event.target.value }))} />
           </div>
           <Button type="submit" className="w-full" disabled={submitting}>
             {submitting ? 'SALVANDO...' : 'CRIAR ACAO'}

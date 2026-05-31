@@ -914,7 +914,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                           </div>
                           <div className="space-y-mx-tiny">
                             <label htmlFor="edit-member-role" className="px-2 text-mx-tiny font-black uppercase tracking-mx-widest text-text-tertiary">Papel na loja</label>
-                            <select
+                            <select aria-label="Papel na loja"
                               id="edit-member-role"
                               name="role"
                               value={editingMember.role || 'vendedor'}
@@ -928,7 +928,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                           </div>
                           <div className="sm:col-span-2 space-y-mx-tiny">
                             <label htmlFor="edit-member-store" className="px-2 text-mx-tiny font-black uppercase tracking-mx-widest text-text-tertiary">Loja vinculada</label>
-                            <select
+                            <select aria-label="Loja vinculada"
                               id="edit-member-store"
                               name="store_id"
                               value={editingMember.store_id || storeId || ''}
@@ -946,7 +946,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                         <div className="grid grid-cols-2 gap-mx-md">
                           <div className="space-y-mx-tiny">
                             <label htmlFor="started-at" className="px-2 text-mx-tiny font-black uppercase tracking-mx-widest text-text-tertiary">Início da vigência</label>
-                            <input
+                            <input aria-label="Início da vigência"
                               id="started-at"
                               name="started_at"
                               type="date" required
@@ -957,7 +957,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                           </div>
                           <div className="space-y-mx-tiny">
                             <label htmlFor="ended-at" className="px-2 text-mx-tiny font-black uppercase tracking-mx-widest text-text-tertiary">Término (Opcional)</label>
-                            <input
+                            <input aria-label="Término (Opcional)"
                               id="ended-at"
                               name="ended_at"
                               type="date"

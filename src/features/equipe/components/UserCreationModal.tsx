@@ -281,7 +281,7 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
 
                         <div className="space-y-mx-xs">
                           <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-mx-widest">Início da vigência</Typography>
-                          <input
+                          <input aria-label="Início da vigência"
                             id="new-user-started-at"
                             name="started_at"
                             type="date"
@@ -295,7 +295,7 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
 
                         <div className="space-y-mx-xs">
                           <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-mx-widest">Fim da vigência</Typography>
-                          <input
+                          <input aria-label="Fim da vigência"
                             id="new-user-ended-at"
                             name="ended_at"
                             type="date"

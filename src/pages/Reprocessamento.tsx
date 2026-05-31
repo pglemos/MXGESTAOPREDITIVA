@@ -285,7 +285,7 @@ export default function Reprocessamento() {
                         <div className="space-y-mx-md relative z-10">
                             <div className="space-y-mx-xs">
                                 <Typography variant="tiny" tone="white" as="label" className="ml-2 font-black uppercase tracking-widest text-mx-nano">Unidade</Typography>
-                                <select 
+                                <select aria-label="Unidade" 
                                     value={selectedStoreId} onChange={e => setSelectedStoreId(e.target.value)}
                                     className="w-full h-mx-12 px-4 bg-white/5 border border-white/10 rounded-mx-xl text-white text-xs font-bold appearance-none cursor-pointer uppercase outline-none"
                                 >

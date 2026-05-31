@@ -154,7 +154,7 @@ export default function ConsultorNotificacoes() {
                                         {form.target_type === 'store' && (
                                             <div className="space-y-mx-sm">
                                                 <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Selecionar Loja</Typography>
-                                                <select value={form.target_store_id} onChange={e => setForm(p => ({ ...p, target_store_id: e.target.value }))} required className="w-full h-mx-14 bg-surface-alt border border-status-warning/20 rounded-mx-xl px-6 text-sm font-bold text-text-primary focus:border-status-warning transition-all appearance-none cursor-pointer shadow-inner">
+                                                <select aria-label="Selecionar Loja" value={form.target_store_id} onChange={e => setForm(p => ({ ...p, target_store_id: e.target.value }))} required className="w-full h-mx-14 bg-surface-alt border border-status-warning/20 rounded-mx-xl px-6 text-sm font-bold text-text-primary focus:border-status-warning transition-all appearance-none cursor-pointer shadow-inner">
                                                     <option value="">Selecione a unidade...</option>
                                                     {lojas.map(s => <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>)}
                                                 </select>
