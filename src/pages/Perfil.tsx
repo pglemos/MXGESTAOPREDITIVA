@@ -164,11 +164,11 @@ export default function Perfil() {
               <div className="grid md:grid-cols-2 gap-mx-10">
                 <div className="space-y-mx-sm">
                   <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest leading-none">Nome Operacional</Typography>
-                  <Input value={name} onChange={e => setName(e.target.value)} className="!h-14 px-6 font-bold" />
+                  <Input aria-label="Nome Operacional" value={name} onChange={e => setName(e.target.value)} className="!h-14 px-6 font-bold" />
                 </div>
                 <div className="space-y-mx-sm">
                   <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest leading-none">E-mail Fixado</Typography>
-                  <Input value={profile.email} disabled className="!h-14 px-6 font-bold opacity-50 bg-surface-alt" />
+                  <Input aria-label="E-mail Fixado" value={profile.email} disabled className="!h-14 px-6 font-bold opacity-50 bg-surface-alt" />
                 </div>
               </div>
 
@@ -179,7 +179,7 @@ export default function Perfil() {
                 </div>
                 <div className="space-y-mx-sm">
                   <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest leading-none">Cargo</Typography>
-                  <Input value={role || ''} disabled className="!h-14 px-6 font-bold opacity-50 bg-surface-alt capitalize" />
+                  <Input aria-label="Cargo" value={role || ''} disabled className="!h-14 px-6 font-bold opacity-50 bg-surface-alt capitalize" />
                 </div>
               </div>
 

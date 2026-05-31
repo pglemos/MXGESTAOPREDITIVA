@@ -489,12 +489,12 @@ export default function StorePreRegistration() {
                               <label className="mx-photo-action">
                                 <Camera size={17} />
                                 <span>Tirar foto</span>
-                                <input type="file" accept="image/*" capture="user" onChange={handlePhotoChange} className="sr-only" />
+                                <input aria-label="Tirar foto" type="file" accept="image/*" capture="user" onChange={handlePhotoChange} className="sr-only" />
                               </label>
                               <label className="mx-photo-action">
                                 <Upload size={17} />
                                 <span>Anexar</span>
-                                <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handlePhotoChange} className="sr-only" />
+                                <input aria-label="Anexar" type="file" accept="image/png,image/jpeg,image/webp" onChange={handlePhotoChange} className="sr-only" />
                               </label>
                             </div>
                           </div>
@@ -548,7 +548,7 @@ export default function StorePreRegistration() {
                           <div className="mx-pre-two">
                             <div>
                               <label htmlFor="prereg-tenure" className="mx-public-label">Tempo na loja</label>
-                              <select id="prereg-tenure" required value={form.store_tenure} onChange={event => updateForm('store_tenure', event.target.value)} className="mx-public-input">
+                              <select aria-label="Tempo na loja" id="prereg-tenure" required value={form.store_tenure} onChange={event => updateForm('store_tenure', event.target.value)} className="mx-public-input">
                                 <option value="">Selecione</option>
                                 {tenureOptions.map(option => <option key={option} value={option}>{option}</option>)}
                               </select>
@@ -556,7 +556,7 @@ export default function StorePreRegistration() {
                             </div>
                             <div>
                               <label htmlFor="prereg-market" className="mx-public-label">Experiência de mercado</label>
-                              <select id="prereg-market" required value={form.market_experience} onChange={event => updateForm('market_experience', event.target.value)} className="mx-public-input">
+                              <select aria-label="Experiência de mercado" id="prereg-market" required value={form.market_experience} onChange={event => updateForm('market_experience', event.target.value)} className="mx-public-input">
                                 <option value="">Selecione</option>
                                 {marketOptions.map(option => <option key={option} value={option}>{option}</option>)}
                               </select>

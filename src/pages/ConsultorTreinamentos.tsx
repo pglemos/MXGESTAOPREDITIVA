@@ -122,26 +122,26 @@ export default function ConsultorTreinamentos() {
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
                                             <div className="space-y-mx-sm">
                                                 <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Pilar de Vendas</Typography>
-                                                <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))} className="w-full h-mx-14 bg-surface-alt border border-border-default rounded-mx-xl px-6 text-sm font-bold text-text-primary focus:border-brand-primary transition-all appearance-none cursor-pointer shadow-inner">
+                                                <select aria-label="Pilar de Vendas" value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))} className="w-full h-mx-14 bg-surface-alt border border-border-default rounded-mx-xl px-6 text-sm font-bold text-text-primary focus:border-brand-primary transition-all appearance-none cursor-pointer shadow-inner">
                                                     {types.map(t => <option key={t} value={t}>{t.toUpperCase()}</option>)}
                                                 </select>
                                             </div>
                                             <div className="space-y-mx-sm">
                                                 <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Público Alvo</Typography>
-                                                <select value={form.target_audience} onChange={e => setForm(p => ({ ...p, target_audience: e.target.value }))} className="w-full h-mx-14 bg-surface-alt border border-border-default rounded-mx-xl px-6 text-sm font-bold text-text-primary focus:border-brand-primary transition-all appearance-none cursor-pointer shadow-inner">
+                                                <select aria-label="Público Alvo" value={form.target_audience} onChange={e => setForm(p => ({ ...p, target_audience: e.target.value }))} className="w-full h-mx-14 bg-surface-alt border border-border-default rounded-mx-xl px-6 text-sm font-bold text-text-primary focus:border-brand-primary transition-all appearance-none cursor-pointer shadow-inner">
                                                     {audiences.map(a => <option key={a} value={a}>{a.toUpperCase()}</option>)}
                                                 </select>
                                             </div>
                                             <div className="space-y-mx-sm">
                                                 <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Origem / Curadoria</Typography>
-                                                <select value={form.source_kind} onChange={e => setForm(p => ({ ...p, source_kind: e.target.value }))} className="w-full h-mx-14 bg-surface-alt border border-border-default rounded-mx-xl px-6 text-sm font-bold text-text-primary focus:border-brand-primary transition-all appearance-none cursor-pointer shadow-inner">
+                                                <select aria-label="Origem / Curadoria" value={form.source_kind} onChange={e => setForm(p => ({ ...p, source_kind: e.target.value }))} className="w-full h-mx-14 bg-surface-alt border border-border-default rounded-mx-xl px-6 text-sm font-bold text-text-primary focus:border-brand-primary transition-all appearance-none cursor-pointer shadow-inner">
                                                     {sources.map(source => <option key={source} value={source}>{source.toUpperCase()}</option>)}
                                                 </select>
                                             </div>
                                             {form.source_kind === 'loja_institucional' && (
                                                 <div className="space-y-mx-sm">
                                                     <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Loja vinculada</Typography>
-                                                    <select value={form.store_id} onChange={e => setForm(p => ({ ...p, store_id: e.target.value, type: 'institucional' }))} className="w-full h-mx-14 bg-surface-alt border border-border-default rounded-mx-xl px-6 text-sm font-bold text-text-primary focus:border-brand-primary transition-all appearance-none cursor-pointer shadow-inner">
+                                                    <select aria-label="Loja vinculada" value={form.store_id} onChange={e => setForm(p => ({ ...p, store_id: e.target.value, type: 'institucional' }))} className="w-full h-mx-14 bg-surface-alt border border-border-default rounded-mx-xl px-6 text-sm font-bold text-text-primary focus:border-brand-primary transition-all appearance-none cursor-pointer shadow-inner">
                                                         <option value="">SELECIONE A LOJA</option>
                                                         {lojas.map(loja => <option key={loja.id} value={loja.id}>{loja.name.toUpperCase()}</option>)}
                                                     </select>
@@ -149,7 +149,7 @@ export default function ConsultorTreinamentos() {
                                             )}
                                             <div className="space-y-mx-sm">
                                                 <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Duração / XP</Typography>
-                                                <Input type="number" value={String(form.duration_minutes)} onChange={e => setForm(p => ({ ...p, duration_minutes: Number(e.target.value) || 15 }))} className="!h-14 px-6 font-bold" />
+                                                <Input aria-label="Duração / XP" type="number" value={String(form.duration_minutes)} onChange={e => setForm(p => ({ ...p, duration_minutes: Number(e.target.value) || 15 }))} className="!h-14 px-6 font-bold" />
                                             </div>
                                         </div>
                                         <div className="space-y-mx-sm">

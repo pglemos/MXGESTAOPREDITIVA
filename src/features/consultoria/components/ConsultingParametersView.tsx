@@ -172,32 +172,32 @@ export function ConsultingParametersView() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md">
               <div className="space-y-mx-xs">
                 <Typography as="label" htmlFor="pmr-param-market" variant="caption">Media mercado</Typography>
-                <Input id="pmr-param-market" type="number" step="0.01" value={form.market_average} onChange={(event) => setForm((current) => ({ ...current, market_average: event.target.value }))} disabled={!canManage} />
+                <Input aria-label="Media mercado" id="pmr-param-market" type="number" step="0.01" value={form.market_average} onChange={(event) => setForm((current) => ({ ...current, market_average: event.target.value }))} disabled={!canManage} />
               </div>
               <div className="space-y-mx-xs">
                 <Typography as="label" htmlFor="pmr-param-best" variant="caption">Boa pratica</Typography>
-                <Input id="pmr-param-best" type="number" step="0.01" value={form.best_practice} onChange={(event) => setForm((current) => ({ ...current, best_practice: event.target.value }))} disabled={!canManage} />
+                <Input aria-label="Boa pratica" id="pmr-param-best" type="number" step="0.01" value={form.best_practice} onChange={(event) => setForm((current) => ({ ...current, best_practice: event.target.value }))} disabled={!canManage} />
               </div>
               <div className="space-y-mx-xs">
                 <Typography as="label" htmlFor="pmr-param-target" variant="caption">Meta padrao</Typography>
-                <Input id="pmr-param-target" type="number" step="0.01" value={form.target_default} onChange={(event) => setForm((current) => ({ ...current, target_default: event.target.value }))} disabled={!canManage} />
+                <Input aria-label="Meta padrao" id="pmr-param-target" type="number" step="0.01" value={form.target_default} onChange={(event) => setForm((current) => ({ ...current, target_default: event.target.value }))} disabled={!canManage} />
               </div>
               <div className="space-y-mx-xs">
                 <Typography as="label" htmlFor="pmr-param-red" variant="caption">Limite vermelho</Typography>
-                <Input id="pmr-param-red" type="number" step="0.01" value={form.red_threshold} onChange={(event) => setForm((current) => ({ ...current, red_threshold: event.target.value }))} disabled={!canManage} />
+                <Input aria-label="Limite vermelho" id="pmr-param-red" type="number" step="0.01" value={form.red_threshold} onChange={(event) => setForm((current) => ({ ...current, red_threshold: event.target.value }))} disabled={!canManage} />
               </div>
               <div className="space-y-mx-xs">
                 <Typography as="label" htmlFor="pmr-param-yellow" variant="caption">Limite amarelo</Typography>
-                <Input id="pmr-param-yellow" type="number" step="0.01" value={form.yellow_threshold} onChange={(event) => setForm((current) => ({ ...current, yellow_threshold: event.target.value }))} disabled={!canManage} />
+                <Input aria-label="Limite amarelo" id="pmr-param-yellow" type="number" step="0.01" value={form.yellow_threshold} onChange={(event) => setForm((current) => ({ ...current, yellow_threshold: event.target.value }))} disabled={!canManage} />
               </div>
               <div className="space-y-mx-xs">
                 <Typography as="label" htmlFor="pmr-param-green" variant="caption">Limite verde</Typography>
-                <Input id="pmr-param-green" type="number" step="0.01" value={form.green_threshold} onChange={(event) => setForm((current) => ({ ...current, green_threshold: event.target.value }))} disabled={!canManage} />
+                <Input aria-label="Limite verde" id="pmr-param-green" type="number" step="0.01" value={form.green_threshold} onChange={(event) => setForm((current) => ({ ...current, green_threshold: event.target.value }))} disabled={!canManage} />
               </div>
             </div>
             <div className="space-y-mx-xs">
               <Typography as="label" htmlFor="pmr-param-notes" variant="caption">Observacoes</Typography>
-              <Textarea id="pmr-param-notes" value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} disabled={!canManage} />
+              <Textarea aria-label="Observacoes" id="pmr-param-notes" value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} disabled={!canManage} />
             </div>
             <Button type="submit" className="w-full" disabled={!canManage || submitting || !selectedMetric}>
               {submitting ? 'SALVANDO...' : 'SALVAR PARAMETRO'}

@@ -224,7 +224,7 @@ export default function OperationalSettings() {
                                 <div className="relative">
                                     <History size={14} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" aria-hidden="true" />
                                     <label htmlFor="morning-time" className="sr-only">Escolher horário limite</label>
-                                    <input 
+                                    <input aria-label="Escolher horário limite" 
                                         id="morning-time"
                                         type="time" value={settings.morning_report_time} 
                                         onChange={e => setSettings(p => ({ ...p, morning_report_time: e.target.value }))}

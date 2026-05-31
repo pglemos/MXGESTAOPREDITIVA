@@ -64,18 +64,18 @@ export function AdminSettingsForm({
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-mx-md">
           <label className="space-y-mx-xs">
             <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Meta Mensal</span>
-            <Input type="number" min="0" value={form.monthly_goal} onChange={e => setForm(prev => ({ ...prev, monthly_goal: e.target.value }))} className="font-mono-numbers font-black" />
+            <Input aria-label="Meta Mensal" type="number" min="0" value={form.monthly_goal} onChange={e => setForm(prev => ({ ...prev, monthly_goal: e.target.value }))} className="font-mono-numbers font-black" />
           </label>
           <label className="space-y-mx-xs">
             <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Modo de Projeção</span>
-            <select value={form.projection_mode} onChange={e => setForm(prev => ({ ...prev, projection_mode: e.target.value as ProjectionMode }))} className="w-full h-mx-14 sm:h-12 rounded-mx-md border border-border-default bg-white px-5 text-sm font-black uppercase shadow-inner outline-none focus:border-brand-primary/30 focus:ring-4 focus:ring-brand-primary/5">
+            <select aria-label="Modo de Projeção" value={form.projection_mode} onChange={e => setForm(prev => ({ ...prev, projection_mode: e.target.value as ProjectionMode }))} className="w-full h-mx-14 sm:h-12 rounded-mx-md border border-border-default bg-white px-5 text-sm font-black uppercase shadow-inner outline-none focus:border-brand-primary/30 focus:ring-4 focus:ring-brand-primary/5">
               <option value="calendar">Calendário</option>
               <option value="business">Dias úteis</option>
             </select>
           </label>
           <label className="space-y-mx-xs">
             <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Meta Individual</span>
-            <select value={form.individual_goal_mode} onChange={e => setForm(prev => ({ ...prev, individual_goal_mode: e.target.value as StoreSettingsPayload['meta']['individual_goal_mode'] }))} className="w-full h-mx-14 sm:h-12 rounded-mx-md border border-border-default bg-white px-5 text-sm font-black uppercase shadow-inner outline-none focus:border-brand-primary/30 focus:ring-4 focus:ring-brand-primary/5">
+            <select aria-label="Meta Individual" value={form.individual_goal_mode} onChange={e => setForm(prev => ({ ...prev, individual_goal_mode: e.target.value as StoreSettingsPayload['meta']['individual_goal_mode'] }))} className="w-full h-mx-14 sm:h-12 rounded-mx-md border border-border-default bg-white px-5 text-sm font-black uppercase shadow-inner outline-none focus:border-brand-primary/30 focus:ring-4 focus:ring-brand-primary/5">
               <option value="even">Igual</option>
               <option value="custom">Customizada</option>
               <option value="proportional">Proporcional</option>
@@ -83,7 +83,7 @@ export function AdminSettingsForm({
           </label>
           <label className="space-y-mx-xs">
             <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Fonte</span>
-            <select value={form.source_mode} onChange={e => setForm(prev => ({ ...prev, source_mode: e.target.value as StoreSourceMode }))} className="w-full h-mx-14 sm:h-12 rounded-mx-md border border-border-default bg-white px-5 text-sm font-black uppercase shadow-inner outline-none focus:border-brand-primary/30 focus:ring-4 focus:ring-brand-primary/5">
+            <select aria-label="Fonte" value={form.source_mode} onChange={e => setForm(prev => ({ ...prev, source_mode: e.target.value as StoreSourceMode }))} className="w-full h-mx-14 sm:h-12 rounded-mx-md border border-border-default bg-white px-5 text-sm font-black uppercase shadow-inner outline-none focus:border-brand-primary/30 focus:ring-4 focus:ring-brand-primary/5">
               <option value="native_app">App nativo</option>
               <option value="legacy_forms">Forms legado</option>
               <option value="hybrid">Híbrido</option>
@@ -117,17 +117,17 @@ export function AdminSettingsForm({
         <div className="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-1 gap-mx-md">
           <label className="space-y-mx-xs">
             <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Lead / Agendamento (%)</span>
-            <Input type="number" min="0" step="0.01" value={form.bench_lead_agd} onChange={e => setForm(prev => ({ ...prev, bench_lead_agd: e.target.value }))} className="font-mono-numbers font-black" />
+            <Input aria-label="Lead / Agendamento (%)" type="number" min="0" step="0.01" value={form.bench_lead_agd} onChange={e => setForm(prev => ({ ...prev, bench_lead_agd: e.target.value }))} className="font-mono-numbers font-black" />
             <Typography variant="tiny" tone="muted" className="block normal-case tracking-normal">Impacta a régua visual Lead → Agendamento.</Typography>
           </label>
           <label className="space-y-mx-xs">
             <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Agendamento / Visita (%)</span>
-            <Input type="number" min="0" step="0.01" value={form.bench_agd_visita} onChange={e => setForm(prev => ({ ...prev, bench_agd_visita: e.target.value }))} className="font-mono-numbers font-black" />
+            <Input aria-label="Agendamento / Visita (%)" type="number" min="0" step="0.01" value={form.bench_agd_visita} onChange={e => setForm(prev => ({ ...prev, bench_agd_visita: e.target.value }))} className="font-mono-numbers font-black" />
             <Typography variant="tiny" tone="muted" className="block normal-case tracking-normal">Impacta a régua visual Agendamento → Visita.</Typography>
           </label>
           <label className="space-y-mx-xs">
             <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Visita / Venda (%)</span>
-            <Input type="number" min="0" step="0.01" value={form.bench_visita_vnd} onChange={e => setForm(prev => ({ ...prev, bench_visita_vnd: e.target.value }))} className="font-mono-numbers font-black" />
+            <Input aria-label="Visita / Venda (%)" type="number" min="0" step="0.01" value={form.bench_visita_vnd} onChange={e => setForm(prev => ({ ...prev, bench_visita_vnd: e.target.value }))} className="font-mono-numbers font-black" />
             <Typography variant="tiny" tone="muted" className="block normal-case tracking-normal">Impacta a régua visual Visita → Venda.</Typography>
           </label>
         </div>
@@ -165,7 +165,7 @@ export function AdminSettingsForm({
             </label>
             <label className="space-y-mx-xs">
               <span className="text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Timezone</span>
-              <Input value={form.timezone} onChange={e => setForm(prev => ({ ...prev, timezone: e.target.value }))} />
+              <Input aria-label="Timezone" value={form.timezone} onChange={e => setForm(prev => ({ ...prev, timezone: e.target.value }))} />
             </label>
           </div>
           <label className="flex items-center gap-mx-sm rounded-mx-xl border border-border-default bg-surface-alt p-mx-sm cursor-pointer">

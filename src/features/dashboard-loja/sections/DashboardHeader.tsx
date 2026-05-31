@@ -133,7 +133,7 @@ export function DashboardHeader({
           {isOwner && selectableStores.length > 1 && (
             <label htmlFor="owner-store-select" className="flex w-full flex-col gap-mx-tiny rounded-mx-xl border border-border-default bg-white px-mx-md py-mx-xs shadow-mx-sm sm:w-mx-sidebar-expanded">
               <span className="text-mx-micro font-black uppercase tracking-widest text-text-secondary">Trocar unidade</span>
-              <select
+              <select aria-label="Trocar unidade"
                 id="owner-store-select"
                 name="owner-store-select"
                 value={selectedStoreId || ''}

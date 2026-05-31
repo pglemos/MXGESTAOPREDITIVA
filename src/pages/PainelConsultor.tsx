@@ -338,11 +338,11 @@ export default function PainelConsultor() {
                                                 <div className="space-y-mx-md">
                                                     <div className="space-y-mx-xs">
                                                         <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest ml-1">Início</Typography>
-                                                        <Input type="date" value={customRange.start} onChange={e => setCustomRange(p => ({ ...p, start: e.target.value }))} className="!h-12 !px-4 uppercase font-black" />
+                                                        <Input aria-label="Início" type="date" value={customRange.start} onChange={e => setCustomRange(p => ({ ...p, start: e.target.value }))} className="!h-12 !px-4 uppercase font-black" />
                                                     </div>
                                                     <div className="space-y-mx-xs">
                                                         <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest ml-1">Fim</Typography>
-                                                        <Input type="date" value={customRange.end} onChange={e => setCustomRange(p => ({ ...p, end: e.target.value }))} className="!h-12 !px-4 uppercase font-black" />
+                                                        <Input aria-label="Fim" type="date" value={customRange.end} onChange={e => setCustomRange(p => ({ ...p, end: e.target.value }))} className="!h-12 !px-4 uppercase font-black" />
                                                     </div>
                                                     <Button onClick={() => { setTimeframe('personalizada'); setShowCustomPicker(false); fetchNetworkSnapshot() }} className="w-full h-mx-14 shadow-mx-lg font-black uppercase text-xs tracking-widest rounded-mx-xl">
                                                         APLICAR PERÍODO

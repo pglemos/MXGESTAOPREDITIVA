@@ -464,11 +464,11 @@ export function ConsultingStrategicView({ clientId, clientName = 'Cliente PMR' }
             </Select>
             <div className="space-y-mx-xs">
               <Typography as="label" htmlFor="pmr-result-date" variant="caption">Data</Typography>
-              <Input id="pmr-result-date" type="date" value={referenceDate} onChange={(event) => setReferenceDate(event.target.value)} />
+              <Input aria-label="Data" id="pmr-result-date" type="date" value={referenceDate} onChange={(event) => setReferenceDate(event.target.value)} />
             </div>
             <div className="space-y-mx-xs md:col-span-2">
               <Typography as="label" htmlFor="pmr-result-value" variant="caption">Valor realizado</Typography>
-              <Input id="pmr-result-value" type="number" step="0.01" value={resultValue} onChange={(event) => setResultValue(event.target.value)} />
+              <Input aria-label="Valor realizado" id="pmr-result-value" type="number" step="0.01" value={resultValue} onChange={(event) => setResultValue(event.target.value)} />
             </div>
             <div className="md:col-span-2 flex justify-end">
               <Button type="submit" size="sm" disabled={submitting}>SALVAR REALIZADO</Button>
@@ -490,11 +490,11 @@ export function ConsultingStrategicView({ clientId, clientName = 'Cliente PMR' }
             </Select>
             <div className="space-y-mx-xs">
               <Typography as="label" htmlFor="pmr-target-month" variant="caption">Mes</Typography>
-              <Input id="pmr-target-month" type="month" value={targetMonth} onChange={(event) => setTargetMonth(event.target.value)} />
+              <Input aria-label="Mes" id="pmr-target-month" type="month" value={targetMonth} onChange={(event) => setTargetMonth(event.target.value)} />
             </div>
             <div className="space-y-mx-xs md:col-span-2">
               <Typography as="label" htmlFor="pmr-target-value" variant="caption">Meta</Typography>
-              <Input id="pmr-target-value" type="number" step="0.01" value={targetValue} onChange={(event) => setTargetValue(event.target.value)} />
+              <Input aria-label="Meta" id="pmr-target-value" type="number" step="0.01" value={targetValue} onChange={(event) => setTargetValue(event.target.value)} />
             </div>
             <div className="md:col-span-2 flex justify-end">
               <Button type="submit" size="sm" disabled={submitting}>SALVAR META</Button>
