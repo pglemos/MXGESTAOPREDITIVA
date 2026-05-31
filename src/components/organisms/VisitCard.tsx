@@ -176,7 +176,7 @@ export function VisitCard({
                 <Trash2 size={14} />
               </Button>
             )}
-            <Link to={linkTo} aria-label={`Abrir visita de ${visit.client_name}`}>
+            <Link to={linkTo} aria-label={`Abrir visita de ${visit.client_name}`} className="inline-flex items-center justify-center min-h-11 min-w-11 rounded-mx-full">
               <ChevronRight size={18} className="text-text-tertiary group-hover:text-brand-primary transition-colors shrink-0" />
             </Link>
           </div>
