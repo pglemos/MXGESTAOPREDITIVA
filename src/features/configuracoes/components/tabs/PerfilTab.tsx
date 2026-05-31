@@ -130,6 +130,7 @@ export function PerfilTab() {
                         <Input
                             id="profile-email"
                             name="email"
+                            aria-label="E-mail corporativo"
                             value={profile?.email || ''}
                             disabled
                             className="!h-mx-14 px-6 font-bold opacity-50 bg-surface-alt"
@@ -155,6 +156,7 @@ export function PerfilTab() {
                         <Input
                             id="profile-role"
                             name="role"
+                            aria-label="Hierarquia / perfil de acesso"
                             value={role ? ROLE_LABELS[role] : ''}
                             disabled
                             className="!h-mx-14 px-6 font-bold opacity-50 bg-surface-alt"
