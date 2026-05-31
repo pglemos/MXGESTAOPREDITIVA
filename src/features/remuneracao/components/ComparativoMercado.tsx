@@ -48,6 +48,7 @@ export function ComparativoMercado({ lojaId }: { lojaId: string }) {
           </Field>
           <Field label="Tamanho da loja">
             <select
+              aria-label="Tamanho da loja"
               value={faixaTamanho}
               onChange={e => setFaixaTamanho(e.target.value)}
               className="w-full h-mx-14 px-mx-sm bg-white border border-border-default rounded-mx-xl font-black uppercase text-xs focus:outline-none focus:border-brand-primary appearance-none cursor-pointer"

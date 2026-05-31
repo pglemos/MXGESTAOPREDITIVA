@@ -130,7 +130,7 @@ export default function Perfil() {
                   {uploadingAvatar ? <RefreshCw size={24} className="animate-spin" /> : <Camera size={24} />}
                   <Typography variant="tiny" tone="white">{uploadingAvatar ? 'Enviando...' : 'ALTERAR'}</Typography>
                 </button>
-                <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" capture="user" onChange={handleAvatarUpload} className="hidden" />
+                <input aria-label="Selecionar arquivo" ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" capture="user" onChange={handleAvatarUpload} className="hidden" />
               </div>
 
               <div>

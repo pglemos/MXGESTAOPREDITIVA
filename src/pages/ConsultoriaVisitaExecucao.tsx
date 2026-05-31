@@ -851,7 +851,7 @@ export default function ConsultoriaVisitaExecucao() {
           <Card className="p-mx-lg border border-border-default shadow-mx-md rounded-mx-2xl bg-white">
             <div className="flex items-center justify-between mb-mx-md">
                <Typography variant="tiny" tone="muted" className="tracking-mx-widest text-mx-micro uppercase font-black">Evidências ({attachments.length})</Typography>
-               <input id="visit-evidence-upload" name="visit_evidence_upload" type="file" multiple className="hidden" ref={fileInputRef} onChange={handleFileUpload} accept="image/*,application/pdf" />
+               <input aria-label="Selecionar arquivo" id="visit-evidence-upload" name="visit_evidence_upload" type="file" multiple className="hidden" ref={fileInputRef} onChange={handleFileUpload} accept="image/*,application/pdf" />
                <Button size="sm" variant="secondary" onClick={() => fileInputRef.current?.click()} loading={isUploading} className="h-mx-10 font-black uppercase text-xs tracking-widest px-mx-md shadow-mx-sm" icon={<Plus size={14} />}>ADICIONAR</Button>
             </div>
 

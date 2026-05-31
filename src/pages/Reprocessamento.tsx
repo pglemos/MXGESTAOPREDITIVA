@@ -297,7 +297,7 @@ export default function Reprocessamento() {
                             <div className="space-y-mx-xs">
                                 <Typography variant="tiny" tone="white" className="ml-2 font-black uppercase tracking-widest text-mx-nano">Arquivo</Typography>
                                 <div className="relative group">
-                                    <input id="csv-upload" type="file" accept=".csv,text/csv" onChange={handleFileSelect} className="sr-only" />
+                                    <input aria-label="Selecionar arquivo" id="csv-upload" type="file" accept=".csv,text/csv" onChange={handleFileSelect} className="sr-only" />
                                     <label htmlFor="csv-upload" className={cn("flex flex-col items-center justify-center gap-mx-sm w-full min-h-24 border-2 border-dashed rounded-mx-2xl transition-all cursor-pointer", 
                                         file ? "bg-brand-primary/10 border-brand-primary/50" : "bg-white/5 border-white/10"
                                     )}>
