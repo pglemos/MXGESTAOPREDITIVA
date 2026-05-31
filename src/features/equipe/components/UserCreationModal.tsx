@@ -240,7 +240,8 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
                           <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-mx-widest">Papel na loja</Typography>
                           <div className="relative group">
                             <Shield size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors z-10 pointer-events-none" />
-                            <select 
+                            <select
+                              aria-label="Papel na loja"
                               id="new-user-role"
                               name="role"
                               value={formData.role} 
@@ -261,7 +262,8 @@ export function UserCreationModal({ isOpen, onClose, onSuccess, registerUser, st
                           <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-mx-widest">Loja vinculada</Typography>
                           <div className="relative group">
                             <Building2 size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors z-10 pointer-events-none" />
-                            <select 
+                            <select
+                              aria-label="Loja vinculada"
                               id="new-user-store"
                               name="store_id"
                               value={formData.store_id} 

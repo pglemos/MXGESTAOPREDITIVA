@@ -70,6 +70,21 @@ for (const f of files) {
             break
           }
         }
+        // fallback 1: ancestral <Field label="..."> fornece o rótulo
+        if (!label) {
+          let a = (isSelf ? node : node).parent
+          while (a) {
+            if (ts.isJsxElement(a) && tagText(a.openingElement) === 'Field') {
+              for (const p of a.openingElement.attributes.properties) {
+                if (ts.isJsxAttribute(p) && p.name.text === 'label' && p.initializer && ts.isStringLiteral(p.initializer)) label = p.initializer.text
+              }
+              break
+            }
+            a = a.parent
+          }
+        }
+        // fallback 2: input de arquivo sem rótulo
+        if (!label && ty === 'file') label = 'Selecionar arquivo'
         if (label) {
           // posição: logo após o nome da tag (tagName.end)
           inserts.push({ pos: opening.tagName.end, text: ` aria-label="${label.replace(/"/g, '')}"` })

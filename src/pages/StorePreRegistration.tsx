@@ -515,7 +515,7 @@ export default function StorePreRegistration() {
                       {step === 1 && (
                         <div className="mx-pre-field-stack">
                           <Field label="Loja" icon={Building2}>
-                            <input readOnly value={store?.name || ''} className="mx-public-input" />
+                            <input aria-label="Loja" readOnly value={store?.name || ''} className="mx-public-input" />
                           </Field>
                           <div>
                             <label htmlFor="prereg-segment" className="mx-public-label">Segmento</label>

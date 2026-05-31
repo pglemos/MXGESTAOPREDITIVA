@@ -363,7 +363,7 @@ export default function VendedorTreinamentos() {
                                 className="mt-mx-sm"
                             />
                         </div>
-                        <select value={suggestionTheme} onChange={(event) => setSuggestionTheme(event.target.value as DevelopmentTheme)} className="h-mx-xl rounded-mx-xl border border-border-default bg-surface-alt px-mx-md text-sm font-black uppercase">
+                        <select aria-label="Tema do treinamento sugerido" value={suggestionTheme} onChange={(event) => setSuggestionTheme(event.target.value as DevelopmentTheme)} className="h-mx-xl rounded-mx-xl border border-border-default bg-surface-alt px-mx-md text-sm font-black uppercase">
                             {DEVELOPMENT_THEMES.map(theme => <option key={theme.key} value={theme.key}>{theme.label}</option>)}
                         </select>
                         <Button onClick={handleSuggestContent} className="h-mx-xl rounded-mx-xl font-black uppercase">

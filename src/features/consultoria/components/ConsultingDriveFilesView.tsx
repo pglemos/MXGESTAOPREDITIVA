@@ -125,7 +125,7 @@ export function ConsultingDriveFilesView({ clientId, visits = [] }: { clientId: 
             <Button variant="primary" size="sm" onClick={() => inputRef.current?.click()} loading={uploading} icon={<UploadCloud />}>
               Enviar
             </Button>
-            <input ref={inputRef} type="file" multiple className="hidden" onChange={handleSelectFiles} />
+            <input aria-label="Selecionar arquivo" ref={inputRef} type="file" multiple className="hidden" onChange={handleSelectFiles} />
           </div>
         </div>
 

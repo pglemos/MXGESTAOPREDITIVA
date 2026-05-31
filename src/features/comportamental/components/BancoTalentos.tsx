@@ -57,6 +57,7 @@ export function BancoTalentos() {
           <Field label="Amostra (nº)"><Input inputMode="numeric" value={form.amostra_n} onChange={e => setForm(p => ({ ...p, amostra_n: e.target.value }))} placeholder="0" /></Field>
           <Field label="Loja (opcional)">
             <select
+              aria-label="Loja"
               value={form.loja_id}
               onChange={e => setForm(p => ({ ...p, loja_id: e.target.value }))}
               className="w-full h-mx-14 px-mx-sm bg-white border border-border-default rounded-mx-xl font-black uppercase text-xs focus:outline-none focus:border-brand-primary appearance-none cursor-pointer"
