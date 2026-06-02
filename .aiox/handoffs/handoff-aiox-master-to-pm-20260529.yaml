@@ -1,0 +1,32 @@
+handoff:
+  from_agent: "aiox-master"
+  to_agent: "pm"
+  last_command: "delegate *create-epic"
+  story_context:
+    story_id: "EPIC-MX-19 / EPIC-MX-20 / EPIC-MX-21"
+    story_path: "docs/roadmap/roadmap-fechamento-gap-mx-2026-05-28.md"
+    story_status: "Planning — epics a criar"
+    current_task: "create-epic (Fase 1 do Epic Flow)"
+    branch: "main"
+  decisions:
+    - "Usuário aprovou cadeia completa: @pm *create-epic → @sm *draft → @po *validate → @dev → @qa → @devops"
+    - "Escopo dos 3 epics vem do roadmap (sem invenção, Artigo IV): MX-19 Remuneração (N7), MX-20 Organograma+Carreira (N8), MX-21 Teste Comportamental+Banco de Talentos (N13)"
+    - "Roadmap posiciona os 3 como Sprint 4 — criar epics agora adianta planejamento; execução depende de schemas/engines anteriores"
+  epics_scope:
+    MX-19:
+      nome: "Sistema de Remuneração Inteligente"
+      delta: "N7"
+      escopo: "Cadastro do plano atual; comparativo abaixo/dentro/acima da média (parâmetros: região, tamanho, meta)"
+    MX-20:
+      nome: "Organograma + Plano de Carreira"
+      delta: "N8"
+      escopo: "Estrutura hierárquica visual; plano de carreira por cargo"
+    MX-21:
+      nome: "Teste Comportamental + Banco de Talentos"
+      delta: "N13"
+      escopo: "Aplicação de teste no onboarding; banco de perfis vencedores para contratações"
+  files_modified: []
+  blockers:
+    - "Confirmar se @pm gera EPIC-{ID}-EXECUTION.yaml para os 3 ou pilota MX-19 primeiro"
+  next_action: "@pm executa *create-epic para MX-19, MX-20, MX-21 usando escopo do roadmap"
+  consumed: true

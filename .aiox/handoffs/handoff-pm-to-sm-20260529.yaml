@@ -1,0 +1,23 @@
+handoff:
+  from_agent: "pm"
+  to_agent: "sm"
+  last_command: "create-epic"
+  story_context:
+    story_id: "EPIC-MX-19 / EPIC-MX-20 / EPIC-MX-21"
+    story_path: "docs/stories/epics/"
+    story_status: "Epics criados (Status: Draft) — prontos para draft de stories"
+    current_task: "draft (Fase 2 do SDC / Phase 1 Create do @sm)"
+    branch: "main"
+  decisions:
+    - "3 epics brownfield criados com escopo 100% rastreado ao roadmap 2026-05-28 (Article IV ok)"
+    - "Cada epic tem 3 stories planejadas com executor/quality_gate atribuídos (executor != quality_gate)"
+    - "Stories de schema → @data-engineer (QG @dev); UI → @dev/@ux (QG @architect/@dev)"
+    - "Dado sensível (salário, comportamental) exige RLS estrita via EPIC-MX-02 em toda story"
+  files_modified:
+    - "docs/stories/epics/epic-mx-19-remuneracao-inteligente-2026-05-29.md"
+    - "docs/stories/epics/epic-mx-20-organograma-plano-carreira-2026-05-29.md"
+    - "docs/stories/epics/epic-mx-21-teste-comportamental-banco-talentos-2026-05-29.md"
+  blockers:
+    - "Execução (não o draft) depende de schemas/engines de sprints anteriores — MX-19/20/21 são Sprint 4"
+  next_action: "@sm executa *draft para gerar {19,20,21}.{n}.story.md a partir dos epics, status Draft"
+  consumed: true

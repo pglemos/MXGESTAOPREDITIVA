@@ -25,6 +25,8 @@ node_modules
 
 # Build & Logs (AIOX)
 logs/
+output/
+.playwright-mcp/
 
 # IDE & OS (AIOX)
 Thumbs.db
@@ -42,4 +44,3 @@ scratch/
 
 # Storybook
 storybook-static
-
