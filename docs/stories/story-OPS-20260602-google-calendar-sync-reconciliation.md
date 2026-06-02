@@ -46,15 +46,21 @@ Auditoria somente leitura em 2026-06-02 encontrou 3 visitas canceladas ainda com
 - Upsert central e upsert de espelho pessoal deduplicam eventos Google pela origem `mx_source_kind` + `mx_source_id`.
 - CLI de reconciliacao lista eventos MX por calendario em janela configuravel e roda em dry-run por padrao.
 - Dry-run local rodou sem escrita, mas nao escaneou Google porque `GOOGLE_TOKEN_ENCRYPTION_SECRET` nao esta presente no ambiente; confirmou 1 grupo ambiguo no banco: PAAY em 2026-02-25T17:00:00+00:00.
+- Deploy remoto de `google-calendar-sync` aplicado no projeto Supabase `fbhcmzzgwjdgkctlfvbo`.
+- Validacao remota pos-deploy processou 3 visitas canceladas com vinculo Google; uma segunda rodada limpou 2 IDs pessoais legados orfaos. Resultado final: 0 visitas canceladas com `google_event_id`/`google_event_id_central`.
+- Re-sync remoto do Gandini executado com sucesso; funcao retornou `ok: true`, sem erros, e sem recriar espelho pessoal para Admin Master.
 
 ### Gates
 
 - [x] `npm run typecheck` - passed.
 - [x] `npm run lint` - passed.
 - [x] `npm test` - 384 passed.
+- [x] `npm run build` - passed.
 - [x] `deno check supabase/functions/google-calendar-sync/index.ts supabase/functions/_shared/google_calendar_sync_rules.ts` - passed.
 - [x] `bun test src/lib/agenda/google-calendar-sync-rules.test.ts src/lib/agenda/google-calendar-privacy.test.ts` - passed.
 - [x] `npx tsx scripts/reconcile_google_calendar_sync.ts --dry-run` - partial; Google calendars skipped because `GOOGLE_TOKEN_ENCRYPTION_SECRET` is missing locally.
+- [x] `npx supabase functions deploy google-calendar-sync` - deployed.
+- [x] Validacao remota com `x-google-calendar-sync-admin-token` - passed; canceladas com IDs Google: 2 antes da rodada final, 0 depois.
 - [x] `git diff --check` - passed.
 
 ### File List
