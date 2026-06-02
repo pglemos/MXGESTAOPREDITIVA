@@ -17,7 +17,7 @@ describe('google calendar sync rules', () => {
     expect(getEffectiveCalendarAction('delete', 'visit', 'agendada')).toBe('delete')
   })
 
-  test('excludes Admin Master users from personal mirrors', () => {
+  test('excludes MX administrators from personal mirrors', () => {
     const candidates = filterPersonalMirrorCandidates([
       {
         userId: 'admin-master',
@@ -39,6 +39,20 @@ describe('google calendar sync rules', () => {
         role: 'administrador_geral',
         profileEmail: 'admin@sistema.local',
         googleEmail: 'gestao@mxconsultoria.com.br',
+      },
+      {
+        userId: 'admin-mx',
+        name: 'Admin MX',
+        role: 'administrador_mx',
+        profileEmail: 'admin.mx@sistema.local',
+        googleEmail: 'admin.mx@gmail.com',
+      },
+      {
+        userId: 'admin-general-not-allowlisted',
+        name: 'Daniel',
+        role: 'administrador_geral',
+        profileEmail: 'danieljsvendas@gmail.com',
+        googleEmail: 'danieljsvendas@gmail.com',
       },
     ])
 

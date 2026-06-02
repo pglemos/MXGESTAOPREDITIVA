@@ -15,7 +15,7 @@ Auditoria somente leitura em 2026-06-02 encontrou 3 visitas canceladas ainda com
 - [x] `google-calendar-sync` remove do Google visitas/eventos com status cancelado e limpa IDs Google no banco.
 - [x] Responsavel/consultor atual recebe espelho pessoal via `espelhos_agenda_google_usuario`.
 - [x] Espelhos pessoais antigos sao removidos quando o responsavel/consultor deixa de estar relacionado ao evento.
-- [x] Admin Master MX nao recebe duplicata pessoal quando a Agenda Central ja e a fonte de leitura.
+- [x] Admin Master/Admin MX nao recebe duplicata pessoal quando a Agenda Central ja e a fonte de leitura.
 - [x] Duplicatas Google com mesma origem MX sao deduplicadas mantendo o ID canonico salvo no banco/espelho.
 - [x] CLI `scripts/reconcile_google_calendar_sync.ts` roda em dry-run por padrao e possui modo `--execute`.
 - [x] CLI remove eventos Google cancelados/duplicados e apenas reporta duplicidades ambiguas do banco.
@@ -28,7 +28,7 @@ Auditoria somente leitura em 2026-06-02 encontrou 3 visitas canceladas ainda com
 
 - [x] Admin MX: cancelamento/remove Google Calendar sem apagar historico no sistema.
 - [x] Consultor MX: troca de responsavel remove evento da agenda antiga e cria/atualiza na agenda correta.
-- [x] Admin Master MX: consulta usa Agenda Central sem duplicar espelho pessoal.
+- [x] Admin Master/Admin MX: consulta usa Agenda Central sem duplicar espelho pessoal.
 - [x] Operacao: CLI permite previsualizar e executar reconciliacao conservadora.
 
 ## Dev Agent Record
@@ -49,6 +49,8 @@ Auditoria somente leitura em 2026-06-02 encontrou 3 visitas canceladas ainda com
 - Deploy remoto de `google-calendar-sync` aplicado no projeto Supabase `fbhcmzzgwjdgkctlfvbo`.
 - Validacao remota pos-deploy processou 3 visitas canceladas com vinculo Google; uma segunda rodada limpou 2 IDs pessoais legados orfaos. Resultado final: 0 visitas canceladas com `google_event_id`/`google_event_id_central`.
 - Re-sync remoto do Gandini executado com sucesso; funcao retornou `ok: true`, sem erros, e sem recriar espelho pessoal para Admin Master.
+- Auditoria complementar encontrou 9 espelhos pessoais ativos para o usuario administrador Jose, todos com evento central salvo; regra ajustada para suprimir espelhos pessoais de `administrador_geral` e `administrador_mx`.
+- Deploy remoto v70 aplicado e os 9 espelhos pessoais administrativos foram reprocessados/removidos. Validacao final: 0 espelhos pessoais administrativos ativos e 0 visitas canceladas com IDs Google.
 
 ### Gates
 
@@ -58,9 +60,16 @@ Auditoria somente leitura em 2026-06-02 encontrou 3 visitas canceladas ainda com
 - [x] `npm run build` - passed.
 - [x] `deno check supabase/functions/google-calendar-sync/index.ts supabase/functions/_shared/google_calendar_sync_rules.ts` - passed.
 - [x] `bun test src/lib/agenda/google-calendar-sync-rules.test.ts src/lib/agenda/google-calendar-privacy.test.ts` - passed.
+- [x] `npm run typecheck` - passed apos correcao Admin MX.
+- [x] `npm run lint` - passed apos correcao Admin MX.
+- [x] `npm test` - 384 passed apos correcao Admin MX.
+- [x] `npm run build` - passed apos correcao Admin MX.
+- [x] `deno check supabase/functions/google-calendar-sync/index.ts supabase/functions/_shared/google_calendar_sync_rules.ts` - passed apos correcao Admin MX.
 - [x] `npx tsx scripts/reconcile_google_calendar_sync.ts --dry-run` - partial; Google calendars skipped because `GOOGLE_TOKEN_ENCRYPTION_SECRET` is missing locally.
 - [x] `npx supabase functions deploy google-calendar-sync` - deployed.
+- [x] `npx supabase functions deploy google-calendar-sync` - deployed v70 apos correcao Admin MX.
 - [x] Validacao remota com `x-google-calendar-sync-admin-token` - passed; canceladas com IDs Google: 2 antes da rodada final, 0 depois.
+- [x] Validacao remota Admin MX - passed; espelhos pessoais administrativos: 9 antes, 0 depois.
 - [x] `git diff --check` - passed.
 
 ### File List

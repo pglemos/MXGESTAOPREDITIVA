@@ -63,6 +63,8 @@ export function filterPersonalMirrorCandidates(
   rawAdminMasterEmails?: string | null,
 ): UserMirrorCandidate[] {
   return uniqueMirrorCandidates(candidates).filter((candidate) => {
+    if (candidate.role === "administrador_geral" || candidate.role === "administrador_mx") return false;
+
     const profileBySystemEmail: AgendaUserProfile = {
       role: candidate.role ?? null,
       email: candidate.profileEmail ?? null,
