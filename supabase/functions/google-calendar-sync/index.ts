@@ -9,12 +9,21 @@ import {
   refreshAccessToken,
   upsertGoogleEvent,
   deleteGoogleEvent,
+  googleApiRequest,
   getCentralCalendarAccessToken,
   CENTRAL_CALENDAR_ID,
   CENTRAL_CALENDAR_EMAIL,
   type GoogleEventInput,
 } from "../_shared/google.ts";
 import { buildRelatedUserIds } from "../_shared/google_calendar_privacy.ts";
+import {
+  filterPersonalMirrorCandidates,
+  getDuplicateGoogleEventIds,
+  getEffectiveCalendarAction,
+  getStaleMirrorRows,
+  uniqueMirrorCandidates,
+  type ExistingMirrorRow,
+} from "../_shared/google_calendar_sync_rules.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -368,7 +377,33 @@ type AdminMasterGoogleToken = UserGoogleToken & {
 type UserMirrorToken = UserGoogleToken & {
   userId: string;
   name?: string | null;
+  profileEmail?: string | null;
+  role?: string | null;
 };
+
+async function dedupeGoogleEventsBySource(
+  accessToken: string,
+  calendarId: string,
+  sourceKind: "visit" | "schedule_event",
+  sourceId: string,
+  preferredEventId: string | null,
+): Promise<number> {
+  const params = new URLSearchParams({ maxResults: "20", singleEvents: "true" });
+  params.append("privateExtendedProperty", `mx_source_kind=${sourceKind}`);
+  params.append("privateExtendedProperty", `mx_source_id=${sourceId}`);
+  const res = await googleApiRequest(
+    accessToken,
+    `/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?${params.toString()}`,
+  );
+  if (!res.ok) return 0;
+  const data = await res.json().catch(() => ({}));
+  const events = Array.isArray(data.items) ? data.items : [];
+  const duplicateIds = getDuplicateGoogleEventIds(events, new Set([preferredEventId].filter((id): id is string => Boolean(id))));
+  for (const duplicateId of duplicateIds) {
+    await deleteGoogleEvent(accessToken, calendarId, duplicateId);
+  }
+  return duplicateIds.length;
+}
 
 async function getUserAccessToken(dbClient: any, userId: string): Promise<UserGoogleToken> {
   const { data: tokenRow, error } = await dbClient
@@ -429,7 +464,7 @@ async function getRelatedUserPersonalTokens(adminClient: any, userIds: string[])
 
   const { data: users, error } = await adminClient
     .from("usuarios")
-    .select("id, name")
+    .select("id, name, email, role")
     .in("id", userIds)
     .eq("active", true);
   if (error) throw error;
@@ -442,20 +477,15 @@ async function getRelatedUserPersonalTokens(adminClient: any, userIds: string[])
       ...userToken,
       userId: user.id,
       name: user.name ?? null,
+      profileEmail: user.email ?? null,
+      role: user.role ?? null,
     });
   }
-  return tokens;
+  return filterPersonalMirrorCandidates(tokens, Deno.env.get("GOOGLE_CALENDAR_ADMIN_MASTER_EMAILS")) as UserMirrorToken[];
 }
 
 function uniqueMirrorTokens(tokens: UserMirrorToken[]): UserMirrorToken[] {
-  const seen = new Set<string>();
-  const unique: UserMirrorToken[] = [];
-  for (const token of tokens) {
-    if (seen.has(token.userId)) continue;
-    seen.add(token.userId);
-    unique.push(token);
-  }
-  return unique;
+  return uniqueMirrorCandidates(tokens) as UserMirrorToken[];
 }
 
 async function mirrorToUserCalendars(
@@ -466,8 +496,8 @@ async function mirrorToUserCalendars(
   payload: GoogleEventInput,
   action: "upsert" | "delete",
   excludedUserId?: string | null,
-): Promise<{ userId: string; ok: boolean; message?: string }[]> {
-  const results: { userId: string; ok: boolean; message?: string }[] = [];
+): Promise<{ userId: string; ok: boolean; googleEventId?: string | null; dedupedEvents?: number; message?: string }[]> {
+  const results: { userId: string; ok: boolean; googleEventId?: string | null; dedupedEvents?: number; message?: string }[] = [];
 
   for (const userToken of tokens) {
     if (excludedUserId && userToken.userId === excludedUserId) continue;
@@ -495,12 +525,13 @@ async function mirrorToUserCalendars(
             synced_at: new Date().toISOString(),
             sync_error: null,
           }, { onConflict: "user_id,source_kind,source_id" });
-        results.push({ userId: userToken.userId, ok: true });
+        results.push({ userId: userToken.userId, ok: true, googleEventId: null });
         continue;
       }
 
       if (!userToken.token) throw new Error("Google pessoal nao conectado");
       const googleEvent = await upsertGoogleEvent(userToken.token, "primary", payload, mirrorRow?.google_event_id ?? null);
+      const dedupedEvents = await dedupeGoogleEventsBySource(userToken.token, "primary", sourceKind, sourceId, googleEvent.id);
       await adminClient
         .from("espelhos_agenda_google_usuario")
         .upsert({
@@ -511,7 +542,7 @@ async function mirrorToUserCalendars(
           synced_at: new Date().toISOString(),
           sync_error: null,
         }, { onConflict: "user_id,source_kind,source_id" });
-      results.push({ userId: userToken.userId, ok: true });
+      results.push({ userId: userToken.userId, ok: true, googleEventId: googleEvent.id, dedupedEvents });
     } catch (e) {
       const message = e instanceof Error ? e.message : "mirror failed";
       await adminClient
@@ -529,6 +560,53 @@ async function mirrorToUserCalendars(
   }
 
   return results;
+}
+
+async function loadMirrorRowsForSource(
+  adminClient: any,
+  sourceKind: "visit" | "schedule_event",
+  sourceId: string,
+): Promise<ExistingMirrorRow[]> {
+  const { data, error } = await adminClient
+    .from("espelhos_agenda_google_usuario")
+    .select("user_id, google_event_id")
+    .eq("source_kind", sourceKind)
+    .eq("source_id", sourceId);
+  if (error) throw error;
+  return (data || []) as ExistingMirrorRow[];
+}
+
+async function deleteMirrorRows(
+  adminClient: any,
+  rows: ExistingMirrorRow[],
+  sourceKind: "visit" | "schedule_event",
+  sourceId: string,
+): Promise<{ deleted: number; warnings: string[] }> {
+  let deleted = 0;
+  const warnings: string[] = [];
+
+  for (const row of rows) {
+    try {
+      const userToken = await getUserAccessToken(adminClient, row.user_id);
+      if (row.google_event_id && userToken.token) {
+        await deleteGoogleEvent(userToken.token, "primary", row.google_event_id);
+      } else if (row.google_event_id) {
+        warnings.push(`Espelho sem token ativo para usuario ${row.user_id}`);
+      }
+      const { error } = await adminClient
+        .from("espelhos_agenda_google_usuario")
+        .delete()
+        .eq("user_id", row.user_id)
+        .eq("source_kind", sourceKind)
+        .eq("source_id", sourceId);
+      if (error) throw error;
+      deleted += 1;
+    } catch (e) {
+      warnings.push(e instanceof Error ? e.message : "Falha ao remover espelho antigo");
+    }
+  }
+
+  return { deleted, warnings };
 }
 
 Deno.serve(async (req) => {
@@ -559,7 +637,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const action: "upsert" | "delete" = body?.action === "delete" ? "delete" : "upsert";
+    const requestedAction: "upsert" | "delete" = body?.action === "delete" ? "delete" : "upsert";
     const mirrorOnly = body?.mirrorOnly === true;
     let visit: VisitInput | null = body?.visit ?? null;
     let scheduleEvent: ScheduleEventInput | null = body?.event ?? body?.scheduleEvent ?? null;
@@ -579,6 +657,8 @@ Deno.serve(async (req) => {
         scheduleEvent = await loadAuthorizedScheduleEvent(sessionClient, scheduleEvent.id);
       }
     }
+    const sourceStatus = syncKind === "schedule_event" ? scheduleEvent?.status ?? null : visit?.status ?? null;
+    const action = getEffectiveCalendarAction(requestedAction, syncKind, sourceStatus);
 
     const adminClient = createClient(
       requireEnv("SUPABASE_URL", SUPABASE_URL),
@@ -592,12 +672,9 @@ Deno.serve(async (req) => {
       ? await getUserAccessToken(adminClient, personalOwnerUserId)
       : { token: null };
     const centralToken = await getCentralCalendarAccessToken();
-    const personalMirrorAdminTokens = await getPersonalMirrorAdminTokens(adminClient);
     const relatedUserPersonalTokens = await getRelatedUserPersonalTokens(adminClient, getRelatedUserIds(syncKind, visit, scheduleEvent));
-    const mirrorTokens = uniqueMirrorTokens([
-      ...personalMirrorAdminTokens,
-      ...relatedUserPersonalTokens,
-    ]);
+    const mirrorTokens = uniqueMirrorTokens(relatedUserPersonalTokens);
+    const sourceId = syncKind === "schedule_event" ? scheduleEvent!.id : visit!.id;
 
     let personalEventId = syncKind === "schedule_event"
       ? scheduleEvent?.google_event_id_personal ?? null
@@ -614,7 +691,10 @@ Deno.serve(async (req) => {
       ? (syncKind === "schedule_event" ? scheduleEvent?.google_meet_link ?? null : visit?.google_meet_link ?? null)
       : null;
     const errors: { calendar: "personal" | "central"; message: string }[] = [];
-    let userMirrors: { userId: string; ok: boolean; message?: string }[] = [];
+    let userMirrors: { userId: string; ok: boolean; googleEventId?: string | null; dedupedEvents?: number; message?: string }[] = [];
+    let dedupedEvents = 0;
+    let staleMirrorsDeleted = 0;
+    const reconcileWarnings: string[] = [];
 
     if (action === "delete") {
       if (!mirrorOnly && personalToken.token && personalEventId) {
@@ -644,35 +724,19 @@ Deno.serve(async (req) => {
         ? buildEventPayload(visit)
         : null;
       if (mirrorPayload) {
-        userMirrors = await mirrorToUserCalendars(
-          adminClient,
-          mirrorTokens,
-          syncKind,
-          syncKind === "schedule_event" ? scheduleEvent!.id : visit!.id,
-          mirrorPayload,
-          "delete",
-          personalOwnerUserId,
-        );
+        const allMirrorRows = await loadMirrorRowsForSource(adminClient, syncKind, sourceId);
+        const mirrorDelete = await deleteMirrorRows(adminClient, allMirrorRows, syncKind, sourceId);
+        staleMirrorsDeleted += mirrorDelete.deleted;
+        reconcileWarnings.push(...mirrorDelete.warnings);
+        userMirrors = allMirrorRows.map((row) => ({ userId: row.user_id, ok: true, googleEventId: null }));
       }
     } else {
-      if (!mirrorOnly && syncKind === "visit" && visit && personalToken.token) {
+      if (!mirrorOnly && personalToken.token && personalEventId) {
         try {
-          const userPayload = buildEventPayload(visit);
-          const personalEvent = await upsertGoogleEvent(personalToken.token, "primary", userPayload, personalEventId);
-          personalEventId = personalEvent.id;
-          googleMeetLink = personalEvent.meetLink ?? googleMeetLink;
+          await deleteGoogleEvent(personalToken.token, "primary", personalEventId);
+          personalEventId = null;
         } catch (e) {
-          errors.push({ calendar: "personal", message: e instanceof Error ? e.message : "upsert failed" });
-        }
-      }
-      if (!mirrorOnly && syncKind === "schedule_event" && scheduleEvent && personalToken.token) {
-        try {
-          const userPayload = buildScheduleEventPayload(scheduleEvent);
-          const personalEvent = await upsertGoogleEvent(personalToken.token, "primary", userPayload, personalEventId);
-          personalEventId = personalEvent.id;
-          googleMeetLink = personalEvent.meetLink ?? googleMeetLink;
-        } catch (e) {
-          errors.push({ calendar: "personal", message: e instanceof Error ? e.message : "upsert failed" });
+          reconcileWarnings.push(e instanceof Error ? e.message : "Falha ao limpar evento pessoal legado");
         }
       }
       if (!mirrorOnly && centralToken) {
@@ -695,6 +759,7 @@ Deno.serve(async (req) => {
           const centralEvent = await upsertGoogleEvent(centralToken, CENTRAL_CALENDAR_ID, centralPayload, centralEventId);
           centralEventId = centralEvent.id;
           googleMeetLink = centralEvent.meetLink ?? googleMeetLink;
+          dedupedEvents += await dedupeGoogleEventsBySource(centralToken, CENTRAL_CALENDAR_ID, syncKind, sourceId, centralEvent.id);
         } catch (e) {
           errors.push({ calendar: "central", message: e instanceof Error ? e.message : "upsert failed" });
         }
@@ -708,15 +773,21 @@ Deno.serve(async (req) => {
         ? buildEventPayload(visit)
         : null;
       if (mirrorPayload) {
+        const existingMirrorRows = await loadMirrorRowsForSource(adminClient, syncKind, sourceId);
+        const staleRows = getStaleMirrorRows(existingMirrorRows, mirrorTokens.map((token) => token.userId));
+        const staleDelete = await deleteMirrorRows(adminClient, staleRows, syncKind, sourceId);
+        staleMirrorsDeleted += staleDelete.deleted;
+        reconcileWarnings.push(...staleDelete.warnings);
         userMirrors = await mirrorToUserCalendars(
           adminClient,
           mirrorTokens,
           syncKind,
-          syncKind === "schedule_event" ? scheduleEvent!.id : visit!.id,
+          sourceId,
           mirrorPayload,
           "upsert",
-          personalOwnerUserId,
+          null,
         );
+        dedupedEvents += userMirrors.reduce((total, mirror) => total + (mirror.dedupedEvents ?? 0), 0);
       }
     }
 
@@ -726,7 +797,7 @@ Deno.serve(async (req) => {
         .from("eventos_agenda_consultoria")
         .update({
           google_event_id: centralEventId,
-          google_event_id_personal: personalEventId,
+          google_event_id_personal: null,
           google_meet_link: googleMeetLink,
           google_synced_at: centralError ? null : new Date().toISOString(),
           google_sync_error: centralError?.message ?? null,
@@ -771,6 +842,9 @@ Deno.serve(async (req) => {
         centralConnected: Boolean(centralToken),
         userMirrors,
         adminMasterMirrors: userMirrors,
+        dedupedEvents,
+        staleMirrorsDeleted,
+        reconcileWarnings,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
