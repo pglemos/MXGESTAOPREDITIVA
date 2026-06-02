@@ -405,6 +405,24 @@ async function dedupeGoogleEventsBySource(
   return duplicateIds.length;
 }
 
+async function deleteGoogleEventIfPresent(
+  accessToken: string,
+  calendarId: string,
+  eventId: string,
+): Promise<"deleted" | "missing"> {
+  const res = await googleApiRequest(
+    accessToken,
+    `/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`,
+    { method: "DELETE" },
+  );
+  if (res.status === 404 || res.status === 410) return "missing";
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data?.error?.message || `Failed to delete event (${res.status})`);
+  }
+  return "deleted";
+}
+
 async function getUserAccessToken(dbClient: any, userId: string): Promise<UserGoogleToken> {
   const { data: tokenRow, error } = await dbClient
     .from("tokens_oauth_consultoria")
@@ -482,6 +500,40 @@ async function getRelatedUserPersonalTokens(adminClient: any, userIds: string[])
     });
   }
   return filterPersonalMirrorCandidates(tokens, Deno.env.get("GOOGLE_CALENDAR_ADMIN_MASTER_EMAILS")) as UserMirrorToken[];
+}
+
+async function deleteLegacyPersonalEventFromConnectedCalendars(
+  adminClient: any,
+  eventId: string,
+  preferredUserId?: string | null,
+): Promise<{ deleted: boolean; attempted: number; message?: string }> {
+  const { data: tokenOwners, error } = await adminClient
+    .from("tokens_oauth_consultoria")
+    .select("user_id")
+    .eq("provider", "google")
+    .not("user_id", "is", null);
+  if (error) throw error;
+
+  const orderedUserIds = Array.from(new Set([
+    preferredUserId,
+    ...((tokenOwners || []).map((row: { user_id?: string | null }) => row.user_id)),
+  ].filter((id): id is string => Boolean(id))));
+
+  let attempted = 0;
+  let lastMessage: string | undefined;
+  for (const userId of orderedUserIds) {
+    try {
+      const userToken = await getUserAccessToken(adminClient, userId);
+      if (!userToken.token) continue;
+      attempted += 1;
+      const result = await deleteGoogleEventIfPresent(userToken.token, "primary", eventId);
+      if (result === "deleted") return { deleted: true, attempted };
+    } catch (e) {
+      lastMessage = e instanceof Error ? e.message : "Falha ao remover evento pessoal legado";
+    }
+  }
+
+  return { deleted: false, attempted, message: lastMessage };
 }
 
 function uniqueMirrorTokens(tokens: UserMirrorToken[]): UserMirrorToken[] {
@@ -697,11 +749,15 @@ Deno.serve(async (req) => {
     const reconcileWarnings: string[] = [];
 
     if (action === "delete") {
-      if (!mirrorOnly && personalToken.token && personalEventId) {
+      if (!mirrorOnly && personalEventId) {
         try {
-          await deleteGoogleEvent(personalToken.token, "primary", personalEventId);
-          personalEventId = null;
-          googleMeetLink = null;
+          const legacyDelete = await deleteLegacyPersonalEventFromConnectedCalendars(adminClient, personalEventId, personalOwnerUserId);
+          if (legacyDelete.deleted) {
+            personalEventId = null;
+            googleMeetLink = null;
+          } else {
+            reconcileWarnings.push(legacyDelete.message || "Evento pessoal legado nao encontrado em contas conectadas");
+          }
         } catch (e) {
           errors.push({ calendar: "personal", message: e instanceof Error ? e.message : "delete failed" });
         }
@@ -731,10 +787,14 @@ Deno.serve(async (req) => {
         userMirrors = allMirrorRows.map((row) => ({ userId: row.user_id, ok: true, googleEventId: null }));
       }
     } else {
-      if (!mirrorOnly && personalToken.token && personalEventId) {
+      if (!mirrorOnly && personalEventId) {
         try {
-          await deleteGoogleEvent(personalToken.token, "primary", personalEventId);
-          personalEventId = null;
+          const legacyDelete = await deleteLegacyPersonalEventFromConnectedCalendars(adminClient, personalEventId, personalOwnerUserId);
+          if (legacyDelete.deleted) {
+            personalEventId = null;
+          } else {
+            reconcileWarnings.push(legacyDelete.message || "Evento pessoal legado nao encontrado em contas conectadas");
+          }
         } catch (e) {
           reconcileWarnings.push(e instanceof Error ? e.message : "Falha ao limpar evento pessoal legado");
         }
