@@ -752,9 +752,12 @@ Deno.serve(async (req) => {
       if (!mirrorOnly && personalEventId) {
         try {
           const legacyDelete = await deleteLegacyPersonalEventFromConnectedCalendars(adminClient, personalEventId, personalOwnerUserId);
-          if (legacyDelete.deleted) {
+          if (legacyDelete.deleted || legacyDelete.attempted > 0) {
             personalEventId = null;
             googleMeetLink = null;
+            if (!legacyDelete.deleted) {
+              reconcileWarnings.push("Evento pessoal legado nao encontrado em contas conectadas; ID local limpo como orfao");
+            }
           } else {
             reconcileWarnings.push(legacyDelete.message || "Evento pessoal legado nao encontrado em contas conectadas");
           }
@@ -790,8 +793,11 @@ Deno.serve(async (req) => {
       if (!mirrorOnly && personalEventId) {
         try {
           const legacyDelete = await deleteLegacyPersonalEventFromConnectedCalendars(adminClient, personalEventId, personalOwnerUserId);
-          if (legacyDelete.deleted) {
+          if (legacyDelete.deleted || legacyDelete.attempted > 0) {
             personalEventId = null;
+            if (!legacyDelete.deleted) {
+              reconcileWarnings.push("Evento pessoal legado nao encontrado em contas conectadas; ID local limpo como orfao");
+            }
           } else {
             reconcileWarnings.push(legacyDelete.message || "Evento pessoal legado nao encontrado em contas conectadas");
           }
