@@ -32,10 +32,11 @@ describe('route access matrix', () => {
   })
 
   it('allows leaders to manage remuneration while keeping sellers out', () => {
-    expect(canAccessPath('/remuneracao', 'administrador_mx')).toBe(true)
-    expect(canAccessPath('/remuneracao', 'dono')).toBe(true)
-    expect(canAccessPath('/remuneracao', 'gerente')).toBe(true)
-    expect(canAccessPath('/remuneracao', 'vendedor')).toBe(false)
+    expect(canAccessPath('/configuracoes/remuneracao', 'administrador_mx')).toBe(true)
+    expect(canAccessPath('/configuracoes/remuneracao', 'dono')).toBe(true)
+    expect(canAccessPath('/configuracoes/remuneracao', 'gerente')).toBe(true)
+    expect(canAccessPath('/configuracoes/remuneracao', 'vendedor')).toBe(false)
+    expect(getRouteAccessRule('/remuneracao')).toBeNull()
   })
 
   it('keeps daily launch restricted to the vendedor operating flow while allowing /home as role entrypoint', () => {

@@ -31,7 +31,6 @@ const TrilhasVendedor = lazy(() => import('@/features/vendedor-home/TrilhasVende
 const FunilVendasGerente = lazy(() => import('@/features/gerente/FunilVendasGerente'))
 const MetasGerente = lazy(() => import('@/features/gerente/MetasGerente'))
 const FalarConsultorDono = lazy(() => import('@/features/dono/FalarConsultorDono'))
-const Remuneracao = lazy(() => import('@/features/remuneracao/RemuneracaoPage'))
 const Organograma = lazy(() => import('@/features/organograma/OrganogramaPage'))
 const Comportamental = lazy(() => import('@/features/comportamental/ComportamentalPage'))
 const Notificacoes = lazy(() => import('@/pages/Notificacoes'))
@@ -248,9 +247,6 @@ export default function App() {
             <Route path="falar-consultor" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<ForbiddenRoute />} gerente={<FalarConsultorDono />} dono={<FalarConsultorDono />} admin={<ForbiddenRoute />} />
             </Suspense>} />
-            <Route path="remuneracao" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<ForbiddenRoute />} gerente={<Remuneracao />} dono={<Remuneracao />} admin={<Remuneracao />} />
-            </Suspense>} />
             <Route path="organograma" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<ForbiddenRoute />} gerente={<ForbiddenRoute />} dono={<Organograma />} admin={<Organograma />} />
             </Suspense>} />
@@ -307,6 +303,7 @@ export default function App() {
 
             <Route path="produtos" element={<Suspense fallback={<Spinner />}><ProdutosDigitais /></Suspense>} />
             <Route path="configuracoes" element={<Suspense fallback={<Spinner />}><Configuracoes /></Suspense>} />
+            <Route path="configuracoes/remuneracao" element={<Suspense fallback={<Spinner />}><Configuracoes initialTab="remuneracao" /></Suspense>} />
             <Route path="configuracoes/operacional" element={<Suspense fallback={<Spinner />}><OperationalSettings /></Suspense>} />
             <Route path="configuracoes/consultoria-pmr" element={<Suspense fallback={<Spinner />}><ConsultoriaParametros /></Suspense>} />
             <Route path="configuracoes/reprocessamento" element={<Suspense fallback={<Spinner />}>

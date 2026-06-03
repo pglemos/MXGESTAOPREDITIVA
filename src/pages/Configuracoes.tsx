@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react'
-import { Link, Navigate, useSearchParams } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { Eye, LogOut, Settings, ShieldCheck, SlidersHorizontal, Building2, FolderTree } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/atoms/Button'
@@ -23,12 +23,17 @@ function isConfigTabKey(value: string | null): value is ConfigTabKey {
     return Boolean(value && TAB_REGISTRY.some(tab => tab.key === value))
 }
 
-export default function Configuracoes() {
+interface ConfiguracoesProps {
+    initialTab?: ConfigTabKey
+}
+
+export default function Configuracoes({ initialTab }: ConfiguracoesProps) {
     const { role, profile, signOut } = useAuth()
+    const navigate = useNavigate()
     const [searchParams, setSearchParams] = useSearchParams()
     const visibleTabs = useMemo(() => getVisibleTabs(role), [role])
 
-    const requestedTab = searchParams.get('aba')
+    const requestedTab = initialTab || searchParams.get('aba')
     const activeTab = useMemo(() => {
         if (isConfigTabKey(requestedTab) && visibleTabs.some(tab => tab.key === requestedTab)) return requestedTab
         return visibleTabs[0]?.key
@@ -36,10 +41,15 @@ export default function Configuracoes() {
 
     useEffect(() => {
         if (!activeTab) return
+        if (!initialTab && requestedTab === 'remuneracao') {
+            navigate('/configuracoes/remuneracao', { replace: true })
+            return
+        }
+        if (initialTab) return
         if (requestedTab !== activeTab) {
             setSearchParams({ aba: activeTab }, { replace: true })
         }
-    }, [activeTab, requestedTab, setSearchParams])
+    }, [activeTab, initialTab, navigate, requestedTab, setSearchParams])
 
     if (!visibleTabs.length || !activeTab) {
         return <Navigate to="/home" replace />
@@ -51,7 +61,11 @@ export default function Configuracoes() {
     const ActiveIcon = activeDefinition.icon
 
     const handleSelectTab = (tab: ConfigTabKey) => {
-        setSearchParams({ aba: tab })
+        if (tab === 'remuneracao') {
+            navigate('/configuracoes/remuneracao')
+            return
+        }
+        navigate(`/configuracoes?aba=${tab}`)
     }
 
     return (

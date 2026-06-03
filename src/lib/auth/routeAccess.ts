@@ -41,7 +41,6 @@ export const ROUTE_ACCESS_RULES = [
   { pattern: '/funil-vendas', roles: ['gerente', 'dono'] },
   { pattern: '/metas', roles: ['gerente', 'dono'] },
   { pattern: '/falar-consultor', roles: ['gerente', 'dono'] },
-  { pattern: '/remuneracao', roles: INTERNAL_AND_LEADERS },
   { pattern: '/organograma', roles: INTERNAL_AND_OWNER },
   { pattern: '/banco-talentos', roles: INTERNAL_AND_OWNER },
   { pattern: '/ajuda', roles: ['vendedor'] },
@@ -54,6 +53,7 @@ export const ROUTE_ACCESS_RULES = [
   { pattern: '/pdi/:id/print', roles: PDI_PRINT_ROLES, capability: 'print_pdi' },
   { pattern: '/pdi', roles: USER_ROLES },
   { pattern: '/produtos', roles: PRODUCT_ROLES, capability: 'view_products' },
+  { pattern: '/configuracoes/remuneracao', roles: INTERNAL_AND_LEADERS },
   { pattern: '/configuracoes', roles: CONFIGURATION_ROLES, capability: 'view_configurations' },
 ] as const satisfies readonly RouteRule[]
 
