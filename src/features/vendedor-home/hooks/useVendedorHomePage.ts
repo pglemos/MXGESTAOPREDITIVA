@@ -9,6 +9,7 @@ import { useTacticalPrescription } from '@/hooks/useTacticalPrescription'
 import { useSellerMetrics } from '@/hooks/useSellerMetrics'
 import { formatWhatsAppMorningReport } from '@/lib/calculations'
 import { calculateDailyRoutineDiscipline } from '@/lib/daily-routine'
+import { useRemuneracaoEstimadaVendedor } from '@/features/remuneracao/hooks/useRemuneracao'
 
 /**
  * Hook agregador do VendedorHome — centraliza fetching, metrics derivadas,
@@ -18,7 +19,7 @@ import { calculateDailyRoutineDiscipline } from '@/lib/daily-routine'
  * (UX-001) seguindo ADR-0050.
  */
 export function useVendedorHomePage() {
-  const { profile } = useAuth()
+  const { profile, storeId } = useAuth()
   const {
     checkins,
     todayCheckin,
@@ -51,6 +52,12 @@ export function useVendedorHomePage() {
     storeGoal,
     ranking,
     projectionMode: storeGoal?.projection_mode,
+  })
+  const { estimativa: remuneracaoEstimada, loading: remunerationLoading, error: remunerationError } = useRemuneracaoEstimadaVendedor({
+    lojaId: storeId,
+    cargo: 'Vendedor',
+    vendasConsideradas: metrics?.projecao || metrics?.vendasMes || 0,
+    meta: metrics?.meta || 0,
   })
 
   const referenceDateLabel = useMemo(() => {
@@ -136,7 +143,7 @@ export function useVendedorHomePage() {
   }, [metrics, profile, referenceCheckin, referenceDateLabel])
 
   const isLoading =
-    checkisLoading || goalsLoading || rankingLoading || trainingsLoading || feedbacksLoading || !metrics
+    checkisLoading || goalsLoading || rankingLoading || trainingsLoading || feedbacksLoading || remunerationLoading || !metrics
 
   return {
     profile,
@@ -146,6 +153,8 @@ export function useVendedorHomePage() {
     treinamentos,
     devolutivas,
     todayCheckin,
+    remuneracaoEstimada,
+    remunerationError,
     isLancamentoGateLocked,
     tacticalPrescription,
     discipline,

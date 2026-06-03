@@ -5,6 +5,7 @@ import {
     Users,
     Building2,
     SlidersHorizontal,
+    Wallet,
     Sparkles,
     FolderTree,
     Megaphone,
@@ -26,6 +27,7 @@ import { BroadcastsTab } from './components/tabs/BroadcastsTab'
 import { IntegracoesTab } from './components/tabs/IntegracoesTab'
 import { SistemaMxTab } from './components/tabs/SistemaMxTab'
 import { AparenciaTab } from './components/tabs/AparenciaTab'
+import RemuneracaoPage from '@/features/remuneracao/RemuneracaoPage'
 
 export const TAB_REGISTRY: ConfigTabDefinition[] = [
     {
@@ -83,6 +85,15 @@ export const TAB_REGISTRY: ConfigTabDefinition[] = [
         component: OperacionalLojaTab,
         roles: ['administrador_geral', 'administrador_mx', 'consultor_mx', 'dono'],
         readOnlyRoles: ['consultor_mx', 'dono'],
+        section: 'gestao',
+    },
+    {
+        key: 'remuneracao',
+        label: 'Remuneração',
+        description: 'Salários, comissão e bônus',
+        icon: Wallet,
+        component: RemuneracaoPage,
+        roles: ['administrador_geral', 'administrador_mx', 'dono', 'gerente'],
         section: 'gestao',
     },
     {

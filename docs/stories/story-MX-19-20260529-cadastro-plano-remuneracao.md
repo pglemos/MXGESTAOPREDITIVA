@@ -8,8 +8,18 @@
 
 - `src/features/remuneracao/hooks/useRemuneracao.ts` (criado) — hooks de planos/benchmark/lojas + cálculo.
 - `src/features/remuneracao/components/CadastroPlanos.tsx` (criado) — form + tabela de planos por cargo.
+- `src/features/remuneracao/components/CadastroRegras.tsx` (criado) — form + tabela de regras de comissão/bônus por cargo.
 - `src/features/remuneracao/RemuneracaoPage.tsx` (criado) — página + seletor de loja + abas.
-- `src/App.tsx` (editado) — rota `/remuneracao` (RoleSwitch dono/admin).
+- `src/features/configuracoes/tabRegistry.ts` (editado) — registra Remuneração no sidebar de Configurações.
+- `src/features/configuracoes/types.ts` (editado) — adiciona chave de aba `remuneracao`.
+- `src/App.tsx` (editado) — rota `/remuneracao` (RoleSwitch gerente/dono/admin).
+- `src/features/remuneracao/lib/comparativo.ts` (editado) — cálculo de remuneração estimada por plano + regras.
+- `src/features/remuneracao/lib/comparativo.test.ts` (editado) — cobertura TDD para comissão/bônus estimados.
+- `src/lib/auth/capabilities.ts` (editado) — libera Configurações para gerente.
+- `src/lib/auth/routeAccess.ts` (editado) — libera `/remuneracao` para gerente.
+- `src/lib/auth/routeAccess.test.ts` (editado) — cobre acesso gerente/dono/admin e bloqueio vendedor.
+- `src/types/database.generated.ts` (editado) — tipos de `remuneracao_regras`.
+- `supabase/migrations/20260603120000_mx19_regras_remuneracao_vendedor.sql` (criado) — tabela de regras, enum, RLS por loja/cargo.
 
 ## Story
 
@@ -65,3 +75,27 @@ Captura estruturada do plano atual — pré-requisito para qualquer análise de 
 - [ ] Route guard testado por perfil.
 - [ ] Lint + typecheck verdes.
 - [ ] Sem regressão na navegação de Pessoas.
+
+## Dev Agent Record
+
+### Debug Log
+
+- 2026-06-03 | @dev (Dex) | TDD: `comparativo.test.ts` falhou primeiro por ausência de `calcularRemuneracaoEstimada`; `routeAccess.test.ts` falhou primeiro porque gerente ainda não acessava `/remuneracao`.
+- 2026-06-03 | @dev (Dex) | Implementadas regras de remuneração (`comissao_por_venda`, `bonus_meta`) com RLS por loja/cargo e hook para salário estimado do vendedor.
+- 2026-06-03 | @dev (Dex) | Smoke local em `http://localhost:3002/remuneracao` com dev bypass gerente renderizou a página protegida; sem sessão Supabase real, listas remotas ficaram vazias por RLS/autenticação.
+- 2026-06-03 | @dev (Dex) | Migration SQL aplicada no projeto Supabase linkado via `supabase db query --linked --file`; após retry do pooler, `migration repair --linked --status applied 20260603120000` concluiu.
+- 2026-06-03 | @dev (Dex) | Aba Remuneração adicionada ao sidebar de `/configuracoes`; smoke local com dev bypass validou gerente, dono e administrador_mx em `/configuracoes?aba=remuneracao`.
+
+### Completion Notes
+
+- `/remuneracao` agora possui aba "Regras e bônus" para cadastrar comissão por venda e bônus por atingimento de meta.
+- Home do vendedor deixou de usar multiplicador hardcoded e passa a exibir "Salário Estimado" quando existe plano real para `Vendedor`; sem plano, exibe estado pendente.
+- Gerente foi liberado no guard de rota e no `RoleSwitch`; vendedor permanece bloqueado na tela administrativa.
+- `/configuracoes?aba=remuneracao` agora mostra Remuneração no sidebar de Configurações para gerente, dono e admin MX.
+- Gates executados: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`.
+- Banco remoto: `public.remuneracao_regras` confirmado por `to_regclass`; `migration repair` marcou `20260603120000` como aplicada. `migration list` final ficou instável por circuit breaker/SASL do pooler.
+
+### Change Log
+
+- 2026-06-03: Adicionadas regras de comissão/bônus, cálculo real de salário estimado do vendedor e liberação controlada de `/remuneracao` para gerente.
+- 2026-06-03: Remuneração registrada no sidebar de Configurações e `/configuracoes` liberado ao gerente conforme escopo visível por perfil.

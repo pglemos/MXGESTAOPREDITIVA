@@ -4,13 +4,15 @@ import { PageHeader } from '@/components/molecules/PageHeader'
 import { TabNav, type TabNavItem } from '@/components/molecules/TabNav'
 import { EmptyState } from '@/components/atoms/EmptyState'
 import { CadastroPlanos } from './components/CadastroPlanos'
+import { CadastroRegras } from './components/CadastroRegras'
 import { ComparativoMercado } from './components/ComparativoMercado'
 import { useLojasDoUsuario } from './hooks/useRemuneracao'
 
-type TabKey = 'cadastro' | 'comparativo'
+type TabKey = 'cadastro' | 'regras' | 'comparativo'
 
 const TABS: TabNavItem<TabKey>[] = [
   { key: 'cadastro', label: 'Plano atual' },
+  { key: 'regras', label: 'Regras e bônus' },
   { key: 'comparativo', label: 'Comparativo de mercado' },
 ]
 
@@ -51,9 +53,9 @@ export default function RemuneracaoPage() {
       ) : (
         <>
           <TabNav tabs={TABS} activeTab={tab} onTabChange={setTab} />
-          {tab === 'cadastro'
-            ? <CadastroPlanos lojaId={lojaSelecionada} />
-            : <ComparativoMercado lojaId={lojaSelecionada} />}
+          {tab === 'cadastro' && <CadastroPlanos lojaId={lojaSelecionada} />}
+          {tab === 'regras' && <CadastroRegras lojaId={lojaSelecionada} />}
+          {tab === 'comparativo' && <ComparativoMercado lojaId={lojaSelecionada} />}
         </>
       )}
     </div>

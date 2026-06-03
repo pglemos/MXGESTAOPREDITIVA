@@ -3,6 +3,9 @@ import type { Database } from '@/types/database.generated'
 export type RemuneracaoPlano = Database['public']['Tables']['remuneracao_planos']['Row']
 export type RemuneracaoPlanoInsert = Database['public']['Tables']['remuneracao_planos']['Insert']
 export type RemuneracaoBenchmark = Database['public']['Tables']['remuneracao_benchmark']['Row']
+export type RemuneracaoRegra = Database['public']['Tables']['remuneracao_regras']['Row']
+export type RemuneracaoRegraInsert = Database['public']['Tables']['remuneracao_regras']['Insert']
+export type RemuneracaoRegraTipo = Database['public']['Enums']['remuneracao_regra_tipo']
 
 export type Classificacao = 'abaixo' | 'dentro' | 'acima' | 'sem_referencia'
 
@@ -11,6 +14,24 @@ export interface ComparativoLinha {
   total: number
   classificacao: Classificacao
   faixa?: { min: number; mediana: number; max: number; fonte: string; data: string }
+}
+
+export interface RemuneracaoEstimadaInput {
+  plano: RemuneracaoPlano | null
+  regras: RemuneracaoRegra[]
+  vendasConsideradas: number
+  meta: number
+}
+
+export interface RemuneracaoEstimadaResultado {
+  disponivel: boolean
+  cargo: string | null
+  base: number
+  comissao: number
+  bonus: number
+  total: number
+  vendasConsideradas: number
+  atingimentoPercentual: number
 }
 
 /** Total mensal de um plano (fixo + variável + benefícios). */
@@ -39,4 +60,50 @@ export function montarComparativo(
       faixa: { min, mediana, max, fonte: b.fonte, data: b.data_referencia },
     }
   })
+}
+
+export function calcularRemuneracaoEstimada({
+  plano,
+  regras,
+  vendasConsideradas,
+  meta,
+}: RemuneracaoEstimadaInput): RemuneracaoEstimadaResultado {
+  const vendas = Math.max(Number(vendasConsideradas || 0), 0)
+  const metaMensal = Math.max(Number(meta || 0), 0)
+  const atingimentoPercentual = metaMensal > 0 ? Math.round((vendas / metaMensal) * 100) : 0
+
+  if (!plano) {
+    return {
+      disponivel: false,
+      cargo: null,
+      base: 0,
+      comissao: 0,
+      bonus: 0,
+      total: 0,
+      vendasConsideradas: vendas,
+      atingimentoPercentual,
+    }
+  }
+
+  const regrasAtivas = regras.filter((regra) => regra.ativo !== false)
+  const base = totalPlano(plano)
+  const comissao = regrasAtivas
+    .filter((regra) => regra.tipo === 'comissao_por_venda')
+    .reduce((acc, regra) => acc + vendas * Number(regra.valor || 0), 0)
+  const bonus = regrasAtivas
+    .filter((regra) => regra.tipo === 'bonus_meta')
+    .filter((regra) => atingimentoPercentual >= Number(regra.percentual_meta_min || 0))
+    .reduce((acc, regra) => acc + Number(regra.valor || 0), 0)
+  const total = base + comissao + bonus
+
+  return {
+    disponivel: true,
+    cargo: plano.cargo,
+    base,
+    comissao,
+    bonus,
+    total,
+    vendasConsideradas: vendas,
+    atingimentoPercentual,
+  }
 }

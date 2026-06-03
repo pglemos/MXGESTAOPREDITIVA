@@ -8,6 +8,7 @@ export type ConfigTabKey =
     | 'equipe-usuarios'
     | 'lojas-rede'
     | 'operacional-loja'
+    | 'remuneracao'
     | 'consultoria-pmr'
     | 'catalogos'
     | 'broadcasts'

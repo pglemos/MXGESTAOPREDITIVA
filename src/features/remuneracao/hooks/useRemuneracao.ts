@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
 export { useLojasDoUsuario, type LojaOption } from '@/hooks/useLojasDoUsuario'
@@ -8,10 +8,22 @@ export {
   type RemuneracaoPlano,
   type RemuneracaoPlanoInsert,
   type RemuneracaoBenchmark,
+  type RemuneracaoRegra,
+  type RemuneracaoRegraInsert,
+  type RemuneracaoRegraTipo,
+  type RemuneracaoEstimadaResultado,
   type Classificacao,
   type ComparativoLinha,
 } from '../lib/comparativo'
-import type { RemuneracaoPlano, RemuneracaoPlanoInsert, RemuneracaoBenchmark } from '../lib/comparativo'
+import {
+  calcularRemuneracaoEstimada,
+  type RemuneracaoPlano,
+  type RemuneracaoPlanoInsert,
+  type RemuneracaoBenchmark,
+  type RemuneracaoRegra,
+  type RemuneracaoRegraInsert,
+  type RemuneracaoEstimadaResultado,
+} from '../lib/comparativo'
 
 /** Planos de remuneração de uma loja + mutations. */
 export function usePlanosRemuneracao(lojaId: string | null) {
@@ -52,6 +64,116 @@ export function usePlanosRemuneracao(lojaId: string | null) {
   }, [reload])
 
   return { planos, loading, error, reload, salvarPlano, removerPlano }
+}
+
+/** Regras de comissão/bônus de uma loja + mutations. */
+export function useRegrasRemuneracao(lojaId: string | null) {
+  const [regras, setRegras] = useState<RemuneracaoRegra[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const reload = useCallback(async () => {
+    if (!lojaId) { setRegras([]); return }
+    setLoading(true)
+    setError(null)
+    const { data, error } = await supabase
+      .from('remuneracao_regras')
+      .select('*')
+      .eq('loja_id', lojaId)
+      .order('cargo')
+      .order('tipo')
+      .order('percentual_meta_min', { ascending: true, nullsFirst: true })
+    if (error) setError(error.message)
+    else setRegras((data ?? []) as RemuneracaoRegra[])
+    setLoading(false)
+  }, [lojaId])
+
+  useEffect(() => { void reload() }, [reload])
+
+  const salvarRegra = useCallback(async (input: RemuneracaoRegraInsert) => {
+    const { error } = await supabase.from('remuneracao_regras').insert(input)
+    if (error) return { error: error.message }
+    await reload()
+    return { error: null }
+  }, [reload])
+
+  const removerRegra = useCallback(async (id: string) => {
+    const { error } = await supabase.from('remuneracao_regras').delete().eq('id', id)
+    if (error) return { error: error.message }
+    await reload()
+    return { error: null }
+  }, [reload])
+
+  return { regras, loading, error, reload, salvarRegra, removerRegra }
+}
+
+export function useRemuneracaoEstimadaVendedor(params: {
+  lojaId: string | null
+  cargo?: string
+  vendasConsideradas: number
+  meta: number
+}) {
+  const cargo = params.cargo || 'Vendedor'
+  const [plano, setPlano] = useState<RemuneracaoPlano | null>(null)
+  const [regras, setRegras] = useState<RemuneracaoRegra[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      if (!params.lojaId) {
+        setPlano(null)
+        setRegras([])
+        setError(null)
+        return
+      }
+
+      setLoading(true)
+      setError(null)
+      const today = new Date().toISOString().slice(0, 10)
+      const [planosRes, regrasRes] = await Promise.all([
+        supabase
+          .from('remuneracao_planos')
+          .select('*')
+          .eq('loja_id', params.lojaId)
+          .ilike('cargo', cargo)
+          .lte('vigencia_inicio', today)
+          .order('vigencia_inicio', { ascending: false })
+          .limit(1),
+        supabase
+          .from('remuneracao_regras')
+          .select('*')
+          .eq('loja_id', params.lojaId)
+          .ilike('cargo', cargo)
+          .eq('ativo', true)
+          .lte('vigencia_inicio', today)
+          .order('tipo')
+          .order('percentual_meta_min', { ascending: true, nullsFirst: true }),
+      ])
+      if (!alive) return
+
+      if (planosRes.error || regrasRes.error) {
+        setPlano(null)
+        setRegras([])
+        setError(planosRes.error?.message || regrasRes.error?.message || 'Erro ao carregar remuneração.')
+      } else {
+        setPlano(((planosRes.data ?? [])[0] ?? null) as RemuneracaoPlano | null)
+        setRegras((regrasRes.data ?? []) as RemuneracaoRegra[])
+      }
+      setLoading(false)
+    })()
+    return () => { alive = false }
+  }, [cargo, params.lojaId])
+
+  const estimativa = useMemo<RemuneracaoEstimadaResultado>(() => calcularRemuneracaoEstimada({
+    plano,
+    regras,
+    vendasConsideradas: params.vendasConsideradas,
+    meta: params.meta,
+  }), [plano, regras, params.vendasConsideradas, params.meta])
+
+  return { estimativa, plano, regras, loading, error }
 }
 
 /** Benchmark de mercado filtrado por parâmetros (região/tamanho/meta). */

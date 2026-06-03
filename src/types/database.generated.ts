@@ -6218,6 +6218,66 @@ export type Database = {
           },
         ]
       }
+      remuneracao_regras: {
+        Row: {
+          ativo: boolean
+          cargo: string
+          created_at: string
+          created_by: string | null
+          id: string
+          loja_id: string
+          observacoes: string | null
+          percentual_meta_min: number | null
+          tipo: Database["public"]["Enums"]["remuneracao_regra_tipo"]
+          updated_at: string
+          valor: number
+          vigencia_inicio: string
+        }
+        Insert: {
+          ativo?: boolean
+          cargo: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          loja_id: string
+          observacoes?: string | null
+          percentual_meta_min?: number | null
+          tipo: Database["public"]["Enums"]["remuneracao_regra_tipo"]
+          updated_at?: string
+          valor?: number
+          vigencia_inicio?: string
+        }
+        Update: {
+          ativo?: boolean
+          cargo?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          loja_id?: string
+          observacoes?: string | null
+          percentual_meta_min?: number | null
+          tipo?: Database["public"]["Enums"]["remuneracao_regra_tipo"]
+          updated_at?: string
+          valor?: number
+          vigencia_inicio?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "remuneracao_regras_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "remuneracao_regras_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       report_history: {
         Row: {
           ai_insight: string | null
@@ -8802,6 +8862,7 @@ export type Database = {
         | "dentro"
         | "acima"
         | "sem_referencia"
+      remuneracao_regra_tipo: "comissao_por_venda" | "bonus_meta"
       score_band: "elite" | "excellent" | "good" | "attention" | "critical"
       score_dimension: "resultado" | "processo" | "disciplina"
       score_scope_type: "store" | "department" | "individual" | "process"

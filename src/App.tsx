@@ -249,7 +249,7 @@ export default function App() {
               <RoleSwitch vendedor={<ForbiddenRoute />} gerente={<FalarConsultorDono />} dono={<FalarConsultorDono />} admin={<ForbiddenRoute />} />
             </Suspense>} />
             <Route path="remuneracao" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<ForbiddenRoute />} gerente={<ForbiddenRoute />} dono={<Remuneracao />} admin={<Remuneracao />} />
+              <RoleSwitch vendedor={<ForbiddenRoute />} gerente={<Remuneracao />} dono={<Remuneracao />} admin={<Remuneracao />} />
             </Suspense>} />
             <Route path="organograma" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<ForbiddenRoute />} gerente={<ForbiddenRoute />} dono={<Organograma />} admin={<Organograma />} />

@@ -23,7 +23,7 @@ export type Capability =
   | 'viewConfigurations'
   | 'viewRanking'
 
-export const CONFIGURATION_ROLES: readonly UserRole[] = ['administrador_geral', 'administrador_mx', 'consultor_mx', 'dono']
+export const CONFIGURATION_ROLES: readonly UserRole[] = ['administrador_geral', 'administrador_mx', 'consultor_mx', 'dono', 'gerente']
 export const PRODUCT_ROLES: readonly UserRole[] = ['administrador_geral', 'administrador_mx', 'consultor_mx', 'dono', 'gerente']
 export const PDI_PRINT_ROLES: readonly UserRole[] = ['administrador_geral', 'administrador_mx', 'consultor_mx', 'dono', 'gerente']
 export const RANKING_ROLES: readonly UserRole[] = ['administrador_geral', 'administrador_mx', 'consultor_mx', 'dono', 'gerente', 'vendedor']

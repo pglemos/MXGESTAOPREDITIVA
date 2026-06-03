@@ -27,6 +27,7 @@ import { LancamentoGateBanner } from './components/LancamentoGateBanner'
 import { VendedorHomeErrorBoundary } from './components/VendedorHomeErrorBoundary'
 import { VendedorHomeSkeleton } from './sections/VendedorHomeSkeleton'
 import { useVendedorHomePage } from './hooks/useVendedorHomePage'
+import type { RemuneracaoEstimadaResultado } from '@/features/remuneracao/hooks/useRemuneracao'
 
 type Tone = 'brand' | 'success' | 'warning' | 'danger' | 'info' | 'neutral'
 
@@ -41,7 +42,7 @@ export function VendedorHome() {
     return <VendedorHomeSkeleton />
   }
 
-  const { metrics, profile, checkins, referenceDate, todayCheckin, isLancamentoGateLocked, ranking, treinamentos, devolutivas } = home
+  const { metrics, profile, checkins, referenceDate, todayCheckin, remuneracaoEstimada, isLancamentoGateLocked, ranking, treinamentos, devolutivas } = home
   const firstName = profile?.name?.split(' ')[0] || 'Vendedor'
   const goal = Number(metrics.meta || 0)
   const remaining = Math.max(goal - metrics.vendasMes, 0)
@@ -86,7 +87,7 @@ export function VendedorHome() {
               attainment={metrics.atingimento}
               remaining={remaining}
             />
-            <CommissionCard sales={metrics.vendasMes} />
+            <EstimatedSalaryCard estimativa={remuneracaoEstimada} />
             <CompactMetricCard
               title="Agendamentos Hoje"
               value={metrics.agendamentosHoje}
@@ -198,33 +199,52 @@ function GoalCard({
   )
 }
 
-function CommissionCard({ sales }: { sales: number }) {
-  const estimated = sales * 1370
-  const chart = [2, 3, 2, 4, 3, 5, 4, 6, 5, 7]
-  const max = Math.max(...chart)
-  const points = chart.map((value, index) => `${(index / (chart.length - 1)) * 100},${36 - (value / max) * 28}`).join(' ')
+function EstimatedSalaryCard({ estimativa }: { estimativa: RemuneracaoEstimadaResultado }) {
+  if (!estimativa.disponivel) {
+    return (
+      <Card className="border-none bg-white p-mx-lg shadow-mx-lg">
+        <div className="flex items-center gap-mx-sm">
+          <IconBubble tone="warning"><DollarSign size={22} /></IconBubble>
+          <Typography variant="h3" className="uppercase tracking-tight">Salário Estimado</Typography>
+        </div>
+        <Typography variant="h1" className="mt-mx-lg text-4xl font-mono-numbers">Pendente</Typography>
+        <Typography variant="p" tone="muted" className="mt-mx-xs text-sm">plano de remuneração não cadastrado</Typography>
+        <div className="mt-mx-md rounded-mx-xl bg-surface-alt p-mx-md">
+          <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-tight">
+            Cadastre o plano e as regras em Remuneração para ativar este cálculo.
+          </Typography>
+        </div>
+      </Card>
+    )
+  }
 
   return (
     <Card className="border-none bg-white p-mx-lg shadow-mx-lg">
       <div className="flex items-center gap-mx-sm">
         <IconBubble tone="success"><DollarSign size={22} /></IconBubble>
-        <Typography variant="h3" className="uppercase tracking-tight">Comissão Estimada</Typography>
+        <Typography variant="h3" className="uppercase tracking-tight">Salário Estimado</Typography>
       </div>
-      <Typography variant="h1" className="mt-mx-lg text-4xl font-mono-numbers">{formatCurrency(estimated)}</Typography>
-      <Typography variant="p" tone="muted" className="mt-mx-xs text-sm">valor estimado</Typography>
+      <Typography variant="h1" className="mt-mx-lg text-4xl font-mono-numbers">{formatCurrency(estimativa.total)}</Typography>
+      <Typography variant="p" tone="muted" className="mt-mx-xs text-sm">projeção pelo plano cadastrado</Typography>
       <div className="mt-mx-md space-y-mx-xs">
         <div className="flex items-center justify-between gap-mx-sm">
-          <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-tight">Meta da loja</Typography>
-          <Typography variant="tiny" className="font-black">{formatCurrency(68500)}</Typography>
+          <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-tight">Base</Typography>
+          <Typography variant="tiny" className="font-black">{formatCurrency(estimativa.base)}</Typography>
         </div>
         <div className="flex items-center justify-between gap-mx-sm">
-          <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-tight">Realizado</Typography>
-          <Typography variant="tiny" className="font-black">{formatCurrency(38200)} <span className="text-status-success">(56%)</span></Typography>
+          <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-tight">Comissão</Typography>
+          <Typography variant="tiny" className="font-black">{formatCurrency(estimativa.comissao)}</Typography>
+        </div>
+        <div className="flex items-center justify-between gap-mx-sm">
+          <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-tight">Bônus</Typography>
+          <Typography variant="tiny" className="font-black">{formatCurrency(estimativa.bonus)}</Typography>
+        </div>
+        <div className="flex items-center justify-between gap-mx-sm border-t border-border-subtle pt-mx-xs">
+          <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-tight">Atingimento projetado</Typography>
+          <Typography variant="tiny" className="font-black">{estimativa.atingimentoPercentual}%</Typography>
         </div>
       </div>
-      <svg viewBox="0 0 100 40" className="mt-mx-md h-mx-12 w-full" aria-label="Tendência da comissão estimada" role="img">
-        <polyline points={points} fill="none" stroke={chartTokens.success()} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+      <ProgressBar value={estimativa.atingimentoPercentual} className="mt-mx-md" />
     </Card>
   )
 }

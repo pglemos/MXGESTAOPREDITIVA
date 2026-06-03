@@ -31,6 +31,13 @@ describe('route access matrix', () => {
     expect(canAccessPath('/lojas', 'gerente')).toBe(false)
   })
 
+  it('allows leaders to manage remuneration while keeping sellers out', () => {
+    expect(canAccessPath('/remuneracao', 'administrador_mx')).toBe(true)
+    expect(canAccessPath('/remuneracao', 'dono')).toBe(true)
+    expect(canAccessPath('/remuneracao', 'gerente')).toBe(true)
+    expect(canAccessPath('/remuneracao', 'vendedor')).toBe(false)
+  })
+
   it('keeps daily launch restricted to the vendedor operating flow while allowing /home as role entrypoint', () => {
     expect(canAccessPath('/home', 'vendedor')).toBe(true)
     expect(canAccessPath('/home', 'administrador_geral')).toBe(false)
@@ -67,7 +74,7 @@ describe('route access matrix', () => {
   it('gates configurations and PDI print by capability-level role groups', () => {
     expect(canAccessPath('/configuracoes', 'administrador_mx')).toBe(true)
     expect(canAccessPath('/configuracoes', 'dono')).toBe(true)
-    expect(canAccessPath('/configuracoes', 'gerente')).toBe(false)
+    expect(canAccessPath('/configuracoes', 'gerente')).toBe(true)
     expect(canAccessPath('/configuracoes', 'vendedor')).toBe(false)
     expect(canAccessPath('/settings', 'dono')).toBe(true)
     expect(canAccessPath('/settings', 'vendedor')).toBe(false)

@@ -41,7 +41,7 @@ export const ROUTE_ACCESS_RULES = [
   { pattern: '/funil-vendas', roles: ['gerente', 'dono'] },
   { pattern: '/metas', roles: ['gerente', 'dono'] },
   { pattern: '/falar-consultor', roles: ['gerente', 'dono'] },
-  { pattern: '/remuneracao', roles: INTERNAL_AND_OWNER },
+  { pattern: '/remuneracao', roles: INTERNAL_AND_LEADERS },
   { pattern: '/organograma', roles: INTERNAL_AND_OWNER },
   { pattern: '/banco-talentos', roles: INTERNAL_AND_OWNER },
   { pattern: '/ajuda', roles: ['vendedor'] },
