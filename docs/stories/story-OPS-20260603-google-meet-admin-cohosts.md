@@ -38,6 +38,7 @@ Os eventos online criados pela Agenda Central MX usam `gestao@mxconsultoria.com.
 - `google-oauth-handler` passou a solicitar `meetings.space.created` para a Agenda Central MX.
 - `google-calendar-sync` lista membros do espaco Meet, mantem co-hosts existentes e cria/substitui somente os quatro admins configurados.
 - `google-calendar-merged` informa ao frontend quando a conexao central ainda nao autorizou co-hosts; a agenda exibe acao de reconexao.
+- O callback OAuth central reprocessa visitas e eventos online futuros apos a nova autorizacao, promovendo co-hosts tambem nos Meets existentes.
 - Deploy Supabase aplicado: `google-oauth-handler` v75, `google-calendar-merged` v56 e `google-calendar-sync` v74.
 - Validacao remota de visita online existente retornou `ok: true`, sem erro de calendario, e aviso explicito para reconectar a Agenda Central MX.
 - Consentimento OAuth nao foi concluido automaticamente porque a sessao do Chrome nao estava autenticada no MX Performance e o ambiente local nao possui as credenciais OAuth para abrir o fluxo direto.
