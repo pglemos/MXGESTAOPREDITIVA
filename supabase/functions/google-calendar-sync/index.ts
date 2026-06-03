@@ -10,12 +10,16 @@ import {
   upsertGoogleEvent,
   deleteGoogleEvent,
   googleApiRequest,
+  ensureGoogleMeetCohosts,
   getCentralCalendarAccessToken,
+  getCentralGoogleAccessToken,
   CENTRAL_CALENDAR_ID,
   CENTRAL_CALENDAR_EMAIL,
+  CENTRAL_MEET_CREATED_SCOPE,
   type GoogleEventInput,
 } from "../_shared/google.ts";
 import { buildRelatedUserIds } from "../_shared/google_calendar_privacy.ts";
+import { getGoogleMeetCohostEmails } from "../_shared/google_meet_cohost_rules.ts";
 import {
   filterPersonalMirrorCandidates,
   getDuplicateGoogleEventIds,
@@ -724,6 +728,8 @@ Deno.serve(async (req) => {
       ? await getUserAccessToken(adminClient, personalOwnerUserId)
       : { token: null };
     const centralToken = await getCentralCalendarAccessToken();
+    const meetCohostEmails = getGoogleMeetCohostEmails(Deno.env.get("GOOGLE_MEET_COHOST_EMAILS"));
+    const centralMeetToken = await getCentralGoogleAccessToken([CENTRAL_MEET_CREATED_SCOPE]);
     const relatedUserPersonalTokens = await getRelatedUserPersonalTokens(adminClient, getRelatedUserIds(syncKind, visit, scheduleEvent));
     const mirrorTokens = uniqueMirrorTokens(relatedUserPersonalTokens);
     const sourceId = syncKind === "schedule_event" ? scheduleEvent!.id : visit!.id;
@@ -746,6 +752,7 @@ Deno.serve(async (req) => {
     let userMirrors: { userId: string; ok: boolean; googleEventId?: string | null; dedupedEvents?: number; message?: string }[] = [];
     let dedupedEvents = 0;
     let staleMirrorsDeleted = 0;
+    let meetCohostsConfigured: string[] = [];
     const reconcileWarnings: string[] = [];
 
     if (action === "delete") {
@@ -826,6 +833,18 @@ Deno.serve(async (req) => {
           centralEventId = centralEvent.id;
           googleMeetLink = centralEvent.meetLink ?? googleMeetLink;
           dedupedEvents += await dedupeGoogleEventsBySource(centralToken, CENTRAL_CALENDAR_ID, syncKind, sourceId, centralEvent.id);
+          if (shouldHaveMeet && googleMeetLink) {
+            if (centralMeetToken) {
+              try {
+                const cohostResult = await ensureGoogleMeetCohosts(centralMeetToken, googleMeetLink, meetCohostEmails);
+                meetCohostsConfigured = cohostResult.configuredEmails;
+              } catch (e) {
+                reconcileWarnings.push(`Google Meet co-hosts nao configurados: ${e instanceof Error ? e.message : "falha desconhecida"}`);
+              }
+            } else {
+              reconcileWarnings.push("Agenda Central MX precisa ser reconectada para autorizar co-hosts do Google Meet");
+            }
+          }
         } catch (e) {
           errors.push({ calendar: "central", message: e instanceof Error ? e.message : "upsert failed" });
         }
@@ -910,6 +929,7 @@ Deno.serve(async (req) => {
         adminMasterMirrors: userMirrors,
         dedupedEvents,
         staleMirrorsDeleted,
+        meetCohostsConfigured,
         reconcileWarnings,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },

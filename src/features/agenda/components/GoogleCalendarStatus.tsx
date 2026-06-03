@@ -19,6 +19,7 @@ export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
   const {
     personalConnected,
     centralConnected,
+    centralMeetCohostsAuthorized,
     personalGoogleEmail,
     centralGoogleEmail,
     loading,
@@ -85,18 +86,18 @@ export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className={`min-w-0 rounded-mx-lg border p-mx-sm ${centralConnected ? 'bg-mx-green-50 border-mx-green-200' : 'bg-surface-alt border-border-default'}`}
+            className={`min-w-0 rounded-mx-lg border p-mx-sm ${centralConnected && centralMeetCohostsAuthorized ? 'bg-mx-green-50 border-mx-green-200' : 'bg-surface-alt border-border-default'}`}
           >
             <div className="mb-1 flex min-w-0 items-center justify-between gap-mx-xs">
               <span className="flex min-w-0 items-center gap-mx-xs text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">
                 <Building2 size={12} className="shrink-0" />
                 <span className="truncate">Agenda Central MX</span>
               </span>
-              {centralConnected
+              {centralConnected && centralMeetCohostsAuthorized
                 ? <CheckCircle2 size={16} className="shrink-0 text-status-success" />
                 : <AlertCircle size={16} className="shrink-0 text-status-warning" />}
             </div>
-            {centralConnected ? (
+            {centralConnected && centralMeetCohostsAuthorized ? (
               <div className="min-w-0">
                 <Typography variant="tiny" className="block truncate rounded-mx-md bg-brand-primary px-2 py-1 font-black uppercase tracking-widest text-white">
                   {centralGoogleEmail || 'gestao@mxconsultoria.com.br'}
@@ -105,8 +106,8 @@ export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
             ) : (
               <Button size="sm" variant="outline" onClick={connectCentral} className="w-full mt-2 min-h-mx-11 gap-mx-xs px-2 text-center tracking-tight [white-space:normal]">
                 <LinkIcon size={14} />
-                <span className="sm:hidden">Conectar central</span>
-                <span className="hidden sm:inline">Conectar Agenda Central</span>
+                <span className="sm:hidden">{centralConnected ? 'Autorizar Meet' : 'Conectar central'}</span>
+                <span className="hidden sm:inline">{centralConnected ? 'Autorizar co-hosts do Meet' : 'Conectar Agenda Central'}</span>
               </Button>
             )}
           </motion.div>
@@ -122,6 +123,12 @@ export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
       {!compact && canViewCentralAgenda && centralConnected && !personalConnected && (
         <div className="p-mx-sm rounded-mx-md bg-mx-indigo-50 border border-mx-indigo-100 text-text-secondary text-mx-tiny font-bold leading-relaxed">
           A Agenda Central MX está conectada. Para receber os compromissos na própria conta Google, cada admin MX precisa entrar no sistema com seu usuário e conectar a agenda pessoal.
+        </div>
+      )}
+
+      {!compact && canViewCentralAgenda && centralConnected && !centralMeetCohostsAuthorized && (
+        <div className="p-mx-sm rounded-mx-md bg-status-warning-surface border border-status-warning/20 text-text-secondary text-mx-tiny font-bold leading-relaxed">
+          Reconecte a Agenda Central MX para autorizar Daniel, Jose, Mariane e Joao como co-hosts das reunioes Google Meet.
         </div>
       )}
 

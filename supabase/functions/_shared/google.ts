@@ -1,5 +1,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { requireEnv, encryptToken, decryptToken } from "./crypto.ts";
+import {
+  getGoogleMeetCohostActions,
+  getGoogleMeetSpaceName,
+  type GoogleMeetMember,
+} from "./google_meet_cohost_rules.ts";
 
 export function parseClientId(value: unknown): string | null {
   if (typeof value !== "string" || value.trim() === "") return null;
@@ -129,6 +134,7 @@ export const CENTRAL_CALENDAR_ID = Deno.env.get("GOOGLE_CENTRAL_CALENDAR_ID") ||
 export const CENTRAL_CALENDAR_EMAIL = Deno.env.get("GOOGLE_CENTRAL_CALENDAR_EMAIL") || "gestao@mxconsultoria.com.br";
 export const CENTRAL_DRIVE_SCOPE = "https://www.googleapis.com/auth/drive";
 export const CENTRAL_DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+export const CENTRAL_MEET_CREATED_SCOPE = "https://www.googleapis.com/auth/meetings.space.created";
 export const CENTRAL_MEET_READ_SCOPE = "https://www.googleapis.com/auth/meetings.space.readonly";
 export const CENTRAL_DRIVE_ROOT_FOLDER_ID = Deno.env.get("GOOGLE_CENTRAL_DRIVE_ROOT_FOLDER_ID") || "";
 export const CENTRAL_DRIVE_ROOT_FOLDER_NAME = Deno.env.get("GOOGLE_CENTRAL_DRIVE_ROOT_FOLDER_NAME") || "MX Performance - Clientes";
@@ -182,6 +188,87 @@ export async function googleApiRequest(
   headers.set("Authorization", `Bearer ${accessToken}`);
   if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
   return fetch(`https://www.googleapis.com${path}`, { ...init, headers });
+}
+
+export async function googleMeetApiRequest(
+  accessToken: string,
+  path: string,
+  init: RequestInit = {},
+): Promise<Response> {
+  const headers = new Headers(init.headers);
+  headers.set("Authorization", `Bearer ${accessToken}`);
+  if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+  return fetch(`https://meet.googleapis.com${path}`, { ...init, headers });
+}
+
+export type GoogleMeetCohostSyncResult = {
+  configuredEmails: string[];
+  createdEmails: string[];
+  replacedEmails: string[];
+};
+
+async function readGoogleMeetError(response: Response, fallback: string): Promise<string> {
+  const data = await response.json().catch(() => ({}));
+  return data?.error?.message || fallback;
+}
+
+async function listGoogleMeetMembers(accessToken: string, spaceName: string): Promise<GoogleMeetMember[]> {
+  const members: GoogleMeetMember[] = [];
+  let pageToken: string | null = null;
+  do {
+    const params = new URLSearchParams({ pageSize: "100" });
+    if (pageToken) params.set("pageToken", pageToken);
+    const response = await googleMeetApiRequest(
+      accessToken,
+      `/v2beta/${spaceName}/members?${params.toString()}`,
+    );
+    if (!response.ok) {
+      throw new Error(await readGoogleMeetError(response, `Failed to list Google Meet members (${response.status})`));
+    }
+    const data = await response.json().catch(() => ({}));
+    if (Array.isArray(data.members)) members.push(...data.members);
+    pageToken = typeof data.nextPageToken === "string" && data.nextPageToken ? data.nextPageToken : null;
+  } while (pageToken);
+  return members;
+}
+
+async function createGoogleMeetCohost(accessToken: string, spaceName: string, email: string): Promise<void> {
+  const response = await googleMeetApiRequest(accessToken, `/v2beta/${spaceName}/members`, {
+    method: "POST",
+    body: JSON.stringify({ email, role: "COHOST" }),
+  });
+  if (!response.ok && response.status !== 409) {
+    throw new Error(await readGoogleMeetError(response, `Failed to create Google Meet co-host (${response.status})`));
+  }
+}
+
+export async function ensureGoogleMeetCohosts(
+  accessToken: string,
+  meetLink: string,
+  cohostEmails: string[],
+): Promise<GoogleMeetCohostSyncResult> {
+  const spaceName = getGoogleMeetSpaceName(meetLink);
+  if (!spaceName) throw new Error("Link do Google Meet invalido para configurar co-hosts");
+
+  const members = await listGoogleMeetMembers(accessToken, spaceName);
+  const actions = getGoogleMeetCohostActions(members, cohostEmails);
+
+  for (const member of actions.replaceMembers) {
+    const response = await googleMeetApiRequest(accessToken, `/v2beta/${member.name}`, { method: "DELETE" });
+    if (!response.ok && response.status !== 404 && response.status !== 410) {
+      throw new Error(await readGoogleMeetError(response, `Failed to replace Google Meet member (${response.status})`));
+    }
+    await createGoogleMeetCohost(accessToken, spaceName, member.email);
+  }
+  for (const email of actions.createEmails) {
+    await createGoogleMeetCohost(accessToken, spaceName, email);
+  }
+
+  return {
+    configuredEmails: [...actions.configuredEmails, ...actions.replaceMembers.map((member) => member.email), ...actions.createEmails],
+    createdEmails: actions.createEmails,
+    replacedEmails: actions.replaceMembers.map((member) => member.email),
+  };
 }
 
 export type GoogleEventInput = {

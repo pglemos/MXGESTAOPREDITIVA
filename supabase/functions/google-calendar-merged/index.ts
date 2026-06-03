@@ -7,8 +7,10 @@ import {
   refreshAccessToken,
   googleApiRequest,
   getCentralCalendarAccessToken,
+  getCentralGoogleAccessToken,
   CENTRAL_CALENDAR_ID,
   CENTRAL_CALENDAR_EMAIL,
+  CENTRAL_MEET_CREATED_SCOPE,
 } from "../_shared/google.ts";
 import {
   centralEventMatchesUser,
@@ -115,10 +117,12 @@ Deno.serve(async (req) => {
     // Central token
     let centralEvents: any[] = [];
     let centralConnected = false;
+    let centralMeetCohostsAuthorized = false;
     let centralError: string | null = null;
     const centralToken = await getCentralCalendarAccessToken();
     if (wantsCentral && centralToken) {
       centralConnected = true;
+      centralMeetCohostsAuthorized = Boolean(await getCentralGoogleAccessToken([CENTRAL_MEET_CREATED_SCOPE]));
       try {
         const fetchedCentralEvents = await fetchEvents(centralToken, CENTRAL_CALENDAR_ID, timeMin, timeMax, maxResults);
         if (canReadAllCentral) {
@@ -151,6 +155,7 @@ Deno.serve(async (req) => {
         events: merged,
         personalConnected,
         centralConnected,
+        centralMeetCohostsAuthorized,
         personalGoogleEmail: tokenRow?.google_email ?? null,
         centralGoogleEmail: centralConnected ? CENTRAL_CALENDAR_EMAIL : null,
         personalError,

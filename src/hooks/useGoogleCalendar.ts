@@ -17,6 +17,7 @@ type MergedResponse = {
   events: GoogleCalendarEvent[]
   personalConnected: boolean
   centralConnected: boolean
+  centralMeetCohostsAuthorized: boolean
   personalGoogleEmail?: string | null
   centralGoogleEmail?: string | null
   personalError?: string | null
@@ -65,6 +66,7 @@ export function useGoogleCalendar(opts?: { timeMin?: string; timeMax?: string; m
   const [events, setEvents] = useState<GoogleCalendarEvent[]>([])
   const [personalConnected, setPersonalConnected] = useState(false)
   const [centralConnected, setCentralConnected] = useState(false)
+  const [centralMeetCohostsAuthorized, setCentralMeetCohostsAuthorized] = useState(false)
   const [personalGoogleEmail, setPersonalGoogleEmail] = useState<string | null>(null)
   const [centralGoogleEmail, setCentralGoogleEmail] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -79,6 +81,7 @@ export function useGoogleCalendar(opts?: { timeMin?: string; timeMax?: string; m
         setEvents([])
         setPersonalConnected(false)
         setCentralConnected(false)
+        setCentralMeetCohostsAuthorized(false)
         setPersonalGoogleEmail(null)
         setCentralGoogleEmail(null)
         return
@@ -96,6 +99,7 @@ export function useGoogleCalendar(opts?: { timeMin?: string; timeMax?: string; m
       setEvents(data.events || [])
       setPersonalConnected(data.personalConnected)
       setCentralConnected(data.centralConnected)
+      setCentralMeetCohostsAuthorized(Boolean(data.centralMeetCohostsAuthorized))
       setPersonalGoogleEmail(data.personalGoogleEmail ?? null)
       setCentralGoogleEmail(data.centralGoogleEmail ?? null)
     } catch (err) {
@@ -164,6 +168,7 @@ export function useGoogleCalendar(opts?: { timeMin?: string; timeMax?: string; m
     events,
     personalConnected,
     centralConnected,
+    centralMeetCohostsAuthorized,
     personalGoogleEmail,
     centralGoogleEmail,
     loading,
