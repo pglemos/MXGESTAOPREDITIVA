@@ -12,17 +12,19 @@ export {
   type RemuneracaoRegraInsert,
   type RemuneracaoRegraTipo,
   type RemuneracaoEstimadaResultado,
+  type RemuneracaoResumoVendedor,
+  type RemuneracaoBonusPatamarDetalhe,
+  type RemuneracaoFormulaItem,
   type Classificacao,
   type ComparativoLinha,
 } from '../lib/comparativo'
 import {
-  calcularRemuneracaoEstimada,
+  calcularResumoRemuneracaoVendedor,
   type RemuneracaoPlano,
   type RemuneracaoPlanoInsert,
   type RemuneracaoBenchmark,
   type RemuneracaoRegra,
   type RemuneracaoRegraInsert,
-  type RemuneracaoEstimadaResultado,
 } from '../lib/comparativo'
 
 /** Planos de remuneração de uma loja + mutations. */
@@ -110,7 +112,8 @@ export function useRegrasRemuneracao(lojaId: string | null) {
 export function useRemuneracaoEstimadaVendedor(params: {
   lojaId: string | null
   cargo?: string
-  vendasConsideradas: number
+  vendasRealizadas: number
+  vendasProjetadas: number
   meta: number
 }) {
   const cargo = params.cargo || 'Vendedor'
@@ -166,14 +169,24 @@ export function useRemuneracaoEstimadaVendedor(params: {
     return () => { alive = false }
   }, [cargo, params.lojaId])
 
-  const estimativa = useMemo<RemuneracaoEstimadaResultado>(() => calcularRemuneracaoEstimada({
+  const resumo = useMemo(() => calcularResumoRemuneracaoVendedor({
     plano,
     regras,
-    vendasConsideradas: params.vendasConsideradas,
+    vendasRealizadas: params.vendasRealizadas,
+    vendasProjetadas: params.vendasProjetadas,
     meta: params.meta,
-  }), [plano, regras, params.vendasConsideradas, params.meta])
+  }), [plano, regras, params.vendasRealizadas, params.vendasProjetadas, params.meta])
 
-  return { estimativa, plano, regras, loading, error }
+  return {
+    estimativa: resumo.projetado,
+    resumo,
+    realizado: resumo.realizado,
+    projetado: resumo.projetado,
+    plano,
+    regras,
+    loading,
+    error,
+  }
 }
 
 /** Benchmark de mercado filtrado por parâmetros (região/tamanho/meta). */

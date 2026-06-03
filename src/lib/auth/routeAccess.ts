@@ -34,6 +34,7 @@ export const ROUTE_ACCESS_RULES = [
   { pattern: '/relatorios/performance-vendedor', roles: MANAGEMENT_ROLES },
   { pattern: '/auditoria', roles: ['administrador_geral', 'administrador_mx', 'consultor_mx', 'gerente'] },
   { pattern: '/home', roles: ['vendedor', 'gerente', 'dono'] },
+  { pattern: '/minha-remuneracao', roles: ['vendedor'] },
   { pattern: '/lancamento-diario', roles: ['vendedor'] },
   { pattern: '/historico', roles: ['vendedor'] },
   { pattern: '/agenda-vendedor', roles: ['vendedor'] },

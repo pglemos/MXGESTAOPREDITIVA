@@ -39,6 +39,14 @@ describe('route access matrix', () => {
     expect(getRouteAccessRule('/remuneracao')).toBeNull()
   })
 
+  it('keeps the personal remuneration detail exclusive to sellers', () => {
+    expect(canAccessPath('/minha-remuneracao', 'vendedor')).toBe(true)
+    expect(canAccessPath('/minha-remuneracao', 'gerente')).toBe(false)
+    expect(canAccessPath('/minha-remuneracao', 'dono')).toBe(false)
+    expect(canAccessPath('/minha-remuneracao', 'administrador_mx')).toBe(false)
+    expect(canAccessPath('/configuracoes/remuneracao', 'vendedor')).toBe(false)
+  })
+
   it('keeps daily launch restricted to the vendedor operating flow while allowing /home as role entrypoint', () => {
     expect(canAccessPath('/home', 'vendedor')).toBe(true)
     expect(canAccessPath('/home', 'administrador_geral')).toBe(false)

@@ -23,15 +23,54 @@ export interface RemuneracaoEstimadaInput {
   meta: number
 }
 
+export interface RemuneracaoBonusPatamarDetalhe {
+  regra: RemuneracaoRegra
+  percentualMetaMin: number
+  valor: number
+  atingido: boolean
+  aplicado: boolean
+}
+
+export interface RemuneracaoFormulaItem {
+  chave: 'salario_fixo' | 'salario_variavel' | 'beneficios' | 'comissao' | 'bonus'
+  label: string
+  descricao: string
+  valor: number
+}
+
 export interface RemuneracaoEstimadaResultado {
   disponivel: boolean
   cargo: string | null
+  salarioFixo: number
+  salarioVariavel: number
+  beneficios: number
   base: number
+  comissaoPorVenda: number
   comissao: number
   bonus: number
   total: number
   vendasConsideradas: number
+  meta: number
   atingimentoPercentual: number
+  regraComissaoAplicada: RemuneracaoRegra | null
+  regraBonusAplicada: RemuneracaoRegra | null
+  bonusPatamares: RemuneracaoBonusPatamarDetalhe[]
+  regrasAplicadas: RemuneracaoRegra[]
+  regrasNaoAtingidas: RemuneracaoRegra[]
+  formulaItens: RemuneracaoFormulaItem[]
+}
+
+export interface RemuneracaoResumoVendedorInput {
+  plano: RemuneracaoPlano | null
+  regras: RemuneracaoRegra[]
+  vendasRealizadas: number
+  vendasProjetadas: number
+  meta: number
+}
+
+export interface RemuneracaoResumoVendedor {
+  realizado: RemuneracaoEstimadaResultado
+  projetado: RemuneracaoEstimadaResultado
 }
 
 /** Total mensal de um plano (fixo + variável + benefícios). */
@@ -76,34 +115,172 @@ export function calcularRemuneracaoEstimada({
     return {
       disponivel: false,
       cargo: null,
+      salarioFixo: 0,
+      salarioVariavel: 0,
+      beneficios: 0,
       base: 0,
+      comissaoPorVenda: 0,
       comissao: 0,
       bonus: 0,
       total: 0,
       vendasConsideradas: vendas,
+      meta: metaMensal,
       atingimentoPercentual,
+      regraComissaoAplicada: null,
+      regraBonusAplicada: null,
+      bonusPatamares: [],
+      regrasAplicadas: [],
+      regrasNaoAtingidas: [],
+      formulaItens: [],
     }
   }
 
   const regrasAtivas = regras.filter((regra) => regra.ativo !== false)
-  const base = totalPlano(plano)
-  const comissao = regrasAtivas
-    .filter((regra) => regra.tipo === 'comissao_por_venda')
-    .reduce((acc, regra) => acc + vendas * Number(regra.valor || 0), 0)
-  const bonus = regrasAtivas
-    .filter((regra) => regra.tipo === 'bonus_meta')
-    .filter((regra) => atingimentoPercentual >= Number(regra.percentual_meta_min || 0))
-    .reduce((acc, regra) => acc + Number(regra.valor || 0), 0)
+  const salarioFixo = Number(plano.salario_fixo || 0)
+  const salarioVariavel = Number(plano.salario_variavel || 0)
+  const beneficios = Number(plano.beneficios || 0)
+  const base = salarioFixo + salarioVariavel + beneficios
+
+  const regraComissaoAplicada = selecionarRegraMaisRecente(
+    regrasAtivas.filter((regra) => regra.tipo === 'comissao_por_venda'),
+  )
+  const comissaoPorVenda = Number(regraComissaoAplicada?.valor || 0)
+  const comissao = vendas * comissaoPorVenda
+
+  const bonusPorPatamar = selecionarBonusMaisRecentePorPatamar(
+    regrasAtivas.filter((regra) => regra.tipo === 'bonus_meta'),
+  )
+  const metaValida = metaMensal > 0
+  const regraBonusAplicada = metaValida
+    ? [...bonusPorPatamar]
+        .filter((regra) => atingimentoPercentual >= percentualMinimo(regra))
+        .sort((a, b) => percentualMinimo(b) - percentualMinimo(a))[0] || null
+    : null
+  const bonus = Number(regraBonusAplicada?.valor || 0)
+  const bonusPatamares = bonusPorPatamar.map((regra) => {
+    const atingido = metaValida && atingimentoPercentual >= percentualMinimo(regra)
+    return {
+      regra,
+      percentualMetaMin: percentualMinimo(regra),
+      valor: Number(regra.valor || 0),
+      atingido,
+      aplicado: regra.id === regraBonusAplicada?.id,
+    }
+  })
   const total = base + comissao + bonus
+  const regrasAplicadas = [regraComissaoAplicada, regraBonusAplicada].filter(
+    (regra): regra is RemuneracaoRegra => Boolean(regra),
+  )
+  const regrasNaoAtingidas = bonusPatamares.filter((patamar) => !patamar.atingido).map((patamar) => patamar.regra)
+  const formulaItens: RemuneracaoFormulaItem[] = [
+    {
+      chave: 'salario_fixo',
+      label: 'Salário fixo',
+      descricao: 'Valor fixo mensal cadastrado no plano.',
+      valor: salarioFixo,
+    },
+    {
+      chave: 'salario_variavel',
+      label: 'Variável do plano',
+      descricao: 'Valor variável mensal cadastrado no plano.',
+      valor: salarioVariavel,
+    },
+    {
+      chave: 'beneficios',
+      label: 'Benefícios',
+      descricao: 'Benefícios mensais cadastrados no plano.',
+      valor: beneficios,
+    },
+    {
+      chave: 'comissao',
+      label: 'Comissão por vendas',
+      descricao: regraComissaoAplicada
+        ? `${vendas} venda(s) consideradas multiplicadas pelo valor por venda.`
+        : 'Nenhuma regra ativa de comissão por venda.',
+      valor: comissao,
+    },
+    {
+      chave: 'bonus',
+      label: 'Bônus de meta',
+      descricao: regraBonusAplicada
+        ? `Maior patamar atingido: ${percentualMinimo(regraBonusAplicada)}% da meta.`
+        : metaValida
+          ? 'Nenhum patamar de bônus foi atingido.'
+          : 'Bônus não aplicado porque a meta mensal não está cadastrada.',
+      valor: bonus,
+    },
+  ]
 
   return {
     disponivel: true,
     cargo: plano.cargo,
+    salarioFixo,
+    salarioVariavel,
+    beneficios,
     base,
+    comissaoPorVenda,
     comissao,
     bonus,
     total,
     vendasConsideradas: vendas,
+    meta: metaMensal,
     atingimentoPercentual,
+    regraComissaoAplicada,
+    regraBonusAplicada,
+    bonusPatamares,
+    regrasAplicadas,
+    regrasNaoAtingidas,
+    formulaItens,
   }
+}
+
+export function calcularResumoRemuneracaoVendedor({
+  plano,
+  regras,
+  vendasRealizadas,
+  vendasProjetadas,
+  meta,
+}: RemuneracaoResumoVendedorInput): RemuneracaoResumoVendedor {
+  const realizadas = Math.max(Number(vendasRealizadas || 0), 0)
+  const projetadas = Math.max(Number(vendasProjetadas || 0), realizadas)
+
+  return {
+    realizado: calcularRemuneracaoEstimada({
+      plano,
+      regras,
+      vendasConsideradas: realizadas,
+      meta,
+    }),
+    projetado: calcularRemuneracaoEstimada({
+      plano,
+      regras,
+      vendasConsideradas: projetadas,
+      meta,
+    }),
+  }
+}
+
+function selecionarRegraMaisRecente(regras: RemuneracaoRegra[]): RemuneracaoRegra | null {
+  return [...regras].sort(compararRegraMaisRecente)[0] || null
+}
+
+function selecionarBonusMaisRecentePorPatamar(regras: RemuneracaoRegra[]): RemuneracaoRegra[] {
+  const porPatamar = new Map<number, RemuneracaoRegra>()
+  for (const regra of [...regras].sort(compararRegraMaisRecente)) {
+    const patamar = percentualMinimo(regra)
+    if (!porPatamar.has(patamar)) porPatamar.set(patamar, regra)
+  }
+  return [...porPatamar.values()].sort((a, b) => percentualMinimo(a) - percentualMinimo(b))
+}
+
+function compararRegraMaisRecente(a: RemuneracaoRegra, b: RemuneracaoRegra): number {
+  return (
+    b.vigencia_inicio.localeCompare(a.vigencia_inicio) ||
+    b.updated_at.localeCompare(a.updated_at) ||
+    b.id.localeCompare(a.id)
+  )
+}
+
+function percentualMinimo(regra: RemuneracaoRegra): number {
+  return Math.max(Number(regra.percentual_meta_min || 0), 0)
 }

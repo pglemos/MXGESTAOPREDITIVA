@@ -5,6 +5,7 @@ import {
   BadgeCheck,
   CalendarDays,
   CheckCircle2,
+  ChevronRight,
   Clock,
   DollarSign,
   ListChecks,
@@ -199,53 +200,76 @@ function GoalCard({
   )
 }
 
-function EstimatedSalaryCard({ estimativa }: { estimativa: RemuneracaoEstimadaResultado }) {
+export function EstimatedSalaryCard({ estimativa }: { estimativa: RemuneracaoEstimadaResultado }) {
   if (!estimativa.disponivel) {
     return (
-      <Card className="border-none bg-white p-mx-lg shadow-mx-lg">
-        <div className="flex items-center gap-mx-sm">
-          <IconBubble tone="warning"><DollarSign size={22} /></IconBubble>
-          <Typography variant="h3" className="uppercase tracking-tight">Salário Estimado</Typography>
-        </div>
-        <Typography variant="h1" className="mt-mx-lg text-4xl font-mono-numbers">Pendente</Typography>
-        <Typography variant="p" tone="muted" className="mt-mx-xs text-sm">plano de remuneração não cadastrado</Typography>
-        <div className="mt-mx-md rounded-mx-xl bg-surface-alt p-mx-md">
-          <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-tight">
-            Cadastre o plano e as regras em Remuneração para ativar este cálculo.
-          </Typography>
-        </div>
-      </Card>
+      <Link
+        to="/minha-remuneracao"
+        aria-label="Salário Estimado - ver cálculo detalhado"
+        className="block rounded-mx-xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/20"
+      >
+        <Card className="h-full border-none bg-white p-mx-lg shadow-mx-lg transition-all hover:-translate-y-0.5 hover:shadow-mx-xl">
+          <div className="flex items-center gap-mx-sm">
+            <IconBubble tone="warning"><DollarSign size={22} /></IconBubble>
+            <Typography variant="h3" className="uppercase tracking-tight">Salário Estimado</Typography>
+          </div>
+          <Typography variant="h1" className="mt-mx-lg text-4xl font-mono-numbers">Pendente</Typography>
+          <Typography variant="p" tone="muted" className="mt-mx-xs text-sm">plano de remuneração não cadastrado</Typography>
+          <div className="mt-mx-md rounded-mx-xl bg-surface-alt p-mx-md">
+            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-tight">
+              Procure seu gerente, dono ou Admin MX para cadastrar o plano.
+            </Typography>
+          </div>
+          <DetailLinkLabel />
+        </Card>
+      </Link>
     )
   }
 
   return (
-    <Card className="border-none bg-white p-mx-lg shadow-mx-lg">
-      <div className="flex items-center gap-mx-sm">
-        <IconBubble tone="success"><DollarSign size={22} /></IconBubble>
-        <Typography variant="h3" className="uppercase tracking-tight">Salário Estimado</Typography>
-      </div>
-      <Typography variant="h1" className="mt-mx-lg text-4xl font-mono-numbers">{formatCurrency(estimativa.total)}</Typography>
-      <Typography variant="p" tone="muted" className="mt-mx-xs text-sm">projeção pelo plano cadastrado</Typography>
-      <div className="mt-mx-md space-y-mx-xs">
-        <div className="flex items-center justify-between gap-mx-sm">
-          <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-tight">Base</Typography>
-          <Typography variant="tiny" className="font-black">{formatCurrency(estimativa.base)}</Typography>
+    <Link
+      to="/minha-remuneracao"
+      aria-label="Salário Estimado - ver cálculo detalhado"
+      className="block rounded-mx-xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/20"
+    >
+      <Card className="h-full border-none bg-white p-mx-lg shadow-mx-lg transition-all hover:-translate-y-0.5 hover:shadow-mx-xl">
+        <div className="flex items-center gap-mx-sm">
+          <IconBubble tone="success"><DollarSign size={22} /></IconBubble>
+          <Typography variant="h3" className="uppercase tracking-tight">Salário Estimado</Typography>
         </div>
-        <div className="flex items-center justify-between gap-mx-sm">
-          <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-tight">Comissão</Typography>
-          <Typography variant="tiny" className="font-black">{formatCurrency(estimativa.comissao)}</Typography>
+        <Typography variant="h1" className="mt-mx-lg text-4xl font-mono-numbers">{formatCurrency(estimativa.total)}</Typography>
+        <Typography variant="p" tone="muted" className="mt-mx-xs text-sm">projeção pelo plano cadastrado</Typography>
+        <div className="mt-mx-md space-y-mx-xs">
+          <div className="flex items-center justify-between gap-mx-sm">
+            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-tight">Base</Typography>
+            <Typography variant="tiny" className="font-black">{formatCurrency(estimativa.base)}</Typography>
+          </div>
+          <div className="flex items-center justify-between gap-mx-sm">
+            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-tight">Comissão</Typography>
+            <Typography variant="tiny" className="font-black">{formatCurrency(estimativa.comissao)}</Typography>
+          </div>
+          <div className="flex items-center justify-between gap-mx-sm">
+            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-tight">Bônus</Typography>
+            <Typography variant="tiny" className="font-black">{formatCurrency(estimativa.bonus)}</Typography>
+          </div>
+          <div className="flex items-center justify-between gap-mx-sm border-t border-border-subtle pt-mx-xs">
+            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-tight">Atingimento projetado</Typography>
+            <Typography variant="tiny" className="font-black">{estimativa.atingimentoPercentual}%</Typography>
+          </div>
         </div>
-        <div className="flex items-center justify-between gap-mx-sm">
-          <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-tight">Bônus</Typography>
-          <Typography variant="tiny" className="font-black">{formatCurrency(estimativa.bonus)}</Typography>
-        </div>
-        <div className="flex items-center justify-between gap-mx-sm border-t border-border-subtle pt-mx-xs">
-          <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-tight">Atingimento projetado</Typography>
-          <Typography variant="tiny" className="font-black">{estimativa.atingimentoPercentual}%</Typography>
-        </div>
-      </div>
-      <ProgressBar value={estimativa.atingimentoPercentual} className="mt-mx-md" />
-    </Card>
+        <ProgressBar value={estimativa.atingimentoPercentual} className="mt-mx-md" />
+        <DetailLinkLabel />
+      </Card>
+    </Link>
+  )
+}
+
+function DetailLinkLabel() {
+  return (
+    <span className="mt-mx-md flex items-center justify-end gap-mx-tiny text-mx-tiny font-black uppercase tracking-widest text-brand-primary">
+      Ver cálculo detalhado
+      <ChevronRight size={14} aria-hidden="true" />
+    </span>
   )
 }
 

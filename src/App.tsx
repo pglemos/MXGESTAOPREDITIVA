@@ -26,6 +26,7 @@ const Ranking = lazy(() => import('@/pages/Ranking'))
 const VendedorFeedback = lazy(() => import('@/pages/VendedorFeedback'))
 const VendedorTreinamentos = lazy(() => import('@/pages/VendedorTreinamentos'))
 const VendedorAjuda = lazy(() => import('@/pages/VendedorAjuda'))
+const MinhaRemuneracao = lazy(() => import('@/features/remuneracao/MinhaRemuneracaoPage'))
 const AgendaVendedor = lazy(() => import('@/features/vendedor-home/AgendaVendedor'))
 const TrilhasVendedor = lazy(() => import('@/features/vendedor-home/TrilhasVendedor'))
 const FunilVendasGerente = lazy(() => import('@/features/gerente/FunilVendasGerente'))
@@ -226,6 +227,7 @@ export default function App() {
             <Route path="home" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<VendedorHome />} gerente={<DashboardLoja />} dono={<RoleRedirect />} admin={<RoleRedirect />} />
             </Suspense>} />
+            <Route path="minha-remuneracao" element={<Suspense fallback={<Spinner />}><MinhaRemuneracao /></Suspense>} />
             <Route path="lancamento-diario" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<Checkin />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
             </Suspense>} />

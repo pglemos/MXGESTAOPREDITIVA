@@ -53,10 +53,18 @@ export function useVendedorHomePage() {
     ranking,
     projectionMode: storeGoal?.projection_mode,
   })
-  const { estimativa: remuneracaoEstimada, loading: remunerationLoading, error: remunerationError } = useRemuneracaoEstimadaVendedor({
+  const {
+    estimativa: remuneracaoEstimada,
+    resumo: remuneracaoResumo,
+    plano: remuneracaoPlano,
+    regras: remuneracaoRegras,
+    loading: remunerationLoading,
+    error: remunerationError,
+  } = useRemuneracaoEstimadaVendedor({
     lojaId: storeId,
     cargo: 'Vendedor',
-    vendasConsideradas: metrics?.projecao || metrics?.vendasMes || 0,
+    vendasRealizadas: metrics?.vendasMes || 0,
+    vendasProjetadas: Math.max(metrics?.projecao || 0, metrics?.vendasMes || 0),
     meta: metrics?.meta || 0,
   })
 
@@ -154,6 +162,9 @@ export function useVendedorHomePage() {
     devolutivas,
     todayCheckin,
     remuneracaoEstimada,
+    remuneracaoResumo,
+    remuneracaoPlano,
+    remuneracaoRegras,
     remunerationError,
     isLancamentoGateLocked,
     tacticalPrescription,

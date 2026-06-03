@@ -1,6 +1,7 @@
 import { describe, test, expect } from 'bun:test'
 import {
   calcularRemuneracaoEstimada,
+  calcularResumoRemuneracaoVendedor,
   totalPlano,
   montarComparativo,
   type RemuneracaoPlano,
@@ -117,5 +118,124 @@ describe('calcularRemuneracaoEstimada', () => {
 
     expect(resultado.disponivel).toBe(false)
     expect(resultado.total).toBe(0)
+  })
+
+  test('usa somente a comissão ativa com vigência mais recente', () => {
+    const resultado = calcularRemuneracaoEstimada({
+      plano: plano('Vendedor', 2000, 0, 0),
+      regras: [
+        regra('comissao_por_venda', { id: 'comissao-antiga', valor: 500, vigencia_inicio: '2026-01-01' }),
+        regra('comissao_por_venda', { id: 'comissao-atual', valor: 800, vigencia_inicio: '2026-05-01' }),
+      ],
+      vendasConsideradas: 10,
+      meta: 10,
+    })
+
+    expect(resultado.comissaoPorVenda).toBe(800)
+    expect(resultado.comissao).toBe(8000)
+    expect(resultado.regraComissaoAplicada?.id).toBe('comissao-atual')
+  })
+
+  test('aplica somente o maior patamar de bônus atingido', () => {
+    const resultado = calcularRemuneracaoEstimada({
+      plano: plano('Vendedor', 2000, 0, 0),
+      regras: [
+        regra('bonus_meta', { id: 'bonus-80', valor: 1000, percentual_meta_min: 80 }),
+        regra('bonus_meta', { id: 'bonus-100', valor: 2500, percentual_meta_min: 100 }),
+        regra('bonus_meta', { id: 'bonus-120', valor: 5000, percentual_meta_min: 120 }),
+      ],
+      vendasConsideradas: 10,
+      meta: 10,
+    })
+
+    expect(resultado.bonus).toBe(2500)
+    expect(resultado.regraBonusAplicada?.id).toBe('bonus-100')
+    expect(resultado.regrasNaoAtingidas.map(item => item.id)).toEqual(['bonus-120'])
+  })
+
+  test('usa somente a regra mais recente quando o patamar de bônus se repete', () => {
+    const resultado = calcularRemuneracaoEstimada({
+      plano: plano('Vendedor', 2000, 0, 0),
+      regras: [
+        regra('bonus_meta', { id: 'bonus-100-antigo', valor: 1000, percentual_meta_min: 100, vigencia_inicio: '2026-01-01' }),
+        regra('bonus_meta', { id: 'bonus-100-atual', valor: 2500, percentual_meta_min: 100, vigencia_inicio: '2026-05-01' }),
+      ],
+      vendasConsideradas: 10,
+      meta: 10,
+    })
+
+    expect(resultado.bonus).toBe(2500)
+    expect(resultado.bonusPatamares).toHaveLength(1)
+    expect(resultado.regraBonusAplicada?.id).toBe('bonus-100-atual')
+  })
+
+  test('não aplica bônus quando a meta não é válida', () => {
+    const resultado = calcularRemuneracaoEstimada({
+      plano: plano('Vendedor', 2000, 0, 0),
+      regras: [regra('bonus_meta', { id: 'bonus-0', valor: 1000, percentual_meta_min: 0 })],
+      vendasConsideradas: 10,
+      meta: 0,
+    })
+
+    expect(resultado.bonus).toBe(0)
+    expect(resultado.regraBonusAplicada).toBeNull()
+    expect(resultado.bonusPatamares[0]?.atingido).toBe(false)
+  })
+
+  test('mantém apenas a base quando não há regras cadastradas', () => {
+    const resultado = calcularRemuneracaoEstimada({
+      plano: plano('Vendedor', 2000, 300, 500),
+      regras: [],
+      vendasConsideradas: 10,
+      meta: 10,
+    })
+
+    expect(resultado.total).toBe(2800)
+    expect(resultado.comissao).toBe(0)
+    expect(resultado.bonus).toBe(0)
+    expect(resultado.regraComissaoAplicada).toBeNull()
+    expect(resultado.bonusPatamares).toEqual([])
+  })
+
+  test('calcula zero de comissão quando não há vendas', () => {
+    const resultado = calcularRemuneracaoEstimada({
+      plano: plano('Vendedor', 2000, 0, 0),
+      regras: [regra('comissao_por_venda', { valor: 500 })],
+      vendasConsideradas: 0,
+      meta: 10,
+    })
+
+    expect(resultado.vendasConsideradas).toBe(0)
+    expect(resultado.comissao).toBe(0)
+    expect(resultado.total).toBe(2000)
+  })
+})
+
+describe('calcularResumoRemuneracaoVendedor', () => {
+  test('calcula realizado e projeção com a mesma fonte de regras', () => {
+    const resumo = calcularResumoRemuneracaoVendedor({
+      plano: plano('Vendedor', 2000, 0, 0),
+      regras: [regra('comissao_por_venda', { valor: 1000 })],
+      vendasRealizadas: 4,
+      vendasProjetadas: 9,
+      meta: 10,
+    })
+
+    expect(resumo.realizado.vendasConsideradas).toBe(4)
+    expect(resumo.realizado.comissao).toBe(4000)
+    expect(resumo.projetado.vendasConsideradas).toBe(9)
+    expect(resumo.projetado.comissao).toBe(9000)
+  })
+
+  test('nunca projeta menos vendas que o realizado', () => {
+    const resumo = calcularResumoRemuneracaoVendedor({
+      plano: plano('Vendedor', 2000, 0, 0),
+      regras: [],
+      vendasRealizadas: 7,
+      vendasProjetadas: 3,
+      meta: 10,
+    })
+
+    expect(resumo.projetado.vendasConsideradas).toBe(7)
   })
 })
