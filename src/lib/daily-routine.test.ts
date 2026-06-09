@@ -4,6 +4,7 @@ import {
   calculateDailyRoutineDiscipline,
   DAILY_ROUTINE_MVP_FIELDS,
   isProductionZero,
+  resolveCloseDayReminderSchedule,
 } from './daily-routine'
 
 describe('daily routine helpers', () => {
@@ -78,5 +79,26 @@ describe('daily routine helpers', () => {
     expect(reminder.dedupe_key).toBe('daily-routine:store-1:seller-1:2026-05-14')
     expect(reminder.recipient_id).toBe('seller-1')
     expect(reminder.link).toBe('/lancamento-diario')
+  })
+
+  test('resolves close-day reminder from profile schedule', () => {
+    expect(resolveCloseDayReminderSchedule({
+      enabled: true,
+      reminderTime: null,
+      workEndTime: '18:00:00',
+      workDays: ['seg', 'ter'],
+    })).toEqual({
+      enabled: true,
+      time: '18:00',
+      workDays: ['seg', 'ter'],
+      link: '/lancamento-diario',
+    })
+
+    expect(resolveCloseDayReminderSchedule({
+      enabled: false,
+      reminderTime: '17:45',
+      workEndTime: '18:00',
+      workDays: ['seg'],
+    }).enabled).toBe(false)
   })
 })

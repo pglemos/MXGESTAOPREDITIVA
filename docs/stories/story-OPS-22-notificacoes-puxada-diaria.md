@@ -1,6 +1,6 @@
 # Story OPS-22 - Notificacoes da Puxada Diaria
 
-**Status:** Implemented - aguardando validacao final  
+**Status:** Ready for Review
 **Epic:** EPIC-MX-CONS-DEV-20260515  
 **Onda:** 3 - Acompanhamento diario e rotina mobile  
 **Owner:** @pm  
@@ -28,11 +28,13 @@ para nao esquecer meu preenchimento e manter minha disciplina operacional.
 - [x] Admin/admin master MX consegue disparar por loja quando esta atuando no centro de comando.
 - [x] WhatsApp fica fora do MVP, salvo link/manual ja existente.
 - [x] Notificacao evita duplicidade indefinida na mesma sessao de rotina por usuario/data.
+- [x] Vendedor cadastra horario de trabalho no Meu Perfil e define o lembrete in-app para "Fechar o dia".
 
 ## Regras de Negocio
 
 - Lembrete deve priorizar vendedores sem `lancamentos_diarios` na data de referencia.
 - Horario padrao deve ser configuravel futuramente; MVP pode usar horario operacional documentado.
+- Quando o horario do lembrete nao for informado, a hora de saida cadastrada no perfil do vendedor e usada como fallback.
 - Notificacao nao substitui validacao do gerente.
 
 ## Arquivos Provaveis
@@ -56,4 +58,12 @@ para nao esquecer meu preenchimento e manter minha disciplina operacional.
 - `docs/stories/story-OPS-22-notificacoes-puxada-diaria.md`
 - `src/lib/daily-routine.ts`
 - `src/lib/daily-routine.test.ts`
+- `src/features/crm/hooks/useVendedorPerfil.ts`
+- `src/features/crm/MeuPerfilVendedor.container.tsx`
+- `src/features/crm/CentralExecucao.container.tsx`
+- `src/pages/MeuPerfilVendedor.tsx`
+- `src/App.tsx`
+- `src/components/Layout.tsx`
+- `src/types/database.generated.ts`
 - `src/pages/RotinaGerente.tsx`
+- `supabase/migrations/20260609170000_vendedor_perfil.sql`

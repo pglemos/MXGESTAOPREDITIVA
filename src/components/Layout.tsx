@@ -238,6 +238,7 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
         { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
         { label: 'Trilhas', path: '/trilhas', icon: <RouteIcon size={16} /> },
+        { label: 'Meu Perfil', path: '/perfil', icon: <User size={16} /> },
       ]
     }
   ]

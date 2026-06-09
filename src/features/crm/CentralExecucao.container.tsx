@@ -11,7 +11,10 @@ import { FormField } from '@/components/molecules/FormField'
 import { Modal } from '@/components/organisms/Modal'
 import { useAgendamentos, type AgendamentoInput, type AgendamentoComCliente } from '@/features/crm/hooks/useAgendamentos'
 import { useClientes } from '@/features/crm/hooks/useClientes'
+import { useVendedorPerfil } from '@/features/crm/hooks/useVendedorPerfil'
 import { DAILY_ROUTINE_SLOTS } from '@/features/vendedor-home/data/dailyRoutine'
+import { resolveCloseDayReminderSchedule } from '@/lib/daily-routine'
+import { Link } from 'react-router-dom'
 import {
   CRM_CANAIS, CRM_CANAL_LABEL,
   CRM_AGENDAMENTO_TIPO,
@@ -46,6 +49,13 @@ function Metric({ icon, label, value, hint }: { icon: React.ReactNode; label: st
 export function CentralExecucao() {
   const { agendamentos, metrics, loading, error, createAgendamento, updateStatus, deleteAgendamento } = useAgendamentos()
   const { clientes } = useClientes()
+  const { perfil } = useVendedorPerfil()
+  const closeDayReminder = resolveCloseDayReminderSchedule({
+    enabled: perfil.fechar_dia_notificacao_ativa,
+    reminderTime: perfil.fechar_dia_notificacao_hora,
+    workEndTime: perfil.hora_saida,
+    workDays: perfil.dias_trabalho,
+  })
   const [filtro, setFiltro] = useState<Filtro>('hoje')
   const [modalOpen, setModalOpen] = useState(false)
   const [form, setForm] = useState<AgendamentoInput>(EMPTY)
@@ -170,6 +180,28 @@ export function CentralExecucao() {
           <Card className="border-none bg-white p-mx-lg shadow-mx-md">
             <Typography variant="h3" className="uppercase tracking-tight">Rotina do Dia</Typography>
             <Typography variant="caption" tone="muted">Siga sua rotina e ganhe disciplina.</Typography>
+            <div className="mt-mx-md rounded-mx-lg bg-status-info-surface p-mx-sm">
+              <div className="flex items-start justify-between gap-mx-sm">
+                <div>
+                  <Typography variant="caption" tone="muted">Expediente cadastrado</Typography>
+                  <Typography variant="p" className="font-black">
+                    {perfil.hora_entrada && perfil.hora_saida
+                      ? `${perfil.hora_entrada.slice(0, 5)} às ${perfil.hora_saida.slice(0, 5)}`
+                      : 'Cadastre seu horário'}
+                  </Typography>
+                  <Typography variant="caption" tone="muted">
+                    {closeDayReminder.enabled
+                      ? `Lembrete Fechar o dia: ${closeDayReminder.time}`
+                      : perfil.fechar_dia_notificacao_ativa
+                        ? 'Lembrete Fechar o dia: defina um horário'
+                      : 'Lembrete Fechar o dia desativado'}
+                  </Typography>
+                </div>
+                <Link to="/perfil" className="shrink-0 rounded-mx-md bg-white px-3 py-1.5 text-xs font-black text-brand-secondary shadow-sm hover:bg-surface-alt">
+                  Editar
+                </Link>
+              </div>
+            </div>
             <ol className="mt-mx-md flex flex-col gap-mx-md">
               {DAILY_ROUTINE_SLOTS.map((slot, i) => (
                 <li key={slot.task} className="flex gap-mx-sm">

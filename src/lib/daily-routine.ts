@@ -30,6 +30,13 @@ export type DailyRoutineDiscipline = {
   label: string
 }
 
+export type CloseDayReminderSchedule = {
+  enabled: boolean
+  time: string | null
+  workDays: string[]
+  link: '/lancamento-diario'
+}
+
 export const DAILY_ROUTINE_MVP_FIELDS: DailyRoutineMvpField[] = [
   { key: 'leads_prev_day', label: 'Leads do dia anterior', scope: 'previous_day', required: true, source: 'lancamentos_diarios' },
   { key: 'agd_cart_prev_day', label: 'Agendamentos carteira do dia anterior', scope: 'previous_day', required: true, source: 'lancamentos_diarios' },
@@ -92,6 +99,23 @@ export function buildDailyRoutineReminder(input: {
     priority: 'high',
     recipient_id: input.seller.id,
     store_id: input.storeId,
+    link: '/lancamento-diario',
+  }
+}
+
+export function resolveCloseDayReminderSchedule(input: {
+  enabled: boolean
+  reminderTime?: string | null
+  workEndTime?: string | null
+  workDays?: string[] | null
+}): CloseDayReminderSchedule {
+  const time = input.reminderTime || input.workEndTime || null
+  const workDays = input.workDays?.filter(Boolean) || []
+
+  return {
+    enabled: input.enabled && Boolean(time) && workDays.length > 0,
+    time: time ? time.slice(0, 5) : null,
+    workDays,
     link: '/lancamento-diario',
   }
 }

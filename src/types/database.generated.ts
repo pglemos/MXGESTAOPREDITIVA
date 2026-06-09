@@ -7974,6 +7974,90 @@ export type Database = {
           },
         ]
       }
+      vendedor_perfil: {
+        Row: {
+          cargos_interesse: string | null
+          carreira_interesse: Database["public"]["Enums"]["carreira_interesse"]
+          cidades_interesse: string | null
+          created_at: string
+          dias_trabalho: string[]
+          fechar_dia_notificacao_ativa: boolean
+          fechar_dia_notificacao_hora: string | null
+          hora_almoco_fim: string | null
+          hora_almoco_inicio: string | null
+          hora_entrada: string | null
+          hora_saida: string | null
+          id: string
+          loja_id: string | null
+          objetivo_curto: string | null
+          objetivo_longo: string | null
+          objetivo_medio: string | null
+          pretensao_max: number | null
+          pretensao_min: number | null
+          seller_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          cargos_interesse?: string | null
+          carreira_interesse?: Database["public"]["Enums"]["carreira_interesse"]
+          cidades_interesse?: string | null
+          created_at?: string
+          dias_trabalho?: string[]
+          fechar_dia_notificacao_ativa?: boolean
+          fechar_dia_notificacao_hora?: string | null
+          hora_almoco_fim?: string | null
+          hora_almoco_inicio?: string | null
+          hora_entrada?: string | null
+          hora_saida?: string | null
+          id?: string
+          loja_id?: string | null
+          objetivo_curto?: string | null
+          objetivo_longo?: string | null
+          objetivo_medio?: string | null
+          pretensao_max?: number | null
+          pretensao_min?: number | null
+          seller_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          cargos_interesse?: string | null
+          carreira_interesse?: Database["public"]["Enums"]["carreira_interesse"]
+          cidades_interesse?: string | null
+          created_at?: string
+          dias_trabalho?: string[]
+          fechar_dia_notificacao_ativa?: boolean
+          fechar_dia_notificacao_hora?: string | null
+          hora_almoco_fim?: string | null
+          hora_almoco_inicio?: string | null
+          hora_entrada?: string | null
+          hora_saida?: string | null
+          id?: string
+          loja_id?: string | null
+          objetivo_curto?: string | null
+          objetivo_longo?: string | null
+          objetivo_medio?: string | null
+          pretensao_max?: number | null
+          pretensao_min?: number | null
+          seller_user_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendedor_perfil_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendedor_perfil_seller_user_id_fkey"
+            columns: ["seller_user_id"]
+            isOneToOne: true
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendedores_loja: {
         Row: {
           closing_month_grace: boolean
@@ -9145,6 +9229,7 @@ export type Database = {
         | "segmento"
         | "melhores"
         | "mercado"
+      carreira_interesse: "nao" | "confidencial" | "disponivel"
       checkin_scope: "daily" | "adjustment" | "historical"
       comportamental_status: "pendente" | "em_andamento" | "concluido"
       correction_status: "pending" | "approved" | "rejected"
@@ -9342,6 +9427,7 @@ export const Constants = {
         "melhores",
         "mercado",
       ],
+      carreira_interesse: ["nao", "confidencial", "disponivel"],
       checkin_scope: ["daily", "adjustment", "historical"],
       comportamental_status: ["pendente", "em_andamento", "concluido"],
       correction_status: ["pending", "approved", "rejected"],

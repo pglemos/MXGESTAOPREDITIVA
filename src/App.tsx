@@ -32,6 +32,7 @@ const TrilhasVendedor = lazy(() => import('@/features/vendedor-home/TrilhasVende
 const CarteiraClientes = lazy(() => import('@/pages/CarteiraClientes'))
 const FunilVendedor = lazy(() => import('@/pages/FunilVendedor'))
 const CentralExecucao = lazy(() => import('@/pages/CentralExecucao'))
+const MeuPerfilVendedor = lazy(() => import('@/pages/MeuPerfilVendedor'))
 const LeadsVendedor = lazy(() => import('@/pages/LeadsVendedor'))
 const RelatoriosVendedor = lazy(() => import('@/pages/RelatoriosVendedor'))
 const FunilVendasGerente = lazy(() => import('@/features/gerente/FunilVendasGerente'))
@@ -289,7 +290,9 @@ export default function App() {
             <Route path="notificacoes" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<Notificacoes />} gerente={<Notificacoes />} dono={<Notificacoes />} admin={<Notificacoes />} />
             </Suspense>} />
-            <Route path="perfil" element={<Suspense fallback={<Spinner />}><Perfil /></Suspense>} />
+            <Route path="perfil" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<MeuPerfilVendedor />} gerente={<Perfil />} dono={<Perfil />} admin={<Perfil />} />
+            </Suspense>} />
 
             {/* Gerente */}
             <Route path="lojas/:storeSlug/consultor-ia" element={<Suspense fallback={<Spinner />}>
