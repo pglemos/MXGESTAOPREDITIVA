@@ -1,17 +1,9 @@
 -- ============================================================================
--- Migration: 20260609140000_mx_score_individual_mvp_rpc.sql
--- Epic:      EPIC-MX-CRM-VENDEDOR
--- ESCOPO: RPC para calcular o MX Score INDIVIDUAL do vendedor a partir de dados
---   reais e inserir em score_calculations (imutável; INSERT-only).
---   Dimensões (0–100), transparentes:
---     - disciplina: % de dias com fechamento (daily_checkins) nos últimos 7 dias
---     - processo:   taxa de comparecimento dos agendamentos resolvidos (30d)
---     - resultado:  taxa de ganho do funil (oportunidades ganho / total)
---   value = round(0.40*resultado + 0.30*processo + 0.30*disciplina)
---   band  = public.classify_score(value)
---   calculation_version = 'mvp_v1'. Idempotente por (scope,period,version).
---   SECURITY DEFINER: contorna RLS para gravar o cálculo do próprio usuário.
---   Aditivo e reversível (DOWN ao final).
+-- Migration: 20260609160000_seed_individual_scores.sql
+-- 1) Corrige compute_individual_score_mvp: a tabela de fechamento é
+--    public.lancamentos_diarios (daily_checkins foi renomeada em 20260430190000).
+-- 2) Semeia o MX Score individual (período atual) para vendedores com dados.
+-- Idempotente / reexecutável.
 -- ============================================================================
 
 BEGIN;
@@ -76,7 +68,6 @@ BEGIN
   ON CONFLICT (scope_type, scope_id, period, calculation_version) DO NOTHING
   RETURNING * INTO v_row;
 
-  -- Se já existia (conflito), retorna o existente
   IF v_row.id IS NULL THEN
     SELECT * INTO v_row FROM public.score_calculations
     WHERE scope_type = 'individual' AND scope_id = p_user
@@ -88,17 +79,22 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION public.compute_individual_score_mvp(uuid, date) IS
-  'Calcula e grava o MX Score individual (MVP v1) do vendedor a partir de dados reais (disciplina/processo/resultado). Idempotente por período.';
-
-REVOKE ALL ON FUNCTION public.compute_individual_score_mvp(uuid, date) FROM public;
-GRANT EXECUTE ON FUNCTION public.compute_individual_score_mvp(uuid, date) TO authenticated;
+-- Seed para vendedores com dados de CRM/fechamento
+DO $$
+DECLARE
+  r record;
+BEGIN
+  FOR r IN
+    SELECT DISTINCT seller_user_id AS uid FROM public.clientes
+    UNION
+    SELECT DISTINCT seller_user_id FROM public.oportunidades
+    UNION
+    SELECT DISTINCT seller_user_id FROM public.agendamentos
+    UNION
+    SELECT DISTINCT seller_user_id FROM public.lancamentos_diarios WHERE seller_user_id IS NOT NULL
+  LOOP
+    PERFORM public.compute_individual_score_mvp(r.uid, CURRENT_DATE);
+  END LOOP;
+END $$;
 
 COMMIT;
-
--- ============================================================================
--- DOWN
--- ============================================================================
--- BEGIN;
---   DROP FUNCTION IF EXISTS public.compute_individual_score_mvp(uuid, date);
--- COMMIT;
