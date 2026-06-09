@@ -19,6 +19,9 @@ import {
   FileBarChart,
   Route as RouteIcon,
   Activity,
+  Clock,
+  CalendarCheck,
+  Sparkles,
 } from 'lucide-react'
 import { cn, slugify } from '@/lib/utils'
 import { Typography } from './atoms/Typography'
@@ -224,7 +227,12 @@ const navConfig: Record<string, NavCategory[]> = {
         // Cada item tem icone unico dentro do papel para identificacao intuitiva
         { label: 'Meu Dia', path: '/home', icon: <Home size={16} /> },
         { label: 'Agenda', path: '/agenda-vendedor', icon: <CalendarDays size={16} /> },
-        { label: 'Funil', path: '/historico', icon: <Filter size={16} /> },
+        { label: 'Central de Execução', path: '/central-execucao', icon: <CalendarCheck size={16} /> },
+        { label: 'Carteira', path: '/carteira-clientes', icon: <Users size={16} /> },
+        { label: 'Leads', path: '/leads', icon: <Sparkles size={16} /> },
+        { label: 'Funil', path: '/meu-funil', icon: <Filter size={16} /> },
+        { label: 'Relatórios', path: '/relatorios-vendedor', icon: <FileBarChart size={16} /> },
+        { label: 'Histórico', path: '/historico', icon: <Clock size={16} /> },
         { label: 'Feedbacks', path: '/devolutivas', icon: <MessageSquare size={16} /> },
         { label: 'Consultor IA', path: STORE_CONSULTOR_IA_PATH, icon: <Bot size={16} /> },
         { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },

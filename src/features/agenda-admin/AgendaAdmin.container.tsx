@@ -119,6 +119,7 @@ export function AgendaAdmin() {
           onRefresh={() => refetch()}
           onCreateVisit={() => forms.handleOpenSchedule()}
           onCreateEvent={() => forms.handleOpenEvent()}
+          onCreateBlock={() => forms.handleOpenBlock()}
         />
       </AgendaErrorBoundary>
 
@@ -173,6 +174,7 @@ export function AgendaAdmin() {
               selectedDayEvents={selectedDayEvents}
               onClearSelection={() => setSelectedDate(null)}
               onScheduleVisit={forms.handleOpenSchedule}
+              onBlockDate={forms.handleOpenBlock}
               onEditEvent={forms.handleOpenEditEvent}
             />
           </AgendaErrorBoundary>

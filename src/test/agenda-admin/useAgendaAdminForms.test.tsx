@@ -2,7 +2,8 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import * as React from "react";
 import { useAgendaAdminForms } from "@/features/agenda-admin/hooks/useAgendaAdminForms";
-import type { AgendaConsultant, AgendaVisit } from "@/hooks/agenda";
+import { getSelectableAgendaClients } from "@/features/agenda-admin/modals/VisitaModal";
+import type { AgendaClient, AgendaConsultant, AgendaVisit } from "@/hooks/agenda";
 
 afterEach(() => {
   cleanup();
@@ -49,6 +50,7 @@ const ok = async () => ({ error: null });
 
 function AgendaFormsHarness() {
   const [visits, setVisits] = React.useState<AgendaVisit[]>([]);
+  const [createdEvent, setCreatedEvent] = React.useState("");
   const forms = useAgendaAdminForms({
     visits,
     consultants,
@@ -57,7 +59,10 @@ function AgendaFormsHarness() {
     updateVisit: ok,
     updateVisitStatus: ok,
     deleteVisit: ok,
-    createScheduleEvent: ok,
+    createScheduleEvent: async (payload: unknown) => {
+      setCreatedEvent(JSON.stringify(payload));
+      return ok();
+    },
     updateScheduleEvent: ok,
     deleteScheduleEvent: ok,
     getNextVisitNumber: () => 1,
@@ -67,8 +72,25 @@ function AgendaFormsHarness() {
     <>
       <button type="button" onClick={() => setVisits([visit])}>Carregar visitas</button>
       <button type="button" onClick={() => forms.handleOpenEditVisit(visit.id)}>Editar visita</button>
+      <button type="button" onClick={() => forms.handleOpenBlock(new Date(2026, 5, 23))}>Bloquear dia</button>
+      <button
+        type="button"
+        onClick={() => forms.setEventForm((prev) => ({
+          ...prev,
+          responsible_user_id: "consultant-1",
+          responsible_name: "Joao",
+        }))}
+      >
+        Relacionar consultor
+      </button>
+      <button type="button" onClick={() => forms.handleSubmitEvent({ preventDefault: () => undefined } as React.FormEvent)}>Salvar evento</button>
       <span data-testid="editing-visit-id">{forms.editingVisitId || "none"}</span>
       <span data-testid="editing-client-id">{forms.scheduleForm.client_id || "none"}</span>
+      <span data-testid="event-type">{forms.eventForm.event_type}</span>
+      <span data-testid="event-title">{forms.eventForm.title}</span>
+      <span data-testid="event-date">{forms.eventForm.starts_at}</span>
+      <span data-testid="event-responsible">{forms.eventForm.responsible_user_id || "none"}</span>
+      <span data-testid="created-event">{createdEvent}</span>
       {forms.showScheduleModal && <div role="dialog">Editar Visita de Consultoria</div>}
     </>
   );
@@ -84,5 +106,37 @@ describe("useAgendaAdminForms", () => {
     expect(screen.getByRole("dialog")).toBeDefined();
     expect(screen.getByTestId("editing-visit-id")).toHaveTextContent("visit-1");
     expect(screen.getByTestId("editing-client-id")).toHaveTextContent("client-1");
+  });
+
+  test("requires a consultant when submitting a manual blocked agenda event without a consulting client", async () => {
+    render(<AgendaFormsHarness />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Bloquear dia" }));
+
+    expect(screen.getByTestId("event-type")).toHaveTextContent("bloqueio");
+    expect(screen.getByTestId("event-title")).toHaveTextContent("Agenda bloqueada");
+    expect(screen.getByTestId("event-date")).toHaveTextContent("2026-06-23");
+
+    fireEvent.click(screen.getByRole("button", { name: "Salvar evento" }));
+    expect(screen.getByTestId("created-event").textContent).toBe("");
+
+    fireEvent.click(screen.getByRole("button", { name: "Relacionar consultor" }));
+    expect(screen.getByTestId("event-responsible")).toHaveTextContent("consultant-1");
+
+    fireEvent.click(screen.getByRole("button", { name: "Salvar evento" }));
+
+    await screen.findByText(/"event_type":"bloqueio"/);
+    expect(screen.getByTestId("created-event")).toHaveTextContent('"title":"Agenda bloqueada"');
+    expect(screen.getByTestId("created-event")).toHaveTextContent('"visit_reason":"Agenda bloqueada"');
+    expect(screen.getByTestId("created-event")).toHaveTextContent('"responsible_user_id":"consultant-1"');
+    expect(screen.getByTestId("created-event")).not.toHaveTextContent("client_id");
+  });
+
+  test("keeps consulting clients selectable even when status is not active", () => {
+    const clients: AgendaClient[] = [
+      { id: "client-1", name: "Agenda Bloqueada", status: "implantacao", current_visit_step: 0 },
+    ];
+
+    expect(getSelectableAgendaClients(clients)).toEqual(clients);
   });
 });

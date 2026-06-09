@@ -1,0 +1,100 @@
+- generic [ref=e2]:
+  - generic [ref=e9]:
+    - link "Pular para conteúdo principal" [ref=e10] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=e11]:
+      - generic [ref=e12]:
+        - button "Ir para o painel inicial" [ref=e13]:
+          - img "MX Performance" [ref=e14]
+        - generic [ref=e16]: MX PERFORMANCE
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - button "Pesquisar no sistema" [ref=e19]:
+            - img [ref=e20]
+          - button "Abrir notificações. 0 não lidas." [ref=e23]:
+            - img [ref=e24]
+        - button "Ver perfil de Vendedor MX Consultoria 1" [ref=e27]:
+          - generic [ref=e28]:
+            - generic [ref=e29]: Vendedor MX Consultoria 1
+            - generic [ref=e30]: Vendedor
+          - generic "Avatar de Vendedor MX Consultoria 1" [ref=e32]: VM
+    - generic [ref=e33]:
+      - complementary "Menu Lateral Principal" [ref=e34]:
+        - navigation "Módulos de Gestão" [ref=e35]:
+          - generic [ref=e36]:
+            - link "Meu Dia (NAVEGAÇÃO)" [ref=e37] [cursor=pointer]:
+              - /url: /home
+              - img [ref=e39]
+            - link "Agenda (NAVEGAÇÃO)" [ref=e42] [cursor=pointer]:
+              - /url: /agenda-vendedor
+              - img [ref=e44]
+            - link "Central de Execução (NAVEGAÇÃO)" [ref=e46] [cursor=pointer]:
+              - /url: /central-execucao
+              - img [ref=e48]
+            - link "Carteira (NAVEGAÇÃO)" [ref=e51] [cursor=pointer]:
+              - /url: /carteira-clientes
+              - img [ref=e53]
+            - link "Leads (NAVEGAÇÃO)" [ref=e58] [cursor=pointer]:
+              - /url: /leads
+              - img [ref=e60]
+            - link "Funil (NAVEGAÇÃO)" [ref=e63] [cursor=pointer]:
+              - /url: /meu-funil
+              - img [ref=e65]
+            - link "Relatórios (NAVEGAÇÃO)" [ref=e67] [cursor=pointer]:
+              - /url: /relatorios-vendedor
+              - img [ref=e69]
+            - link "Histórico (NAVEGAÇÃO)" [ref=e72] [cursor=pointer]:
+              - /url: /historico
+              - img [ref=e74]
+            - link "Feedbacks (NAVEGAÇÃO)" [ref=e77] [cursor=pointer]:
+              - /url: /devolutivas
+              - img [ref=e79]
+            - link "Consultor IA (NAVEGAÇÃO)" [ref=e81] [cursor=pointer]:
+              - /url: /lojas/mx-consultoria/consultor-ia
+              - img [ref=e83]
+            - link "PDI (NAVEGAÇÃO)" [ref=e86] [cursor=pointer]:
+              - /url: /pdi
+              - img [ref=e88]
+            - link "Treinamentos (NAVEGAÇÃO)" [ref=e91] [cursor=pointer]:
+              - /url: /treinamentos
+              - img [ref=e93]
+            - link "Trilhas (NAVEGAÇÃO)" [ref=e96] [cursor=pointer]:
+              - /url: /trilhas
+              - img [ref=e98]
+        - button "Consultor IA - Perguntar" [ref=e102]:
+          - img [ref=e103]
+        - button "Encerrar Sessão do Sistema" [ref=e106]:
+          - img [ref=e107]
+      - main [ref=e110]:
+        - main [ref=e111]:
+          - generic [ref=e112]:
+            - generic [ref=e115]:
+              - heading "Leads" [level=1] [ref=e116]
+              - text: Novos contatos aguardando qualificação. Aja rápido para aumentar a conversão.
+            - region "Indicadores de leads" [ref=e117]:
+              - generic [ref=e118]:
+                - text: Leads aguardando
+                - heading "0" [level=2] [ref=e119]
+                - text: sem primeiro contato
+              - generic [ref=e120]:
+                - text: Novos (7 dias)
+                - heading "0" [level=2] [ref=e121]
+                - text: entraram esta semana
+              - generic [ref=e122]:
+                - text: Total na carteira
+                - heading "1" [level=2] [ref=e123]
+                - text: clientes + leads
+            - generic [ref=e124]:
+              - generic [ref=e125]:
+                - img [ref=e126]
+                - heading "Leads para qualificar" [level=3] [ref=e129]
+              - generic [ref=e130]:
+                - img [ref=e131]
+                - textbox "Buscar lead..." [ref=e134]
+              - generic [ref=e136]:
+                - heading "Nenhum lead aguardando" [level=3] [ref=e137]
+                - paragraph [ref=e138]: Cadastre clientes no Fechamento ou na Carteira; os que ficam como "aguardando contato" aparecem aqui.
+            - generic [ref=e139]:
+              - img [ref=e140]
+              - generic [ref=e143]: Ao qualificar, o lead vira oportunidade e aparece na Carteira e no Funil.
+  - region "Notifications alt+T"

@@ -41,6 +41,10 @@ interface VisitaModalProps {
   getNextVisitNumber: (clientId: string) => number
 }
 
+export function getSelectableAgendaClients(clients: AgendaClient[]) {
+  return clients
+}
+
 export function VisitaModal({
   open, onClose, editingVisitId,
   scheduleForm, setScheduleForm,
@@ -83,7 +87,7 @@ export function VisitaModal({
             onChange={(e) => handleSelectClient(e.target.value)}
           >
             <option value="">Selecionar cliente...</option>
-            {clients.filter((c) => c.status === 'ativo').map((c) => (
+            {getSelectableAgendaClients(clients).map((c) => (
               <option key={c.id} value={c.id}>{c.name} (Etapa {c.current_visit_step || 0}/7)</option>
             ))}
           </Select>

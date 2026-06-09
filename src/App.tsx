@@ -29,6 +29,11 @@ const VendedorAjuda = lazy(() => import('@/pages/VendedorAjuda'))
 const MinhaRemuneracao = lazy(() => import('@/features/remuneracao/MinhaRemuneracaoPage'))
 const AgendaVendedor = lazy(() => import('@/features/vendedor-home/AgendaVendedor'))
 const TrilhasVendedor = lazy(() => import('@/features/vendedor-home/TrilhasVendedor'))
+const CarteiraClientes = lazy(() => import('@/pages/CarteiraClientes'))
+const FunilVendedor = lazy(() => import('@/pages/FunilVendedor'))
+const CentralExecucao = lazy(() => import('@/pages/CentralExecucao'))
+const LeadsVendedor = lazy(() => import('@/pages/LeadsVendedor'))
+const RelatoriosVendedor = lazy(() => import('@/pages/RelatoriosVendedor'))
 const FunilVendasGerente = lazy(() => import('@/features/gerente/FunilVendasGerente'))
 const MetasGerente = lazy(() => import('@/features/gerente/MetasGerente'))
 const FalarConsultorDono = lazy(() => import('@/features/dono/FalarConsultorDono'))
@@ -239,6 +244,21 @@ export default function App() {
             </Suspense>} />
             <Route path="trilhas" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<TrilhasVendedor />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
+            </Suspense>} />
+            <Route path="carteira-clientes" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<CarteiraClientes />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
+            </Suspense>} />
+            <Route path="meu-funil" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<FunilVendedor />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
+            </Suspense>} />
+            <Route path="central-execucao" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<CentralExecucao />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
+            </Suspense>} />
+            <Route path="leads" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<LeadsVendedor />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
+            </Suspense>} />
+            <Route path="relatorios-vendedor" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<RelatoriosVendedor />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
             </Suspense>} />
             <Route path="funil-vendas" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<ForbiddenRoute />} gerente={<FunilVendasGerente />} dono={<FunilVendasGerente />} admin={<ForbiddenRoute />} />

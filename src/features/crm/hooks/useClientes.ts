@@ -1,0 +1,125 @@
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/hooks/useAuth'
+import {
+  parseClientes,
+  type Cliente,
+  type CrmCanal,
+  type CrmClienteStatus,
+  type CrmRelacionamento,
+} from '@/lib/schemas/crm.schema'
+
+export type ClienteInput = {
+  nome: string
+  telefone?: string | null
+  empresa?: string | null
+  canal_origem?: CrmCanal | null
+  status?: CrmClienteStatus
+  relacionamento?: CrmRelacionamento
+  proxima_acao?: string | null
+  proxima_acao_em?: string | null
+  potencial_negocio?: number
+  observacoes?: string | null
+}
+
+/**
+ * Carteira de clientes do vendedor logado. Escopo garantido pela RLS
+ * (seller_user_id = auth.uid()); o filtro aqui é defensivo/explicito.
+ */
+export function useClientes() {
+  const { supabaseUser, activeStoreId, storeId } = useAuth()
+  const effectiveStoreId = activeStoreId || storeId || null
+  const [clientes, setClientes] = useState<Cliente[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchClientes = useCallback(async () => {
+    if (!supabaseUser) {
+      setClientes([])
+      setLoading(false)
+      return
+    }
+    setLoading(true)
+    setError(null)
+
+    const { data, error: fetchError } = await supabase
+      .from('clientes')
+      .select('*')
+      .eq('seller_user_id', supabaseUser.id)
+      .order('updated_at', { ascending: false })
+
+    if (fetchError) {
+      setError(fetchError.message)
+      setClientes([])
+    } else {
+      setClientes(parseClientes(data))
+    }
+    setLoading(false)
+  }, [supabaseUser])
+
+  const createCliente = useCallback(async (input: ClienteInput): Promise<{ error: string | null; id?: string }> => {
+    if (!supabaseUser) return { error: 'Sessão inválida.' }
+    if (!effectiveStoreId) return { error: 'Loja não identificada para o vendedor.' }
+    if (!input.nome?.trim()) return { error: 'Nome do cliente é obrigatório.' }
+
+    const payload = {
+      loja_id: effectiveStoreId,
+      seller_user_id: supabaseUser.id,
+      nome: input.nome.trim(),
+      telefone: input.telefone?.trim() || null,
+      empresa: input.empresa?.trim() || null,
+      canal_origem: input.canal_origem || null,
+      status: input.status || 'aguardando_contato',
+      relacionamento: input.relacionamento || 'neutro',
+      proxima_acao: input.proxima_acao?.trim() || null,
+      proxima_acao_em: input.proxima_acao_em || null,
+      potencial_negocio: input.potencial_negocio ?? 0,
+      observacoes: input.observacoes?.trim() || null,
+      ultima_interacao: new Date().toISOString().slice(0, 10),
+    }
+
+    const { data, error: insertError } = await supabase
+      .from('clientes')
+      .insert(payload)
+      .select('id')
+      .single()
+
+    if (insertError) return { error: insertError.message }
+    await fetchClientes()
+    return { error: null, id: data?.id }
+  }, [supabaseUser, effectiveStoreId, fetchClientes])
+
+  const updateCliente = useCallback(async (id: string, patch: Partial<ClienteInput>): Promise<{ error: string | null }> => {
+    if (!supabaseUser) return { error: 'Sessão inválida.' }
+    const { error: updateError } = await supabase
+      .from('clientes')
+      .update({ ...patch, ultima_interacao: new Date().toISOString().slice(0, 10) })
+      .eq('id', id)
+    if (updateError) return { error: updateError.message }
+    await fetchClientes()
+    return { error: null }
+  }, [supabaseUser, fetchClientes])
+
+  const deleteCliente = useCallback(async (id: string): Promise<{ error: string | null }> => {
+    if (!supabaseUser) return { error: 'Sessão inválida.' }
+    const { error: deleteError } = await supabase.from('clientes').delete().eq('id', id)
+    if (deleteError) return { error: deleteError.message }
+    await fetchClientes()
+    return { error: null }
+  }, [supabaseUser, fetchClientes])
+
+  useEffect(() => { fetchClientes() }, [fetchClientes])
+
+  const metrics = useMemo(() => {
+    const total = clientes.length
+    const ativos = clientes.filter(c => c.status === 'ativo').length
+    const oportunidades = clientes.filter(c => c.status === 'oportunidade').length
+    const posVenda = clientes.filter(c => c.status === 'pos_venda').length
+    const aguardando = clientes.filter(c => c.status === 'aguardando_contato').length
+    const inativos = clientes.filter(c => c.status === 'inativo').length
+    const potencialTotal = clientes.reduce((acc, c) => acc + (c.potencial_negocio || 0), 0)
+    return { total, ativos, oportunidades, posVenda, aguardando, inativos, potencialTotal }
+  }, [clientes])
+
+  return { clientes, metrics, loading, error, refetch: fetchClientes, createCliente, updateCliente, deleteCliente }
+}

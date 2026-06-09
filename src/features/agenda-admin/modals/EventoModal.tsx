@@ -47,18 +47,37 @@ export function EventoModal({
   consultants,
   visitReasonSelectOptions, targetAudienceSelectOptions, productSelectOptions,
 }: EventoModalProps) {
+  const isBlock = eventForm.event_type === 'bloqueio'
+  const submitDisabled = submitting || !eventForm.title.trim() || (isBlock && !eventForm.responsible_user_id)
+  const handleChangeType = (eventType: AgendaScheduleEvent['event_type']) => {
+    setEventForm((prev) => ({
+      ...prev,
+      event_type: eventType,
+      title: eventType === 'bloqueio' && !prev.title.trim() ? 'Agenda bloqueada' : prev.title,
+      duration_hours: eventType === 'bloqueio' ? prev.duration_hours || '8' : prev.duration_hours,
+      modality: eventType === 'bloqueio' ? 'Bloqueio' : eventType === 'evento_presencial' ? 'Presencial' : 'Online',
+      location: eventType === 'bloqueio' ? '' : eventType === 'evento_presencial' ? '' : 'Google Meet',
+      visit_reason: eventType === 'bloqueio' ? 'Agenda bloqueada' : prev.visit_reason,
+      target_audience: eventType === 'bloqueio' ? '' : prev.target_audience,
+      audience_goal: eventType === 'bloqueio' ? '' : prev.audience_goal,
+      product_name: eventType === 'bloqueio' ? '' : prev.product_name,
+      ticket_price_text: eventType === 'bloqueio' ? '' : prev.ticket_price_text,
+      google_event_id: eventType === 'bloqueio' ? '' : prev.google_event_id,
+    }))
+  }
+
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title={editingEventId ? 'Editar Evento/Aula' : 'Novo Evento/Aula'}
-      description="Cadastre aulas, eventos online e eventos presenciais do cronograma MX"
+      title={isBlock ? editingEventId ? 'Editar Bloqueio' : 'Bloquear Agenda' : editingEventId ? 'Editar Evento/Aula' : 'Novo Evento/Aula'}
+      description={isBlock ? 'Reserve um período indisponível para um consultor MX' : 'Cadastre aulas, eventos online e eventos presenciais do cronograma MX'}
       size="xl"
       footer={
         <>
           <Button type="button" variant="ghost" onClick={onClose}>CANCELAR</Button>
-          <Button type="submit" form="agenda-event-form" disabled={submitting || !eventForm.title.trim()} className="bg-brand-secondary">
-            {submitting ? 'SALVANDO...' : 'SALVAR EVENTO/AULA'}
+          <Button type="submit" form="agenda-event-form" disabled={submitDisabled} className="bg-brand-secondary">
+            {submitting ? 'SALVANDO...' : isBlock ? 'SALVAR BLOQUEIO' : 'SALVAR EVENTO/AULA'}
           </Button>
         </>
       }
@@ -69,12 +88,7 @@ export function EventoModal({
             id="agenda-event-type"
             label="Tipo"
             value={eventForm.event_type}
-            onChange={(e) => setEventForm((prev) => ({
-              ...prev,
-              event_type: e.target.value as AgendaScheduleEvent['event_type'],
-              modality: e.target.value === 'evento_presencial' ? 'Presencial' : 'Online',
-              location: e.target.value === 'evento_presencial' ? '' : 'Google Meet',
-            }))}
+            onChange={(e) => handleChangeType(e.target.value as AgendaScheduleEvent['event_type'])}
           >
             <option value="aula">Aula</option>
             <option value="evento_online">Evento online</option>
@@ -94,38 +108,44 @@ export function EventoModal({
         </div>
 
         <div className="space-y-mx-xs">
-          <Typography as="label" htmlFor="agenda-event-title" variant="caption" className="font-black uppercase tracking-widest">Evento/Aula *</Typography>
+          <Typography as="label" htmlFor="agenda-event-title" variant="caption" className="font-black uppercase tracking-widest">
+            {isBlock ? 'Motivo do bloqueio *' : 'Evento/Aula *'}
+          </Typography>
           <Input
             id="agenda-event-title"
             value={eventForm.title}
             onChange={(e) => setEventForm((prev) => ({ ...prev, title: e.target.value }))}
-            placeholder="Ex: Formação de Vendedores"
+            placeholder={isBlock ? 'Ex: José indisponível' : 'Ex: Formação de Vendedores'}
           />
         </div>
 
         <div className="space-y-mx-xs">
-          <Typography as="label" htmlFor="agenda-event-topic" variant="caption" className="font-black uppercase tracking-widest">Tema</Typography>
+          <Typography as="label" htmlFor="agenda-event-topic" variant="caption" className="font-black uppercase tracking-widest">
+            {isBlock ? 'Observação' : 'Tema'}
+          </Typography>
           <Input
             id="agenda-event-topic"
             value={eventForm.topic}
             onChange={(e) => setEventForm((prev) => ({ ...prev, topic: e.target.value }))}
-            placeholder="Tema ou pauta principal"
+            placeholder={isBlock ? 'Detalhe opcional' : 'Tema ou pauta principal'}
           />
         </div>
 
-        <div className="space-y-mx-xs">
-          <Select
-            id="agenda-event-reason"
-            label="Motivo da visita"
-            value={eventForm.visit_reason}
-            onChange={(e) => setEventForm((prev) => ({ ...prev, visit_reason: e.target.value }))}
-          >
-            <option value="">Selecionar motivo...</option>
-            {visitReasonSelectOptions.map((reason) => (
-              <option key={reason} value={reason}>{reason}</option>
-            ))}
-          </Select>
-        </div>
+        {!isBlock && (
+          <div className="space-y-mx-xs">
+            <Select
+              id="agenda-event-reason"
+              label="Motivo da visita"
+              value={eventForm.visit_reason}
+              onChange={(e) => setEventForm((prev) => ({ ...prev, visit_reason: e.target.value }))}
+            >
+              <option value="">Selecionar motivo...</option>
+              {visitReasonSelectOptions.map((reason) => (
+                <option key={reason} value={reason}>{reason}</option>
+              ))}
+            </Select>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-mx-md">
           <div className="space-y-mx-xs">
@@ -161,7 +181,7 @@ export function EventoModal({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
           <Select
             id="agenda-event-responsible"
-            label="Responsável"
+            label={isBlock ? 'Consultor MX *' : 'Responsável'}
             value={eventForm.responsible_user_id}
             onChange={(e) => {
               const selected = consultants.find((item) => item.id === e.target.value)
@@ -172,7 +192,7 @@ export function EventoModal({
               }))
             }}
           >
-            <option value="">Sem responsável...</option>
+            <option value="">{isBlock ? 'Selecione o consultor...' : 'Sem responsável...'}</option>
             {consultants.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
@@ -188,60 +208,64 @@ export function EventoModal({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-mx-md">
-          <Select
-            id="agenda-event-target"
-            label="Alvo"
-            value={eventForm.target_audience}
-            onChange={(e) => setEventForm((prev) => ({ ...prev, target_audience: e.target.value }))}
-          >
-            <option value="">Selecionar alvo...</option>
-            {targetAudienceSelectOptions.map((target) => (
-              <option key={target} value={target}>{target}</option>
-            ))}
-          </Select>
-          <Select
-            id="agenda-event-product-name"
-            label="Produto"
-            value={eventForm.product_name}
-            onChange={(e) => setEventForm((prev) => ({ ...prev, product_name: e.target.value }))}
-          >
-            <option value="">Selecionar produto...</option>
-            {productSelectOptions.map((product) => (
-              <option key={product} value={product}>{product}</option>
-            ))}
-          </Select>
-          <div className="space-y-mx-xs">
-            <Typography as="label" htmlFor="agenda-event-goal" variant="caption" className="font-black uppercase tracking-widest">Meta de público</Typography>
-            <Input
-              id="agenda-event-goal"
-              type="number"
-              min="0"
-              value={eventForm.audience_goal}
-              onChange={(e) => setEventForm((prev) => ({ ...prev, audience_goal: e.target.value }))}
-            />
-          </div>
-        </div>
+        {!isBlock && (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-mx-md">
+              <Select
+                id="agenda-event-target"
+                label="Alvo"
+                value={eventForm.target_audience}
+                onChange={(e) => setEventForm((prev) => ({ ...prev, target_audience: e.target.value }))}
+              >
+                <option value="">Selecionar alvo...</option>
+                {targetAudienceSelectOptions.map((target) => (
+                  <option key={target} value={target}>{target}</option>
+                ))}
+              </Select>
+              <Select
+                id="agenda-event-product-name"
+                label="Produto"
+                value={eventForm.product_name}
+                onChange={(e) => setEventForm((prev) => ({ ...prev, product_name: e.target.value }))}
+              >
+                <option value="">Selecionar produto...</option>
+                {productSelectOptions.map((product) => (
+                  <option key={product} value={product}>{product}</option>
+                ))}
+              </Select>
+              <div className="space-y-mx-xs">
+                <Typography as="label" htmlFor="agenda-event-goal" variant="caption" className="font-black uppercase tracking-widest">Meta de público</Typography>
+                <Input
+                  id="agenda-event-goal"
+                  type="number"
+                  min="0"
+                  value={eventForm.audience_goal}
+                  onChange={(e) => setEventForm((prev) => ({ ...prev, audience_goal: e.target.value }))}
+                />
+              </div>
+            </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
-          <div className="space-y-mx-xs">
-            <Typography as="label" htmlFor="agenda-event-ticket" variant="caption" className="font-black uppercase tracking-widest">Valor do ingresso</Typography>
-            <Input
-              id="agenda-event-ticket"
-              value={eventForm.ticket_price_text}
-              onChange={(e) => setEventForm((prev) => ({ ...prev, ticket_price_text: e.target.value }))}
-              placeholder="R$ 297,00"
-            />
-          </div>
-          <div className="space-y-mx-xs">
-            <Typography as="label" htmlFor="agenda-event-google-id" variant="caption" className="font-black uppercase tracking-widest">ID Google</Typography>
-            <Input
-              id="agenda-event-google-id"
-              value={eventForm.google_event_id}
-              onChange={(e) => setEventForm((prev) => ({ ...prev, google_event_id: e.target.value }))}
-            />
-          </div>
-        </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
+              <div className="space-y-mx-xs">
+                <Typography as="label" htmlFor="agenda-event-ticket" variant="caption" className="font-black uppercase tracking-widest">Valor do ingresso</Typography>
+                <Input
+                  id="agenda-event-ticket"
+                  value={eventForm.ticket_price_text}
+                  onChange={(e) => setEventForm((prev) => ({ ...prev, ticket_price_text: e.target.value }))}
+                  placeholder="R$ 297,00"
+                />
+              </div>
+              <div className="space-y-mx-xs">
+                <Typography as="label" htmlFor="agenda-event-google-id" variant="caption" className="font-black uppercase tracking-widest">ID Google</Typography>
+                <Input
+                  id="agenda-event-google-id"
+                  value={eventForm.google_event_id}
+                  onChange={(e) => setEventForm((prev) => ({ ...prev, google_event_id: e.target.value }))}
+                />
+              </div>
+            </div>
+          </>
+        )}
       </form>
     </Modal>
   )

@@ -28,6 +28,10 @@ import { LancamentoGateBanner } from './components/LancamentoGateBanner'
 import { VendedorHomeErrorBoundary } from './components/VendedorHomeErrorBoundary'
 import { VendedorHomeSkeleton } from './sections/VendedorHomeSkeleton'
 import { useVendedorHomePage } from './hooks/useVendedorHomePage'
+import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
+import { useAgendamentos, type AgendamentoComCliente } from '@/features/crm/hooks/useAgendamentos'
+import { useMeuScore } from '@/features/crm/hooks/useMeuScore'
+import { CRM_CANAL_LABEL } from '@/lib/schemas/crm.schema'
 import type { RemuneracaoEstimadaResultado } from '@/features/remuneracao/hooks/useRemuneracao'
 
 type Tone = 'brand' | 'success' | 'warning' | 'danger' | 'info' | 'neutral'
@@ -38,19 +42,27 @@ type Tone = 'brand' | 'success' | 'warning' | 'danger' | 'info' | 'neutral'
  */
 export function VendedorHome() {
   const home = useVendedorHomePage()
+  // CRM real — alimenta atividades, agenda do dia, conquistas e score do cockpit
+  const { oportunidades, funil } = useOportunidades()
+  const { agendamentos, metrics: agendaMetrics } = useAgendamentos()
+  const { score: meuScore, bandLabel, nextBand } = useMeuScore()
 
   if (home.isLoading || !home.metrics) {
     return <VendedorHomeSkeleton />
   }
 
-  const { metrics, profile, checkins, referenceDate, todayCheckin, remuneracaoEstimada, isLancamentoGateLocked, ranking, treinamentos, devolutivas } = home
+  const { metrics, profile, checkins, referenceDate, todayCheckin, remuneracaoEstimada, isLancamentoGateLocked, ranking, treinamentos, devolutivas, discipline } = home
   const firstName = profile?.name?.split(' ')[0] || 'Vendedor'
   const goal = Number(metrics.meta || 0)
   const remaining = Math.max(goal - metrics.vendasMes, 0)
-  const dayCompletion = 70
-  const score = 720
-  const level = 'Prata MX'
-  const nextLevel = 'Ouro MX'
+
+  // % do dia concluído = disciplina real da rotina (fechamentos enviados)
+  const dayCompletion = discipline?.percentage ?? 0
+  // MX Score real (0–100 + banda). Sem cálculo ainda → 0 / "Sem score".
+  const score = meuScore?.value ?? 0
+  const level = meuScore ? (bandLabel[meuScore.band] || meuScore.band) : 'Sem score'
+  const nextLevel = meuScore ? (nextBand[meuScore.band] || '—') : '—'
+
   const watchedTrainings = treinamentos.filter(training => training.watched).length
   const latestFeedback = devolutivas[0] || null
   const visibleRanking = ranking.filter(row => !row.is_venda_loja).slice(0, 5)
@@ -58,18 +70,36 @@ export function VendedorHome() {
   const lastSevenSales = buildLastSevenSales(myCheckins, referenceDate)
   const trainingsForCard = treinamentos.length > 0 ? treinamentos.slice(0, 2) : fallbackTrainings()
 
+  // Atividades de hoje — derivadas do CRM real
+  const hoje = new Date()
+  const agsHoje = agendamentos.filter(a => sameDay(new Date(a.data_hora), hoje))
+  const negociacoes = oportunidades.filter(o => o.etapa === 'negociacao').length
+  const retornos = agsHoje.filter(a => a.tipo === 'retorno').length
+  const entregas = agsHoje.filter(a => a.tipo === 'entrega').length
   const activityRows = [
-    { label: 'Negociações', value: 3, icon: <MessageSquare size={16} />, tone: 'danger' as Tone },
-    { label: 'Agendamentos', value: 2, icon: <CalendarDays size={16} />, tone: 'success' as Tone },
-    { label: 'Retornos', value: 5, icon: <Clock size={16} />, tone: 'info' as Tone },
-    { label: 'Entregas', value: 1, icon: <BadgeCheck size={16} />, tone: 'warning' as Tone },
+    { label: 'Negociações', value: negociacoes, icon: <MessageSquare size={16} />, tone: 'danger' as Tone },
+    { label: 'Agendamentos', value: agendaMetrics.agendamentosHoje, icon: <CalendarDays size={16} />, tone: 'success' as Tone },
+    { label: 'Retornos', value: retornos, icon: <Clock size={16} />, tone: 'info' as Tone },
+    { label: 'Entregas', value: entregas, icon: <BadgeCheck size={16} />, tone: 'warning' as Tone },
   ]
+
+  // Conquistas — pontos por regra transparente sobre dados reais
+  const achievementRows = [
+    { title: 'Vendas no mês', detail: `${metrics.vendasMes} ${metrics.vendasMes === 1 ? 'venda' : 'vendas'} realizadas`, pts: metrics.vendasMes * 50, active: metrics.vendasMes > 0 },
+    { title: 'Agendamentos de hoje', detail: `${agendaMetrics.agendamentosHoje} na agenda`, pts: agendaMetrics.agendamentosHoje * 10, active: agendaMetrics.agendamentosHoje > 0 },
+    { title: 'Disciplina de rotina', detail: discipline?.label || 'Sem dados de fechamento', pts: Math.round((discipline?.percentage ?? 0) / 10), active: (discipline?.percentage ?? 0) >= 70 },
+  ]
+  const achievementsTotal = achievementRows.reduce((acc, r) => acc + r.pts, 0)
+
+  // Saudação por horário
+  const hour = hoje.getHours()
+  const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite'
 
   return (
     <main className="w-full h-full overflow-y-auto bg-surface-alt p-mx-md md:p-mx-lg no-scrollbar">
       <div className="flex flex-col gap-mx-lg pb-28">
         <VendedorHomeErrorBoundary sectionName="Header">
-          <SellerHeader firstName={firstName} referenceDateLabel={home.referenceDateLabel} />
+          <SellerHeader greeting={greeting} firstName={firstName} referenceDateLabel={home.referenceDateLabel} />
         </VendedorHomeErrorBoundary>
 
         <VendedorHomeErrorBoundary sectionName="Trava de lançamento">
@@ -91,10 +121,10 @@ export function VendedorHome() {
             <EstimatedSalaryCard estimativa={remuneracaoEstimada} />
             <CompactMetricCard
               title="Agendamentos Hoje"
-              value={metrics.agendamentosHoje}
-              detail={metrics.agendamentosHoje > 0 ? 'registrados na rotina' : 'sem agenda lançada'}
+              value={agendaMetrics.agendamentosHoje}
+              detail={agendaMetrics.agendamentosHoje > 0 ? 'na sua agenda' : 'sem agenda hoje'}
               icon={<CalendarDays size={22} />}
-              tone={metrics.agendamentosHoje > 0 ? 'success' : 'warning'}
+              tone={agendaMetrics.agendamentosHoje > 0 ? 'success' : 'warning'}
             />
             <ActivitiesCard rows={activityRows} />
             <ScoreCard score={score} level={level} nextLevel={nextLevel} />
@@ -104,8 +134,7 @@ export function VendedorHome() {
         <section className="grid grid-cols-1 gap-mx-lg xl:grid-cols-12" aria-label="Rotina do dia">
           <VendedorHomeErrorBoundary sectionName="Agenda">
             <AgendaTodayCard
-              agendamentosHoje={metrics.agendamentosHoje}
-              hasTodayCheckin={!!todayCheckin}
+              agendamentos={agsHoje}
               isLocked={isLancamentoGateLocked}
             />
           </VendedorHomeErrorBoundary>
@@ -113,6 +142,11 @@ export function VendedorHome() {
           <VendedorHomeErrorBoundary sectionName="Fechar meu dia">
             <CloseDayCard
               completion={dayCompletion}
+              items={[
+                { label: 'Agendamentos resolvidos', value: `${agsHoje.filter(a => a.status === 'compareceu' || a.status === 'nao_compareceu').length}/${agsHoje.length}`, done: agsHoje.length > 0 && agsHoje.every(a => a.status === 'compareceu' || a.status === 'nao_compareceu') },
+                { label: 'Negociações ativas', value: String(negociacoes), done: negociacoes === 0 },
+                { label: 'Vendas no mês', value: `${metrics.vendasMes}/${goal || '--'}`, done: goal > 0 && metrics.vendasMes >= goal },
+              ]}
             />
           </VendedorHomeErrorBoundary>
 
@@ -132,7 +166,8 @@ export function VendedorHome() {
 
           <VendedorHomeErrorBoundary sectionName="Minhas conquistas">
             <AchievementsCard
-              score={450}
+              rows={achievementRows}
+              total={achievementsTotal}
             />
           </VendedorHomeErrorBoundary>
 
@@ -149,11 +184,15 @@ export function VendedorHome() {
   )
 }
 
-function SellerHeader({ firstName, referenceDateLabel }: { firstName: string; referenceDateLabel: string }) {
+function sameDay(a: Date, b: Date) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
+}
+
+function SellerHeader({ greeting, firstName, referenceDateLabel }: { greeting: string; firstName: string; referenceDateLabel: string }) {
   return (
     <header className="flex flex-col gap-mx-md border-b border-border-subtle pb-mx-lg lg:flex-row lg:items-center lg:justify-between">
       <div>
-        <Typography variant="h1" className="text-3xl md:text-4xl">Bom dia, {firstName}!</Typography>
+        <Typography variant="h1" className="text-3xl md:text-4xl">{greeting}, {firstName}!</Typography>
         <Typography variant="p" tone="muted" className="mt-mx-xs">Vamos pra cima! Foque nas atividades de hoje e faça acontecer.</Typography>
       </div>
       <Badge variant="outline" className="h-mx-11 w-fit rounded-mx-xl px-mx-md">
@@ -325,7 +364,7 @@ function ActivitiesCard({ rows }: { rows: Array<{ label: string; value: number; 
 }
 
 function ScoreCard({ score, level, nextLevel }: { score: number; level: string; nextLevel: string }) {
-  const pointsMissing = Math.max(1000 - score, 0)
+  const pointsMissing = Math.max(100 - score, 0)
   return (
     <Card className="border-none bg-white p-mx-lg shadow-mx-lg">
       <div className="flex items-center gap-mx-sm">
@@ -344,55 +383,65 @@ function ScoreCard({ score, level, nextLevel }: { score: number; level: string; 
         <div className="min-w-0">
           <Typography variant="tiny" tone="muted" className="block font-black uppercase tracking-widest">Nível Atual</Typography>
           <Typography variant="h3" className="truncate text-[var(--color-accent-purple)]">{level}</Typography>
-          <Typography variant="tiny" className="mt-mx-xs block font-black text-text-secondary">{score} <span className="text-text-tertiary">/ 1000 pts</span></Typography>
+          <Typography variant="tiny" className="mt-mx-xs block font-black text-text-secondary">{score} <span className="text-text-tertiary">/ 100 pts</span></Typography>
         </div>
       </div>
       <div className="mt-mx-md h-mx-xs w-full overflow-hidden rounded-mx-full bg-surface-alt">
-        <div className="h-full rounded-mx-full transition-all" style={{ width: `${Math.min((score / 1000) * 100, 100)}%`, background: 'linear-gradient(90deg, var(--color-accent-purple) 0%, var(--color-accent-purple-strong) 100%)' }} />
+        <div className="h-full rounded-mx-full transition-all" style={{ width: `${Math.min(score, 100)}%`, background: 'linear-gradient(90deg, var(--color-accent-purple) 0%, var(--color-accent-purple-strong) 100%)' }} />
       </div>
       <Typography variant="tiny" tone="muted" className="mt-mx-sm block font-black uppercase tracking-tight">Próximo nível: <span className="text-text-secondary">{nextLevel}</span></Typography>
-      {pointsMissing > 0 && (
-        <Typography variant="tiny" tone="muted" className="mt-mx-tiny block normal-case tracking-normal">Faltam {pointsMissing} pontos</Typography>
+      {score === 0 && (
+        <Typography variant="tiny" tone="muted" className="mt-mx-tiny block normal-case tracking-normal">Score ainda não calculado para o período.</Typography>
+      )}
+      {pointsMissing > 0 && score > 0 && (
+        <Typography variant="tiny" tone="muted" className="mt-mx-tiny block normal-case tracking-normal">Faltam {pointsMissing} pontos para o máximo</Typography>
       )}
     </Card>
   )
 }
 
+const AGENDA_TIPO_LABEL: Record<string, string> = {
+  visita: 'Visita', retorno: 'Retorno', test_drive: 'Test drive', entrega: 'Entrega', negociacao: 'Negociação',
+}
+const AGENDA_STATUS_TONE: Record<string, Tone> = {
+  confirmado: 'info', aguardando: 'warning', compareceu: 'success', nao_compareceu: 'danger',
+}
+const AGENDA_STATUS_LABEL: Record<string, string> = {
+  confirmado: 'Confirmado', aguardando: 'Aguardando', compareceu: 'Compareceu', nao_compareceu: 'Não compareceu',
+}
+
 function AgendaTodayCard({
-  agendamentosHoje,
-  hasTodayCheckin,
+  agendamentos,
   isLocked,
 }: {
-  agendamentosHoje: number
-  hasTodayCheckin: boolean
+  agendamentos: AgendamentoComCliente[]
   isLocked: boolean
 }) {
-  const agendaRows = isLocked
-    ? [
-        { time: '09:00', title: 'Reunião com cliente - Onix LT 1.0', detail: 'João Pereira - Negociação', badge: 'Negociação', tone: 'info' as Tone },
-        { time: '10:30', title: 'Visita agendada - Tracker Premier', detail: 'Maria Souza - Agendado', badge: 'Agendado', tone: 'success' as Tone },
-        { time: '14:00', title: 'Retorno - S10 LTZ', detail: 'Carlos Lima - Retorno', badge: 'Retorno', tone: 'warning' as Tone },
-        { time: '15:30', title: 'Negociação - Compass Longitude', detail: 'Ana Costa - Negociação', badge: 'Negociação', tone: 'info' as Tone },
-        { time: '17:00', title: 'Entrega - Onix Plus LT', detail: 'Fernando Alves - Entrega', badge: 'Entrega', tone: 'neutral' as Tone },
-      ]
-    : [
-        { time: '09:00', title: 'Reunião com cliente - Onix LT 1.0', detail: 'João Pereira - Negociação', badge: 'Negociação', tone: 'info' as Tone },
-        { time: '10:30', title: 'Visita agendada - Tracker Premier', detail: `${agendamentosHoje || 2} agendamentos - Agendado`, badge: 'Agendado', tone: 'success' as Tone },
-        { time: '14:00', title: 'Retorno - S10 LTZ', detail: 'Carlos Lima - Retorno', badge: 'Retorno', tone: 'warning' as Tone },
-        { time: '15:30', title: 'Negociação - Compass Longitude', detail: 'Ana Costa - Negociação', badge: 'Negociação', tone: 'info' as Tone },
-        { time: '17:00', title: 'Entrega - Onix Plus LT', detail: hasTodayCheckin ? 'Fernando Alves - Entrega' : 'Confirmar após fechamento', badge: 'Entrega', tone: 'neutral' as Tone },
-      ]
+  const ordenados = [...agendamentos].sort((a, b) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime())
 
   return (
     <Card className="border-none bg-white p-mx-lg shadow-mx-lg xl:col-span-5">
-      <PanelHeader title="Minha Agenda de Hoje" to="/historico" label="Ver agenda completa" />
+      <PanelHeader title="Minha Agenda de Hoje" to="/central-execucao" label="Ver agenda completa" />
       <div className="mt-mx-lg space-y-mx-sm">
-        {agendaRows.map(row => (
-          <AgendaRow key={`${row.time}-${row.title}`} {...row} />
-        ))}
+        {isLocked ? (
+          <EmptyLine title="Agenda bloqueada" detail="Faça o lançamento diário para liberar sua agenda." />
+        ) : ordenados.length === 0 ? (
+          <EmptyLine title="Sem agendamentos hoje" detail="Crie um agendamento na Central de Execução." />
+        ) : (
+          ordenados.map(a => (
+            <AgendaRow
+              key={a.id}
+              time={new Date(a.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+              title={a.cliente?.nome || 'Cliente'}
+              detail={`${AGENDA_TIPO_LABEL[a.tipo]}${a.canal ? ` · ${CRM_CANAL_LABEL[a.canal]}` : ''}${a.proxima_acao ? ` · ${a.proxima_acao}` : ''}`}
+              badge={AGENDA_STATUS_LABEL[a.status]}
+              tone={AGENDA_STATUS_TONE[a.status] || 'neutral'}
+            />
+          ))
+        )}
       </div>
       <Link
-        to="/lancamento-diario"
+        to="/central-execucao"
         className="mt-mx-lg flex h-mx-12 w-full items-center justify-center gap-mx-xs rounded-mx-xl bg-status-info text-white text-sm font-black hover:bg-status-info/90 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-status-info/30"
       >
         <Plus size={16} /> Nova Atividade
@@ -403,8 +452,10 @@ function AgendaTodayCard({
 
 function CloseDayCard({
   completion,
+  items,
 }: {
   completion: number
+  items: Array<{ label: string; value: string; done: boolean }>
 }) {
   return (
     <Card className="border-none bg-white p-mx-lg shadow-mx-lg xl:col-span-3">
@@ -415,9 +466,9 @@ function CloseDayCard({
           <CircularScore value={completion} label="do dia concluído" accent="info" />
         </div>
         <div className="space-y-mx-sm">
-          <CheckItem label="Atividades" value="7/10" done />
-          <CheckItem label="Negociações" value="2/3" done={false} />
-          <CheckItem label="Próximos passos" value="3/3" done />
+          {items.map(item => (
+            <CheckItem key={item.label} label={item.label} value={item.value} done={item.done} />
+          ))}
         </div>
       </div>
       <Link
@@ -510,12 +561,8 @@ function EvolutionCard({ data }: { data: Array<{ label: string; value: number }>
   )
 }
 
-function AchievementsCard({ score }: { score: number }) {
-  const rows = [
-    { title: 'Meta diária de agendamentos', detail: 'Cumpriu 3 dias seguidos', pts: 50, active: true },
-    { title: 'Fechamento consistente', detail: '3 vendas esta semana', pts: 80, active: true },
-    { title: 'Atividades em dia', detail: 'Manteve rotina diária', pts: 30, active: true },
-  ]
+function AchievementsCard({ rows, total }: { rows: Array<{ title: string; detail: string; pts: number; active: boolean }>; total: number }) {
+  const score = total
   return (
     <Card className="border-none bg-white p-mx-lg shadow-mx-lg">
       <PanelHeader title="Minhas Conquistas" to="/pdi" label="Ver todas" />

@@ -1,0 +1,155 @@
+- generic [ref=e2]:
+  - generic [ref=e9]:
+    - link "Pular para conteúdo principal" [ref=e10] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=e11]:
+      - generic [ref=e12]:
+        - button "Ir para o painel inicial" [ref=e13]:
+          - img "MX Performance" [ref=e14]
+        - generic [ref=e16]: MX PERFORMANCE
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - button "Pesquisar no sistema" [ref=e19]:
+            - img [ref=e20]
+          - button "Abrir notificações. 0 não lidas." [ref=e23]:
+            - img [ref=e24]
+        - button "Ver perfil de Vendedor MX Consultoria 1" [ref=e27]:
+          - generic [ref=e28]:
+            - generic [ref=e29]: Vendedor MX Consultoria 1
+            - generic [ref=e30]: Vendedor
+          - generic "Avatar de Vendedor MX Consultoria 1" [ref=e32]: VM
+    - generic [ref=e33]:
+      - complementary "Menu Lateral Principal" [ref=e34]:
+        - navigation "Módulos de Gestão" [ref=e35]:
+          - generic [ref=e36]:
+            - link "Meu Dia (NAVEGAÇÃO)" [ref=e37] [cursor=pointer]:
+              - /url: /home
+              - img [ref=e39]
+            - link "Agenda (NAVEGAÇÃO)" [ref=e42] [cursor=pointer]:
+              - /url: /agenda-vendedor
+              - img [ref=e44]
+            - link "Central de Execução (NAVEGAÇÃO)" [ref=e46] [cursor=pointer]:
+              - /url: /central-execucao
+              - img [ref=e48]
+            - link "Carteira (NAVEGAÇÃO)" [ref=e51] [cursor=pointer]:
+              - /url: /carteira-clientes
+              - img [ref=e53]
+            - link "Leads (NAVEGAÇÃO)" [ref=e58] [cursor=pointer]:
+              - /url: /leads
+              - img [ref=e60]
+            - link "Funil (NAVEGAÇÃO)" [ref=e63] [cursor=pointer]:
+              - /url: /meu-funil
+              - img [ref=e65]
+            - link "Relatórios (NAVEGAÇÃO)" [ref=e67] [cursor=pointer]:
+              - /url: /relatorios-vendedor
+              - img [ref=e69]
+            - link "Histórico (NAVEGAÇÃO)" [ref=e72] [cursor=pointer]:
+              - /url: /historico
+              - img [ref=e74]
+            - link "Feedbacks (NAVEGAÇÃO)" [ref=e77] [cursor=pointer]:
+              - /url: /devolutivas
+              - img [ref=e79]
+            - link "Consultor IA (NAVEGAÇÃO)" [ref=e81] [cursor=pointer]:
+              - /url: /lojas/mx-consultoria/consultor-ia
+              - img [ref=e83]
+            - link "PDI (NAVEGAÇÃO)" [ref=e86] [cursor=pointer]:
+              - /url: /pdi
+              - img [ref=e88]
+            - link "Treinamentos (NAVEGAÇÃO)" [ref=e91] [cursor=pointer]:
+              - /url: /treinamentos
+              - img [ref=e93]
+            - link "Trilhas (NAVEGAÇÃO)" [ref=e96] [cursor=pointer]:
+              - /url: /trilhas
+              - img [ref=e98]
+        - button "Consultor IA - Perguntar" [ref=e102]:
+          - img [ref=e103]
+        - button "Encerrar Sessão do Sistema" [ref=e106]:
+          - img [ref=e107]
+      - main [ref=e110]:
+        - main [ref=e111]:
+          - generic [ref=e112]:
+            - generic [ref=e115]:
+              - heading "Relatórios" [level=1] [ref=e116]
+              - text: Visão consolidada da sua performance comercial — dados reais.
+            - region "KPIs" [ref=e117]:
+              - generic [ref=e118]:
+                - text: Clientes
+                - heading "1" [level=2] [ref=e119]
+              - generic [ref=e120]:
+                - text: Oportunidades
+                - heading "1" [level=2] [ref=e121]
+              - generic [ref=e122]:
+                - text: Taxa Conversão
+                - heading "100%" [level=2] [ref=e123]
+              - generic [ref=e124]:
+                - text: Ticket Médio
+                - heading "R$ 145.900" [level=2] [ref=e125]
+              - generic [ref=e126]:
+                - text: Vendas
+                - heading "1" [level=2] [ref=e127]
+                - text: R$ 145.900
+              - generic [ref=e128]:
+                - text: Atendimentos hoje
+                - heading "1" [level=2] [ref=e129]
+            - generic [ref=e130]:
+              - generic [ref=e131]:
+                - heading "Oportunidades por etapa" [level=3] [ref=e132]
+                - generic [ref=e133]:
+                  - generic [ref=e134]:
+                    - paragraph [ref=e136]: Prospecção
+                    - paragraph [ref=e140]: 0 · R$ 0
+                  - generic [ref=e141]:
+                    - paragraph [ref=e143]: Qualificação
+                    - paragraph [ref=e147]: 0 · R$ 0
+                  - generic [ref=e148]:
+                    - paragraph [ref=e150]: Apresentação
+                    - paragraph [ref=e154]: 0 · R$ 0
+                  - generic [ref=e155]:
+                    - paragraph [ref=e157]: Negociação
+                    - paragraph [ref=e161]: 0 · R$ 0
+                  - generic [ref=e162]:
+                    - paragraph [ref=e164]: Fechamento
+                    - paragraph [ref=e168]: 0 · R$ 0
+                  - generic [ref=e169]:
+                    - paragraph [ref=e171]: Vendas Realizadas
+                    - paragraph [ref=e175]: 1 · R$ 145.900
+                  - generic [ref=e176]:
+                    - paragraph [ref=e178]: Perdido
+                    - paragraph [ref=e182]: 0 · R$ 0
+              - generic [ref=e183]:
+                - heading "Atendimentos por canal (hoje)" [level=3] [ref=e184]
+                - generic [ref=e185]:
+                  - generic [ref=e186]:
+                    - paragraph [ref=e188]: Showroom
+                    - paragraph [ref=e192]: "1"
+                  - generic [ref=e193]:
+                    - paragraph [ref=e195]: Carteira
+                    - paragraph [ref=e199]: "0"
+                  - generic [ref=e200]:
+                    - paragraph [ref=e202]: Internet
+                    - paragraph [ref=e206]: "0"
+                  - generic [ref=e207]:
+                    - paragraph [ref=e209]: Porta
+                    - paragraph [ref=e213]: "0"
+                - generic [ref=e214]:
+                  - text: Carteira por status
+                  - generic [ref=e215]:
+                    - generic [ref=e216]:
+                      - heading "0" [level=3] [ref=e217]
+                      - text: Ativos
+                    - generic [ref=e218]:
+                      - heading "1" [level=3] [ref=e219]
+                      - text: Oportunidades
+                    - generic [ref=e220]:
+                      - heading "0" [level=3] [ref=e221]
+                      - text: Pós-venda
+                    - generic [ref=e222]:
+                      - heading "0" [level=3] [ref=e223]
+                      - text: Aguardando
+                    - generic [ref=e224]:
+                      - heading "0" [level=3] [ref=e225]
+                      - text: Inativos
+                    - generic [ref=e226]:
+                      - heading "1" [level=3] [ref=e227]
+                      - text: Agend. hoje
+  - region "Notifications alt+T"

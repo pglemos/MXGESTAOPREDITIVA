@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { Typography } from '@/components/atoms/Typography'
 import { CheckinHeader } from './sections/CheckinHeader'
 import { CheckinForm } from './sections/CheckinForm'
+import { CheckinCrmSection } from './sections/CheckinCrmSection'
 import { CheckinErrorBoundary } from './components/CheckinErrorBoundary'
 import { useCheckinPage } from './hooks/useCheckinPage'
 
@@ -86,6 +87,10 @@ export function Checkin() {
 
             <CheckinErrorBoundary section="form">
                 <CheckinForm ctx={ctx} totalsAgd={totals.agd_total} totalsVnd={totals.vnd_total} />
+            </CheckinErrorBoundary>
+
+            <CheckinErrorBoundary section="crm">
+                <CheckinCrmSection />
             </CheckinErrorBoundary>
         </main>
     )

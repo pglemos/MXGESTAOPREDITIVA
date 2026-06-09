@@ -1,0 +1,116 @@
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { z } from 'zod'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/hooks/useAuth'
+import {
+  AgendamentoSchema,
+  type CrmCanal,
+  type CrmAgendamentoTipo,
+  type CrmAgendamentoStatus,
+} from '@/lib/schemas/crm.schema'
+
+const AgendamentoComClienteSchema = AgendamentoSchema.extend({
+  cliente: z.object({ nome: z.string(), telefone: z.string().nullable() }).nullable().optional(),
+})
+export type AgendamentoComCliente = z.infer<typeof AgendamentoComClienteSchema>
+
+export type AgendamentoInput = {
+  cliente_id?: string | null
+  oportunidade_id?: string | null
+  data_hora: string
+  canal?: CrmCanal | null
+  tipo?: CrmAgendamentoTipo
+  status?: CrmAgendamentoStatus
+  proxima_acao?: string | null
+  observacoes?: string | null
+}
+
+function parse(data: unknown): AgendamentoComCliente[] {
+  if (!Array.isArray(data)) return []
+  const out: AgendamentoComCliente[] = []
+  for (const row of data) {
+    const r = AgendamentoComClienteSchema.safeParse(row)
+    if (r.success) out.push(r.data)
+  }
+  return out
+}
+
+const isSameDay = (iso: string, ref: Date) => {
+  const d = new Date(iso)
+  return d.getFullYear() === ref.getFullYear() && d.getMonth() === ref.getMonth() && d.getDate() === ref.getDate()
+}
+
+export function useAgendamentos() {
+  const { supabaseUser, activeStoreId, storeId } = useAuth()
+  const effectiveStoreId = activeStoreId || storeId || null
+  const [agendamentos, setAgendamentos] = useState<AgendamentoComCliente[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchAgendamentos = useCallback(async () => {
+    if (!supabaseUser) { setAgendamentos([]); setLoading(false); return }
+    setLoading(true); setError(null)
+    const { data, error: fetchError } = await supabase
+      .from('agendamentos')
+      .select('*, cliente:clientes(nome, telefone)')
+      .eq('seller_user_id', supabaseUser.id)
+      .order('data_hora', { ascending: true })
+    if (fetchError) { setError(fetchError.message); setAgendamentos([]) }
+    else setAgendamentos(parse(data))
+    setLoading(false)
+  }, [supabaseUser])
+
+  const createAgendamento = useCallback(async (input: AgendamentoInput): Promise<{ error: string | null }> => {
+    if (!supabaseUser) return { error: 'Sessão inválida.' }
+    if (!effectiveStoreId) return { error: 'Loja não identificada para o vendedor.' }
+    if (!input.data_hora) return { error: 'Informe data e hora do agendamento.' }
+    const payload = {
+      cliente_id: input.cliente_id || null,
+      oportunidade_id: input.oportunidade_id || null,
+      loja_id: effectiveStoreId,
+      seller_user_id: supabaseUser.id,
+      data_hora: new Date(input.data_hora).toISOString(),
+      canal: input.canal || null,
+      tipo: input.tipo || 'visita',
+      status: input.status || 'aguardando',
+      proxima_acao: input.proxima_acao?.trim() || null,
+      observacoes: input.observacoes?.trim() || null,
+    }
+    const { error: insertError } = await supabase.from('agendamentos').insert(payload)
+    if (insertError) return { error: insertError.message }
+    await fetchAgendamentos()
+    return { error: null }
+  }, [supabaseUser, effectiveStoreId, fetchAgendamentos])
+
+  const updateStatus = useCallback(async (id: string, status: CrmAgendamentoStatus): Promise<{ error: string | null }> => {
+    if (!supabaseUser) return { error: 'Sessão inválida.' }
+    const { error: updErr } = await supabase.from('agendamentos').update({ status }).eq('id', id)
+    if (updErr) return { error: updErr.message }
+    await fetchAgendamentos()
+    return { error: null }
+  }, [supabaseUser, fetchAgendamentos])
+
+  const deleteAgendamento = useCallback(async (id: string): Promise<{ error: string | null }> => {
+    if (!supabaseUser) return { error: 'Sessão inválida.' }
+    const { error: delErr } = await supabase.from('agendamentos').delete().eq('id', id)
+    if (delErr) return { error: delErr.message }
+    await fetchAgendamentos()
+    return { error: null }
+  }, [supabaseUser, fetchAgendamentos])
+
+  useEffect(() => { fetchAgendamentos() }, [fetchAgendamentos])
+
+  const metrics = useMemo(() => {
+    const hoje = new Date()
+    const doDia = agendamentos.filter(a => isSameDay(a.data_hora, hoje))
+    const agendamentosHoje = doDia.length
+    const compareceram = doDia.filter(a => a.status === 'compareceu').length
+    const naoCompareceram = doDia.filter(a => a.status === 'nao_compareceu').length
+    const confirmados = doDia.filter(a => a.status === 'confirmado').length
+    const aguardando = doDia.filter(a => a.status === 'aguardando').length
+    const taxaComparecimento = agendamentosHoje > 0 ? Math.round((compareceram / agendamentosHoje) * 100) : 0
+    return { agendamentosHoje, compareceram, naoCompareceram, confirmados, aguardando, taxaComparecimento }
+  }, [agendamentos])
+
+  return { agendamentos, metrics, loading, error, refetch: fetchAgendamentos, createAgendamento, updateStatus, deleteAgendamento }
+}

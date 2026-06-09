@@ -37,6 +37,17 @@ const initialEvent: EventForm = {
   google_event_id: '', status: 'agendado',
 }
 
+const initialBlockEvent: EventForm = {
+  ...initialEvent,
+  event_type: 'bloqueio',
+  title: 'Agenda bloqueada',
+  starts_time: '08:00',
+  duration_hours: '8',
+  modality: 'Bloqueio',
+  location: '',
+  visit_reason: 'Agenda bloqueada',
+}
+
 /**
  * Encapsula state dos modais (Visita + Evento), handlers de submit/abrir/editar
  * e ações de status. Story 2.6 / ADR-0050.
@@ -96,6 +107,18 @@ export function useAgendaAdminForms(deps: Deps) {
     setEditingEventId(null)
     setEventForm({
       ...initialEvent,
+      starts_at: dateStr,
+      responsible_user_id: canViewAllAgendas ? '' : consultants[0]?.id || '',
+      responsible_name: canViewAllAgendas ? '' : consultants[0]?.name || '',
+    })
+    setShowEventModal(true)
+  }
+
+  const handleOpenBlock = (presetDate?: Date) => {
+    const dateStr = presetDate ? format(presetDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd')
+    setEditingEventId(null)
+    setEventForm({
+      ...initialBlockEvent,
       starts_at: dateStr,
       responsible_user_id: canViewAllAgendas ? '' : consultants[0]?.id || '',
       responsible_name: canViewAllAgendas ? '' : consultants[0]?.name || '',
@@ -166,8 +189,13 @@ export function useAgendaAdminForms(deps: Deps) {
 
   const handleSubmitEvent = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!eventForm.title.trim()) { toast.error('Informe o nome do evento ou aula.'); return }
+    const isBlock = eventForm.event_type === 'bloqueio'
+    if (!eventForm.title.trim()) { toast.error(isBlock ? 'Informe o motivo do bloqueio.' : 'Informe o nome do evento ou aula.'); return }
     if (!eventForm.starts_at || !eventForm.starts_time) { toast.error('Informe data e horario.'); return }
+    if (isBlock && !eventForm.responsible_user_id) {
+      toast.error('Selecione o consultor MX responsável pelo bloqueio.')
+      return
+    }
     const responsible = consultants.find((item) => item.id === eventForm.responsible_user_id)
     const payload = {
       event_type: eventForm.event_type,
@@ -175,16 +203,16 @@ export function useAgendaAdminForms(deps: Deps) {
       topic: eventForm.topic.trim() || null,
       starts_at: buildSaoPauloDateTime(eventForm.starts_at, eventForm.starts_time),
       duration_hours: Number(eventForm.duration_hours) || 1,
-      modality: eventForm.modality,
+      modality: eventForm.modality || (isBlock ? 'Bloqueio' : 'Online'),
       location: eventForm.location.trim() || null,
-      target_audience: eventForm.target_audience.trim() || null,
-      audience_goal: eventForm.audience_goal ? Number(eventForm.audience_goal) : null,
+      target_audience: isBlock ? null : eventForm.target_audience.trim() || null,
+      audience_goal: isBlock ? null : eventForm.audience_goal ? Number(eventForm.audience_goal) : null,
       responsible_user_id: eventForm.responsible_user_id || null,
       responsible_name: responsible?.name || eventForm.responsible_name.trim() || null,
-      ticket_price_text: eventForm.ticket_price_text.trim() || null,
-      visit_reason: eventForm.visit_reason || null,
-      product_name: eventForm.product_name || null,
-      google_event_id: eventForm.google_event_id.trim() || null,
+      ticket_price_text: isBlock ? null : eventForm.ticket_price_text.trim() || null,
+      visit_reason: isBlock ? 'Agenda bloqueada' : eventForm.visit_reason || null,
+      product_name: isBlock ? null : eventForm.product_name || null,
+      google_event_id: isBlock ? null : eventForm.google_event_id.trim() || null,
       status: eventForm.status,
     }
     setSubmitting(true)
@@ -193,7 +221,9 @@ export function useAgendaAdminForms(deps: Deps) {
       : await createScheduleEvent(payload)
     setSubmitting(false)
     if (eventError) { toast.error(eventError); return }
-    toast.success(editingEventId ? 'Evento/aula atualizado.' : 'Evento/aula criado.')
+    toast.success(isBlock
+      ? editingEventId ? 'Bloqueio atualizado.' : 'Agenda bloqueada.'
+      : editingEventId ? 'Evento/aula atualizado.' : 'Evento/aula criado.')
     setShowEventModal(false)
     setEditingEventId(null)
   }
@@ -227,7 +257,7 @@ export function useAgendaAdminForms(deps: Deps) {
     editingVisitId, editingEventId,
     scheduleForm, setScheduleForm,
     eventForm, setEventForm,
-    handleOpenSchedule, handleOpenEditVisit, handleOpenEvent, handleOpenEditEvent,
+    handleOpenSchedule, handleOpenEditVisit, handleOpenEvent, handleOpenBlock, handleOpenEditEvent,
     handleSubmitSchedule, handleSubmitEvent,
     handleCancelVisit, handleStartVisit, handleDeleteVisit, handleDeleteEvent,
     closeScheduleModal, closeEventModal,

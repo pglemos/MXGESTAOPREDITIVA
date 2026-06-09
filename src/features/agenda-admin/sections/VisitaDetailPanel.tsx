@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Building2, CalendarDays, ChevronRight, Plus, User, X } from 'lucide-react'
+import { Ban, Building2, CalendarDays, ChevronRight, Plus, User, X } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Badge } from '@/components/atoms/Badge'
@@ -17,12 +17,13 @@ interface VisitaDetailPanelProps {
   selectedDayEvents: AgendaScheduleEvent[]
   onClearSelection: () => void
   onScheduleVisit: (date: Date) => void
+  onBlockDate: (date: Date) => void
   onEditEvent: (event: AgendaScheduleEvent) => void
 }
 
 export function VisitaDetailPanel({
   selectedDate, selectedDayVisits, selectedDayEvents,
-  onClearSelection, onScheduleVisit, onEditEvent,
+  onClearSelection, onScheduleVisit, onBlockDate, onEditEvent,
 }: VisitaDetailPanelProps) {
   return (
     <Card className="border-none shadow-mx-md bg-white overflow-hidden">
@@ -53,12 +54,25 @@ export function VisitaDetailPanel({
           <div className="flex flex-col items-center justify-center py-mx-2xl text-center gap-mx-sm">
             <CalendarDays size={32} className="text-text-label" />
             <Typography variant="tiny" tone="muted">Nenhum item neste dia</Typography>
-            <Button variant="secondary" size="sm" className="mt-mx-sm" onClick={() => onScheduleVisit(selectedDate)}>
-              <Plus size={14} className="mr-2" /> AGENDAR
-            </Button>
+            <div className="mt-mx-sm flex flex-wrap justify-center gap-mx-xs">
+              <Button variant="secondary" size="sm" onClick={() => onScheduleVisit(selectedDate)}>
+                <Plus size={14} className="mr-2" /> AGENDAR
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => onBlockDate(selectedDate)}>
+                <Ban size={14} className="mr-2" /> BLOQUEAR
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="space-y-mx-sm">
+            <div className="flex flex-wrap gap-mx-xs">
+              <Button variant="secondary" size="sm" onClick={() => onScheduleVisit(selectedDate)}>
+                <Plus size={14} className="mr-2" /> AGENDAR
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => onBlockDate(selectedDate)}>
+                <Ban size={14} className="mr-2" /> BLOQUEAR
+              </Button>
+            </div>
             {selectedDayVisits.map((visit) => {
               const scheduledDate = parseISO(visit.scheduled_at)
               return (

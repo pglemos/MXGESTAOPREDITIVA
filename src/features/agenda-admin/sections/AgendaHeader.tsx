@@ -1,4 +1,4 @@
-import { CalendarDays, Plus, RefreshCw } from 'lucide-react'
+import { Ban, CalendarDays, Plus, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
 import { cn } from '@/lib/utils'
@@ -17,9 +17,10 @@ interface AgendaHeaderProps {
   onRefresh: () => void
   onCreateVisit: () => void
   onCreateEvent: () => void
+  onCreateBlock: () => void
 }
 
-export function AgendaHeader({ metrics, onRefresh, onCreateVisit, onCreateEvent }: AgendaHeaderProps) {
+export function AgendaHeader({ metrics, onRefresh, onCreateVisit, onCreateEvent, onCreateBlock }: AgendaHeaderProps) {
   return (
     <header className="flex shrink-0 flex-col gap-mx-md border-b border-border-strong pb-mx-md lg:flex-row lg:items-center lg:justify-between">
       <div className="flex min-w-0 items-center gap-mx-sm">
@@ -61,6 +62,10 @@ export function AgendaHeader({ metrics, onRefresh, onCreateVisit, onCreateEvent 
           <Button className="min-w-0 rounded-mx-lg bg-brand-secondary px-4" onClick={onCreateVisit}>
             <Plus size={18} className="mr-2" />
             Agendar visita
+          </Button>
+          <Button variant="outline" className="col-span-2 min-w-0 rounded-mx-lg bg-white px-4 sm:col-span-1" onClick={onCreateBlock}>
+            <Ban size={18} className="mr-2" />
+            Bloquear agenda
           </Button>
           <Button variant="outline" className="col-span-2 min-w-0 rounded-mx-lg bg-white px-4 sm:col-span-1" onClick={onCreateEvent}>
             <Plus size={18} className="mr-2" />

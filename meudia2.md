@@ -1,0 +1,314 @@
+- generic [ref=e2]:
+  - generic [ref=e9]:
+    - link "Pular para conteúdo principal" [ref=e10] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=e11]:
+      - generic [ref=e12]:
+        - button "Ir para o painel inicial" [ref=e13]:
+          - img "MX Performance" [ref=e14]
+        - generic [ref=e16]: MX PERFORMANCE
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - button "Pesquisar no sistema" [ref=e19]:
+            - img [ref=e20]
+          - button "Abrir notificações. 0 não lidas." [ref=e23]:
+            - img [ref=e24]
+        - button "Ver perfil de Vendedor MX Consultoria 1" [ref=e27]:
+          - generic [ref=e28]:
+            - generic [ref=e29]: Vendedor MX Consultoria 1
+            - generic [ref=e30]: Vendedor
+          - generic "Avatar de Vendedor MX Consultoria 1" [ref=e32]: VM
+    - generic [ref=e33]:
+      - complementary "Menu Lateral Principal" [ref=e34]:
+        - navigation "Módulos de Gestão" [ref=e35]:
+          - generic [ref=e36]:
+            - link "Meu Dia (NAVEGAÇÃO)" [ref=e37] [cursor=pointer]:
+              - /url: /home
+              - img [ref=e39]
+            - link "Agenda (NAVEGAÇÃO)" [ref=e42] [cursor=pointer]:
+              - /url: /agenda-vendedor
+              - img [ref=e44]
+            - link "Central de Execução (NAVEGAÇÃO)" [ref=e46] [cursor=pointer]:
+              - /url: /central-execucao
+              - img [ref=e48]
+            - link "Carteira (NAVEGAÇÃO)" [ref=e51] [cursor=pointer]:
+              - /url: /carteira-clientes
+              - img [ref=e53]
+            - link "Leads (NAVEGAÇÃO)" [ref=e58] [cursor=pointer]:
+              - /url: /leads
+              - img [ref=e60]
+            - link "Funil (NAVEGAÇÃO)" [ref=e63] [cursor=pointer]:
+              - /url: /meu-funil
+              - img [ref=e65]
+            - link "Relatórios (NAVEGAÇÃO)" [ref=e67] [cursor=pointer]:
+              - /url: /relatorios-vendedor
+              - img [ref=e69]
+            - link "Histórico (NAVEGAÇÃO)" [ref=e72] [cursor=pointer]:
+              - /url: /historico
+              - img [ref=e74]
+            - link "Feedbacks (NAVEGAÇÃO)" [ref=e77] [cursor=pointer]:
+              - /url: /devolutivas
+              - img [ref=e79]
+            - link "Consultor IA (NAVEGAÇÃO)" [ref=e81] [cursor=pointer]:
+              - /url: /lojas/mx-consultoria/consultor-ia
+              - img [ref=e83]
+            - link "PDI (NAVEGAÇÃO)" [ref=e86] [cursor=pointer]:
+              - /url: /pdi
+              - img [ref=e88]
+            - link "Treinamentos (NAVEGAÇÃO)" [ref=e91] [cursor=pointer]:
+              - /url: /treinamentos
+              - img [ref=e93]
+            - link "Trilhas (NAVEGAÇÃO)" [ref=e96] [cursor=pointer]:
+              - /url: /trilhas
+              - img [ref=e98]
+        - button "Consultor IA - Perguntar" [ref=e102]:
+          - img [ref=e103]
+        - button "Encerrar Sessão do Sistema" [ref=e106]:
+          - img [ref=e107]
+      - main [ref=e110]:
+        - main [ref=e111]:
+          - generic [ref=e112]:
+            - generic [ref=e113]:
+              - generic [ref=e114]:
+                - heading "Boa tarde, Vendedor!" [level=1] [ref=e115]
+                - paragraph [ref=e116]: Vamos pra cima! Foque nas atividades de hoje e faça acontecer.
+              - generic [ref=e117]: "Referência: 08 de jun."
+            - alert [ref=e118]:
+              - generic [ref=e119]:
+                - img [ref=e121]
+                - generic [ref=e124]:
+                  - text: Lançamento diário pendente
+                  - paragraph [ref=e125]: Registre o seu fechamento referente a 08 de jun. para liberar leads, agenda e ranking.
+              - link "Fazer lançamento agora" [ref=e126] [cursor=pointer]:
+                - /url: /lancamento-diario
+                - text: Fazer lançamento agora
+                - img [ref=e127]
+            - region "Resumo do vendedor" [ref=e129]:
+              - generic [ref=e130]:
+                - generic [ref=e131]:
+                  - img [ref=e133]
+                  - heading "Minha Meta (Mês)" [level=3] [ref=e137]
+                - generic [ref=e138]:
+                  - generic [ref=e139]:
+                    - generic [ref=e140]: Meta
+                    - heading "100" [level=3] [ref=e141]
+                    - generic [ref=e142]: vendas
+                  - generic [ref=e143]:
+                    - generic [ref=e144]: Realizado
+                    - heading "2" [level=3] [ref=e145]
+                    - generic [ref=e146]: vendas
+                  - generic [ref=e147]:
+                    - generic [ref=e148]: Projeção
+                    - heading "7" [level=3] [ref=e149]
+                    - generic [ref=e150]: vendas
+                  - generic "2% da meta" [ref=e152]:
+                    - generic [ref=e153]:
+                      - heading "2%" [level=2] [ref=e154]
+                      - generic [ref=e155]: da meta
+                - generic [ref=e158]: Faltam 98 vendas para bater a meta
+              - link "Salário Estimado - ver cálculo detalhado" [ref=e159] [cursor=pointer]:
+                - /url: /minha-remuneracao
+                - generic [ref=e160]:
+                  - generic [ref=e161]:
+                    - img [ref=e163]
+                    - heading "Salário Estimado" [level=3] [ref=e165]
+                  - heading "R$ 4.800" [level=1] [ref=e166]
+                  - paragraph [ref=e167]: projeção pelo plano cadastrado
+                  - generic [ref=e168]:
+                    - generic [ref=e169]:
+                      - generic [ref=e170]: Base
+                      - generic [ref=e171]: R$ 4.800
+                    - generic [ref=e172]:
+                      - generic [ref=e173]: Comissão
+                      - generic [ref=e174]: R$ 0
+                    - generic [ref=e175]:
+                      - generic [ref=e176]: Bônus
+                      - generic [ref=e177]: R$ 0
+                    - generic [ref=e178]:
+                      - generic [ref=e179]: Atingimento projetado
+                      - generic [ref=e180]: 7%
+                  - generic [ref=e183]:
+                    - text: Ver cálculo detalhado
+                    - img [ref=e184]
+              - generic [ref=e186]:
+                - generic [ref=e187]:
+                  - img [ref=e189]
+                  - heading "Agendamentos Hoje" [level=3] [ref=e191]
+                - heading "1" [level=1] [ref=e192]
+                - paragraph [ref=e193]: na sua agenda
+              - generic [ref=e194]:
+                - generic [ref=e195]:
+                  - img [ref=e197]
+                  - heading "Atividades Hoje" [level=3] [ref=e200]
+                - generic [ref=e201]:
+                  - generic [ref=e202]:
+                    - generic [ref=e203]:
+                      - img [ref=e205]
+                      - paragraph [ref=e207]: Negociações
+                    - generic [ref=e208]: "0"
+                  - generic [ref=e209]:
+                    - generic [ref=e210]:
+                      - img [ref=e212]
+                      - paragraph [ref=e214]: Agendamentos
+                    - generic [ref=e215]: "1"
+                  - generic [ref=e216]:
+                    - generic [ref=e217]:
+                      - img [ref=e219]
+                      - paragraph [ref=e222]: Retornos
+                    - generic [ref=e223]: "0"
+                  - generic [ref=e224]:
+                    - generic [ref=e225]:
+                      - img [ref=e227]
+                      - paragraph [ref=e230]: Entregas
+                    - generic [ref=e231]: "0"
+                - generic [ref=e233]: "Total de atividades: 1"
+              - generic [ref=e234]:
+                - generic [ref=e235]:
+                  - img [ref=e237]
+                  - generic [ref=e239]: Meu Score MX
+                - generic [ref=e240]:
+                  - img [ref=e242]
+                  - generic [ref=e244]:
+                    - generic [ref=e245]: Nível Atual
+                    - heading "Sem score" [level=3] [ref=e246]
+                    - generic [ref=e247]: 0 / 100 pts
+                - generic [ref=e249]: "Próximo nível: —"
+                - generic [ref=e250]: Score ainda não calculado para o período.
+            - region "Rotina do dia" [ref=e251]:
+              - generic [ref=e252]:
+                - generic [ref=e253]:
+                  - heading "Minha Agenda de Hoje" [level=3] [ref=e254]
+                  - link "Ver agenda completa" [ref=e255] [cursor=pointer]:
+                    - /url: /central-execucao
+                - generic [ref=e257]:
+                  - paragraph [ref=e258]: Agenda bloqueada
+                  - generic [ref=e259]: Faça o lançamento diário para liberar sua agenda.
+                - link "Nova Atividade" [ref=e260] [cursor=pointer]:
+                  - /url: /central-execucao
+                  - img [ref=e261]
+                  - text: Nova Atividade
+              - generic [ref=e262]:
+                - heading "Fechar Meu Dia" [level=3] [ref=e263]
+                - paragraph [ref=e264]: Registre suas atividades e finalize o dia com foco.
+                - generic [ref=e265]:
+                  - generic "0% do dia concluído" [ref=e267]:
+                    - generic [ref=e268]:
+                      - heading "0%" [level=2] [ref=e269]
+                      - generic [ref=e270]: do dia concluído
+                  - generic [ref=e271]:
+                    - generic [ref=e272]:
+                      - generic [ref=e273]:
+                        - img [ref=e274]
+                        - generic [ref=e277]: Agendamentos resolvidos
+                      - generic [ref=e278]: 0/1
+                    - generic [ref=e279]:
+                      - generic [ref=e280]:
+                        - img [ref=e281]
+                        - generic [ref=e284]: Negociações ativas
+                      - generic [ref=e285]: "0"
+                    - generic [ref=e286]:
+                      - generic [ref=e287]:
+                        - img [ref=e288]
+                        - generic [ref=e291]: Vendas no mês
+                      - generic [ref=e292]: 2/100
+                - link "Fechar meu dia" [ref=e293] [cursor=pointer]:
+                  - /url: /lancamento-diario
+              - generic [ref=e294]:
+                - generic [ref=e295]:
+                  - heading "Ranking da Loja" [level=3] [ref=e296]
+                  - link "Liberar ranking" [ref=e297] [cursor=pointer]:
+                    - /url: /lancamento-diario
+                - generic [ref=e299]:
+                  - paragraph [ref=e300]: Ranking bloqueado
+                  - generic [ref=e301]: Faça o lançamento diário para liberar comparativos da loja.
+            - region "Evolucao do vendedor" [ref=e302]:
+              - generic [ref=e303]:
+                - generic [ref=e304]:
+                  - heading "Minha Evolução" [level=3] [ref=e305]
+                  - link "Ver histórico" [ref=e306] [cursor=pointer]:
+                    - /url: /historico
+                - generic [ref=e307]: Vendas dos últimos 7 dias
+                - generic [ref=e308]:
+                  - img "Gráfico de linha dos últimos 7 dias" [ref=e309]
+                  - generic [ref=e318]:
+                    - generic [ref=e319]:
+                      - generic [ref=e320]: Sex 16
+                      - text: "1"
+                    - generic [ref=e321]:
+                      - generic [ref=e322]: Sáb 17
+                      - text: "2"
+                    - generic [ref=e323]:
+                      - generic [ref=e324]: Dom 18
+                      - text: "1"
+                    - generic [ref=e325]:
+                      - generic [ref=e326]: Seg 19
+                      - text: "2"
+                    - generic [ref=e327]:
+                      - generic [ref=e328]: Ter 20
+                      - text: "3"
+                    - generic [ref=e329]:
+                      - generic [ref=e330]: Qua 21
+                      - text: "1"
+                    - generic [ref=e331]:
+                      - generic [ref=e332]: Qui 22
+                      - text: "2"
+              - generic [ref=e333]:
+                - generic [ref=e334]:
+                  - heading "Minhas Conquistas" [level=3] [ref=e335]
+                  - link "Ver todas" [ref=e336] [cursor=pointer]:
+                    - /url: /pdi
+                - generic [ref=e337]:
+                  - generic [ref=e338]:
+                    - generic [ref=e339]:
+                      - generic [ref=e340]:
+                        - img [ref=e341]
+                        - paragraph [ref=e343]: Vendas no mês
+                      - generic [ref=e344]: 2 vendas realizadas
+                    - generic [ref=e345]: +100 pts
+                  - generic [ref=e346]:
+                    - generic [ref=e347]:
+                      - generic [ref=e348]:
+                        - img [ref=e349]
+                        - paragraph [ref=e351]: Agendamentos de hoje
+                      - generic [ref=e352]: 1 na agenda
+                    - generic [ref=e353]: +10 pts
+                  - generic [ref=e354]:
+                    - generic [ref=e355]:
+                      - generic [ref=e356]:
+                        - img [ref=e357]
+                        - paragraph [ref=e359]: Disciplina de rotina
+                      - generic [ref=e360]: Disciplina em atencao
+                    - generic [ref=e361]: +0 pts
+                - generic [ref=e362]:
+                  - generic [ref=e363]: Total estimado
+                  - heading "110 pts" [level=3] [ref=e364]
+              - generic [ref=e365]:
+                - generic [ref=e366]:
+                  - heading "Meus Treinamentos" [level=3] [ref=e367]
+                  - link "Ver todos" [ref=e368] [cursor=pointer]:
+                    - /url: /treinamentos
+                - generic [ref=e369]:
+                  - generic [ref=e370]:
+                    - img [ref=e373]
+                    - generic [ref=e376]:
+                      - paragraph [ref=e377]: Historia, valores e cultura da loja
+                      - generic [ref=e378]: 12 min - institucional
+                  - generic [ref=e381]:
+                    - img [ref=e384]
+                    - generic [ref=e387]:
+                      - paragraph [ref=e388]: Funil comercial e conversoes
+                      - generic [ref=e389]: 17 min - funil
+                - generic [ref=e392]: "Progresso geral: 0%"
+              - generic [ref=e393]:
+                - generic [ref=e394]:
+                  - heading "Último Feedback" [level=3] [ref=e395]
+                  - link "Ver todos" [ref=e396] [cursor=pointer]:
+                    - /url: /devolutivas
+                - generic [ref=e397]:
+                  - paragraph [ref=e398]: "\"Boa evolução na conversão de leads\""
+                  - generic [ref=e399]:
+                    - img [ref=e401]
+                    - generic [ref=e403]:
+                      - generic [ref=e404]: Gerente
+                      - generic [ref=e405]: 30/05/2026
+  - region "Notifications alt+T"
