@@ -11,6 +11,10 @@ import {
 
 const AgendamentoComClienteSchema = AgendamentoSchema.extend({
   cliente: z.object({ nome: z.string(), telefone: z.string().nullable() }).nullable().optional(),
+  oportunidade: z.object({
+    veiculo_interesse: z.string().nullable(),
+    valor_negociado: z.coerce.number().nullable().optional(),
+  }).nullable().optional(),
 })
 export type AgendamentoComCliente = z.infer<typeof AgendamentoComClienteSchema>
 
@@ -52,7 +56,7 @@ export function useAgendamentos() {
     setLoading(true); setError(null)
     const { data, error: fetchError } = await supabase
       .from('agendamentos')
-      .select('*, cliente:clientes(nome, telefone)')
+      .select('*, cliente:clientes(nome, telefone), oportunidade:oportunidades(veiculo_interesse, valor_negociado)')
       .eq('seller_user_id', supabaseUser.id)
       .order('data_hora', { ascending: true })
     if (fetchError) { setError(fetchError.message); setAgendamentos([]) }
@@ -108,8 +112,10 @@ export function useAgendamentos() {
     const naoCompareceram = doDia.filter(a => a.status === 'nao_compareceu').length
     const confirmados = doDia.filter(a => a.status === 'confirmado').length
     const aguardando = doDia.filter(a => a.status === 'aguardando').length
+    const emNegociacao = doDia.filter(a => a.tipo === 'negociacao').length
+    const vendasRealizadas = doDia.filter(a => a.tipo === 'entrega' || a.status === 'compareceu').length
     const taxaComparecimento = agendamentosHoje > 0 ? Math.round((compareceram / agendamentosHoje) * 100) : 0
-    return { agendamentosHoje, compareceram, naoCompareceram, confirmados, aguardando, taxaComparecimento }
+    return { agendamentosHoje, compareceram, naoCompareceram, confirmados, aguardando, emNegociacao, vendasRealizadas, taxaComparecimento }
   }, [agendamentos])
 
   return { agendamentos, metrics, loading, error, refetch: fetchAgendamentos, createAgendamento, updateStatus, deleteAgendamento }
