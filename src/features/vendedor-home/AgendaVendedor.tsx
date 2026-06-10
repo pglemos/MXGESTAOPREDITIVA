@@ -1,30 +1,24 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CalendarDays, ChevronLeft, ChevronRight, Plus, Phone, Handshake, RefreshCcw, Truck } from 'lucide-react'
+import { CalendarDays, Car, ChevronLeft, ChevronRight, Handshake, Plus, RefreshCcw, Truck } from 'lucide-react'
 import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
+import { EmptyState } from '@/components/atoms/EmptyState'
 import { cn } from '@/lib/utils'
-import { useVendedorHomePage } from './hooks/useVendedorHomePage'
+import { useAgendamentos, type AgendamentoComCliente } from '@/features/crm/hooks/useAgendamentos'
+import { CRM_AGENDAMENTO_STATUS_LABEL, type CrmAgendamentoTipo } from '@/lib/schemas/crm.schema'
 
-type AgendaItem = {
-  time: string
-  title: string
-  detail: string
-  badge: string
-  tone: 'info' | 'success' | 'warning' | 'neutral'
-  icon: React.ReactNode
-  durationMin: number
+type Tone = 'info' | 'success' | 'warning' | 'neutral'
+
+const TIPO_META: Record<CrmAgendamentoTipo, { label: string; tone: Tone; icon: React.ReactNode }> = {
+  visita: { label: 'Visita', tone: 'success', icon: <CalendarDays size={16} /> },
+  retorno: { label: 'Retorno', tone: 'warning', icon: <RefreshCcw size={16} /> },
+  test_drive: { label: 'Test drive', tone: 'info', icon: <Car size={16} /> },
+  entrega: { label: 'Entrega', tone: 'neutral', icon: <Truck size={16} /> },
+  negociacao: { label: 'Negociação', tone: 'info', icon: <Handshake size={16} /> },
 }
 
-const baseAgenda: AgendaItem[] = [
-  { time: '09:00', title: 'Reunião com cliente - Onix LT 1.0', detail: 'João Pereira - Negociação', badge: 'Negociação', tone: 'info', icon: <Handshake size={16} />, durationMin: 60 },
-  { time: '10:30', title: 'Visita agendada - Tracker Premier', detail: 'Maria Souza - Agendado', badge: 'Agendado', tone: 'success', icon: <CalendarDays size={16} />, durationMin: 45 },
-  { time: '14:00', title: 'Retorno - S10 LTZ', detail: 'Carlos Lima - Retorno', badge: 'Retorno', tone: 'warning', icon: <RefreshCcw size={16} />, durationMin: 30 },
-  { time: '15:30', title: 'Negociação - Compass Longitude', detail: 'Ana Costa - Negociação', badge: 'Negociação', tone: 'info', icon: <Handshake size={16} />, durationMin: 60 },
-  { time: '17:00', title: 'Entrega - Onix Plus LT', detail: 'Fernando Alves - Entrega', badge: 'Entrega', tone: 'neutral', icon: <Truck size={16} />, durationMin: 45 },
-]
-
-const toneClasses: Record<AgendaItem['tone'], { badge: string; left: string; icon: string }> = {
+const toneClasses: Record<Tone, { badge: string; left: string; icon: string }> = {
   info: { badge: 'bg-status-info-surface text-status-info', left: 'bg-status-info', icon: 'bg-status-info-surface text-status-info' },
   success: { badge: 'bg-status-success-surface text-status-success', left: 'bg-status-success', icon: 'bg-status-success-surface text-status-success' },
   warning: { badge: 'bg-status-warning-surface text-status-warning', left: 'bg-status-warning', icon: 'bg-status-warning-surface text-status-warning' },
@@ -34,16 +28,47 @@ const toneClasses: Record<AgendaItem['tone'], { badge: string; left: string; ico
 const monthLabels = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
 const dayShort = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
 
+const sameDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
+
+const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+
+const timeLabel = (iso: string) =>
+  new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+
+function NextCard({ title, tone, icon, item }: { title: string; tone: Tone; icon: React.ReactNode; item: AgendamentoComCliente | null }) {
+  const classes = toneClasses[tone]
+  return (
+    <Card className="rounded-mx-2xl bg-white p-mx-md shadow-mx-sm border-none">
+      <div className="flex items-center gap-mx-sm">
+        <span className={cn('flex h-mx-9 w-mx-9 items-center justify-center rounded-mx-lg', classes.icon)} aria-hidden="true">
+          {icon}
+        </span>
+        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">{title}</Typography>
+      </div>
+      {item ? (
+        <>
+          <Typography variant="h3" className="mt-mx-sm text-lg font-black">{item.cliente?.nome || 'Cliente não informado'}</Typography>
+          <Typography variant="tiny" tone="muted" className="mt-mx-tiny block font-bold normal-case">
+            {new Date(item.data_hora).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} {timeLabel(item.data_hora)}
+            {item.oportunidade?.veiculo_interesse ? ` · ${item.oportunidade.veiculo_interesse}` : ''}
+          </Typography>
+        </>
+      ) : (
+        <>
+          <Typography variant="h3" className="mt-mx-sm text-lg font-black text-text-tertiary">—</Typography>
+          <Typography variant="tiny" tone="muted" className="mt-mx-tiny block font-bold normal-case">Sem agendamento futuro</Typography>
+        </>
+      )}
+    </Card>
+  )
+}
+
 export default function AgendaVendedor() {
-  const { metrics, referenceDate, referenceDateLabel } = useVendedorHomePage()
-  const agendamentosHoje = metrics?.agendamentosHoje ?? 0
-  const atividadesHoje = baseAgenda.length
-  const referenceMoment = useMemo(() => {
-    const [y, m, d] = referenceDate.split('-').map(Number)
-    return new Date(y, (m || 1) - 1, d || 1)
-  }, [referenceDate])
-  const [selected, setSelected] = useState<Date>(referenceMoment)
-  const [cursor, setCursor] = useState<Date>(new Date(referenceMoment.getFullYear(), referenceMoment.getMonth(), 1))
+  const { agendamentos, metrics, loading, error } = useAgendamentos()
+  const hoje = useMemo(() => new Date(), [])
+  const [selected, setSelected] = useState<Date>(hoje)
+  const [cursor, setCursor] = useState<Date>(new Date(hoje.getFullYear(), hoje.getMonth(), 1))
 
   const calendarDays = useMemo(() => {
     const firstDay = new Date(cursor.getFullYear(), cursor.getMonth(), 1)
@@ -68,15 +93,31 @@ export default function AgendaVendedor() {
     return cells
   }, [cursor])
 
-  const isToday = (d: Date) => {
-    const today = new Date()
-    return d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear()
-  }
-  const isSelected = (d: Date) => d.getDate() === selected.getDate() && d.getMonth() === selected.getMonth() && d.getFullYear() === selected.getFullYear()
-  const selectedLabel = `${dayShort[selected.getDay()].toLowerCase() === 'd' ? 'Domingo' : ''}${selected.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}`
-  const totalMinutes = baseAgenda.reduce((acc, item) => acc + item.durationMin, 0)
-  const hours = Math.floor(totalMinutes / 60)
-  const remaining = totalMinutes % 60
+  const countsByDay = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const a of agendamentos) {
+      const key = dayKey(new Date(a.data_hora))
+      map.set(key, (map.get(key) || 0) + 1)
+    }
+    return map
+  }, [agendamentos])
+
+  const doDia = useMemo(
+    () => agendamentos.filter(a => sameDay(new Date(a.data_hora), selected)),
+    [agendamentos, selected],
+  )
+
+  const proximoPorTipo = useMemo(() => {
+    const agora = new Date()
+    const futuros = agendamentos.filter(a =>
+      new Date(a.data_hora) >= agora && (a.status === 'aguardando' || a.status === 'confirmado'))
+    const next = (tipo: CrmAgendamentoTipo) => futuros.find(a => a.tipo === tipo) || null
+    return { visita: next('visita'), retorno: next('retorno'), entrega: next('entrega') }
+  }, [agendamentos])
+
+  const isToday = (d: Date) => sameDay(d, hoje)
+  const isSelected = (d: Date) => sameDay(d, selected)
+  const selectedLabel = selected.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })
 
   return (
     <div className="flex flex-col gap-mx-lg p-mx-lg pb-28">
@@ -84,17 +125,19 @@ export default function AgendaVendedor() {
         <div className="min-w-0">
           <Typography variant="h1" className="text-3xl md:text-4xl">Minha Agenda</Typography>
           <Typography variant="p" tone="muted" className="mt-mx-xs">Organize seu dia e foque no que realmente importa.</Typography>
-          <Typography variant="tiny" tone="muted" className="mt-mx-xs block font-black uppercase tracking-widest">Referência: {referenceDateLabel}</Typography>
+          <Typography variant="tiny" tone="muted" className="mt-mx-xs block font-black uppercase tracking-widest">{metrics.agendamentosHoje} agendamentos hoje</Typography>
         </div>
         <div className="flex flex-wrap gap-mx-sm">
           <Link
-            to="/lancamento-diario"
+            to="/central-execucao"
             className="flex h-mx-11 items-center gap-mx-xs rounded-mx-xl bg-status-info px-mx-md text-sm font-black text-white hover:bg-status-info/90 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-status-info/30"
           >
             <Plus size={16} /> Novo Compromisso
           </Link>
         </div>
       </header>
+
+      {error && <Typography className="text-status-error">{error}</Typography>}
 
       <section className="grid grid-cols-1 gap-mx-md xl:grid-cols-[320px_minmax(0,1fr)] xl:items-start">
         {/* Calendário mensal */}
@@ -125,13 +168,14 @@ export default function AgendaVendedor() {
             {calendarDays.map((cell, i) => {
               const today = isToday(cell.date)
               const sel = isSelected(cell.date)
+              const hasItems = (countsByDay.get(dayKey(cell.date)) || 0) > 0
               return (
                 <button
                   key={`cell-${i}`}
                   type="button"
                   onClick={() => setSelected(cell.date)}
                   className={cn(
-                    'aspect-square rounded-mx-lg flex items-center justify-center text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30',
+                    'relative aspect-square rounded-mx-lg flex items-center justify-center text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30',
                     !cell.isCurrentMonth && 'text-text-tertiary/40',
                     cell.isCurrentMonth && !sel && !today && 'text-text-secondary hover:bg-surface-alt',
                     today && !sel && 'bg-status-info/10 text-status-info ring-2 ring-status-info/30',
@@ -141,6 +185,12 @@ export default function AgendaVendedor() {
                   aria-label={`Selecionar ${cell.date.toLocaleDateString('pt-BR')}`}
                 >
                   {cell.date.getDate()}
+                  {hasItems && (
+                    <span
+                      className={cn('absolute bottom-1 h-1 w-1 rounded-full', sel ? 'bg-white' : 'bg-status-info')}
+                      aria-hidden="true"
+                    />
+                  )}
                 </button>
               )
             })}
@@ -152,32 +202,46 @@ export default function AgendaVendedor() {
           <div className="flex items-center justify-between gap-mx-md flex-wrap">
             <div>
               <Typography variant="h3" className="text-xl font-black capitalize">{selectedLabel}</Typography>
-              <Typography variant="tiny" tone="muted" className="mt-mx-xs block font-black uppercase tracking-widest">{baseAgenda.length} compromissos · {hours}h{remaining ? ` ${remaining}min` : ''}</Typography>
+              <Typography variant="tiny" tone="muted" className="mt-mx-xs block font-black uppercase tracking-widest">
+                {doDia.length} compromisso{doDia.length === 1 ? '' : 's'}
+              </Typography>
             </div>
-            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">
-              {agendamentosHoje} agendamentos · {atividadesHoje} atividades
-            </Typography>
           </div>
 
           <div className="mt-mx-lg flex flex-col gap-mx-sm">
-            {baseAgenda.map((item) => {
-              const tone = toneClasses[item.tone]
+            {loading && doDia.length === 0 && (
+              <Typography variant="p" tone="muted">Carregando agenda…</Typography>
+            )}
+            {!loading && doDia.length === 0 && (
+              <EmptyState
+                title="Nada agendado neste dia"
+                description="Crie um compromisso na Central de Execução para organizar seu dia."
+              />
+            )}
+            {doDia.map((item) => {
+              const meta = TIPO_META[item.tipo] || TIPO_META.visita
+              const tone = toneClasses[meta.tone]
+              const veiculo = item.oportunidade?.veiculo_interesse
               return (
-                <div key={`${item.time}-${item.title}`} className="flex gap-mx-sm rounded-mx-xl border border-border-default bg-white p-mx-sm">
+                <div key={item.id} className="flex gap-mx-sm rounded-mx-xl border border-border-default bg-white p-mx-sm">
                   <div className={cn('w-1 shrink-0 rounded-mx-full', tone.left)} aria-hidden="true" />
                   <div className="flex h-mx-11 w-mx-12 shrink-0 items-center justify-center rounded-mx-lg bg-surface-alt text-mx-tiny font-black uppercase text-text-secondary">
-                    {item.time}
+                    {timeLabel(item.data_hora)}
                   </div>
                   <span className={cn('flex h-mx-9 w-mx-9 shrink-0 items-center justify-center rounded-mx-lg', tone.icon)} aria-hidden="true">
-                    {item.icon}
+                    {meta.icon}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <Typography variant="p" className="font-black leading-tight">{item.title}</Typography>
-                    <Typography variant="tiny" tone="muted" className="mt-mx-tiny block font-bold normal-case tracking-normal">{item.detail}</Typography>
+                    <Typography variant="p" className="font-black leading-tight">
+                      {meta.label}{veiculo ? ` - ${veiculo}` : ''}
+                    </Typography>
+                    <Typography variant="tiny" tone="muted" className="mt-mx-tiny block font-bold normal-case tracking-normal">
+                      {item.cliente?.nome || 'Cliente não informado'}{item.proxima_acao ? ` · ${item.proxima_acao}` : ''}
+                    </Typography>
                   </div>
                   <div className="flex flex-col items-end gap-mx-xs shrink-0">
-                    <span className={cn('inline-flex rounded-mx-full px-mx-sm py-mx-tiny text-mx-tiny font-black uppercase tracking-tight', tone.badge)}>{item.badge}</span>
-                    <span className="text-mx-tiny text-text-tertiary">{item.durationMin}min</span>
+                    <span className={cn('inline-flex rounded-mx-full px-mx-sm py-mx-tiny text-mx-tiny font-black uppercase tracking-tight', tone.badge)}>{meta.label}</span>
+                    <span className="text-mx-tiny text-text-tertiary">{CRM_AGENDAMENTO_STATUS_LABEL[item.status]}</span>
                   </div>
                 </div>
               )
@@ -185,7 +249,7 @@ export default function AgendaVendedor() {
           </div>
 
           <Link
-            to="/lancamento-diario"
+            to="/central-execucao"
             className="mt-mx-lg flex h-mx-12 w-full items-center justify-center gap-mx-xs rounded-mx-xl bg-status-info text-white text-sm font-black hover:bg-status-info/90 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-status-info/30"
           >
             <Plus size={16} /> Nova Atividade
@@ -194,38 +258,9 @@ export default function AgendaVendedor() {
       </section>
 
       <section className="grid grid-cols-1 gap-mx-md md:grid-cols-3">
-        <Card className="rounded-mx-2xl bg-white p-mx-md shadow-mx-sm border-none">
-          <div className="flex items-center gap-mx-sm">
-            <span className="flex h-mx-9 w-mx-9 items-center justify-center rounded-mx-lg bg-status-info-surface text-status-info" aria-hidden="true">
-              <Phone size={18} />
-            </span>
-            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Próxima ligação</Typography>
-          </div>
-          <Typography variant="h3" className="mt-mx-sm text-lg font-black">João Pereira</Typography>
-          <Typography variant="tiny" tone="muted" className="mt-mx-tiny block font-bold normal-case">09:00 · Onix LT 1.0</Typography>
-        </Card>
-
-        <Card className="rounded-mx-2xl bg-white p-mx-md shadow-mx-sm border-none">
-          <div className="flex items-center gap-mx-sm">
-            <span className="flex h-mx-9 w-mx-9 items-center justify-center rounded-mx-lg bg-status-success-surface text-status-success" aria-hidden="true">
-              <CalendarDays size={18} />
-            </span>
-            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Próxima visita</Typography>
-          </div>
-          <Typography variant="h3" className="mt-mx-sm text-lg font-black">Maria Souza</Typography>
-          <Typography variant="tiny" tone="muted" className="mt-mx-tiny block font-bold normal-case">10:30 · Tracker Premier</Typography>
-        </Card>
-
-        <Card className="rounded-mx-2xl bg-white p-mx-md shadow-mx-sm border-none">
-          <div className="flex items-center gap-mx-sm">
-            <span className="flex h-mx-9 w-mx-9 items-center justify-center rounded-mx-lg bg-status-warning-surface text-status-warning" aria-hidden="true">
-              <Truck size={18} />
-            </span>
-            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Próxima entrega</Typography>
-          </div>
-          <Typography variant="h3" className="mt-mx-sm text-lg font-black">Fernando Alves</Typography>
-          <Typography variant="tiny" tone="muted" className="mt-mx-tiny block font-bold normal-case">17:00 · Onix Plus LT</Typography>
-        </Card>
+        <NextCard title="Próxima visita" tone="success" icon={<CalendarDays size={18} />} item={proximoPorTipo.visita} />
+        <NextCard title="Próximo retorno" tone="warning" icon={<RefreshCcw size={18} />} item={proximoPorTipo.retorno} />
+        <NextCard title="Próxima entrega" tone="neutral" icon={<Truck size={18} />} item={proximoPorTipo.entrega} />
       </section>
     </div>
   )

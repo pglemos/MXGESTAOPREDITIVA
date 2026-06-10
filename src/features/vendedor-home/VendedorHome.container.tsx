@@ -616,25 +616,25 @@ function TrainingsCard({ trainings, watched, total }: { trainings: Array<{ id: s
 }
 
 function FeedbackCard({ feedback }: { feedback: { action?: string; positives?: string; manager_name?: string; created_at?: string } | null }) {
-  const visibleFeedback = feedback || {
-    positives: 'João, excelente evolução na sua agenda e nos retornos! Continue assim!',
-    manager_name: 'Davi Pereira (Gerente)',
-    created_at: '2025-05-22T12:00:00.000Z',
-  }
-
   return (
     <Card className="border-none bg-white p-mx-lg shadow-mx-lg">
       <PanelHeader title="Último Feedback" to="/devolutivas" label="Ver todos" />
-      <div className="mt-mx-md rounded-mx-xl bg-mx-indigo-50 p-mx-md">
-        <Typography variant="p" className="font-black">"{visibleFeedback.positives || visibleFeedback.action || 'Continue evoluindo na rotina.'}"</Typography>
-        <div className="mt-mx-md flex items-center gap-mx-sm">
-          <IconBubble tone="brand"><MessageSquare size={16} /></IconBubble>
-          <div className="min-w-0">
-            <Typography variant="tiny" tone="muted" className="block font-black uppercase tracking-widest">{visibleFeedback.manager_name || 'Gerente'}</Typography>
-            <Typography variant="tiny" tone="muted" className="block font-bold normal-case tracking-normal">{visibleFeedback.created_at ? new Date(visibleFeedback.created_at).toLocaleDateString('pt-BR') : 'Data pendente'}</Typography>
+      {feedback ? (
+        <div className="mt-mx-md rounded-mx-xl bg-mx-indigo-50 p-mx-md">
+          <Typography variant="p" className="font-black">"{feedback.positives || feedback.action || 'Continue evoluindo na rotina.'}"</Typography>
+          <div className="mt-mx-md flex items-center gap-mx-sm">
+            <IconBubble tone="brand"><MessageSquare size={16} /></IconBubble>
+            <div className="min-w-0">
+              <Typography variant="tiny" tone="muted" className="block font-black uppercase tracking-widest">{feedback.manager_name || 'Gerente'}</Typography>
+              <Typography variant="tiny" tone="muted" className="block font-bold normal-case tracking-normal">{feedback.created_at ? new Date(feedback.created_at).toLocaleDateString('pt-BR') : 'Data pendente'}</Typography>
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="mt-mx-md rounded-mx-xl bg-surface-alt p-mx-md">
+          <EmptyLine title="Nenhum feedback ainda" detail="Quando seu gestor enviar um feedback, ele aparece aqui." />
+        </div>
+      )}
     </Card>
   )
 }
