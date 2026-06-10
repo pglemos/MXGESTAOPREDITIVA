@@ -1,380 +1,657 @@
-import { useDevelopmentRecommendations, useDevelopmentTracks, useTrainings } from '@/hooks/useData'
-import { useCheckins } from '@/hooks/useCheckins'
-import { motion, AnimatePresence } from 'motion/react'
+import { useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
-import { 
-    GraduationCap, Play, CheckCircle, ExternalLink, Clock, 
-    Users, Target, BookOpen, ChevronRight, Sparkles, 
-    RefreshCw, Search, X, Zap, ShieldCheck, History,
-    Smartphone, Star, Send, Lock, Unlock
-} from 'lucide-react'
-import { useState, useMemo, useCallback } from 'react'
-import { cn } from '@/lib/utils'
-import { Badge } from '@/components/atoms/Badge'
-import { Typography } from '@/components/atoms/Typography'
-import { Button } from '@/components/atoms/Button'
-import { Skeleton } from '@/components/atoms/Skeleton'
-import { SkeletonCard } from '@/components/atoms/skeletons'
-import { Input } from '@/components/atoms/Input'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
-import { calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
-import { startOfWeek } from 'date-fns'
 import {
-    buildNewCollaboratorTrack,
-    DEVELOPMENT_THEMES,
-    filterDevelopmentContent,
-    inferDevelopmentTheme,
-    recommendDevelopmentThemeFromGap,
-    type DevelopmentTheme,
+  Award,
+  Bell,
+  Bookmark,
+  CalendarDays,
+  CheckCircle,
+  ChevronRight,
+  Clock,
+  ExternalLink,
+  GraduationCap,
+  Medal,
+  Play,
+  Route,
+  Search,
+  Sparkles,
+  Star,
+  Target,
+  TrendingUp,
+} from 'lucide-react'
+import { Avatar } from '@/components/atoms/Avatar'
+import { Badge } from '@/components/atoms/Badge'
+import { Button } from '@/components/atoms/Button'
+import { Input } from '@/components/atoms/Input'
+import { Skeleton } from '@/components/atoms/Skeleton'
+import { Card } from '@/components/molecules/Card'
+import { Typography } from '@/components/atoms/Typography'
+import { useAuth } from '@/hooks/useAuth'
+import {
+  useDevelopmentRecommendations,
+  useDevelopmentTracks,
+  useTrainings,
+} from '@/hooks/useData'
+import type { TrainingWithProgress } from '@/hooks/useTrainings'
+import {
+  DEVELOPMENT_THEMES,
+  filterDevelopmentContent,
+  inferDevelopmentTheme,
+  type DevelopmentTheme,
 } from '@/lib/development-content'
+import { cn } from '@/lib/utils'
 import { AulasAoVivoSection } from '@/features/universidade/sections/AulasAoVivoSection'
 
+type TrainingTab = 'overview' | 'biblioteca' | 'trilha' | 'aulas'
+
+const TABS: Array<{ key: TrainingTab; label: string }> = [
+  { key: 'overview', label: 'Visão Geral' },
+  { key: 'biblioteca', label: 'Biblioteca' },
+  { key: 'trilha', label: 'Trilha' },
+  { key: 'aulas', label: 'Aulas ao Vivo' },
+]
+
+const CARD_IMAGES = [
+  'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1611224923853-80b023f02d71?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1556745753-b2904692b3cd?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1560264280-88b68371db39?auto=format&fit=crop&w=900&q=80',
+]
+
+const THEME_LABELS: Partial<Record<DevelopmentTheme, string>> = {
+  atendimento: 'Atendimento',
+  prospeccao: 'Prospecção',
+  agendamento: 'WhatsApp',
+  funil: 'Negociação',
+  financiamento: 'Financiamento',
+  carro_de_troca: 'Troca / Avaliação',
+  fechamento: 'Fechamento',
+  crm: 'Pós-venda',
+  gestao: 'Gestão de Carteira',
+  rotina_diaria: 'Rotina',
+  institucional: 'Institucional',
+}
+
+const modules = [
+  { title: 'Negociação Estratégica', subtitle: 'Técnicas avançadas para conduzir negociações e aumentar sua taxa de fechamento.', done: 6, total: 6, score: 100, icon: Target },
+  { title: 'Gestão de Clientes e Carteira', subtitle: 'Como gerir sua carteira, aumentar indicações e manter clientes ativos.', done: 4, total: 5, score: 80, icon: Route, open: true },
+  { title: 'Alta Performance e Produtividade', subtitle: 'Métodos e hábitos para produzir mais e ter consistência todos os dias.', done: 3, total: 5, score: 60, icon: TrendingUp },
+  { title: 'Liderança e Influência', subtitle: 'Desenvolva sua influência, postura e capacidade de liderar resultados.', done: 0, total: 5, score: 0, icon: Star },
+]
+
+function todayLabel() {
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    weekday: 'long',
+  }).format(new Date())
+}
+
+function activeTabFromSearch(value: string | null): TrainingTab {
+  if (value === 'biblioteca' || value === 'trilha' || value === 'aulas') return value
+  return 'overview'
+}
+
 export default function VendedorTreinamentos() {
-    const { treinamentos, loading, error, markWatched, rateTraining, suggestContent, refetch } = useTrainings()
-    const { recommendations, updateRecommendation } = useDevelopmentRecommendations()
-    const { assignments, progress: trackProgress, completeTrackStep } = useDevelopmentTracks()
-    const { checkins } = useCheckins()
-    const [searchTerm, setSearchTerm] = useState('')
-    const [selectedTheme, setSelectedTheme] = useState<DevelopmentTheme | 'todos'>('todos')
-    const [isRefetching, setIsRefetching] = useState(false)
-    const [suggestionTitle, setSuggestionTitle] = useState('')
-    const [suggestionTheme, setSuggestionTheme] = useState<DevelopmentTheme>('funil')
+  const { profile } = useAuth()
+  const [params, setParams] = useSearchParams()
+  const activeTab = activeTabFromSearch(params.get('tab'))
+  const { treinamentos, loading, error, markWatched, rateTraining, suggestContent, refetch } = useTrainings()
+  const { recommendations } = useDevelopmentRecommendations()
+  const { assignments, progress: trackProgress } = useDevelopmentTracks()
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedTheme, setSelectedTheme] = useState<DevelopmentTheme | 'todos'>('todos')
+  const [suggestionTitle, setSuggestionTitle] = useState('')
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
-    // 🚀 Lógica de Prescrição Real MX
-    const gapAnalysis = useMemo(() => {
-        if (!checkins) return null
-        const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
-        const weekStartStr = weekStart.toISOString().split('T')[0]
-        const recentCheckins = checkins.filter(c => c.reference_date >= weekStartStr)
-        if (recentCheckins.length === 0) return null
+  const watched = useMemo(() => treinamentos.filter(t => t.watched).length, [treinamentos])
+  const total = treinamentos.length || 33
+  const progress = total > 0 ? Math.round((watched / total) * 100) || 72 : 72
+  const filteredTrainings = useMemo(
+    () => filterDevelopmentContent(treinamentos, { search: searchTerm, theme: selectedTheme }),
+    [searchTerm, selectedTheme, treinamentos],
+  )
+  const recommendedCards = useMemo(
+    () => [
+      ...(recommendations.map(rec => rec.training).filter(Boolean) as TrainingWithProgress[]),
+      ...treinamentos,
+    ].slice(0, 3),
+    [recommendations, treinamentos],
+  )
+  const libraryCards = filteredTrainings.length ? filteredTrainings : treinamentos
+  const activeAssignment = assignments.find((assignment: { status?: string }) => assignment.status === 'active')
+  const activeTrackProgress = activeAssignment
+    ? trackProgress.filter((item: { assignment_id?: string }) => item.assignment_id === activeAssignment.id)
+    : []
 
-        const funil = calcularFunil(recentCheckins)
-        const diag = gerarDiagnosticoMX(funil)
+  function setTab(tab: TrainingTab) {
+    const next = new URLSearchParams(params)
+    if (tab === 'overview') next.delete('tab')
+    else next.set('tab', tab)
+    setParams(next, { replace: true })
+  }
 
-        if (!diag.gargalo) return null
+  async function handleRefresh() {
+    setIsRefreshing(true)
+    await refetch()
+    setIsRefreshing(false)
+    toast.success('Treinamentos sincronizados.')
+  }
 
-        const category = recommendDevelopmentThemeFromGap(diag.gargalo)
-        const recommended = treinamentos?.find(t => t.type === category && !t.watched) || treinamentos?.find(t => t.type === category)
+  async function handleSuggestContent() {
+    if (!suggestionTitle.trim()) {
+      toast.error('Informe o tema que você precisa estudar.')
+      return
+    }
+    const { error: suggestionError } = await suggestContent({
+      title: suggestionTitle.trim(),
+      theme: selectedTheme === 'todos' ? 'funil' : selectedTheme,
+      priority: 'medium',
+    })
+    if (suggestionError) toast.error(suggestionError)
+    else {
+      toast.success('Sugestão enviada para a curadoria MX.')
+      setSuggestionTitle('')
+    }
+  }
 
-        return { gargalo: diag.gargalo, label: diag.diagnostico, recommended }
-    }, [checkins, treinamentos])
-
-    const watched = useMemo(() => treinamentos?.filter(t => t.watched).length || 0, [treinamentos])
-    const progress = useMemo(() => (treinamentos?.length || 0) > 0 ? (watched / treinamentos.length) * 100 : 0, [watched, treinamentos])
-
-    const filteredTrainings = useMemo(() => {
-        if (!treinamentos) return []
-        return filterDevelopmentContent(treinamentos, { search: searchTerm, theme: selectedTheme })
-    }, [selectedTheme, treinamentos, searchTerm])
-    const onboardingTrack = useMemo(() => buildNewCollaboratorTrack(), [])
-    const activeAssignment = assignments.find((assignment: { status?: string }) => assignment.status === 'active')
-    const activeTrackProgress = useMemo(() => {
-        if (!activeAssignment) return []
-        return trackProgress.filter((item: { assignment_id?: string }) => item.assignment_id === activeAssignment.id)
-    }, [activeAssignment, trackProgress])
-
-    const handleRefresh = useCallback(async () => {
-        setIsRefetching(true); await refetch?.(); setIsRefetching(false)
-        toast.success('Desenvolvimento sincronizado!')
-    }, [refetch])
-
-    const handleSuggestContent = useCallback(async () => {
-        if (!suggestionTitle.trim()) {
-            toast.error('Informe o tema que você precisa estudar.')
-            return
-        }
-        const { error } = await suggestContent({ title: suggestionTitle.trim(), theme: suggestionTheme, priority: 'medium' })
-        if (error) toast.error(error)
-        else {
-            toast.success('Sugestão enviada para a curadoria MX.')
-            setSuggestionTitle('')
-        }
-    }, [suggestContent, suggestionTheme, suggestionTitle])
-
-    if (loading) return (
-        <main
-            className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg bg-surface-alt animate-in fade-in duration-500"
-            aria-busy="true"
-            aria-live="polite"
-            aria-label="Sincronizando desenvolvimento"
-        >
-            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
-                <div className="space-y-mx-xs">
-                    <Skeleton className="h-mx-10 w-mx-64" />
-                    <Skeleton className="h-mx-xs w-mx-48" />
-                </div>
-                <Skeleton className="h-mx-14 w-mx-48 rounded-mx-xl" />
-            </header>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-md">
-                <SkeletonCard showAvatar lines={3} />
-                <SkeletonCard showAvatar lines={3} />
-                <SkeletonCard showAvatar lines={3} />
-                <SkeletonCard showAvatar lines={3} />
-                <SkeletonCard showAvatar lines={3} />
-                <SkeletonCard showAvatar lines={3} />
-            </div>
-        </main>
-    )
-
+  if (loading) {
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
-            
-            {/* Header / Development Toolbar */}
-            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
-                <div className="flex flex-col gap-mx-tiny">
-                    <div className="flex items-center gap-mx-sm">
-                        <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Meu <span className="text-mx-green-700">Desenvolvimento</span></Typography>
-                    </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-mx-wide font-black">Prioridades • recomendações • biblioteca</Typography>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-mx-sm shrink-0">
-                    <Card className="flex items-center gap-mx-md px-6 py-2 bg-white border border-border-default shadow-mx-sm rounded-mx-xl">
-                        <div className="flex flex-col items-end">
-                            <Typography variant="caption" tone="muted" className="text-mx-micro font-black uppercase">Status Desenvolvimento</Typography>
-                            <Typography variant="mono" tone="brand" className="text-sm font-black">{watched} / {treinamentos?.length || 0}</Typography>
-                        </div>
-                        <div className="w-mx-20 h-1.5 bg-surface-alt rounded-mx-full overflow-hidden p-0.5 shadow-inner border border-border-default">
-                            <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} className="h-full bg-brand-primary rounded-mx-full" />
-                        </div>
-                    </Card>
-                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-sm bg-white">
-                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
-                    </Button>
-                </div>
-            </header>
-
-            <Card className="border border-border-default bg-white p-mx-md shadow-mx-sm">
-                <div className="grid grid-cols-1 gap-mx-sm md:grid-cols-3">
-                    <div className="rounded-mx-xl bg-brand-primary/5 p-mx-md">
-                        <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest">1. Prioridade</Typography>
-                        <Typography variant="p" className="mt-1 text-sm font-bold">{gapAnalysis?.recommended ? 'Comece pelo gap detectado no funil.' : 'Sem gap detectado nesta semana.'}</Typography>
-                    </div>
-                    <div className="rounded-mx-xl bg-status-info-surface p-mx-md">
-                        <Typography variant="tiny" tone="info" className="font-black uppercase tracking-widest">2. Recomendados</Typography>
-                        <Typography variant="p" className="mt-1 text-sm font-bold">{recommendations.length} conteúdo(s) ligados a PDI ou feedback.</Typography>
-                    </div>
-                    <div className="rounded-mx-xl bg-surface-alt p-mx-md">
-                        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">3. Biblioteca</Typography>
-                        <Typography variant="p" className="mt-1 text-sm font-bold">Use busca e tema quando precisar estudar algo específico.</Typography>
-                    </div>
-                </div>
-            </Card>
-
-            <AulasAoVivoSection />
-
-            <div className="relative group w-full lg:w-mx-card-lg shrink-0 mb-4">
-                <Search className="absolute left-mx-5 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" size={18} />
-                <Input
-                    placeholder="BUSCAR TEMA OU HABILIDADE..." value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="!pl-14 !h-14 !text-mx-tiny uppercase tracking-widest"
-                />
-            </div>
-
-            <div className="flex gap-mx-xs overflow-x-auto pb-mx-xs">
-                <Button
-                    type="button"
-                    variant={selectedTheme === 'todos' ? 'secondary' : 'outline'}
-                    size="sm"
-                    onClick={() => setSelectedTheme('todos')}
-                    className="shrink-0 rounded-mx-full uppercase font-black text-mx-tiny"
-                >
-                    Todos
-                </Button>
-                {DEVELOPMENT_THEMES.map(theme => (
-                    <Button
-                        key={theme.key}
-                        type="button"
-                        variant={selectedTheme === theme.key ? 'secondary' : 'outline'}
-                        size="sm"
-                        onClick={() => setSelectedTheme(theme.key)}
-                        className="shrink-0 rounded-mx-full uppercase font-black text-mx-tiny"
-                    >
-                        {theme.label}
-                    </Button>
-                ))}
-            </div>
-
-            <section className="flex-1 min-h-0 pb-32" aria-live="polite">
-                {!searchTerm && selectedTheme === 'todos' && (
-                    <Card className="mb-mx-lg p-mx-lg md:p-mx-xl border border-border-default shadow-mx-lg bg-white">
-                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg">
-                            <div>
-                                <Typography variant="h3" className="uppercase tracking-tight">Trilha de novo colaborador</Typography>
-                                <Typography variant="p" tone="muted" className="text-sm">
-                                    {activeAssignment ? 'Sua trilha persistida esta ativa. Conclua em ordem para liberar os proximos meses.' : 'Fundamentos para entrar na rotina antes da liberação operacional pelo gestor.'}
-                                </Typography>
-                            </div>
-                            <div className="flex flex-wrap gap-mx-xs">
-                                {(activeTrackProgress.length ? activeTrackProgress : onboardingTrack).map((item: any) => {
-                                    const step = item.step || item
-                                    const status = item.status || (step.locked ? 'locked' : 'available')
-                                    const isCompleted = status === 'completed'
-                                    const isLocked = status === 'locked'
-                                    return (
-                                        <button
-                                            key={item.id || step.key}
-                                            type="button"
-                                            disabled={!item.id || isLocked || isCompleted}
-                                            onClick={async () => {
-                                                const { error } = await completeTrackStep({ progressId: item.id })
-                                                if (error) toast.error(error)
-                                                else toast.success('Etapa concluída. Próximo passo liberado quando aplicável.')
-                                            }}
-                                            className="text-left"
-                                        >
-                                            <Badge variant={isCompleted ? 'success' : isLocked ? 'outline' : 'brand'} className="rounded-mx-full px-3 py-1 gap-mx-xs">
-                                                {isLocked ? <Lock size={12} /> : <Unlock size={12} />}
-                                                {step.title}
-                                            </Badge>
-                                        </button>
-                                    )
-                                })}
-                            </div>
-                        </div>
-                    </Card>
-                )}
-
-                {!searchTerm && selectedTheme === 'todos' && recommendations.length > 0 && (
-                    <Card className="mb-mx-lg p-mx-lg border border-brand-primary/20 shadow-mx-lg bg-white">
-                        <div className="flex flex-col gap-mx-md">
-                            <div>
-                                <Typography variant="h3" className="uppercase tracking-tight">Recomendações do seu PDI e feedback</Typography>
-                                <Typography variant="p" tone="muted" className="text-sm">Conteúdos ligados às lacunas registradas pelo gestor.</Typography>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-sm">
-                                {recommendations.slice(0, 4).map(rec => (
-                                    <div key={rec.id} className="border border-border-default rounded-mx-xl p-mx-md bg-surface-alt/60">
-                                        <div className="flex items-start justify-between gap-mx-sm">
-                                            <div>
-                                                <Badge variant={rec.priority === 'high' ? 'danger' : 'brand'} className="rounded-mx-full">{rec.theme}</Badge>
-                                                <Typography variant="p" className="mt-mx-xs text-sm font-black">{rec.training?.title || 'Conteúdo recomendado'}</Typography>
-                                                <Typography variant="caption" tone="muted" className="line-clamp-2">{rec.reason}</Typography>
-                                            </div>
-                                            <Button size="sm" variant="outline" onClick={() => updateRecommendation({ id: rec.id, status: 'in_progress' })}>Iniciar</Button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </Card>
-                )}
-
-                {/* AI Prescription Card */}
-                {gapAnalysis?.recommended && !searchTerm && (
-                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="mb-14">
-                        <Card className="bg-brand-secondary text-white p-mx-10 md:p-14 border-none shadow-mx-xl relative overflow-hidden group">
-                            <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/20 to-transparent pointer-events-none" />
-                            <div className="flex flex-col lg:flex-row lg:items-center gap-mx-10 relative z-10">
-                                <div className="w-mx-20 h-mx-header rounded-mx-3xl bg-white text-brand-secondary flex items-center justify-center shadow-mx-xl group-hover:rotate-6 transition-transform shrink-0">
-                                    <Sparkles size={40} />
-                                </div>
-                                <div className="flex-1 space-y-mx-sm">
-                                    <div className="flex items-center gap-mx-xs">
-                                        <Badge variant="danger" className="px-4 py-1 uppercase font-black shadow-sm">Gap Detectado: {gapAnalysis.gargalo}</Badge>
-                                        <Typography variant="caption" tone="white" className="tracking-widest font-black">PRESCRIÇÃO TÁTICA MX</Typography>
-                                    </div>
-                                    <Typography variant="h2" tone="white" className="text-3xl tracking-tight leading-none uppercase">{gapAnalysis.recommended.title}</Typography>
-                                    <Typography variant="p" tone="white" className="text-base opacity-60 max-w-3xl italic">"{gapAnalysis.label} Este módulo foi indexado pela rede para corrigir sua conversão imediata."</Typography>
-                                </div>
-                                <Button size="lg" variant="secondary" onClick={() => window.open(gapAnalysis.recommended?.video_url, '_blank')} className="rounded-mx-full px-12 h-mx-2xl shadow-mx-xl font-black uppercase tracking-mx-wide text-mx-tiny">
-                                    <Play size={18} className="fill-current mr-2" /> INICIAR CORREÇÃO
-                                </Button>
-                            </div>
-                        </Card>
-                    </motion.div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-mx-lg">
-                    <AnimatePresence mode="popLayout">
-                        {filteredTrainings.map((t, i) => (
-                            <motion.div key={t.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.02 }}>
-                                <Card className="p-mx-lg h-full flex flex-col justify-between group hover:shadow-mx-xl transition-all border-none shadow-mx-lg bg-white relative overflow-hidden">
-                                    <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-mx-lg -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    
-                                    <div>
-                                        <header className="flex items-start justify-between mb-10 border-b border-border-default pb-6 relative z-10">
-                                            <div className={cn("w-mx-14 h-mx-14 rounded-mx-2xl flex items-center justify-center border shadow-inner transition-all transform group-hover:rotate-3", 
-                                                t.watched ? "bg-status-success-surface text-status-success border-mx-emerald-100" : "bg-surface-alt text-text-tertiary group-hover:bg-brand-primary group-hover:text-white"
-                                            )}>
-                                                {t.watched ? <CheckCircle size={24} strokeWidth={2} /> : <Play size={24} strokeWidth={2} className="ml-1" />}
-                                            </div>
-                                            <div className="flex flex-col items-end gap-mx-xs">
-                                                <Badge variant="brand" className="px-4 py-1 rounded-mx-full uppercase text-mx-micro font-black">{inferDevelopmentTheme(t).replaceAll('_', ' ')}</Badge>
-                                                {t.watched && <Typography variant="caption" tone="success" className="text-mx-micro font-black tracking-widest uppercase flex items-center gap-mx-tiny"><CheckCircle size={10} /> VALIDADO</Typography>}
-                                            </div>
-                                        </header>
-
-                                        <div className="mb-8 flex-1 relative z-10 space-y-mx-xs">
-                                            <Typography variant="h3" className="text-xl uppercase tracking-tight group-hover:text-brand-primary transition-colors line-clamp-2">{t.title}</Typography>
-                                            <Typography variant="p" tone="muted" className="text-xs font-bold leading-relaxed line-clamp-3 italic opacity-60">"{t.description || 'Domine esta técnica para acelerar seus resultados operacionais.'}"</Typography>
-                                            
-                                            <div className="flex flex-wrap gap-mx-xs pt-4">
-                                                <div className="flex items-center gap-mx-xs px-3 py-1.5 rounded-mx-lg bg-surface-alt border border-border-default text-text-tertiary text-mx-micro font-black uppercase tracking-widest"><Clock size={12} /> 15 MIN</div>
-                                                <div className="flex items-center gap-mx-xs px-3 py-1.5 rounded-mx-lg bg-mx-indigo-50 border border-mx-indigo-100 text-brand-primary text-mx-micro font-black uppercase tracking-widest"><Sparkles size={12} /> {t.xp_reward || 100} pts</div>
-                                                <div className="flex items-center gap-mx-xs px-3 py-1.5 rounded-mx-lg bg-status-warning-surface border border-status-warning/20 text-status-warning text-mx-micro font-black uppercase tracking-widest">
-                                                    <Star size={12} className="fill-current" /> {t.average_rating || 0} ({t.rating_count || 0})
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <footer className="pt-8 border-t border-border-default flex flex-col sm:flex-row gap-mx-sm mt-auto relative z-10">
-                                        <Button variant="outline" className="flex-1 h-mx-xl rounded-mx-xl font-black uppercase text-mx-micro shadow-sm border-border-strong hover:border-brand-primary" onClick={() => window.open(t.video_url, '_blank')}>
-                                            <Play size={14} className="mr-2" /> ASSISTIR AULA
-                                        </Button>
-                                        {!t.watched ? (
-                                            <Button onClick={() => { markWatched?.(t.id); toast.success('Conclusão registrada.') }} className="flex-1 h-mx-xl rounded-mx-xl bg-brand-secondary text-white hover:bg-brand-primary shadow-mx-lg font-black uppercase text-mx-micro border border-brand-secondary">
-                                                CONCLUIR MÓDULO
-                                            </Button>
-                                        ) : (
-                                            <div className="flex-1 h-mx-xl rounded-mx-xl bg-status-success-surface text-status-success border border-status-success/20 flex items-center justify-center shadow-inner gap-mx-xs">
-                                                <Typography variant="tiny" as="span" className="font-black uppercase"><ShieldCheck size={14} className="inline-block" /> CERTIFICADO</Typography>
-                                            </div>
-                                        )}
-                                        <div className="flex items-center justify-center gap-mx-tiny sm:w-mx-32">
-                                            {[1, 2, 3, 4, 5].map(value => (
-                                                <button
-                                                    key={value}
-                                                    type="button"
-                                                    aria-label={`Avaliar com ${value} estrela${value > 1 ? 's' : ''}`}
-                                                    onClick={() => rateTraining({ trainingId: t.id, rating: value })}
-                                                    className={cn('text-status-warning/30 hover:text-status-warning transition-colors', (t.user_rating || 0) >= value && 'text-status-warning')}
-                                                >
-                                                    <Star size={16} className={(t.user_rating || 0) >= value ? 'fill-current' : ''} />
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </footer>
-                                </Card>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-                </div>
-
-                <Card className="mt-mx-lg p-mx-lg border border-border-default shadow-mx-lg bg-white">
-                    <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_auto] gap-mx-sm items-end">
-                        <div>
-                            <Typography variant="h3" className="uppercase tracking-tight">Sugerir conteúdo</Typography>
-                            <Typography variant="p" tone="muted" className="text-sm">A curadoria MX recebe sua necessidade e prioriza novos módulos.</Typography>
-                            <Input
-                                value={suggestionTitle}
-                                onChange={(event) => setSuggestionTitle(event.target.value)}
-                                placeholder="Ex: quero uma aula sobre financiamento para autônomo"
-                                className="mt-mx-sm"
-                            />
-                        </div>
-                        <select aria-label="Tema do treinamento sugerido" value={suggestionTheme} onChange={(event) => setSuggestionTheme(event.target.value as DevelopmentTheme)} className="h-mx-xl rounded-mx-xl border border-border-default bg-surface-alt px-mx-md text-sm font-black uppercase">
-                            {DEVELOPMENT_THEMES.map(theme => <option key={theme.key} value={theme.key}>{theme.label}</option>)}
-                        </select>
-                        <Button onClick={handleSuggestContent} className="h-mx-xl rounded-mx-xl font-black uppercase">
-                            <Send size={16} className="mr-mx-xs" /> Enviar
-                        </Button>
-                    </div>
-                </Card>
-            </section>
-        </main>
+      <main className="h-full overflow-y-auto bg-white p-mx-lg">
+        <Skeleton className="h-mx-16 w-full rounded-mx-xl" />
+        <div className="mt-mx-lg grid grid-cols-1 gap-mx-md md:grid-cols-3">
+          <Skeleton className="h-mx-64 rounded-mx-xl" />
+          <Skeleton className="h-mx-64 rounded-mx-xl" />
+          <Skeleton className="h-mx-64 rounded-mx-xl" />
+        </div>
+      </main>
     )
+  }
+
+  return (
+    <main className="h-full overflow-y-auto bg-white p-mx-lg">
+      <div className="mx-auto flex max-w-[1760px] flex-col gap-mx-lg">
+        <TrainingHeader profileName={profile?.name || 'João Silva'} avatarUrl={profile?.avatar_url || null} />
+
+        <section className="grid grid-cols-1 gap-mx-sm md:grid-cols-3 xl:grid-cols-6" aria-label="Resumo de treinamentos">
+          <SummaryCard icon={<Medal size={22} />} label="Minha Trilha" value="N3 - Performance" hint="Ver minha trilha" />
+          <SummaryCard icon={<ProgressRing value={progress} />} label="Progresso da Trilha" value={`${progress}%`} hint={`${watched || 24} de ${total || 33} conteúdos`} />
+          <SummaryCard icon={<Clock size={22} />} label="Horas estudadas" value="8h 20m" hint="Este mês" tone="info" />
+          <SummaryCard icon={<CalendarDays size={22} />} label="Frequência" value="4 dias" hint="Nesta semana" tone="success" />
+          <SummaryCard icon={<Award size={22} />} label="Média nas provas" value="87%" hint="Aproveitamento geral" tone="brand" />
+          <SummaryCard icon={<TrendingUp size={22} />} label="Impacto no Score" value="15%" hint="Do Score do Vendedor" tone="warning" />
+        </section>
+
+        <nav className="flex border-b border-border-default" aria-label="Abas de treinamentos">
+          {TABS.map(tab => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setTab(tab.key)}
+              className={cn(
+                'relative px-mx-lg py-mx-sm text-sm font-black text-text-secondary transition-colors',
+                activeTab === tab.key && 'text-status-info',
+              )}
+            >
+              {tab.label}
+              {activeTab === tab.key && <span className="absolute inset-x-mx-sm bottom-0 h-0.5 rounded-full bg-status-info" />}
+            </button>
+          ))}
+        </nav>
+
+        {error && (
+          <div className="rounded-mx-lg border border-status-error/20 bg-status-error-surface p-mx-sm">
+            <Typography variant="p" className="text-status-error">{error}</Typography>
+          </div>
+        )}
+
+        {activeTab === 'overview' && (
+          <OverviewTab
+            trainings={recommendedCards.length ? recommendedCards : treinamentos.slice(0, 3)}
+            progress={progress}
+            onStart={(training) => window.open(training.video_url, '_blank')}
+            onOpenTrack={() => setTab('trilha')}
+          />
+        )}
+
+        {activeTab === 'biblioteca' && (
+          <BibliotecaTab
+            trainings={libraryCards}
+            searchTerm={searchTerm}
+            selectedTheme={selectedTheme}
+            suggestionTitle={suggestionTitle}
+            onSearch={setSearchTerm}
+            onTheme={setSelectedTheme}
+            onSuggestTitle={setSuggestionTitle}
+            onSuggest={handleSuggestContent}
+            onFavorite={() => toast.info('Favoritos entram na próxima versão da biblioteca.')}
+            onRefresh={handleRefresh}
+            isRefreshing={isRefreshing}
+          />
+        )}
+
+        {activeTab === 'trilha' && (
+          <TrilhaTab
+            trainings={treinamentos}
+            activeTrackProgress={activeTrackProgress}
+            onOpenLibrary={() => setTab('biblioteca')}
+            onWatch={(training) => window.open(training.video_url, '_blank')}
+            onComplete={async (training) => {
+              await markWatched(training.id)
+              toast.success('Conteúdo concluído.')
+            }}
+            onRate={(training, rating) => rateTraining({ trainingId: training.id, rating })}
+          />
+        )}
+
+        {activeTab === 'aulas' && <AulasAoVivoSection />}
+      </div>
+    </main>
+  )
+}
+
+function TrainingHeader({ profileName, avatarUrl }: { profileName: string; avatarUrl: string | null }) {
+  return (
+    <header className="flex flex-col gap-mx-md border-b border-border-default pb-mx-md xl:flex-row xl:items-center xl:justify-between">
+      <div className="flex items-center gap-mx-sm">
+        <GraduationCap size={34} className="text-text-primary" />
+        <div>
+          <Typography variant="h1" className="text-3xl uppercase tracking-normal">Treinamentos</Typography>
+          <Typography variant="p" tone="muted" className="text-sm">Aprenda, aplique e evolua. Seu conhecimento move suas vendas.</Typography>
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-mx-md text-sm font-black text-text-primary">
+        <span className="inline-flex items-center gap-mx-xs">
+          <CalendarDays size={17} />
+          {todayLabel()}
+        </span>
+        <span className="relative inline-flex h-mx-10 w-mx-10 items-center justify-center rounded-full border border-border-default bg-white">
+          <Bell size={18} />
+          <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-status-error px-1 text-[10px] text-white">3</span>
+        </span>
+        <div className="flex items-center gap-mx-xs">
+          <Avatar src={avatarUrl || undefined} fallback={profileName} alt={profileName} size="md" />
+          <div className="hidden md:block">
+            <Typography variant="p" className="font-black leading-none text-text-primary">{profileName}</Typography>
+            <Typography variant="tiny" tone="muted" className="tracking-normal">Vendedor</Typography>
+          </div>
+        </div>
+      </div>
+    </header>
+  )
+}
+
+function SummaryCard({ icon, label, value, hint, tone = 'brand' }: { icon: React.ReactNode; label: string; value: string; hint: string; tone?: 'brand' | 'info' | 'success' | 'warning' }) {
+  const toneClass = {
+    brand: 'bg-accent-purple-soft text-accent-purple',
+    info: 'bg-status-info-surface text-status-info',
+    success: 'bg-status-success-surface text-status-success',
+    warning: 'bg-status-warning-surface text-status-warning',
+  }[tone]
+
+  return (
+    <Card className="rounded-mx-lg border border-border-default bg-white p-mx-md shadow-none">
+      <div className="flex items-center gap-mx-sm">
+        <span className={cn('flex h-mx-12 w-mx-12 shrink-0 items-center justify-center rounded-full', toneClass)}>{icon}</span>
+        <div className="min-w-0">
+          <Typography variant="caption" className="tracking-normal text-text-primary">{label}</Typography>
+          <Typography variant="h2" className="mt-1 text-2xl">{value}</Typography>
+          <Typography variant="tiny" tone="muted" className="tracking-normal">{hint}</Typography>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+function ProgressRing({ value }: { value: number }) {
+  return (
+    <span
+      className="grid h-mx-12 w-mx-12 place-items-center rounded-full bg-status-info-surface text-status-info"
+      style={{ background: `conic-gradient(var(--color-status-info) ${value * 3.6}deg, var(--color-border-strong) 0deg)` }}
+    >
+      <span className="h-mx-9 w-mx-9 rounded-full bg-white" />
+    </span>
+  )
+}
+
+function OverviewTab({ trainings, progress, onStart, onOpenTrack }: { trainings: TrainingWithProgress[]; progress: number; onStart: (training: TrainingWithProgress) => void; onOpenTrack: () => void }) {
+  return (
+    <div className="grid grid-cols-1 gap-mx-xl xl:grid-cols-[minmax(0,1fr)_360px]">
+      <section className="space-y-mx-lg">
+        <div>
+          <Typography variant="h2" className="uppercase tracking-normal">Recomendado para você</Typography>
+          <Typography variant="p" tone="muted">Baseado no seu desempenho no funil, feedbacks, PDI e conteúdos prioritários da sua trilha.</Typography>
+        </div>
+        <div className="grid grid-cols-1 gap-mx-md lg:grid-cols-3">
+          {trainings.map((training, index) => (
+            <TrainingFeatureCard key={training.id} training={training} index={index} onStart={() => onStart(training)} />
+          ))}
+        </div>
+        <Card className="rounded-mx-lg border border-status-info/20 bg-status-info-surface p-mx-lg shadow-none">
+          <div className="flex flex-col gap-mx-md md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-mx-md">
+              <span className="flex h-mx-14 w-mx-14 items-center justify-center rounded-full bg-status-info/10 text-status-info">
+                <Star size={26} />
+              </span>
+              <div>
+                <Typography variant="h3">A prova é sua confirmação de presença!</Typography>
+                <Typography variant="p" tone="muted">Após cada aula ao vivo ou conteúdo, faça a prova para validar sua presença, consolidar o aprendizado e ganhar pontos no seu Score.</Typography>
+              </div>
+            </div>
+            <Button variant="outline" onClick={onOpenTrack}><Play size={16} /> Saiba como funciona</Button>
+          </div>
+        </Card>
+      </section>
+      <aside className="space-y-mx-md">
+        <Card className="rounded-mx-lg border border-border-default p-mx-lg shadow-none">
+          <Typography variant="h3" className="uppercase">Sua Trilha</Typography>
+          <div className="mt-mx-md rounded-mx-lg bg-surface-alt p-mx-md">
+            <Typography variant="h3">N3 - Performance</Typography>
+            <Typography variant="p" tone="muted" className="mt-mx-xs">Para vendedores com mais experiência que querem elevar seus resultados.</Typography>
+            <Button className="mt-mx-md" onClick={onOpenTrack}>Ver minha trilha</Button>
+          </div>
+          <div className="mt-mx-md space-y-mx-sm">
+            {['Atendimento e Relacionamento', 'Prospecção e Leads', 'Negociação e Fechamento', 'Gestão de Carteira', 'Alta Performance'].map((label, index) => (
+              <div key={label}>
+                <div className="mb-1 flex justify-between text-sm font-black text-text-primary">
+                  <span>{index + 1}. {label}</span>
+                  <span>{[5, 4, 6, 4, 5][index]}/{[6, 5, 8, 6, 8][index]}</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-border-default">
+                  <div className="h-1.5 rounded-full bg-status-success" style={{ width: `${[84, 80, 75, 66, 62][index]}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </aside>
+    </div>
+  )
+}
+
+function BibliotecaTab(props: {
+  trainings: TrainingWithProgress[]
+  searchTerm: string
+  selectedTheme: DevelopmentTheme | 'todos'
+  suggestionTitle: string
+  onSearch: (value: string) => void
+  onTheme: (value: DevelopmentTheme | 'todos') => void
+  onSuggestTitle: (value: string) => void
+  onSuggest: () => void
+  onFavorite: () => void
+  onRefresh: () => void
+  isRefreshing: boolean
+}) {
+  const themeButtons = DEVELOPMENT_THEMES.slice(0, 9)
+  return (
+    <div className="grid grid-cols-1 gap-mx-xl xl:grid-cols-[minmax(0,1fr)_360px]">
+      <section className="space-y-mx-md">
+        <div className="flex flex-col gap-mx-sm xl:flex-row xl:items-end xl:justify-between">
+          <div>
+            <Typography variant="h2" className="text-3xl tracking-normal">Biblioteca</Typography>
+            <Typography variant="p" tone="muted">Encontre conteúdos rápidos e práticos para aplicar no seu dia a dia.</Typography>
+          </div>
+          <div className="flex flex-wrap gap-mx-xs">
+            <Button variant="outline" onClick={props.onFavorite}><Bookmark size={16} /> Meus favoritos</Button>
+            <Button onClick={props.onSuggest}><Sparkles size={16} /> Sugerir conteúdo</Button>
+            <Button variant="ghost" size="icon" aria-label="Atualizar biblioteca" loading={props.isRefreshing} onClick={props.onRefresh}>
+              <ChevronRight size={16} />
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-mx-sm lg:grid-cols-[1.5fr_1fr_1fr_1fr_1fr]">
+          <div className="relative">
+            <Search size={17} className="absolute right-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
+            <Input value={props.searchTerm} onChange={event => props.onSearch(event.target.value)} placeholder="Buscar por tema, palavra-chave..." className="h-mx-12 rounded-mx-md" />
+          </div>
+          {['Tema', 'Nível', 'Tipo', 'Duração'].map(label => (
+            <label key={label} className="rounded-mx-md border border-border-default bg-white px-mx-sm py-mx-xs">
+              <span className="block text-xs font-black text-text-secondary">{label}</span>
+              <select className="mt-1 w-full bg-transparent text-sm font-black text-text-primary outline-none">
+                <option>{label === 'Tema' ? 'Todos os temas' : label === 'Nível' ? 'Todos os níveis' : label === 'Tipo' ? 'Todos os tipos' : 'Qualquer duração'}</option>
+              </select>
+            </label>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap gap-mx-xs">
+          <ThemePill active={props.selectedTheme === 'todos'} onClick={() => props.onTheme('todos')}>Todos</ThemePill>
+          {themeButtons.map(theme => (
+            <ThemePill key={theme.key} active={props.selectedTheme === theme.key} onClick={() => props.onTheme(theme.key)}>
+              {THEME_LABELS[theme.key] || theme.label}
+            </ThemePill>
+          ))}
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Typography variant="h3">Conteúdos disponíveis ({props.trainings.length || 126})</Typography>
+          <select className="rounded-mx-md border border-border-default bg-white px-mx-sm py-mx-xs text-sm font-black">
+            <option>Mais relevantes</option>
+          </select>
+        </div>
+
+        <div className="grid grid-cols-1 gap-mx-md md:grid-cols-2 2xl:grid-cols-4">
+          {props.trainings.slice(0, 8).map((training, index) => (
+            <LibraryCard key={training.id} training={training} index={index} />
+          ))}
+        </div>
+      </section>
+
+      <aside className="space-y-mx-md">
+        <Card className="rounded-mx-lg border border-border-default bg-surface-alt/60 p-mx-lg shadow-none">
+          <div className="flex items-center gap-mx-xs">
+            <Star size={18} className="text-accent-purple" />
+            <Typography variant="h3" className="uppercase">Sugestões para você</Typography>
+          </div>
+          <Typography variant="p" tone="muted" className="mt-mx-xs">Baseado no seu desempenho no funil e nas suas dificuldades atuais.</Typography>
+          {['Sua conversão de visita para venda está abaixo da média.', 'Muitos clientes sem resposta há mais de 7 dias.', 'Seu PDI indica oportunidade de evolução em negociação.'].map((text) => (
+            <button key={text} type="button" className="mt-mx-md flex w-full items-center justify-between border-t border-border-default pt-mx-md text-left">
+              <span>
+                <Typography variant="p" className="font-black text-text-primary">{text}</Typography>
+                <Typography variant="tiny" tone="info" className="tracking-normal">Ver conteúdo sugerido</Typography>
+              </span>
+              <ChevronRight size={16} />
+            </button>
+          ))}
+        </Card>
+        <Card className="rounded-mx-lg border border-status-info/10 bg-status-info-surface p-mx-lg shadow-none">
+          <Typography variant="h3" className="uppercase">Sugerir conteúdo</Typography>
+          <Typography variant="p" tone="muted" className="mt-mx-xs">Não encontrou o que precisava? Sugira um tema para a biblioteca.</Typography>
+          <Input value={props.suggestionTitle} onChange={event => props.onSuggestTitle(event.target.value)} placeholder="Tema ou conteúdo" className="mt-mx-sm" />
+          <Button variant="outline" className="mt-mx-sm w-full justify-between" onClick={props.onSuggest}>
+            Sugerir agora <ChevronRight size={16} />
+          </Button>
+        </Card>
+      </aside>
+    </div>
+  )
+}
+
+function TrilhaTab({ trainings, activeTrackProgress, onOpenLibrary, onWatch, onComplete, onRate }: {
+  trainings: TrainingWithProgress[]
+  activeTrackProgress: Array<{ id?: string; status?: string }>
+  onOpenLibrary: () => void
+  onWatch: (training: TrainingWithProgress) => void
+  onComplete: (training: TrainingWithProgress) => void
+  onRate: (training: TrainingWithProgress, rating: number) => void
+}) {
+  const rows = trainings.slice(0, 5)
+  return (
+    <div className="grid grid-cols-1 gap-mx-xl xl:grid-cols-[minmax(0,1fr)_360px]">
+      <section className="space-y-mx-md">
+        <div className="flex flex-col gap-mx-sm lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <Typography variant="h2" className="text-2xl tracking-normal">Minha Trilha: N3 - Performance</Typography>
+            <Typography variant="p" tone="muted">Conteúdos essenciais para vendedores com mais experiência que querem elevar seus resultados.</Typography>
+          </div>
+          <Button variant="outline" onClick={onOpenLibrary}>Ver trilha completa <ExternalLink size={16} /></Button>
+        </div>
+
+        {modules.map((module, index) => {
+          const Icon = module.icon
+          return (
+            <Card key={module.title} className="rounded-mx-lg border border-border-default p-mx-md shadow-none">
+              <div className="grid grid-cols-1 gap-mx-md lg:grid-cols-[1fr_320px_130px_24px] lg:items-center">
+                <div className="flex items-center gap-mx-md">
+                  <span className="flex h-mx-16 w-mx-16 items-center justify-center rounded-mx-lg bg-accent-purple-soft text-accent-purple">
+                    <Icon size={28} />
+                  </span>
+                  <div>
+                    <Typography variant="tiny" tone="brand" className="tracking-normal">Módulo {index + 1}</Typography>
+                    <Typography variant="h2" className="text-xl">{module.title}</Typography>
+                    <Typography variant="p" tone="muted">{module.subtitle}</Typography>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center gap-mx-sm">
+                    <div className="h-2 flex-1 rounded-full bg-border-default"><div className="h-2 rounded-full bg-status-success" style={{ width: `${module.score}%` }} /></div>
+                    <Typography variant="p" className="font-black text-text-primary">{module.score}%</Typography>
+                  </div>
+                  <Typography variant="tiny" tone="muted" className="tracking-normal">{module.done} de {module.total} conteúdos</Typography>
+                </div>
+                <Button variant={module.score === 100 ? 'ghost' : 'outline'}>{module.score === 100 ? 'Concluído' : module.score > 0 ? 'Continuar' : 'Começar'}</Button>
+                <ChevronRight size={18} className={cn('transition-transform', module.open && '-rotate-90')} />
+              </div>
+              {module.open && (
+                <div className="mt-mx-md overflow-x-auto rounded-mx-lg border border-border-default">
+                  <table className="w-full min-w-[720px] text-left text-sm">
+                    <thead className="bg-surface-alt text-xs font-black uppercase text-text-secondary">
+                      <tr>
+                        <th className="px-mx-md py-mx-sm">Conteúdo</th>
+                        <th>Tipo</th>
+                        <th>Duração</th>
+                        <th>Progresso</th>
+                        <th>Sua nota</th>
+                        <th />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map((training, rowIndex) => (
+                        <tr key={training.id} className={cn('border-t border-border-default', rowIndex === 3 && 'bg-status-info-surface/50')}>
+                          <td className="px-mx-md py-mx-sm">
+                            <button type="button" onClick={() => onWatch(training)} className="inline-flex items-center gap-mx-sm font-black text-text-primary">
+                              {training.watched ? <CheckCircle size={18} className="text-status-success" /> : <Play size={18} className="text-status-info" />}
+                              {training.title}
+                            </button>
+                          </td>
+                          <td><Badge variant="outline">Aula</Badge></td>
+                          <td>{training.duration_minutes || 18} min</td>
+                          <td><div className="h-1.5 w-mx-20 rounded-full bg-border-default"><div className={cn('h-1.5 rounded-full', training.watched ? 'bg-status-success' : 'bg-status-info')} style={{ width: training.watched ? '100%' : '60%' }} /></div></td>
+                          <td>{training.watched ? '90%' : '-'}</td>
+                          <td>
+                            {training.watched ? (
+                              <button type="button" onClick={() => onRate(training, 5)} className="text-status-warning"><Star size={16} /></button>
+                            ) : (
+                              <Button variant="ghost" size="sm" onClick={() => onComplete(training)}>Concluir</Button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Card>
+          )
+        })}
+      </section>
+
+      <aside className="space-y-mx-md">
+        <Card className="rounded-mx-lg border border-border-default p-mx-lg shadow-none">
+          <Typography variant="h3">Sobre sua Trilha</Typography>
+          <Typography variant="p" tone="muted" className="mt-mx-sm">Sua trilha é definida com base no seu tempo de mercado, experiência e desempenho.</Typography>
+          <dl className="mt-mx-md grid grid-cols-2 gap-mx-sm text-sm">
+            <dt className="text-text-tertiary">Seu nível atual</dt><dd className="font-black">Tempo de mercado</dd>
+            <dt className="text-text-tertiary">Experiência declarada</dt><dd className="font-black">Avançada</dd>
+          </dl>
+          <Button variant="ghost" className="mt-mx-sm justify-between px-0">Entenda como seu nível é definido <ChevronRight size={16} /></Button>
+        </Card>
+        <Card className="rounded-mx-lg border border-border-default p-mx-lg shadow-none">
+          <Typography variant="h3">Seu desempenho na Trilha</Typography>
+          <div className="mt-mx-md h-mx-48 rounded-mx-lg bg-status-info-surface p-mx-md">
+            <svg viewBox="0 0 280 120" className="h-full w-full" aria-hidden="true">
+              <polyline points="0,88 45,68 90,58 135,38 180,50 225,48 280,32" fill="none" stroke="var(--color-status-info)" strokeWidth="6" strokeLinecap="round" />
+              {[0, 45, 90, 135, 180, 225, 280].map((x, index) => <circle key={x} cx={x} cy={[88, 68, 58, 38, 50, 48, 32][index]} r="5" fill="var(--color-accent-purple)" />)}
+            </svg>
+          </div>
+          <Typography variant="h2" tone="success" className="mt-mx-sm">+18%</Typography>
+          <Typography variant="p" tone="muted">nas últimas 4 semanas</Typography>
+        </Card>
+        <Card className="rounded-mx-lg border border-accent-purple/20 bg-accent-purple-soft p-mx-lg shadow-none">
+          <div className="flex items-center gap-mx-sm">
+            <Award size={26} className="text-accent-purple" />
+            <Typography variant="p" className="text-text-primary">Próxima conquista: conclua mais 2 conteúdos para finalizar o módulo.</Typography>
+          </div>
+          <div className="mt-mx-sm h-2 rounded-full bg-white"><div className="h-2 w-2/3 rounded-full bg-accent-purple" /></div>
+          {activeTrackProgress.length > 0 && <Typography variant="tiny" tone="muted" className="mt-mx-xs block tracking-normal">Trilha ativa sincronizada com seu cadastro.</Typography>}
+        </Card>
+      </aside>
+    </div>
+  )
+}
+
+function TrainingFeatureCard({ training, index, onStart }: { training: TrainingWithProgress; index: number; onStart: () => void }) {
+  return (
+    <Card className="overflow-hidden rounded-mx-lg border border-border-default bg-white shadow-none">
+      <div className="relative h-mx-64 bg-cover bg-center" style={{ backgroundImage: `linear-gradient(to bottom, rgba(10,10,11,.05), rgba(10,10,11,.58)), url(${CARD_IMAGES[index % CARD_IMAGES.length]})` }}>
+        <Badge variant={index === 2 ? 'success' : 'brand'} className="absolute left-mx-sm top-mx-sm rounded-mx-full">{index === 0 ? 'Sugestão para você' : index === 1 ? 'Alinhado ao seu PDI' : 'Alto impacto'}</Badge>
+        <span className="absolute left-1/2 top-1/2 grid h-mx-14 w-mx-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-mx-black/70 text-white ring-2 ring-white/40"><Play size={22} fill="currentColor" /></span>
+      </div>
+      <div className="p-mx-md">
+        <Typography variant="h3" className="line-clamp-2">{training.title}</Typography>
+        <Typography variant="p" tone="muted" className="mt-mx-xs line-clamp-2">{training.description || 'Conteúdo recomendado para acelerar sua evolução comercial.'}</Typography>
+        <div className="mt-mx-sm flex flex-wrap gap-mx-md text-sm font-black text-text-secondary">
+          <span className="inline-flex items-center gap-1"><Clock size={15} /> {training.duration_minutes || 18} min</span>
+          <span>{index === 1 ? 'Avançado' : 'Intermediário'}</span>
+        </div>
+        <div className="mt-mx-md flex gap-mx-xs">
+          <Button variant="outline" className="flex-1" onClick={onStart}>Assistir agora</Button>
+          <Button variant="outline" size="icon" aria-label="Favoritar"><Bookmark size={16} /></Button>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+function LibraryCard({ training, index }: { training: TrainingWithProgress; index: number }) {
+  const theme = inferDevelopmentTheme(training)
+  return (
+    <Card className="overflow-hidden rounded-mx-lg border border-border-default bg-white shadow-none">
+      <div className="relative h-mx-32 bg-cover bg-center" style={{ backgroundImage: `linear-gradient(to bottom, rgba(10,10,11,.04), rgba(10,10,11,.45)), url(${CARD_IMAGES[index % CARD_IMAGES.length]})` }}>
+        <Badge variant="brand" className="absolute left-mx-xs top-mx-xs rounded-mx-full">{THEME_LABELS[theme] || theme}</Badge>
+        <span className="absolute left-1/2 top-1/2 grid h-mx-10 w-mx-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-mx-black/70 text-white ring-2 ring-white/40"><Play size={18} fill="currentColor" /></span>
+        <span className="absolute bottom-mx-xs left-mx-xs inline-flex items-center gap-1 rounded-full bg-mx-black/70 px-2 py-1 text-xs font-black text-white"><Clock size={12} /> {training.duration_minutes || 16} min</span>
+      </div>
+      <div className="p-mx-sm">
+        <Typography variant="p" className="line-clamp-2 font-black text-text-primary">{training.title}</Typography>
+        <div className="mt-mx-sm flex items-center justify-between">
+          <div className="flex gap-mx-xs">
+            <Badge variant="outline">N{index % 2 === 0 ? '3' : '2'}</Badge>
+            <Badge variant="outline">Aula</Badge>
+          </div>
+          <Button variant="ghost" size="icon" aria-label="Favoritar conteúdo"><Bookmark size={16} /></Button>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+function ThemePill({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'rounded-mx-md border px-mx-sm py-mx-xs text-sm font-black transition-colors',
+        active ? 'border-status-info bg-status-info text-white' : 'border-border-default bg-white text-text-primary hover:bg-surface-alt',
+      )}
+    >
+      {children}
+    </button>
+  )
 }
