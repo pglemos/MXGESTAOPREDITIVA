@@ -19,6 +19,7 @@ Auditoria somente leitura em 2026-06-02 encontrou 3 visitas canceladas ainda com
 - [x] Duplicatas Google com mesma origem MX sao deduplicadas mantendo o ID canonico salvo no banco/espelho.
 - [x] Consultor/responsavel com espelho pessoal nao fica tambem como convidado do evento central, evitando duplicidade no Google Calendar externo.
 - [x] Agenda mesclada remove duplicata central+pessoal da mesma origem MX antes de retornar eventos para o app.
+- [x] Consultor responsavel/auxiliar explicitamente relacionado recebe espelho pessoal mesmo quando tambem possui papel administrativo MX.
 - [x] CLI `scripts/reconcile_google_calendar_sync.ts` roda em dry-run por padrao e possui modo `--execute`.
 - [x] CLI remove eventos Google cancelados/duplicados e apenas reporta duplicidades ambiguas do banco.
 - [x] Secrets/tokens nao sao impressos em logs.
@@ -58,6 +59,8 @@ Auditoria somente leitura em 2026-06-02 encontrou 3 visitas canceladas ainda com
 - Follow-up 2026-06-10: chamada administrativa de `google-calendar-sync` aceita JWT `service_role` validado pela Supabase, alem da comparacao exata com o secret, para permitir reconciliacao remota com chaves rotacionadas.
 - Deploy remoto aplicado em `fbhcmzzgwjdgkctlfvbo`: `google-calendar-sync` e `google-calendar-merged`.
 - Reconciliacao remota de 14 visitas futuras ativas executada com sucesso; resultado: 14 ok, 0 falhas, 14 espelhos obsoletos removidos. Avisos restantes foram apenas de permissao de co-host Google Meet em 5 reunioes.
+- Follow-up 2026-06-10: regra de espelho pessoal reabilitada para administradores quando eles estao explicitamente como consultor responsavel/auxiliar. Caso real validado: Ideal Automotive 2026-06-16 09:00, auxiliar Jose com espelho pessoal criado e `sync_error` nulo.
+- Reconciliacao remota reaplicada apos o ajuste: 14 visitas futuras ativas, 0 falhas, 10 espelhos pessoais criados/atualizados; 4 espelhos sem sucesso por usuarios sem Google pessoal conectado.
 
 ### Gates
 
@@ -89,6 +92,14 @@ Auditoria somente leitura em 2026-06-02 encontrou 3 visitas canceladas ainda com
 - [x] `npm run lint` - passed apos deploy/reconciliacao.
 - [x] `npm test` - 407 passed apos deploy/reconciliacao.
 - [x] `npm run build` - passed apos deploy/reconciliacao.
+- [x] `bun test src/lib/agenda/google-calendar-sync-rules.test.ts src/lib/agenda/google-calendar-privacy.test.ts` - 9 passed apos ajuste de consultor auxiliar admin.
+- [x] `deno check supabase/functions/google-calendar-sync/index.ts supabase/functions/google-calendar-merged/index.ts supabase/functions/_shared/google_calendar_sync_rules.ts` - passed apos ajuste de consultor auxiliar admin.
+- [x] `npx supabase functions deploy google-calendar-sync` - deployed apos ajuste de consultor auxiliar admin.
+- [x] Reconciliacao remota via `google-calendar-sync` - 14 visitas futuras ativas reprocessadas, 0 falhas; Ideal Automotive/Jose validado com espelho pessoal ativo.
+- [x] `npm run typecheck` - passed apos ajuste de consultor auxiliar admin.
+- [x] `npm run lint` - passed apos ajuste de consultor auxiliar admin.
+- [x] `npm test` - 407 passed apos ajuste de consultor auxiliar admin.
+- [x] `npm run build` - passed apos ajuste de consultor auxiliar admin.
 - [x] `git diff --check` - passed.
 
 ### File List

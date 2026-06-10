@@ -1,7 +1,5 @@
 import {
-  isAdminMasterMx,
   normalizeEmail,
-  type AgendaUserProfile,
   type GoogleCalendarLikeEvent,
 } from "./google_calendar_privacy.ts";
 
@@ -67,21 +65,8 @@ export function filterPersonalMirrorCandidates(
   candidates: UserMirrorCandidate[],
   rawAdminMasterEmails?: string | null,
 ): UserMirrorCandidate[] {
-  return uniqueMirrorCandidates(candidates).filter((candidate) => {
-    if (candidate.role === "administrador_geral" || candidate.role === "administrador_mx") return false;
-
-    const profileBySystemEmail: AgendaUserProfile = {
-      role: candidate.role ?? null,
-      email: candidate.profileEmail ?? null,
-      name: candidate.name ?? null,
-    };
-    const profileByGoogleEmail: AgendaUserProfile = {
-      role: candidate.role ?? null,
-      email: candidate.googleEmail ?? null,
-      name: candidate.name ?? null,
-    };
-    return !isAdminMasterMx(profileBySystemEmail, rawAdminMasterEmails) && !isAdminMasterMx(profileByGoogleEmail, rawAdminMasterEmails);
-  });
+  void rawAdminMasterEmails;
+  return uniqueMirrorCandidates(candidates);
 }
 
 export function filterCentralAttendeesForPersonalMirrors(

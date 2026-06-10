@@ -19,7 +19,7 @@ describe('google calendar sync rules', () => {
     expect(getEffectiveCalendarAction('delete', 'visit', 'agendada')).toBe('delete')
   })
 
-  test('excludes MX administrators from personal mirrors', () => {
+  test('keeps explicitly related MX administrators in personal mirrors', () => {
     const candidates = filterPersonalMirrorCandidates([
       {
         userId: 'admin-master',
@@ -58,7 +58,13 @@ describe('google calendar sync rules', () => {
       },
     ])
 
-    expect(candidates.map((candidate) => candidate.userId)).toEqual(['consultant'])
+    expect(candidates.map((candidate) => candidate.userId)).toEqual([
+      'admin-master',
+      'consultant',
+      'admin-master-by-google',
+      'admin-mx',
+      'admin-general-not-allowlisted',
+    ])
   })
 
   test('removes central attendees that already receive personal mirrors', () => {
