@@ -87,6 +87,10 @@ export function filterCentralAttendeesForPersonalMirrors(
   });
 }
 
+export function shouldInviteScheduleEventCreator(eventType?: string | null): boolean {
+  return eventType !== "bloqueio";
+}
+
 export function getStaleMirrorRows(
   existingRows: ExistingMirrorRow[],
   desiredUserIds: string[],

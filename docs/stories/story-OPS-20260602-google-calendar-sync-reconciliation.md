@@ -20,6 +20,7 @@ Auditoria somente leitura em 2026-06-02 encontrou 3 visitas canceladas ainda com
 - [x] Consultor/responsavel com espelho pessoal nao fica tambem como convidado do evento central, evitando duplicidade no Google Calendar externo.
 - [x] Agenda mesclada remove duplicata central+pessoal da mesma origem MX antes de retornar eventos para o app.
 - [x] Consultor responsavel/auxiliar explicitamente relacionado recebe espelho pessoal mesmo quando tambem possui papel administrativo MX.
+- [x] Bloqueio de agenda nao convida o usuario criador; apenas o consultor responsavel recebe espelho pessoal.
 - [x] CLI `scripts/reconcile_google_calendar_sync.ts` roda em dry-run por padrao e possui modo `--execute`.
 - [x] CLI remove eventos Google cancelados/duplicados e apenas reporta duplicidades ambiguas do banco.
 - [x] Secrets/tokens nao sao impressos em logs.
@@ -61,6 +62,7 @@ Auditoria somente leitura em 2026-06-02 encontrou 3 visitas canceladas ainda com
 - Reconciliacao remota de 14 visitas futuras ativas executada com sucesso; resultado: 14 ok, 0 falhas, 14 espelhos obsoletos removidos. Avisos restantes foram apenas de permissao de co-host Google Meet em 5 reunioes.
 - Follow-up 2026-06-10: regra de espelho pessoal reabilitada para administradores quando eles estao explicitamente como consultor responsavel/auxiliar. Caso real validado: Ideal Automotive 2026-06-16 09:00, auxiliar Jose com espelho pessoal criado e `sync_error` nulo.
 - Reconciliacao remota reaplicada apos o ajuste: 14 visitas futuras ativas, 0 falhas, 10 espelhos pessoais criados/atualizados; 4 espelhos sem sucesso por usuarios sem Google pessoal conectado.
+- Follow-up 2026-06-10: bloqueios de agenda deixam de incluir `creator_email` e `associated_admins` como convidados do evento central. Caso real validado: bloqueio de Jose em 2026-06-23 08:00-16:00, criado por Mariane, reprocessado sem warnings e com espelho pessoal ativo apenas para Jose.
 
 ### Gates
 
@@ -100,6 +102,14 @@ Auditoria somente leitura em 2026-06-02 encontrou 3 visitas canceladas ainda com
 - [x] `npm run lint` - passed apos ajuste de consultor auxiliar admin.
 - [x] `npm test` - 407 passed apos ajuste de consultor auxiliar admin.
 - [x] `npm run build` - passed apos ajuste de consultor auxiliar admin.
+- [x] `bun test src/lib/agenda/google-calendar-sync-rules.test.ts src/lib/agenda/google-calendar-privacy.test.ts` - 10 passed apos ajuste de bloqueio sem convite ao criador.
+- [x] `deno check supabase/functions/google-calendar-sync/index.ts supabase/functions/_shared/google_calendar_sync_rules.ts` - passed apos ajuste de bloqueio sem convite ao criador.
+- [x] `npx supabase functions deploy google-calendar-sync` - deployed apos ajuste de bloqueio sem convite ao criador.
+- [x] Reprocessamento remoto do bloqueio `e7f4c1c7-b76f-4f5a-a18d-3fe4f05f10ed` - ok, 1 espelho pessoal para Jose, 0 warnings.
+- [x] `npm run typecheck` - passed apos ajuste de bloqueio sem convite ao criador.
+- [x] `npm run lint` - passed apos ajuste de bloqueio sem convite ao criador.
+- [x] `npm test` - 412 passed apos ajuste de bloqueio sem convite ao criador.
+- [x] `npm run build` - passed apos ajuste de bloqueio sem convite ao criador.
 - [x] `git diff --check` - passed.
 
 ### File List

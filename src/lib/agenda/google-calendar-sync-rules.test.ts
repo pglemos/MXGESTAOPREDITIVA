@@ -7,6 +7,7 @@ import {
   getStaleMirrorRows,
   isCanceledCalendarStatus,
   mergeGoogleCalendarEventsBySource,
+  shouldInviteScheduleEventCreator,
 } from '../../../supabase/functions/_shared/google_calendar_sync_rules'
 
 describe('google calendar sync rules', () => {
@@ -88,6 +89,12 @@ describe('google calendar sync rules', () => {
     ])
 
     expect(attendees).toEqual([{ email: 'cliente@loja.com', displayName: 'Cliente' }])
+  })
+
+  test('does not invite the creator to blocked agenda events', () => {
+    expect(shouldInviteScheduleEventCreator('bloqueio')).toBe(false)
+    expect(shouldInviteScheduleEventCreator('aula')).toBe(true)
+    expect(shouldInviteScheduleEventCreator('evento_online')).toBe(true)
   })
 
   test('detects stale personal mirror rows after owner changes', () => {

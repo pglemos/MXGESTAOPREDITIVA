@@ -26,6 +26,7 @@ import {
   getDuplicateGoogleEventIds,
   getEffectiveCalendarAction,
   getStaleMirrorRows,
+  shouldInviteScheduleEventCreator,
   uniqueMirrorCandidates,
   type ExistingMirrorRow,
 } from "../_shared/google_calendar_sync_rules.ts";
@@ -843,8 +844,12 @@ Deno.serve(async (req) => {
                 email: personalToken.googleEmail ?? scheduleEvent.responsible_email ?? "",
                 displayName: scheduleEvent.responsible_name ?? undefined,
               },
-              getScheduleEventCreatorAttendee(scheduleEvent),
-              ...getScheduleEventAdditionalAttendees(scheduleEvent),
+              ...(shouldInviteScheduleEventCreator(scheduleEvent.event_type)
+                ? [
+                  getScheduleEventCreatorAttendee(scheduleEvent),
+                  ...getScheduleEventAdditionalAttendees(scheduleEvent),
+                ]
+                : []),
             ])
             : normalizeAttendees([
               { email: personalToken.googleEmail ?? visit?.consultant_email ?? CENTRAL_CALENDAR_EMAIL },
