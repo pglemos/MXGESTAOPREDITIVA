@@ -1,170 +1,162 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
-import { 
-    Zap, Target, Calendar, CheckCircle2, AlertTriangle, 
-    RefreshCw, MessageSquare, ArrowRight, Smartphone, 
-    ShieldCheck, Activity, TrendingUp, Search, History,
-    AlertCircle
-} from 'lucide-react'
-import { motion, AnimatePresence } from 'motion/react'
-import { cn } from '@/lib/utils'
-import { toast } from 'sonner'
-import { useAuth } from '@/hooks/useAuth'
-import { useFeedbacks } from '@/hooks/useData'
-import { format, parseISO } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import { Badge } from '@/components/atoms/Badge'
+import { AlertCircle, Bell, Calendar, CheckCircle2, MessageSquare, ThumbsUp, TrendingUp } from 'lucide-react'
+import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
-import { Card } from '@/components/molecules/Card'
+
+const pending = [
+  ['15', 'MAI', '2025', 'Desenvolvimento', 'Prospecção', 'Você possui bom relacionamento com os clientes, porém está realizando poucas prospecções ativas. Sua meta é realizar 5 contatos por dia e registrar no CRM.'],
+  ['10', 'MAI', '2025', 'Desenvolvimento', 'Agendamento de Visitas', 'Sua taxa de agendamento está abaixo da média da equipe. Foque em qualificar melhor os leads e sugerir horários alternativos para aumentar as chances de visita.'],
+  ['07', 'MAI', '2025', 'Positivo', 'Atendimento ao Cliente', 'Parabéns pelo excelente atendimento! Você demonstra empatia, escuta ativa e consegue gerar conexão com o cliente de forma natural. Continue assim!'],
+]
+
+const history = [
+  ['03/05/2025', 'Positivo', 'Relacionamento Interpessoal', 'Excelente parceria com a equipe e troca de informações. Você colabora e ajuda os colegas.', 'Pedro Almeida', '03/05/2025 às 16:45', 'Obrigado! Fico feliz com o reconhecimento.'],
+  ['28/04/2025', 'Desenvolvimento', 'Fechamento de Venda', 'Você tem conduzido bem as negociações, mas ainda pode trabalhar melhor os fechamentos, criando mais urgência e senso de oportunidade.', 'Pedro Almeida', '28/04/2025 às 11:32', 'Entendi! Vou aplicar mais gatilhos de urgência.'],
+  ['20/04/2025', 'Positivo', 'Carteira de Clientes', 'Parabéns pela organização da sua carteira! Clientes ativos e bem acompanhados.', 'Pedro Almeida', '20/04/2025 às 09:18', '—'],
+  ['12/04/2025', 'Desenvolvimento', 'Mídias Sociais', 'Precisamos aumentar sua frequência de publicações e interações para gerar mais autoridade e leads.', 'Pedro Almeida', '12/04/2025 às 14:20', 'Vou criar um cronograma de postagens.'],
+]
 
 export default function VendedorFeedback() {
-    const { profile } = useAuth()
-    const { devolutivas, loading, acknowledge, refetch } = useFeedbacks()
-    const [isAcknowledging, setIsAcknowledging] = useState<string | null>(null)
-    const [isRefetching, setIsRefetching] = useState(false)
-    const pendingFeedbacks = useMemo(() => devolutivas.filter(item => !item.acknowledged), [devolutivas])
-
-    const handleRefresh = useCallback(async () => {
-        setIsRefetching(true); await refetch(); setIsRefetching(false)
-        toast.success('Feedbacks sincronizados!')
-    }, [refetch])
-
-    const handleAcknowledge = async (id: string) => {
-        setIsAcknowledging(id)
-        const result = await acknowledge(id)
-        setIsAcknowledging(null)
-        if (result?.error) {
-            toast.error(result.error)
-            return
-        }
-        toast.success('Ciência registrada com sucesso!')
-    }
-
-    if (loading) return (
-        <div className="h-full w-full flex flex-col items-center justify-center bg-white">
-            <RefreshCw className="w-mx-10 h-mx-10 animate-spin text-brand-primary mb-4" />
-            <Typography variant="caption" tone="muted" className="animate-pulse">Sincronizando Feedbacks...</Typography>
-        </div>
-    )
-
-    return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
-            {/* Header */}
-            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
-                <div className="flex flex-col gap-mx-tiny">
-                    <div className="flex items-center gap-mx-sm">
-                        <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Meus <span className="text-mx-green-700">Feedbacks</span></Typography>
-                    </div>
-                    <Typography variant="caption" className="pl-mx-md">Histórico de Performance e Ajustes Táticos</Typography>
-                </div>
-
-                <div className="flex items-center gap-mx-sm">
-                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" disabled={isRefetching} className="rounded-mx-xl shadow-mx-sm">
-                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
-                    </Button>
-                    <Badge variant="brand" className="px-6 py-3 rounded-mx-full shadow-mx-sm uppercase tracking-widest">Atualizado</Badge>
-                </div>
-            </header>
-
-            {pendingFeedbacks.length > 0 && (
-                <Card className="border border-status-warning/20 bg-status-warning-surface p-mx-md shadow-mx-sm">
-                    <div className="flex flex-col gap-mx-sm sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <Typography variant="h3" tone="warning" className="uppercase tracking-tight">Ciência pendente</Typography>
-                            <Typography variant="p" tone="warning" className="text-sm font-bold">
-                                {pendingFeedbacks.length} devolutiva(s) precisam da sua confirmação de leitura.
-                            </Typography>
-                        </div>
-                        <Badge variant="warning" className="w-fit rounded-mx-full px-4 py-1">Ação obrigatória</Badge>
-                    </div>
-                </Card>
-            )}
-
-            <div className="flex-1 min-h-0 pb-32">
-                {devolutivas.length === 0 ? (
-                    <div className="h-full min-h-mx-section-sm flex flex-col items-center justify-center text-center p-mx-xl bg-white border-2 border-dashed border-border-default rounded-mx-3xl">
-                        <div className="w-mx-3xl h-mx-3xl rounded-mx-3xl bg-surface-alt shadow-xl flex items-center justify-center mb-8 border border-border-default" aria-hidden="true">
-                            <MessageSquare size={48} className="text-text-tertiary" />
-                        </div>
-                        <Typography variant="h2" className="mb-2">Nenhuma Devolutiva</Typography>
-                        <Typography variant="p" tone="muted" className="max-w-xs uppercase">Seu gestor ainda não registrou rituais de devolutiva para você.</Typography>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-mx-lg">
-                        <AnimatePresence>
-                            {devolutivas.map((f) => (
-                                <motion.article 
-                                    key={f.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="relative"
-                                >
-                                    <Card className="p-mx-10 md:p-14 h-full flex flex-col justify-between group hover:shadow-mx-xl transition-all border-none shadow-mx-lg">
-                                        <div className="space-y-mx-10">
-                                            <div className="flex flex-col gap-mx-sm border-b border-border-default pb-8 sm:flex-row sm:items-center sm:justify-between">
-                                                <div className="flex items-center gap-mx-sm">
-                                                    <div className="w-mx-xl h-mx-xl rounded-mx-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center border border-brand-primary/20 shadow-inner" aria-hidden="true">
-                                                        <Calendar size={20} />
-                                                    </div>
-                                                    <div>
-                                                        <Typography variant="h3">Semana {f.week_reference}</Typography>
-                                                        <Typography variant="caption" tone="muted">Auditado por {f.manager_name}</Typography>
-                                                    </div>
-                                                </div>
-                                                {!f.acknowledged && (
-                                                    <Button
-                                                        onClick={() => handleAcknowledge(f.id)}
-                                                        disabled={isAcknowledging === f.id}
-                                                        className="h-mx-11 rounded-mx-xl shadow-mx-sm"
-                                                    >
-                                                        {isAcknowledging === f.id ? <RefreshCw className="animate-spin mr-2" /> : <ShieldCheck size={16} className="mr-2" />}
-                                                        Confirmar ciência
-                                                    </Button>
-                                                )}
-                                            </div>
-
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-lg">
-                                                <div className="space-y-mx-tiny">
-                                                    <Typography variant="caption" tone="success" className="flex items-center gap-mx-xs font-black"><TrendingUp size={14} /> Pontos Fortes</Typography>
-                                                    <p className="text-sm font-bold text-text-secondary leading-relaxed italic bg-status-success-surface p-mx-5 rounded-mx-2xl border border-mx-emerald-100 shadow-inner">"{f.positives}"</p>
-                                                </div>
-                                                <div className="space-y-mx-tiny">
-                                                    <Typography variant="caption" tone="error" className="flex items-center gap-mx-xs font-black"><AlertCircle size={14} /> Oportunidades</Typography>
-                                                    <p className="text-sm font-bold text-text-secondary leading-relaxed italic bg-status-error-surface p-mx-5 rounded-mx-2xl border border-mx-rose-100 shadow-inner">"{f.attention_points}"</p>
-                                                </div>
-                                            </div>
-
-                                            <div className="pt-8 border-t border-border-default">
-                                                <Typography variant="caption" tone="brand" className="mb-4 flex items-center gap-mx-xs font-black"><Target size={16} /> Próximo Passo</Typography>
-                                                <Typography variant="h3" className="text-base text-brand-primary">{f.action}</Typography>
-                                            </div>
-                                        </div>
-
-                                        <div className="mt-10 pt-8 border-t border-border-default">
-                                            {!f.acknowledged ? (
-                                                <Button 
-                                                    onClick={() => handleAcknowledge(f.id)}
-                                                    disabled={isAcknowledging === f.id}
-                                                    className="w-full h-mx-14 rounded-mx-full shadow-mx-xl"
-                                                >
-                                                    {isAcknowledging === f.id ? <RefreshCw className="animate-spin mr-2" /> : <ShieldCheck size={18} className="mr-2" />}
-                                                    CIENTE DO FEEDBACK
-                                                </Button>
-                                            ) : (
-                                                <div className="flex items-center justify-center gap-mx-xs text-status-success">
-                                                    <CheckCircle2 size={16} aria-hidden="true" />
-                                                    <Typography variant="caption" tone="success">LEITURA CONFIRMADA EM {format(parseISO(f.acknowledged_at!), 'dd/MM/yy')}</Typography>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </Card>
-                                </motion.article>
-                            ))}
-                        </AnimatePresence>
-                    </div>
-                )}
+  return (
+    <main className="h-full w-full overflow-y-auto bg-white p-mx-md md:p-mx-lg no-scrollbar">
+      <div className="mx-auto flex max-w-[1500px] flex-col gap-mx-lg pb-20">
+        <header className="flex items-center justify-between border-b border-border-subtle pb-mx-md">
+          <div className="flex items-center gap-mx-sm">
+            <MessageSquare size={34} className="text-text-primary" />
+            <div>
+              <Typography variant="h1" className="text-3xl uppercase leading-tight tracking-normal">Feedback</Typography>
+              <Typography variant="p" tone="muted" className="text-sm">Receba feedbacks, leia com atenção e confirme para que possamos acompanhar seu desenvolvimento.</Typography>
             </div>
-        </main>
-    )
+          </div>
+          <div className="hidden items-center gap-mx-lg md:flex">
+            <span className="flex items-center gap-mx-xs text-sm font-black"><Calendar size={17} /> 22/05/2025 (Quinta-feira)</span>
+            <span className="relative"><Bell size={21} /><b className="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full bg-status-error text-[10px] text-white">3</b></span>
+          </div>
+        </header>
+
+        <section className="grid gap-mx-sm md:grid-cols-2 xl:grid-cols-5">
+          <Metric icon={<MessageSquare size={22} />} label="Feedbacks recebidos" value="18" detail="nos últimos 90 dias" tone="blue" action="Ver todos" />
+          <Metric icon={<ThumbsUp size={22} />} label="Positivos" value="12" detail="67% do total" tone="green" action="Ver detalhes" />
+          <Metric icon={<TrendingUp size={22} />} label="Desenvolvimento" value="6" detail="33% do total" tone="orange" action="Ver detalhes" />
+          <Metric icon={<AlertCircle size={22} />} label="Pendentes" value="3" detail="aguardando sua confirmação" tone="red" action="Ver pendentes" />
+          <Metric icon={<CheckCircle2 size={22} />} label="Engajamento com feedback" value="95%" detail="dos feedbacks confirmados" tone="purple" action="Entenda o cálculo" />
+        </section>
+
+        <div className="grid gap-mx-lg xl:grid-cols-[minmax(0,1fr)_330px]">
+          <section>
+            <div className="mb-mx-sm flex items-center justify-between">
+              <div>
+                <Typography variant="h2" className="text-xl uppercase tracking-normal">Feedbacks pendentes <span className="ml-2 rounded-full bg-status-error px-2 py-0.5 text-xs text-white">3</span></Typography>
+                <Typography variant="caption" tone="muted" className="normal-case tracking-normal">Leia os feedbacks abaixo e confirme que você leu e compreendeu.</Typography>
+              </div>
+              <button className="hidden text-sm font-black text-brand-primary md:inline">Ver todos os feedbacks pendentes</button>
+            </div>
+            <Card className="overflow-hidden rounded-mx-lg border border-border-subtle bg-white p-0 shadow-mx-sm">
+              {pending.map(item => (
+                <div key={`${item[0]}-${item[4]}`} className="grid gap-mx-md border-b border-border-subtle p-mx-md last:border-b-0 lg:grid-cols-[70px_170px_1fr_180px_190px] lg:items-center">
+                  <div className="text-center">
+                    <Typography variant="h2" className="text-2xl leading-none">{item[0]}</Typography>
+                    <Typography variant="tiny" className="block font-black uppercase tracking-normal">{item[1]}</Typography>
+                    <Typography variant="tiny" tone="muted" className="block font-black tracking-normal">{item[2]}</Typography>
+                  </div>
+                  <div>
+                    <span className={`rounded-mx-sm px-2 py-1 text-xs font-black ${item[3] === 'Positivo' ? 'bg-status-success-surface text-status-success' : 'bg-status-warning-surface text-status-warning'}`}>{item[3]}</span>
+                    <Typography variant="caption" tone="muted" className="mt-mx-sm block normal-case tracking-normal">Competência</Typography>
+                    <Typography variant="p" className="font-black">{item[4]}</Typography>
+                  </div>
+                  <div>
+                    <Typography variant="caption" tone="muted" className="normal-case tracking-normal">Comentário do seu líder</Typography>
+                    <Typography variant="p" className="mt-1 text-sm font-semibold leading-relaxed text-text-secondary">{item[5]}</Typography>
+                  </div>
+                  <div>
+                    <Typography variant="caption" tone="muted" className="normal-case tracking-normal">Responsável</Typography>
+                    <div className="mt-1 flex items-center gap-mx-sm">
+                      <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-primary/10 font-black text-brand-primary">PA</span>
+                      <div><Typography variant="p" className="font-black">Pedro Almeida</Typography><Typography variant="tiny" tone="muted">Gerente Comercial</Typography></div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-mx-xs">
+                    <Button><CheckCircle2 size={16} /> Li e compreendi</Button>
+                    <button className="text-sm font-black text-brand-primary">Deixar comentário</button>
+                  </div>
+                </div>
+              ))}
+            </Card>
+          </section>
+
+          <aside>
+            <Card className="rounded-mx-lg border border-brand-primary/10 bg-brand-primary/5 p-mx-lg shadow-mx-sm">
+              <div className="mb-mx-md flex h-16 w-16 items-center justify-center rounded-full bg-brand-primary/10 text-brand-primary"><CheckCircle2 size={30} /></div>
+              <Typography variant="h2" className="text-xl leading-tight">Por que é importante confirmar seus feedbacks?</Typography>
+              <ul className="mt-mx-md space-y-mx-sm text-sm font-semibold text-text-secondary">
+                {['Garante que você está alinhado com as expectativas.', 'Ajuda a direcionar seu plano de desenvolvimento.', 'Fortalece a comunicação com seu líder.', 'Impacta diretamente na sua evolução e resultados.'].map(text => (
+                  <li key={text} className="flex gap-mx-xs"><CheckCircle2 size={16} className="mt-0.5 shrink-0 text-status-success" /> {text}</li>
+                ))}
+              </ul>
+              <div className="mt-mx-lg rounded-mx-md bg-status-info-surface p-mx-sm text-sm font-black text-brand-primary">
+                Ao confirmar, o feedback será registrado e seu líder saberá que você leu e compreendeu.
+              </div>
+            </Card>
+          </aside>
+        </div>
+
+        <section>
+          <div className="mb-mx-sm flex items-center justify-between">
+            <div>
+              <Typography variant="h2" className="text-xl uppercase tracking-normal">Histórico de Feedbacks</Typography>
+              <Typography variant="caption" tone="muted" className="normal-case tracking-normal">Acompanhe todos os feedbacks que você já recebeu.</Typography>
+            </div>
+            <select className="h-10 rounded-mx-md border border-border-subtle bg-white px-mx-sm text-sm font-bold">
+              <option>Todos os tipos</option>
+            </select>
+          </div>
+          <Card className="overflow-hidden rounded-mx-lg border border-border-subtle bg-white p-0 shadow-mx-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[1050px] text-left text-sm">
+                <thead className="bg-surface-alt text-xs uppercase text-text-secondary">
+                  <tr>{['Data', 'Tipo', 'Competência', 'Feedback', 'Responsável', 'Confirmado em', 'Meu comentário'].map(label => <th key={label} className="px-mx-md py-mx-sm font-black">{label}</th>)}</tr>
+                </thead>
+                <tbody>
+                  {history.map(row => (
+                    <tr key={`${row[0]}-${row[2]}`} className="border-t border-border-subtle">
+                      <td className="px-mx-md py-mx-sm font-bold">{row[0]}</td>
+                      <td className="px-mx-md py-mx-sm"><span className={`rounded-mx-sm px-2 py-1 text-xs font-black ${row[1] === 'Positivo' ? 'bg-status-success-surface text-status-success' : 'bg-status-warning-surface text-status-warning'}`}>{row[1]}</span></td>
+                      <td className="px-mx-md py-mx-sm font-black">{row[2]}</td>
+                      <td className="px-mx-md py-mx-sm text-text-secondary">{row[3]}</td>
+                      <td className="px-mx-md py-mx-sm font-bold">{row[4]}</td>
+                      <td className="px-mx-md py-mx-sm"><span className="inline-flex items-center gap-mx-xs font-bold text-status-success"><CheckCircle2 size={15} /> {row[5]}</span></td>
+                      <td className="px-mx-md py-mx-sm text-text-secondary">{row[6]}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </section>
+      </div>
+    </main>
+  )
+}
+
+function Metric({ icon, label, value, detail, tone, action }: { icon: React.ReactNode; label: string; value: string; detail: string; tone: 'blue' | 'green' | 'orange' | 'red' | 'purple'; action: string }) {
+  const toneClass = {
+    blue: 'bg-brand-primary/10 text-brand-primary',
+    green: 'bg-status-success-surface text-status-success',
+    orange: 'bg-status-warning-surface text-status-warning',
+    red: 'bg-status-error-surface text-status-error',
+    purple: 'bg-brand-primary/10 text-brand-primary',
+  }[tone]
+  return (
+    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
+      <div className="flex items-start gap-mx-sm">
+        <span className={`flex h-12 w-12 items-center justify-center rounded-full ${toneClass}`}>{icon}</span>
+        <div>
+          <Typography variant="tiny" className="font-black uppercase tracking-normal text-text-secondary">{label}</Typography>
+          <Typography variant="h2" className={`mt-1 text-3xl ${tone === 'red' ? 'text-status-error' : ''}`}>{value}</Typography>
+          <Typography variant="caption" tone="muted" className="normal-case tracking-normal">{detail}</Typography>
+          <button className="mt-mx-sm block text-sm font-black text-brand-primary">{action}</button>
+        </div>
+      </div>
+    </Card>
+  )
 }

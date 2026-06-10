@@ -1,239 +1,167 @@
-import { useMyPDISessions } from '@/hooks/usePDI_MX'
-import { useState, useMemo, useCallback } from 'react'
-import { 
-    Target, Zap, TrendingUp, Calendar, Award, 
-    RefreshCw, ChevronRight, LayoutDashboard, Sparkles,
-    ShieldCheck, Star, History, CheckCircle2
-    } from 'lucide-react'
-import { motion, AnimatePresence } from 'motion/react'
-import { cn } from '@/lib/utils'
-import { toast } from 'sonner'
-import { format, parseISO } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import { Badge } from '@/components/atoms/Badge'
+import { Award, Calendar, CheckCircle2, Edit3, Star, Target, Users, Wrench } from 'lucide-react'
+import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
-import { Card } from '@/components/molecules/Card'
-import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts'
-import { chartTokens } from '@/lib/charts/tokens'
+
+const technical = [
+  ['Planejamento', '8,2'], ['Atendimento ao Cliente', '9,1'], ['Agendamento de Visitas', '7,4'], ['Fechamento de Venda', '8,3'],
+  ['Carteira de Clientes', '7,8'], ['Mídias Sociais', '6,5'], ['Prospecção', '6,8'], ['Avaliação de Carro', '7,2'], ['Financiamentos', '7,6'], ['Processos', '8,0'],
+]
+
+const behavioral = [
+  ['Pontualidade', '9,2'], ['Senso de Urgência', '8,6'], ['Iniciativa', '8,1'], ['Organização', '7,9'],
+  ['Liderança', '6,8'], ['Relacionamento Interpessoal', '9,0'], ['Persistência', '8,2'], ['Resiliência', '8,4'],
+]
+
+const actions = [
+  ['Realizar 10 contatos ativos por dia', 'Prospecção', 'Aumentar volume de prospecções diárias.', '30/06/2025', 'Em andamento', 60],
+  ['Participar de 2 aulas sobre prospecção ativa', 'Prospecção', 'Aplicar técnicas aprendidas no dia a dia.', '25/05/2025', 'Em andamento', 50],
+  ['Treinamento: Técnicas de Agendamento', 'Agendamento de Visitas', 'Melhorar taxa de agendamentos qualificados.', '15/05/2025', 'Concluída', 100],
+  ['Aplicar script de atendimento padrão', 'Atendimento ao Cliente', 'Padronizar abordagem e aumentar conversão.', '30/05/2025', 'Em andamento', 40],
+]
 
 export default function VendedorPDI() {
-    const { pdis, loading, refetch } = useMyPDISessions()
-    const [isRefetching, setIsRefetching] = useState(false)
+  return (
+    <main className="h-full w-full overflow-y-auto bg-white p-mx-md md:p-mx-lg no-scrollbar">
+      <div className="mx-auto flex max-w-[1500px] flex-col gap-mx-lg pb-20">
+        <header className="flex items-center justify-between border-b border-border-subtle pb-mx-md">
+          <div className="flex items-center gap-mx-sm">
+            <Star size={34} className="text-text-primary" />
+            <div>
+              <Typography variant="h1" className="text-3xl uppercase leading-tight tracking-normal">PDI</Typography>
+              <Typography variant="p" tone="muted" className="text-sm">Seu Plano de Desenvolvimento Individual</Typography>
+            </div>
+          </div>
+          <div className="hidden items-center gap-mx-sm text-sm font-black text-text-primary md:flex">
+            <Calendar size={17} /> 22/05/2025 (Quinta-feira)
+          </div>
+        </header>
 
-    const handleRefresh = useCallback(async () => {
-        setIsRefetching(true)
-        try {
-            await refetch()
-            toast.success('Plano de evolução sincronizado.')
-        } catch {
-            toast.error('Não foi possível atualizar seu PDI.')
-        } finally {
-            setIsRefetching(false)
-        }
-    }, [refetch])
+        <section>
+          <SectionHeading step="1" title="Conquistas" />
+          <div className="mt-mx-sm grid gap-mx-md xl:grid-cols-3">
+            <GoalCard tone="green" label="Curto prazo" value="1 ano" subtitle="Onde quero chegar nos próximos 12 meses." items={['Ser o vendedor número 1 da loja', 'Atingir R$ 1.200.000 em vendas', 'Ter 100% de satisfação dos clientes', 'Masterizar prospecção ativa']} />
+            <GoalCard tone="orange" label="Médio prazo" value="2 anos" subtitle="Onde quero chegar nos próximos 2 anos." items={['Ser Gerente de Vendas', 'Atingir R$ 2.000.000 em vendas/ano', 'Formar e desenvolver minha equipe', 'Construir carteira com 300+ clientes']} />
+            <GoalCard tone="purple" label="Longo prazo" value="3 anos" subtitle="Onde quero chegar nos próximos 3 anos." items={['Ser Diretor Comercial', 'Atingir R$ 3.000.000 em vendas/ano', 'Ser referência em gestão e liderança', 'Ter uma equipe de alta performance']} />
+          </div>
+        </section>
 
-    const activePDI = useMemo(() => {
-        return [...pdis]
-            .filter(p => p.status !== 'concluido')
-            .sort((a, b) => {
-                const aTime = a.due_date ? Date.parse(a.due_date) : Number.MAX_SAFE_INTEGER
-                const bTime = b.due_date ? Date.parse(b.due_date) : Number.MAX_SAFE_INTEGER
-                return aTime - bTime
-            })[0] || null
-    }, [pdis])
+        <section>
+          <div className="flex items-center justify-between">
+            <SectionHeading step="2" title="Competências e Desenvolvimento" subtitle="Avaliação baseada nos feedbacks e desempenho atual. Seu alvo é atingir 10 em todas as competências." />
+            <div className="hidden items-center gap-mx-md text-sm font-black md:flex">
+              <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-status-success" /> Nota atual (6 - 10)</span>
+              <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-brand-primary" /> Alvo</span>
+            </div>
+          </div>
+          <div className="mt-mx-sm grid gap-mx-md xl:grid-cols-2">
+            <CompetencyPanel icon={<Wrench size={18} />} title="Competências técnicas" rows={technical} />
+            <CompetencyPanel icon={<Users size={18} />} title="Competências comportamentais" rows={behavioral} />
+          </div>
+        </section>
 
-    const radarData = useMemo(() => {
-        if (!activePDI) return []
-        return (activePDI.avaliacoes || []).map(av => ({
-            subject: av.competencia,
-            A: av.nota,
-        }))
-    }, [activePDI])
+        <section>
+          <div className="flex items-center justify-between">
+            <SectionHeading step="3" title="Plano de Ação" subtitle="Ações práticas para desenvolver suas competências e alcançar suas conquistas." />
+            <Button><Target size={16} /> Nova ação</Button>
+          </div>
+          <Card className="mt-mx-sm overflow-hidden rounded-mx-lg border border-border-subtle bg-white p-0 shadow-mx-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[980px] text-left text-sm">
+                <thead className="bg-surface-alt text-xs uppercase text-text-secondary">
+                  <tr>
+                    {['Ação', 'Competência', 'Descrição', 'Prazo', 'Status', 'Progresso'].map(label => <th key={label} className="px-mx-md py-mx-sm font-black">{label}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {actions.map(([action, skill, desc, due, status, progress]) => (
+                    <tr key={String(action)} className="border-t border-border-subtle">
+                      <td className="px-mx-md py-mx-sm font-black text-text-primary">{action}</td>
+                      <td className="px-mx-md py-mx-sm font-bold text-text-secondary">{skill}</td>
+                      <td className="px-mx-md py-mx-sm text-text-secondary">{desc}</td>
+                      <td className="px-mx-md py-mx-sm font-bold">{due}</td>
+                      <td className="px-mx-md py-mx-sm"><span className="rounded-mx-sm bg-status-info-surface px-2 py-1 text-xs font-black text-status-info">{status}</span></td>
+                      <td className="px-mx-md py-mx-sm">
+                        <div className="flex items-center gap-mx-xs">
+                          <span className="w-10 text-xs font-black">{progress}%</span>
+                          <Progress value={Number(progress)} />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </section>
+      </div>
+    </main>
+  )
+}
 
-    const metasByPrazo = useMemo(() => {
-        const metas = activePDI?.metas || []
-        return {
-            '6_meses': metas.filter(m => m.prazo === '6_meses'),
-            '12_meses': metas.filter(m => m.prazo === '12_meses'),
-            '24_meses': metas.filter(m => m.prazo === '24_meses'),
-        }
-    }, [activePDI])
+function SectionHeading({ step, title, subtitle }: { step: string; title: string; subtitle?: string }) {
+  return (
+    <div className="flex items-start gap-mx-sm">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-primary text-sm font-black text-white">{step}</span>
+      <div>
+        <Typography variant="h2" className="text-xl uppercase leading-tight tracking-normal">{title}</Typography>
+        {subtitle && <Typography variant="caption" tone="muted" className="normal-case tracking-normal">{subtitle}</Typography>}
+      </div>
+    </div>
+  )
+}
 
-    const actionPlan = useMemo(() => activePDI?.plano_acao || [], [activePDI])
-
-    const nextReviewLabel = useMemo(() => {
-        if (!activePDI?.due_date) return '--/--'
-        try {
-            return format(parseISO(activePDI.due_date), 'dd/MM/yy')
-        } catch {
-            return '--/--'
-        }
-    }, [activePDI?.due_date])
-
-    const pdiMilestones = useMemo(() => [
-        { label: '6 meses', metas: metasByPrazo['6_meses'] },
-        { label: '12 meses', metas: metasByPrazo['12_meses'] },
-        { label: '24 meses', metas: metasByPrazo['24_meses'] },
-    ], [metasByPrazo])
-
-    if (loading) return (
-        <div className="h-full w-full flex flex-col items-center justify-center bg-white">
-            <RefreshCw className="w-mx-10 h-mx-10 animate-spin text-brand-primary mb-4" />
-            <Typography variant="caption" tone="muted" className="animate-pulse">Auditando Carreira...</Typography>
+function GoalCard({ tone, label, value, subtitle, items }: { tone: 'green' | 'orange' | 'purple'; label: string; value: string; subtitle: string; items: string[] }) {
+  const toneClass = tone === 'green' ? 'bg-status-success-surface text-status-success' : tone === 'orange' ? 'bg-status-warning-surface text-status-warning' : 'bg-brand-primary/10 text-brand-primary'
+  return (
+    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
+      <div className="grid gap-mx-md lg:grid-cols-[80px_1fr]">
+        <span className={`flex h-16 w-16 items-center justify-center rounded-full ${toneClass}`}><Target size={32} /></span>
+        <div className="grid gap-mx-sm md:grid-cols-[160px_1fr]">
+          <div>
+            <Typography variant="h3" className="text-sm uppercase tracking-normal">{label}</Typography>
+            <Typography variant="h2" className={`mt-1 text-2xl uppercase ${tone === 'green' ? 'text-status-success' : tone === 'orange' ? 'text-status-warning' : 'text-brand-primary'}`}>{value}</Typography>
+            <Typography variant="caption" tone="muted" className="mt-1 block normal-case tracking-normal">{subtitle}</Typography>
+            <button className="mt-mx-md inline-flex items-center gap-mx-xs text-sm font-black text-brand-primary"><Edit3 size={15} /> Editar conquistas</button>
+          </div>
+          <ul className="space-y-mx-xs">
+            {items.map(item => (
+              <li key={item} className="flex items-center gap-mx-xs text-sm font-bold text-text-secondary">
+                <CheckCircle2 size={16} className="text-status-success" /> {item}
+              </li>
+            ))}
+          </ul>
         </div>
-    )
+      </div>
+    </Card>
+  )
+}
 
-    return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
-            
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
-                <div className="flex flex-col gap-mx-tiny">
-                    <div className="flex items-center gap-mx-sm">
-                        <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Meu Plano de <span className="text-mx-green-700">Carreira</span></Typography>
-                    </div>
-                    <Typography variant="caption" className="pl-mx-md">Plano de Desenvolvimento Individual MX ACADEMY</Typography>
-                </div>
+function CompetencyPanel({ icon, title, rows }: { icon: React.ReactNode; title: string; rows: string[][] }) {
+  return (
+    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
+      <div className="mb-mx-md flex items-center gap-mx-sm">
+        <span className="flex h-9 w-9 items-center justify-center rounded-mx-md bg-status-success-surface text-status-success">{icon}</span>
+        <Typography variant="h3" className="text-sm uppercase tracking-normal">{title}</Typography>
+      </div>
+      <div className="grid gap-x-mx-xl gap-y-mx-sm md:grid-cols-2">
+        {rows.map(([label, value]) => (
+          <div key={label} className="grid grid-cols-[1fr_42px_120px_28px] items-center gap-mx-xs">
+            <Typography variant="caption" className="font-bold normal-case tracking-normal text-text-secondary">{label}</Typography>
+            <span className="text-right text-sm font-black text-status-success">{value}</span>
+            <Progress value={Number(value.replace(',', '.')) * 10} />
+            <span className="text-right text-sm font-black text-brand-primary">10</span>
+          </div>
+        ))}
+      </div>
+    </Card>
+  )
+}
 
-                <div className="flex items-center gap-mx-sm">
-                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar meu PDI" disabled={isRefetching} className="rounded-mx-xl shadow-mx-sm">
-                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
-                    </Button>
-                    {activePDI && <Badge variant="brand" className="px-6 py-3 rounded-mx-full shadow-mx-sm uppercase tracking-widest">{activePDI.status === 'em_andamento' ? 'Em andamento' : 'Aberto'}</Badge>}
-                </div>
-            </div>
-
-            <div className="flex-1 min-h-0 pb-32" aria-live="polite">
-                {!activePDI ? (
-                    <div className="h-full min-h-mx-section-sm flex flex-col items-center justify-center text-center p-mx-xl bg-white border-2 border-dashed border-border-default rounded-mx-3xl">
-                        <div className="w-mx-3xl h-mx-3xl rounded-mx-3xl bg-surface-alt shadow-xl flex items-center justify-center mb-8 border border-border-default" aria-hidden="true">
-                            <Star size={48} className="text-text-tertiary" />
-                        </div>
-                        <Typography variant="h2" className="mb-2">Próximo Nível</Typography>
-                        <Typography variant="p" tone="muted" className="max-w-xs uppercase">Seu PDI oficial ainda está sendo desenhado pela gerência.</Typography>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg">
-                        
-                        <div className="xl:col-span-8 space-y-mx-lg">
-                            <Card className="p-mx-10 md:p-14 relative overflow-hidden group">
-                                <div className="absolute top-mx-0 right-mx-0 w-mx-sidebar-expanded h-mx-64 bg-brand-primary/5 rounded-mx-full blur-3xl -mr-32 -mt-32" aria-hidden="true" />
-                                <div className="relative z-10 space-y-mx-xl">
-                                    <div className="flex items-center gap-mx-sm border-b border-border-default pb-8">
-                                        <div className="w-mx-14 h-mx-14 rounded-mx-2xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg" aria-hidden="true"><Target size={28} className="text-brand-primary/80" /></div>
-                                        <div>
-                                            <Typography variant="h3">Objetivo de Curto Prazo</Typography>
-                                            <Typography variant="caption" tone="muted">Horizonte 06 Meses</Typography>
-                                        </div>
-                                    </div>
-                                    <Typography variant="h1" className="text-3xl md:text-4xl leading-tight">
-                                        "{activePDI.meta_6m || 'Metas em definicao'}"
-                                    </Typography>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg pt-8">
-                                        <div className="p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default shadow-inner">
-                                            <Typography variant="caption" tone="muted" className="mb-2 block">12 Meses</Typography>
-                                            <Typography variant="h3" className="text-base">{activePDI.meta_12m || 'Definir na próxima revisão'}</Typography>
-                                        </div>
-                                        <div className="p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default shadow-inner">
-                                            <Typography variant="caption" tone="muted" className="mb-2 block">24 Meses</Typography>
-                                            <Typography variant="h3" className="text-base">{activePDI.meta_24m || 'Plano em expansão'}</Typography>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-md pt-2">
-                                        {pdiMilestones.map(({ label, metas }) => (
-                                            <div key={label} className="bg-white border border-border-default rounded-mx-xl p-mx-sm shadow-sm">
-                                                <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest mb-2 block">{label}</Typography>
-                                                <ul className="space-y-mx-xs">
-                                                    {metas.length > 0 ? metas.map((meta, idx) => (
-                                                        <li key={`${meta.prazo}-${idx}`} className="text-xs font-bold uppercase text-text-secondary">
-                                                            <span className="text-brand-primary">[{meta.tipo}]</span> {meta.descricao}
-                                                        </li>
-                                                    )) : (
-                                                        <li className="text-xs font-bold uppercase text-text-tertiary">Sem metas registradas.</li>
-                                                    )}
-                                                </ul>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </Card>
-
-                            <Card className="p-mx-10 md:p-14 space-y-mx-10">
-                                <div className="flex items-center gap-mx-sm border-b border-border-default pb-8">
-                                    <div className="w-mx-14 h-mx-14 rounded-mx-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center border border-brand-primary/20 shadow-inner" aria-hidden="true"><Zap size={28} /></div>
-                                    <Typography variant="h3">Plano de Ação Imediato</Typography>
-                                </div>
-                                <div className="grid gap-mx-md">
-                                    {actionPlan.length > 0 ? actionPlan.map((action, idx) => (
-                                        <div key={idx} className="flex items-center gap-mx-md p-mx-md rounded-mx-2xl bg-surface-alt border border-border-default hover:bg-white hover:shadow-mx-lg transition-all group">
-                                            <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-white border border-border-default flex items-center justify-center font-black text-xs text-text-tertiary group-hover:bg-brand-primary group-hover:text-white group-hover:border-brand-primary transition-all shadow-sm" aria-hidden="true">{idx + 1}</div>
-                                            <div className="flex-1">
-                                                <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest block mb-1">{action.competencia}</Typography>
-                                                <Typography variant="p" className="text-sm font-bold text-text-secondary uppercase tracking-tight">{action.descricao_acao}</Typography>
-                                            </div>
-                                            <CheckCircle2 size={20} className="text-text-tertiary/20 group-hover:text-status-success transition-colors" />
-                                        </div>
-                                    )) : (
-                                        <div className="rounded-mx-2xl border border-dashed border-border-default bg-surface-alt p-mx-lg text-center">
-                                            <Typography variant="p" tone="muted" className="font-black uppercase tracking-tight">Sem ações imediatas registradas.</Typography>
-                                        </div>
-                                    )}
-                                </div>
-                            </Card>
-                        </div>
-
-                        <aside className="xl:col-span-4 space-y-mx-lg">
-                            <Card className="p-mx-10 flex flex-col items-center">
-                                <Typography variant="h3" className="mb-8 w-full border-b border-border-default pb-6">Radar Técnico</Typography>
-                                {radarData.length > 0 ? (
-                                    <>
-                                        <div className="w-full aspect-square relative" aria-label="Radar técnico do PDI">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-                                                    <PolarGrid stroke={chartTokens.gridStrong()} />
-                                                    <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fontWeight: 900, fill: chartTokens.axisTickStrong() }} />
-                                                    <Radar name="Competências" dataKey="A" stroke={chartTokens.series.s6()} fill={chartTokens.series.s6()} fillOpacity={0.2} strokeWidth={3} />
-                                                </RadarChart>
-                                            </ResponsiveContainer>
-                                        </div>
-                                        <table className="sr-only">
-                                            <caption>Notas por competência do PDI</caption>
-                                            <tbody>
-                                                {radarData.map(item => (
-                                                    <tr key={item.subject}>
-                                                        <th scope="row">{item.subject}</th>
-                                                        <td>{item.A}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </>
-                                ) : (
-                                    <div className="w-full aspect-square rounded-mx-2xl border border-dashed border-border-default bg-surface-alt flex items-center justify-center p-mx-lg text-center">
-                                        <Typography variant="p" tone="muted" className="font-black uppercase tracking-tight">Sem avaliações registradas.</Typography>
-                                    </div>
-                                )}
-                                <Typography variant="caption" tone="muted" className="mt-6 text-center">Referência MX de Alta Performance</Typography>
-                            </Card>
-
-                            <Card className="p-mx-10 space-y-mx-lg bg-brand-secondary text-white border-none shadow-mx-xl relative overflow-hidden">
-                                <div className="absolute -right-4 -bottom-4 opacity-10 rotate-12" aria-hidden="true"><TrendingUp size={160} /></div>
-                                <Typography variant="h3" tone="white">Próxima Revisão</Typography>
-                                <div className="flex items-center gap-mx-sm">
-                                    <Calendar size={32} className="text-brand-primary/80" aria-hidden="true" />
-                                    <div>
-                                        <Typography variant="h1" tone="white" className="text-3xl tabular-nums">
-                                            {nextReviewLabel}
-                                        </Typography>
-                                        <Typography variant="caption" tone="white" className="opacity-50">Auditado por Gestor</Typography>
-                                    </div>
-                                </div>
-                            </Card>
-                        </aside>
-                    </div>
-                )}
-            </div>
-        </main>
-    )
+function Progress({ value }: { value: number }) {
+  return (
+    <div className="h-2 w-full rounded-full bg-surface-alt">
+      <div className="h-2 rounded-full bg-status-success" style={{ width: `${Math.min(value, 100)}%` }} />
+    </div>
+  )
 }

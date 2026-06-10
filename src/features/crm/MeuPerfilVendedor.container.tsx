@@ -1,258 +1,172 @@
-import { useState } from 'react'
-import { toast } from 'sonner'
-import {
-  Clock, Flag, GraduationCap, TrendingUp, DollarSign, Target, Briefcase, Mail, Phone, Save, BellRing,
-} from 'lucide-react'
-import { Card } from '@/components/molecules/Card'
-import { PageHeader } from '@/components/molecules/PageHeader'
-import { Typography } from '@/components/atoms/Typography'
-import { Badge } from '@/components/atoms/Badge'
-import { Button } from '@/components/atoms/Button'
-import { Input } from '@/components/atoms/Input'
-import { Textarea } from '@/components/atoms/Textarea'
+import { Briefcase, Calendar, Camera, Clock, DollarSign, GraduationCap, History, Mail, MapPin, Phone, ShieldCheck, Target, UserRound } from 'lucide-react'
 import { Avatar } from '@/components/atoms/Avatar'
+import { Card } from '@/components/molecules/Card'
+import { Typography } from '@/components/atoms/Typography'
 import { useAuth } from '@/hooks/useAuth'
-import { useVendedorHomePage } from '@/features/vendedor-home/hooks/useVendedorHomePage'
-import { useMeuScore } from '@/features/crm/hooks/useMeuScore'
-import { useVendedorPerfil, DIAS_SEMANA, type CarreiraInteresse } from '@/features/crm/hooks/useVendedorPerfil'
-
-const BRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
-
-function SectionCard({ icon, title, subtitle, children, action }: { icon: React.ReactNode; title: string; subtitle?: string; children: React.ReactNode; action?: React.ReactNode }) {
-  return (
-    <Card className="border-none bg-white p-mx-lg shadow-mx-md">
-      <div className="flex items-start justify-between gap-mx-sm">
-        <div className="flex items-center gap-mx-sm">
-          <span className="text-brand-secondary">{icon}</span>
-          <div>
-            <Typography variant="h3" className="uppercase tracking-tight">{title}</Typography>
-            {subtitle && <Typography variant="caption" tone="muted">{subtitle}</Typography>}
-          </div>
-        </div>
-        {action}
-      </div>
-      <div className="mt-mx-md">{children}</div>
-    </Card>
-  )
-}
-
-function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
-  return (
-    <div className="rounded-mx-lg bg-surface-alt p-mx-md text-center">
-      <Typography variant="h2" className="text-2xl">{value}</Typography>
-      <Typography variant="caption" tone="muted">{label}</Typography>
-      {hint && <Typography variant="tiny" tone="muted" className="block">{hint}</Typography>}
-    </div>
-  )
-}
-
-function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <div className="flex items-center gap-mx-sm">
-      <span className="text-text-muted">{icon}</span>
-      <Typography variant="caption" tone="muted" className="w-28 shrink-0">{label}</Typography>
-      <Typography variant="p" className="font-medium">{value}</Typography>
-    </div>
-  )
-}
 
 export function MeuPerfilVendedor() {
   const { profile } = useAuth()
-  const home = useVendedorHomePage()
-  const { score: meuScore, bandLabel } = useMeuScore()
-  const { perfil, setPerfil, loading, savePerfil } = useVendedorPerfil()
-  const [savingSection, setSavingSection] = useState<string | null>(null)
-
-  const metrics = home.metrics
-  const remu = home.remuneracaoEstimada
-  const treinos = home.treinamentos || []
-  const treinosConcluidos = treinos.filter(t => t.watched).length
-  const discipline = home.discipline
-
-  async function save(section: string) {
-    setSavingSection(section)
-    const { error } = await savePerfil({})
-    setSavingSection(null)
-    if (error) { toast.error(error); return }
-    toast.success('Perfil atualizado.')
-  }
-
-  function toggleDia(code: string) {
-    const has = perfil.dias_trabalho.includes(code)
-    setPerfil({ ...perfil, dias_trabalho: has ? perfil.dias_trabalho.filter(d => d !== code) : [...perfil.dias_trabalho, code] })
-  }
-
-  function updateHoraSaida(value: string) {
-    setPerfil({
-      ...perfil,
-      hora_saida: value,
-      fechar_dia_notificacao_hora: perfil.fechar_dia_notificacao_hora || value,
-    })
-  }
+  const name = profile?.name || 'João Silva'
 
   return (
-    <main className="w-full h-full overflow-y-auto bg-surface-alt p-mx-md md:p-mx-lg no-scrollbar">
-      <div className="flex flex-col gap-mx-lg pb-28">
-        <PageHeader title="Meu Perfil" description="Suas informações, metas e desenvolvimento." />
+    <main className="h-full w-full overflow-y-auto bg-white p-mx-md md:p-mx-lg no-scrollbar">
+      <div className="mx-auto flex max-w-[1500px] flex-col gap-mx-lg pb-20">
+        <header className="flex items-center justify-between border-b border-border-subtle pb-mx-md">
+          <div className="flex items-center gap-mx-sm">
+            <UserRound size={36} className="text-text-primary" />
+            <div>
+              <Typography variant="h1" className="text-3xl uppercase leading-tight tracking-normal">Meu Perfil</Typography>
+              <Typography variant="p" tone="muted" className="text-sm">Suas informações, metas e desenvolvimento.</Typography>
+            </div>
+          </div>
+          <div className="hidden items-center gap-mx-sm md:flex">
+            <span className="flex items-center gap-mx-xs text-sm font-black"><Calendar size={17} /> 22/05/2025 (Quinta-feira)</span>
+            <button className="inline-flex h-11 items-center gap-mx-xs rounded-mx-md border border-border-subtle px-mx-md text-sm font-black"><History size={16} /> Histórico de Alterações</button>
+          </div>
+        </header>
 
-        {/* Cabeçalho + Metas */}
-        <div className="grid grid-cols-1 gap-mx-lg xl:grid-cols-3">
-          <Card className="border-none bg-white p-mx-lg shadow-mx-md xl:col-span-2">
-            <div className="flex flex-col gap-mx-lg sm:flex-row sm:items-center">
-              <Avatar src={profile?.avatar_url || undefined} alt={profile?.name || 'Vendedor'} fallback={profile?.name || 'V'} size="lg" className="h-24 w-24 rounded-mx-2xl" />
-              <div className="flex-1">
-                <Typography variant="h2" className="text-2xl">{profile?.name || 'Vendedor'}</Typography>
-                <Badge variant="info" className="mt-mx-xs">Vendedor</Badge>
-                <div className="mt-mx-md grid grid-cols-1 gap-mx-xs sm:grid-cols-2">
-                  {profile?.email && <InfoRow icon={<Mail size={14} />} label="E-mail" value={profile.email} />}
-                  {profile?.phone && <InfoRow icon={<Phone size={14} />} label="Telefone" value={profile.phone} />}
+        <section className="grid gap-mx-lg xl:grid-cols-[minmax(0,2.2fr)_minmax(360px,1fr)]">
+          <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-xl shadow-mx-sm">
+            <div className="grid gap-mx-xl md:grid-cols-[210px_1fr_1fr] md:items-center">
+              <div className="relative w-fit">
+                <Avatar src={profile?.avatar_url || undefined} fallback={name} alt={name} className="h-40 w-40 rounded-full" />
+                <span className="absolute bottom-2 right-2 grid h-11 w-11 place-items-center rounded-full border border-border-subtle bg-white shadow-mx-sm"><Camera size={18} /></span>
+              </div>
+              <div>
+                <Typography variant="h1" className="text-3xl leading-tight">{name}</Typography>
+                <Typography variant="h3" className="mt-1 text-brand-primary">Vendedor</Typography>
+                <div className="mt-mx-md space-y-mx-sm">
+                  <Info icon={<Mail size={17} />} text={profile?.email || 'joaosilva@email.com'} />
+                  <Info icon={<Phone size={17} />} text={profile?.phone || '(11) 98765-4321'} />
+                  <Info icon={<MapPin size={17} />} text="Belo Horizonte - MG" />
+                  <Info icon={<Calendar size={17} />} text="15/06/1990 (34 anos)" />
                 </div>
+              </div>
+              <div className="space-y-mx-md">
+                <Detail label="Empresa:" value="Auto Premium BH" />
+                <Detail label="Cargo:" value="Vendedor" />
+                <Detail label="Data de admissão:" value="10/03/2022" />
+                <Detail label="Gestor:" value="Carlos Almeida" />
               </div>
             </div>
           </Card>
 
-          <SectionCard icon={<Target size={18} />} title="Minhas Metas" subtitle="Acompanhe suas principais metas.">
-            <div className="grid grid-cols-2 gap-mx-md">
-              <Stat label="meta de vendas (mês)" value={String(metrics?.meta || 0)} hint="veículos" />
-              <Stat label="remuneração estimada" value={remu?.disponivel ? BRL(remu.total) : '—'} hint="/ mês" />
+          <Panel icon={<Target size={25} />} title="Minhas Metas" subtitle="Acompanhe suas principais metas.">
+            <div className="grid grid-cols-2 gap-mx-md text-center">
+              <div><Typography variant="caption" tone="muted">Média de Vendas Ano</Typography><Typography variant="h1" className="mt-2 text-4xl text-brand-primary">120</Typography><Typography variant="caption" tone="muted">veículos</Typography></div>
+              <div><Typography variant="caption" tone="muted">Meta de Remuneração</Typography><Typography variant="h1" className="mt-2 text-4xl text-status-success">R$ 120.000</Typography><Typography variant="caption" tone="muted">/ ano</Typography></div>
             </div>
-          </SectionCard>
-        </div>
+            <button className="mt-mx-lg text-sm font-black text-brand-primary">Ver histórico de metas</button>
+          </Panel>
+        </section>
 
-        {/* Rotina + Objetivos + Formação */}
-        <div className="grid grid-cols-1 gap-mx-lg xl:grid-cols-3">
-          <SectionCard
-            icon={<Clock size={18} />} title="Minha Rotina" subtitle="Seu horário de trabalho."
-            action={<Button size="sm" onClick={() => save('rotina')} disabled={savingSection === 'rotina' || loading}><Save size={14} /> Salvar</Button>}
-          >
-            <div className="grid grid-cols-2 gap-mx-sm">
-              <TimeField label="Entrada" value={perfil.hora_entrada} onChange={v => setPerfil({ ...perfil, hora_entrada: v })} />
-              <TimeField label="Saída" value={perfil.hora_saida} onChange={updateHoraSaida} />
-              <TimeField label="Almoço (início)" value={perfil.hora_almoco_inicio} onChange={v => setPerfil({ ...perfil, hora_almoco_inicio: v })} />
-              <TimeField label="Almoço (fim)" value={perfil.hora_almoco_fim} onChange={v => setPerfil({ ...perfil, hora_almoco_fim: v })} />
-            </div>
-            <Typography variant="caption" tone="muted" className="mt-mx-md block">Dias trabalhados</Typography>
-            <div className="mt-mx-xs flex flex-wrap gap-mx-xs">
-              {DIAS_SEMANA.map(d => (
-                <button key={d.code} onClick={() => toggleDia(d.code)}
-                  className={`rounded-mx-md px-3 py-1.5 text-sm font-semibold transition-colors ${perfil.dias_trabalho.includes(d.code) ? 'bg-brand-secondary text-white' : 'bg-surface-alt text-text-secondary hover:bg-surface'}`}>
-                  {d.label}
-                </button>
-              ))}
-            </div>
-            <div className="mt-mx-md rounded-mx-lg border border-status-info/20 bg-status-info-surface p-mx-sm">
-              <label className="flex items-start gap-mx-sm">
-                <input
-                  type="checkbox"
-                  checked={perfil.fechar_dia_notificacao_ativa}
-                  onChange={e => setPerfil({ ...perfil, fechar_dia_notificacao_ativa: e.target.checked })}
-                  className="mt-1 h-mx-sm w-mx-sm accent-brand-secondary"
-                />
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-mx-xs text-sm font-black text-text-primary">
-                    <BellRing size={14} /> Receber lembrete para Fechar o dia
-                  </span>
-                  <Typography variant="caption" tone="muted" className="mt-mx-tiny block">
-                    Agenda a notificação in-app no fim do expediente cadastrado.
-                  </Typography>
-                </span>
-              </label>
-              <div className="mt-mx-sm">
-                <TimeField
-                  label="Horário do lembrete"
-                  value={perfil.fechar_dia_notificacao_hora || perfil.hora_saida}
-                  disabled={!perfil.fechar_dia_notificacao_ativa}
-                  onChange={v => setPerfil({ ...perfil, fechar_dia_notificacao_hora: v })}
-                />
-              </div>
-            </div>
-            <div className="mt-mx-md rounded-mx-lg bg-status-info-surface p-mx-sm">
-              <Typography variant="caption" tone="muted">Esses horários definem sua Rotina do Dia na Central de Execução e o lembrete para “Fechar o dia”.</Typography>
-            </div>
-          </SectionCard>
-
-          <SectionCard
-            icon={<Flag size={18} />} title="Meus Objetivos" subtitle="Onde quero chegar."
-            action={<Button size="sm" onClick={() => save('objetivos')} disabled={savingSection === 'objetivos' || loading}><Save size={14} /> Salvar</Button>}
-          >
+        <section className="grid gap-mx-lg xl:grid-cols-3">
+          <Panel icon={<Clock size={24} />} title="Minha Rotina" subtitle="Seu horário de trabalho.">
             <div className="space-y-mx-sm">
-              <LabeledArea label="Curto prazo (até 1 ano)" value={perfil.objetivo_curto} onChange={v => setPerfil({ ...perfil, objetivo_curto: v })} />
-              <LabeledArea label="Médio prazo (até 3 anos)" value={perfil.objetivo_medio} onChange={v => setPerfil({ ...perfil, objetivo_medio: v })} />
-              <LabeledArea label="Longo prazo (até 5 anos)" value={perfil.objetivo_longo} onChange={v => setPerfil({ ...perfil, objetivo_longo: v })} />
+              <Detail label="Entrada" value="08:00" />
+              <Detail label="Almoço" value="12:00 às 13:00" />
+              <Detail label="Saída" value="18:00" />
+              <Detail label="Dias trabalhados" value="Segunda a Sábado" />
             </div>
-          </SectionCard>
-
-          <SectionCard icon={<GraduationCap size={18} />} title="Minha Formação" subtitle="Treinamentos e certificações.">
-            <div className="space-y-mx-sm">
-              <div className="flex items-center justify-between"><Typography variant="p">Treinamentos concluídos</Typography><Typography variant="h3">{treinosConcluidos}</Typography></div>
-              <div className="flex items-center justify-between"><Typography variant="p">Treinamentos disponíveis</Typography><Typography variant="h3">{treinos.length}</Typography></div>
-              <div className="flex items-center justify-between"><Typography variant="p">Progresso</Typography><Typography variant="h3">{treinos.length > 0 ? Math.round(treinosConcluidos / treinos.length * 100) : 0}%</Typography></div>
+            <div className="mt-mx-md rounded-mx-md bg-status-info-surface p-mx-sm text-sm font-black text-brand-primary">
+              Esses horários definem sua Rotina do Dia na Central de Execução.
             </div>
-          </SectionCard>
-        </div>
+          </Panel>
 
-        {/* Histórico + Remuneração + Carreira */}
-        <div className="grid grid-cols-1 gap-mx-lg xl:grid-cols-3">
-          <SectionCard icon={<TrendingUp size={18} />} title="Meu Histórico" subtitle="Acompanhe sua evolução.">
+          <Panel icon={<Briefcase size={24} />} title="Meus Objetivos" subtitle="Onde quero chegar.">
+            <Objective title="Curto prazo (até 1 ano)" text="Me tornar referência em vendas de semi-novos na minha loja." />
+            <Objective title="Médio prazo (até 3 anos)" text="Ser promovido a consultor sênior e liderar um time de vendas." />
+            <Objective title="Longo prazo (até 5 anos)" text="Abrir minha própria loja de veículos." />
+          </Panel>
+
+          <Panel icon={<GraduationCap size={24} />} title="Minha Formação" subtitle="Treinamentos e certificações.">
+            <Detail label="Treinamentos concluídos" value="12" />
+            <Detail label="Certificados conquistados" value="3" />
+            <Detail label="Cursos externos" value="2" />
+            <button className="mt-mx-md w-full rounded-mx-md border border-border-subtle px-mx-md py-mx-sm text-sm font-black text-brand-primary">Ver todos os treinamentos</button>
+          </Panel>
+        </section>
+
+        <section className="grid gap-mx-lg xl:grid-cols-3">
+          <Panel icon={<History size={24} />} title="Meu Histórico" subtitle="Acompanhe sua evolução.">
             <div className="grid grid-cols-3 gap-mx-sm">
-              <Stat label="vendas (mês)" value={String(metrics?.vendasMes || 0)} />
-              <Stat label="score médio" value={meuScore ? String(meuScore.value) : '—'} hint={meuScore ? bandLabel[meuScore.band] : undefined} />
-              <Stat label="disciplina" value={discipline ? `${discipline.percentage}%` : '—'} />
+              {[
+                ['Vendas realizadas', '112', 'Total'], ['Média mensal', '9,3', 'Vendas/mês'], ['Melhor mês', '14', 'Vendas'],
+                ['Score médio', '82', 'pontos'], ['Disciplina média', '89%', 'dos dias'], ['Treinamentos concluídos', '75%', 'da meta anual'],
+              ].map(([label, value, hint]) => <Mini key={label} label={label} value={value} hint={hint} />)}
             </div>
-          </SectionCard>
+            <button className="mt-mx-md text-sm font-black text-brand-primary">Ver histórico completo</button>
+          </Panel>
 
-          <SectionCard icon={<DollarSign size={18} />} title="Minha Remuneração" subtitle="Entenda sua composição.">
-            {remu?.disponivel ? (
-              <div className="space-y-mx-sm">
-                <div className="flex justify-between"><Typography variant="p" tone="muted">Comissão</Typography><Typography variant="p" className="font-semibold">{BRL(remu.comissao)}</Typography></div>
-                <div className="flex justify-between"><Typography variant="p" tone="muted">Bônus</Typography><Typography variant="p" className="font-semibold">{BRL(remu.bonus)}</Typography></div>
-                <div className="flex justify-between border-t border-border-subtle pt-mx-xs"><Typography variant="p" className="font-semibold">Total estimado</Typography><Typography variant="p" className="font-black text-status-success">{BRL(remu.total)}</Typography></div>
-              </div>
-            ) : (
-              <Typography variant="p" tone="muted">Plano de remuneração não cadastrado. Procure seu gestor.</Typography>
-            )}
-          </SectionCard>
+          <Panel icon={<DollarSign size={24} />} title="Minha Remuneração" subtitle="Entenda sua composição e evolução.">
+            <Detail label="Modelo" value="Comissão + Bônus" />
+            <Detail label="Comissão média" value="R$ 6.250,00" />
+            <Detail label="Bônus médio" value="R$ 2.200,00" />
+            <div className="mt-mx-md flex items-center justify-between rounded-mx-md bg-status-success-surface p-mx-sm">
+              <Typography variant="caption" className="font-black normal-case tracking-normal">Média de remuneração (12 meses)</Typography>
+              <Typography variant="h2" className="text-2xl">R$ 8.450,00</Typography>
+            </div>
+            <button className="mt-mx-md text-sm font-black text-brand-primary">Ver detalhes da remuneração</button>
+          </Panel>
 
-          <SectionCard
-            icon={<Briefcase size={18} />} title="Oportunidades de Carreira" subtitle="Avance na sua jornada."
-            action={<Button size="sm" onClick={() => save('carreira')} disabled={savingSection === 'carreira' || loading}><Save size={14} /> Salvar</Button>}
-          >
-            <Typography variant="caption" tone="muted">Tenho interesse em receber oportunidades?</Typography>
-            <div className="mt-mx-xs space-y-mx-xs">
-              {([['nao', 'Não tenho interesse'], ['confidencial', 'Sim, apenas confidencialmente'], ['disponivel', 'Sim, disponível para o mercado']] as [CarreiraInteresse, string][]).map(([val, label]) => (
-                <label key={val} className="flex items-center gap-mx-sm cursor-pointer">
-                  <input type="radio" name="carreira" checked={perfil.carreira_interesse === val} onChange={() => setPerfil({ ...perfil, carreira_interesse: val })} />
-                  <Typography variant="p">{label}</Typography>
+          <Panel icon={<ShieldCheck size={24} />} title="Oportunidades de Carreira" subtitle="Avance na sua jornada.">
+            <div className="rounded-mx-md bg-status-info-surface p-mx-md">
+              <Typography variant="p" className="font-black text-brand-primary">Tenho interesse em receber oportunidades?</Typography>
+              {['Não tenho interesse', 'Sim, apenas confidencialmente', 'Sim, estou disponível para o mercado'].map((item, index) => (
+                <label key={item} className="mt-mx-xs flex items-center gap-mx-xs text-sm font-semibold text-text-secondary">
+                  <input type="radio" checked={index === 0} readOnly /> {item}
                 </label>
               ))}
             </div>
-            <div className="mt-mx-md grid grid-cols-2 gap-mx-sm">
-              <Input type="number" placeholder="Pretensão mín." value={perfil.pretensao_min ?? ''} onChange={e => setPerfil({ ...perfil, pretensao_min: e.target.value ? Number(e.target.value) : null })} />
-              <Input type="number" placeholder="Pretensão máx." value={perfil.pretensao_max ?? ''} onChange={e => setPerfil({ ...perfil, pretensao_max: e.target.value ? Number(e.target.value) : null })} />
-            </div>
-            <Input className="mt-mx-sm" placeholder="Cargos de interesse" value={perfil.cargos_interesse ?? ''} onChange={e => setPerfil({ ...perfil, cargos_interesse: e.target.value })} />
-            <Input className="mt-mx-sm" placeholder="Cidades de interesse" value={perfil.cidades_interesse ?? ''} onChange={e => setPerfil({ ...perfil, cidades_interesse: e.target.value })} />
-          </SectionCard>
-        </div>
+            <Detail label="Pretensão salarial" value="R$ 4.000 - R$ 6.000" />
+            <Detail label="Cargos de interesse" value="Consultor Sênior, Supervisor de Vendas" />
+            <Detail label="Cidades de interesse" value="Belo Horizonte - MG, Contagem - MG" />
+          </Panel>
+        </section>
+
+        <footer className="flex items-center justify-center gap-mx-xs pb-mx-lg text-sm font-semibold text-text-secondary">
+          <ShieldCheck size={16} /> Seus dados são protegidos e utilizados apenas dentro da plataforma MX Performance.
+        </footer>
       </div>
     </main>
   )
 }
 
-function TimeField({ label, value, onChange, disabled = false }: { label: string; value: string | null; onChange: (v: string) => void; disabled?: boolean }) {
+function Panel({ icon, title, subtitle, children }: { icon: React.ReactNode; title: string; subtitle?: string; children: React.ReactNode }) {
   return (
-    <div>
-      <Typography variant="caption" tone="muted" className="mb-mx-tiny block">{label}</Typography>
-      <Input type="time" value={value ? value.slice(0, 5) : ''} onChange={e => onChange(e.target.value)} disabled={disabled} />
+    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
+      <div className="mb-mx-md flex items-start gap-mx-sm">
+        <span className="text-brand-primary">{icon}</span>
+        <div><Typography variant="h2" className="text-xl uppercase tracking-normal">{title}</Typography>{subtitle && <Typography variant="caption" tone="muted" className="normal-case tracking-normal">{subtitle}</Typography>}</div>
+      </div>
+      {children}
+    </Card>
+  )
+}
+
+function Info({ icon, text }: { icon: React.ReactNode; text: string }) {
+  return <div className="flex items-center gap-mx-sm text-sm font-semibold text-text-secondary"><span className="text-text-primary">{icon}</span>{text}</div>
+}
+
+function Detail({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-mx-md border-b border-border-subtle py-mx-xs last:border-b-0">
+      <Typography variant="p" tone="muted" className="text-sm font-bold">{label}</Typography>
+      <Typography variant="p" className="text-right text-sm font-black">{value}</Typography>
     </div>
   )
 }
 
-function LabeledArea({ label, value, onChange }: { label: string; value: string | null; onChange: (v: string) => void }) {
+function Objective({ title, text }: { title: string; text: string }) {
+  return <div className="border-b border-border-subtle py-mx-sm last:border-b-0"><Typography variant="p" className="font-black">{title}</Typography><Typography variant="caption" tone="muted" className="normal-case tracking-normal">{text}</Typography></div>
+}
+
+function Mini({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
-    <div>
-      <Typography variant="caption" tone="muted" className="mb-mx-tiny block">{label}</Typography>
-      <Textarea value={value ?? ''} onChange={e => onChange(e.target.value)} placeholder="Descreva seu objetivo..." />
+    <div className="rounded-mx-md border border-border-subtle bg-white p-mx-sm text-center">
+      <Typography variant="tiny" className="font-black normal-case tracking-normal text-text-secondary">{label}</Typography>
+      <Typography variant="h2" className="mt-2 text-2xl">{value}</Typography>
+      <Typography variant="caption" tone="muted" className="normal-case tracking-normal">{hint}</Typography>
     </div>
   )
 }
