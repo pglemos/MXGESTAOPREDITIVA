@@ -1,10 +1,12 @@
 import { describe, expect, test } from 'bun:test'
 import {
+  filterCentralAttendeesForPersonalMirrors,
   filterPersonalMirrorCandidates,
   getDuplicateGoogleEventIds,
   getEffectiveCalendarAction,
   getStaleMirrorRows,
   isCanceledCalendarStatus,
+  mergeGoogleCalendarEventsBySource,
 } from '../../../supabase/functions/_shared/google_calendar_sync_rules'
 
 describe('google calendar sync rules', () => {
@@ -59,6 +61,29 @@ describe('google calendar sync rules', () => {
     expect(candidates.map((candidate) => candidate.userId)).toEqual(['consultant'])
   })
 
+  test('removes central attendees that already receive personal mirrors', () => {
+    const attendees = filterCentralAttendeesForPersonalMirrors([
+      { email: 'consultor@gmail.com', displayName: 'Consultor' },
+      { email: 'auxiliar@mx.com', displayName: 'Auxiliar' },
+      { email: 'cliente@loja.com', displayName: 'Cliente' },
+    ], [
+      {
+        userId: 'consultant',
+        name: 'Consultor',
+        profileEmail: 'consultor@mx.com',
+        googleEmail: 'consultor@gmail.com',
+      },
+      {
+        userId: 'auxiliary',
+        name: 'Auxiliar',
+        profileEmail: 'auxiliar@mx.com',
+        googleEmail: 'auxiliar@gmail.com',
+      },
+    ])
+
+    expect(attendees).toEqual([{ email: 'cliente@loja.com', displayName: 'Cliente' }])
+  })
+
   test('detects stale personal mirror rows after owner changes', () => {
     expect(getStaleMirrorRows([
       { user_id: 'daniel', google_event_id: 'old' },
@@ -74,5 +99,21 @@ describe('google calendar sync rules', () => {
     ], new Set(['saved-in-db']))
 
     expect(duplicateIds).toEqual(['created-first', 'created-last'])
+  })
+
+  test('dedupes merged personal and central calendar events by MX source', () => {
+    const merged = mergeGoogleCalendarEventsBySource([
+      { id: 'personal-visit', extendedProperties: { private: { mx_source_kind: 'visit', mx_source_id: 'visit-1' } } },
+      { id: 'personal-free-time' },
+    ], [
+      { id: 'central-visit', extendedProperties: { private: { mx_source_kind: 'visit', mx_source_id: 'visit-1' } } },
+      { id: 'central-other', extendedProperties: { private: { mx_source_kind: 'visit', mx_source_id: 'visit-2' } } },
+    ])
+
+    expect(merged.map((event) => `${event._source}:${event.id}`)).toEqual([
+      'personal:personal-visit',
+      'personal:personal-free-time',
+      'central:central-other',
+    ])
   })
 })

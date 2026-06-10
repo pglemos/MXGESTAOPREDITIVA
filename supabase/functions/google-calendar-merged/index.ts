@@ -17,6 +17,7 @@ import {
   collectUserCalendarEmails,
   isAdminMasterMx,
 } from "../_shared/google_calendar_privacy.ts";
+import { mergeGoogleCalendarEventsBySource } from "../_shared/google_calendar_sync_rules.ts";
 
 async function fetchEvents(accessToken: string, calendarId: string, timeMin: string, timeMax: string, maxResults = 50) {
   const res = await googleApiRequest(
@@ -141,10 +142,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    const merged = [
-      ...personalEvents.map((e: any) => ({ ...e, _source: "personal" as const })),
-      ...centralEvents.map((e: any) => ({ ...e, _source: "central" as const })),
-    ].sort((a, b) => {
+    const merged = mergeGoogleCalendarEventsBySource(personalEvents, centralEvents).sort((a, b) => {
       const da = Date.parse(a.start?.dateTime || a.start?.date || "");
       const db = Date.parse(b.start?.dateTime || b.start?.date || "");
       return da - db;

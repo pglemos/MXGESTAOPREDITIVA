@@ -17,6 +17,8 @@ Auditoria somente leitura em 2026-06-02 encontrou 3 visitas canceladas ainda com
 - [x] Espelhos pessoais antigos sao removidos quando o responsavel/consultor deixa de estar relacionado ao evento.
 - [x] Admin Master/Admin MX nao recebe duplicata pessoal quando a Agenda Central ja e a fonte de leitura.
 - [x] Duplicatas Google com mesma origem MX sao deduplicadas mantendo o ID canonico salvo no banco/espelho.
+- [x] Consultor/responsavel com espelho pessoal nao fica tambem como convidado do evento central, evitando duplicidade no Google Calendar externo.
+- [x] Agenda mesclada remove duplicata central+pessoal da mesma origem MX antes de retornar eventos para o app.
 - [x] CLI `scripts/reconcile_google_calendar_sync.ts` roda em dry-run por padrao e possui modo `--execute`.
 - [x] CLI remove eventos Google cancelados/duplicados e apenas reporta duplicidades ambiguas do banco.
 - [x] Secrets/tokens nao sao impressos em logs.
@@ -51,6 +53,11 @@ Auditoria somente leitura em 2026-06-02 encontrou 3 visitas canceladas ainda com
 - Re-sync remoto do Gandini executado com sucesso; funcao retornou `ok: true`, sem erros, e sem recriar espelho pessoal para Admin Master.
 - Auditoria complementar encontrou 9 espelhos pessoais ativos para o usuario administrador Jose, todos com evento central salvo; regra ajustada para suprimir espelhos pessoais de `administrador_geral` e `administrador_mx`.
 - Deploy remoto v70 aplicado e os 9 espelhos pessoais administrativos foram reprocessados/removidos. Validacao final: 0 espelhos pessoais administrativos ativos e 0 visitas canceladas com IDs Google.
+- Follow-up 2026-06-10: evento central deixa de manter como attendee usuarios que ja recebem espelho pessoal; o payload envia `attendees: []` quando necessario para limpar convidados antigos no PATCH do Google.
+- Follow-up 2026-06-10: `google-calendar-merged` passa a deduplicar eventos pessoais e centrais pela origem MX, preferindo o evento pessoal quando a mesma visita/evento aparece nas duas fontes.
+- Follow-up 2026-06-10: chamada administrativa de `google-calendar-sync` aceita JWT `service_role` validado pela Supabase, alem da comparacao exata com o secret, para permitir reconciliacao remota com chaves rotacionadas.
+- Deploy remoto aplicado em `fbhcmzzgwjdgkctlfvbo`: `google-calendar-sync` e `google-calendar-merged`.
+- Reconciliacao remota de 14 visitas futuras ativas executada com sucesso; resultado: 14 ok, 0 falhas, 14 espelhos obsoletos removidos. Avisos restantes foram apenas de permissao de co-host Google Meet em 5 reunioes.
 
 ### Gates
 
@@ -70,12 +77,25 @@ Auditoria somente leitura em 2026-06-02 encontrou 3 visitas canceladas ainda com
 - [x] `npx supabase functions deploy google-calendar-sync` - deployed v70 apos correcao Admin MX.
 - [x] Validacao remota com `x-google-calendar-sync-admin-token` - passed; canceladas com IDs Google: 2 antes da rodada final, 0 depois.
 - [x] Validacao remota Admin MX - passed; espelhos pessoais administrativos: 9 antes, 0 depois.
+- [x] `bun test src/lib/agenda/google-calendar-sync-rules.test.ts src/lib/agenda/google-calendar-privacy.test.ts` - 9 passed apos correcao de attendee central.
+- [x] `npm run typecheck` - passed apos correcao de attendee central.
+- [x] `npm run lint` - passed apos correcao de attendee central.
+- [x] `npm test` - 407 passed apos correcao de attendee central.
+- [x] `npm run build` - passed apos correcao de attendee central.
+- [x] `deno check supabase/functions/google-calendar-sync/index.ts supabase/functions/google-calendar-merged/index.ts supabase/functions/_shared/google_calendar_sync_rules.ts` - passed.
+- [x] `npx supabase functions deploy google-calendar-sync google-calendar-merged` - deployed.
+- [x] `npx supabase functions deploy google-calendar-sync` - deployed apos ajuste de service role JWT.
+- [x] Reconciliacao remota via `google-calendar-sync` - 14 visitas futuras ativas reprocessadas, 0 falhas.
+- [x] `npm run lint` - passed apos deploy/reconciliacao.
+- [x] `npm test` - 407 passed apos deploy/reconciliacao.
+- [x] `npm run build` - passed apos deploy/reconciliacao.
 - [x] `git diff --check` - passed.
 
 ### File List
 
 - `docs/stories/story-OPS-20260602-google-calendar-sync-reconciliation.md`
 - `supabase/functions/google-calendar-sync/index.ts`
+- `supabase/functions/google-calendar-merged/index.ts`
 - `supabase/functions/_shared/google_calendar_sync_rules.ts`
 - `scripts/reconcile_google_calendar_sync.ts`
 - `src/lib/agenda/google-calendar-sync-rules.test.ts`

@@ -21,6 +21,7 @@ import {
 import { buildRelatedUserIds } from "../_shared/google_calendar_privacy.ts";
 import { getGoogleMeetCohostEmails } from "../_shared/google_meet_cohost_rules.ts";
 import {
+  filterCentralAttendeesForPersonalMirrors,
   filterPersonalMirrorCandidates,
   getDuplicateGoogleEventIds,
   getEffectiveCalendarAction,
@@ -231,6 +232,28 @@ function normalizeAttendees(attendees: (GoogleAttendee | null | undefined)[]): G
     normalized.push({ email, displayName: attendee?.displayName });
   }
   return normalized;
+}
+
+function getBearerJwtRole(authHeader?: string | null): string | null {
+  const token = authHeader?.match(/^Bearer\s+(.+)$/i)?.[1];
+  const payloadPart = token?.split(".")[1];
+  if (!payloadPart) return null;
+
+  try {
+    const normalized = payloadPart.replaceAll("-", "+").replaceAll("_", "/");
+    const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
+    const payload = JSON.parse(atob(padded));
+    return typeof payload?.role === "string" ? payload.role : null;
+  } catch {
+    return null;
+  }
+}
+
+function isServiceRoleRequest(authHeader: string | null, serviceRoleBearer: string): boolean {
+  if (authHeader === serviceRoleBearer) return true;
+  // google-calendar-sync keeps Supabase JWT verification enabled; this only
+  // accepts a service_role JWT after the platform has validated the signature.
+  return getBearerJwtRole(authHeader) === "service_role";
 }
 
 function isOnlineModality(value?: string | null): boolean {
@@ -679,7 +702,7 @@ Deno.serve(async (req) => {
     const serviceRoleBearer = `Bearer ${requireEnv("SUPABASE_SERVICE_ROLE_KEY", SUPABASE_SERVICE_ROLE_KEY)}`;
     const adminSyncToken = Deno.env.get("GOOGLE_CALENDAR_SYNC_ADMIN_TOKEN");
     const adminSyncHeader = req.headers.get("x-google-calendar-sync-admin-token");
-    const isServiceRoleCall = authHeader === serviceRoleBearer || (adminSyncToken ? adminSyncHeader === adminSyncToken : false);
+    const isServiceRoleCall = isServiceRoleRequest(authHeader, serviceRoleBearer) || (adminSyncToken ? adminSyncHeader === adminSyncToken : false);
     let sessionClient: any = null;
     let authUserId: string | null = null;
 
@@ -814,7 +837,7 @@ Deno.serve(async (req) => {
       }
       if (!mirrorOnly && centralToken) {
         try {
-          const centralAttendees = scheduleEvent
+          const rawCentralAttendees = scheduleEvent
             ? normalizeAttendees([
               {
                 email: personalToken.googleEmail ?? scheduleEvent.responsible_email ?? "",
@@ -826,9 +849,11 @@ Deno.serve(async (req) => {
             : normalizeAttendees([
               { email: personalToken.googleEmail ?? visit?.consultant_email ?? CENTRAL_CALENDAR_EMAIL },
             ]);
+          const centralAttendees = filterCentralAttendeesForPersonalMirrors(rawCentralAttendees, mirrorTokens);
           const centralPayload = scheduleEvent
             ? buildScheduleEventPayload(scheduleEvent, centralAttendees)
             : buildEventPayload(visit!, centralAttendees);
+          centralPayload.attendees = centralAttendees;
           const centralEvent = await upsertGoogleEvent(centralToken, CENTRAL_CALENDAR_ID, centralPayload, centralEventId);
           centralEventId = centralEvent.id;
           googleMeetLink = centralEvent.meetLink ?? googleMeetLink;

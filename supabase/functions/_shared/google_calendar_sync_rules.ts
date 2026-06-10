@@ -25,6 +25,11 @@ export type ExistingMirrorRow = {
   google_event_id?: string | null;
 };
 
+export type GoogleCalendarAttendee = {
+  email: string;
+  displayName?: string;
+};
+
 export function isCanceledCalendarStatus(sourceKind: SourceKind, status?: string | null): boolean {
   const normalized = status?.trim().toLowerCase();
   if (!normalized) return false;
@@ -79,6 +84,24 @@ export function filterPersonalMirrorCandidates(
   });
 }
 
+export function filterCentralAttendeesForPersonalMirrors(
+  attendees: GoogleCalendarAttendee[],
+  mirrorCandidates: UserMirrorCandidate[],
+): GoogleCalendarAttendee[] {
+  const mirroredEmails = new Set<string>();
+  for (const candidate of mirrorCandidates) {
+    const profileEmail = normalizeEmail(candidate.profileEmail);
+    const googleEmail = normalizeEmail(candidate.googleEmail);
+    if (profileEmail) mirroredEmails.add(profileEmail);
+    if (googleEmail) mirroredEmails.add(googleEmail);
+  }
+
+  return attendees.filter((attendee) => {
+    const email = normalizeEmail(attendee.email);
+    return Boolean(email && !mirroredEmails.has(email));
+  });
+}
+
 export function getStaleMirrorRows(
   existingRows: ExistingMirrorRow[],
   desiredUserIds: string[],
@@ -112,4 +135,26 @@ export function getDuplicateGoogleEventIds(events: GoogleCalendarLikeEvent[], pr
   return events
     .map((event) => event.id ?? null)
     .filter((id): id is string => Boolean(id && id !== canonical));
+}
+
+export function mergeGoogleCalendarEventsBySource<T extends GoogleCalendarLikeEvent>(
+  personalEvents: T[],
+  centralEvents: T[],
+): Array<T & { _source: "personal" | "central" }> {
+  const personalSourceKeys = new Set<string>();
+  const merged: Array<T & { _source: "personal" | "central" }> = [];
+
+  for (const event of personalEvents) {
+    const sourceKey = getGoogleCalendarSourceKey(event);
+    if (sourceKey) personalSourceKeys.add(sourceKey);
+    merged.push({ ...event, _source: "personal" });
+  }
+
+  for (const event of centralEvents) {
+    const sourceKey = getGoogleCalendarSourceKey(event);
+    if (sourceKey && personalSourceKeys.has(sourceKey)) continue;
+    merged.push({ ...event, _source: "central" });
+  }
+
+  return merged;
 }
