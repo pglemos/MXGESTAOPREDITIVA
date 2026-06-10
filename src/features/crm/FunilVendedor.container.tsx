@@ -8,13 +8,17 @@ import {
   ChevronRight,
   Clock3,
   DollarSign,
+  DoorOpen,
   Funnel,
+  Gauge,
+  Globe,
   Lightbulb,
   Plus,
   Target,
   Trash2,
   TrendingUp,
   Users,
+  Wallet,
   X,
   Zap,
 } from 'lucide-react'
@@ -27,7 +31,10 @@ import { FormField } from '@/components/molecules/FormField'
 import { Modal } from '@/components/organisms/Modal'
 import { useOportunidades, type OportunidadeComCliente, type OportunidadeInput } from '@/features/crm/hooks/useOportunidades'
 import { useClientes } from '@/features/crm/hooks/useClientes'
+import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
 import { useVendedorHomePage } from '@/features/vendedor-home/hooks/useVendedorHomePage'
+import { useStoreMetaRules } from '@/hooks/useGoals'
+import { getDiasInfo } from '@/lib/calculations'
 import {
   CRM_ETAPAS_FUNIL,
   CRM_ETAPAS_ATIVAS,
@@ -481,10 +488,53 @@ function PerformancePanel({ items }: { items: OportunidadeComCliente[] }) {
   )
 }
 
+type ChannelGap = {
+  canal: 'internet' | 'carteira' | 'porta'
+  titulo: string
+  icon: React.ReactNode
+  etapas: string[]
+  faltam: number
+  faltamUnidade: string
+  pipeline: string
+  conversoes: string
+}
+
+function ChannelGapCard({ gap, metaBatida }: { gap: ChannelGap; metaBatida: boolean }) {
+  return (
+    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
+      <div className="flex items-center justify-between gap-mx-sm">
+        <div className="flex min-w-0 items-center gap-mx-xs">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-mx-md bg-brand-primary/10 text-brand-primary" aria-hidden="true">{gap.icon}</span>
+          <Typography variant="h3" className="text-sm uppercase leading-tight tracking-normal text-text-primary">{gap.titulo}</Typography>
+        </div>
+        {metaBatida ? (
+          <Typography variant="caption" tone="success" className="shrink-0 font-black normal-case tracking-normal">Meta batida 🎉</Typography>
+        ) : (
+          <Typography variant="caption" className="shrink-0 font-black normal-case tracking-normal text-brand-primary">
+            Faltam ~{gap.faltam.toLocaleString('pt-BR')} {gap.faltamUnidade}
+          </Typography>
+        )}
+      </div>
+      <div className="mt-mx-sm flex flex-wrap items-center gap-1">
+        {gap.etapas.map((etapa, index) => (
+          <span key={etapa} className="flex items-center gap-1">
+            <span className={cn('rounded-mx-full px-mx-sm py-0.5 text-[10px] font-black uppercase tracking-tight', index === gap.etapas.length - 1 ? 'bg-status-success-surface text-status-success' : 'bg-surface-alt text-text-secondary')}>{etapa}</span>
+            {index < gap.etapas.length - 1 && <ChevronRight size={12} className="text-text-tertiary" aria-hidden="true" />}
+          </span>
+        ))}
+      </div>
+      <Typography variant="tiny" tone="muted" className="mt-mx-sm block normal-case leading-snug tracking-normal">{gap.pipeline}</Typography>
+      <Typography variant="tiny" tone="muted" className="mt-mx-tiny block normal-case leading-snug tracking-normal">Conversoes de referencia: {gap.conversoes}</Typography>
+    </Card>
+  )
+}
+
 export function FunilVendedor() {
   const { oportunidades, loading, error, createOportunidade, updateEtapa, deleteOportunidade } = useOportunidades()
   const { clientes } = useClientes()
-  const { metrics: homeMetrics } = useVendedorHomePage()
+  const { agendamentos } = useAgendamentos()
+  const { metrics: homeMetrics, remuneracaoEstimada } = useVendedorHomePage()
+  const { metaRules } = useStoreMetaRules()
   const metaMensal = homeMetrics?.meta || 0
   const [modalOpen, setModalOpen] = useState(false)
   const [form, setForm] = useState<OportunidadeInput>(EMPTY)
@@ -520,6 +570,75 @@ export function FunilVendedor() {
   const trends = useMemo(() => buildTrends(stats, prevStats, previousOportunidades.length > 0), [stats, prevStats, previousOportunidades.length])
   const negociacaoCount = stats.stageRows.find(row => row.etapa === 'negociacao')?.quantidade || 0
   const fechamentoCount = stats.stageRows.find(row => row.etapa === 'fechamento')?.quantidade || 0
+
+  // "O que falta para bater a meta" — faltaX oficial (lancamentos) convertido
+  // em volume por canal usando os benchmarks de conversao configurados da loja.
+  const planoMeta = useMemo(() => {
+    const faltaX = homeMetrics?.faltaX ?? 0
+    const benchLeadAgd = metaRules?.bench_lead_agd ?? 20
+    const benchAgdVisita = metaRules?.bench_agd_visita ?? 60
+    const benchVisitaVnd = metaRules?.bench_visita_vnd ?? 33
+    const chainInternet = (benchLeadAgd / 100) * (benchAgdVisita / 100) * (benchVisitaVnd / 100)
+    const chainCarteira = (benchAgdVisita / 100) * (benchVisitaVnd / 100)
+    const chainPorta = benchVisitaVnd / 100
+    const need = (chain: number) => (faltaX > 0 && chain > 0 ? Math.ceil(faltaX / chain) : 0)
+    const dias = getDiasInfo(undefined, metaRules?.projection_mode || 'calendar')
+
+    const inicioMes = new Date(today.getFullYear(), today.getMonth(), 1)
+    const oppMes = (canal: CrmCanal) => oportunidades.filter(item => item.canal === canal && (normalizeDate(item.created_at)?.getTime() ?? 0) >= inicioMes.getTime()).length
+    const agora = new Date()
+    const agdFuturos = (canal: CrmCanal) => agendamentos.filter(item => item.canal === canal && new Date(item.data_hora) >= agora && (item.status === 'aguardando' || item.status === 'confirmado')).length
+
+    const leadsFaltam = need(chainInternet)
+    const agendamentosCarteiraFuturos = agdFuturos('carteira')
+    return {
+      faltaX,
+      diasRestantes: dias.restantes,
+      leadsPorDia: dias.restantes > 0 ? Math.ceil(leadsFaltam / dias.restantes) : leadsFaltam,
+      agendamentosCarteiraFuturos,
+      gaps: [
+        {
+          canal: 'internet' as const,
+          titulo: 'Internet',
+          icon: <Globe size={15} />,
+          etapas: ['Lead', 'Agendamento', 'Visita', 'Venda'],
+          faltam: leadsFaltam,
+          faltamUnidade: leadsFaltam === 1 ? 'lead' : 'leads',
+          pipeline: `No mes: ${oppMes('internet')} oportunidade(s) · ${agdFuturos('internet')} agendamento(s) futuro(s)`,
+          conversoes: `${benchLeadAgd}% · ${benchAgdVisita}% · ${benchVisitaVnd}%`,
+        },
+        {
+          canal: 'carteira' as const,
+          titulo: 'Carteira',
+          icon: <Wallet size={15} />,
+          etapas: ['Agendamento', 'Visita', 'Venda'],
+          faltam: need(chainCarteira),
+          faltamUnidade: need(chainCarteira) === 1 ? 'agendamento' : 'agendamentos',
+          pipeline: `No mes: ${oppMes('carteira')} oportunidade(s) · ${agendamentosCarteiraFuturos} agendamento(s) futuro(s)`,
+          conversoes: `${benchAgdVisita}% · ${benchVisitaVnd}%`,
+        },
+        {
+          canal: 'porta' as const,
+          titulo: 'Porta',
+          icon: <DoorOpen size={15} />,
+          etapas: ['Atendimento', 'Venda'],
+          faltam: need(chainPorta),
+          faltamUnidade: need(chainPorta) === 1 ? 'atendimento' : 'atendimentos',
+          pipeline: `No mes: ${oppMes('porta')} oportunidade(s)`,
+          conversoes: `${benchVisitaVnd}%`,
+        },
+      ] satisfies ChannelGap[],
+    }
+  }, [agendamentos, homeMetrics?.faltaX, metaRules, oportunidades])
+
+  const melhorCanal = useMemo(() => {
+    const rows = CRM_CANAIS.map(canal => {
+      const byCanal = oportunidades.filter(item => item.canal === canal)
+      const ganhos = byCanal.filter(item => item.etapa === 'ganho').length
+      return { canal, total: byCanal.length, ganhos, conversao: byCanal.length > 0 ? (ganhos / byCanal.length) * 100 : 0 }
+    }).filter(row => row.ganhos > 0).sort((a, b) => b.conversao - a.conversao)
+    return rows[0] || null
+  }, [oportunidades])
 
   async function handleCreate() {
     if (!form.cliente_id) { toast.error('Selecione o cliente.'); return }
@@ -595,12 +714,33 @@ export function FunilVendedor() {
             <Button variant="outline" className="h-full min-h-[54px] text-brand-primary" onClick={clearFilters}>Limpar filtros</Button>
         </section>
 
+        <section className="grid grid-cols-1 gap-mx-sm sm:grid-cols-2 xl:grid-cols-4" aria-label="Meta, comissao e ritmo">
+          <KpiStripCard icon={<Target size={18} />} label="Minha meta" value={metaMensal > 0 ? `${metaMensal} venda${metaMensal === 1 ? '' : 's'}` : '—'} trend={metaMensal > 0 ? (planoMeta.faltaX > 0 ? `faltam ${planoMeta.faltaX} venda${planoMeta.faltaX === 1 ? '' : 's'}` : 'Meta batida 🎉') : 'Meta nao cadastrada'} trendTone={metaMensal > 0 && planoMeta.faltaX === 0 ? 'success' : 'muted'} />
+          <KpiStripCard icon={<DollarSign size={18} />} label="Minha comissao" value={remuneracaoEstimada?.disponivel ? BRL(remuneracaoEstimada.total) : '—'} trend={remuneracaoEstimada?.disponivel ? 'estimativa projetada do mes' : 'Plano de remuneracao nao cadastrado'} tone="success" />
+          <KpiStripCard icon={<Gauge size={18} />} label="Ritmo atual" value={`${homeMetrics?.projecao ?? 0} venda${(homeMetrics?.projecao ?? 0) === 1 ? '' : 's'}/mes`} trend={`${homeMetrics?.vendasMes ?? 0} no mes ate agora`} tone="info" />
+          <KpiStripCard icon={<TrendingUp size={18} />} label="Conversao geral" value={PCT(stats.taxaConversaoGeral)} trend="oportunidades que viram venda" tone="brand" />
+        </section>
+
+        <section className="space-y-mx-sm" aria-label="O que falta para bater a meta">
+          <SectionTitle icon={<Target size={18} />} title="O que falta para bater a meta" subtitle={metaMensal > 0 ? `${planoMeta.diasRestantes} dia(s) restante(s) no mes` : undefined} />
+          {metaMensal > 0 ? (
+            <div className="grid grid-cols-1 gap-mx-sm lg:grid-cols-3">
+              {planoMeta.gaps.map(gap => <ChannelGapCard key={gap.canal} gap={gap} metaBatida={planoMeta.faltaX === 0} />)}
+            </div>
+          ) : (
+            <Card className="rounded-mx-lg border border-border-subtle bg-status-warning-surface p-mx-md shadow-mx-sm">
+              <Typography variant="caption" className="font-bold normal-case tracking-normal text-text-secondary">
+                Sua meta mensal ainda nao foi cadastrada, entao nao da para calcular o que falta. Fale com seu gerente.
+              </Typography>
+            </Card>
+          )}
+        </section>
+
         <div className="grid grid-cols-1 gap-mx-md xl:grid-cols-[minmax(0,1fr)_360px]">
           <div className="min-w-0 space-y-mx-md">
             <FunnelBoard stats={stats} />
 
-            <section className="grid grid-cols-1 gap-mx-sm sm:grid-cols-2 xl:grid-cols-5">
-              <KpiStripCard icon={<Target size={18} />} label="Taxa de conversao geral" value={PCT(stats.taxaConversaoGeral)} trend={trends.conversao.label} trendTone={trends.conversao.tone} />
+            <section className="grid grid-cols-1 gap-mx-sm sm:grid-cols-2 xl:grid-cols-4">
               <KpiStripCard icon={<DollarSign size={18} />} label="Ticket medio" value={stats.ticketMedio > 0 ? BRL(stats.ticketMedio) : '—'} trend={trends.ticket.label} trendTone={trends.ticket.tone} tone="success" />
               <KpiStripCard icon={<Clock3 size={18} />} label="Ciclo medio de vendas" value={stats.cicloMedio > 0 ? `${stats.cicloMedio} dias` : '—'} trend={trends.ciclo.label} trendTone={trends.ciclo.tone} tone="info" />
               <KpiStripCard icon={<Zap size={18} />} label="Valor total do funil" value={BRL(stats.valorTotalFunil)} trend={trends.valorFunil.label} trendTone={trends.valorFunil.tone} tone="success" />
@@ -663,8 +803,32 @@ export function FunilVendedor() {
           <aside className="space-y-mx-md">
             <Card className="rounded-mx-lg border border-border-subtle bg-white shadow-mx-sm">
               <div className="border-b border-border-subtle p-mx-md">
-                <SectionTitle icon={<Lightbulb size={18} />} title="Insights para voce" />
+                <SectionTitle icon={<Lightbulb size={18} />} title="Assistente Comercial" />
               </div>
+              {metaMensal > 0 && planoMeta.faltaX > 0 && planoMeta.leadsPorDia > 0 && (
+                <InsightCard
+                  icon={<Globe size={16} />}
+                  tone="brand"
+                  title="Ritmo para bater a meta"
+                  description={`Pela internet, voce precisa gerar ~${planoMeta.leadsPorDia} lead${planoMeta.leadsPorDia === 1 ? '' : 's'} por dia nos ${planoMeta.diasRestantes} dia(s) restantes do mes.`}
+                />
+              )}
+              {melhorCanal && (
+                <InsightCard
+                  icon={<TrendingUp size={16} />}
+                  tone="success"
+                  title="Seu melhor canal"
+                  description={`Seu melhor canal e ${CRM_CANAL_LABEL[melhorCanal.canal]}: ${PCT(melhorCanal.conversao)} de conversao em ${melhorCanal.total} oportunidade${melhorCanal.total === 1 ? '' : 's'}. Priorize-o.`}
+                />
+              )}
+              {planoMeta.agendamentosCarteiraFuturos === 0 && (
+                <InsightCard
+                  icon={<Wallet size={16} />}
+                  tone="warning"
+                  title="Carteira sem agendamentos"
+                  description="Sua carteira nao possui agendamentos futuros. Separe um horario hoje para ligar e agendar retornos."
+                />
+              )}
               <InsightCard
                 icon={stats.totalOportunidades === 0 ? <AlertTriangle size={16} /> : <TrendingUp size={16} />}
                 tone={stats.totalOportunidades === 0 ? 'warning' : 'info'}
