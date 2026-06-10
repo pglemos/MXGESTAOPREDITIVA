@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import {
   parseClientes,
+  toDateOnlyBR,
   type Cliente,
   type CrmCanal,
   type CrmClienteStatus,
@@ -75,7 +76,7 @@ export function useClientes() {
       proxima_acao_em: input.proxima_acao_em || null,
       potencial_negocio: input.potencial_negocio ?? 0,
       observacoes: input.observacoes?.trim() || null,
-      ultima_interacao: new Date().toISOString().slice(0, 10),
+      ultima_interacao: toDateOnlyBR(),
     }
 
     const { data, error: insertError } = await supabase
@@ -93,7 +94,7 @@ export function useClientes() {
     if (!supabaseUser) return { error: 'Sessão inválida.' }
     const { error: updateError } = await supabase
       .from('clientes')
-      .update({ ...patch, ultima_interacao: new Date().toISOString().slice(0, 10) })
+      .update({ ...patch, ultima_interacao: toDateOnlyBR() })
       .eq('id', id)
     if (updateError) return { error: updateError.message }
     await fetchClientes()

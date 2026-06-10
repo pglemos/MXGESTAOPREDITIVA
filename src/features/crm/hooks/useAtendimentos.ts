@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
-import { parseAtendimentos, type Atendimento, type CrmCanal } from '@/lib/schemas/crm.schema'
+import { parseAtendimentos, toDateOnlyBR, type Atendimento, type CrmCanal } from '@/lib/schemas/crm.schema'
 
-const today = () => new Date().toISOString().slice(0, 10)
+const today = () => toDateOnlyBR()
 
 /**
  * Atendimentos por canal do vendedor. Usado no Fechamento Diário para registrar

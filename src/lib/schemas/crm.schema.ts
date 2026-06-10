@@ -160,6 +160,15 @@ export function formatDateBR(value: string | null | undefined): string {
   return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('pt-BR')
 }
 
+/**
+ * Data (date-only `YYYY-MM-DD`) no fuso de São Paulo, para escrita em colunas
+ * DATE. `toISOString().slice(0, 10)` usa UTC e, após 21h locais, registra o
+ * dia seguinte (UTC-3).
+ */
+export function toDateOnlyBR(date: Date = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(date)
+}
+
 export const parseClientes = (d: unknown) => parseArray(ClienteSchema, d)
 export const parseOportunidades = (d: unknown) => parseArray(OportunidadeSchema, d)
 export const parseAgendamentos = (d: unknown) => parseArray(AgendamentoSchema, d)
