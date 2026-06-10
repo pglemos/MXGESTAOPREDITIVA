@@ -226,6 +226,7 @@ const navConfig: Record<string, NavCategory[]> = {
       items: [
         // Cada item tem icone unico dentro do papel para identificacao intuitiva
         { label: 'Meu Dia', path: '/home', icon: <Home size={16} /> },
+        { label: 'Fechamento Diário', path: '/lancamento-diario', icon: <CheckSquare size={16} /> },
         { label: 'Agenda', path: '/agenda-vendedor', icon: <CalendarDays size={16} /> },
         { label: 'Central de Execução', path: '/central-execucao', icon: <CalendarCheck size={16} /> },
         { label: 'Carteira', path: '/carteira-clientes', icon: <Users size={16} /> },
@@ -238,27 +239,12 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
         { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
         { label: 'Trilhas', path: '/trilhas', icon: <RouteIcon size={16} /> },
+        { label: 'Ranking', path: '/classificacao', icon: <Trophy size={16} /> },
         { label: 'Meu Perfil', path: '/perfil', icon: <User size={16} /> },
       ]
     }
   ]
 }
-
-const centralExecucaoSidebarItems: SubItem[] = [
-  { label: 'Dashboard', path: '/home', icon: <LayoutDashboard size={18} /> },
-  { label: 'Fechamento Diário', path: '/lancamento-diario', icon: <CheckSquare size={18} /> },
-  { label: 'Central de Execução', path: '/central-execucao', icon: <CalendarCheck size={18} /> },
-  { label: 'Cadastrar Cliente', path: '/carteira-clientes', icon: <Users size={18} /> },
-  { label: 'Funil de Vendas', path: '/meu-funil', icon: <Filter size={18} /> },
-  { label: 'Leads', path: '/leads', icon: <Sparkles size={18} /> },
-  { label: 'Carteira de Clientes', path: '/carteira-clientes', icon: <Users size={18} /> },
-  { label: 'Comissão', path: '/minha-remuneracao', icon: <TrendingUp size={18} /> },
-  { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={18} /> },
-  { label: 'Feedback', path: '/devolutivas', icon: <MessageSquare size={18} /> },
-  { label: 'PDI', path: '/pdi', icon: <Target size={18} /> },
-  { label: 'Ranking', path: '/classificacao', icon: <Trophy size={18} /> },
-  { label: 'Relatórios', path: '/relatorios-vendedor', icon: <FileBarChart size={18} /> },
-]
 
 export default function Layout() {
   const { profile, role, signOut, membership, isSimulating, simulationRole, stopSimulation, baseProfile } = useAuth()
@@ -398,76 +384,6 @@ export default function Layout() {
           },
         }
       : null
-
-  const isCentralExecucaoRoute = role === 'vendedor' && location.pathname === '/central-execucao'
-
-  if (isCentralExecucaoRoute) {
-    return (
-      <div className="min-h-screen bg-white">
-        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-brand-primary focus:text-white focus:rounded-mx-xl focus:shadow-mx-xl">
-          Pular para conteúdo principal
-        </a>
-        <div className="flex min-h-screen">
-          <aside className="hidden w-[210px] shrink-0 flex-col bg-sidebar-bg-strong text-sidebar-text shadow-mx-lg md:flex" aria-label="Menu Principal">
-            <div className="flex h-24 items-center justify-center border-b border-sidebar-border px-mx-md">
-              <div className="flex items-center gap-mx-xs">
-                <img src={MxLogo} alt="MX Performance" className="h-11 w-11 object-contain" />
-                <span className="leading-none">
-                  <Typography variant="h3" tone="white" className="block text-[26px] leading-none tracking-normal">MX</Typography>
-                  <Typography variant="tiny" tone="white" className="block text-[10px] tracking-normal opacity-80">Performance</Typography>
-                </span>
-              </div>
-            </div>
-            <nav className="flex-1 overflow-y-auto px-mx-xs py-mx-md no-scrollbar" aria-label="Menu Principal">
-              <Typography variant="tiny" className="mb-mx-sm block px-mx-sm text-[11px] font-black text-sidebar-text-muted">Menu Principal</Typography>
-              <div className="space-y-mx-tiny">
-                {centralExecucaoSidebarItems.map((item) => {
-                  const isActive = location.pathname === item.path
-                  return (
-                    <NavLink
-                      key={`${item.label}-${item.path}`}
-                      to={item.path}
-                      aria-current={isActive ? 'page' : undefined}
-                      className={cn(
-                        'flex h-mx-11 items-center gap-mx-sm rounded-mx-md px-mx-sm text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/20',
-                        isActive ? 'bg-brand-primary text-white shadow-mx-sm' : 'text-sidebar-text hover:bg-sidebar-item-hover',
-                      )}
-                    >
-                      <span className="shrink-0" aria-hidden="true">{item.icon}</span>
-                      <span className="truncate">{item.label}</span>
-                    </NavLink>
-                  )
-                })}
-              </div>
-            </nav>
-            <div className="p-mx-sm">
-              <button
-                type="button"
-                onClick={() => navigate('/ajuda')}
-                className="mb-mx-sm flex w-full items-center gap-mx-sm rounded-mx-md border border-sidebar-border bg-sidebar-item-hover p-mx-sm text-left transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/20"
-              >
-                <MessageSquare size={20} aria-hidden="true" />
-                <span className="min-w-0">
-                  <Typography variant="tiny" tone="white" className="block font-black">Precisa de ajuda?</Typography>
-                  <Typography variant="tiny" tone="white" className="block normal-case opacity-70">Fale com o suporte</Typography>
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => signOut()}
-                className="flex h-mx-10 w-full items-center justify-center gap-mx-xs rounded-mx-md text-sm font-bold text-sidebar-text-muted transition-colors hover:bg-status-error-surface hover:text-status-error"
-              >
-                <LogOut size={16} aria-hidden="true" /> Encerrar sessão
-              </button>
-            </div>
-          </aside>
-          <main className="min-w-0 flex-1 bg-white" id="main-content" role="main" tabIndex={-1}>
-            <Outlet />
-          </main>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="min-h-screen bg-surface-alt flex flex-col">
