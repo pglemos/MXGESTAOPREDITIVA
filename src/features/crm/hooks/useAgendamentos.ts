@@ -86,6 +86,29 @@ export function useAgendamentos() {
     return { error: null }
   }, [supabaseUser, effectiveStoreId, fetchAgendamentos])
 
+  const updateAgendamento = useCallback(async (id: string, input: AgendamentoInput): Promise<{ error: string | null }> => {
+    if (!supabaseUser) return { error: 'Sessão inválida.' }
+    if (!input.data_hora) return { error: 'Informe data e hora do agendamento.' }
+    const payload = {
+      cliente_id: input.cliente_id || null,
+      oportunidade_id: input.oportunidade_id || null,
+      data_hora: new Date(input.data_hora).toISOString(),
+      canal: input.canal || null,
+      tipo: input.tipo || 'visita',
+      status: input.status || 'aguardando',
+      proxima_acao: input.proxima_acao?.trim() || null,
+      observacoes: input.observacoes?.trim() || null,
+    }
+    const { error: updateError } = await supabase
+      .from('agendamentos')
+      .update(payload)
+      .eq('id', id)
+      .eq('seller_user_id', supabaseUser.id)
+    if (updateError) return { error: updateError.message }
+    await fetchAgendamentos()
+    return { error: null }
+  }, [supabaseUser, fetchAgendamentos])
+
   const updateStatus = useCallback(async (id: string, status: CrmAgendamentoStatus): Promise<{ error: string | null }> => {
     if (!supabaseUser) return { error: 'Sessão inválida.' }
     const { error: updErr } = await supabase.from('agendamentos').update({ status }).eq('id', id)
@@ -118,5 +141,5 @@ export function useAgendamentos() {
     return { agendamentosHoje, compareceram, naoCompareceram, confirmados, aguardando, emNegociacao, vendasRealizadas, taxaComparecimento }
   }, [agendamentos])
 
-  return { agendamentos, metrics, loading, error, refetch: fetchAgendamentos, createAgendamento, updateStatus, deleteAgendamento }
+  return { agendamentos, metrics, loading, error, refetch: fetchAgendamentos, createAgendamento, updateAgendamento, updateStatus, deleteAgendamento }
 }

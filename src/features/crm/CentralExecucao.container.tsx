@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import {
@@ -15,11 +15,11 @@ import {
   Info,
   Menu,
   MessageCircle,
-  MoreHorizontal,
   Plus,
   SquareUserRound,
   Store,
   Target,
+  Trash2,
   XCircle,
 } from 'lucide-react'
 import { Card } from '@/components/molecules/Card'
@@ -30,6 +30,7 @@ import { EmptyState } from '@/components/atoms/EmptyState'
 import { FormField } from '@/components/molecules/FormField'
 import { Modal } from '@/components/organisms/Modal'
 import { useAuth } from '@/hooks/useAuth'
+import { calculateReferenceDate, useCheckinsToday } from '@/hooks/checkins'
 import { cn } from '@/lib/utils'
 import { useAgendamentos, type AgendamentoInput, type AgendamentoComCliente } from '@/features/crm/hooks/useAgendamentos'
 import { useClientes } from '@/features/crm/hooks/useClientes'
@@ -41,6 +42,7 @@ import {
   CRM_AGENDAMENTO_TIPO,
   CRM_AGENDAMENTO_STATUS,
   CRM_AGENDAMENTO_STATUS_LABEL,
+  toDateOnlyBR,
   type CrmAgendamentoStatus,
   type CrmCanal,
 } from '@/lib/schemas/crm.schema'
@@ -141,27 +143,30 @@ function MetricCard({
   }[tone]
 
   return (
-    <Card className="h-32 rounded-mx-lg border border-border-subtle bg-white p-mx-sm shadow-mx-sm">
+    <Card className="h-[124px] rounded-mx-lg border border-border-subtle bg-white p-mx-sm shadow-mx-sm">
       <div className="flex h-full items-center gap-mx-sm">
         <span className={cn('flex h-mx-xl w-mx-xl shrink-0 items-center justify-center rounded-mx-lg', toneClass)}>{icon}</span>
         <div className="min-w-0">
           <Typography variant="tiny" className="text-[10px] font-black uppercase leading-tight tracking-normal text-text-primary">{label}</Typography>
-          <Typography variant="h2" className="mt-mx-xs text-3xl leading-none">{value}</Typography>
-          <Typography variant="caption" tone="muted" className="mt-mx-sm block leading-tight tracking-normal">{hint}</Typography>
+          <Typography variant="h2" className="mt-1 text-2xl leading-none">{value}</Typography>
+          <Typography variant="caption" tone="muted" className="mt-mx-xs block leading-tight tracking-normal">{hint}</Typography>
         </div>
       </div>
     </Card>
   )
 }
 
-function ScoreCard({ score }: { score: number }) {
+type ScoreItem = { label: string; value: string; done: boolean; muted?: string }
+
+function ScoreCard({ score, items }: { score: number; items: ScoreItem[] }) {
+  const mood = score >= 70 ? 'Ótimo!' : score >= 40 ? 'Bom!' : 'Vamos lá!'
   return (
-    <Card className="h-32 rounded-mx-lg border border-brand-primary/10 bg-brand-primary/5 p-mx-sm shadow-mx-sm">
-      <div className="grid h-full grid-cols-[88px_1fr] items-center gap-mx-sm">
-        <div className="relative flex h-[86px] w-[86px] items-center justify-center rounded-full" style={{ background: `conic-gradient(var(--color-brand-primary) ${score * 3.6}deg, var(--color-border-strong) 0deg)` }}>
-          <div className="flex h-16 w-16 flex-col items-center justify-center rounded-full bg-white shadow-inner">
-            <Typography variant="h2" className="text-xl text-brand-primary">{score}%</Typography>
-            <Typography variant="tiny" className="font-black tracking-normal text-brand-primary">Bom!</Typography>
+    <Card className="h-[124px] rounded-mx-lg border border-brand-primary/10 bg-brand-primary/5 p-mx-sm shadow-mx-sm">
+      <div className="grid h-full grid-cols-[76px_1fr] items-center gap-mx-sm">
+        <div className="relative flex h-[72px] w-[72px] items-center justify-center rounded-full" style={{ background: `conic-gradient(var(--color-brand-primary) ${score * 3.6}deg, var(--color-border-strong) 0deg)` }}>
+          <div className="flex h-12 w-12 flex-col items-center justify-center rounded-full bg-white shadow-inner">
+            <Typography variant="h2" className="text-lg leading-none text-brand-primary">{score}%</Typography>
+            <Typography variant="tiny" className="text-[8px] font-black leading-none tracking-normal text-brand-primary">{mood}</Typography>
           </div>
         </div>
         <div className="min-w-0">
@@ -169,10 +174,8 @@ function ScoreCard({ score }: { score: number }) {
             <Typography variant="tiny" className="font-black uppercase leading-tight tracking-normal text-text-primary">Score da rotina</Typography>
             <Info size={12} className="text-text-tertiary" />
           </div>
-          <div className="mt-mx-xs space-y-mx-xs">
-            <ScoreLine label="Abriu a Central de Execução" value="10%" />
-            <ScoreLine label="Fez Fechamento Diário" value="20%" />
-            <ScoreLine label="Inseriu Novos Clientes" value="40%" muted="(1 novo cliente)" />
+          <div className="mt-1 space-y-0.5">
+            {items.map((item) => <ScoreLine key={item.label} {...item} />)}
           </div>
         </div>
       </div>
@@ -180,12 +183,14 @@ function ScoreCard({ score }: { score: number }) {
   )
 }
 
-function ScoreLine({ label, value, muted }: { label: string; value: string; muted?: string }) {
+function ScoreLine({ label, value, done, muted }: ScoreItem) {
   return (
-    <div className="grid grid-cols-[16px_1fr_auto] items-start gap-mx-xs text-[11px]">
-      <span className="mt-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-status-success text-white"><Check size={11} /></span>
+    <div className="grid grid-cols-[14px_1fr_auto] items-start gap-1 text-[9px]">
+      <span className={cn('mt-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full text-white', done ? 'bg-status-success' : 'bg-border-strong')}>
+        {done ? <Check size={10} /> : <Clock size={10} />}
+      </span>
       <span className="font-bold leading-tight text-text-secondary">{label}{muted && <span className="block text-text-tertiary">{muted}</span>}</span>
-      <span className="font-black text-brand-primary">{value}</span>
+      <span className={cn('font-black', done ? 'text-brand-primary' : 'text-text-tertiary')}>{value}</span>
     </div>
   )
 }
@@ -212,9 +217,9 @@ function Pill({ children, className }: { children: React.ReactNode; className: s
 function RoutineTimeline() {
   return (
     <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
-      <Typography variant="h3" className="uppercase tracking-tight">Rotina do dia</Typography>
-      <Typography variant="caption" tone="muted">Siga sua rotina e ganhe disciplina.</Typography>
-      <ol className="mt-mx-md space-y-mx-sm">
+      <Typography variant="h3" className="text-base uppercase tracking-normal">Rotina do dia</Typography>
+      <Typography variant="caption" tone="muted" className="tracking-normal">Siga sua rotina e ganhe disciplina.</Typography>
+      <ol className="mt-mx-sm space-y-mx-xs">
         {routineSlots.map((slot, index) => {
           const state = getRoutineState(slot.time)
           const isLast = index === routineSlots.length - 1
@@ -233,8 +238,8 @@ function RoutineTimeline() {
               </span>
               <Typography variant="caption" className="pt-1 font-black tracking-normal text-text-primary">{slot.time}</Typography>
               <div className="min-w-0">
-                <Typography variant="p" className="text-xs font-black leading-tight">{slot.title}</Typography>
-                <Typography variant="caption" tone="muted" className="leading-snug tracking-normal">{slot.desc}</Typography>
+                <Typography variant="p" className="text-xs font-black leading-tight text-text-primary">{slot.title}</Typography>
+                <Typography variant="caption" tone="muted" className="normal-case leading-snug tracking-normal">{slot.desc}</Typography>
               </div>
             </li>
           )
@@ -244,7 +249,7 @@ function RoutineTimeline() {
   )
 }
 
-function AgendaRow({ item, onWhatsApp, onDelete }: { item: AgendamentoComCliente; onWhatsApp: () => void; onDelete: () => void }) {
+function AgendaRow({ item, onWhatsApp, onEdit, onDelete }: { item: AgendamentoComCliente; onWhatsApp: () => void; onEdit: () => void; onDelete: () => void }) {
   const actionTime = getActionTime(item.proxima_acao)
   const urgent = item.status === 'nao_compareceu' || (item.proxima_acao || '').toLowerCase().includes('urgente')
   const vehicle = item.oportunidade?.veiculo_interesse || TIPO_LABEL[item.tipo] || 'Oportunidade'
@@ -280,8 +285,8 @@ function AgendaRow({ item, onWhatsApp, onDelete }: { item: AgendamentoComCliente
       <td className="min-w-[132px] px-mx-sm py-mx-md">
         <div className="flex items-center justify-end gap-mx-xs">
           <Button variant="outline" size="icon" aria-label="WhatsApp" onClick={onWhatsApp} className="h-mx-9 w-mx-9 border-status-success/30 text-status-success hover:bg-status-success-surface"><MessageCircle size={15} /></Button>
-          <Button variant="outline" size="icon" aria-label="Editar agendamento" className="h-mx-9 w-mx-9 border-brand-primary/30 text-brand-primary hover:bg-brand-primary/10"><Edit3 size={15} /></Button>
-          <Button variant="ghost" size="icon" aria-label="Excluir agendamento" onClick={onDelete} className="h-mx-9 w-mx-9"><MoreHorizontal size={15} /></Button>
+          <Button variant="outline" size="icon" aria-label="Editar agendamento" onClick={onEdit} className="h-mx-9 w-mx-9 border-brand-primary/30 text-brand-primary hover:bg-brand-primary/10"><Edit3 size={15} /></Button>
+          <Button variant="ghost" size="icon" aria-label="Excluir agendamento" onClick={onDelete} className="h-mx-9 w-mx-9 text-status-error hover:bg-status-error-surface"><Trash2 size={15} /></Button>
         </div>
       </td>
     </tr>
@@ -289,14 +294,19 @@ function AgendaRow({ item, onWhatsApp, onDelete }: { item: AgendamentoComCliente
 }
 
 export function CentralExecucao() {
-  const { profile } = useAuth()
-  const { agendamentos, metrics, loading, error, createAgendamento, deleteAgendamento } = useAgendamentos()
+  const { profile, activeStoreId, storeId } = useAuth()
+  const effectiveStoreId = activeStoreId || storeId || null
+  const { agendamentos, metrics, loading, error, createAgendamento, updateAgendamento, deleteAgendamento } = useAgendamentos()
   const { clientes } = useClientes()
   const { perfil } = useVendedorPerfil()
+  const referenceDate = calculateReferenceDate()
+  const { todayCheckin, fetchTodayCheckin } = useCheckinsToday(profile, effectiveStoreId, referenceDate)
+  useEffect(() => { fetchTodayCheckin() }, [fetchTodayCheckin])
   const [filtro, setFiltro] = useState<FiltroData>('todos')
   const [canalFiltro, setCanalFiltro] = useState<CanalFiltro>('todos')
   const [modalOpen, setModalOpen] = useState(false)
   const [form, setForm] = useState<AgendamentoInput>(EMPTY)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
   const hoje = useMemo(() => new Date(), [])
@@ -322,27 +332,67 @@ export function CentralExecucao() {
     })
   }, [agendamentos, canalFiltro, filtro, hoje])
 
-  const score = useMemo(() => {
-    const opened = 10
-    const closeDay = closeDayReminder.enabled ? 20 : 0
-    const newClient = clientes.length > 0 ? 40 : 0
-    return Math.min(opened + closeDay + newClient, 100)
-  }, [clientes.length, closeDayReminder.enabled])
+  // Score da Rotina (spec): abriu Central=10%, Fechamento Diário=20%,
+  // clientes cadastrados hoje: 1=40% / 2=60% / 3+=70%.
+  const { score, scoreItems } = useMemo(() => {
+    const hojeStr = toDateOnlyBR()
+    const clientesHoje = clientes.filter(c => c.created_at && toDateOnlyBR(new Date(c.created_at)) === hojeStr).length
+    const fezFechamento = Boolean(todayCheckin)
+    const clientePontos = clientesHoje >= 3 ? 70 : clientesHoje === 2 ? 60 : clientesHoje === 1 ? 40 : 0
+    const total = Math.min(10 + (fezFechamento ? 20 : 0) + clientePontos, 100)
+    const items: ScoreItem[] = [
+      { label: 'Abriu a Central de Execução', value: '10%', done: true },
+      { label: 'Fez Fechamento Diário', value: '20%', done: fezFechamento },
+      {
+        label: 'Inseriu Novos Clientes',
+        value: `${clientePontos > 0 ? clientePontos : 40}%`,
+        done: clientesHoje > 0,
+        muted: clientesHoje > 0
+          ? `(${clientesHoje} novo${clientesHoje > 1 ? 's' : ''} cliente${clientesHoje > 1 ? 's' : ''})`
+          : '(até 70% com 3 clientes)',
+      },
+    ]
+    return { score: total, scoreItems: items }
+  }, [clientes, todayCheckin])
 
-  async function handleCreate() {
+  function openCreateModal() {
+    setEditingId(null)
+    setForm(EMPTY)
+    setModalOpen(true)
+  }
+
+  function openEditModal(item: AgendamentoComCliente) {
+    setEditingId(item.id)
+    setForm({
+      cliente_id: item.cliente_id || '',
+      oportunidade_id: item.oportunidade_id || null,
+      data_hora: item.data_hora ? new Date(item.data_hora).toISOString().slice(0, 16) : '',
+      canal: item.canal || null,
+      tipo: item.tipo,
+      status: item.status,
+      proxima_acao: item.proxima_acao || '',
+      observacoes: item.observacoes || '',
+    })
+    setModalOpen(true)
+  }
+
+  async function handleSubmit() {
     if (!form.data_hora) {
       toast.error('Informe data e hora.')
       return
     }
     setSaving(true)
-    const { error: createError } = await createAgendamento(form)
+    const { error: saveError } = editingId
+      ? await updateAgendamento(editingId, form)
+      : await createAgendamento(form)
     setSaving(false)
-    if (createError) {
-      toast.error(createError)
+    if (saveError) {
+      toast.error(saveError)
       return
     }
-    toast.success('Agendamento criado.')
+    toast.success(editingId ? 'Agendamento atualizado.' : 'Agendamento criado.')
     setForm(EMPTY)
+    setEditingId(null)
     setModalOpen(false)
   }
 
@@ -367,7 +417,7 @@ export function CentralExecucao() {
   }
 
   return (
-    <main className="h-screen w-full overflow-y-auto bg-white p-mx-md md:p-mx-lg no-scrollbar">
+    <main className="min-h-full w-full bg-white p-mx-sm md:p-mx-lg">
       <div className="mx-auto flex max-w-[1480px] flex-col gap-mx-md pb-20">
         <header className="flex flex-col gap-mx-md border-b border-border-subtle bg-white pb-mx-md lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center gap-mx-sm">
@@ -394,7 +444,7 @@ export function CentralExecucao() {
                 {(profile?.name || 'V').slice(0, 1)}
               </span>
               <span>
-                <Typography variant="caption" className="block font-black text-text-primary">{profile?.name || 'João Silva'}</Typography>
+                <Typography variant="caption" className="block font-black text-text-primary">{profile?.name || 'Vendedor'}</Typography>
                 <Typography variant="tiny" tone="muted">Vendedor</Typography>
               </span>
               <ChevronDown size={16} className="text-text-tertiary" />
@@ -404,13 +454,15 @@ export function CentralExecucao() {
 
         {error && <Typography className="text-status-error">{error}</Typography>}
 
-        <section className="grid grid-cols-1 gap-mx-sm md:grid-cols-2 xl:grid-cols-[repeat(5,minmax(150px,1fr))_minmax(270px,1.6fr)]" aria-label="Indicadores do dia">
+        <section className="grid grid-cols-2 gap-mx-sm md:grid-cols-3 xl:grid-cols-[repeat(5,minmax(140px,1fr))_minmax(270px,1.4fr)]" aria-label="Indicadores do dia">
           <MetricCard icon={<CalendarCheck size={24} />} label="Agendamentos hoje" value={String(metrics.agendamentosHoje)} hint="100% do dia" tone="blue" />
           <MetricCard icon={<CheckCircle2 size={24} />} label="Compareceram" value={String(metrics.compareceram)} hint={`${metrics.taxaComparecimento}% do dia`} tone="green" />
           <MetricCard icon={<XCircle size={24} />} label="Não compareceram" value={String(metrics.naoCompareceram)} hint={`${metrics.agendamentosHoje ? Math.round((metrics.naoCompareceram / metrics.agendamentosHoje) * 100) : 0}% do dia`} tone="red" />
           <MetricCard icon={<AlarmClock size={24} />} label="Em negociação" value={String(metrics.emNegociacao)} hint={`${metrics.agendamentosHoje ? Math.round((metrics.emNegociacao / metrics.agendamentosHoje) * 100) : 0}% do dia`} tone="orange" />
           <MetricCard icon={<CircleDollarSign size={24} />} label="Vendas realizadas" value={String(metrics.vendasRealizadas)} hint={`${metrics.agendamentosHoje ? Math.round((metrics.vendasRealizadas / metrics.agendamentosHoje) * 100) : 0}% do dia`} tone="green" />
-          <ScoreCard score={score} />
+          <div className="col-span-2 md:col-span-1 xl:col-span-1">
+            <ScoreCard score={score} items={scoreItems} />
+          </div>
         </section>
 
         <div className="grid grid-cols-1 gap-mx-md xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -420,7 +472,14 @@ export function CentralExecucao() {
               <FilterButton active={filtro === 'hoje'} onClick={() => setFiltro('hoje')}><Calendar size={15} /> Hoje</FilterButton>
               <FilterButton active={filtro === 'atrasados'} onClick={() => setFiltro('atrasados')}><AlarmClock size={15} /> Atrasados</FilterButton>
               <FilterButton active={filtro === 'proximos7'} onClick={() => setFiltro('proximos7')}><CalendarCheck size={15} /> Próximos 7 dias</FilterButton>
-              <button type="button" className="inline-flex h-mx-11 items-center gap-mx-xs rounded-mx-md border border-border-subtle bg-white px-mx-sm text-sm font-black text-text-secondary">
+              <button
+                type="button"
+                onClick={() => setCanalFiltro('todos')}
+                className={cn(
+                  'inline-flex h-mx-11 items-center gap-mx-xs rounded-mx-md border px-mx-sm text-sm font-black transition-colors',
+                  canalFiltro === 'todos' ? 'border-brand-primary/30 bg-brand-primary/10 text-brand-primary' : 'border-border-subtle bg-white text-text-secondary hover:border-brand-primary/30',
+                )}
+              >
                 Todos os Canais <ChevronDown size={15} />
               </button>
               {CRM_CANAIS.filter(c => c !== 'porta').map((canal) => (
@@ -432,7 +491,9 @@ export function CentralExecucao() {
               <Link to="/carteira-clientes" className="inline-flex h-mx-11 items-center justify-center gap-mx-xs rounded-mx-md border border-brand-primary/30 bg-white px-mx-md text-sm font-black text-brand-primary transition-colors hover:bg-brand-primary/10">
                 <Plus size={16} /> Novo Cliente
               </Link>
-              <Button variant="ghost" size="sm" onClick={() => setModalOpen(true)} className="ml-auto">Novo agendamento</Button>
+              <Button variant="outline" size="sm" onClick={openCreateModal} className="ml-auto h-mx-11 bg-white">
+                <CalendarCheck size={15} /> Novo agendamento
+              </Button>
             </div>
 
             <Card className="overflow-hidden rounded-mx-lg border border-border-subtle bg-white p-0 shadow-mx-sm">
@@ -440,15 +501,15 @@ export function CentralExecucao() {
                 <Typography variant="h3" className="uppercase tracking-tight">Agenda do dia - {getDateLabel(hoje)}</Typography>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[940px] table-fixed text-left text-sm">
+                <table className="w-full min-w-[880px] table-fixed text-left text-sm">
                   <colgroup>
-                    <col className="w-[110px]" />
-                    <col className="w-[170px]" />
-                    <col className="w-[180px]" />
-                    <col className="w-[100px]" />
-                    <col className="w-[130px]" />
-                    <col className="w-[190px]" />
+                    <col className="w-[90px]" />
+                    <col className="w-[160px]" />
+                    <col className="w-[160px]" />
+                    <col className="w-[90px]" />
                     <col className="w-[120px]" />
+                    <col className="w-[150px]" />
+                    <col className="w-[110px]" />
                   </colgroup>
                   <thead className="bg-surface-alt/70 text-text-secondary">
                     <tr>
@@ -476,17 +537,13 @@ export function CentralExecucao() {
                           key={item.id}
                           item={item}
                           onWhatsApp={() => openWhatsApp(item)}
+                          onEdit={() => openEditModal(item)}
                           onDelete={() => handleDelete(item.id, item.cliente?.nome || 'cliente')}
                         />
                       ))
                     )}
                   </tbody>
                 </table>
-              </div>
-              <div className="flex justify-center border-t border-border-subtle px-mx-md py-mx-sm">
-                <button type="button" className="inline-flex items-center gap-mx-xs text-sm font-black text-brand-primary">
-                  Ver mais agendamentos <ChevronDown size={16} />
-                </button>
               </div>
             </Card>
           </section>
@@ -515,13 +572,26 @@ export function CentralExecucao() {
 
       <Modal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title="Novo agendamento"
-        description="Organize um compromisso com um cliente."
+        onClose={() => {
+          setModalOpen(false)
+          setEditingId(null)
+          setForm(EMPTY)
+        }}
+        title={editingId ? 'Editar agendamento' : 'Novo agendamento'}
+        description={editingId ? 'Atualize os dados do compromisso.' : 'Organize um compromisso com um cliente.'}
         footer={
           <div className="flex justify-end gap-mx-sm">
-            <Button variant="ghost" onClick={() => setModalOpen(false)}>Cancelar</Button>
-            <Button onClick={handleCreate} disabled={saving}>{saving ? 'Salvando...' : 'Salvar agendamento'}</Button>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setModalOpen(false)
+                setEditingId(null)
+                setForm(EMPTY)
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button onClick={handleSubmit} disabled={saving}>{saving ? 'Salvando...' : editingId ? 'Salvar alterações' : 'Salvar agendamento'}</Button>
           </div>
         }
       >
