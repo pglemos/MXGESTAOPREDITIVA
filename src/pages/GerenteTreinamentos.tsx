@@ -15,6 +15,7 @@ import { Avatar } from '@/components/atoms/Avatar'
 import { Card, CardHeader } from '@/components/molecules/Card'
 import { toast } from 'sonner'
 import { useAuth } from '@/hooks/useAuth'
+import { AulasAoVivoSection } from '@/features/universidade/sections/AulasAoVivoSection'
 
 export default function GerenteTreinamentos() {
     const { role } = useAuth()
@@ -241,6 +242,9 @@ export default function GerenteTreinamentos() {
                         </Typography>
                     </Card>
                 )}
+                <div className="mb-mx-lg">
+                    <AulasAoVivoSection />
+                </div>
                 {suggestions.length > 0 && (
                     <Card className="mb-mx-lg p-mx-lg border border-border-default shadow-mx-lg bg-white">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-mx-md">

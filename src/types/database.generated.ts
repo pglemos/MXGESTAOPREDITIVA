@@ -661,6 +661,162 @@ export type Database = {
           },
         ]
       }
+      aula_presencas: {
+        Row: {
+          aprovado: boolean
+          aula_id: string
+          created_at: string
+          id: string
+          loja_id: string | null
+          nota: number | null
+          pontos: number
+          respostas: Json | null
+          user_id: string
+        }
+        Insert: {
+          aprovado?: boolean
+          aula_id: string
+          created_at?: string
+          id?: string
+          loja_id?: string | null
+          nota?: number | null
+          pontos?: number
+          respostas?: Json | null
+          user_id: string
+        }
+        Update: {
+          aprovado?: boolean
+          aula_id?: string
+          created_at?: string
+          id?: string
+          loja_id?: string | null
+          nota?: number | null
+          pontos?: number
+          respostas?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aula_presencas_aula_id_fkey"
+            columns: ["aula_id"]
+            isOneToOne: false
+            referencedRelation: "aulas_ao_vivo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aula_presencas_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aula_presencas_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aula_provas: {
+        Row: {
+          aula_id: string
+          created_at: string
+          id: string
+          nota_minima: number
+          pontos_score: number
+          questoes: Json
+        }
+        Insert: {
+          aula_id: string
+          created_at?: string
+          id?: string
+          nota_minima?: number
+          pontos_score?: number
+          questoes?: Json
+        }
+        Update: {
+          aula_id?: string
+          created_at?: string
+          id?: string
+          nota_minima?: number
+          pontos_score?: number
+          questoes?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aula_provas_aula_id_fkey"
+            columns: ["aula_id"]
+            isOneToOne: true
+            referencedRelation: "aulas_ao_vivo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aulas_ao_vivo: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          descricao: string | null
+          duracao_minutos: number
+          gravacao_url: string | null
+          id: string
+          inicio: string
+          instrutor: string | null
+          link_transmissao: string | null
+          loja_id: string | null
+          status: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          duracao_minutos?: number
+          gravacao_url?: string | null
+          id?: string
+          inicio: string
+          instrutor?: string | null
+          link_transmissao?: string | null
+          loja_id?: string | null
+          status?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          duracao_minutos?: number
+          gravacao_url?: string | null
+          id?: string
+          inicio?: string
+          instrutor?: string | null
+          link_transmissao?: string | null
+          loja_id?: string | null
+          status?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aulas_ao_vivo_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aulas_ao_vivo_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       automation_configs: {
         Row: {
           agency_id: string | null
@@ -9015,6 +9171,7 @@ export type Database = {
       }
       get_pdi_form_template: { Args: { p_cargo_id: string }; Returns: Json }
       get_pdi_print_bundle: { Args: { p_sessao_id: string }; Returns: Json }
+      get_prova_aula: { Args: { p_aula_id: string }; Returns: Json }
       get_score: {
         Args: {
           p_period?: string
@@ -9191,6 +9348,10 @@ export type Database = {
           p_type?: string
         }
         Returns: string
+      }
+      submeter_prova_aula: {
+        Args: { p_aula_id: string; p_respostas: number[] }
+        Returns: Json
       }
       submit_checkin: { Args: { p_payload: Json }; Returns: Json }
       tem_papel_loja: {

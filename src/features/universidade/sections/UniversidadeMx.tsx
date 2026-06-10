@@ -9,6 +9,7 @@ import {
   type UniversidadeAulaTipo,
   type UniversidadePublico,
 } from '../hooks/useUniversidadeMx'
+import { AulasAoVivoSection } from './AulasAoVivoSection'
 
 /**
  * Universidade MX — Sprint 2 (S2-T4).
@@ -250,6 +251,8 @@ export function UniversidadeMx({ userId }: Props) {
           ))}
         </div>
       )}
+
+      <AulasAoVivoSection />
     </section>
   )
 }

@@ -27,6 +27,7 @@ import {
     recommendDevelopmentThemeFromGap,
     type DevelopmentTheme,
 } from '@/lib/development-content'
+import { AulasAoVivoSection } from '@/features/universidade/sections/AulasAoVivoSection'
 
 export default function VendedorTreinamentos() {
     const { treinamentos, loading, error, markWatched, rateTraining, suggestContent, refetch } = useTrainings()
@@ -160,6 +161,8 @@ export default function VendedorTreinamentos() {
                     </div>
                 </div>
             </Card>
+
+            <AulasAoVivoSection />
 
             <div className="relative group w-full lg:w-mx-card-lg shrink-0 mb-4">
                 <Search className="absolute left-mx-5 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" size={18} />

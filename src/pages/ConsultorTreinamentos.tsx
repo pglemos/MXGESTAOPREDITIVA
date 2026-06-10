@@ -14,6 +14,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
+import { AulasAoVivoSection } from '@/features/universidade/sections/AulasAoVivoSection'
 
 const types = ['prospeccao', 'agendamento', 'atendimento', 'apresentacao', 'financiamento', 'carro_de_troca', 'fechamento', 'funil', 'rotina_diaria', 'crm', 'institucional', 'gestao', 'pre-vendas']
 const audiences = ['vendedor', 'gerente', 'dono', 'todos']
@@ -169,6 +170,8 @@ export default function ConsultorTreinamentos() {
                     </motion.section>
                 )}
             </AnimatePresence>
+
+            <AulasAoVivoSection />
 
             {suggestions.length > 0 && (
                 <Card className="p-mx-lg border-none shadow-mx-xl bg-white">
