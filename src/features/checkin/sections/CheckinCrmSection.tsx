@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Store, Users, Globe, UserPlus, ClipboardList } from 'lucide-react'
+import { Store, Users, Globe, UserPlus, ClipboardList, Sparkles, CalendarClock } from 'lucide-react'
 import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
@@ -12,6 +12,7 @@ import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
 import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
 import {
   CRM_CANAIS, CRM_CANAL_LABEL,
+  toDateOnlyBR,
   type CrmCanal,
 } from '@/lib/schemas/crm.schema'
 
@@ -32,7 +33,14 @@ export function CheckinCrmSection() {
   const { porCanal, registrarAtendimento } = useAtendimentos()
   const { clientes, metrics: clienteMetrics, createCliente } = useClientes()
   const { funil, createOportunidade } = useOportunidades()
-  const { metrics: agendaMetrics } = useAgendamentos()
+  const { agendamentos, metrics: agendaMetrics } = useAgendamentos()
+
+  const hojeStr = toDateOnlyBR()
+  const amanhaStr = toDateOnlyBR(new Date(Date.now() + 86400000))
+  const leadsHoje = (c: CrmCanal) =>
+    clientes.filter(cliente => cliente.canal_origem === c && cliente.created_at && toDateOnlyBR(new Date(cliente.created_at)) === hojeStr).length
+  const agendamentosAmanha = (c: CrmCanal) =>
+    agendamentos.filter(a => a.canal === c && toDateOnlyBR(new Date(a.data_hora)) === amanhaStr).length
 
   const [nome, setNome] = useState('')
   const [telefone, setTelefone] = useState('')
@@ -86,6 +94,25 @@ export function CheckinCrmSection() {
           <ChannelCounter icon={<Users size={22} />} label="Porta" value={porCanal.porta} onAdd={() => handleRegistrar('porta')} />
         </div>
       </Card>
+
+      <div className="grid grid-cols-1 gap-mx-lg lg:grid-cols-2">
+        <Card className="border-none bg-white p-mx-lg shadow-mx-md">
+          <div className="flex items-center gap-mx-sm"><Sparkles size={18} /><Typography variant="h3" className="uppercase tracking-tight">Leads Recebidos Hoje</Typography></div>
+          <Typography variant="caption" tone="muted">Clientes cadastrados hoje na carteira, por canal de origem.</Typography>
+          <div className="mt-mx-md grid grid-cols-2 gap-mx-md">
+            <ResumoItem label="Carteira" value={String(leadsHoje('carteira'))} />
+            <ResumoItem label="Internet" value={String(leadsHoje('internet'))} />
+          </div>
+        </Card>
+        <Card className="border-none bg-white p-mx-lg shadow-mx-md">
+          <div className="flex items-center gap-mx-sm"><CalendarClock size={18} /><Typography variant="h3" className="uppercase tracking-tight">Agendamentos D+1</Typography></div>
+          <Typography variant="caption" tone="muted">Agendamentos marcados para amanhã, por canal. Crie novos na Central de Execução.</Typography>
+          <div className="mt-mx-md grid grid-cols-2 gap-mx-md">
+            <ResumoItem label="Carteira" value={String(agendamentosAmanha('carteira'))} />
+            <ResumoItem label="Internet" value={String(agendamentosAmanha('internet'))} />
+          </div>
+        </Card>
+      </div>
 
       <Card className="border-none bg-white p-mx-lg shadow-mx-md">
         <div className="flex items-center gap-mx-sm"><UserPlus size={18} /><Typography variant="h3" className="uppercase tracking-tight">Cadastrar Novo Cliente</Typography></div>
