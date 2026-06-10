@@ -385,125 +385,6 @@ export default function Layout() {
         }
       : null
 
-  if (role === 'vendedor') {
-    const vendedorItems = [
-      { label: 'Dashboard', path: '/home', icon: <Home size={19} /> },
-      { label: 'Fechamento Diário', path: '/lancamento-diario', icon: <CalendarCheck size={19} /> },
-      { label: 'Central de Execução', path: '/central-execucao', icon: <Sparkles size={19} /> },
-      { label: 'Funil de Vendas', path: '/meu-funil', icon: <Filter size={19} /> },
-      { label: 'Carteira de Clientes', path: '/carteira-clientes', icon: <Users size={19} /> },
-      { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={19} />, children: [
-        { label: 'Biblioteca', path: '/treinamentos?tab=biblioteca' },
-        { label: 'Trilha', path: '/treinamentos?tab=trilha' },
-        { label: 'Aulas ao Vivo', path: '/treinamentos?tab=aulas' },
-      ] },
-      { label: 'Feedback', path: '/devolutivas', icon: <MessageSquare size={19} /> },
-      { label: 'PDI', path: '/pdi', icon: <Trophy size={19} /> },
-      { label: 'Ranking', path: '/classificacao', icon: <TrendingUp size={19} /> },
-      { label: 'Meu Perfil', path: '/perfil', icon: <User size={19} /> },
-    ]
-
-    const isPathActive = (path: string) => {
-      const [pathname, search = ''] = path.split('?')
-      if (location.pathname !== pathname) return false
-      if (!search) return true
-      return location.search === `?${search}`
-    }
-
-    return (
-      <div className="flex min-h-screen bg-white">
-        <aside className="hidden w-[220px] shrink-0 flex-col bg-sidebar-bg-strong text-sidebar-text md:flex">
-          <div className="flex h-[118px] items-center justify-center border-b border-sidebar-border px-mx-lg">
-            <button type="button" onClick={() => navigate('/home')} className="flex flex-col items-center gap-1 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-status-info/30">
-              <img src={MxLogo} alt="" className="h-mx-14 w-auto object-contain" aria-hidden="true" />
-              <span className="text-3xl font-black leading-none tracking-tighter text-status-info">MX</span>
-              <span className="text-[11px] font-black uppercase leading-none tracking-wide text-white/80">Performance</span>
-            </button>
-          </div>
-
-          <nav className="flex flex-1 flex-col gap-mx-xs overflow-y-auto px-mx-sm py-mx-lg" aria-label="Menu do vendedor">
-            {vendedorItems.map(item => {
-              const active = isPathActive(item.path) || (item.path === '/treinamentos' && location.pathname === '/treinamentos')
-              return (
-                <div key={item.label}>
-                  <Link
-                    to={item.path}
-                    aria-current={active ? 'page' : undefined}
-                    className={cn(
-                      'flex h-mx-12 items-center gap-mx-sm rounded-mx-md px-mx-sm text-sm font-black transition-colors',
-                      active ? 'bg-status-info text-white shadow-mx-md' : 'text-sidebar-text hover:bg-sidebar-item-hover',
-                    )}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </Link>
-                  {item.children && location.pathname === '/treinamentos' && (
-                    <div className="ml-mx-lg mt-mx-xs border-l border-sidebar-border pl-mx-md">
-                      {item.children.map(child => {
-                        const childActive = isPathActive(child.path)
-                        return (
-                          <Link
-                            key={child.label}
-                            to={child.path}
-                            className={cn(
-                              'relative block rounded-mx-sm px-mx-xs py-mx-xs text-sm font-black transition-colors',
-                              childActive ? 'text-status-info' : 'text-sidebar-text-muted hover:text-white',
-                            )}
-                          >
-                            {childActive && <span className="absolute -left-[21px] top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-status-info" />}
-                            {child.label}
-                          </Link>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </nav>
-
-          <div className="p-mx-sm">
-            <button
-              type="button"
-              onClick={() => navigate(storeConsultorIaPath)}
-              className="mb-mx-sm flex w-full items-center gap-mx-sm rounded-mx-md border border-sidebar-border bg-white/5 p-mx-sm text-left text-white transition-colors hover:bg-white/10"
-            >
-              <Bot size={22} />
-              <span>
-                <span className="block text-sm font-black">Precisa de ajuda?</span>
-                <span className="block text-xs font-bold text-sidebar-text-muted">Fale com o suporte</span>
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => signOut()}
-              className="flex h-mx-10 w-full items-center justify-center gap-mx-xs rounded-mx-md text-sm font-black text-sidebar-text-muted hover:bg-white/10 hover:text-white"
-            >
-              <LogOut size={17} /> Sair
-            </button>
-          </div>
-        </aside>
-
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex h-mx-16 items-center justify-between border-b border-border-default bg-white px-mx-md md:hidden">
-            <img src={MxLogo} alt="MX Performance" className="h-mx-10 w-auto object-contain" />
-            <button type="button" onClick={() => setMobileMenuOpen(true)} aria-label="Abrir menu" className="rounded-mx-md p-mx-xs text-text-primary">
-              <Menu size={24} />
-            </button>
-          </header>
-          {isSimulating && (
-            <section className="bg-mx-black px-mx-md py-mx-xs text-sm font-black text-white">
-              Simulação {simulationRole ? rotulosPerfil[simulationRole] : 'MX'} ativa
-            </section>
-          )}
-          <main className="min-h-0 flex-1 overflow-hidden bg-white" id="main-content" role="main" tabIndex={-1}>
-            <Outlet />
-          </main>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen bg-surface-alt flex flex-col">
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-brand-primary focus:text-white focus:rounded-mx-xl focus:shadow-mx-xl">
@@ -600,7 +481,7 @@ export default function Layout() {
           aria-label="Menu Lateral Principal"
         >
           <nav className="flex flex-col items-center gap-mx-sm w-full" aria-label="Módulos de Gestão">
-            {role === 'gerente' || role === 'dono' ? (
+            {role === 'vendedor' || role === 'gerente' || role === 'dono' ? (
               // Vendedor + Gerente + Dono: items renderizados diretamente como
               // NavLinks na sidebar (sem drawer). Preserva as secoes do navConfig
               // com separadores visuais sutis entre grupos (ex: Home | CENTRAL MX
@@ -897,14 +778,26 @@ export default function Layout() {
       <nav className="md:hidden fixed left-mx-sm right-mx-sm h-mx-16 bg-mx-black shadow-2xl rounded-mx-2xl z-50 flex items-center px-mx-sm py-mx-tiny border border-white/10 overflow-hidden" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.5rem)' }} aria-label="Barra de Navegação Rápida">
         <div className="grid w-full grid-cols-5 items-center gap-mx-tiny relative z-10">
           <NavLink
-            to={isPerfilInternoMx(role) ? '/painel' : role === 'gerente' || role === 'dono' ? storeDashboardPath : '/lojas'}
+            to={role === 'vendedor' ? '/home' : isPerfilInternoMx(role) ? '/painel' : role === 'gerente' || role === 'dono' ? storeDashboardPath : '/lojas'}
             aria-label="Início"
-            aria-current={location.pathname === (isPerfilInternoMx(role) ? '/painel' : role === 'gerente' || role === 'dono' ? storeDashboardPath : '/lojas') ? 'page' : undefined}
+            aria-current={location.pathname === (role === 'vendedor' ? '/home' : isPerfilInternoMx(role) ? '/painel' : role === 'gerente' || role === 'dono' ? storeDashboardPath : '/lojas') ? 'page' : undefined}
             className="min-w-0 h-mx-12 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
           >
-            <LayoutDashboard size={20} />
+            {role === 'vendedor' ? <Home size={20} /> : <LayoutDashboard size={20} />}
             <span className="max-w-full truncate text-mx-micro font-black uppercase leading-none">Início</span>
           </NavLink>
+          
+          {role === 'vendedor' && (
+            <NavLink
+              to="/lancamento-diario"
+              aria-label="Fazer Lançamento Diário"
+              aria-current={location.pathname === '/lancamento-diario' ? 'page' : undefined}
+              className="min-w-0 h-mx-12 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+            >
+              <CheckSquare size={20} />
+              <span className="max-w-full truncate text-mx-micro font-black uppercase leading-none">Lançar</span>
+            </NavLink>
+          )}
 
           {(role === 'gerente' || role === 'dono' || isPerfilInternoMx(role)) && (
             <NavLink 
