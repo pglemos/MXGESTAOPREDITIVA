@@ -20,47 +20,40 @@ import { Modal } from '@/components/organisms/Modal'
 import { cn } from '@/lib/utils'
 import { useAulasAoVivo, type AulaAoVivo, type ProvaAula } from '@/hooks/useAulasAoVivo'
 
-const INSTRUCTOR_IMAGE = 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=600&q=80'
-
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' })
 
 const formatHour = (iso: string) =>
   new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 
-function fallbackAula(): AulaAoVivo {
-  const next = new Date()
-  next.setDate(next.getDate() + 3)
-  next.setHours(10, 0, 0, 0)
-  return {
-    id: 'fallback-aula-ao-vivo',
-    loja_id: null,
-    titulo: 'Como aumentar agendamentos na internet',
-    descricao: 'Técnicas práticas para transformar leads em agendamentos qualificados.',
-    instrutor: 'Marcos Andrade',
-    inicio: next.toISOString(),
-    duracao_minutos: 90,
-    link_transmissao: null,
-    gravacao_url: null,
-    status: 'agendada',
-  }
+/** Link "adicionar ao calendário" (Google Calendar template) para a aula real. */
+function calendarUrl(aula: AulaAoVivo): string {
+  const start = new Date(aula.inicio)
+  const end = new Date(start.getTime() + aula.duracao_minutos * 60000)
+  const fmt = (d: Date) => d.toISOString().replace(/[-:]|\.\d{3}/g, '')
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: aula.titulo,
+    dates: `${fmt(start)}/${fmt(end)}`,
+    details: aula.descricao || 'Aula ao vivo MX Performance',
+  })
+  return `https://calendar.google.com/calendar/render?${params.toString()}`
 }
 
 export function AulasAoVivoSection() {
-  const { proximaAula, futuras, gravacoes, indicadores, presencaPorAula, getProva, submeterProva } = useAulasAoVivo()
+  const { aulas, proximaAula, futuras, gravacoes, indicadores, presencaPorAula, loading, getProva, submeterProva } = useAulasAoVivo()
   const [provaAula, setProvaAula] = useState<AulaAoVivo | null>(null)
   const [prova, setProva] = useState<ProvaAula | null>(null)
   const [respostas, setRespostas] = useState<number[]>([])
   const [enviando, setEnviando] = useState(false)
-  const aulaPrincipal = proximaAula || futuras[0] || fallbackAula()
-  const agenda = futuras.length ? futuras.slice(0, 3) : [aulaPrincipal]
+  const aulaPrincipal = proximaAula || futuras[0] || null
+  const agenda = futuras.slice(0, 3)
   const gravacoesDisplay = gravacoes.slice(0, 3)
+  const horasConteudo = aulas
+    .filter(aula => presencaPorAula.get(aula.id)?.aprovado)
+    .reduce((acc, aula) => acc + aula.duracao_minutos, 0)
 
   async function abrirProva(aula: AulaAoVivo) {
-    if (aula.id === 'fallback-aula-ao-vivo') {
-      toast.info('A prova aparece aqui quando uma aula real for cadastrada.')
-      return
-    }
     const { prova: p, error } = await getProva(aula.id)
     if (error || !p) {
       toast.error(error || 'Prova indisponível.')
@@ -100,22 +93,23 @@ export function AulasAoVivoSection() {
           <Typography variant="h2" className="text-3xl tracking-normal">Aulas ao Vivo</Typography>
           <Typography variant="p" tone="muted">Participe das aulas ao vivo, faça a prova e valide sua presença para ganhar pontos no Score.</Typography>
         </div>
-        <Button variant="outline"><PlayCircle size={16} /> Como funciona</Button>
+        <Button variant="outline" onClick={() => document.getElementById('aulas-como-funciona')?.scrollIntoView({ behavior: 'smooth' })}><PlayCircle size={16} /> Como funciona</Button>
       </div>
 
       <div className="grid grid-cols-1 gap-mx-xl xl:grid-cols-[minmax(0,1fr)_420px]">
         <div className="space-y-mx-lg">
           <div>
             <Typography variant="h3" className="mb-mx-sm uppercase">Próxima Aula ao Vivo</Typography>
+            {aulaPrincipal ? (
             <div className="grid grid-cols-1 overflow-hidden rounded-mx-lg border border-border-default bg-white shadow-mx-sm lg:grid-cols-[minmax(0,1fr)_260px]">
               <div className="grid min-h-[220px] grid-cols-[100px_minmax(0,260px)_1fr] bg-sidebar-bg-strong text-white">
                 <div className="flex flex-col items-center justify-center bg-status-info text-white">
-                  <Badge variant="info" className="mb-mx-sm rounded-mx-md">Ao vivo</Badge>
+                  <Badge variant="info" className="mb-mx-sm rounded-mx-md">{aulaPrincipal.status === 'ao_vivo' ? 'Ao vivo' : 'Agendada'}</Badge>
                   <span className="text-sm font-black uppercase">{formatDate(aulaPrincipal.inicio).slice(0, 3)}</span>
                   <span className="text-5xl font-black leading-none">{new Date(aulaPrincipal.inicio).getDate()}</span>
                   <span className="text-xl font-black uppercase">{new Date(aulaPrincipal.inicio).toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}</span>
                 </div>
-                <div className="bg-cover bg-center" style={{ backgroundImage: `url(${INSTRUCTOR_IMAGE})` }} />
+                <div className="grid place-items-center bg-white/5"><Video size={56} className="text-white/40" /></div>
                 <div className="flex flex-col justify-center p-mx-lg">
                   <Typography variant="h2" tone="white" className="text-2xl">{aulaPrincipal.titulo}</Typography>
                   {aulaPrincipal.descricao && <Typography variant="p" tone="white" className="mt-mx-xs opacity-75">{aulaPrincipal.descricao}</Typography>}
@@ -134,15 +128,26 @@ export function AulasAoVivoSection() {
                     <a href={aulaPrincipal.link_transmissao} target="_blank" rel="noreferrer"><Video size={16} /> Participar da aula</a>
                   </Button>
                 ) : (
-                  <Button className="h-mx-14" onClick={() => toast.info('Link liberado quando a aula real estiver cadastrada.')}><Video size={16} /> Participar da aula</Button>
+                  <Button className="h-mx-14" disabled><Video size={16} /> Link ainda não liberado</Button>
                 )}
-                <Button variant="outline" className="h-mx-14"><CalendarDays size={16} /> Adicionar ao calendário</Button>
-                <Button variant="ghost" onClick={() => abrirProva(aulaPrincipal)}>Ver detalhes <ChevronRight size={16} /></Button>
+                <Button asChild variant="outline" className="h-mx-14">
+                  <a href={calendarUrl(aulaPrincipal)} target="_blank" rel="noreferrer"><CalendarDays size={16} /> Adicionar ao calendário</a>
+                </Button>
+                <Button variant="ghost" onClick={() => abrirProva(aulaPrincipal)}>Fazer a prova <ChevronRight size={16} /></Button>
               </div>
             </div>
+            ) : (
+            <div className="grid min-h-[220px] place-items-center rounded-mx-lg border border-border-default bg-white p-mx-lg text-center shadow-mx-sm">
+              <div>
+                <Video size={36} className="mx-auto text-text-tertiary" />
+                <Typography variant="p" className="mt-mx-sm font-black">{loading ? 'Carregando aulas...' : 'Nenhuma aula ao vivo agendada'}</Typography>
+                {!loading && <Typography variant="caption" tone="muted" className="normal-case tracking-normal">Quando sua loja ou a MX agendar uma aula, ela aparece aqui com link, prova e presença.</Typography>}
+              </div>
+            </div>
+            )}
           </div>
 
-          <div>
+          <div id="aulas-como-funciona">
             <Typography variant="h3" className="mb-mx-md uppercase">Como funciona</Typography>
             <div className="grid grid-cols-1 gap-mx-md md:grid-cols-4">
               <Step icon={<CalendarDays size={24} />} title="1. Participe da aula" text="Participe ao vivo ou assista a gravação." />
@@ -155,10 +160,10 @@ export function AulasAoVivoSection() {
           <Card className="rounded-mx-lg border border-border-default bg-status-info-surface p-mx-lg shadow-none">
             <Typography variant="h3" className="uppercase">Suas aulas recentes</Typography>
             <div className="mt-mx-md grid grid-cols-1 gap-mx-md md:grid-cols-4">
-              <MiniMetric icon={<CalendarDays size={22} />} value={String(indicadores.presencasValidadas || 7)} label="Presenças validadas" hint="nos últimos 30 dias" />
-              <MiniMetric icon={<CheckCircle size={22} />} value={indicadores.mediaProvas === null ? '87%' : `${indicadores.mediaProvas}%`} label="Média de acertos" hint="nas provas" />
-              <MiniMetric icon={<Award size={22} />} value={String(indicadores.pontos || 210)} label="Pontos conquistados" hint="com aulas ao vivo" />
-              <MiniMetric icon={<Clock size={22} />} value="7h 30m" label="Horas de conteúdo" hint="nos últimos 30 dias" />
+              <MiniMetric icon={<CalendarDays size={22} />} value={String(indicadores.presencasValidadas)} label="Presenças validadas" hint="provas aprovadas" />
+              <MiniMetric icon={<CheckCircle size={22} />} value={indicadores.mediaProvas === null ? '—' : `${indicadores.mediaProvas}%`} label="Média de acertos" hint={indicadores.mediaProvas === null ? 'nenhuma prova feita' : 'nas provas'} />
+              <MiniMetric icon={<Award size={22} />} value={String(indicadores.pontos)} label="Pontos conquistados" hint="com aulas ao vivo" />
+              <MiniMetric icon={<Clock size={22} />} value={horasConteudo > 0 ? `${Math.floor(horasConteudo / 60)}h ${horasConteudo % 60 ? `${horasConteudo % 60}m` : ''}`.trim() : '—'} label="Horas de conteúdo" hint="em aulas com presença" />
             </div>
           </Card>
         </div>
@@ -167,9 +172,11 @@ export function AulasAoVivoSection() {
           <Card className="rounded-mx-lg border border-border-default p-mx-lg shadow-none">
             <div className="mb-mx-sm flex items-center justify-between">
               <Typography variant="h3" className="uppercase">Agenda de Aulas</Typography>
-              <Button variant="ghost" className="px-0">Ver calendário completo <ChevronRight size={16} /></Button>
             </div>
             <div className="divide-y divide-border-default">
+              {agenda.length === 0 && (
+                <Typography variant="caption" tone="muted" className="block py-mx-sm normal-case tracking-normal">Sem próximas aulas na agenda.</Typography>
+              )}
               {agenda.map((aula) => (
                 <button key={aula.id} type="button" onClick={() => abrirProva(aula)} className="flex w-full items-center gap-mx-md py-mx-sm text-left">
                   <div className="flex h-mx-16 w-mx-14 shrink-0 flex-col items-center justify-center rounded-mx-md bg-surface-alt">
@@ -186,21 +193,22 @@ export function AulasAoVivoSection() {
                 </button>
               ))}
             </div>
-            <Button variant="ghost" className="mt-mx-sm w-full">Ver todas as próximas aulas <ChevronRight size={16} /></Button>
           </Card>
 
           <Card className="rounded-mx-lg border border-border-default p-mx-lg shadow-none">
             <div className="mb-mx-sm flex items-center justify-between">
               <Typography variant="h3" className="uppercase">Gravações disponíveis</Typography>
-              <Button variant="ghost" className="px-0">Ver todas <ChevronRight size={16} /></Button>
             </div>
             <div className="space-y-mx-sm">
-              {(gravacoesDisplay.length ? gravacoesDisplay : [aulaPrincipal]).map((aula, index) => {
+              {gravacoesDisplay.length === 0 && (
+                <Typography variant="caption" tone="muted" className="block normal-case tracking-normal">Nenhuma gravação disponível ainda.</Typography>
+              )}
+              {gravacoesDisplay.map((aula) => {
                 const presenca = presencaPorAula.get(aula.id)
-                return (
-                  <div key={`${aula.id}-${index}`} className="flex items-center gap-mx-sm">
-                    <div className="relative h-mx-16 w-mx-24 shrink-0 overflow-hidden rounded-mx-md bg-cover bg-center" style={{ backgroundImage: `url(${INSTRUCTOR_IMAGE})` }}>
-                      <span className="absolute inset-0 grid place-items-center bg-mx-black/35 text-white"><PlayCircle size={28} /></span>
+                const conteudo = (
+                  <>
+                    <div className="relative grid h-mx-16 w-mx-24 shrink-0 place-items-center overflow-hidden rounded-mx-md bg-sidebar-bg-strong text-white">
+                      <PlayCircle size={28} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <Typography variant="p" className="truncate font-black text-text-primary">{aula.titulo}</Typography>
@@ -209,13 +217,19 @@ export function AulasAoVivoSection() {
                     </div>
                     <div className="text-right">
                       <Typography variant="tiny" tone="muted" className="tracking-normal">Nota</Typography>
-                      <Typography variant="p" className="font-black text-text-primary">{presenca?.nota ?? [90, 85, 80][index] ?? 80}%</Typography>
+                      <Typography variant="p" className="font-black text-text-primary">{presenca?.nota !== null && presenca?.nota !== undefined ? `${presenca.nota}%` : '—'}</Typography>
                     </div>
-                  </div>
+                  </>
+                )
+                return aula.gravacao_url ? (
+                  <a key={aula.id} href={aula.gravacao_url} target="_blank" rel="noreferrer" className="flex items-center gap-mx-sm rounded-mx-md transition-colors hover:bg-surface-alt">
+                    {conteudo}
+                  </a>
+                ) : (
+                  <div key={aula.id} className="flex items-center gap-mx-sm">{conteudo}</div>
                 )
               })}
             </div>
-            <Button variant="ghost" className="mt-mx-sm w-full">Ver todas as gravações <ChevronRight size={16} /></Button>
           </Card>
         </aside>
       </div>
@@ -229,7 +243,6 @@ export function AulasAoVivoSection() {
               <Typography variant="p" tone="muted">Participe, aprenda e aplique. Cada aula é uma oportunidade de evoluir e se destacar.</Typography>
             </div>
           </div>
-          <Button variant="outline"><Medal size={16} /> Ver meus certificados</Button>
         </div>
       </Card>
 

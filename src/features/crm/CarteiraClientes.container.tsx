@@ -204,10 +204,10 @@ export function CarteiraClientes() {
             </button>
             <div className="flex items-center gap-mx-sm">
               <span className="flex h-mx-12 w-mx-12 items-center justify-center rounded-full bg-brand-primary text-sm font-black text-white">
-                {getInitials(profile?.name || 'João Silva')}
+                {getInitials(profile?.name || 'Vendedor')}
               </span>
               <div>
-                <Typography variant="p" className="font-black">{profile?.name || 'João Silva'}</Typography>
+                <Typography variant="p" className="font-black">{profile?.name || 'Vendedor'}</Typography>
                 <Typography variant="caption" tone="muted">Vendedor</Typography>
               </div>
               <ChevronDown size={18} className="text-text-muted" />

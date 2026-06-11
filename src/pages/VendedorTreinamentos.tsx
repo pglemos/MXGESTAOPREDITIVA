@@ -42,6 +42,7 @@ import {
 } from '@/lib/development-content'
 import { cn } from '@/lib/utils'
 import { AulasAoVivoSection } from '@/features/universidade/sections/AulasAoVivoSection'
+import { useAulasAoVivo } from '@/hooks/useAulasAoVivo'
 
 type TrainingTab = 'overview' | 'biblioteca' | 'trilha' | 'aulas'
 
@@ -75,12 +76,24 @@ const THEME_LABELS: Partial<Record<DevelopmentTheme, string>> = {
   institucional: 'Institucional',
 }
 
-const modules = [
-  { title: 'Negociação Estratégica', subtitle: 'Técnicas avançadas para conduzir negociações e aumentar sua taxa de fechamento.', done: 6, total: 6, score: 100, icon: Target },
-  { title: 'Gestão de Clientes e Carteira', subtitle: 'Como gerir sua carteira, aumentar indicações e manter clientes ativos.', done: 4, total: 5, score: 80, icon: Route, open: true },
-  { title: 'Alta Performance e Produtividade', subtitle: 'Métodos e hábitos para produzir mais e ter consistência todos os dias.', done: 3, total: 5, score: 60, icon: TrendingUp },
-  { title: 'Liderança e Influência', subtitle: 'Desenvolva sua influência, postura e capacidade de liderar resultados.', done: 0, total: 5, score: 0, icon: Star },
+const MODULE_THEMES: Array<{ theme: DevelopmentTheme; title: string; subtitle: string; icon: typeof Target }> = [
+  { theme: 'fechamento', title: 'Negociação e Fechamento', subtitle: 'Técnicas para conduzir negociações e aumentar sua taxa de fechamento.', icon: Target },
+  { theme: 'crm', title: 'Gestão de Clientes e Carteira', subtitle: 'Como gerir sua carteira, aumentar indicações e manter clientes ativos.', icon: Route },
+  { theme: 'rotina_diaria', title: 'Alta Performance e Produtividade', subtitle: 'Métodos e hábitos para produzir mais e ter consistência todos os dias.', icon: TrendingUp },
+  { theme: 'gestao', title: 'Liderança e Influência', subtitle: 'Desenvolva sua influência, postura e capacidade de liderar resultados.', icon: Star },
 ]
+
+/** Módulos da trilha derivados dos treinamentos reais, agrupados por tema. */
+function buildModules(trainings: TrainingWithProgress[]) {
+  const modules = MODULE_THEMES.map(cfg => {
+    const items = filterDevelopmentContent(trainings, { theme: cfg.theme })
+    const done = items.filter(t => t.watched).length
+    const total = items.length
+    return { ...cfg, items, done, total, score: total > 0 ? Math.round((done / total) * 100) : 0 }
+  })
+  const firstOpenIndex = modules.findIndex(m => m.total > 0 && m.done < m.total)
+  return modules.map((m, index) => ({ ...m, open: index === (firstOpenIndex === -1 ? 0 : firstOpenIndex) }))
+}
 
 function todayLabel() {
   return new Intl.DateTimeFormat('pt-BR', {
@@ -109,8 +122,8 @@ export default function VendedorTreinamentos() {
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   const watched = useMemo(() => treinamentos.filter(t => t.watched).length, [treinamentos])
-  const total = treinamentos.length || 33
-  const progress = total > 0 ? Math.round((watched / total) * 100) || 72 : 72
+  const total = treinamentos.length
+  const progress = total > 0 ? Math.round((watched / total) * 100) : 0
   const filteredTrainings = useMemo(
     () => filterDevelopmentContent(treinamentos, { search: searchTerm, theme: selectedTheme }),
     [searchTerm, selectedTheme, treinamentos],
@@ -124,6 +137,9 @@ export default function VendedorTreinamentos() {
   )
   const libraryCards = filteredTrainings.length ? filteredTrainings : treinamentos
   const activeAssignment = assignments.find((assignment: { status?: string }) => assignment.status === 'active')
+  const trackName = (activeAssignment as { track?: { name?: string } } | undefined)?.track?.name || null
+  const modules = useMemo(() => buildModules(treinamentos), [treinamentos])
+  const { indicadores: aulasIndicadores } = useAulasAoVivo()
   const activeTrackProgress = activeAssignment
     ? trackProgress.filter((item: { assignment_id?: string }) => item.assignment_id === activeAssignment.id)
     : []
@@ -178,12 +194,12 @@ export default function VendedorTreinamentos() {
         <TrainingHeader profileName={profile?.name || 'João Silva'} avatarUrl={profile?.avatar_url || null} />
 
         <section className="grid grid-cols-1 gap-mx-sm md:grid-cols-3 xl:grid-cols-6" aria-label="Resumo de treinamentos">
-          <SummaryCard icon={<Medal size={22} />} label="Minha Trilha" value="N3 - Performance" hint="Ver minha trilha" />
-          <SummaryCard icon={<ProgressRing value={progress} />} label="Progresso da Trilha" value={`${progress}%`} hint={`${watched || 24} de ${total || 33} conteúdos`} />
-          <SummaryCard icon={<Clock size={22} />} label="Horas estudadas" value="8h 20m" hint="Este mês" tone="info" />
-          <SummaryCard icon={<CalendarDays size={22} />} label="Frequência" value="4 dias" hint="Nesta semana" tone="success" />
-          <SummaryCard icon={<Award size={22} />} label="Média nas provas" value="87%" hint="Aproveitamento geral" tone="brand" />
-          <SummaryCard icon={<TrendingUp size={22} />} label="Impacto no Score" value="15%" hint="Do Score do Vendedor" tone="warning" />
+          <SummaryCard icon={<Medal size={22} />} label="Minha Trilha" value={trackName || '—'} hint={trackName ? 'Trilha ativa' : 'Nenhuma trilha atribuída'} />
+          <SummaryCard icon={<ProgressRing value={progress} />} label="Progresso" value={`${progress}%`} hint={`${watched} de ${total} conteúdos`} />
+          <SummaryCard icon={<Clock size={22} />} label="Conteúdos concluídos" value={String(watched)} hint="no total" tone="info" />
+          <SummaryCard icon={<CalendarDays size={22} />} label="Presenças em aulas" value={String(aulasIndicadores.presencasValidadas)} hint="validadas por prova" tone="success" />
+          <SummaryCard icon={<Award size={22} />} label="Média nas provas" value={aulasIndicadores.mediaProvas === null ? '—' : `${aulasIndicadores.mediaProvas}%`} hint={aulasIndicadores.mediaProvas === null ? 'nenhuma prova feita' : 'aproveitamento geral'} tone="brand" />
+          <SummaryCard icon={<TrendingUp size={22} />} label="Impacto no Score" value="15%" hint="peso dos Treinamentos no Score" tone="warning" />
         </section>
 
         <nav className="flex border-b border-border-default" aria-label="Abas de treinamentos">
@@ -213,6 +229,8 @@ export default function VendedorTreinamentos() {
           <OverviewTab
             trainings={recommendedCards.length ? recommendedCards : treinamentos.slice(0, 3)}
             progress={progress}
+            modules={modules}
+            trackName={trackName}
             onStart={(training) => window.open(training.video_url, '_blank')}
             onOpenTrack={() => setTab('trilha')}
           />
@@ -236,7 +254,11 @@ export default function VendedorTreinamentos() {
 
         {activeTab === 'trilha' && (
           <TrilhaTab
-            trainings={treinamentos}
+            modules={modules}
+            trackName={trackName}
+            progress={progress}
+            watched={watched}
+            total={total}
             activeTrackProgress={activeTrackProgress}
             onOpenLibrary={() => setTab('biblioteca')}
             onWatch={(training) => window.open(training.video_url, '_blank')}
@@ -318,7 +340,9 @@ function ProgressRing({ value }: { value: number }) {
   )
 }
 
-function OverviewTab({ trainings, progress, onStart, onOpenTrack }: { trainings: TrainingWithProgress[]; progress: number; onStart: (training: TrainingWithProgress) => void; onOpenTrack: () => void }) {
+type TrilhaModule = ReturnType<typeof buildModules>[number]
+
+function OverviewTab({ trainings, progress, modules, trackName, onStart, onOpenTrack }: { trainings: TrainingWithProgress[]; progress: number; modules: TrilhaModule[]; trackName: string | null; onStart: (training: TrainingWithProgress) => void; onOpenTrack: () => void }) {
   return (
     <div className="grid grid-cols-1 gap-mx-xl xl:grid-cols-[minmax(0,1fr)_360px]">
       <section className="space-y-mx-lg">
@@ -350,22 +374,25 @@ function OverviewTab({ trainings, progress, onStart, onOpenTrack }: { trainings:
         <Card className="rounded-mx-lg border border-border-default p-mx-lg shadow-none">
           <Typography variant="h3" className="uppercase">Sua Trilha</Typography>
           <div className="mt-mx-md rounded-mx-lg bg-surface-alt p-mx-md">
-            <Typography variant="h3">N3 - Performance</Typography>
-            <Typography variant="p" tone="muted" className="mt-mx-xs">Para vendedores com mais experiência que querem elevar seus resultados.</Typography>
+            <Typography variant="h3">{trackName || 'Minha Trilha'}</Typography>
+            <Typography variant="p" tone="muted" className="mt-mx-xs">{trackName ? 'Trilha atribuída pelo seu gestor.' : 'Seu progresso por tema, baseado nos conteúdos liberados.'}</Typography>
             <Button className="mt-mx-md" onClick={onOpenTrack}>Ver minha trilha</Button>
           </div>
           <div className="mt-mx-md space-y-mx-sm">
-            {['Atendimento e Relacionamento', 'Prospecção e Leads', 'Negociação e Fechamento', 'Gestão de Carteira', 'Alta Performance'].map((label, index) => (
-              <div key={label}>
+            {modules.filter(m => m.total > 0).map((module, index) => (
+              <div key={module.title}>
                 <div className="mb-1 flex justify-between text-sm font-black text-text-primary">
-                  <span>{index + 1}. {label}</span>
-                  <span>{[5, 4, 6, 4, 5][index]}/{[6, 5, 8, 6, 8][index]}</span>
+                  <span>{index + 1}. {module.title}</span>
+                  <span>{module.done}/{module.total}</span>
                 </div>
                 <div className="h-1.5 rounded-full bg-border-default">
-                  <div className="h-1.5 rounded-full bg-status-success" style={{ width: `${[84, 80, 75, 66, 62][index]}%` }} />
+                  <div className="h-1.5 rounded-full bg-status-success" style={{ width: `${module.score}%` }} />
                 </div>
               </div>
             ))}
+            {modules.every(m => m.total === 0) && (
+              <Typography variant="caption" tone="muted" className="block normal-case tracking-normal">Nenhum conteúdo liberado para os temas da trilha ainda.</Typography>
+            )}
           </div>
         </Card>
       </aside>
@@ -472,24 +499,28 @@ function BibliotecaTab(props: {
   )
 }
 
-function TrilhaTab({ trainings, activeTrackProgress, onOpenLibrary, onWatch, onComplete, onRate }: {
-  trainings: TrainingWithProgress[]
+function TrilhaTab({ modules, trackName, progress, watched, total, activeTrackProgress, onOpenLibrary, onWatch, onComplete, onRate }: {
+  modules: TrilhaModule[]
+  trackName: string | null
+  progress: number
+  watched: number
+  total: number
   activeTrackProgress: Array<{ id?: string; status?: string }>
   onOpenLibrary: () => void
   onWatch: (training: TrainingWithProgress) => void
   onComplete: (training: TrainingWithProgress) => void
   onRate: (training: TrainingWithProgress, rating: number) => void
 }) {
-  const rows = trainings.slice(0, 5)
+  const moduloEmAndamento = modules.find(m => m.total > 0 && m.done < m.total) || null
   return (
     <div className="grid grid-cols-1 gap-mx-xl xl:grid-cols-[minmax(0,1fr)_360px]">
       <section className="space-y-mx-md">
         <div className="flex flex-col gap-mx-sm lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <Typography variant="h2" className="text-2xl tracking-normal">Minha Trilha: N3 - Performance</Typography>
-            <Typography variant="p" tone="muted">Conteúdos essenciais para vendedores com mais experiência que querem elevar seus resultados.</Typography>
+            <Typography variant="h2" className="text-2xl tracking-normal">Minha Trilha{trackName ? `: ${trackName}` : ''}</Typography>
+            <Typography variant="p" tone="muted">Seu progresso por tema, com os conteúdos reais liberados para você.</Typography>
           </div>
-          <Button variant="outline" onClick={onOpenLibrary}>Ver trilha completa <ExternalLink size={16} /></Button>
+          <Button variant="outline" onClick={onOpenLibrary}>Ver biblioteca completa <ExternalLink size={16} /></Button>
         </div>
 
         {modules.map((module, index) => {
@@ -514,10 +545,12 @@ function TrilhaTab({ trainings, activeTrackProgress, onOpenLibrary, onWatch, onC
                   </div>
                   <Typography variant="tiny" tone="muted" className="tracking-normal">{module.done} de {module.total} conteúdos</Typography>
                 </div>
-                <Button variant={module.score === 100 ? 'ghost' : 'outline'}>{module.score === 100 ? 'Concluído' : module.score > 0 ? 'Continuar' : 'Começar'}</Button>
+                <Button variant={module.score === 100 ? 'ghost' : 'outline'} onClick={onOpenLibrary} disabled={module.total === 0}>
+                  {module.total === 0 ? 'Sem conteúdo' : module.score === 100 ? 'Concluído' : module.score > 0 ? 'Continuar' : 'Começar'}
+                </Button>
                 <ChevronRight size={18} className={cn('transition-transform', module.open && '-rotate-90')} />
               </div>
-              {module.open && (
+              {module.open && module.items.length > 0 && (
                 <div className="mt-mx-md overflow-x-auto rounded-mx-lg border border-border-default">
                   <table className="w-full min-w-[720px] text-left text-sm">
                     <thead className="bg-surface-alt text-xs font-black uppercase text-text-secondary">
@@ -526,13 +559,13 @@ function TrilhaTab({ trainings, activeTrackProgress, onOpenLibrary, onWatch, onC
                         <th>Tipo</th>
                         <th>Duração</th>
                         <th>Progresso</th>
-                        <th>Sua nota</th>
+                        <th>Sua avaliação</th>
                         <th />
                       </tr>
                     </thead>
                     <tbody>
-                      {rows.map((training, rowIndex) => (
-                        <tr key={training.id} className={cn('border-t border-border-default', rowIndex === 3 && 'bg-status-info-surface/50')}>
+                      {module.items.slice(0, 6).map(training => (
+                        <tr key={training.id} className="border-t border-border-default">
                           <td className="px-mx-md py-mx-sm">
                             <button type="button" onClick={() => onWatch(training)} className="inline-flex items-center gap-mx-sm font-black text-text-primary">
                               {training.watched ? <CheckCircle size={18} className="text-status-success" /> : <Play size={18} className="text-status-info" />}
@@ -540,12 +573,12 @@ function TrilhaTab({ trainings, activeTrackProgress, onOpenLibrary, onWatch, onC
                             </button>
                           </td>
                           <td><Badge variant="outline">Aula</Badge></td>
-                          <td>{training.duration_minutes || 18} min</td>
-                          <td><div className="h-1.5 w-mx-20 rounded-full bg-border-default"><div className={cn('h-1.5 rounded-full', training.watched ? 'bg-status-success' : 'bg-status-info')} style={{ width: training.watched ? '100%' : '60%' }} /></div></td>
-                          <td>{training.watched ? '90%' : '-'}</td>
+                          <td>{training.duration_minutes ? `${training.duration_minutes} min` : '—'}</td>
+                          <td><div className="h-1.5 w-mx-20 rounded-full bg-border-default"><div className={cn('h-1.5 rounded-full', training.watched ? 'bg-status-success' : 'bg-status-info')} style={{ width: training.watched ? '100%' : '0%' }} /></div></td>
+                          <td>{training.user_rating ? `${training.user_rating}/5` : '—'}</td>
                           <td>
                             {training.watched ? (
-                              <button type="button" onClick={() => onRate(training, 5)} className="text-status-warning"><Star size={16} /></button>
+                              <button type="button" aria-label="Avaliar com 5 estrelas" onClick={() => onRate(training, 5)} className="text-status-warning"><Star size={16} /></button>
                             ) : (
                               <Button variant="ghost" size="sm" onClick={() => onComplete(training)}>Concluir</Button>
                             )}
@@ -564,30 +597,36 @@ function TrilhaTab({ trainings, activeTrackProgress, onOpenLibrary, onWatch, onC
       <aside className="space-y-mx-md">
         <Card className="rounded-mx-lg border border-border-default p-mx-lg shadow-none">
           <Typography variant="h3">Sobre sua Trilha</Typography>
-          <Typography variant="p" tone="muted" className="mt-mx-sm">Sua trilha é definida com base no seu tempo de mercado, experiência e desempenho.</Typography>
-          <dl className="mt-mx-md grid grid-cols-2 gap-mx-sm text-sm">
-            <dt className="text-text-tertiary">Seu nível atual</dt><dd className="font-black">Tempo de mercado</dd>
-            <dt className="text-text-tertiary">Experiência declarada</dt><dd className="font-black">Avançada</dd>
-          </dl>
-          <Button variant="ghost" className="mt-mx-sm justify-between px-0">Entenda como seu nível é definido <ChevronRight size={16} /></Button>
+          <Typography variant="p" tone="muted" className="mt-mx-sm">
+            {trackName
+              ? 'Sua trilha foi atribuída pelo seu gestor com base no seu momento e desempenho.'
+              : 'Os módulos agrupam os conteúdos liberados para você por tema. Trilhas por nível (N1–N4) serão definidas pelo seu gestor.'}
+          </Typography>
         </Card>
         <Card className="rounded-mx-lg border border-border-default p-mx-lg shadow-none">
-          <Typography variant="h3">Seu desempenho na Trilha</Typography>
-          <div className="mt-mx-md h-mx-48 rounded-mx-lg bg-status-info-surface p-mx-md">
-            <svg viewBox="0 0 280 120" className="h-full w-full" aria-hidden="true">
-              <polyline points="0,88 45,68 90,58 135,38 180,50 225,48 280,32" fill="none" stroke="var(--color-status-info)" strokeWidth="6" strokeLinecap="round" />
-              {[0, 45, 90, 135, 180, 225, 280].map((x, index) => <circle key={x} cx={x} cy={[88, 68, 58, 38, 50, 48, 32][index]} r="5" fill="var(--color-accent-purple)" />)}
-            </svg>
+          <Typography variant="h3">Seu progresso na Trilha</Typography>
+          <div className="mt-mx-md flex items-center gap-mx-md">
+            <div className="grid h-24 w-24 place-items-center rounded-full" style={{ background: `conic-gradient(var(--color-status-info) ${progress * 3.6}deg, var(--color-border-subtle) 0deg)` }}>
+              <div className="grid h-16 w-16 place-items-center rounded-full bg-white"><span className="text-xl font-black">{progress}%</span></div>
+            </div>
+            <div>
+              <Typography variant="h2" className="text-2xl">{watched} de {total}</Typography>
+              <Typography variant="p" tone="muted">conteúdos concluídos</Typography>
+            </div>
           </div>
-          <Typography variant="h2" tone="success" className="mt-mx-sm">+18%</Typography>
-          <Typography variant="p" tone="muted">nas últimas 4 semanas</Typography>
         </Card>
         <Card className="rounded-mx-lg border border-accent-purple/20 bg-accent-purple-soft p-mx-lg shadow-none">
           <div className="flex items-center gap-mx-sm">
             <Award size={26} className="text-accent-purple" />
-            <Typography variant="p" className="text-text-primary">Próxima conquista: conclua mais 2 conteúdos para finalizar o módulo.</Typography>
+            <Typography variant="p" className="text-text-primary">
+              {moduloEmAndamento
+                ? `Próxima conquista: conclua mais ${moduloEmAndamento.total - moduloEmAndamento.done} conteúdo${moduloEmAndamento.total - moduloEmAndamento.done === 1 ? '' : 's'} para finalizar "${moduloEmAndamento.title}".`
+                : 'Todos os módulos com conteúdo estão concluídos. 🎉'}
+            </Typography>
           </div>
-          <div className="mt-mx-sm h-2 rounded-full bg-white"><div className="h-2 w-2/3 rounded-full bg-accent-purple" /></div>
+          {moduloEmAndamento && (
+            <div className="mt-mx-sm h-2 rounded-full bg-white"><div className="h-2 rounded-full bg-accent-purple" style={{ width: `${moduloEmAndamento.score}%` }} /></div>
+          )}
           {activeTrackProgress.length > 0 && <Typography variant="tiny" tone="muted" className="mt-mx-xs block tracking-normal">Trilha ativa sincronizada com seu cadastro.</Typography>}
         </Card>
       </aside>
