@@ -1,22 +1,48 @@
+import { useMemo, useState } from 'react'
+import { toast } from 'sonner'
 import { AlertCircle, Bell, Calendar, CheckCircle2, MessageSquare, ThumbsUp, TrendingUp } from 'lucide-react'
 import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
+import { useFeedbacks } from '@/hooks/useData'
+import type { Feedback as Devolutiva } from '@/types/database'
 
-const pending = [
-  ['15', 'MAI', '2025', 'Desenvolvimento', 'Prospecção', 'Você possui bom relacionamento com os clientes, porém está realizando poucas prospecções ativas. Sua meta é realizar 5 contatos por dia e registrar no CRM.'],
-  ['10', 'MAI', '2025', 'Desenvolvimento', 'Agendamento de Visitas', 'Sua taxa de agendamento está abaixo da média da equipe. Foque em qualificar melhor os leads e sugerir horários alternativos para aumentar as chances de visita.'],
-  ['07', 'MAI', '2025', 'Positivo', 'Atendimento ao Cliente', 'Parabéns pelo excelente atendimento! Você demonstra empatia, escuta ativa e consegue gerar conexão com o cliente de forma natural. Continue assim!'],
-]
+type DevolutivaComNomes = Devolutiva & { manager?: { name: string } | null }
 
-const history = [
-  ['03/05/2025', 'Positivo', 'Relacionamento Interpessoal', 'Excelente parceria com a equipe e troca de informações. Você colabora e ajuda os colegas.', 'Pedro Almeida', '03/05/2025 às 16:45', 'Obrigado! Fico feliz com o reconhecimento.'],
-  ['28/04/2025', 'Desenvolvimento', 'Fechamento de Venda', 'Você tem conduzido bem as negociações, mas ainda pode trabalhar melhor os fechamentos, criando mais urgência e senso de oportunidade.', 'Pedro Almeida', '28/04/2025 às 11:32', 'Entendi! Vou aplicar mais gatilhos de urgência.'],
-  ['20/04/2025', 'Positivo', 'Carteira de Clientes', 'Parabéns pela organização da sua carteira! Clientes ativos e bem acompanhados.', 'Pedro Almeida', '20/04/2025 às 09:18', '—'],
-  ['12/04/2025', 'Desenvolvimento', 'Mídias Sociais', 'Precisamos aumentar sua frequência de publicações e interações para gerar mais autoridade e leads.', 'Pedro Almeida', '12/04/2025 às 14:20', 'Vou criar um cronograma de postagens.'],
-]
+const MES_CURTO = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ']
+
+const textoPrincipal = (f: Devolutiva) => f.action || f.attention_points || f.positives || 'Sem comentário registrado.'
 
 export default function VendedorFeedback() {
+  const { devolutivas, loading, acknowledge } = useFeedbacks()
+  const [confirmandoId, setConfirmandoId] = useState<string | null>(null)
+  const [filtro, setFiltro] = useState<'todos' | 'pendentes' | 'confirmados'>('todos')
+
+  const lista = devolutivas as DevolutivaComNomes[]
+  const pendentes = useMemo(() => lista.filter(f => !f.acknowledged), [lista])
+  const positivos = useMemo(() => lista.filter(f => Boolean(f.positives?.trim())).length, [lista])
+  const desenvolvimento = useMemo(() => lista.filter(f => Boolean(f.attention_points?.trim())).length, [lista])
+  const engajamento = lista.length > 0 ? Math.round(((lista.length - pendentes.length) / lista.length) * 100) : null
+  const historico = useMemo(() => {
+    if (filtro === 'pendentes') return lista.filter(f => !f.acknowledged)
+    if (filtro === 'confirmados') return lista.filter(f => f.acknowledged)
+    return lista
+  }, [filtro, lista])
+
+  const hojeLabel = `${new Date().toLocaleDateString('pt-BR')} (${new Date().toLocaleDateString('pt-BR', { weekday: 'long' })})`
+
+  async function confirmar(id: string) {
+    setConfirmandoId(id)
+    try {
+      await acknowledge(id)
+      toast.success('Leitura confirmada. Seu líder será notificado.')
+    } catch {
+      toast.error('Não foi possível confirmar agora. Tente novamente.')
+    } finally {
+      setConfirmandoId(null)
+    }
+  }
+
   return (
     <main className="h-full w-full overflow-y-auto bg-white p-mx-md md:p-mx-lg no-scrollbar">
       <div className="mx-auto flex max-w-[1500px] flex-col gap-mx-lg pb-20">
@@ -29,58 +55,84 @@ export default function VendedorFeedback() {
             </div>
           </div>
           <div className="hidden items-center gap-mx-lg md:flex">
-            <span className="flex items-center gap-mx-xs text-sm font-black"><Calendar size={17} /> 22/05/2025 (Quinta-feira)</span>
-            <span className="relative"><Bell size={21} /><b className="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full bg-status-error text-[10px] text-white">3</b></span>
+            <span className="flex items-center gap-mx-xs text-sm font-black"><Calendar size={17} /> {hojeLabel}</span>
+            <span className="relative">
+              <Bell size={21} />
+              {pendentes.length > 0 && <b className="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full bg-status-error text-[10px] text-white">{pendentes.length}</b>}
+            </span>
           </div>
         </header>
 
         <section className="grid gap-mx-sm md:grid-cols-2 xl:grid-cols-5">
-          <Metric icon={<MessageSquare size={22} />} label="Feedbacks recebidos" value="18" detail="nos últimos 90 dias" tone="blue" action="Ver todos" />
-          <Metric icon={<ThumbsUp size={22} />} label="Positivos" value="12" detail="67% do total" tone="green" action="Ver detalhes" />
-          <Metric icon={<TrendingUp size={22} />} label="Desenvolvimento" value="6" detail="33% do total" tone="orange" action="Ver detalhes" />
-          <Metric icon={<AlertCircle size={22} />} label="Pendentes" value="3" detail="aguardando sua confirmação" tone="red" action="Ver pendentes" />
-          <Metric icon={<CheckCircle2 size={22} />} label="Engajamento com feedback" value="95%" detail="dos feedbacks confirmados" tone="purple" action="Entenda o cálculo" />
+          <Metric icon={<MessageSquare size={22} />} label="Feedbacks recebidos" value={String(lista.length)} detail="devolutivas do seu líder" tone="blue" />
+          <Metric icon={<ThumbsUp size={22} />} label="Com pontos positivos" value={String(positivos)} detail={lista.length > 0 ? `${Math.round((positivos / lista.length) * 100)}% do total` : 'sem feedbacks ainda'} tone="green" />
+          <Metric icon={<TrendingUp size={22} />} label="Com pontos de desenvolvimento" value={String(desenvolvimento)} detail={lista.length > 0 ? `${Math.round((desenvolvimento / lista.length) * 100)}% do total` : 'sem feedbacks ainda'} tone="orange" />
+          <Metric icon={<AlertCircle size={22} />} label="Pendentes" value={String(pendentes.length)} detail="aguardando sua confirmação" tone="red" />
+          <Metric icon={<CheckCircle2 size={22} />} label="Engajamento com feedback" value={engajamento === null ? '—' : `${engajamento}%`} detail={engajamento === null ? 'sem base de cálculo' : 'dos feedbacks confirmados'} tone="purple" />
         </section>
 
         <div className="grid gap-mx-lg xl:grid-cols-[minmax(0,1fr)_330px]">
           <section>
             <div className="mb-mx-sm flex items-center justify-between">
               <div>
-                <Typography variant="h2" className="text-xl uppercase tracking-normal">Feedbacks pendentes <span className="ml-2 rounded-full bg-status-error px-2 py-0.5 text-xs text-white">3</span></Typography>
+                <Typography variant="h2" className="text-xl uppercase tracking-normal">
+                  Feedbacks pendentes
+                  {pendentes.length > 0 && <span className="ml-2 rounded-full bg-status-error px-2 py-0.5 text-xs text-white">{pendentes.length}</span>}
+                </Typography>
                 <Typography variant="caption" tone="muted" className="normal-case tracking-normal">Leia os feedbacks abaixo e confirme que você leu e compreendeu.</Typography>
               </div>
-              <button className="hidden text-sm font-black text-brand-primary md:inline">Ver todos os feedbacks pendentes</button>
             </div>
             <Card className="overflow-hidden rounded-mx-lg border border-border-subtle bg-white p-0 shadow-mx-sm">
-              {pending.map(item => (
-                <div key={`${item[0]}-${item[4]}`} className="grid gap-mx-md border-b border-border-subtle p-mx-md last:border-b-0 lg:grid-cols-[70px_170px_1fr_180px_190px] lg:items-center">
-                  <div className="text-center">
-                    <Typography variant="h2" className="text-2xl leading-none">{item[0]}</Typography>
-                    <Typography variant="tiny" className="block font-black uppercase tracking-normal">{item[1]}</Typography>
-                    <Typography variant="tiny" tone="muted" className="block font-black tracking-normal">{item[2]}</Typography>
-                  </div>
-                  <div>
-                    <span className={`rounded-mx-sm px-2 py-1 text-xs font-black ${item[3] === 'Positivo' ? 'bg-status-success-surface text-status-success' : 'bg-status-warning-surface text-status-warning'}`}>{item[3]}</span>
-                    <Typography variant="caption" tone="muted" className="mt-mx-sm block normal-case tracking-normal">Competência</Typography>
-                    <Typography variant="p" className="font-black">{item[4]}</Typography>
-                  </div>
-                  <div>
-                    <Typography variant="caption" tone="muted" className="normal-case tracking-normal">Comentário do seu líder</Typography>
-                    <Typography variant="p" className="mt-1 text-sm font-semibold leading-relaxed text-text-secondary">{item[5]}</Typography>
-                  </div>
-                  <div>
-                    <Typography variant="caption" tone="muted" className="normal-case tracking-normal">Responsável</Typography>
-                    <div className="mt-1 flex items-center gap-mx-sm">
-                      <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-primary/10 font-black text-brand-primary">PA</span>
-                      <div><Typography variant="p" className="font-black">Pedro Almeida</Typography><Typography variant="tiny" tone="muted">Gerente Comercial</Typography></div>
+              {loading && lista.length === 0 && (
+                <Typography tone="muted" className="p-mx-md">Carregando feedbacks...</Typography>
+              )}
+              {!loading && pendentes.length === 0 && (
+                <div className="p-mx-lg text-center">
+                  <CheckCircle2 size={28} className="mx-auto text-status-success" />
+                  <Typography variant="p" className="mt-mx-sm font-black">Tudo confirmado!</Typography>
+                  <Typography variant="caption" tone="muted" className="normal-case tracking-normal">Nenhum feedback aguardando sua leitura.</Typography>
+                </div>
+              )}
+              {pendentes.map(item => {
+                const data = new Date(item.created_at)
+                return (
+                  <div key={item.id} className="grid gap-mx-md border-b border-border-subtle p-mx-md last:border-b-0 lg:grid-cols-[70px_170px_1fr_180px_190px] lg:items-center">
+                    <div className="text-center">
+                      <Typography variant="h2" className="text-2xl leading-none">{String(data.getDate()).padStart(2, '0')}</Typography>
+                      <Typography variant="tiny" className="block font-black uppercase tracking-normal">{MES_CURTO[data.getMonth()]}</Typography>
+                      <Typography variant="tiny" tone="muted" className="block font-black tracking-normal">{data.getFullYear()}</Typography>
+                    </div>
+                    <div>
+                      <span className={`rounded-mx-sm px-2 py-1 text-xs font-black ${item.attention_points?.trim() ? 'bg-status-warning-surface text-status-warning' : 'bg-status-success-surface text-status-success'}`}>
+                        {item.attention_points?.trim() ? 'Desenvolvimento' : 'Positivo'}
+                      </span>
+                      <Typography variant="caption" tone="muted" className="mt-mx-sm block normal-case tracking-normal">Referência</Typography>
+                      <Typography variant="p" className="font-black">Semana {item.week_reference}</Typography>
+                    </div>
+                    <div>
+                      <Typography variant="caption" tone="muted" className="normal-case tracking-normal">Comentário do seu líder</Typography>
+                      <Typography variant="p" className="mt-1 text-sm font-semibold leading-relaxed text-text-secondary">{textoPrincipal(item)}</Typography>
+                    </div>
+                    <div>
+                      <Typography variant="caption" tone="muted" className="normal-case tracking-normal">Responsável</Typography>
+                      <div className="mt-1 flex items-center gap-mx-sm">
+                        <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-primary/10 font-black text-brand-primary">
+                          {(item.manager?.name || 'G').split(' ').map(p => p[0]).slice(0, 2).join('')}
+                        </span>
+                        <div>
+                          <Typography variant="p" className="font-black">{item.manager?.name || 'Seu gestor'}</Typography>
+                          <Typography variant="tiny" tone="muted">Gestão</Typography>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-mx-xs">
+                      <Button onClick={() => confirmar(item.id)} disabled={confirmandoId === item.id}>
+                        <CheckCircle2 size={16} /> {confirmandoId === item.id ? 'Confirmando...' : 'Li e compreendi'}
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-mx-xs">
-                    <Button><CheckCircle2 size={16} /> Li e compreendi</Button>
-                    <button className="text-sm font-black text-brand-primary">Deixar comentário</button>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </Card>
           </section>
 
@@ -106,26 +158,45 @@ export default function VendedorFeedback() {
               <Typography variant="h2" className="text-xl uppercase tracking-normal">Histórico de Feedbacks</Typography>
               <Typography variant="caption" tone="muted" className="normal-case tracking-normal">Acompanhe todos os feedbacks que você já recebeu.</Typography>
             </div>
-            <select className="h-10 rounded-mx-md border border-border-subtle bg-white px-mx-sm text-sm font-bold">
-              <option>Todos os tipos</option>
+            <select
+              aria-label="Filtrar feedbacks"
+              value={filtro}
+              onChange={e => setFiltro(e.target.value as typeof filtro)}
+              className="h-10 rounded-mx-md border border-border-subtle bg-white px-mx-sm text-sm font-bold"
+            >
+              <option value="todos">Todos</option>
+              <option value="pendentes">Pendentes</option>
+              <option value="confirmados">Confirmados</option>
             </select>
           </div>
           <Card className="overflow-hidden rounded-mx-lg border border-border-subtle bg-white p-0 shadow-mx-sm">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1050px] text-left text-sm">
                 <thead className="bg-surface-alt text-xs uppercase text-text-secondary">
-                  <tr>{['Data', 'Tipo', 'Competência', 'Feedback', 'Responsável', 'Confirmado em', 'Meu comentário'].map(label => <th key={label} className="px-mx-md py-mx-sm font-black">{label}</th>)}</tr>
+                  <tr>{['Data', 'Tipo', 'Referência', 'Feedback', 'Responsável', 'Confirmação'].map(label => <th key={label} className="px-mx-md py-mx-sm font-black">{label}</th>)}</tr>
                 </thead>
                 <tbody>
-                  {history.map(row => (
-                    <tr key={`${row[0]}-${row[2]}`} className="border-t border-border-subtle">
-                      <td className="px-mx-md py-mx-sm font-bold">{row[0]}</td>
-                      <td className="px-mx-md py-mx-sm"><span className={`rounded-mx-sm px-2 py-1 text-xs font-black ${row[1] === 'Positivo' ? 'bg-status-success-surface text-status-success' : 'bg-status-warning-surface text-status-warning'}`}>{row[1]}</span></td>
-                      <td className="px-mx-md py-mx-sm font-black">{row[2]}</td>
-                      <td className="px-mx-md py-mx-sm text-text-secondary">{row[3]}</td>
-                      <td className="px-mx-md py-mx-sm font-bold">{row[4]}</td>
-                      <td className="px-mx-md py-mx-sm"><span className="inline-flex items-center gap-mx-xs font-bold text-status-success"><CheckCircle2 size={15} /> {row[5]}</span></td>
-                      <td className="px-mx-md py-mx-sm text-text-secondary">{row[6]}</td>
+                  {historico.length === 0 && (
+                    <tr><td colSpan={6} className="px-mx-md py-mx-lg text-center text-text-tertiary">Nenhum feedback neste filtro.</td></tr>
+                  )}
+                  {historico.map(row => (
+                    <tr key={row.id} className="border-t border-border-subtle">
+                      <td className="px-mx-md py-mx-sm font-bold">{new Date(row.created_at).toLocaleDateString('pt-BR')}</td>
+                      <td className="px-mx-md py-mx-sm">
+                        <span className={`rounded-mx-sm px-2 py-1 text-xs font-black ${row.attention_points?.trim() ? 'bg-status-warning-surface text-status-warning' : 'bg-status-success-surface text-status-success'}`}>
+                          {row.attention_points?.trim() ? 'Desenvolvimento' : 'Positivo'}
+                        </span>
+                      </td>
+                      <td className="px-mx-md py-mx-sm font-black">Semana {row.week_reference}</td>
+                      <td className="px-mx-md py-mx-sm text-text-secondary">{textoPrincipal(row)}</td>
+                      <td className="px-mx-md py-mx-sm font-bold">{row.manager?.name || 'Seu gestor'}</td>
+                      <td className="px-mx-md py-mx-sm">
+                        {row.acknowledged && row.acknowledged_at ? (
+                          <span className="inline-flex items-center gap-mx-xs font-bold text-status-success"><CheckCircle2 size={15} /> {new Date(row.acknowledged_at).toLocaleDateString('pt-BR')}</span>
+                        ) : (
+                          <span className="font-bold text-status-warning">Pendente</span>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -138,7 +209,7 @@ export default function VendedorFeedback() {
   )
 }
 
-function Metric({ icon, label, value, detail, tone, action }: { icon: React.ReactNode; label: string; value: string; detail: string; tone: 'blue' | 'green' | 'orange' | 'red' | 'purple'; action: string }) {
+function Metric({ icon, label, value, detail, tone }: { icon: React.ReactNode; label: string; value: string; detail: string; tone: 'blue' | 'green' | 'orange' | 'red' | 'purple' }) {
   const toneClass = {
     blue: 'bg-brand-primary/10 text-brand-primary',
     green: 'bg-status-success-surface text-status-success',
@@ -154,7 +225,6 @@ function Metric({ icon, label, value, detail, tone, action }: { icon: React.Reac
           <Typography variant="tiny" className="font-black uppercase tracking-normal text-text-secondary">{label}</Typography>
           <Typography variant="h2" className={`mt-1 text-3xl ${tone === 'red' ? 'text-status-error' : ''}`}>{value}</Typography>
           <Typography variant="caption" tone="muted" className="normal-case tracking-normal">{detail}</Typography>
-          <button className="mt-mx-sm block text-sm font-black text-brand-primary">{action}</button>
         </div>
       </div>
     </Card>
