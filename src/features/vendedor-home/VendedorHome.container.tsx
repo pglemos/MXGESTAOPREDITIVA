@@ -222,7 +222,7 @@ function ScoreCard({ score, bandLabel, nextBand }: { score: { value: number; ban
 function Agenda({ items }: { items: AgendamentoComCliente[] }) {
   return (
     <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
-      <PanelTitle title="Minha agenda de hoje" action="Ver agenda completa" to="/agenda-vendedor" />
+      <PanelTitle title="Minha agenda de hoje" action="Ver na Central de Execução" to="/central-execucao" />
       <div className="mt-mx-md space-y-mx-xs">
         {items.length === 0 && (
           <Typography variant="caption" tone="muted" className="block normal-case tracking-normal">Nada agendado para hoje. Crie um compromisso na Central de Execução.</Typography>

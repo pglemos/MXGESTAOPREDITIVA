@@ -228,7 +228,6 @@ const navConfig: Record<string, NavCategory[]> = {
         // Cada item tem icone unico dentro do papel para identificacao intuitiva
         { label: 'Meu Dia', path: '/home', icon: <Home size={16} /> },
         { label: 'Fechamento Diário', path: '/lancamento-diario', icon: <CheckSquare size={16} /> },
-        { label: 'Agenda', path: '/agenda-vendedor', icon: <CalendarDays size={16} /> },
         { label: 'Central de Execução', path: '/central-execucao', icon: <CalendarCheck size={16} /> },
         { label: 'Carteira', path: '/carteira-clientes', icon: <Users size={16} /> },
         { label: 'Leads', path: '/leads', icon: <Sparkles size={16} /> },

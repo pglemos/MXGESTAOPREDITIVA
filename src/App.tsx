@@ -27,7 +27,6 @@ const VendedorFeedback = lazy(() => import('@/pages/VendedorFeedback'))
 const VendedorTreinamentos = lazy(() => import('@/pages/VendedorTreinamentos'))
 const VendedorAjuda = lazy(() => import('@/pages/VendedorAjuda'))
 const MinhaRemuneracao = lazy(() => import('@/features/remuneracao/MinhaRemuneracaoPage'))
-const AgendaVendedor = lazy(() => import('@/features/vendedor-home/AgendaVendedor'))
 const TrilhasVendedor = lazy(() => import('@/features/vendedor-home/TrilhasVendedor'))
 const CarteiraClientes = lazy(() => import('@/pages/CarteiraClientes'))
 const FunilVendedor = lazy(() => import('@/pages/FunilVendedor'))
@@ -240,9 +239,8 @@ export default function App() {
             <Route path="historico" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<Historico />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
             </Suspense>} />
-            <Route path="agenda-vendedor" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<AgendaVendedor />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
-            </Suspense>} />
+            {/* Agenda do vendedor removida (spec §3): o dia é organizado na Central de Execução. */}
+            <Route path="agenda-vendedor" element={<Navigate to="/central-execucao" replace />} />
             <Route path="trilhas" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<TrilhasVendedor />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
             </Suspense>} />
