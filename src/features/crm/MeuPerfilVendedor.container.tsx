@@ -93,7 +93,15 @@ export function MeuPerfilVendedor() {
   return (
     <main className="w-full h-full overflow-y-auto bg-surface-alt p-mx-md md:p-mx-lg no-scrollbar">
       <div className="flex flex-col gap-mx-lg pb-28">
-        <PageHeader title="Meu Perfil" description="Suas informações, metas e desenvolvimento." />
+        <PageHeader
+          title="Meu Perfil"
+          description="Suas informações, metas e desenvolvimento."
+          actions={
+            <span className="hidden items-center gap-mx-xs rounded-mx-md border border-border-subtle bg-white px-mx-md py-mx-sm text-sm font-black md:flex">
+              {new Date().toLocaleDateString('pt-BR')} ({new Date().toLocaleDateString('pt-BR', { weekday: 'long' })})
+            </span>
+          }
+        />
 
         {/* Cabeçalho + Metas */}
         <div className="grid grid-cols-1 gap-mx-lg xl:grid-cols-3">
@@ -234,6 +242,10 @@ export function MeuPerfilVendedor() {
             <Input className="mt-mx-sm" placeholder="Cidades de interesse" value={perfil.cidades_interesse ?? ''} onChange={e => setPerfil({ ...perfil, cidades_interesse: e.target.value })} />
           </SectionCard>
         </div>
+
+        <footer className="flex items-center justify-center gap-mx-xs text-sm font-semibold text-text-secondary">
+          <Briefcase size={15} aria-hidden="true" /> Seus dados são protegidos e utilizados apenas dentro da plataforma MX Performance.
+        </footer>
       </div>
     </main>
   )
