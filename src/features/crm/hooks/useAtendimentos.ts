@@ -58,5 +58,17 @@ export function useAtendimentos() {
     }
   }, [atendimentos])
 
-  return { atendimentos, porCanal, loading, error, refetch: fetchAtendimentos, registrarAtendimento }
+  const removerUltimoAtendimento = useCallback(async (canal: CrmCanal): Promise<{ error: string | null }> => {
+    if (!supabaseUser) return { error: 'Sessão inválida.' }
+    const ultimo = atendimentos
+      .filter(a => a.canal === canal && a.data === today())
+      .sort((a, b) => b.created_at.localeCompare(a.created_at))[0]
+    if (!ultimo) return { error: 'Nenhum atendimento deste canal hoje.' }
+    const { error: delErr } = await supabase.from('atendimentos').delete().eq('id', ultimo.id)
+    if (delErr) return { error: delErr.message }
+    await fetchAtendimentos()
+    return { error: null }
+  }, [atendimentos, fetchAtendimentos, supabaseUser])
+
+  return { atendimentos, porCanal, loading, error, refetch: fetchAtendimentos, registrarAtendimento, removerUltimoAtendimento }
 }
