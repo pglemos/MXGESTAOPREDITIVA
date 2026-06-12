@@ -181,7 +181,6 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
 
                 <CheckinSuccessSection
                     saveNotice={saveNotice}
-                    onHistory={() => navigate('/historico')}
                     onHome={() => navigate('/home')}
                 />
 

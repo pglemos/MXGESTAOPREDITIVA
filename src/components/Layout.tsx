@@ -233,7 +233,6 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Leads', path: '/leads', icon: <Sparkles size={16} /> },
         { label: 'Funil', path: '/meu-funil', icon: <Filter size={16} /> },
         { label: 'Relatórios', path: '/relatorios-vendedor', icon: <FileBarChart size={16} /> },
-        { label: 'Histórico', path: '/historico', icon: <Clock size={16} /> },
         { label: 'Feedbacks', path: '/devolutivas', icon: <MessageSquare size={16} /> },
         { label: 'Consultor IA', path: STORE_CONSULTOR_IA_PATH, icon: <Bot size={16} /> },
         { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },

@@ -293,7 +293,7 @@ function Evolution({ series }: { series: number[] }) {
   const max = Math.max(1, ...series)
   const points = series.map((value, index) => `${(index / Math.max(series.length - 1, 1)) * 216},${82 - (value / max) * 60}`).join(' ')
   return (
-    <SmallPanel title="Minha evolução" action="Ver histórico" to="/historico">
+    <SmallPanel title="Minha evolução" action="Ver fechamentos" to="/lancamento-diario">
       <div className="mt-mx-md h-36 rounded-mx-md bg-surface-alt p-mx-md">
         {hasData ? (
           <svg viewBox="0 0 220 90" className="h-full w-full" role="img" aria-label="Vendas dos últimos lançamentos">

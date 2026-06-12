@@ -36,7 +36,6 @@ export const ROUTE_ACCESS_RULES = [
   { pattern: '/home', roles: ['vendedor', 'gerente', 'dono'] },
   { pattern: '/minha-remuneracao', roles: ['vendedor'] },
   { pattern: '/lancamento-diario', roles: ['vendedor'] },
-  { pattern: '/historico', roles: ['vendedor'] },
   { pattern: '/carteira-clientes', roles: ['vendedor'] },
   { pattern: '/meu-funil', roles: ['vendedor'] },
   { pattern: '/central-execucao', roles: ['vendedor'] },

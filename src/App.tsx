@@ -21,7 +21,6 @@ const StorePreRegistration = lazy(() => import('@/pages/StorePreRegistration'))
 const VendedorHome = lazy(() => import('@/pages/VendedorHome'))
 const VendedorPDI = lazy(() => import('@/pages/VendedorPDI'))
 const Checkin = lazy(() => import('@/pages/Checkin'))
-const Historico = lazy(() => import('@/pages/Historico'))
 const Ranking = lazy(() => import('@/pages/Ranking'))
 const VendedorFeedback = lazy(() => import('@/pages/VendedorFeedback'))
 const VendedorTreinamentos = lazy(() => import('@/pages/VendedorTreinamentos'))
@@ -236,11 +235,6 @@ export default function App() {
             <Route path="lancamento-diario" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<Checkin />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
             </Suspense>} />
-            <Route path="historico" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<Historico />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
-            </Suspense>} />
-            {/* Agenda do vendedor removida (spec §3): o dia é organizado na Central de Execução. */}
-            <Route path="agenda-vendedor" element={<Navigate to="/central-execucao" replace />} />
             <Route path="trilhas" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<TrilhasVendedor />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
             </Suspense>} />
