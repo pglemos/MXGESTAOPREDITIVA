@@ -16,6 +16,8 @@ const textoPrincipal = (f: Devolutiva) => f.action || f.attention_points || f.po
 export default function VendedorFeedback() {
   const { devolutivas, loading, acknowledge } = useFeedbacks()
   const [confirmandoId, setConfirmandoId] = useState<string | null>(null)
+  const [comentarioAbertoId, setComentarioAbertoId] = useState<string | null>(null)
+  const [comentarios, setComentarios] = useState<Record<string, string>>({})
   const [filtro, setFiltro] = useState<'todos' | 'pendentes' | 'confirmados'>('todos')
 
   const lista = devolutivas as DevolutivaComNomes[]
@@ -34,8 +36,13 @@ export default function VendedorFeedback() {
   async function confirmar(id: string) {
     setConfirmandoId(id)
     try {
-      await acknowledge(id)
+      const { error } = await acknowledge({ id, sellerComment: comentarios[id] })
+      if (error) {
+        toast.error(error)
+        return
+      }
       toast.success('Leitura confirmada. Seu líder será notificado.')
+      setComentarioAbertoId(current => (current === id ? null : current))
     } catch {
       toast.error('Não foi possível confirmar agora. Tente novamente.')
     } finally {
@@ -129,6 +136,23 @@ export default function VendedorFeedback() {
                       <Button onClick={() => confirmar(item.id)} disabled={confirmandoId === item.id}>
                         <CheckCircle2 size={16} /> {confirmandoId === item.id ? 'Confirmando...' : 'Li e compreendi'}
                       </Button>
+                      <button
+                        type="button"
+                        onClick={() => setComentarioAbertoId(current => (current === item.id ? null : item.id))}
+                        className="text-sm font-black text-brand-primary"
+                      >
+                        {comentarioAbertoId === item.id ? 'Ocultar comentário' : 'Deixar comentário'}
+                      </button>
+                      {comentarioAbertoId === item.id && (
+                        <textarea
+                          aria-label="Meu comentário (opcional)"
+                          value={comentarios[item.id] || ''}
+                          onChange={e => setComentarios(current => ({ ...current, [item.id]: e.target.value }))}
+                          placeholder="Meu comentário (opcional) — enviado junto com a confirmação."
+                          rows={3}
+                          className="w-full rounded-mx-md border border-border-subtle p-mx-sm text-sm"
+                        />
+                      )}
                     </div>
                   </div>
                 )
@@ -173,11 +197,11 @@ export default function VendedorFeedback() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1050px] text-left text-sm">
                 <thead className="bg-surface-alt text-xs uppercase text-text-secondary">
-                  <tr>{['Data', 'Tipo', 'Referência', 'Feedback', 'Responsável', 'Confirmação'].map(label => <th key={label} className="px-mx-md py-mx-sm font-black">{label}</th>)}</tr>
+                  <tr>{['Data', 'Tipo', 'Referência', 'Feedback', 'Responsável', 'Confirmação', 'Meu comentário'].map(label => <th key={label} className="px-mx-md py-mx-sm font-black">{label}</th>)}</tr>
                 </thead>
                 <tbody>
                   {historico.length === 0 && (
-                    <tr><td colSpan={6} className="px-mx-md py-mx-lg text-center text-text-tertiary">Nenhum feedback neste filtro.</td></tr>
+                    <tr><td colSpan={7} className="px-mx-md py-mx-lg text-center text-text-tertiary">Nenhum feedback neste filtro.</td></tr>
                   )}
                   {historico.map(row => (
                     <tr key={row.id} className="border-t border-border-subtle">
@@ -197,6 +221,7 @@ export default function VendedorFeedback() {
                           <span className="font-bold text-status-warning">Pendente</span>
                         )}
                       </td>
+                      <td className="px-mx-md py-mx-sm text-text-secondary">{row.seller_comment || '—'}</td>
                     </tr>
                   ))}
                 </tbody>

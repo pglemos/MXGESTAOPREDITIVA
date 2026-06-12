@@ -23,6 +23,8 @@ export const FeedbackSchema = z.object({
   commitment_suggested: z.number(),
   acknowledged: z.boolean(),
   acknowledged_at: z.string().nullable(),
+  seller_comment: z.string().nullable().optional(),
+  seller_comment_at: z.string().nullable().optional(),
   created_at: z.string(),
 })
 

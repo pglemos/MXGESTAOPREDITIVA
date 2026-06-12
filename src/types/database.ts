@@ -208,6 +208,8 @@ export interface Feedback {
     commitment_suggested: number
     acknowledged: boolean
     acknowledged_at: string | null
+    seller_comment?: string | null
+    seller_comment_at?: string | null
     created_at: string
 }
 

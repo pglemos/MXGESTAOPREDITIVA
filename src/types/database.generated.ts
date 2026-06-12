@@ -2242,6 +2242,8 @@ export type Database = {
           meta_compromisso: number
           notes: string | null
           positives: string
+          seller_comment: string | null
+          seller_comment_at: string | null
           seller_id: string
           store_id: string
           team_avg_json: Json
@@ -2267,6 +2269,8 @@ export type Database = {
           meta_compromisso?: number
           notes?: string | null
           positives: string
+          seller_comment?: string | null
+          seller_comment_at?: string | null
           seller_id: string
           store_id: string
           team_avg_json?: Json
@@ -2292,6 +2296,8 @@ export type Database = {
           meta_compromisso?: number
           notes?: string | null
           positives?: string
+          seller_comment?: string | null
+          seller_comment_at?: string | null
           seller_id?: string
           store_id?: string
           team_avg_json?: Json
@@ -8137,8 +8143,6 @@ export type Database = {
           cidades_interesse: string | null
           created_at: string
           dias_trabalho: string[]
-          fechar_dia_notificacao_ativa: boolean
-          fechar_dia_notificacao_hora: string | null
           hora_almoco_fim: string | null
           hora_almoco_inicio: string | null
           hora_entrada: string | null
@@ -8159,8 +8163,6 @@ export type Database = {
           cidades_interesse?: string | null
           created_at?: string
           dias_trabalho?: string[]
-          fechar_dia_notificacao_ativa?: boolean
-          fechar_dia_notificacao_hora?: string | null
           hora_almoco_fim?: string | null
           hora_almoco_inicio?: string | null
           hora_entrada?: string | null
@@ -8181,8 +8183,6 @@ export type Database = {
           cidades_interesse?: string | null
           created_at?: string
           dias_trabalho?: string[]
-          fechar_dia_notificacao_ativa?: boolean
-          fechar_dia_notificacao_hora?: string | null
           hora_almoco_fim?: string | null
           hora_almoco_inicio?: string | null
           hora_entrada?: string | null

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Outlet, NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { useNotifications } from '@/hooks/useData'
+import { useFeedbacks } from '@/hooks/useFeedbacks'
 
 import { motion, AnimatePresence } from 'motion/react'
 import {
@@ -249,6 +250,10 @@ const navConfig: Record<string, NavCategory[]> = {
 export default function Layout() {
   const { profile, role, signOut, membership, isSimulating, simulationRole, stopSimulation, baseProfile } = useAuth()
   const { unreadCount } = useNotifications()
+  const { devolutivas } = useFeedbacks()
+  // Spec Módulo Vendedor §12: contador vermelho de feedbacks pendentes no menu.
+  const pendingFeedbackCount = role === 'vendedor' ? devolutivas.filter(f => !f.acknowledged).length : 0
+  const navBadges: Record<string, number> = { '/devolutivas': pendingFeedbackCount }
   const navigate = useNavigate()
   const location = useLocation()
   
@@ -517,6 +522,14 @@ export default function Layout() {
                         )}
                       >
                         <span aria-hidden="true">{React.cloneElement(item.icon as React.ReactElement<{ size?: number }>, { size: 22 })}</span>
+                        {(navBadges[item.path] || 0) > 0 && (
+                          <span
+                            aria-label={`${navBadges[item.path]} pendente(s)`}
+                            className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-status-error px-1 text-[10px] font-black text-white"
+                          >
+                            {navBadges[item.path]}
+                          </span>
+                        )}
                         <div className="absolute mx-layout-tooltip-offset px-3 py-1.5 bg-brand-secondary text-white text-mx-micro font-black uppercase tracking-widest rounded-mx-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[70] whitespace-nowrap shadow-mx-lg" role="tooltip">
                           {item.label}
                         </div>
