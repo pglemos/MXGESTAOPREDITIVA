@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Award, CalendarDays, CheckCircle2, DollarSign, Home, ListChecks, MessageSquare, PlayCircle, Plus, Shield, Target } from 'lucide-react'
+import { Award, CalendarDays, CheckCircle2, DollarSign, ListChecks, MessageSquare, PlayCircle, Plus, Shield, Target } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Avatar } from '@/components/atoms/Avatar'
 import { Card } from '@/components/molecules/Card'
@@ -83,7 +83,7 @@ export function VendedorHome() {
 
   return (
     <main className="h-full w-full overflow-y-auto bg-white p-mx-md md:p-mx-lg no-scrollbar">
-      <div className="mx-auto grid max-w-[1680px] gap-mx-lg pb-20 2xl:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="mx-auto grid max-w-[1680px] gap-mx-lg pb-20">
         <div className="flex min-w-0 flex-col gap-mx-lg">
           <header className="flex items-center justify-between border-b border-border-subtle pb-mx-md">
             <div>
@@ -135,8 +135,6 @@ export function VendedorHome() {
             <FeedbackPanel feedback={ultimoFeedback} />
           </section>
         </div>
-
-        <PhonePreview firstName={firstName} meta={meta} vendidos={vendasMes} faltam={faltam} atingimento={atingimento} agendaHoje={agendaHoje} disciplina={disciplina} fechamentoFeito={Boolean(home.todayCheckin)} agendamentosHoje={agendaMetrics.agendamentosHoje} compareceram={agendaMetrics.compareceram} />
       </div>
     </main>
   )
@@ -360,24 +358,6 @@ function FeedbackPanel({ feedback }: { feedback: { action?: string; positives?: 
         </div>
       )}
     </SmallPanel>
-  )
-}
-
-function PhonePreview({ firstName, meta, vendidos, faltam, atingimento, agendaHoje, disciplina, fechamentoFeito, agendamentosHoje, compareceram }: { firstName: string; meta: number; vendidos: number; faltam: number; atingimento: number; agendaHoje: AgendamentoComCliente[]; disciplina: number; fechamentoFeito: boolean; agendamentosHoje: number; compareceram: number }) {
-  return (
-    <aside className="hidden 2xl:block">
-      <div className="sticky top-mx-lg mx-auto w-[320px] rounded-[44px] border-[10px] border-mx-black bg-mx-black p-3 shadow-mx-2xl">
-        <div className="rounded-[34px] bg-brand-secondary p-mx-md text-white">
-          <div className="flex items-center justify-between"><Typography variant="h2" tone="white">MX</Typography><span>{new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span></div>
-          <Typography variant="h2" tone="white" className="mt-mx-lg">{saudacao()}, {firstName}! 👋</Typography>
-          <Typography variant="caption" tone="white" className="opacity-80">Vamos pra cima! Foque nas atividades de hoje.</Typography>
-          <div className="mt-mx-md rounded-mx-lg bg-white p-mx-md text-text-primary"><GoalCard meta={meta} vendidos={vendidos} faltam={faltam} atingimento={atingimento} /></div>
-          <div className="mt-mx-md rounded-mx-lg bg-white p-mx-md text-text-primary"><Agenda items={agendaHoje.slice(0, 3)} /></div>
-          <div className="mt-mx-md rounded-mx-lg bg-white p-mx-md text-text-primary"><CloseDay disciplina={disciplina} fechamentoFeito={fechamentoFeito} agendamentosHoje={agendamentosHoje} compareceram={compareceram} /></div>
-          <div className="mt-mx-md grid grid-cols-5 text-center text-xs font-black text-white"><Home size={18} className="mx-auto" /><CalendarDays size={18} className="mx-auto" /><Plus size={28} className="mx-auto rounded-full bg-brand-primary p-1" /><Target size={18} className="mx-auto" /><ListChecks size={18} className="mx-auto" /></div>
-        </div>
-      </div>
-    </aside>
   )
 }
 
