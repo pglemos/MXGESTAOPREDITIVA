@@ -11,6 +11,7 @@ import { useMeuScore } from '@/features/crm/hooks/useMeuScore'
 import { useAgendamentos, type AgendamentoComCliente } from '@/features/crm/hooks/useAgendamentos'
 import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
 import { CRM_AGENDAMENTO_STATUS_LABEL } from '@/lib/schemas/crm.schema'
+import type { RemuneracaoEstimadaResultado } from '@/features/remuneracao/lib/comparativo'
 
 const BRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
 
@@ -154,6 +155,27 @@ function GoalCard({ meta, vendidos, faltam, atingimento }: { meta: number; vendi
         {meta === 0 ? 'Meta mensal não cadastrada.' : faltam === 0 ? 'Meta do mês batida! 🎉' : `Faltam ${faltam} venda${faltam === 1 ? '' : 's'} para bater a meta!`}
       </Typography>
     </Card>
+  )
+}
+
+export function EstimatedSalaryCard({ estimativa }: { estimativa: RemuneracaoEstimadaResultado }) {
+  return (
+    <Link
+      to="/minha-remuneracao"
+      aria-label="Salário estimado"
+      className="block rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm transition-shadow hover:shadow-mx-md"
+    >
+      <div className="flex items-center gap-mx-sm">
+        <DollarSign size={22} className="text-status-success" />
+        <Typography variant="h3" className="text-sm uppercase tracking-normal">Salário estimado</Typography>
+      </div>
+      <Typography variant="h1" className="mt-mx-md text-4xl">
+        {estimativa.disponivel ? BRL(estimativa.total) : '—'}
+      </Typography>
+      <Typography variant="caption" tone="muted" className="normal-case tracking-normal">
+        {estimativa.disponivel ? 'estimativa projetada do mês' : 'plano não cadastrado'}
+      </Typography>
+    </Link>
   )
 }
 

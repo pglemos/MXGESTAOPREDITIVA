@@ -33,6 +33,7 @@ Todos os scripts operacionais do projeto. Execute com `tsx` (`.ts`) ou `node` (`
 | `debug_stores.ts` | Debug de lojas no banco | `tsx scripts/debug_stores.ts` | util |
 | `debug_users.ts` | Debug de usuários no auth e public.users | `tsx scripts/debug_users.ts` | util |
 | `e2e-mocked-audit.mjs` | Auditoria E2E com perfil mockado no localStorage | `node scripts/e2e-mocked-audit.mjs` | util |
+| `export_team_contacts.ts` | Exporta XLSX com contatos ativos de donos, sócios, gerentes e vendedores para operação interna MX | `npm run export:team-contacts` | util |
 | `final_data_sync.mjs` | Sincronização final de dados via CSV | `node scripts/final_data_sync.mjs` | seed |
 | `final_elite_import.mjs` | Importação final de dados Elite via CSV | `node scripts/final_elite_import.mjs` | seed |
 | `final_production_verify.mjs` | Validação final em produção (Playwright) | `node scripts/final_production_verify.mjs` | deploy |
