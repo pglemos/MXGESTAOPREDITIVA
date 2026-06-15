@@ -33,6 +33,7 @@
     "seed:sandbox:live": "tsx scripts/seed_live_sandbox.ts",
     "validate:e2e:live": "tsx scripts/validate_live_end_to_end.ts",
     "validate:admin-master:e2e:live": "node scripts/validate_admin_master_full_e2e.mjs",
+    "export:team-contacts": "tsx scripts/export_team_contacts.ts",
     "reconcile:pre-cadastro-team": "node scripts/reconcile_pre_cadastro_team.mjs",
     "supabase:update-recovery-email": "node scripts/update_supabase_recovery_email_template.mjs",
     "gen:db-types": "node scripts/gen_db_types.mjs",

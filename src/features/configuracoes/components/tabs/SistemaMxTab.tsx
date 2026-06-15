@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Activity, AlertTriangle, Database, ExternalLink, Server, ShieldCheck, Cpu, RefreshCw } from 'lucide-react'
+import { Activity, AlertTriangle, Database, Download, ExternalLink, Server, ShieldCheck, Cpu, RefreshCw } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { Card } from '@/components/molecules/Card'
 import { Button } from '@/components/atoms/Button'
@@ -8,6 +8,8 @@ import { Badge } from '@/components/atoms/Badge'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
+import { buildTeamContactsWorkbook, type TeamContactRow } from '@/lib/team-contacts-export'
 
 interface AuditEntry {
     id: string
@@ -26,9 +28,20 @@ interface StoreAuditRow {
     changes: Record<string, unknown> | null
 }
 
+interface ExportContactRpcRow {
+    loja: string | null
+    papel: string | null
+    nome: string | null
+    telefone: string | null
+    email: string | null
+    origem: string | null
+    vinculo_desde: string | null
+}
+
 export function SistemaMxTab() {
     const [audit, setAudit] = useState<AuditEntry[]>([])
     const [loading, setLoading] = useState(true)
+    const [exportingContacts, setExportingContacts] = useState(false)
     const [health, setHealth] = useState({
         api: 'verificando',
         db: 'verificando',
@@ -70,6 +83,34 @@ export function SistemaMxTab() {
         setLoading(false)
     }
 
+    const handleExportContacts = async () => {
+        setExportingContacts(true)
+        try {
+            const { data, error } = await supabase.rpc('exportar_contatos_cadastros_mx')
+            if (error) throw error
+
+            const rows: TeamContactRow[] = ((data || []) as ExportContactRpcRow[]).map((row) => ({
+                Loja: row.loja || '',
+                Papel: row.papel || '',
+                Nome: row.nome || '',
+                Telefone: row.telefone || '',
+                Email: row.email || '',
+                Origem: row.origem || '',
+                'Vínculo desde': row.vinculo_desde || '',
+            }))
+            const { exportWorkbookToExcel } = await import('@/lib/export')
+            const success = exportWorkbookToExcel(buildTeamContactsWorkbook(rows), 'Contatos_Cadastros_MX')
+            if (!success) throw new Error('Falha ao gerar arquivo XLSX.')
+            toast.success(`${rows.length} contatos exportados.`)
+            void fetchAudit()
+        } catch (error) {
+            console.error('Erro ao exportar contatos dos cadastros:', error)
+            toast.error('Não foi possível exportar os contatos dos cadastros.')
+        } finally {
+            setExportingContacts(false)
+        }
+    }
+
     useEffect(() => {
         fetchAudit()
         fetchHealth()
@@ -101,7 +142,7 @@ export function SistemaMxTab() {
             </Card>
 
             {/* Operações críticas */}
-            <div className="grid md:grid-cols-3 gap-mx-md">
+            <div className="grid md:grid-cols-4 gap-mx-md">
                 <CriticalOpCard
                     icon={<RefreshCw size={22} />}
                     label="Reprocessamento"
@@ -122,6 +163,10 @@ export function SistemaMxTab() {
                     desc="Página dedicada de parâmetros por loja"
                     route="/configuracoes/operacional"
                     severity="info"
+                />
+                <ExportContactsCard
+                    exporting={exportingContacts}
+                    onExport={handleExportContacts}
                 />
             </div>
 
@@ -183,6 +228,30 @@ export function SistemaMxTab() {
                 </div>
             </Card>
         </div>
+    )
+}
+
+function ExportContactsCard({ exporting, onExport }: { exporting: boolean; onExport: () => void }) {
+    return (
+        <Card className="p-mx-md border-none shadow-mx-md bg-white hover:shadow-mx-lg transition-shadow">
+            <div className="w-mx-12 h-mx-12 rounded-mx-xl border border-status-success/20 bg-status-success/5 text-status-success flex items-center justify-center mb-mx-sm">
+                {exporting ? <RefreshCw size={22} className="animate-spin" /> : <Download size={22} />}
+            </div>
+            <Typography variant="caption" className="font-black uppercase tracking-tight">Exportar Contatos</Typography>
+            <Typography variant="tiny" tone="muted" className="font-bold leading-relaxed mt-1 mb-mx-sm">
+                Baixar XLSX de donos, sócios, gerentes e vendedores ativos
+            </Typography>
+            <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={exporting}
+                onClick={onExport}
+                className="h-mx-9 px-3 rounded-mx-lg font-black uppercase text-mx-micro tracking-widest"
+            >
+                {exporting ? 'Gerando' : 'Baixar'} <Download size={11} className="ml-1" />
+            </Button>
+        </Card>
     )
 }
 
