@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
-import { Plus, Search, Trash2, Edit3, RefreshCw, Users, ShieldCheck, ShieldAlert, Building2, Mail } from 'lucide-react'
+import { Plus, Search, Trash2, Edit3, RefreshCw, Users, ShieldCheck, ShieldAlert, Building2, Mail, Download } from 'lucide-react'
 import { useTeam, useStores, type TeamMember } from '@/hooks/useTeam'
 import { isAdministradorMx, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
+import { supabase } from '@/lib/supabase'
 import { Card } from '@/components/molecules/Card'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
@@ -14,6 +15,7 @@ import { EditUserModal } from '@/features/configuracoes/components/EditUserModal
 import type { UserRole } from '@/types/database'
 import type { TabContext } from '@/features/configuracoes/types'
 import { requestToastConfirmation } from '@/lib/ui/confirmAction'
+import { buildTeamContactsWorkbook, type TeamContactRow } from '@/lib/team-contacts-export'
 
 const ROLE_LABEL: Record<string, string> = {
     administrador_geral: 'Admin Master',
@@ -33,9 +35,20 @@ const ROLE_BADGE: Record<string, 'brand' | 'success' | 'warning' | 'outline'> = 
     vendedor: 'outline',
 }
 
+interface ExportContactRpcRow {
+    loja: string | null
+    papel: string | null
+    nome: string | null
+    telefone: string | null
+    email: string | null
+    origem: string | null
+    vinculo_desde: string | null
+}
+
 export function EquipeUsuariosTab({ isReadOnly }: TabContext) {
     const { role, storeId } = useAuth()
     const isGlobalAdmin = isAdministradorMx(role)
+    const canExportContacts = isPerfilInternoMx(role)
     const canCreate = !isReadOnly
     const canMutateExisting = !isReadOnly && isAdministradorMx(role)
     // Admin master/MX vêem global; outros vêem só sua loja
@@ -47,6 +60,7 @@ export function EquipeUsuariosTab({ isReadOnly }: TabContext) {
     const [editingUser, setEditingUser] = useState<TeamMember | null>(null)
     const [filter, setFilter] = useState('')
     const [roleFilter, setRoleFilter] = useState<string>('')
+    const [exportingContacts, setExportingContacts] = useState(false)
 
     const allowedRolesForCreate = useMemo<UserRole[]>(() => {
         if (role === 'administrador_geral') return ['administrador_geral', 'administrador_mx', 'consultor_mx', 'dono', 'gerente', 'vendedor']
@@ -80,6 +94,34 @@ export function EquipeUsuariosTab({ isReadOnly }: TabContext) {
             label: 'Remover',
             onConfirm: () => executeDelete(user),
         })
+    }
+
+    const handleExportContacts = async () => {
+        setExportingContacts(true)
+        try {
+            const { data, error } = await supabase.rpc('exportar_contatos_cadastros_mx')
+            if (error) throw error
+
+            const rows: TeamContactRow[] = ((data || []) as ExportContactRpcRow[]).map((row) => ({
+                Loja: row.loja || '',
+                Papel: row.papel || '',
+                Nome: row.nome || '',
+                Telefone: row.telefone || '',
+                Email: row.email || '',
+                Origem: row.origem || '',
+                'Vínculo desde': row.vinculo_desde || '',
+            }))
+
+            const { exportWorkbookToExcel } = await import('@/lib/export')
+            const success = exportWorkbookToExcel(buildTeamContactsWorkbook(rows), 'Contatos_Cadastros_MX')
+            if (!success) throw new Error('Falha ao gerar arquivo XLSX.')
+            toast.success(`${rows.length} contatos exportados.`)
+        } catch (error) {
+            console.error('Erro ao exportar contatos dos cadastros:', error)
+            toast.error('Não foi possível exportar os contatos dos cadastros.')
+        } finally {
+            setExportingContacts(false)
+        }
     }
 
     const stats = useMemo(() => ({
@@ -125,6 +167,22 @@ export function EquipeUsuariosTab({ isReadOnly }: TabContext) {
                 <Button variant="outline" onClick={refetch} className="h-mx-12 px-mx-sm rounded-mx-xl" aria-label="Atualizar equipe">
                     <RefreshCw size={14} />
                 </Button>
+                {canExportContacts && (
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleExportContacts}
+                        disabled={exportingContacts}
+                        className="h-mx-12 px-5 rounded-mx-xl font-black uppercase tracking-widest text-xs"
+                    >
+                        {exportingContacts ? (
+                            <RefreshCw size={16} className="mr-2 animate-spin" />
+                        ) : (
+                            <Download size={16} className="mr-2" />
+                        )}
+                        Baixar XLSX
+                    </Button>
+                )}
                 {canCreate && allowedRolesForCreate.length > 0 && (
                     <Button
                         onClick={() => setShowCreate(true)}
