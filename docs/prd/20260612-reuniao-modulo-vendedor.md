@@ -59,3 +59,35 @@ Decisões e requisitos extraídos da call. Status: ✅ já existe no sistema · 
 - **Regra comercial**: vendedores vinculados a loja com pacote principal NÃO aparecem no mercado de trabalho (proteção ao lojista).
 - Vendedor avulso: R$ 49,90/mês; migração de dados por CPF/e-mail ao trocar de loja; histórico/carteira viajam com ele.
 - Telas sem fonte (gestor) ficam desabilitadas/cinza para o autônomo.
+
+---
+
+# Parte 2 da reunião
+
+## 9. Meu Perfil — comissionamento e carreira
+
+- 🆕 **Modelo de comissionamento configurável**: valor fixo por carro · percentual sobre valor vendido · por categoria de veículo (carro/moto/caminhão — exige campo "tipo de veículo" no cadastro da venda) · regras de premiação/bônus por patamar (ex.: atingiu 6 carros → bônus X) · comissão de equipe vinculada à meta da loja (só p/ vendedor de loja).
+- 🔧 **Fonte do plano**: vendedor DE LOJA herda o plano de remuneração cadastrado pelo RH/gestor (departamento RH já existente) — ele NÃO configura; vendedor AUTÔNOMO cadastra o próprio modelo nas configurações.
+- ⚠️ **DECISÃO IMEDIATA**: card "Oportunidades de Carreira" do Meu Perfil **não pode aparecer para vendedor vinculado a loja** ("o cara que tá dentro de uma empresa não pode enxergar aquilo") — recurso exclusivo do futuro autônomo. Ocultar já.
+- Formação no perfil = currículo (base do Mercado de Trabalho).
+
+## 10. Design / tipografia
+
+- 🔧 Daniel achou a tipografia "carregada" (negrito muito forte / font-black) — quer tom mais leve ("mais Arial"). **Mariane é a validadora oficial de layout** daqui em diante; ajustes de peso tipográfico passam por ela.
+
+## 11. PDI / Ranking
+
+- ✅ Confirmado: única pendência do PDI é a **visão de evolução** da nota.
+- 📐 Tela de **Ranking**: Daniel ainda vai desenhar o mock ("tenho que fazer ainda") — aguardar.
+
+## 12. Cronograma e operação
+
+- **Início de julho**: lançar módulo Vendedor em produção ("semana que vem funcionando em produção" — meta interna).
+- **Julho**: construir módulo Gerente · **Agosto**: módulo Dono (evento com donos de loja) · **Set/Out**: testes e ajustes · **Novembro**: Mercado de Trabalho.
+- Reunião fixa de alinhamento semanal (terça); semana que vem Daniel/José viajam seg–qui.
+- **Rollout**: grupo pequeno primeiro (José + mentoria), canal de erros (print + áudio) com Mariane validando, depois expandir p/ ~20-30 lojas / ~100 vendedores. Possível dia presencial de teste com vendedores.
+
+## 13. Aplicativo mobile (React Native)
+
+- Retomar o app DEPOIS da validação das telas web do vendedor; Android primeiro (~1 semana, reaproveita código React).
+- Foco do app: lançamento diário, Central de Execução com horários, **notificações/lembretes push** ("o aplicativo é ouro").
