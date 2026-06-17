@@ -21,6 +21,8 @@ interface NumberInputProps {
     updateField: (field: keyof CheckinForm, value: number | string) => void
     updateNumberField: (field: keyof CheckinForm, rawValue: string) => void
     commitNumberField: (field: keyof CheckinForm) => void
+    /** When true, shows a "via CRM" badge indicating the value was auto-populated */
+    crmBadge?: boolean
 }
 
 /**
@@ -39,6 +41,7 @@ export function NumberInput({
     updateField,
     updateNumberField,
     commitNumberField,
+    crmBadge = false,
 }: NumberInputProps) {
     return (
         <Card className={cn(
@@ -59,7 +62,14 @@ export function NumberInput({
                 )}>
                     <Icon size={20} strokeWidth={2} />
                 </div>
-                <Typography variant="caption" tone="muted" className="min-w-0 truncate font-black uppercase tracking-mx-wide leading-tight">{label}</Typography>
+                <div className="min-w-0 flex items-center gap-mx-xs flex-wrap">
+                    <Typography variant="caption" tone="muted" className="truncate font-semibold uppercase tracking-mx-wide leading-tight">{label}</Typography>
+                    {crmBadge && !changedFields.has(field) && (
+                        <span className="inline-flex items-center rounded-full bg-brand-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-brand-primary border border-brand-primary/20 leading-none shrink-0">
+                            via CRM
+                        </span>
+                    )}
+                </div>
             </div>
             <div className="flex items-end justify-between gap-mx-sm">
                 <input
@@ -74,7 +84,7 @@ export function NumberInput({
                     value={numberDrafts[field] ?? String(form[field] as number)}
                     onChange={(event) => updateNumberField(field, event.target.value)}
                     onBlur={() => commitNumberField(field)}
-                    className="min-w-0 w-mx-24 bg-transparent text-3xl tabular-nums leading-none font-black text-text-primary outline-none focus:ring-2 focus:ring-brand-primary/20 rounded-mx-md sm:text-4xl"
+                    className="min-w-0 w-mx-24 bg-transparent text-3xl tabular-nums leading-none font-semibold text-text-primary outline-none focus:ring-2 focus:ring-brand-primary/20 rounded-mx-md sm:text-4xl"
                 />
                 <div className="flex items-center gap-mx-xs shrink-0">
                     <Button
@@ -98,11 +108,11 @@ export function NumberInput({
                 </div>
             </div>
             {fieldErrors[field] ? (
-                <Typography id={`checkin-error-${field}`} variant="tiny" tone="error" className="font-black uppercase tracking-tight">
+                <Typography id={`checkin-error-${field}`} variant="tiny" tone="error" className="font-semibold uppercase tracking-tight">
                     {fieldErrors[field]}
                 </Typography>
             ) : (
-                <Typography id={`checkin-limit-${field}`} variant="tiny" tone="muted" className="font-black uppercase tracking-tight">
+                <Typography id={`checkin-limit-${field}`} variant="tiny" tone="muted" className="font-semibold uppercase tracking-tight">
                     Digite direto ou ajuste por unidade. 0 a {CHECKIN_MAX_INPUT_VALUE}.
                 </Typography>
             )}

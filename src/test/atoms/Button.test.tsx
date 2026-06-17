@@ -32,6 +32,13 @@ describe("Button Atom", () => {
     expect(button.className).toContain("sm:h-10");
   });
 
+  test("uses semibold weight by default instead of heavy black text", () => {
+    render(<Button>Weight</Button>);
+    const button = screen.getByRole("button", { name: /weight/i });
+    expect(button.className).toContain("font-semibold");
+    expect(button.className).not.toContain("font-black");
+  });
+
   test("hides SVG icons from screen readers by default", () => {
     render(
       <Button>

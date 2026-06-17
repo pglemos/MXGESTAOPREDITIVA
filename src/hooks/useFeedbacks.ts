@@ -4,8 +4,13 @@ import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { canManageFeedback } from '@/lib/auth/capabilities'
 import type { FeedbackFormData } from '@/types/database'
 import { parseFeedback, type Feedback } from '@/lib/schemas/feedback.schema'
+import { buildFeedbackActionPayload } from '@/features/gerente-feedback/lib/feedback-actions'
+import {
+  buildAutonomousFeedbackActionPayload,
+  type AutonomousFeedbackPayload,
+} from '@/features/gerente-feedback/lib/autonomous-feedback'
 
-const FEEDBACK_SELECT = 'id, store_id, manager_id, seller_id, week_reference, leads_week, agd_week, visit_week, vnd_week, tx_lead_agd, tx_agd_visita, tx_visita_vnd, meta_compromisso, team_avg_json, diagnostic_json, commitment_suggested, positives, attention_points, action, notes, acknowledged, acknowledged_at, seller_comment, seller_comment_at, created_at, seller:usuarios!devolutivas_vendedor_id_fkey(name), manager:usuarios!devolutivas_gerente_id_fkey(name)'
+const FEEDBACK_SELECT = 'id, store_id, manager_id, seller_id, week_reference, leads_week, agd_week, visit_week, vnd_week, tx_lead_agd, tx_agd_visita, tx_visita_vnd, meta_compromisso, team_avg_json, diagnostic_json, commitment_suggested, positives, attention_points, action, caso_motivo, notes, acknowledged, acknowledged_at, seller_comment, seller_comment_at, created_at, seller:usuarios!devolutivas_vendedor_id_fkey(name), manager:usuarios!devolutivas_gerente_id_fkey(name)'
 
 export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) {
   const { profile, storeId: authStoreId, role, vinculos_loja } = useAuth()
@@ -83,10 +88,26 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
         positives: data.positives,
         attention_points: data.attention_points,
         action: data.action,
+        caso_motivo: data.caso_motivo?.trim() || null,
         notes: data.notes || null,
         acknowledged: false,
         acknowledged_at: null,
       }, { onConflict: 'store_id,manager_id,seller_id,week_reference' }).select('id').maybeSingle()
+
+      if (!error && saved?.id && data.action.trim()) {
+        const actionPayload = buildFeedbackActionPayload({
+          devolutivaId: saved.id,
+          storeId: targetStoreId,
+          sellerId: data.seller_id,
+          managerId: profile.id,
+          action: data.action,
+        })
+        const { error: actionError } = await supabase
+          .from('devolutiva_acoes')
+          .upsert(actionPayload, { onConflict: 'devolutiva_id' })
+
+        if (actionError) return { error: actionError.message }
+      }
 
       if (!error && saved?.id) {
         await supabase.rpc('gerar_recomendacoes_desenvolvimento_feedback', { p_feedback_id: saved.id })
@@ -127,10 +148,64 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
     },
   })
 
+  const createAutonomousFeedbackMut = useMutation({
+    mutationFn: async (feedback: AutonomousFeedbackPayload) => {
+      if (!profile || role !== 'vendedor' || feedback.seller_id !== profile.id) {
+        return { error: 'Apenas o vendedor autonomo destinatario pode gerar feedback sistemico.' }
+      }
+      if (feedback.manager_id !== null || feedback.diagnostic_json.origem !== 'sistema') {
+        return { error: 'Payload de feedback sistemico invalido.' }
+      }
+
+      const { data: existing, error: existingError } = await supabase
+        .from('devolutivas')
+        .select('id')
+        .eq('seller_id', feedback.seller_id)
+        .eq('week_reference', feedback.week_reference)
+        .is('manager_id', null)
+        .contains('diagnostic_json', { origem: 'sistema', rule_id: 'cadencia_gargalo_principal' })
+        .maybeSingle()
+
+      if (existingError) return { error: existingError.message }
+
+      let devolutivaId = existing?.id
+      if (!devolutivaId) {
+        const { data: saved, error } = await supabase
+          .from('devolutivas')
+          .insert(feedback)
+          .select('id')
+          .maybeSingle()
+
+        if (error) return { error: error.message }
+        devolutivaId = saved?.id
+      }
+
+      if (devolutivaId) {
+        const actionPayload = buildAutonomousFeedbackActionPayload({
+          devolutivaId,
+          feedback,
+        })
+        const { error: actionError } = await supabase
+          .from('devolutiva_acoes')
+          .upsert(actionPayload, { onConflict: 'devolutiva_id' })
+
+        if (actionError) return { error: actionError.message }
+      }
+
+      return { error: null }
+    },
+    onSuccess: (result) => {
+      if (!result.error) {
+        queryClient.invalidateQueries({ queryKey: ['devolutivas'] })
+      }
+    },
+  })
+
   return {
     devolutivas: devolutivas || [],
     loading,
     createFeedback: (data: FeedbackFormData & { store_id?: string }) => createFeedbackMut.mutateAsync(data),
+    createAutonomousFeedback: (feedback: AutonomousFeedbackPayload) => createAutonomousFeedbackMut.mutateAsync(feedback),
     acknowledge: (input: string | { id: string; sellerComment?: string }) => acknowledgeMut.mutateAsync(input),
     acknowledgeFeedback: (id: string) => acknowledgeMut.mutateAsync(id),
     refetch,

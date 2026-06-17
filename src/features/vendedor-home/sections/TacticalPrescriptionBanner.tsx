@@ -40,14 +40,14 @@ export function TacticalPrescriptionBanner({ prescription }: TacticalPrescriptio
                 <div className="flex flex-wrap items-center justify-center lg:justify-start gap-mx-xs">
                   <Badge
                     variant="warning"
-                    className="px-4 py-1 uppercase font-black text-mx-nano shadow-sm bg-brand-primary border-none text-white"
+                    className="px-4 py-1 uppercase font-bold text-mx-nano shadow-sm bg-brand-primary border-none text-white"
                   >
                     Reciclagem
                   </Badge>
                   <Typography
                     variant="tiny"
                     tone="white"
-                    className="opacity-60 uppercase font-black tracking-mx-widest text-mx-nano"
+                    className="opacity-60 uppercase font-bold tracking-mx-widest text-mx-nano"
                   >
                     Gap: {prescription.gargalo}
                   </Typography>
@@ -55,7 +55,7 @@ export function TacticalPrescriptionBanner({ prescription }: TacticalPrescriptio
                 <Typography
                   variant="h2"
                   tone="white"
-                  className="text-2xl sm:text-4xl tracking-tighter uppercase leading-none font-black"
+                  className="text-2xl sm:text-4xl tracking-tighter uppercase leading-none font-bold"
                 >
                   Domine sua {prescription.training.type}
                 </Typography>
@@ -71,7 +71,7 @@ export function TacticalPrescriptionBanner({ prescription }: TacticalPrescriptio
                 size="lg"
                 variant="secondary"
                 onClick={() => navigate('/treinamentos')}
-                className="rounded-mx-full px-12 h-mx-16 shadow-mx-xl font-black uppercase tracking-mx-wide text-xs w-full lg:w-auto bg-white text-mx-black hover:bg-brand-primary hover:text-white transition-all border-none"
+                className="rounded-mx-full px-12 h-mx-16 shadow-mx-xl font-bold uppercase tracking-mx-wide text-xs w-full lg:w-auto bg-white text-mx-black hover:bg-brand-primary hover:text-white transition-all border-none"
               >
                 <Play size={16} className="fill-current mr-2" /> TREINAR AGORA
               </Button>

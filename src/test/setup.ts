@@ -61,3 +61,13 @@ globalAny.window.matchMedia = (query: string) => ({
 
 // Mock scrollTo
 globalAny.window.scrollTo = () => {};
+
+// Mock animation frame APIs used by motion/react in component tests.
+globalAny.requestAnimationFrame = (callback: FrameRequestCallback) => {
+    return setTimeout(() => callback(Date.now()), 0);
+};
+globalAny.cancelAnimationFrame = (handle: ReturnType<typeof setTimeout>) => {
+    clearTimeout(handle);
+};
+globalAny.window.requestAnimationFrame = globalAny.requestAnimationFrame;
+globalAny.window.cancelAnimationFrame = globalAny.cancelAnimationFrame;

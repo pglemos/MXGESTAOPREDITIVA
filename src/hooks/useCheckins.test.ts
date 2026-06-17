@@ -54,8 +54,8 @@ describe('Check-in Validation Logic', () => {
     expect(validateCheckinSubmissionDate('13/05/2025', '2025-05-14', 'adjustment')).toContain('inválida')
   })
 
-  it('should keep technical adjustments restricted to leadership roles', () => {
-    expect(canCreateAdjustment('vendedor')).toBe(false)
+  it('should allow technical adjustments from the seller terminal and leadership roles', () => {
+    expect(canCreateAdjustment('vendedor')).toBe(true)
     expect(canCreateAdjustment('gerente')).toBe(true)
     expect(canCreateAdjustment('administrador_mx')).toBe(true)
   })

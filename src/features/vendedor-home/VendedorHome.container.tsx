@@ -92,12 +92,12 @@ export function VendedorHome() {
               <Typography variant="p" tone="muted" className="mt-1">Vamos pra cima! Foque nas atividades de hoje e faça acontecer.</Typography>
             </div>
             <div className="hidden items-center gap-mx-md xl:flex">
-              <span className="rounded-mx-md border border-border-subtle px-mx-md py-mx-sm text-sm font-black capitalize">{hojeLabel}</span>
+              <span className="rounded-mx-md border border-border-subtle px-mx-md py-mx-sm text-sm font-bold capitalize">{hojeLabel}</span>
               {unreadCount > 0 && (
                 <Link to="/notificacoes" aria-label={`${unreadCount} notificações não lidas`} className="grid h-10 w-10 place-items-center rounded-full bg-status-error-surface text-status-error">{unreadCount}</Link>
               )}
               <Avatar src={profile?.avatar_url || undefined} fallback={profile?.name || 'V'} alt={profile?.name || 'Vendedor'} className="h-11 w-11 rounded-full" />
-              <div><Typography variant="p" className="font-black">{profile?.name || 'Vendedor'}</Typography><Typography variant="tiny" tone="muted">Vendedor</Typography></div>
+              <div><Typography variant="p" className="font-bold">{profile?.name || 'Vendedor'}</Typography><Typography variant="tiny" tone="muted">Vendedor</Typography></div>
             </div>
           </header>
 
@@ -151,7 +151,7 @@ function GoalCard({ meta, vendidos, faltam, atingimento }: { meta: number; vendi
         <Circle value={atingimento} />
       </div>
       <div className="mt-mx-md h-2 rounded-full bg-surface-alt"><div className="h-2 rounded-full bg-brand-primary" style={{ width: `${atingimento}%` }} /></div>
-      <Typography variant="p" className="mt-mx-md text-sm font-black text-text-primary">
+      <Typography variant="p" className="mt-mx-md text-sm font-bold text-text-primary">
         {meta === 0 ? 'Meta mensal não cadastrada.' : faltam === 0 ? 'Meta do mês batida! 🎉' : `Faltam ${faltam} venda${faltam === 1 ? '' : 's'} para bater a meta!`}
       </Typography>
     </Card>
@@ -188,7 +188,7 @@ function Metric({ icon, title, value, detail, footer, tone }: { icon: React.Reac
       </div>
       <Typography variant="h1" className="mt-mx-md text-4xl">{value}</Typography>
       <Typography variant="caption" tone="muted" className="normal-case tracking-normal">{detail}</Typography>
-      <Typography variant="caption" className="mt-mx-md block font-black normal-case tracking-normal text-text-secondary">{footer}</Typography>
+      <Typography variant="caption" className="mt-mx-md block font-bold normal-case tracking-normal text-text-secondary">{footer}</Typography>
     </Card>
   )
 }
@@ -204,9 +204,9 @@ function Activities({ atividades }: { atividades: { negociacoes: number; visitas
     <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
       <div className="flex items-center gap-mx-sm"><ListChecks size={22} className="text-brand-primary" /><Typography variant="h3" className="text-sm uppercase tracking-normal">Atividades hoje</Typography></div>
       <div className="mt-mx-md space-y-mx-xs">
-        {rows.map(([label, value]) => <div key={label} className="flex justify-between text-sm font-black"><span className="text-text-secondary">{label}</span><span>{value}</span></div>)}
+        {rows.map(([label, value]) => <div key={label} className="flex justify-between text-sm font-bold"><span className="text-text-secondary">{label}</span><span>{value}</span></div>)}
       </div>
-      <div className="mt-mx-md border-t border-border-subtle pt-mx-sm text-sm font-black">Total de atividades <span className="float-right">{atividades.total}</span></div>
+      <div className="mt-mx-md border-t border-border-subtle pt-mx-sm text-sm font-bold">Total de atividades <span className="float-right">{atividades.total}</span></div>
     </Card>
   )
 }
@@ -221,13 +221,13 @@ function ScoreCard({ score, bandLabel, nextBand }: { score: { value: number; ban
           <div>
             <Typography variant="caption" tone="muted">Banda atual</Typography>
             <Typography variant="h3">{bandLabel[score.band] || score.band}</Typography>
-            <Typography variant="caption" className="font-black text-brand-primary">{score.value} /100 pts</Typography>
+            <Typography variant="caption" className="font-bold text-brand-primary">{score.value} /100 pts</Typography>
           </div>
         ) : (
           <div>
             <Typography variant="caption" tone="muted">Score MX</Typography>
             <Typography variant="h3">Sem score</Typography>
-            <Typography variant="caption" className="font-black text-text-tertiary">aguardando cálculo</Typography>
+            <Typography variant="caption" className="font-bold text-text-tertiary">aguardando cálculo</Typography>
           </div>
         )}
       </div>
@@ -253,17 +253,17 @@ function Agenda({ items }: { items: AgendamentoComCliente[] }) {
           const veiculo = item.oportunidade?.veiculo_interesse
           return (
             <div key={item.id} className="grid grid-cols-[64px_1fr_auto] items-center gap-mx-sm rounded-mx-md bg-white py-mx-xs">
-              <span className="rounded-mx-sm bg-brand-primary/5 px-2 py-1 text-sm font-black text-brand-primary">{time}</span>
+              <span className="rounded-mx-sm bg-brand-primary/5 px-2 py-1 text-sm font-bold text-brand-primary">{time}</span>
               <div className="min-w-0">
-                <Typography variant="p" className="truncate text-sm font-black">{tipo}{veiculo ? ` - ${veiculo}` : ''}</Typography>
+                <Typography variant="p" className="truncate text-sm font-bold">{tipo}{veiculo ? ` - ${veiculo}` : ''}</Typography>
                 <Typography variant="tiny" tone="muted" className="block truncate normal-case tracking-normal">{item.cliente?.nome || 'Cliente não informado'} · {CRM_AGENDAMENTO_STATUS_LABEL[item.status]}</Typography>
               </div>
-              <span className="rounded-mx-sm bg-brand-primary/10 px-2 py-1 text-xs font-black text-brand-primary">{tipo}</span>
+              <span className="rounded-mx-sm bg-brand-primary/10 px-2 py-1 text-xs font-bold text-brand-primary">{tipo}</span>
             </div>
           )
         })}
       </div>
-      <Link to="/central-execucao" className="mt-mx-md flex h-11 w-full items-center justify-center gap-mx-xs rounded-mx-md bg-brand-primary text-sm font-black text-white"><Plus size={16} /> Nova Atividade</Link>
+      <Link to="/central-execucao" className="mt-mx-md flex h-11 w-full items-center justify-center gap-mx-xs rounded-mx-md bg-brand-primary text-sm font-bold text-white"><Plus size={16} /> Nova Atividade</Link>
     </Card>
   )
 }
@@ -281,7 +281,7 @@ function CloseDay({ disciplina, fechamentoFeito, agendamentosHoje, compareceram 
           <Check label="Compareceram" value={String(compareceram)} />
         </div>
       </div>
-      <Link to="/lancamento-diario" className="mt-mx-lg flex h-12 w-full items-center justify-center rounded-mx-md bg-brand-primary text-sm font-black text-white">Fechar meu dia</Link>
+      <Link to="/lancamento-diario" className="mt-mx-lg flex h-12 w-full items-center justify-center rounded-mx-md bg-brand-primary text-sm font-bold text-white">Fechar meu dia</Link>
     </Card>
   )
 }
@@ -298,11 +298,11 @@ function RankingPanel({ ranking, selfId }: { ranking: Array<{ user_id: string; u
         {top.map((entry, index) => (
           <div key={entry.user_id} className={`flex items-center justify-between rounded-mx-sm ${entry.user_id === selfId ? 'bg-brand-primary/5 px-mx-xs py-1' : ''}`}>
             <div className="flex items-center gap-mx-sm">
-              <span className="w-6 text-center font-black text-status-warning">{index < 3 ? ['🥇', '🥈', '🥉'][index] : index + 1}</span>
+              <span className="w-6 text-center font-bold text-status-warning">{index < 3 ? ['🥇', '🥈', '🥉'][index] : index + 1}</span>
               <Avatar src={entry.avatar_url || undefined} fallback={entry.user_name} alt={entry.user_name} className="h-9 w-9 rounded-full" />
-              <Typography variant="p" className="font-black">{entry.user_name}</Typography>
+              <Typography variant="p" className="font-bold">{entry.user_name}</Typography>
             </div>
-            <Typography variant="p" className="font-black text-text-secondary">{entry.vnd_total} venda{entry.vnd_total === 1 ? '' : 's'}</Typography>
+            <Typography variant="p" className="font-bold text-text-secondary">{entry.vnd_total} venda{entry.vnd_total === 1 ? '' : 's'}</Typography>
           </div>
         ))}
       </div>
@@ -338,9 +338,9 @@ function Achievements({ conquistas }: { conquistas: { itens: Array<{ label: stri
   return (
     <SmallPanel title="Minhas conquistas" action="Ver ranking" to="/classificacao">
       {conquistas.itens.map(item => (
-        <div key={item.label} className="mt-mx-sm flex justify-between text-sm"><b>{item.label}</b><span className="font-black text-status-success">+{item.pontos} pts</span></div>
+        <div key={item.label} className="mt-mx-sm flex justify-between text-sm"><b>{item.label}</b><span className="font-bold text-status-success">+{item.pontos} pts</span></div>
       ))}
-      <div className="mt-mx-md rounded-mx-md bg-brand-primary/5 p-mx-sm text-right text-xl font-black text-brand-primary">{conquistas.total} pts</div>
+      <div className="mt-mx-md rounded-mx-md bg-brand-primary/5 p-mx-sm text-right text-xl font-bold text-brand-primary">{conquistas.total} pts</div>
     </SmallPanel>
   )
 }
@@ -355,7 +355,7 @@ function Trainings({ treinamentos }: { treinamentos: Array<{ id?: string; title?
         <div key={t.id || index} className="mt-mx-sm flex gap-mx-sm">
           <span className="grid h-14 w-20 place-items-center rounded-mx-md bg-surface-alt"><PlayCircle size={24} /></span>
           <div className="flex-1">
-            <Typography variant="p" className="text-sm font-black">{t.title || 'Treinamento'}</Typography>
+            <Typography variant="p" className="text-sm font-bold">{t.title || 'Treinamento'}</Typography>
             <div className="mt-2 h-2 rounded-full bg-surface-alt"><div className="h-2 rounded-full bg-status-success" style={{ width: `${t.watched ? 100 : 0}%` }} /></div>
           </div>
         </div>
@@ -369,7 +369,7 @@ function FeedbackPanel({ feedback }: { feedback: { action?: string; positives?: 
     <SmallPanel title="Último feedback" action="Ver todos" to="/devolutivas">
       {feedback ? (
         <div className="mt-mx-md rounded-mx-md bg-brand-primary/5 p-mx-md">
-          <Typography variant="p" className="font-black">"{feedback.positives || feedback.action || 'Continue evoluindo na rotina.'}"</Typography>
+          <Typography variant="p" className="font-bold">"{feedback.positives || feedback.action || 'Continue evoluindo na rotina.'}"</Typography>
           <Typography variant="caption" tone="muted" className="mt-mx-md block normal-case tracking-normal">
             {feedback.manager_name || 'Gestor'}{feedback.created_at ? ` · ${new Date(feedback.created_at).toLocaleDateString('pt-BR')}` : ''}
           </Typography>
@@ -384,7 +384,7 @@ function FeedbackPanel({ feedback }: { feedback: { action?: string; positives?: 
 }
 
 function PanelTitle({ title, action, to }: { title: string; action: string; to: string }) {
-  return <div className="flex items-center justify-between"><Typography variant="h3" className="text-sm uppercase tracking-normal">{title}</Typography><Link to={to} className="text-xs font-black text-brand-primary">{action}</Link></div>
+  return <div className="flex items-center justify-between"><Typography variant="h3" className="text-sm uppercase tracking-normal">{title}</Typography><Link to={to} className="text-xs font-bold text-brand-primary">{action}</Link></div>
 }
 
 function SmallPanel({ title, action, to, children }: { title: string; action: string; to: string; children: React.ReactNode }) {
@@ -392,15 +392,15 @@ function SmallPanel({ title, action, to, children }: { title: string; action: st
 }
 
 function Mini({ label, value, hint }: { label: string; value: string; hint: string }) {
-  return <div><Typography variant="tiny" tone="muted" className="block font-black normal-case tracking-normal">{label}</Typography><Typography variant="h2" className="text-2xl">{value}</Typography><Typography variant="tiny" tone="muted">{hint}</Typography></div>
+  return <div><Typography variant="tiny" tone="muted" className="block font-bold normal-case tracking-normal">{label}</Typography><Typography variant="h2" className="text-2xl">{value}</Typography><Typography variant="tiny" tone="muted">{hint}</Typography></div>
 }
 
 function Circle({ value, label = 'da meta' }: { value: number; label?: string }) {
-  return <div className="grid h-24 w-24 place-items-center rounded-full" style={{ background: `conic-gradient(var(--color-brand-primary) ${value * 3.6}deg, var(--color-border-subtle) 0deg)` }}><div className="grid h-16 w-16 place-items-center rounded-full bg-white text-center"><span className="text-xl font-black">{value}%</span><span className="-mt-5 text-[10px] font-bold text-text-secondary">{label}</span></div></div>
+  return <div className="grid h-24 w-24 place-items-center rounded-full" style={{ background: `conic-gradient(var(--color-brand-primary) ${value * 3.6}deg, var(--color-border-subtle) 0deg)` }}><div className="grid h-16 w-16 place-items-center rounded-full bg-white text-center"><span className="text-xl font-bold">{value}%</span><span className="-mt-5 text-[10px] font-bold text-text-secondary">{label}</span></div></div>
 }
 
 function Check({ label, value }: { label: string; value: string }) {
-  return <div className="flex items-center justify-between gap-mx-sm text-sm font-black"><span className="flex items-center gap-mx-xs text-text-secondary"><CheckCircle2 size={16} className="text-status-success" /> {label}</span><span>{value}</span></div>
+  return <div className="flex items-center justify-between gap-mx-sm text-sm font-bold"><span className="flex items-center gap-mx-xs text-text-secondary"><CheckCircle2 size={16} className="text-status-success" /> {label}</span><span>{value}</span></div>
 }
 
 export default VendedorHome

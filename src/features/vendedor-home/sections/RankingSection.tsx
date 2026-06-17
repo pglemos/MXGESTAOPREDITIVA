@@ -37,10 +37,10 @@ export function RankingSection({
             <Trophy size={28} />
           </div>
           <div>
-            <CardTitle className="text-2xl md:text-3xl leading-tight font-black">
+            <CardTitle className="text-2xl md:text-3xl leading-tight font-bold">
               Ranking da Unidade
             </CardTitle>
-            <CardDescription className="font-black text-mx-tiny tracking-mx-wide mt-1">
+            <CardDescription className="font-bold text-mx-tiny tracking-mx-wide mt-1">
               Sua posição no período atual
             </CardDescription>
           </div>
@@ -48,7 +48,7 @@ export function RankingSection({
         <Button
           variant="outline"
           asChild
-          className="rounded-mx-full px-8 h-mx-12 bg-surface-alt border border-border-default shadow-mx-sm uppercase font-black tracking-widest text-mx-tiny w-full sm:w-auto hover:border-brand-primary transition-all"
+          className="rounded-mx-full px-8 h-mx-12 bg-surface-alt border border-border-default shadow-mx-sm uppercase font-bold tracking-widest text-mx-tiny w-full sm:w-auto hover:border-brand-primary transition-all"
         >
           <Link to="/classificacao">Ver ranking completo</Link>
         </Button>
@@ -68,25 +68,25 @@ export function RankingSection({
               <Typography
                 variant="tiny"
                 tone="brand"
-                className="mb-6 block font-black uppercase tracking-mx-widest"
+                className="mb-6 block font-bold uppercase tracking-mx-widest"
               >
                 Próxima referência
               </Typography>
               <div className="flex items-center gap-mx-sm mb-8">
-                <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-status-warning-surface text-status-warning flex items-center justify-center font-black text-xl border border-status-warning/10 shadow-inner shrink-0 font-mono-numbers">
+                <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-status-warning-surface text-status-warning flex items-center justify-center font-bold text-xl border border-status-warning/10 shadow-inner shrink-0 font-mono-numbers">
                   {position ? position - 1 : '--'}º
                 </div>
                 <div className="min-w-0">
                   <Typography
                     variant="h3"
-                    className="text-lg uppercase tracking-tight truncate font-black"
+                    className="text-lg uppercase tracking-tight truncate font-bold"
                   >
                     {competitorAbove.user_name}
                   </Typography>
                   <Typography
                     variant="tiny"
                     tone="muted"
-                    className="uppercase font-black text-mx-tiny"
+                    className="uppercase font-bold text-mx-tiny"
                   >
                     {competitorAbove.vnd_total} VENDAS
                   </Typography>
@@ -96,7 +96,7 @@ export function RankingSection({
                 <Typography
                   variant="tiny"
                   tone="brand"
-                  className="font-black uppercase text-mx-tiny"
+                  className="font-bold uppercase text-mx-tiny"
                 >
                   GAP: {competitorAbove.vnd_total - vendasMes} VENDAS
                 </Typography>
@@ -108,7 +108,7 @@ export function RankingSection({
               <Typography
                 variant="caption"
                 tone="brand"
-                className="tracking-mx-widest font-black uppercase text-mx-tiny"
+                className="tracking-mx-widest font-bold uppercase text-mx-tiny"
               >
                 Você está em 1º
               </Typography>
@@ -125,21 +125,21 @@ export function RankingSection({
             <Typography
               variant="tiny"
               tone="brand"
-              className="mb-4 block tracking-mx-widest font-black uppercase"
+              className="mb-4 block tracking-mx-widest font-bold uppercase"
             >
               STATUS ATUAL
             </Typography>
             <Typography
               variant="h1"
               tone="white"
-              className="text-7xl sm:text-9xl tabular-nums leading-none mb-2 tracking-tighter font-black font-mono-numbers"
+              className="text-7xl sm:text-9xl tabular-nums leading-none mb-2 tracking-tighter font-bold font-mono-numbers"
             >
               {position || '--'}º
             </Typography>
             <Typography
               variant="tiny"
               tone="white"
-              className="uppercase tracking-mx-widest font-black text-mx-tiny opacity-40"
+              className="uppercase tracking-mx-widest font-bold text-mx-tiny opacity-40"
             >
               NA UNIDADE
             </Typography>
@@ -149,14 +149,14 @@ export function RankingSection({
               <Typography
                 variant="tiny"
                 tone="white"
-                className="opacity-30 mb-1 block uppercase font-black text-mx-nano"
+                className="opacity-30 mb-1 block uppercase font-bold text-mx-nano"
               >
                 VENDIDO
               </Typography>
               <Typography
                 variant="h3"
                 tone="white"
-                className="text-xl sm:text-3xl font-mono-numbers font-black"
+                className="text-xl sm:text-3xl font-mono-numbers font-bold"
               >
                 {vendasMes}
               </Typography>
@@ -165,14 +165,14 @@ export function RankingSection({
               <Typography
                 variant="tiny"
                 tone="white"
-                className="opacity-30 mb-1 block uppercase font-black text-mx-nano"
+                className="opacity-30 mb-1 block uppercase font-bold text-mx-nano"
               >
                 EFICIÊNCIA
               </Typography>
               <Typography
                 variant="h3"
                 tone="brand"
-                className="text-xl sm:text-3xl font-mono-numbers font-black"
+                className="text-xl sm:text-3xl font-mono-numbers font-bold"
               >
                 {atingimento}%
               </Typography>
@@ -193,25 +193,25 @@ export function RankingSection({
               <Typography
                 variant="tiny"
                 tone="error"
-                className="mb-6 block uppercase font-black tracking-mx-widest"
+                className="mb-6 block uppercase font-bold tracking-mx-widest"
               >
                 Próximo na lista
               </Typography>
               <div className="flex items-center gap-mx-sm mb-8">
-                <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-status-error-surface text-status-error flex items-center justify-center font-black text-xl border border-status-error/10 shadow-inner shrink-0 font-mono-numbers">
+                <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-status-error-surface text-status-error flex items-center justify-center font-bold text-xl border border-status-error/10 shadow-inner shrink-0 font-mono-numbers">
                   {position ? position + 1 : '--'}º
                 </div>
                 <div className="min-w-0">
                   <Typography
                     variant="h3"
-                    className="text-lg uppercase tracking-tight truncate font-black"
+                    className="text-lg uppercase tracking-tight truncate font-bold"
                   >
                     {competitorBelow.user_name}
                   </Typography>
                   <Typography
                     variant="tiny"
                     tone="muted"
-                    className="uppercase font-black text-mx-tiny"
+                    className="uppercase font-bold text-mx-tiny"
                   >
                     {competitorBelow.vnd_total} VENDAS
                   </Typography>
@@ -221,7 +221,7 @@ export function RankingSection({
                 <Typography
                   variant="tiny"
                   tone="error"
-                  className="font-black uppercase text-mx-tiny"
+                  className="font-bold uppercase text-mx-tiny"
                 >
                   VANTAGEM: {vendasMes - competitorBelow.vnd_total} VENDAS
                 </Typography>
@@ -233,7 +233,7 @@ export function RankingSection({
               <Typography
                 variant="caption"
                 tone="error"
-                className="tracking-mx-widest font-black uppercase text-mx-tiny"
+                className="tracking-mx-widest font-bold uppercase text-mx-tiny"
               >
                 Sem comparação inferior
               </Typography>

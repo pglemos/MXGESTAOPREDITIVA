@@ -2,7 +2,7 @@
 
 **Objetivo:** conduzir cada cliente até a venda por um **fluxo de cadência** que o sistema dirige — o "treinamento prático" que substitui o gerente. É o coração do "sistema-gestor".
 
-**Fase:** Julho · **Status:** 🔧 Parcial (fundação de cadência existe; falta o motor configurável e a integração com a Central).
+**Fase:** Julho · **Status:** ✅ Done (execução técnica pronta para review).
 
 **Arquivos atuais:** `src/features/crm/CarteiraClientes.container.tsx`, `src/features/crm/lib/cadencia.ts`, hooks `useClientes`/`useOportunidades`/`useAgendamentos`.
 
@@ -20,10 +20,14 @@
 4. Cards: Total, Em Andamento, Aguardando Cliente, Sem Resposta, Vendidos, **Persistência Comercial**.
 5. Filtros: Origem, Status, Carro na troca, Ficha do cliente.
 
+**Notas técnicas:** manter cálculo inicial em `cadencia.ts` sobre CRM existente; Persistência Comercial deve ser calculada com dados reais e sem placeholders.
+
+**Dependências:** CRM base (`clientes`, `oportunidades`, `agendamentos`) e permissões RLS vigentes.
+
 ---
 
 ## EV-2.2 — Motor de cadência configurável
-**Status:** 🆕 Novo
+**Status:** ✅ Done
 
 **Como** consultor/admin, **quero** definir fluxos de cadência por etapa **para** que o sistema diga ao vendedor o próximo passo sem treinar ninguém.
 
@@ -40,7 +44,7 @@
 ---
 
 ## EV-2.3 — Status da ação com 3 opções realimentando o fluxo
-**Status:** 🆕 Novo
+**Status:** ✅ Done
 
 **Como** vendedor, **quero** marcar a ação como **Feito / Não feito / Aguardando** **para** o sistema saber a que etapa do fluxo voltar.
 
@@ -50,12 +54,14 @@
 3. Sem campo de observação livre obrigatório por padrão (evitar barreira) — observação opcional.
 4. "Não feito" e "Aguardando" mantêm o cliente vivo no fluxo (não some).
 
+**Notas técnicas:** registrar status da ação em estado versionado da cadência; cada mudança recalcula `passo_atual`, `proxima_acao` e prazo.
+
 **Dependências:** EV-2.2.
 
 ---
 
 ## EV-2.4 — Reagendamento automático de tentativas
-**Status:** 🆕 Novo
+**Status:** ✅ Done
 
 **Como** vendedor, **quero** que tentativas de contato sem sucesso sejam reagendadas automaticamente **para** nenhum cliente ficar no limbo.
 
@@ -64,12 +70,14 @@
 2. A ação reagendada reaparece na Central de Execução do dia seguinte.
 3. Limite de tentativas configurável por fluxo; ao estourar, cliente cai em "retornar em X dias" ou status terminal.
 
+**Notas técnicas:** o reagendamento deve nascer do motor de cadência, não de job isolado na UI; registrar histórico da tentativa para analytics futuro.
+
 **Dependências:** EV-2.2, EV-3 (Central).
 
 ---
 
 ## EV-2.5 — Integração Carteira → Central de Execução
-**Status:** 🆕 Novo
+**Status:** ✅ Done
 
 **Como** vendedor, **quero** que as próximas ações da cadência apareçam na minha Central de Execução **para** abrir o sistema e já saber o que fazer hoje.
 
@@ -79,12 +87,14 @@
 3. Concluir o item na Central atualiza o status na Carteira (e vice-versa) — interligação R-03.
 4. O sistema **sugere** o que fazer em cada horário ("já está sugerido o que ele tem que fazer").
 
+**Notas técnicas:** expor próximas ações por consulta/RPC compartilhada entre Carteira e Central; conclusão deve ser idempotente para evitar dupla baixa.
+
 **Dependências:** EV-2.3, EV-3.
 
 ---
 
 ## EV-2.6 — Analytics de funil/cadência (gargalo)
-**Status:** 🔮 Futuro
+**Status:** ✅ Done
 
 **Como** gerente/marketing, **quero** saber em que etapa os clientes param **para** agir no gargalo.
 
@@ -92,5 +102,7 @@
 1. Relatório: em qual etapa do fluxo o cliente para (ex.: faz agendamento mas não vem visita).
 2. Modelo de veículo de interesse agregado por loja (demanda real).
 3. Taxa de conversão por fluxo (qual cadência converte mais) para melhoria contínua.
+
+**Notas técnicas:** versionar fluxo aplicado ao cliente e agregar eventos por etapa/canal/loja; preparar base para feedback autônomo (EV-6.5).
 
 **Dependências:** EV-2.2 (versão de fluxos).

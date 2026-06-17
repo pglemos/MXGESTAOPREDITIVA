@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { Typography } from '@/components/atoms/Typography'
 import { CheckinHeader } from './sections/CheckinHeader'
 import { CheckinForm } from './sections/CheckinForm'
-import { CheckinCrmSection } from './sections/CheckinCrmSection'
+import { CheckinAdjustmentTab } from './sections/CheckinAdjustmentTab'
 import { CheckinErrorBoundary } from './components/CheckinErrorBoundary'
 import { useCheckinPage } from './hooks/useCheckinPage'
 
@@ -55,7 +55,7 @@ export function Checkin() {
     const dateStr = todayDisplay.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt relative">
+        <main className="w-full h-full flex flex-col gap-mx-md p-mx-sm md:p-mx-md overflow-y-auto no-scrollbar bg-surface-alt relative">
             {checkinLoadError && (
                 <div role="alert" className="rounded-mx-2xl border border-status-error/20 bg-status-error-surface px-mx-md py-mx-sm text-sm font-bold text-status-error">
                     {checkinLoadError}
@@ -86,11 +86,11 @@ export function Checkin() {
             </CheckinErrorBoundary>
 
             <CheckinErrorBoundary section="form">
-                <CheckinForm ctx={ctx} totalsAgd={totals.agd_total} totalsVnd={totals.vnd_total} />
-            </CheckinErrorBoundary>
-
-            <CheckinErrorBoundary section="crm">
-                <CheckinCrmSection />
+                {metricScope === 'daily' ? (
+                    <CheckinForm ctx={ctx} totalsAgd={totals.agd_total} totalsVnd={totals.vnd_total} />
+                ) : (
+                    <CheckinAdjustmentTab ctx={ctx} />
+                )}
             </CheckinErrorBoundary>
         </main>
     )

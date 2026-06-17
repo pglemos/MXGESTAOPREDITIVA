@@ -37,7 +37,7 @@ export function WeeklySprintAside({
           </div>
           <Badge
             variant="outline"
-            className="text-white border-white/20 px-4 font-black text-mx-nano h-mx-md uppercase tracking-mx-widest"
+            className="text-white border-white/20 px-4 font-bold text-mx-nano h-mx-md uppercase tracking-mx-widest"
           >
             WEEKLY SPRINT
           </Badge>
@@ -48,7 +48,7 @@ export function WeeklySprintAside({
             <Typography
               variant="tiny"
               tone="brand"
-              className="tracking-mx-widest font-black uppercase"
+              className="tracking-mx-widest font-bold uppercase"
             >
               PERFORMANCE DA SEMANA
             </Typography>
@@ -56,14 +56,14 @@ export function WeeklySprintAside({
               <Typography
                 variant="h1"
                 tone="white"
-                className="text-6xl sm:text-8xl font-black font-mono-numbers leading-none tracking-tighter"
+                className="text-6xl sm:text-8xl font-bold font-mono-numbers leading-none tracking-tighter"
               >
                 {vendasSemana}
               </Typography>
               <Typography
                 variant="tiny"
                 tone="white"
-                className="uppercase font-black text-mx-tiny opacity-40"
+                className="uppercase font-bold text-mx-tiny opacity-40"
               >
                 UNIDADES
               </Typography>
@@ -80,7 +80,7 @@ export function WeeklySprintAside({
           <Typography
             variant="p"
             tone="white"
-            className="text-base md:text-lg italic opacity-60 leading-relaxed uppercase tracking-tight font-black italic"
+            className="text-base md:text-lg italic opacity-60 leading-relaxed uppercase tracking-tight font-bold italic"
           >
             "O sucesso é a soma de pequenos esforços repetidos dia após dia."
           </Typography>

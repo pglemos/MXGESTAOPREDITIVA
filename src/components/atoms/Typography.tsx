@@ -7,14 +7,14 @@ const typographyVariants = cva(
   {
     variants: {
       variant: {
-        h1: "text-3xl md:text-4xl font-black tracking-tight leading-tight text-text-primary",
-        h2: "text-xl md:text-2xl font-black tracking-tight leading-tight text-text-primary",
-        h3: "text-lg font-black tracking-tight leading-tight text-text-primary",
-        h4: "text-base font-black tracking-tight leading-tight text-text-primary",
-        p: "text-sm font-bold leading-relaxed text-text-secondary tracking-normal",
-        caption: "text-mx-tiny font-black uppercase tracking-mx-wide text-text-tertiary",
-        tiny: "text-mx-micro font-black uppercase tracking-mx-wide",
-        mono: "font-mono-numbers text-sm font-black",
+        h1: "text-3xl md:text-4xl font-bold tracking-normal leading-tight text-text-primary",
+        h2: "text-xl md:text-2xl font-semibold tracking-normal leading-tight text-text-primary",
+        h3: "text-lg font-semibold tracking-normal leading-tight text-text-primary",
+        h4: "text-base font-semibold tracking-normal leading-tight text-text-primary",
+        p: "text-sm font-normal leading-relaxed text-text-secondary tracking-normal",
+        caption: "text-mx-tiny font-medium tracking-normal text-text-tertiary",
+        tiny: "text-mx-micro font-medium tracking-normal",
+        mono: "font-mono-numbers text-sm font-semibold",
       },
       tone: {
         default: "",

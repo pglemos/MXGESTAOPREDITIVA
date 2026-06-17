@@ -1,0 +1,35 @@
+import { afterEach, describe, expect, test } from 'bun:test'
+import { cleanup, render, screen } from '@testing-library/react'
+import { Typography } from '@/components/atoms/Typography'
+
+afterEach(() => {
+  cleanup()
+})
+
+describe('Typography Atom', () => {
+  test('uses lighter default weights aligned to the seller typography spec', () => {
+    render(
+      <div>
+        <Typography variant="h1">Title</Typography>
+        <Typography variant="h2">Subtitle</Typography>
+        <Typography variant="h3">Card title</Typography>
+        <Typography variant="h4">Small heading</Typography>
+        <Typography variant="p">Body copy</Typography>
+        <Typography variant="caption">Caption</Typography>
+        <Typography variant="tiny">Tiny</Typography>
+      </div>,
+    )
+
+    expect(screen.getByText('Title').className).toContain('font-bold')
+    expect(screen.getByText('Subtitle').className).toContain('font-semibold')
+    expect(screen.getByText('Card title').className).toContain('font-semibold')
+    expect(screen.getByText('Small heading').className).toContain('font-semibold')
+    expect(screen.getByText('Body copy').className).toContain('font-normal')
+    expect(screen.getByText('Caption').className).toContain('font-medium')
+    expect(screen.getByText('Tiny').className).toContain('font-medium')
+
+    for (const label of ['Title', 'Subtitle', 'Card title', 'Small heading', 'Body copy', 'Caption', 'Tiny']) {
+      expect(screen.getByText(label).className).not.toContain('font-black')
+    }
+  })
+})

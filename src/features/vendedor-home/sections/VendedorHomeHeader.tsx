@@ -60,13 +60,13 @@ export function VendedorHomeHeader({
               <Typography
                 variant="tiny"
                 tone="muted"
-                className="mb-0 block uppercase font-black tracking-mx-wide text-mx-nano"
+                className="mb-0 block uppercase font-bold tracking-mx-wide text-mx-nano"
               >
                 Ranking
               </Typography>
               <Typography
                 variant="h3"
-                className="text-sm sm:text-base font-black whitespace-nowrap uppercase leading-none"
+                className="text-sm sm:text-base font-bold whitespace-nowrap uppercase leading-none"
               >
                 {rankPosition}º LUGAR
               </Typography>

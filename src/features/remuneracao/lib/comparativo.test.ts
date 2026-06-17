@@ -209,6 +209,71 @@ describe('calcularRemuneracaoEstimada', () => {
     expect(resultado.comissao).toBe(0)
     expect(resultado.total).toBe(2000)
   })
+
+  test('calcula percentual sobre faturamento das vendas', () => {
+    const resultado = calcularRemuneracaoEstimada({
+      plano: plano('Vendedor', 2000, 0, 0),
+      regras: [regra('percentual_faturamento' as unknown as RemuneracaoRegra['tipo'], { valor: 2.5 })],
+      vendasConsideradas: 2,
+      meta: 10,
+      vendasDetalhadas: [
+        { valor: 100000, tipo_veiculo: 'carro' },
+        { valor: 50000, tipo_veiculo: 'moto' },
+      ],
+    })
+
+    expect(resultado.faturamentoConsiderado).toBe(150000)
+    expect(resultado.comissaoPercentual).toBe(3750)
+    expect(resultado.comissao).toBe(3750)
+    expect(resultado.total).toBe(5750)
+  })
+
+  test('calcula comissão por categoria de veículo usando tipo_veiculo da venda', () => {
+    const resultado = calcularRemuneracaoEstimada({
+      plano: plano('Vendedor', 2000, 0, 0),
+      regras: [
+        regra('comissao_categoria' as unknown as RemuneracaoRegra['tipo'], { id: 'cat-carro', valor: 300, tipo_veiculo: 'carro' }),
+        regra('comissao_categoria' as unknown as RemuneracaoRegra['tipo'], { id: 'cat-moto', valor: 100, tipo_veiculo: 'moto' }),
+      ],
+      vendasConsideradas: 3,
+      meta: 10,
+      vendasDetalhadas: [
+        { valor: 100000, tipo_veiculo: 'carro' },
+        { valor: 25000, tipo_veiculo: 'moto' },
+        { valor: 200000, tipo_veiculo: 'caminhao' },
+      ],
+    })
+
+    expect(resultado.comissaoCategoria).toBe(400)
+    expect(resultado.comissao).toBe(400)
+    expect(resultado.regrasComissaoAplicadas.map(item => item.id)).toEqual(['cat-carro', 'cat-moto'])
+  })
+
+  test('aplica comissão de equipe apenas para vendedor de loja', () => {
+    const regraEquipe = regra('comissao_equipe' as unknown as RemuneracaoRegra['tipo'], { id: 'equipe-100', valor: 700, percentual_meta_min: 100 })
+
+    const loja = calcularRemuneracaoEstimada({
+      plano: plano('Vendedor', 2000, 0, 0),
+      regras: [regraEquipe],
+      vendasConsideradas: 4,
+      meta: 10,
+      vinculoTipo: 'loja',
+      atingimentoLojaPercentual: 110,
+    })
+    const autonomo = calcularRemuneracaoEstimada({
+      plano: plano('Vendedor', 2000, 0, 0),
+      regras: [regraEquipe],
+      vendasConsideradas: 4,
+      meta: 10,
+      vinculoTipo: 'autonomo',
+      atingimentoLojaPercentual: 110,
+    })
+
+    expect(loja.comissaoEquipe).toBe(700)
+    expect(loja.comissao).toBe(700)
+    expect(autonomo.comissaoEquipe).toBe(0)
+    expect(autonomo.comissao).toBe(0)
+  })
 })
 
 describe('calcularResumoRemuneracaoVendedor', () => {

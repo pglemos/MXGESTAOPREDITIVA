@@ -31,18 +31,18 @@ export function LancamentoGateBanner({ isLocked, referenceDateLabel }: Props) {
           <Typography
             as="span"
             variant="caption"
-            className="font-black uppercase tracking-widest text-status-warning"
+            className="font-bold uppercase tracking-widest text-status-warning"
           >
             Lançamento diário pendente
           </Typography>
-          <Typography variant="p" className="text-sm font-black text-text-primary leading-tight mt-mx-tiny">
+          <Typography variant="p" className="text-sm font-bold text-text-primary leading-tight mt-mx-tiny">
             Registre o seu fechamento referente a {referenceDateLabel} para liberar leads, agenda e ranking.
           </Typography>
         </div>
       </div>
       <Link
         to="/lancamento-diario"
-        className="inline-flex items-center justify-center gap-mx-xs rounded-mx-xl bg-status-warning px-mx-md h-mx-12 text-pure-white font-black uppercase tracking-widest text-sm shadow-mx-sm hover:shadow-mx-md transition-shadow focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-status-warning/40"
+        className="inline-flex items-center justify-center gap-mx-xs rounded-mx-xl bg-status-warning px-mx-md h-mx-12 text-pure-white font-bold uppercase tracking-widest text-sm shadow-mx-sm hover:shadow-mx-md transition-shadow focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-status-warning/40"
       >
         Fazer lançamento agora
         <ArrowRight size={18} aria-hidden="true" />

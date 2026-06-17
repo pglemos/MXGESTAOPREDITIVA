@@ -9,7 +9,12 @@ import { useTacticalPrescription } from '@/hooks/useTacticalPrescription'
 import { useSellerMetrics } from '@/hooks/useSellerMetrics'
 import { formatWhatsAppMorningReport } from '@/lib/calculations'
 import { calculateDailyRoutineDiscipline } from '@/lib/daily-routine'
-import { useRemuneracaoEstimadaVendedor } from '@/features/remuneracao/hooks/useRemuneracao'
+import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
+import { useVendedorPerfil } from '@/features/crm/hooks/useVendedorPerfil'
+import {
+  useRemuneracaoEstimadaVendedor,
+  type RemuneracaoVenda,
+} from '@/features/remuneracao/hooks/useRemuneracao'
 
 /**
  * Hook agregador do VendedorHome — centraliza fetching, metrics derivadas,
@@ -36,6 +41,8 @@ export function useVendedorHomePage() {
   const { ranking, loading: rankingLoading, refetch: refetchRanking } = useRanking()
   const { treinamentos, loading: trainingsLoading, refetch: refetchTrainings } = useTrainings()
   const { devolutivas, loading: feedbacksLoading, refetch: refetchFeedbacks } = useFeedbacks()
+  const { oportunidades, loading: oportunidadesLoading, refetch: refetchOportunidades } = useOportunidades()
+  const { vinculoTipo, loading: perfilVendedorLoading } = useVendedorPerfil()
   const [isRefetching, setIsRefetching] = useState(false)
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null)
 
@@ -53,6 +60,22 @@ export function useVendedorHomePage() {
     ranking,
     projectionMode: storeGoal?.projection_mode,
   })
+  const vendasDetalhadasRemuneracao = useMemo<RemuneracaoVenda[]>(() => {
+    const now = new Date()
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime()
+
+    return oportunidades
+      .filter(oportunidade => oportunidade.etapa === 'ganho')
+      .filter((oportunidade) => {
+        const reference = oportunidade.closed_at || oportunidade.updated_at || oportunidade.created_at
+        return reference ? new Date(reference).getTime() >= monthStart : false
+      })
+      .map(oportunidade => ({
+        valor: Number(oportunidade.valor_negociado || 0),
+        tipo_veiculo: oportunidade.tipo_veiculo,
+      }))
+  }, [oportunidades])
+
   const {
     estimativa: remuneracaoEstimada,
     resumo: remuneracaoResumo,
@@ -66,6 +89,9 @@ export function useVendedorHomePage() {
     vendasRealizadas: metrics?.vendasMes || 0,
     vendasProjetadas: Math.max(metrics?.projecao || 0, metrics?.vendasMes || 0),
     meta: metrics?.meta || 0,
+    vendasDetalhadasRealizadas: vendasDetalhadasRemuneracao,
+    vinculoTipo,
+    atingimentoLojaPercentual: metrics?.atingimento || 0,
   })
 
   const referenceDateLabel = useMemo(() => {
@@ -113,6 +139,7 @@ export function useVendedorHomePage() {
         refetchRanking?.() || Promise.resolve(),
         refetchTrainings?.() || Promise.resolve(),
         refetchFeedbacks?.() || Promise.resolve(),
+        refetchOportunidades?.() || Promise.resolve(),
       ])
       setLastUpdatedAt(new Date())
       toast.success('Cockpit de performance atualizado!')
@@ -121,7 +148,7 @@ export function useVendedorHomePage() {
     } finally {
       setIsRefetching(false)
     }
-  }, [refetchCheckins, refetchFeedbacks, refetchGoals, refetchRanking, refetchTrainings])
+  }, [refetchCheckins, refetchFeedbacks, refetchGoals, refetchOportunidades, refetchRanking, refetchTrainings])
 
   const handleShareWhatsApp = useCallback(() => {
     if (!metrics || !profile) return
@@ -151,7 +178,15 @@ export function useVendedorHomePage() {
   }, [metrics, profile, referenceCheckin, referenceDateLabel])
 
   const isLoading =
-    checkisLoading || goalsLoading || rankingLoading || trainingsLoading || feedbacksLoading || remunerationLoading || !metrics
+    checkisLoading ||
+    goalsLoading ||
+    rankingLoading ||
+    trainingsLoading ||
+    feedbacksLoading ||
+    oportunidadesLoading ||
+    perfilVendedorLoading ||
+    remunerationLoading ||
+    !metrics
 
   return {
     profile,

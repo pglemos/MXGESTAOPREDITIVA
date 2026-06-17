@@ -17,4 +17,6 @@
 3. **Notificações/lembretes push** vinculados à rotina e às ações do dia.
 4. Retomar **depois** de validar as telas web (escopo mudou de "interno/consultoria" para "cliente").
 
+**Notas técnicas:** iniciar mobile só após contratos de dados das telas web estabilizarem; priorizar APIs compartilhadas para Fechamento, Central e Carteira e push por ações do dia.
+
 **Dependências:** EV-1, EV-2, EV-3 estáveis na web.

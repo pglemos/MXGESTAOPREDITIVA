@@ -50,7 +50,7 @@ export type DevelopmentTrackStep = {
   managerFeedbackRequired: boolean
 }
 
-export type DevelopmentRecommendationSource = 'feedback' | 'pdi' | 'manual' | 'rotina'
+export type DevelopmentRecommendationSource = 'feedback' | 'pdi' | 'funil' | 'manual' | 'rotina'
 
 export type DevelopmentContentMetadata = {
   theme: DevelopmentTheme
@@ -58,6 +58,45 @@ export type DevelopmentContentMetadata = {
   editorial_status: DevelopmentEditorialStatus
   store_id: string | null
   review_after: string | null
+}
+
+export type DevelopmentRecommendationLike<T extends DevelopmentContentItem = DevelopmentContentItem> = {
+  id?: string
+  seller_id?: string
+  store_id?: string | null
+  source?: DevelopmentRecommendationSource | string | null
+  source_type?: DevelopmentRecommendationSource | string | null
+  source_id?: string | null
+  theme?: DevelopmentTheme | string | null
+  training_id?: string | null
+  reason?: string | null
+  status?: string | null
+  priority?: 'low' | 'medium' | 'high' | string | null
+  due_date?: string | null
+  created_at?: string | null
+  training?: T | null
+}
+
+export type FunnelDevelopmentGap = {
+  etapa: string
+  total: number
+  pendentes: number
+  concluidos: number
+  cancelados: number
+  semSucesso: number
+  aguardando: number
+  reagendamentosSemSucesso: number
+}
+
+export type RecommendedDevelopmentCard<T extends DevelopmentContentItem = DevelopmentContentItem> = {
+  id: string
+  source: DevelopmentRecommendationSource
+  sourceLabel: string
+  theme: DevelopmentTheme
+  training: T
+  reason: string
+  priority: 'low' | 'medium' | 'high'
+  recommendation: DevelopmentRecommendationLike<T> | null
 }
 
 export const DEVELOPMENT_THEMES: Array<{ key: DevelopmentTheme; label: string; aliases: string[] }> = [
@@ -77,6 +116,22 @@ export const DEVELOPMENT_THEMES: Array<{ key: DevelopmentTheme; label: string; a
 ]
 
 const THEME_BY_KEY = new Map(DEVELOPMENT_THEMES.map(theme => [theme.key, theme]))
+const DEVELOPMENT_RECOMMENDATION_SOURCE_LABELS: Record<DevelopmentRecommendationSource, string> = {
+  feedback: 'Feedback',
+  pdi: 'PDI',
+  funil: 'Funil',
+  manual: 'Curadoria',
+  rotina: 'Rotina',
+}
+const FUNNEL_STAGE_LABELS: Record<string, string> = {
+  lead: 'Lead',
+  contato: 'Contato',
+  agendamento: 'Agendamento',
+  visita: 'Visita',
+  negociacao: 'Negociação',
+  venda: 'Venda',
+  atendimento: 'Atendimento',
+}
 
 function normalize(value: unknown) {
   return String(value ?? '')
@@ -107,11 +162,43 @@ export function recommendDevelopmentThemeFromGap(gap?: string | null): Developme
   if (normalized.includes('lead')) return 'prospeccao'
   if (normalized.includes('agd') || normalized.includes('agenda')) return 'agendamento'
   if (normalized.includes('visita')) return 'atendimento'
-  if (normalized.includes('vnd') || normalized.includes('venda')) return 'fechamento'
+  if (normalized.includes('vnd') || normalized.includes('venda') || normalized.includes('negoci')) return 'fechamento'
   if (normalized.includes('troca')) return 'carro_de_troca'
-  if (normalized.includes('crm') || normalized.includes('follow') || normalized.includes('retorno')) return 'crm'
+  if (normalized.includes('crm') || normalized.includes('follow') || normalized.includes('retorno') || normalized.includes('contato')) return 'crm'
   if (normalized.includes('financ') || normalized.includes('ficha')) return 'financiamento'
   return 'rotina_diaria'
+}
+
+export function buildFunnelDevelopmentRecommendation<T extends DevelopmentContentItem>({
+  gargalo,
+  availableContent,
+}: {
+  gargalo?: FunnelDevelopmentGap | null
+  availableContent: T[]
+}): DevelopmentRecommendationLike<T> | null {
+  if (!gargalo || gargalo.total <= 0) return null
+
+  const theme = recommendDevelopmentThemeFromFunnelStage(gargalo.etapa)
+  const training = findDevelopmentContentByTheme(availableContent, theme)
+  const etapaLabel = formatFunnelStage(gargalo.etapa)
+  const details = [
+    `${gargalo.total} cliente${gargalo.total === 1 ? '' : 's'} na etapa`,
+    `${gargalo.pendentes} pendente${gargalo.pendentes === 1 ? '' : 's'}`,
+  ]
+  if (gargalo.semSucesso > 0) details.push(`${gargalo.semSucesso} sem sucesso`)
+  if (gargalo.reagendamentosSemSucesso > 0) details.push(`${gargalo.reagendamentosSemSucesso} reagendamento${gargalo.reagendamentosSemSucesso === 1 ? '' : 's'}`)
+
+  return {
+    id: `funil-${gargalo.etapa}`,
+    source_type: 'funil',
+    source_id: gargalo.etapa,
+    theme,
+    training_id: training?.id || null,
+    reason: `Recomendado por gargalo de funil em ${etapaLabel}: ${details.join(', ')}.`,
+    status: 'recommended',
+    priority: gargalo.pendentes >= 3 || gargalo.semSucesso >= 2 ? 'high' : 'medium',
+    training: training || null,
+  }
 }
 
 export function buildNewCollaboratorTrack(): DevelopmentTrackStep[] {
@@ -153,10 +240,70 @@ export function buildDevelopmentRecommendation(input: {
   const training = input.availableContent.find(item => inferDevelopmentTheme(item) === theme) || null
   return {
     source: input.source,
+    source_type: input.source,
     theme,
     training_id: training?.id || null,
     reason: `Recomendado por lacuna registrada em ${input.source}: ${input.text}`.slice(0, 260),
   }
+}
+
+export function buildRecommendedDevelopmentCards<T extends DevelopmentContentItem>({
+  recommendations,
+  funnelGap,
+  availableContent,
+  limit = 3,
+}: {
+  recommendations: DevelopmentRecommendationLike<T>[]
+  funnelGap?: FunnelDevelopmentGap | null
+  availableContent: T[]
+  limit?: number
+}): RecommendedDevelopmentCard<T>[] {
+  const funnelRecommendation = buildFunnelDevelopmentRecommendation({ gargalo: funnelGap, availableContent })
+  const candidates = [
+    ...recommendations,
+    ...(funnelRecommendation ? [funnelRecommendation] : []),
+  ]
+  const cards: RecommendedDevelopmentCard<T>[] = []
+  const seenTrainingIds = new Set<string>()
+
+  for (const candidate of candidates) {
+    const source = normalizeRecommendationSource(candidate.source_type || candidate.source)
+    const theme = normalizeDevelopmentTheme(candidate.theme) || recommendDevelopmentThemeFromGap(candidate.reason)
+    const training = resolveRecommendedTraining(candidate, availableContent, theme)
+    if (!training || seenTrainingIds.has(training.id)) continue
+
+    seenTrainingIds.add(training.id)
+    cards.push({
+      id: candidate.id || `${source}-${training.id}`,
+      source,
+      sourceLabel: DEVELOPMENT_RECOMMENDATION_SOURCE_LABELS[source],
+      theme,
+      training,
+      reason: candidate.reason || `Recomendado para reforçar ${THEME_BY_KEY.get(theme)?.label || theme}.`,
+      priority: normalizePriority(candidate.priority),
+      recommendation: candidate,
+    })
+    if (cards.length >= limit) return cards
+  }
+
+  for (const training of availableContent) {
+    if (cards.length >= limit) break
+    if (seenTrainingIds.has(training.id)) continue
+    const theme = inferDevelopmentTheme(training)
+    seenTrainingIds.add(training.id)
+    cards.push({
+      id: `manual-${training.id}`,
+      source: 'manual',
+      sourceLabel: DEVELOPMENT_RECOMMENDATION_SOURCE_LABELS.manual,
+      theme,
+      training,
+      reason: `Conteúdo prioritário da trilha para reforçar ${THEME_BY_KEY.get(theme)?.label || theme}.`,
+      priority: 'medium',
+      recommendation: null,
+    })
+  }
+
+  return cards
 }
 
 export function isTrackStepUnlocked(step: DevelopmentTrackStep, completedKeys: string[], currentMonth: number) {
@@ -187,4 +334,52 @@ export function buildDevelopmentContentMetadata(input: {
 
 export function isContentVisibleForStore(item: Pick<DevelopmentContentItem, 'store_id'>, userStoreId?: string | null) {
   return !item.store_id || Boolean(userStoreId && item.store_id === userStoreId)
+}
+
+function recommendDevelopmentThemeFromFunnelStage(stage: string): DevelopmentTheme {
+  const normalized = normalize(stage)
+  if (normalized.includes('agend')) return 'agendamento'
+  if (normalized.includes('visit') || normalized.includes('atend')) return 'atendimento'
+  if (normalized.includes('negoci') || normalized.includes('venda')) return 'fechamento'
+  if (normalized.includes('lead') || normalized.includes('prospect')) return 'prospeccao'
+  if (normalized.includes('contato') || normalized.includes('retorno')) return 'crm'
+  return recommendDevelopmentThemeFromGap(stage)
+}
+
+function findDevelopmentContentByTheme<T extends DevelopmentContentItem>(items: T[], theme: DevelopmentTheme): T | null {
+  return items.find(item => inferDevelopmentTheme(item) === theme) || null
+}
+
+function resolveRecommendedTraining<T extends DevelopmentContentItem>(
+  recommendation: DevelopmentRecommendationLike<T>,
+  availableContent: T[],
+  theme: DevelopmentTheme,
+): T | null {
+  if (recommendation.training) return recommendation.training
+  if (recommendation.training_id) {
+    const byId = availableContent.find(item => item.id === recommendation.training_id)
+    if (byId) return byId
+  }
+  return findDevelopmentContentByTheme(availableContent, theme)
+}
+
+function normalizeRecommendationSource(source?: string | null): DevelopmentRecommendationSource {
+  if (source === 'feedback' || source === 'pdi' || source === 'funil' || source === 'manual' || source === 'rotina') return source
+  return 'manual'
+}
+
+function normalizeDevelopmentTheme(theme?: string | null): DevelopmentTheme | null {
+  if (!theme) return null
+  const normalized = normalize(theme)
+  return DEVELOPMENT_THEMES.find(item => normalize(item.key) === normalized)?.key || null
+}
+
+function normalizePriority(priority?: string | null): 'low' | 'medium' | 'high' {
+  if (priority === 'low' || priority === 'medium' || priority === 'high') return priority
+  return 'medium'
+}
+
+function formatFunnelStage(stage: string): string {
+  const normalized = normalize(stage)
+  return FUNNEL_STAGE_LABELS[normalized] || stage.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
 }

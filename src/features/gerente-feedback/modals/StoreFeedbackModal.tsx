@@ -16,6 +16,10 @@ import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import type { FeedbackFormData } from '@/types/database'
+import {
+  FEEDBACK_ACTIONS_CATALOG,
+  applyFeedbackActionTemplate,
+} from '../lib/feedback-action-catalog'
 
 type SellerOption = { id: string; name: string }
 
@@ -44,6 +48,17 @@ export function StoreFeedbackModal({
 }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null)
   useFocusTrap(dialogRef, open)
+  const selectedSellerName = sellers.find(s => s.id === formData.seller_id)?.name || 'Vendedor'
+
+  const handleFeedbackActionSelect = (actionId: string) => {
+    const actionText = applyFeedbackActionTemplate(actionId, {
+      sellerName: selectedSellerName,
+      weekReference: formData.week_reference,
+    })
+    if (!actionText) return
+    setFormData((f) => ({ ...f, action: actionText }))
+  }
+
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
@@ -186,6 +201,23 @@ export function StoreFeedbackModal({
                       ))}
                     </div>
                   </div>
+                  <div className="space-y-mx-sm">
+                    <label
+                      htmlFor="feedback-caso-motivo"
+                      className="text-mx-tiny font-black uppercase tracking-widest text-brand-primary ml-2 flex items-center gap-mx-xs"
+                    >
+                      <AlertCircle size={14} /> Caso/Motivo
+                    </label>
+                    <textarea
+                      id="feedback-caso-motivo"
+                      name="caso_motivo"
+                      value={formData.caso_motivo || ''}
+                      onChange={(e) =>
+                        setFormData((f) => ({ ...f, caso_motivo: e.target.value }))
+                      }
+                      className="w-full h-mx-3xl p-mx-md bg-white border border-border-default rounded-mx-2xl text-sm font-bold focus:border-brand-primary transition-all shadow-sm outline-none resize-none"
+                    />
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
                     <div className="space-y-mx-sm">
                       <label
@@ -229,6 +261,33 @@ export function StoreFeedbackModal({
                     >
                       <Target size={16} /> Ação
                     </label>
+                    <div className="space-y-mx-xs">
+                      <label
+                        htmlFor="feedback-store-action-template"
+                        className="ml-2 text-mx-tiny uppercase font-black tracking-widest text-text-tertiary"
+                      >
+                        Ação padronizada
+                      </label>
+                      <div className="relative">
+                        <select
+                          id="feedback-store-action-template"
+                          value=""
+                          onChange={(e) => handleFeedbackActionSelect(e.target.value)}
+                          className="w-full h-mx-14 px-6 bg-surface-alt border border-border-default rounded-mx-md text-sm font-bold uppercase shadow-inner appearance-none cursor-pointer"
+                        >
+                          <option value="">Selecionar ação...</option>
+                          {FEEDBACK_ACTIONS_CATALOG.map((action) => (
+                            <option key={action.id} value={action.id}>
+                              {action.title}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown
+                          size={18}
+                          className="absolute right-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none"
+                        />
+                      </div>
+                    </div>
                     <textarea
                       id="feedback-action"
                       name="action"
@@ -255,6 +314,7 @@ export function StoreFeedbackModal({
                 disabled={
                   saving ||
                   !formData.seller_id ||
+                  !formData.caso_motivo?.trim() ||
                   !formData.positives.trim() ||
                   !formData.attention_points.trim() ||
                   !formData.action.trim()

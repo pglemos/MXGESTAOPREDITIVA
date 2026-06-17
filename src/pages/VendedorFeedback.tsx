@@ -1,20 +1,48 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { AlertCircle, Bell, Calendar, CheckCircle2, MessageSquare, ThumbsUp, TrendingUp } from 'lucide-react'
 import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { useFeedbacks } from '@/hooks/useData'
+import { useAuth } from '@/hooks/useAuth'
+import { useCadenciaAnalytics } from '@/features/crm/hooks/useCadenciaAnalytics'
+import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
+import { useVendedorPerfil } from '@/features/crm/hooks/useVendedorPerfil'
+import { buildAutonomousFeedbackFromCadencia } from '@/features/gerente-feedback/lib/autonomous-feedback'
 import type { Feedback as Devolutiva } from '@/types/database'
 
-type DevolutivaComNomes = Devolutiva & { manager?: { name: string } | null }
+type DevolutivaComNomes = Devolutiva & { manager?: { name: string } | null; manager_name?: string }
 
 const MES_CURTO = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ']
 
 const textoPrincipal = (f: Devolutiva) => f.action || f.attention_points || f.positives || 'Sem comentário registrado.'
 
+function isFeedbackSistema(f: Devolutiva): boolean {
+  return f.manager_id === null || f.diagnostic_json?.origem === 'sistema'
+}
+
+function responsavelNome(f: DevolutivaComNomes): string {
+  if (isFeedbackSistema(f)) return 'Sistema MX'
+  return f.manager?.name || f.manager_name || 'Seu gestor'
+}
+
+function responsavelPapel(f: Devolutiva): string {
+  return isFeedbackSistema(f) ? 'Automático' : 'Gestão'
+}
+
+function responsavelIniciais(f: DevolutivaComNomes): string {
+  if (isFeedbackSistema(f)) return 'MX'
+  return responsavelNome(f).split(' ').map(p => p[0]).slice(0, 2).join('')
+}
+
 export default function VendedorFeedback() {
-  const { devolutivas, loading, acknowledge } = useFeedbacks()
+  const { profile, activeStoreId, storeId } = useAuth()
+  const { devolutivas, loading, acknowledge, createAutonomousFeedback } = useFeedbacks()
+  const { vinculoTipo } = useVendedorPerfil()
+  const { oportunidades } = useOportunidades()
+  const { analytics, loading: analyticsLoading } = useCadenciaAnalytics(oportunidades)
+  const autonomousFeedbackRequestedRef = useRef<string | null>(null)
   const [confirmandoId, setConfirmandoId] = useState<string | null>(null)
   const [comentarioAbertoId, setComentarioAbertoId] = useState<string | null>(null)
   const [comentarios, setComentarios] = useState<Record<string, string>>({})
@@ -30,6 +58,28 @@ export default function VendedorFeedback() {
     if (filtro === 'confirmados') return lista.filter(f => f.acknowledged)
     return lista
   }, [filtro, lista])
+  const autonomousFeedback = useMemo(() => buildAutonomousFeedbackFromCadencia({
+    analytics,
+    sellerId: profile?.id || '',
+    storeId: activeStoreId || storeId || null,
+    vinculoTipo,
+  }), [activeStoreId, analytics, profile?.id, storeId, vinculoTipo])
+  const hasAutonomousFeedbackForWeek = useMemo(() => {
+    if (!autonomousFeedback) return false
+    return lista.some(item =>
+      item.week_reference === autonomousFeedback.week_reference &&
+      item.manager_id === null &&
+      item.diagnostic_json?.origem === 'sistema' &&
+      item.diagnostic_json?.rule_id === 'cadencia_gargalo_principal',
+    )
+  }, [autonomousFeedback, lista])
+
+  useEffect(() => {
+    if (!autonomousFeedback || analyticsLoading || hasAutonomousFeedbackForWeek) return
+    if (autonomousFeedbackRequestedRef.current === autonomousFeedback.week_reference) return
+    autonomousFeedbackRequestedRef.current = autonomousFeedback.week_reference
+    void createAutonomousFeedback(autonomousFeedback)
+  }, [analyticsLoading, autonomousFeedback, createAutonomousFeedback, hasAutonomousFeedbackForWeek])
 
   const hojeLabel = `${new Date().toLocaleDateString('pt-BR')} (${new Date().toLocaleDateString('pt-BR', { weekday: 'long' })})`
 
@@ -124,11 +174,11 @@ export default function VendedorFeedback() {
                       <Typography variant="caption" tone="muted" className="normal-case tracking-normal">Responsável</Typography>
                       <div className="mt-1 flex items-center gap-mx-sm">
                         <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-primary/10 font-black text-brand-primary">
-                          {(item.manager?.name || 'G').split(' ').map(p => p[0]).slice(0, 2).join('')}
+                          {responsavelIniciais(item)}
                         </span>
                         <div>
-                          <Typography variant="p" className="font-black">{item.manager?.name || 'Seu gestor'}</Typography>
-                          <Typography variant="tiny" tone="muted">Gestão</Typography>
+                          <Typography variant="p" className="font-black">{responsavelNome(item)}</Typography>
+                          <Typography variant="tiny" tone="muted">{responsavelPapel(item)}</Typography>
                         </div>
                       </div>
                     </div>
@@ -213,7 +263,7 @@ export default function VendedorFeedback() {
                       </td>
                       <td className="px-mx-md py-mx-sm font-black">Semana {row.week_reference}</td>
                       <td className="px-mx-md py-mx-sm text-text-secondary">{textoPrincipal(row)}</td>
-                      <td className="px-mx-md py-mx-sm font-bold">{row.manager?.name || 'Seu gestor'}</td>
+                      <td className="px-mx-md py-mx-sm font-bold">{responsavelNome(row)}</td>
                       <td className="px-mx-md py-mx-sm">
                         {row.acknowledged && row.acknowledged_at ? (
                           <span className="inline-flex items-center gap-mx-xs font-bold text-status-success"><CheckCircle2 size={15} /> {new Date(row.acknowledged_at).toLocaleDateString('pt-BR')}</span>

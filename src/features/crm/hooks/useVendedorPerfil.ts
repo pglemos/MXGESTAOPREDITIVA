@@ -1,6 +1,22 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import {
+  derivarNivelMaturidadeVendedor,
+  MATURIDADE_VENDEDOR_LABEL,
+  MATURIDADE_TRACK_TYPE,
+  trackTypeParaMaturidade,
+  VENDEDOR_EXPERIENCIA_DECLARADA,
+  VENDEDOR_EXPERIENCIA_LABEL,
+  type NivelMaturidadeVendedor,
+  type TrackTypeMaturidade,
+  type VendedorExperienciaDeclarada,
+} from '@/features/crm/lib/maturidade'
+import {
+  resolverVinculoTipoVendedor,
+  VENDEDOR_VINCULO_TIPO,
+  type VendedorVinculoTipo,
+} from '@/features/crm/lib/vinculo-vendedor'
 
 export type CarreiraInteresse = 'nao' | 'confidencial' | 'disponivel'
 
@@ -20,6 +36,13 @@ export type VendedorPerfil = {
   pretensao_max: number | null
   cargos_interesse: string | null
   cidades_interesse: string | null
+  tempo_mercado_anos: number | null
+  experiencia_declarada: VendedorExperienciaDeclarada | null
+  cargo_atual: string | null
+  vinculo_tipo: VendedorVinculoTipo | null
+  mix_canal_internet_pct: number | null
+  mix_canal_carteira_pct: number | null
+  mix_canal_porta_pct: number | null
 }
 
 export const DIAS_SEMANA: { code: string; label: string }[] = [
@@ -39,10 +62,13 @@ const DEFAULT_PERFIL: VendedorPerfil = {
   objetivo_curto: null, objetivo_medio: null, objetivo_longo: null,
   carreira_interesse: 'nao', pretensao_min: null, pretensao_max: null,
   cargos_interesse: null, cidades_interesse: null,
+  tempo_mercado_anos: null, experiencia_declarada: null, cargo_atual: null,
+  vinculo_tipo: null,
+  mix_canal_internet_pct: null, mix_canal_carteira_pct: null, mix_canal_porta_pct: null,
 }
 
 export function useVendedorPerfil() {
-  const { supabaseUser, activeStoreId, storeId } = useAuth()
+  const { supabaseUser, activeStoreId, storeId, vinculos_loja } = useAuth()
   const effectiveStoreId = activeStoreId || storeId || null
   const [perfil, setPerfil] = useState<VendedorPerfil>(DEFAULT_PERFIL)
   const [exists, setExists] = useState(false)
@@ -70,14 +96,33 @@ export function useVendedorPerfil() {
         objetivo_curto: data.objetivo_curto, objetivo_medio: data.objetivo_medio, objetivo_longo: data.objetivo_longo,
         carreira_interesse: data.carreira_interesse, pretensao_min: data.pretensao_min, pretensao_max: data.pretensao_max,
         cargos_interesse: data.cargos_interesse, cidades_interesse: data.cidades_interesse,
+        tempo_mercado_anos: data.tempo_mercado_anos, experiencia_declarada: data.experiencia_declarada,
+        cargo_atual: data.cargo_atual,
+        vinculo_tipo: data.vinculo_tipo,
+        mix_canal_internet_pct: data.mix_canal_internet_pct,
+        mix_canal_carteira_pct: data.mix_canal_carteira_pct,
+        mix_canal_porta_pct: data.mix_canal_porta_pct,
       })
     }
     setLoading(false)
   }, [supabaseUser])
 
+  const vinculoTipo = resolverVinculoTipoVendedor({
+    perfilVinculoTipo: perfil.vinculo_tipo,
+    lojaId: effectiveStoreId,
+    activeStoreId,
+    vinculosLojaCount: vinculos_loja.length,
+  })
+
   const savePerfil = useCallback(async (patch: Partial<VendedorPerfil>): Promise<{ error: string | null }> => {
     if (!supabaseUser) return { error: 'Sessão inválida.' }
     const merged = { ...perfil, ...patch }
+    const mergedVinculoTipo = resolverVinculoTipoVendedor({
+      perfilVinculoTipo: merged.vinculo_tipo,
+      lojaId: effectiveStoreId,
+      activeStoreId,
+      vinculosLojaCount: vinculos_loja.length,
+    })
     const payload = {
       seller_user_id: supabaseUser.id,
       loja_id: effectiveStoreId,
@@ -96,18 +141,39 @@ export function useVendedorPerfil() {
       pretensao_max: merged.pretensao_max,
       cargos_interesse: merged.cargos_interesse || null,
       cidades_interesse: merged.cidades_interesse || null,
+      tempo_mercado_anos: merged.tempo_mercado_anos ?? null,
+      experiencia_declarada: merged.experiencia_declarada || null,
+      cargo_atual: merged.cargo_atual?.trim() || null,
+      vinculo_tipo: mergedVinculoTipo,
+      mix_canal_internet_pct: merged.mix_canal_internet_pct ?? null,
+      mix_canal_carteira_pct: merged.mix_canal_carteira_pct ?? null,
+      mix_canal_porta_pct: merged.mix_canal_porta_pct ?? null,
     }
     const { error: upErr } = await supabase
       .from('vendedor_perfil')
       .upsert(payload, { onConflict: 'seller_user_id' })
     if (upErr) return { error: upErr.message }
-    setPerfil(merged); setExists(true)
+    setPerfil({ ...merged, vinculo_tipo: mergedVinculoTipo }); setExists(true)
     return { error: null }
-  }, [supabaseUser, effectiveStoreId, perfil])
+  }, [supabaseUser, effectiveStoreId, activeStoreId, perfil, vinculos_loja.length])
 
   useEffect(() => { fetchPerfil() }, [fetchPerfil])
 
-  return { perfil, setPerfil, exists, loading, error, refetch: fetchPerfil, savePerfil }
+  return { perfil, setPerfil, vinculoTipo, exists, loading, error, refetch: fetchPerfil, savePerfil }
 }
 
 export { DEFAULT_PERFIL }
+export {
+  derivarNivelMaturidadeVendedor,
+  MATURIDADE_VENDEDOR_LABEL,
+  MATURIDADE_TRACK_TYPE,
+  trackTypeParaMaturidade,
+  VENDEDOR_EXPERIENCIA_DECLARADA,
+  VENDEDOR_EXPERIENCIA_LABEL,
+  VENDEDOR_VINCULO_TIPO,
+  resolverVinculoTipoVendedor,
+  type NivelMaturidadeVendedor,
+  type TrackTypeMaturidade,
+  type VendedorExperienciaDeclarada,
+  type VendedorVinculoTipo,
+}

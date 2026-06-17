@@ -252,8 +252,9 @@ export default function Layout() {
   // Spec Módulo Vendedor §12: contador vermelho de feedbacks pendentes no menu.
   const pendingFeedbackCount = role === 'vendedor' ? devolutivas.filter(f => !f.acknowledged).length : 0
   const navBadges: Record<string, number> = { '/devolutivas': pendingFeedbackCount }
-  const navigate = useNavigate()
-  const location = useLocation()
+const navigate = useNavigate()
+const location = useLocation()
+const isCheckinRoute = location.pathname === '/lancamento-diario'
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
@@ -395,7 +396,13 @@ export default function Layout() {
       </a>
 
       {/* Top Header - Accessibility Hardening */}
-      <header className="h-mx-header w-full px-mx-lg flex items-center justify-between z-60 bg-white border-b border-border-default shrink-0 sticky top-mx-0" role="banner">
+<header
+className={cn(
+  'w-full flex items-center justify-between z-60 bg-white border-b border-border-default shrink-0 sticky top-mx-0',
+  isCheckinRoute ? 'h-mx-12 px-mx-md' : 'h-mx-header px-mx-lg',
+)}
+role="banner"
+>
         <div className="flex items-center gap-mx-md min-w-0">
           <button
             type="button"
@@ -476,11 +483,19 @@ export default function Layout() {
         </section>
       )}
 
-      <div className="flex flex-1 p-mx-sm pb-mx-24 md:p-mx-md gap-mx-md relative">
+<div
+className={cn(
+  'flex flex-1 relative',
+  isCheckinRoute ? 'gap-mx-sm p-mx-xs pb-mx-12' : 'gap-mx-md p-mx-sm pb-mx-24 md:p-mx-md',
+)}
+>
 
         {/* Sidebar Minimalista - Semantic Nav */}
         <aside
-          className="hidden md:flex w-mx-20 flex-col items-center py-mx-md gap-mx-sm shrink-0 bg-white border border-border-default rounded-mx-3xl shadow-mx-sm sticky mx-layout-sticky-offset z-[60]"
+className={cn(
+  'hidden md:flex flex-col items-center shrink-0 bg-white border border-border-default shadow-mx-sm sticky mx-layout-sticky-offset z-[60]',
+  isCheckinRoute ? 'w-mx-14 rounded-mx-2xl py-mx-sm gap-mx-xs' : 'w-mx-20 rounded-mx-3xl py-mx-md gap-mx-sm',
+)}
           aria-label="Menu Lateral Principal"
         >
           <nav className="flex flex-col items-center gap-mx-sm w-full" aria-label="Módulos de Gestão">

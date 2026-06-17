@@ -188,7 +188,7 @@ export interface DailyCheckin {
 export interface Feedback {
     id: string
     store_id: string
-    manager_id: string
+    manager_id: string | null
     seller_id: string
     week_reference: string
     leads_week: number
@@ -202,6 +202,7 @@ export interface Feedback {
     positives: string
     attention_points: string
     action: string
+    caso_motivo?: string | null
     notes: string | null
     team_avg_json: Record<string, unknown>
     diagnostic_json: Record<string, unknown>
@@ -411,6 +412,7 @@ export interface FeedbackFormData {
     positives: string
     attention_points: string
     action: string
+    caso_motivo?: string
     notes?: string
     team_avg_json?: Record<string, unknown>
     diagnostic_json?: Record<string, unknown>

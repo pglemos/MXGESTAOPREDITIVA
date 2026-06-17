@@ -62,6 +62,8 @@ export type UseUniversidadeMxResult = {
   refresh: () => Promise<void>
   filtros: UniversidadePublico[]
   toggleFiltro: (publico: UniversidadePublico) => void
+  searchQuery: string
+  setSearchQuery: (q: string) => void
 }
 
 const ALL_PUBLICOS: UniversidadePublico[] = [
@@ -81,6 +83,7 @@ export function useUniversidadeMx(userId?: string | null): UseUniversidadeMxResu
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [filtros, setFiltros] = useState<UniversidadePublico[]>(ALL_PUBLICOS)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const fetchAll = useCallback(async () => {
     setLoading(true)
@@ -149,10 +152,24 @@ export function useUniversidadeMx(userId?: string | null): UseUniversidadeMxResu
     )
   }, [])
 
-  const trilhasFiltradas = useMemo(
-    () => trilhas.filter((trilha) => filtros.includes(trilha.publico_alvo)),
-    [trilhas, filtros],
-  )
+  const trilhasFiltradas = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    return trilhas
+      .filter((trilha) => filtros.includes(trilha.publico_alvo))
+      .filter((trilha) => {
+        if (!q) return true
+        const matchTrilha =
+          trilha.titulo.toLowerCase().includes(q) ||
+          (trilha.descricao ?? '').toLowerCase().includes(q)
+        if (matchTrilha) return true
+        const aulasDoTrilha = aulas[trilha.id] ?? []
+        return aulasDoTrilha.some(
+          (aula) =>
+            aula.titulo.toLowerCase().includes(q) ||
+            (aula.tipo ?? '').toLowerCase().includes(q),
+        )
+      })
+  }, [trilhas, filtros, aulas, searchQuery])
 
   return {
     trilhas: trilhasFiltradas,
@@ -163,5 +180,7 @@ export function useUniversidadeMx(userId?: string | null): UseUniversidadeMxResu
     refresh: fetchAll,
     filtros,
     toggleFiltro,
+    searchQuery,
+    setSearchQuery,
   }
 }

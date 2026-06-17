@@ -49,7 +49,7 @@ export function canManagePDI(role: UserRole | string | null | undefined): boolea
 }
 
 export function canCreateAdjustment(role: UserRole | string | null | undefined): boolean {
-  return isPerfilInternoMx(role) || role === 'gerente'
+  return isPerfilInternoMx(role) || role === 'gerente' || role === 'vendedor'
 }
 
 export function hasCapability(role: UserRole | string | null | undefined, capability: Capability): boolean {

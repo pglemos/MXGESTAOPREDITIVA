@@ -29,8 +29,8 @@ describe('role capabilities', () => {
     expect(canManagePDI('vendedor')).toBe(false)
   })
 
-  it('keeps technical check-in adjustments blocked for sellers', () => {
-    expect(canCreateAdjustment('vendedor')).toBe(false)
+  it('allows technical check-in adjustments from the seller terminal and leadership roles', () => {
+    expect(canCreateAdjustment('vendedor')).toBe(true)
     expect(canCreateAdjustment('gerente')).toBe(true)
     expect(canCreateAdjustment('administrador_geral')).toBe(true)
   })

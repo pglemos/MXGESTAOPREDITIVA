@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import { Typography } from '@/components/atoms/Typography'
 
 const buttonVariants = cva(
-  "group relative inline-flex items-center justify-center gap-mx-xs whitespace-nowrap rounded-mx-md font-black tracking-mx-wide transition-all focus-visible:ring-4 focus-visible:ring-brand-primary/20 outline-none disabled:pointer-events-none disabled:opacity-50 active:scale-95 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "group relative inline-flex items-center justify-center gap-mx-xs whitespace-nowrap rounded-mx-md font-semibold tracking-normal transition-all focus-visible:ring-4 focus-visible:ring-brand-primary/20 outline-none disabled:pointer-events-none disabled:opacity-50 active:scale-95 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -94,7 +94,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
               decoratedChildren
             )}
             {iconTooltip && (
-              <span className="pointer-events-none absolute left-1/2 top-full z-50 mt-mx-xs -translate-x-1/2 rounded-mx-md bg-brand-secondary px-mx-xs py-mx-tiny text-mx-micro font-black text-white opacity-0 shadow-mx-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+              <span className="pointer-events-none absolute left-1/2 top-full z-50 mt-mx-xs -translate-x-1/2 rounded-mx-md bg-brand-secondary px-mx-xs py-mx-tiny text-mx-micro font-medium text-white opacity-0 shadow-mx-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
                 {iconTooltip}
               </span>
             )}

@@ -19,6 +19,10 @@ import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import type { FeedbackFormData } from '@/types/database'
+import {
+  FEEDBACK_ACTIONS_CATALOG,
+  applyFeedbackActionTemplate,
+} from '../lib/feedback-action-catalog'
 
 type SellerOption = {
   id: string
@@ -65,6 +69,17 @@ export function AdminFeedbackModal({
 }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null)
   useFocusTrap(dialogRef, open)
+  const selectedSellerName = filteredSellers.find(s => s.id === formData.seller_id)?.name || 'Vendedor'
+
+  const handleFeedbackActionSelect = (actionId: string) => {
+    const actionText = applyFeedbackActionTemplate(actionId, {
+      sellerName: selectedSellerName,
+      weekReference: formData.week_reference,
+    })
+    if (!actionText) return
+    setFormData((f) => ({ ...f, action: actionText }))
+  }
+
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
@@ -297,6 +312,33 @@ export function AdminFeedbackModal({
                     >
                       <Target size={16} /> Próximo Passo (Ação)
                     </label>
+                    <div className="space-y-mx-xs">
+                      <label
+                        htmlFor="feedback-admin-action-template"
+                        className="ml-2 text-mx-tiny uppercase font-black tracking-widest text-text-tertiary"
+                      >
+                        Ação padronizada
+                      </label>
+                      <div className="relative">
+                        <select
+                          id="feedback-admin-action-template"
+                          value=""
+                          onChange={(e) => handleFeedbackActionSelect(e.target.value)}
+                          className="w-full h-mx-14 px-6 bg-surface-alt border border-border-default rounded-mx-md text-sm font-bold uppercase shadow-inner appearance-none cursor-pointer"
+                        >
+                          <option value="">Selecionar ação...</option>
+                          {FEEDBACK_ACTIONS_CATALOG.map((action) => (
+                            <option key={action.id} value={action.id}>
+                              {action.title}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown
+                          size={18}
+                          className="absolute right-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none"
+                        />
+                      </div>
+                    </div>
                     <textarea
                       id="feedback-admin-action"
                       name="action"

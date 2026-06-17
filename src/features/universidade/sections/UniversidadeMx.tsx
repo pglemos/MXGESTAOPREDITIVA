@@ -1,14 +1,16 @@
-import { Award, BookOpen, GraduationCap, Loader2, Radio, RefreshCw, Trophy } from 'lucide-react'
+import { Award, BookOpen, GraduationCap, Loader2, Radio, RefreshCw, Search, Sparkles, Trophy } from 'lucide-react'
 import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
 import { cn } from '@/lib/utils'
+import { useVendedorPerfil } from '@/features/crm/hooks/useVendedorPerfil'
 import {
   useUniversidadeMx,
   type UniversidadeAulaTipo,
   type UniversidadePublico,
 } from '../hooks/useUniversidadeMx'
+import { derivarNivelTrilha, trilhaRecomendadaId, NIVEL_TRILHA_LABEL } from '../lib/trilha-level'
 import { AulasAoVivoSection } from './AulasAoVivoSection'
 
 /**
@@ -58,7 +60,18 @@ export function UniversidadeMx({ userId }: Props) {
     refresh,
     filtros,
     toggleFiltro,
+    searchQuery,
+    setSearchQuery,
   } = useUniversidadeMx(userId)
+
+  // Maturity-based trilha recommendation (EV-5.3)
+  const { perfil } = useVendedorPerfil()
+  const nivelTrilha = derivarNivelTrilha({
+    tempo_mercado_anos: perfil.tempo_mercado_anos,
+    experiencia_declarada: perfil.experiencia_declarada,
+    cargo_atual: perfil.cargo_atual,
+  })
+  const recomendadaId = trilhaRecomendadaId(trilhas, nivelTrilha)
 
   return (
     <section className="space-y-mx-lg" aria-label="Universidade MX">
@@ -68,7 +81,7 @@ export function UniversidadeMx({ userId }: Props) {
             <GraduationCap size={22} aria-hidden="true" />
           </div>
           <div>
-            <Typography variant="h2" className="font-black uppercase tracking-tight">
+            <Typography variant="h2" className="font-bold uppercase tracking-tight">
               Universidade MX
             </Typography>
             <Typography variant="tiny" tone="muted" className="block font-bold normal-case tracking-normal">
@@ -84,14 +97,14 @@ export function UniversidadeMx({ userId }: Props) {
 
       {error && (
         <div className="rounded-mx-md border border-status-error/40 bg-status-error-surface p-mx-sm">
-          <Typography variant="tiny" className="font-black text-status-error">
+          <Typography variant="tiny" className="font-bold text-status-error">
             {error}
           </Typography>
         </div>
       )}
 
       <div className="flex flex-wrap items-center gap-mx-xs">
-        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">
+        <Typography variant="tiny" tone="muted" className="font-bold uppercase tracking-widest">
           Filtrar por público
         </Typography>
         {(Object.keys(PUBLICO_LABEL) as UniversidadePublico[]).map((publico) => (
@@ -100,7 +113,7 @@ export function UniversidadeMx({ userId }: Props) {
             type="button"
             onClick={() => toggleFiltro(publico)}
             className={cn(
-              'rounded-mx-md border px-mx-xs py-mx-tiny text-mx-tiny font-black uppercase tracking-widest transition-colors',
+              'rounded-mx-md border px-mx-xs py-mx-tiny text-mx-tiny font-bold uppercase tracking-widest transition-colors',
               filtros.includes(publico)
                 ? 'border-brand-primary bg-brand-primary text-pure-white'
                 : 'border-border-default bg-white text-text-secondary',
@@ -112,13 +125,29 @@ export function UniversidadeMx({ userId }: Props) {
         ))}
       </div>
 
+      <div className="relative">
+        <Search
+          size={14}
+          className="pointer-events-none absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-secondary"
+          aria-hidden="true"
+        />
+        <input
+          type="search"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Buscar por tema, nível ou título…"
+          className="w-full rounded-mx-md border border-border-default bg-white py-mx-xs pl-8 pr-mx-sm text-mx-tiny font-bold placeholder-text-secondary focus:border-brand-primary focus:outline-none"
+          aria-label="Buscar trilhas e aulas"
+        />
+      </div>
+
       {certificacoes.length > 0 && (
         <Card className="rounded-mx-2xl p-mx-md">
           <header className="mb-mx-sm flex items-center gap-mx-xs">
             <div className="rounded-mx-xl bg-status-success-surface p-mx-xs text-status-success">
               <Trophy size={18} aria-hidden="true" />
             </div>
-            <Typography variant="h3" className="font-black">
+            <Typography variant="h3" className="font-bold">
               Minhas certificações ({certificacoes.length})
             </Typography>
           </header>
@@ -130,7 +159,7 @@ export function UniversidadeMx({ userId }: Props) {
               >
                 <div className="flex items-center gap-mx-xs">
                   <Award size={16} className="text-status-success" />
-                  <Typography variant="caption" className="font-black uppercase tracking-widest">
+                  <Typography variant="caption" className="font-bold uppercase tracking-widest">
                     {cert.trilha_id}
                   </Typography>
                 </div>
@@ -138,7 +167,7 @@ export function UniversidadeMx({ userId }: Props) {
                   Emitida em {new Date(cert.emitida_em).toLocaleDateString('pt-BR')}
                 </Typography>
                 {cert.pontuacao != null && (
-                  <Typography variant="tiny" className="block font-black uppercase tracking-widest">
+                  <Typography variant="tiny" className="block font-bold uppercase tracking-widest">
                     Pontuação {cert.pontuacao}
                   </Typography>
                 )}
@@ -147,7 +176,7 @@ export function UniversidadeMx({ userId }: Props) {
                     href={cert.certificado_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-mx-xs inline-block text-mx-tiny font-black uppercase tracking-widest text-brand-primary underline"
+                    className="mt-mx-xs inline-block text-mx-tiny font-bold uppercase tracking-widest text-brand-primary underline"
                   >
                     Baixar certificado
                   </a>
@@ -164,26 +193,40 @@ export function UniversidadeMx({ userId }: Props) {
             <Typography variant="tiny" tone="muted" className="font-bold uppercase tracking-widest">
               {filtros.length === 0
                 ? 'Selecione ao menos um público para listar trilhas.'
-                : 'Nenhuma trilha disponível para os filtros atuais.'}
+                : searchQuery.trim()
+                  ? `Nenhum resultado para "${searchQuery}".`
+                  : 'Nenhuma trilha disponível para os filtros atuais.'}
             </Typography>
           </div>
         </Card>
       ) : (
         <div className="grid grid-cols-1 gap-mx-md xl:grid-cols-2">
           {trilhas.map((trilha) => (
-            <Card key={trilha.id} className="rounded-mx-2xl p-mx-md">
+            <Card
+              key={trilha.id}
+              className={cn(
+                'rounded-mx-2xl p-mx-md',
+                recomendadaId === trilha.id && 'ring-2 ring-brand-primary ring-offset-2',
+              )}
+            >
               <header className="mb-mx-sm">
                 <div className="flex flex-wrap items-center gap-mx-xs">
-                  <Badge variant="outline" className="font-black uppercase tracking-widest">
+                  <Badge variant="outline" className="font-bold uppercase tracking-widest">
                     {PUBLICO_LABEL[trilha.publico_alvo]}
                   </Badge>
                   {trilha.duracao_horas != null && (
-                    <Badge variant="outline" className="font-black uppercase tracking-widest">
+                    <Badge variant="outline" className="font-bold uppercase tracking-widest">
                       {trilha.duracao_horas}h
                     </Badge>
                   )}
+                  {recomendadaId === trilha.id && (
+                    <Badge className="flex items-center gap-1 border-brand-primary bg-brand-primary font-bold uppercase tracking-widest text-pure-white">
+                      <Sparkles size={10} aria-hidden="true" />
+                      Recomendada para você · {NIVEL_TRILHA_LABEL[nivelTrilha]}
+                    </Badge>
+                  )}
                 </div>
-                <Typography variant="h3" className="mt-mx-xs font-black">
+                <Typography variant="h3" className="mt-mx-xs font-bold">
                   {trilha.titulo}
                 </Typography>
                 {trilha.descricao && (
@@ -202,10 +245,10 @@ export function UniversidadeMx({ userId }: Props) {
                     )}
                   >
                     <div className="flex flex-wrap items-center gap-mx-xs">
-                      <Badge variant="outline" className="font-black uppercase tracking-widest">
+                      <Badge variant="outline" className="font-bold uppercase tracking-widest">
                         {aula.ordem.toString().padStart(2, '0')}
                       </Badge>
-                      <Badge variant="outline" className="font-black uppercase tracking-widest">
+                      <Badge variant="outline" className="font-bold uppercase tracking-widest">
                         {aula.tipo === 'aula_ao_vivo' ? (
                           <Radio size={10} className="mr-1" />
                         ) : (
@@ -214,7 +257,7 @@ export function UniversidadeMx({ userId }: Props) {
                         {TIPO_LABEL[aula.tipo]}
                       </Badge>
                       {aula.data_ao_vivo && (
-                        <Badge variant="outline" className="font-black uppercase tracking-widest">
+                        <Badge variant="outline" className="font-bold uppercase tracking-widest">
                           {new Date(aula.data_ao_vivo).toLocaleString('pt-BR', {
                             day: '2-digit',
                             month: 'short',
@@ -224,7 +267,7 @@ export function UniversidadeMx({ userId }: Props) {
                         </Badge>
                       )}
                     </div>
-                    <Typography variant="p" className="mt-mx-xs font-black">
+                    <Typography variant="p" className="mt-mx-xs font-bold">
                       {aula.titulo}
                     </Typography>
                     {aula.url_video && (
@@ -232,7 +275,7 @@ export function UniversidadeMx({ userId }: Props) {
                         href={aula.url_video}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-mx-xs inline-block text-mx-tiny font-black uppercase tracking-widest underline"
+                        className="mt-mx-xs inline-block text-mx-tiny font-bold uppercase tracking-widest underline"
                       >
                         Abrir vídeo
                       </a>

@@ -1,4 +1,4 @@
-import type { Cliente } from '@/lib/schemas/crm.schema'
+import { toDateOnlyBR, type Cliente } from '@/lib/schemas/crm.schema'
 import type { OportunidadeComCliente } from '@/features/crm/hooks/useOportunidades'
 import type { AgendamentoComCliente } from '@/features/crm/hooks/useAgendamentos'
 
@@ -109,6 +109,26 @@ const ETAPAS: Record<string, EtapaCadencia> = {
 }
 
 export type FluxoCanal = 'internet' | 'carteira' | 'porta'
+export type CadenciaResultadoAcao = 'feito' | 'nao_feito' | 'aguardando'
+
+export type CadenciaPassoConfiguravel = {
+  key: string
+  etapaId: string
+  titulo: string
+  proximaAcao: string
+  prazoDias: number
+  limiteTentativas: number
+  aoFazer: string | null
+  aoNaoFazer: string | null
+  aoAguardar: string | null
+}
+
+export type CadenciaFluxoConfiguravel = {
+  canal: FluxoCanal
+  versao: number
+  nome: string
+  passos: CadenciaPassoConfiguravel[]
+}
 
 export const FLUXOS: Record<FluxoCanal, EtapaCadencia[]> = {
   internet: [ETAPAS.lead, ETAPAS.contato, ETAPAS.agendamento, ETAPAS.visita, ETAPAS.negociacao, ETAPAS.venda],
@@ -116,11 +136,360 @@ export const FLUXOS: Record<FluxoCanal, EtapaCadencia[]> = {
   porta: [ETAPAS.atendimento, ETAPAS.negociacao, ETAPAS.venda],
 }
 
+/** @deprecated Usar useCadenciaFluxos() para carregar do banco. Mantido como fallback. */
+export const CADENCIA_FLUXOS_PADRAO: Record<FluxoCanal, CadenciaFluxoConfiguravel> = {
+  internet: {
+    canal: 'internet',
+    versao: 1,
+    nome: 'Cadência padrão Internet',
+    passos: [
+      {
+        key: 'internet_mensagem_1',
+        etapaId: 'lead',
+        titulo: 'Mensagem 1',
+        proximaAcao: 'Enviar mensagem 1 de primeiro contato',
+        prazoDias: 0,
+        limiteTentativas: 1,
+        aoFazer: 'internet_qualificacao',
+        aoNaoFazer: 'internet_mensagem_2',
+        aoAguardar: 'internet_mensagem_2',
+      },
+      {
+        key: 'internet_mensagem_2',
+        etapaId: 'lead',
+        titulo: 'Mensagem 2',
+        proximaAcao: 'Enviar mensagem 2 com opção de veículo e convite para conversa',
+        prazoDias: 1,
+        limiteTentativas: 1,
+        aoFazer: 'internet_qualificacao',
+        aoNaoFazer: 'internet_mensagem_3',
+        aoAguardar: 'internet_mensagem_3',
+      },
+      {
+        key: 'internet_qualificacao',
+        etapaId: 'contato',
+        titulo: 'Qualificação',
+        proximaAcao: 'Confirmar veículo, forma de pagamento e carro na troca',
+        prazoDias: 0,
+        limiteTentativas: 3,
+        aoFazer: 'internet_agendar_visita',
+        aoNaoFazer: 'internet_mensagem_2',
+        aoAguardar: 'internet_mensagem_2',
+      },
+      {
+        key: 'internet_mensagem_3',
+        etapaId: 'contato',
+        titulo: 'Mensagem 3',
+        proximaAcao: 'Enviar mensagem 3 com pergunta objetiva para destravar resposta',
+        prazoDias: 1,
+        limiteTentativas: 1,
+        aoFazer: 'internet_agendar_visita',
+        aoNaoFazer: 'internet_retorno_7d',
+        aoAguardar: 'internet_retorno_7d',
+      },
+      {
+        key: 'internet_retorno_7d',
+        etapaId: 'contato',
+        titulo: 'Retorno em 7 dias',
+        proximaAcao: 'Retomar contato em 7 dias',
+        prazoDias: 7,
+        limiteTentativas: 1,
+        aoFazer: 'internet_agendar_visita',
+        aoNaoFazer: null,
+        aoAguardar: null,
+      },
+      {
+        key: 'internet_agendar_visita',
+        etapaId: 'agendamento',
+        titulo: 'Agendar visita',
+        proximaAcao: 'Agendar visita ou chamada com compromisso definido',
+        prazoDias: 0,
+        limiteTentativas: 2,
+        aoFazer: 'internet_confirmar_visita',
+        aoNaoFazer: 'internet_retorno_7d',
+        aoAguardar: 'internet_retorno_7d',
+      },
+      {
+        key: 'internet_confirmar_visita',
+        etapaId: 'visita',
+        titulo: 'Confirmar visita',
+        proximaAcao: 'Confirmar presença antes da visita',
+        prazoDias: 0,
+        limiteTentativas: 2,
+        aoFazer: 'internet_negociar',
+        aoNaoFazer: 'internet_retorno_7d',
+        aoAguardar: 'internet_retorno_7d',
+      },
+      {
+        key: 'internet_negociar',
+        etapaId: 'negociacao',
+        titulo: 'Negociação',
+        proximaAcao: 'Apresentar proposta e combinar próximo compromisso',
+        prazoDias: 0,
+        limiteTentativas: 2,
+        aoFazer: null,
+        aoNaoFazer: 'internet_retorno_7d',
+        aoAguardar: 'internet_retorno_7d',
+      },
+    ],
+  },
+  carteira: {
+    canal: 'carteira',
+    versao: 1,
+    nome: 'Cadência padrão Carteira',
+    passos: [
+      {
+        key: 'carteira_retorno_1',
+        etapaId: 'agendamento',
+        titulo: 'Retorno ativo',
+        proximaAcao: 'Ligar para cliente da carteira e propor próximo compromisso',
+        prazoDias: 0,
+        limiteTentativas: 1,
+        aoFazer: 'carteira_confirmar_visita',
+        aoNaoFazer: 'carteira_retorno_2',
+        aoAguardar: 'carteira_retorno_2',
+      },
+      {
+        key: 'carteira_retorno_2',
+        etapaId: 'agendamento',
+        titulo: 'Segundo retorno',
+        proximaAcao: 'Enviar mensagem de follow-up com oferta ou novidade relevante',
+        prazoDias: 2,
+        limiteTentativas: 1,
+        aoFazer: 'carteira_confirmar_visita',
+        aoNaoFazer: 'carteira_retorno_7d',
+        aoAguardar: 'carteira_retorno_7d',
+      },
+      {
+        key: 'carteira_retorno_7d',
+        etapaId: 'agendamento',
+        titulo: 'Retorno programado',
+        proximaAcao: 'Retornar ao cliente da carteira em 7 dias',
+        prazoDias: 7,
+        limiteTentativas: 1,
+        aoFazer: 'carteira_confirmar_visita',
+        aoNaoFazer: null,
+        aoAguardar: null,
+      },
+      {
+        key: 'carteira_confirmar_visita',
+        etapaId: 'visita',
+        titulo: 'Confirmar visita',
+        proximaAcao: 'Confirmar visita ou test drive com horário definido',
+        prazoDias: 0,
+        limiteTentativas: 2,
+        aoFazer: 'carteira_negociar',
+        aoNaoFazer: 'carteira_retorno_7d',
+        aoAguardar: 'carteira_retorno_7d',
+      },
+      {
+        key: 'carteira_negociar',
+        etapaId: 'negociacao',
+        titulo: 'Negociação',
+        proximaAcao: 'Apresentar proposta e próximo passo da negociação',
+        prazoDias: 0,
+        limiteTentativas: 2,
+        aoFazer: null,
+        aoNaoFazer: 'carteira_retorno_7d',
+        aoAguardar: 'carteira_retorno_7d',
+      },
+    ],
+  },
+  porta: {
+    canal: 'porta',
+    versao: 1,
+    nome: 'Cadência padrão Porta/Showroom',
+    passos: [
+      {
+        key: 'porta_pos_atendimento',
+        etapaId: 'atendimento',
+        titulo: 'Pós-atendimento',
+        proximaAcao: 'Enviar mensagem de pós-atendimento e salvar interesse do cliente',
+        prazoDias: 0,
+        limiteTentativas: 1,
+        aoFazer: 'porta_retorno_24h',
+        aoNaoFazer: 'porta_retorno_24h',
+        aoAguardar: 'porta_retorno_24h',
+      },
+      {
+        key: 'porta_retorno_24h',
+        etapaId: 'atendimento',
+        titulo: 'Retorno 24h',
+        proximaAcao: 'Retornar em até 24h com opções e convite para negociação',
+        prazoDias: 1,
+        limiteTentativas: 1,
+        aoFazer: 'porta_negociar',
+        aoNaoFazer: 'porta_retorno_7d',
+        aoAguardar: 'porta_retorno_7d',
+      },
+      {
+        key: 'porta_retorno_7d',
+        etapaId: 'atendimento',
+        titulo: 'Retorno em 7 dias',
+        proximaAcao: 'Retomar contato em 7 dias com nova oferta ou condição',
+        prazoDias: 7,
+        limiteTentativas: 1,
+        aoFazer: 'porta_negociar',
+        aoNaoFazer: null,
+        aoAguardar: null,
+      },
+      {
+        key: 'porta_negociar',
+        etapaId: 'negociacao',
+        titulo: 'Negociação',
+        proximaAcao: 'Apresentar proposta e combinar decisão com data definida',
+        prazoDias: 0,
+        limiteTentativas: 2,
+        aoFazer: null,
+        aoNaoFazer: 'porta_retorno_7d',
+        aoAguardar: 'porta_retorno_7d',
+      },
+    ],
+  },
+}
+
 /** Canal CRM → fluxo de cadência (showroom segue o fluxo de porta/atendimento). */
 export function fluxoDoCanal(canal: string | null | undefined): FluxoCanal {
   if (canal === 'internet') return 'internet'
   if (canal === 'carteira') return 'carteira'
   return 'porta'
+}
+
+export function adicionarDiasCadencia(base: Date, prazoDias: number): string {
+  const date = new Date(base)
+  date.setDate(date.getDate() + Math.max(0, prazoDias))
+  return toDateOnlyBR(date)
+}
+
+export function sugerirHorarioAcaoCadencia(acao: string | null | undefined, canal: FluxoCanal | string | null | undefined): string {
+  const explicitTime = acao?.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/)?.[0]
+  if (explicitTime) return explicitTime.padStart(5, '0')
+
+  const normalized = (acao || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  if (normalized.includes('mensagem') || normalized.includes('lead')) return '08:55'
+  if (normalized.includes('ligar') || normalized.includes('retornar') || canal === 'carteira') return '11:00'
+  if (normalized.includes('confirmar') || normalized.includes('agendar') || normalized.includes('visita')) return '13:00'
+  if (normalized.includes('proposta') || normalized.includes('negoci')) return '16:00'
+  return '09:00'
+}
+
+export function montarDataHoraAcaoCadencia(
+  data: string,
+  acao: string | null | undefined,
+  canal: FluxoCanal | string | null | undefined,
+): string {
+  return `${data}T${sugerirHorarioAcaoCadencia(acao, canal)}:00`
+}
+
+export function resolverPrimeiraAcaoCadencia(
+  canal: string | null | undefined,
+  baseDateOrFluxos: Date | Record<FluxoCanal, CadenciaFluxoConfiguravel> = new Date(),
+  legacyBaseDate?: Date,
+) {
+  // Suporte a ambas as assinaturas:
+  //   resolverPrimeiraAcaoCadencia(canal)
+  //   resolverPrimeiraAcaoCadencia(canal, baseDate)           — legado
+  //   resolverPrimeiraAcaoCadencia(canal, fluxos, baseDate)   — novo
+  let fluxosMap: Record<FluxoCanal, CadenciaFluxoConfiguravel>
+  let baseDate: Date
+  if (baseDateOrFluxos instanceof Date) {
+    fluxosMap = CADENCIA_FLUXOS_PADRAO
+    baseDate = baseDateOrFluxos
+  } else {
+    fluxosMap = baseDateOrFluxos
+    baseDate = legacyBaseDate ?? new Date()
+  }
+  const fluxo = fluxosMap[fluxoDoCanal(canal)]
+  const passo = fluxo.passos[0]
+  return {
+    fluxo,
+    passo,
+    proximaAcao: passo.proximaAcao,
+    proximaAcaoEm: adicionarDiasCadencia(baseDate, passo.prazoDias),
+  }
+}
+
+export type ProximoCicloCadencia = {
+  passo: CadenciaPassoConfiguravel
+  proximaAcao: string
+  proximaAcaoEm: string
+  status: 'ativo' | 'concluido' | 'cancelado'
+  tentativasPasso: number
+  tentativaRegistrada: number | null
+  limiteTentativas: number
+  reagendamentoAutomatico: boolean
+  limiteEstourado: boolean
+}
+
+export function resolverProximoCicloCadencia(input: {
+  fluxo: CadenciaFluxoConfiguravel
+  passoAtualKey: string
+  resultado: CadenciaResultadoAcao
+  tentativasPasso?: number
+  baseDate?: Date
+}): ProximoCicloCadencia {
+  const baseDate = input.baseDate ?? new Date()
+  const passoAtual = input.fluxo.passos.find(passo => passo.key === input.passoAtualKey)
+
+  if (!passoAtual) {
+    throw new Error(`Passo atual ${input.passoAtualKey} nao encontrado no fluxo ${input.fluxo.nome}.`)
+  }
+
+  const statusSemSucesso = input.resultado === 'nao_feito' || input.resultado === 'aguardando'
+  const limiteAtual = Math.max(1, passoAtual.limiteTentativas || 1)
+  const tentativaRegistrada = statusSemSucesso ? Math.max(0, input.tentativasPasso ?? 0) + 1 : null
+
+  if (statusSemSucesso && tentativaRegistrada !== null && tentativaRegistrada < limiteAtual) {
+    return {
+      passo: passoAtual,
+      proximaAcao: passoAtual.proximaAcao,
+      proximaAcaoEm: adicionarDiasCadencia(baseDate, 1),
+      status: 'ativo',
+      tentativasPasso: tentativaRegistrada,
+      tentativaRegistrada,
+      limiteTentativas: limiteAtual,
+      reagendamentoAutomatico: true,
+      limiteEstourado: false,
+    }
+  }
+
+  const proximoKey = input.resultado === 'feito'
+    ? passoAtual.aoFazer
+    : input.resultado === 'nao_feito'
+      ? passoAtual.aoNaoFazer
+      : passoAtual.aoAguardar
+
+  if (proximoKey) {
+    const proximoPasso = input.fluxo.passos.find(passo => passo.key === proximoKey)
+    if (!proximoPasso) {
+      throw new Error(`Proximo passo ${proximoKey} nao encontrado no fluxo ${input.fluxo.nome}.`)
+    }
+
+    const prazoDias = Math.max(proximoPasso.prazoDias, statusSemSucesso ? 1 : 0)
+    return {
+      passo: proximoPasso,
+      proximaAcao: proximoPasso.proximaAcao,
+      proximaAcaoEm: adicionarDiasCadencia(baseDate, prazoDias),
+      status: 'ativo',
+      tentativasPasso: 0,
+      tentativaRegistrada,
+      limiteTentativas: Math.max(1, proximoPasso.limiteTentativas || 1),
+      reagendamentoAutomatico: false,
+      limiteEstourado: statusSemSucesso,
+    }
+  }
+
+  return {
+    passo: passoAtual,
+    proximaAcao: statusSemSucesso ? 'Cadencia encerrada por limite de tentativas' : 'Cadencia concluida',
+    proximaAcaoEm: adicionarDiasCadencia(baseDate, statusSemSucesso ? 1 : 0),
+    status: statusSemSucesso ? 'cancelado' : 'concluido',
+    tentativasPasso: 0,
+    tentativaRegistrada,
+    limiteTentativas: limiteAtual,
+    reagendamentoAutomatico: false,
+    limiteEstourado: statusSemSucesso,
+  }
 }
 
 export type ProgressoCadencia = {

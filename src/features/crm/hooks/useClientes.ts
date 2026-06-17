@@ -9,6 +9,7 @@ import {
   type CrmClienteStatus,
   type CrmRelacionamento,
 } from '@/lib/schemas/crm.schema'
+import { resolverPrimeiraAcaoCadencia, type CadenciaResultadoAcao } from '@/features/crm/lib/cadencia'
 
 export type ClienteInput = {
   nome: string
@@ -21,6 +22,30 @@ export type ClienteInput = {
   proxima_acao_em?: string | null
   potencial_negocio?: number
   observacoes?: string | null
+}
+
+export function buildClientePayload(
+  input: ClienteInput,
+  context: { lojaId: string; sellerUserId: string },
+  now: Date = new Date(),
+) {
+  const proximaAcaoManual = input.proxima_acao?.trim() || null
+  const acaoInicialCadencia = resolverPrimeiraAcaoCadencia(input.canal_origem, now)
+  return {
+    loja_id: context.lojaId,
+    seller_user_id: context.sellerUserId,
+    nome: input.nome.trim(),
+    telefone: input.telefone?.trim() || null,
+    empresa: input.empresa?.trim() || null,
+    canal_origem: input.canal_origem || null,
+    status: input.status || 'aguardando_contato',
+    relacionamento: input.relacionamento || 'neutro',
+    proxima_acao: proximaAcaoManual || acaoInicialCadencia.proximaAcao,
+    proxima_acao_em: input.proxima_acao_em || (!proximaAcaoManual ? acaoInicialCadencia.proximaAcaoEm : null),
+    potencial_negocio: input.potencial_negocio ?? 0,
+    observacoes: input.observacoes?.trim() || null,
+    ultima_interacao: toDateOnlyBR(now),
+  }
 }
 
 /**
@@ -63,21 +88,7 @@ export function useClientes() {
     if (!effectiveStoreId) return { error: 'Loja não identificada para o vendedor.' }
     if (!input.nome?.trim()) return { error: 'Nome do cliente é obrigatório.' }
 
-    const payload = {
-      loja_id: effectiveStoreId,
-      seller_user_id: supabaseUser.id,
-      nome: input.nome.trim(),
-      telefone: input.telefone?.trim() || null,
-      empresa: input.empresa?.trim() || null,
-      canal_origem: input.canal_origem || null,
-      status: input.status || 'aguardando_contato',
-      relacionamento: input.relacionamento || 'neutro',
-      proxima_acao: input.proxima_acao?.trim() || null,
-      proxima_acao_em: input.proxima_acao_em || null,
-      potencial_negocio: input.potencial_negocio ?? 0,
-      observacoes: input.observacoes?.trim() || null,
-      ultima_interacao: toDateOnlyBR(),
-    }
+    const payload = buildClientePayload(input, { lojaId: effectiveStoreId, sellerUserId: supabaseUser.id })
 
     const { data, error: insertError } = await supabase
       .from('clientes')
@@ -86,6 +97,9 @@ export function useClientes() {
       .single()
 
     if (insertError) return { error: insertError.message }
+    if (data?.id) {
+      await supabase.rpc('inicializar_cadencia_cliente', { p_cliente_id: data.id })
+    }
     await fetchClientes()
     return { error: null, id: data?.id }
   }, [supabaseUser, effectiveStoreId, fetchClientes])
@@ -109,6 +123,22 @@ export function useClientes() {
     return { error: null }
   }, [supabaseUser, fetchClientes])
 
+  const registrarStatusCadencia = useCallback(async (input: {
+    clienteId: string
+    status: CadenciaResultadoAcao
+    observacao?: string | null
+  }): Promise<{ error: string | null }> => {
+    if (!supabaseUser) return { error: 'Sessão inválida.' }
+    const { error: rpcError } = await supabase.rpc('registrar_status_acao_cadencia', {
+      p_cliente_id: input.clienteId,
+      p_status: input.status,
+      p_observacao: input.observacao?.trim() || null,
+    })
+    if (rpcError) return { error: rpcError.message }
+    await fetchClientes()
+    return { error: null }
+  }, [supabaseUser, fetchClientes])
+
   useEffect(() => { fetchClientes() }, [fetchClientes])
 
   const metrics = useMemo(() => {
@@ -122,5 +152,5 @@ export function useClientes() {
     return { total, ativos, oportunidades, posVenda, aguardando, inativos, potencialTotal }
   }, [clientes])
 
-  return { clientes, metrics, loading, error, refetch: fetchClientes, createCliente, updateCliente, deleteCliente }
+  return { clientes, metrics, loading, error, refetch: fetchClientes, createCliente, updateCliente, deleteCliente, registrarStatusCadencia }
 }

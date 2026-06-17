@@ -3,8 +3,10 @@ import {
   buildDailyRoutineReminder,
   calculateDailyRoutineDiscipline,
   DAILY_ROUTINE_MVP_FIELDS,
+  deriveDailyRoutineSlots,
   isProductionZero,
   resolveCloseDayReminderSchedule,
+  resolveRoutineTimesFromWorkday,
 } from './daily-routine'
 
 describe('daily routine helpers', () => {
@@ -100,5 +102,61 @@ describe('daily routine helpers', () => {
       workEndTime: '18:00',
       workDays: ['seg'],
     }).enabled).toBe(false)
+  })
+
+  test('derives daily routine checks from real event counters', () => {
+    const slots = deriveDailyRoutineSlots({
+      workStartTime: '09:00',
+      workEndTime: '18:00',
+      atendimentosHoje: 5,
+      minimumAtendimentos: 5,
+      clientesCriadosHoje: 1,
+      clientesAtualizadosHoje: 2,
+      agendamentosCriadosHoje: 1,
+      acoesListaQuenteHoje: 1,
+      fechamentoDiarioFeito: true,
+    })
+
+    expect(slots.map(slot => [slot.key, slot.state])).toEqual([
+      ['mentalidade', 'not_required'],
+      ['organizacao', 'done'],
+      ['novos_leads', 'done'],
+      ['prospeccao', 'done'],
+      ['atendimento', 'done'],
+      ['lista_quente', 'done'],
+      ['fechamento', 'done'],
+    ])
+    expect(slots[0].progress).toBe('Sem fonte obrigatória')
+    expect(slots[4].progress).toBe('5/5 atendimentos')
+  })
+
+  test('keeps routine pending when real event counters are below target', () => {
+    const slots = deriveDailyRoutineSlots({
+      atendimentosHoje: 2,
+      minimumAtendimentos: 5,
+      clientesCriadosHoje: 0,
+      clientesAtualizadosHoje: 0,
+      agendamentosCriadosHoje: 0,
+      acoesListaQuenteHoje: 0,
+      fechamentoDiarioFeito: false,
+    })
+
+    expect(slots.find(slot => slot.key === 'atendimento')?.state).toBe('pending')
+    expect(slots.find(slot => slot.key === 'atendimento')?.progress).toBe('2/5 atendimentos')
+    expect(slots.find(slot => slot.key === 'fechamento')?.state).toBe('pending')
+  })
+
+  test('spreads routine times inside seller workday when available', () => {
+    expect(resolveRoutineTimesFromWorkday({
+      workStartTime: '09:00',
+      workEndTime: '18:00',
+      slotCount: 4,
+    })).toEqual(['09:00', '12:00', '15:00', '18:00'])
+
+    expect(resolveRoutineTimesFromWorkday({
+      workStartTime: null,
+      workEndTime: '18:00',
+      slotCount: 3,
+    })).toEqual(['08:00', '08:15', '08:55'])
   })
 })

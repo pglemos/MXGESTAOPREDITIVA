@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import {
@@ -36,15 +36,35 @@ import {
 import type { TrainingWithProgress } from '@/hooks/useTrainings'
 import {
   DEVELOPMENT_THEMES,
+  buildRecommendedDevelopmentCards,
   filterDevelopmentContent,
   inferDevelopmentTheme,
   type DevelopmentTheme,
+  type DevelopmentRecommendationLike,
+  type RecommendedDevelopmentCard,
 } from '@/lib/development-content'
 import { cn } from '@/lib/utils'
 import { AulasAoVivoSection } from '@/features/universidade/sections/AulasAoVivoSection'
 import { useAulasAoVivo } from '@/hooks/useAulasAoVivo'
+import { useCadenciaAnalytics } from '@/features/crm/hooks/useCadenciaAnalytics'
+import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
+import {
+  useVendedorPerfil,
+  derivarNivelMaturidadeVendedor,
+  MATURIDADE_VENDEDOR_LABEL,
+  trackTypeParaMaturidade,
+  type NivelMaturidadeVendedor,
+} from '@/features/crm/hooks/useVendedorPerfil'
 
 type TrainingTab = 'overview' | 'biblioteca' | 'trilha' | 'aulas'
+type DevelopmentTrackAssignment = {
+  id: string
+  status?: string | null
+  track?: {
+    name?: string | null
+    track_type?: string | null
+  } | null
+}
 
 const TABS: Array<{ key: TrainingTab; label: string }> = [
   { key: 'overview', label: 'Visão Geral' },
@@ -115,11 +135,15 @@ export default function VendedorTreinamentos() {
   const activeTab = activeTabFromSearch(params.get('tab'))
   const { treinamentos, loading, error, markWatched, rateTraining, suggestContent, refetch } = useTrainings()
   const { recommendations } = useDevelopmentRecommendations()
-  const { assignments, progress: trackProgress } = useDevelopmentTracks()
+  const { oportunidades } = useOportunidades()
+  const { analytics: cadenciaAnalytics } = useCadenciaAnalytics(oportunidades)
+  const { assignments, progress: trackProgress, loading: tracksLoading, assignMaturityTrack, refetch: refetchTracks } = useDevelopmentTracks()
+  const { perfil } = useVendedorPerfil()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTheme, setSelectedTheme] = useState<DevelopmentTheme | 'todos'>('todos')
   const [suggestionTitle, setSuggestionTitle] = useState('')
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [autoAssignRequested, setAutoAssignRequested] = useState(false)
 
   const watched = useMemo(() => treinamentos.filter(t => t.watched).length, [treinamentos])
   const total = treinamentos.length
@@ -128,21 +152,47 @@ export default function VendedorTreinamentos() {
     () => filterDevelopmentContent(treinamentos, { search: searchTerm, theme: selectedTheme }),
     [searchTerm, selectedTheme, treinamentos],
   )
-  const recommendedCards = useMemo(
-    () => [
-      ...(recommendations.map(rec => rec.training).filter(Boolean) as TrainingWithProgress[]),
-      ...treinamentos,
-    ].slice(0, 3),
-    [recommendations, treinamentos],
-  )
+  const recommendedCards = useMemo(() => {
+    const recommendationInputs = recommendations.map((recommendation) => ({
+      ...recommendation,
+      training: recommendation.training_id
+        ? treinamentos.find(training => training.id === recommendation.training_id) || null
+        : null,
+    })) as DevelopmentRecommendationLike<TrainingWithProgress>[]
+
+    return buildRecommendedDevelopmentCards({
+      recommendations: recommendationInputs,
+      funnelGap: cadenciaAnalytics.gargalos[0] || null,
+      availableContent: treinamentos,
+      limit: 3,
+    })
+  }, [cadenciaAnalytics.gargalos, recommendations, treinamentos])
   const libraryCards = filteredTrainings.length ? filteredTrainings : treinamentos
-  const activeAssignment = assignments.find((assignment: { status?: string }) => assignment.status === 'active')
-  const trackName = (activeAssignment as { track?: { name?: string } } | undefined)?.track?.name || null
+  const trackAssignments = assignments as DevelopmentTrackAssignment[]
+  const nivelMaturidade = derivarNivelMaturidadeVendedor(perfil)
+  const maturityTrackType = trackTypeParaMaturidade(perfil)
+  const activeMaturityAssignment = trackAssignments.find((assignment) =>
+    assignment.status === 'active' && assignment.track?.track_type === maturityTrackType,
+  )
+  const anyActiveMaturityAssignment = trackAssignments.find((assignment) =>
+    assignment.status === 'active' && assignment.track?.track_type?.startsWith('maturidade_'),
+  )
+  const activeAssignment = activeMaturityAssignment || trackAssignments.find((assignment) => assignment.status === 'active')
+  const trackName = activeAssignment?.track?.name || null
+  const maturityTrackName = activeMaturityAssignment?.track?.name || null
   const modules = useMemo(() => buildModules(treinamentos), [treinamentos])
   const { indicadores: aulasIndicadores } = useAulasAoVivo()
   const activeTrackProgress = activeAssignment
     ? trackProgress.filter((item: { assignment_id?: string }) => item.assignment_id === activeAssignment.id)
     : []
+
+  useEffect(() => {
+    if (!profile?.id || tracksLoading || autoAssignRequested || anyActiveMaturityAssignment) return
+    setAutoAssignRequested(true)
+    void assignMaturityTrack({ sellerId: profile.id }).then((result: { error: string | null }) => {
+      if (!result.error) void refetchTracks()
+    })
+  }, [anyActiveMaturityAssignment, assignMaturityTrack, autoAssignRequested, profile?.id, refetchTracks, tracksLoading])
 
   function setTab(tab: TrainingTab) {
     const next = new URLSearchParams(params)
@@ -194,7 +244,12 @@ export default function VendedorTreinamentos() {
         <TrainingHeader profileName={profile?.name || 'João Silva'} avatarUrl={profile?.avatar_url || null} />
 
         <section className="grid grid-cols-1 gap-mx-sm md:grid-cols-3 xl:grid-cols-6" aria-label="Resumo de treinamentos">
-          <SummaryCard icon={<Medal size={22} />} label="Minha Trilha" value={trackName || '—'} hint={trackName ? 'Trilha ativa' : 'Nenhuma trilha atribuída'} />
+          <SummaryCard
+            icon={<Medal size={22} />}
+            label="Trilha obrigatória"
+            value={maturityTrackName || MATURIDADE_VENDEDOR_LABEL[nivelMaturidade]}
+            hint={maturityTrackName ? 'Atribuída automaticamente' : 'Sugerida pelo Meu Perfil'}
+          />
           <SummaryCard icon={<ProgressRing value={progress} />} label="Progresso" value={`${progress}%`} hint={`${watched} de ${total} conteúdos`} />
           <SummaryCard icon={<Clock size={22} />} label="Conteúdos concluídos" value={String(watched)} hint="no total" tone="info" />
           <SummaryCard icon={<CalendarDays size={22} />} label="Presenças em aulas" value={String(aulasIndicadores.presencasValidadas)} hint="validadas por prova" tone="success" />
@@ -227,10 +282,12 @@ export default function VendedorTreinamentos() {
 
         {activeTab === 'overview' && (
           <OverviewTab
-            trainings={recommendedCards.length ? recommendedCards : treinamentos.slice(0, 3)}
+            recommendations={recommendedCards}
             progress={progress}
             modules={modules}
             trackName={trackName}
+            nivelMaturidade={nivelMaturidade}
+            maturityTrackName={maturityTrackName}
             onStart={(training) => window.open(training.video_url, '_blank')}
             onOpenTrack={() => setTab('trilha')}
           />
@@ -256,6 +313,8 @@ export default function VendedorTreinamentos() {
           <TrilhaTab
             modules={modules}
             trackName={trackName}
+            nivelMaturidade={nivelMaturidade}
+            maturityTrackName={maturityTrackName}
             progress={progress}
             watched={watched}
             total={total}
@@ -342,7 +401,27 @@ function ProgressRing({ value }: { value: number }) {
 
 type TrilhaModule = ReturnType<typeof buildModules>[number]
 
-function OverviewTab({ trainings, progress, modules, trackName, onStart, onOpenTrack }: { trainings: TrainingWithProgress[]; progress: number; modules: TrilhaModule[]; trackName: string | null; onStart: (training: TrainingWithProgress) => void; onOpenTrack: () => void }) {
+function OverviewTab({
+  recommendations,
+  progress,
+  modules,
+  trackName,
+  nivelMaturidade,
+  maturityTrackName,
+  onStart,
+  onOpenTrack,
+}: {
+  recommendations: RecommendedDevelopmentCard<TrainingWithProgress>[]
+  progress: number
+  modules: TrilhaModule[]
+  trackName: string | null
+  nivelMaturidade: NivelMaturidadeVendedor
+  maturityTrackName: string | null
+  onStart: (training: TrainingWithProgress) => void
+  onOpenTrack: () => void
+}) {
+  const requiredTrackLabel = maturityTrackName || MATURIDADE_VENDEDOR_LABEL[nivelMaturidade]
+
   return (
     <div className="grid grid-cols-1 gap-mx-xl xl:grid-cols-[minmax(0,1fr)_360px]">
       <section className="space-y-mx-lg">
@@ -351,8 +430,13 @@ function OverviewTab({ trainings, progress, modules, trackName, onStart, onOpenT
           <Typography variant="p" tone="muted">Baseado no seu desempenho no funil, feedbacks, PDI e conteúdos prioritários da sua trilha.</Typography>
         </div>
         <div className="grid grid-cols-1 gap-mx-md lg:grid-cols-3">
-          {trainings.map((training, index) => (
-            <TrainingFeatureCard key={training.id} training={training} index={index} onStart={() => onStart(training)} />
+          {recommendations.map((recommendation, index) => (
+            <TrainingFeatureCard
+              key={recommendation.id}
+              recommendation={recommendation}
+              index={index}
+              onStart={() => onStart(recommendation.training)}
+            />
           ))}
         </div>
         <Card className="rounded-mx-lg border border-status-info/20 bg-status-info-surface p-mx-lg shadow-none">
@@ -372,10 +456,17 @@ function OverviewTab({ trainings, progress, modules, trackName, onStart, onOpenT
       </section>
       <aside className="space-y-mx-md">
         <Card className="rounded-mx-lg border border-border-default p-mx-lg shadow-none">
-          <Typography variant="h3" className="uppercase">Sua Trilha</Typography>
+          <Typography variant="h3" className="uppercase">Trilha obrigatória</Typography>
           <div className="mt-mx-md rounded-mx-lg bg-surface-alt p-mx-md">
-            <Typography variant="h3">{trackName || 'Minha Trilha'}</Typography>
-            <Typography variant="p" tone="muted" className="mt-mx-xs">{trackName ? 'Trilha atribuída pelo seu gestor.' : 'Seu progresso por tema, baseado nos conteúdos liberados.'}</Typography>
+            <Typography variant="h3">{requiredTrackLabel}</Typography>
+            <Typography variant="p" tone="muted" className="mt-mx-xs">
+              {maturityTrackName
+                ? 'Atribuída automaticamente pelo seu perfil de maturidade.'
+                : 'Sugerida pelo Meu Perfil; a sincronização cria a atribuição automaticamente.'}
+            </Typography>
+            {trackName && trackName !== maturityTrackName && (
+              <Typography variant="tiny" tone="muted" className="mt-mx-xs block tracking-normal">Outra trilha ativa: {trackName}</Typography>
+            )}
             <Button className="mt-mx-md" onClick={onOpenTrack}>Ver minha trilha</Button>
           </div>
           <div className="mt-mx-md space-y-mx-sm">
@@ -499,9 +590,11 @@ function BibliotecaTab(props: {
   )
 }
 
-function TrilhaTab({ modules, trackName, progress, watched, total, activeTrackProgress, onOpenLibrary, onWatch, onComplete, onRate }: {
+function TrilhaTab({ modules, trackName, nivelMaturidade, maturityTrackName, progress, watched, total, activeTrackProgress, onOpenLibrary, onWatch, onComplete, onRate }: {
   modules: TrilhaModule[]
   trackName: string | null
+  nivelMaturidade: NivelMaturidadeVendedor
+  maturityTrackName: string | null
   progress: number
   watched: number
   total: number
@@ -512,13 +605,19 @@ function TrilhaTab({ modules, trackName, progress, watched, total, activeTrackPr
   onRate: (training: TrainingWithProgress, rating: number) => void
 }) {
   const moduloEmAndamento = modules.find(m => m.total > 0 && m.done < m.total) || null
+  const requiredTrackLabel = maturityTrackName || MATURIDADE_VENDEDOR_LABEL[nivelMaturidade]
+
   return (
     <div className="grid grid-cols-1 gap-mx-xl xl:grid-cols-[minmax(0,1fr)_360px]">
       <section className="space-y-mx-md">
         <div className="flex flex-col gap-mx-sm lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <Typography variant="h2" className="text-2xl tracking-normal">Minha Trilha{trackName ? `: ${trackName}` : ''}</Typography>
-            <Typography variant="p" tone="muted">Seu progresso por tema, com os conteúdos reais liberados para você.</Typography>
+            <Typography variant="h2" className="text-2xl tracking-normal">Minha Trilha obrigatória: {requiredTrackLabel}</Typography>
+            <Typography variant="p" tone="muted">
+              {maturityTrackName
+                ? 'Atribuída automaticamente pelo seu nível comercial e separada da Biblioteca livre.'
+                : 'Sugerida pelo Meu Perfil; a atribuição é automática ao sincronizar a tela.'}
+            </Typography>
           </div>
           <Button variant="outline" onClick={onOpenLibrary}>Ver biblioteca completa <ExternalLink size={16} /></Button>
         </div>
@@ -596,12 +695,15 @@ function TrilhaTab({ modules, trackName, progress, watched, total, activeTrackPr
 
       <aside className="space-y-mx-md">
         <Card className="rounded-mx-lg border border-border-default p-mx-lg shadow-none">
-          <Typography variant="h3">Sobre sua Trilha</Typography>
+          <Typography variant="h3">Sobre sua Trilha obrigatória</Typography>
           <Typography variant="p" tone="muted" className="mt-mx-sm">
-            {trackName
-              ? 'Sua trilha foi atribuída pelo seu gestor com base no seu momento e desempenho.'
-              : 'Os módulos agrupam os conteúdos liberados para você por tema. Trilhas por nível (N1–N4) serão definidas pelo seu gestor.'}
+            {maturityTrackName
+              ? `Seu nível atual é ${MATURIDADE_VENDEDOR_LABEL[nivelMaturidade]}; a trilha ativa é ${maturityTrackName}.`
+              : `Seu nível sugerido é ${MATURIDADE_VENDEDOR_LABEL[nivelMaturidade]}; a trilha N1-N4 será atribuída automaticamente pelo Meu Perfil.`}
           </Typography>
+          {trackName && trackName !== maturityTrackName && (
+            <Typography variant="tiny" tone="muted" className="mt-mx-xs block tracking-normal">Outra trilha ativa: {trackName}</Typography>
+          )}
         </Card>
         <Card className="rounded-mx-lg border border-border-default p-mx-lg shadow-none">
           <Typography variant="h3">Seu progresso na Trilha</Typography>
@@ -634,16 +736,27 @@ function TrilhaTab({ modules, trackName, progress, watched, total, activeTrackPr
   )
 }
 
-function TrainingFeatureCard({ training, index, onStart }: { training: TrainingWithProgress; index: number; onStart: () => void }) {
+function TrainingFeatureCard({
+  recommendation,
+  index,
+  onStart,
+}: {
+  recommendation: RecommendedDevelopmentCard<TrainingWithProgress>
+  index: number
+  onStart: () => void
+}) {
+  const training = recommendation.training
+
   return (
     <Card className="overflow-hidden rounded-mx-lg border border-border-default bg-white shadow-none">
       <div className="relative h-mx-64 bg-cover bg-center" style={{ backgroundImage: `linear-gradient(to bottom, rgba(10,10,11,.05), rgba(10,10,11,.58)), url(${CARD_IMAGES[index % CARD_IMAGES.length]})` }}>
-        <Badge variant={index === 2 ? 'success' : 'brand'} className="absolute left-mx-sm top-mx-sm rounded-mx-full">{index === 0 ? 'Sugestão para você' : index === 1 ? 'Alinhado ao seu PDI' : 'Alto impacto'}</Badge>
+        <Badge variant={recommendation.priority === 'high' ? 'warning' : 'brand'} className="absolute left-mx-sm top-mx-sm rounded-mx-full">{recommendation.sourceLabel}</Badge>
         <span className="absolute left-1/2 top-1/2 grid h-mx-14 w-mx-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-mx-black/70 text-white ring-2 ring-white/40"><Play size={22} fill="currentColor" /></span>
       </div>
       <div className="p-mx-md">
+        <Typography variant="tiny" tone="brand" className="mb-mx-xs block tracking-normal">{THEME_LABELS[recommendation.theme] || recommendation.theme}</Typography>
         <Typography variant="h3" className="line-clamp-2">{training.title}</Typography>
-        <Typography variant="p" tone="muted" className="mt-mx-xs line-clamp-2">{training.description || 'Conteúdo recomendado para acelerar sua evolução comercial.'}</Typography>
+        <Typography variant="p" tone="muted" className="mt-mx-xs line-clamp-2">{recommendation.reason}</Typography>
         <div className="mt-mx-sm flex flex-wrap gap-mx-md text-sm font-black text-text-secondary">
           <span className="inline-flex items-center gap-1"><Clock size={15} /> {training.duration_minutes || 18} min</span>
           <span>{index === 1 ? 'Avançado' : 'Intermediário'}</span>

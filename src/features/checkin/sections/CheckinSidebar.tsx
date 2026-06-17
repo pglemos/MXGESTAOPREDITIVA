@@ -1,55 +1,99 @@
-import { ShieldCheck, Zap } from 'lucide-react'
+import { ArrowRight, CalendarClock, CheckCircle2, ShieldCheck } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Button } from '@/components/atoms/Button'
 import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
 import { CHECKIN_DEADLINE_LABEL, CHECKIN_EDIT_LIMIT_LABEL } from '@/hooks/useCheckins'
 
 interface CheckinSidebarProps {
-    totalsVnd: number
+  totalsVnd: number
+  tomorrowActions: number
+  mandatoryFeedbackActionsCount: number
+  pendingReturns?: number
 }
 
-/**
- * CheckinSidebar — aside informativo com o contrato MX e o card preto de
- * impacto em rede (vendas totais).
- */
-export function CheckinSidebar({ totalsVnd }: CheckinSidebarProps) {
-    return (
-        <aside className="lg:w-mx-aside space-y-mx-lg shrink-0">
-            <Card className="p-mx-10 border-none shadow-mx-lg bg-white space-y-mx-10">
-                <header className="flex items-center gap-mx-sm border-b border-border-default pb-8">
-                    <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-status-success-surface text-status-success flex items-center justify-center shadow-inner"><ShieldCheck size={24} /></div>
-                    <Typography variant="h3">Contrato MX</Typography>
-                </header>
-                <ul className="space-y-mx-lg">
-                    {[
-                        `Envie o registro diário até ${CHECKIN_DEADLINE_LABEL}.`,
-                        `Correções ficam disponíveis até ${CHECKIN_EDIT_LIMIT_LABEL}.`,
-                        'A agenda de hoje determina o ritmo de amanhã.',
-                        'Justificativa obrigatória para KPIs zerados.',
-                    ].map((text, i) => (
-                        <li key={i} className="flex gap-mx-sm items-start group">
-                            <div className="w-mx-md h-mx-md rounded-mx-full bg-surface-alt flex items-center justify-center shrink-0 mt-0.5 font-black text-mx-tiny text-text-tertiary shadow-sm border border-border-default group-hover:bg-brand-primary group-hover:text-white transition-all" aria-hidden="true">{i + 1}</div>
-                            <Typography variant="p" tone="muted" className="text-xs font-black uppercase tracking-tight leading-relaxed group-hover:text-text-primary transition-colors">{text}</Typography>
-                        </li>
-                    ))}
-                </ul>
-            </Card>
+export function CheckinSidebar({
+  totalsVnd,
+  tomorrowActions,
+  mandatoryFeedbackActionsCount,
+  pendingReturns,
+}: CheckinSidebarProps) {
+  const returns = pendingReturns ?? Math.max(0, tomorrowActions - totalsVnd)
 
-            <Card className="p-mx-10 bg-pure-black text-white border-none shadow-mx-xl relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/20 to-transparent pointer-events-none z-0" aria-hidden="true" />
-                <div className="absolute -right-10 -bottom-10 opacity-5 pointer-events-none group-hover:rotate-12 transition-transform duration-700" aria-hidden="true">
-                    <Zap size={240} fill="currentColor" />
-                </div>
-                <div className="relative z-10">
-                    <Typography variant="caption" tone="white" className="tracking-mx-widest mb-10 block">IMPACTO EM REDE</Typography>
-                    <div className="flex items-baseline gap-mx-sm mb-6">
-                        <Typography variant="h1" tone="white" className="text-8xl tabular-nums leading-none tracking-tighter" aria-live="polite">{totalsVnd}</Typography>
-                        <Typography variant="h3" tone="brand" className="text-xl">VENDAS</Typography>
-                    </div>
-                    <Typography variant="p" tone="white" className="text-sm font-bold leading-relaxed opacity-60 uppercase tracking-tight italic">
-                        "O sucesso é o somatório de registros precisos e execução impecável."
-                    </Typography>
-                </div>
-            </Card>
-        </aside>
-    )
+  return (
+    <aside className="space-y-mx-md">
+      <Card className="rounded-mx-xl border border-border-default bg-white p-mx-lg shadow-mx-sm">
+        <header className="flex items-center gap-mx-sm border-b border-border-default pb-mx-md">
+          <div className="grid h-mx-xl w-mx-xl place-items-center rounded-full bg-brand-primary/10 text-brand-primary">
+            <CalendarClock size={22} />
+          </div>
+          <Typography variant="h3" className="text-base font-semibold">
+            Central de Execução
+          </Typography>
+        </header>
+        <div className="mt-mx-md grid gap-mx-sm">
+          <SideMetric label="Ações geradas para amanhã" value={tomorrowActions} tone="success" />
+          <SideMetric label="Retornos pendentes" value={returns} tone="warning" />
+          <SideMetric
+            label="Feedbacks obrigatórios"
+            value={mandatoryFeedbackActionsCount}
+            tone={mandatoryFeedbackActionsCount > 0 ? 'error' : 'success'}
+          />
+        </div>
+        <Button asChild variant="outline" className="mt-mx-md w-full justify-center">
+          <Link to="/central-execucao">
+            Ver Central de Execução <ArrowRight size={16} />
+          </Link>
+        </Button>
+      </Card>
+
+      <Card className="rounded-mx-xl border border-border-default bg-white p-mx-lg shadow-mx-sm">
+        <header className="flex items-center gap-mx-sm border-b border-border-default pb-mx-md">
+          <div className="grid h-mx-xl w-mx-xl place-items-center rounded-full bg-status-success-surface text-status-success">
+            <ShieldCheck size={22} />
+          </div>
+          <Typography variant="h3" className="text-base font-semibold">
+            Contrato MX
+          </Typography>
+        </header>
+        <ul className="mt-mx-md space-y-mx-md">
+          {[
+            `Envie o registro diário até ${CHECKIN_DEADLINE_LABEL}.`,
+            `Correções ficam disponíveis até ${CHECKIN_EDIT_LIMIT_LABEL}.`,
+            'A agenda de hoje determina o ritmo de amanhã.',
+            'Justificativa obrigatória para itens zerados.',
+          ].map(text => (
+            <li key={text} className="flex gap-mx-sm">
+              <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-status-success" />
+              <Typography variant="p" tone="muted" className="text-sm leading-relaxed">
+                {text}
+              </Typography>
+            </li>
+          ))}
+        </ul>
+      </Card>
+    </aside>
+  )
+}
+
+function SideMetric({
+  label,
+  value,
+  tone,
+}: {
+  label: string
+  value: number
+  tone: 'success' | 'warning' | 'error'
+}) {
+  const toneClass =
+    tone === 'success' ? 'text-status-success' : tone === 'warning' ? 'text-status-warning' : 'text-status-error'
+
+  return (
+    <div className="flex items-center justify-between rounded-mx-lg border border-border-subtle bg-surface-alt px-mx-md py-mx-sm">
+      <Typography variant="p" tone="muted" className="text-sm">
+        {label}
+      </Typography>
+      <span className={`text-xl font-semibold tabular-nums ${toneClass}`}>{value}</span>
+    </div>
+  )
 }

@@ -2,12 +2,12 @@
 
 **Objetivo:** entregar um layout "bonitinho" para clientes, com tipografia mais leve. **Mariane valida todo layout.**
 
-**Fase:** Julho (transversal) · **Status:** 🆕 Novo.
+**Fase:** Julho (transversal) · **Status:** 🔧 Parcial (base tipográfica pronta; validação visual e mocks finais seguem externos).
 
 ---
 
 ## EV-14.1 — Aliviar a tipografia (menos `font-black`)
-**Status:** 🆕 Novo
+**Status:** 🔧 Parcial (implementação técnica pronta; validação Mariane pendente)
 
 **Como** Daniel/Mariane, **quero** uma tipografia menos carregada **para** o layout ficar leve e agradável.
 
@@ -18,6 +18,8 @@
 4. **Mariane valida** cada tela ajustada.
 
 **Notas técnicas:** revisar `Typography` e classes utilitárias; possível ajuste do design token de peso padrão.
+
+**Dependências:** validação visual de Mariane e telas do vendedor priorizadas em Julho.
 
 ---
 
@@ -30,6 +32,10 @@
 1. Telas seguem o layout sugerido pelo Daniel (Fechamento, Funil, etc.).
 2. Nomenclaturas batem com as dos mocks (ex.: "Central de Execução", não "Agenda").
 3. Validação de layout pela Mariane no fluxo print+áudio.
+
+**Notas técnicas:** manter nomenclaturas em constantes/componentes compartilhados quando existirem; revisar telas afetadas por EV-1, EV-3 e EV-4.
+
+**Dependências:** mocks do Daniel e validação de Mariane.
 
 ---
 

@@ -20,10 +20,10 @@ export function DailyRoutineCard() {
           <Clock size={24} />
         </div>
         <div>
-          <CardTitle className="text-2xl md:text-3xl uppercase tracking-tighter leading-none font-black">
+          <CardTitle className="text-2xl md:text-3xl uppercase tracking-tighter leading-none font-bold">
             Rotina MX
           </CardTitle>
-          <CardDescription className="uppercase font-black text-mx-tiny tracking-mx-widest">
+          <CardDescription className="uppercase font-bold text-mx-tiny tracking-mx-widest">
             AGENDA DE ALTA PERFORMANCE
           </CardDescription>
         </div>
@@ -37,7 +37,7 @@ export function DailyRoutineCard() {
             <Typography
               variant="mono"
               tone="brand"
-              className="text-sm font-black shrink-0 font-mono-numbers"
+              className="text-sm font-bold shrink-0 font-mono-numbers"
             >
               {r.time}
             </Typography>
@@ -45,7 +45,7 @@ export function DailyRoutineCard() {
             <div className="min-w-0">
               <Typography
                 variant="h3"
-                className="text-sm block mb-0.5 uppercase font-black truncate"
+                className="text-sm block mb-0.5 uppercase font-bold truncate"
               >
                 {r.task}
               </Typography>

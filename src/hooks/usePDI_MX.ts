@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 import { supabase } from '@/lib/supabase'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
+import { PDI_ORIGEM_NOTA, type PDIOrigemNota } from '@/lib/pdi-self-assessment'
 
 export interface PDICargo {
     id: string
@@ -40,6 +41,7 @@ export interface PDIAvaliacao360 {
     nota: number
     alvo: number
     gap: number
+    origem_nota?: PDIOrigemNota
 }
 
 export interface PDIPlanoAcao360 {
@@ -127,6 +129,7 @@ type PDIAvaliacaoRow = {
     competencia: PDICompetenciaRelation
     nota_atribuida: number
     alvo: number
+    origem_nota?: PDIOrigemNota | null
 }
 
 type PDIPlanoAcaoRow = {
@@ -154,18 +157,19 @@ type PDIStoreIdentityRow = {
 
 const pdiSessionBundleSchema = z.object({
     colaborador_id: z.string().min(1, 'Selecione o colaborador do PDI.'),
-    loja_id: z.string().min(1, 'Selecione a loja do colaborador.'),
+    loja_id: z.string().nullable().optional().default(null),
     cargo_id: z.string().min(1, 'Selecione o cargo do PDI.'),
     proxima_revisao_data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Informe uma data válida para a próxima revisão.'),
     metas: z.array(z.object({
         prazo: z.string().min(1),
         tipo: z.string().min(1),
         descricao: z.string().trim().min(1),
-    })).min(1, 'Informe as metas do PDI.'),
+    })).default([]),
     avaliacoes: z.array(z.object({
         competencia_id: z.string().min(1),
         nota_atribuida: z.number().finite(),
         alvo: z.number().finite(),
+        origem_nota: z.enum([PDI_ORIGEM_NOTA.GESTOR, PDI_ORIGEM_NOTA.AUTOAVALIACAO]).optional().default(PDI_ORIGEM_NOTA.GESTOR),
     })).min(1, 'Informe as avaliações por competência.'),
     plano_acao: z.array(z.object({
         competencia_id: z.string().min(1),
@@ -173,7 +177,7 @@ const pdiSessionBundleSchema = z.object({
         data_conclusao: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
         impacto: z.string().min(1),
         custo: z.string().min(1),
-    })).min(1, 'Informe o plano de ação do PDI.'),
+    })).default([]),
 })
 
 type PDISessionBundlePayload = z.infer<typeof pdiSessionBundleSchema>
@@ -228,7 +232,7 @@ async function fetchPDISessions360(params: {
         supabase.from('pdi_metas').select('id, sessao_id, prazo, tipo, descricao').in('sessao_id', sessionIds).order('created_at', { ascending: true }),
         supabase
             .from('pdi_avaliacoes_competencia')
-            .select('id, sessao_id, competencia_id, nota_atribuida, alvo, competencia:pdi_competencias(id,nome,tipo,ordem)')
+            .select('id, sessao_id, competencia_id, nota_atribuida, alvo, origem_nota, competencia:pdi_competencias(id,nome,tipo,ordem)')
             .in('sessao_id', sessionIds),
         supabase
             .from('pdi_plano_acao')
@@ -264,6 +268,7 @@ async function fetchPDISessions360(params: {
             nota: av.nota_atribuida,
             alvo: av.alvo,
             gap: av.alvo - av.nota_atribuida,
+            origem_nota: av.origem_nota || PDI_ORIGEM_NOTA.GESTOR,
         })
         avaliacoesBySession.set(av.sessao_id, list)
     })

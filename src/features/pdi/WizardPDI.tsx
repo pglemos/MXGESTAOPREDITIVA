@@ -12,6 +12,7 @@ import { toast } from 'sonner'
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts'
 import { cn } from '@/lib/utils'
 import { chartTokens } from '@/lib/charts/tokens'
+import { PDI_ORIGEM_NOTA } from '@/lib/pdi-self-assessment'
 import * as Dialog from '@radix-ui/react-dialog'
 
 export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSuccess: (sessionId?: string) => void }) {
@@ -227,7 +228,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                 metas: form.metas.filter(m => m.descricao.trim()),
                 avaliacoes: Object.entries(form.avaliacoes).map(([competencia_id, nota_atribuida]) => {
                     const comp = template?.competencias.find(c => c.id === competencia_id)
-                    return { competencia_id, nota_atribuida, alvo: comp?.alvo || selectedCargo?.nota_max || 10 }
+                    return { competencia_id, nota_atribuida, alvo: comp?.alvo || selectedCargo?.nota_max || 10, origem_nota: PDI_ORIGEM_NOTA.GESTOR }
                 }),
                 plano_acao: form.plano_acao
             }
@@ -267,7 +268,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                 <Dialog.Title asChild>
                                     <Typography variant="h2" className="uppercase tracking-tighter">Sessão PDI MX 360º</Typography>
                                 </Dialog.Title>
-                                <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest">{steps[currentStep].label}</Typography>
+                                <Typography variant="tiny" tone="brand" className="font-bold uppercase tracking-widest">{steps[currentStep].label}</Typography>
                             </div>
                         </div>
                         <Button variant="ghost" size="icon" onClick={onClose} className="rounded-mx-full w-mx-xl h-mx-xl bg-surface-alt hover:bg-border-default"><X size={24} /></Button>
@@ -295,29 +296,29 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                             {currentStep === 0 && (
                                 <div className="space-y-mx-lg max-w-2xl mx-auto">
                                     <div className="space-y-mx-sm">
-                                        <Typography variant="tiny" className="font-black uppercase text-text-tertiary">1. Selecione o Especialista</Typography>
+                                        <Typography variant="tiny" className="font-bold uppercase text-text-tertiary">1. Selecione o Especialista</Typography>
                                         <select 
                                             value={form.colaborador_id} onChange={e => setForm({ ...form, colaborador_id: e.target.value })}
                                             aria-label="Selecione o Especialista"
-                                            className="w-full h-mx-2xl px-6 bg-surface-alt rounded-mx-2xl font-black text-lg outline-none border focus:border-brand-primary"
+                                            className="w-full h-mx-2xl px-6 bg-surface-alt rounded-mx-2xl font-bold text-lg outline-none border focus:border-brand-primary"
                                         >
                                             <option value="">Selecione o vendedor...</option>
                                             {sellers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                         </select>
                                     </div>
                                     <div className="space-y-mx-sm">
-                                        <Typography variant="tiny" className="font-black uppercase text-text-tertiary">2. Escala de Avaliação (Cargo)</Typography>
+                                        <Typography variant="tiny" className="font-bold uppercase text-text-tertiary">2. Escala de Avaliação (Cargo)</Typography>
                                         <select 
                                             value={form.cargo_id} onChange={e => setForm({ ...form, cargo_id: e.target.value })}
                                             aria-label="Cargo do especialista"
-                                            className="w-full h-mx-2xl px-6 bg-surface-alt rounded-mx-2xl font-black text-lg outline-none border focus:border-brand-primary"
+                                            className="w-full h-mx-2xl px-6 bg-surface-alt rounded-mx-2xl font-bold text-lg outline-none border focus:border-brand-primary"
                                         >
                                             <option value="">Selecione o nível do cargo...</option>
                                             {cargos.map(c => <option key={c.id} value={c.id}>Nível {c.nivel} - {c.nome} ({c.nota_min} a {c.nota_max})</option>)}
                                         </select>
                                     </div>
                                     <Card className="p-mx-md bg-surface-alt border border-border-default shadow-inner space-y-mx-sm">
-                                        <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest">Protocolo de Aplicação</Typography>
+                                        <Typography variant="tiny" tone="brand" className="font-bold uppercase tracking-widest">Protocolo de Aplicação</Typography>
                                         <div className="grid gap-mx-xs">
                                             <label className="flex items-start gap-mx-sm text-sm font-bold text-text-secondary">
                                                 <input
@@ -346,7 +347,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-lg">
                                     {['6_meses', '12_meses', '24_meses'].map(prazo => (
                                         <Card key={prazo} className="p-mx-md bg-surface-alt border-none shadow-sm space-y-mx-md">
-                                            <Typography variant="h3" className="uppercase font-black border-b border-border-strong/10 pb-4">Visão {prazo.replace('_', ' ')}</Typography>
+                                            <Typography variant="h3" className="uppercase font-bold border-b border-border-strong/10 pb-4">Visão {prazo.replace('_', ' ')}</Typography>
                                             {form.metas.map((meta, idx) => meta.prazo === prazo && (
                                                 <div key={idx} className="space-y-mx-xs bg-white p-mx-sm rounded-mx-xl shadow-sm border border-border-default">
                                                     <div className="flex justify-between items-center">
@@ -354,7 +355,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                                             value={meta.tipo}
                                                             onChange={e => { const nm = [...form.metas]; nm[idx].tipo = e.target.value; setForm({ ...form, metas: nm }) }}
                                                             aria-label="Tipo de meta"
-                                                            className="text-mx-tiny font-black uppercase text-brand-primary bg-transparent outline-none cursor-pointer"
+                                                            className="text-mx-tiny font-bold uppercase text-brand-primary bg-transparent outline-none cursor-pointer"
                                                         >
                                                             <option value="pessoal">META PESSOAL</option>
                                                             <option value="profissional">META PROFISSIONAL</option>
@@ -381,7 +382,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                             <Typography variant="p" tone="white" className="opacity-80">Avalie as competências do especialista de acordo com a escala do cargo.</Typography>
                                         </div>
                                         <div className="text-right">
-                                            <Typography variant="tiny" tone="white" className="uppercase opacity-60 font-black">Escala Ativa</Typography>
+                                            <Typography variant="tiny" tone="white" className="uppercase opacity-60 font-bold">Escala Ativa</Typography>
                                             <Typography variant="h2" tone="white">{template.escala[0]?.nota} a {template.escala[template.escala.length - 1]?.nota}</Typography>
                                         </div>
                                     </div>
@@ -389,7 +390,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-mx-10">
                                         {['tecnica', 'comportamental'].map(tipo => (
                                             <div key={tipo} className="space-y-mx-md">
-                                                <Typography variant="h3" className="uppercase font-black text-brand-primary border-b border-border-default pb-4">Competências {tipo}s</Typography>
+                                                <Typography variant="h3" className="uppercase font-bold text-brand-primary border-b border-border-default pb-4">Competências {tipo}s</Typography>
                                                 {template.competencias.filter(c => c.tipo === tipo).map(c => {
                                                     const nota = form.avaliacoes[c.id] || template.escala[0]?.nota
                                                     const descritor = template.escala.find(e => e.nota === nota)?.descritor || ''
@@ -397,7 +398,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                                         <div key={c.id} className="bg-surface-alt p-mx-md rounded-mx-2xl border border-border-default space-y-mx-sm hover:border-brand-primary/50 transition-colors">
                                                             <div className="flex justify-between items-start gap-mx-sm">
                                                                 <div>
-                                                                    <Typography variant="p" className="font-black uppercase">{c.nome}</Typography>
+                                                                    <Typography variant="p" className="font-bold uppercase">{c.nome}</Typography>
                                                                     <Typography variant="tiny" tone="muted" className="mt-1 leading-snug">{c.descricao_completa}</Typography>
                                                                 </div>
                                                                 <div className="bg-white px-4 py-2 rounded-mx-xl shadow-sm border border-border-default text-center min-w-mx-20">
@@ -430,7 +431,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-mx-10">
                                     <div className="xl:col-span-4 space-y-mx-md">
                                         <Card className="p-mx-md bg-surface-alt border-none shadow-sm flex flex-col items-center justify-center h-mx-96">
-                                            <Typography variant="tiny" className="uppercase font-black text-text-tertiary mb-4">Radar de Competências</Typography>
+                                            <Typography variant="tiny" className="uppercase font-bold text-text-tertiary mb-4">Radar de Competências</Typography>
                                             
                                             {/* Tabela Acessível para Leitores de Tela */}
                                             <table className="sr-only">
@@ -463,13 +464,13 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                             </ResponsiveContainer>
                                         </Card>
                                         <div className="space-y-mx-xs">
-                                            <Typography variant="tiny" className="uppercase font-black text-brand-primary">Top 5 Maiores Lacunas</Typography>
+                                            <Typography variant="tiny" className="uppercase font-bold text-brand-primary">Top 5 Maiores Lacunas</Typography>
                                             {topGaps.map((gap, i) => (
                                                 <div key={i} className="flex justify-between items-center p-mx-xs bg-white border border-status-error/20 rounded-mx-lg shadow-sm">
                                                     <Typography variant="p" className="text-xs font-bold uppercase">{gap.nome}</Typography>
                                                     <div className="text-right">
                                                         <Typography variant="mono" className="text-mx-tiny text-text-tertiary">Nota: {gap.nota}/{gap.alvo}</Typography>
-                                                        <Typography variant="tiny" className="text-status-error font-black">GAP -{gap.gap}</Typography>
+                                                        <Typography variant="tiny" className="text-status-error font-bold">GAP -{gap.gap}</Typography>
                                                     </div>
                                                 </div>
                                             ))}
@@ -478,10 +479,10 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
 
                                     <div className="xl:col-span-8 space-y-mx-md">
                                         <div className="flex items-center justify-between mb-2">
-                                            <Typography variant="h3" className="uppercase font-black">5 Ações de Desenvolvimento</Typography>
+                                            <Typography variant="h3" className="uppercase font-bold">5 Ações de Desenvolvimento</Typography>
                                             <div className="flex items-center gap-mx-sm">
                                                 <div className="flex flex-col text-right">
-                                                    <Typography variant="tiny" className="uppercase font-black text-text-tertiary">Revisão Mensal</Typography>
+                                                    <Typography variant="tiny" className="uppercase font-bold text-text-tertiary">Revisão Mensal</Typography>
                                                     <input 
                                                         type="date" value={form.proxima_revisao_data} onChange={e => setForm({ ...form, proxima_revisao_data: e.target.value })}
                                                         aria-label="Data de revisão"
@@ -494,7 +495,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                         {form.plano_acao.map((acao, idx) => (
                                             <div key={idx} className="p-mx-md bg-surface-alt border border-border-default rounded-mx-2xl space-y-mx-sm">
                                                 <div className="flex items-center gap-mx-sm">
-                                                    <div className="w-mx-lg h-mx-lg rounded-mx-full bg-brand-primary text-white flex items-center justify-center font-black text-xs shrink-0">{idx + 1}</div>
+                                                    <div className="w-mx-lg h-mx-lg rounded-mx-full bg-brand-primary text-white flex items-center justify-center font-bold text-xs shrink-0">{idx + 1}</div>
                                                     <select 
                                                         value={acao.competencia_id} onChange={e => handleCompetenciaAcaoChange(idx, e.target.value)}
                                                         aria-label="Competência"
@@ -528,17 +529,17 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                                     />
                                                     <div className="flex gap-mx-sm">
                                                         <div className="flex-1">
-                                                            <Typography variant="tiny" className="uppercase font-black text-text-tertiary mb-1 block">Conclusão</Typography>
+                                                            <Typography variant="tiny" className="uppercase font-bold text-text-tertiary mb-1 block">Conclusão</Typography>
                                                             <input type="date" aria-label="Data de conclusão" value={acao.data_conclusao} onChange={e => { const np = [...form.plano_acao]; np[idx].data_conclusao = e.target.value; setForm({ ...form, plano_acao: np }) }} className="w-full h-mx-xl px-4 bg-white border border-border-default rounded-mx-xl text-sm font-bold outline-none" />
                                                         </div>
                                                         <div className="flex-1">
-                                                            <Typography variant="tiny" className="uppercase font-black text-text-tertiary mb-1 block">Impacto</Typography>
+                                                            <Typography variant="tiny" className="uppercase font-bold text-text-tertiary mb-1 block">Impacto</Typography>
                                                             <select aria-label="Impacto" value={acao.impacto} onChange={e => { const np = [...form.plano_acao]; np[idx].impacto = e.target.value; setForm({ ...form, plano_acao: np }) }} className="w-full h-mx-xl px-4 bg-white border border-border-default rounded-mx-xl text-sm font-bold outline-none uppercase">
                                                                 <option value="alto">Alto</option><option value="medio">Médio</option><option value="baixo">Baixo</option>
                                                             </select>
                                                         </div>
                                                         <div className="flex-1">
-                                                            <Typography variant="tiny" className="uppercase font-black text-text-tertiary mb-1 block">Custo</Typography>
+                                                            <Typography variant="tiny" className="uppercase font-bold text-text-tertiary mb-1 block">Custo</Typography>
                                                             <select aria-label="Custo" value={acao.custo} onChange={e => { const np = [...form.plano_acao]; np[idx].custo = e.target.value; setForm({ ...form, plano_acao: np }) }} className="w-full h-mx-xl px-4 bg-white border border-border-default rounded-mx-xl text-sm font-bold outline-none uppercase">
                                                                 <option value="alto">Alto</option><option value="medio">Médio</option><option value="baixo">Baixo</option>
                                                             </select>
@@ -549,7 +550,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                                         ))}
 
                                         <Card className="p-mx-md bg-white border border-brand-primary/20 shadow-sm space-y-mx-sm">
-                                            <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest">Encerramento da Sessão</Typography>
+                                            <Typography variant="tiny" tone="brand" className="font-bold uppercase tracking-widest">Encerramento da Sessão</Typography>
                                             <div className="grid gap-mx-xs">
                                                 <label className="flex items-start gap-mx-sm text-sm font-bold text-text-secondary">
                                                     <input
@@ -588,10 +589,10 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                 </div>
 
                 <footer className="p-mx-lg md:p-10 border-t border-border-default sticky bottom-mx-0 bg-white z-10 flex flex-col sm:flex-row gap-mx-md justify-between">
-                    <Button variant="ghost" onClick={() => currentStep > 0 ? setCurrentStep(s => s - 1) : onClose()} className="h-mx-14 px-8 rounded-mx-full font-black uppercase text-xs border border-border-default w-full sm:w-auto">
+                    <Button variant="ghost" onClick={() => currentStep > 0 ? setCurrentStep(s => s - 1) : onClose()} className="h-mx-14 px-8 rounded-mx-full font-bold uppercase text-xs border border-border-default w-full sm:w-auto">
                         <ChevronLeft size={18} className="mr-2" /> {currentStep === 0 ? 'CANCELAR' : 'VOLTAR'}
                     </Button>
-                    <Button onClick={currentStep < 3 ? handleNext : handleSubmit} disabled={saving} className="h-mx-14 px-12 rounded-mx-full shadow-mx-xl font-black uppercase text-xs w-full sm:w-auto">
+                    <Button onClick={currentStep < 3 ? handleNext : handleSubmit} disabled={saving} className="h-mx-14 px-12 rounded-mx-full shadow-mx-xl font-bold uppercase text-xs w-full sm:w-auto">
                         {saving ? <div className="animate-spin mr-2"><LayoutDashboard size={18}/></div> : (currentStep === 3 ? <CheckCircle2 size={18} className="mr-2" /> : <ChevronRight size={18} className="ml-2" />)}
                         {currentStep === 3 ? 'CONCLUIR SESSÃO & GERAR PDI' : 'PRÓXIMO'}
                     </Button>

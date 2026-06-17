@@ -2,7 +2,7 @@
 
 > **Fonte:** Reunião 12/06/2026 (Pedro Guilherme, Daniel Santos, Mariane Durães) — transcrição completa em [`../20260612-reuniao-modulo-vendedor.md`](../20260612-reuniao-modulo-vendedor.md).
 > **Versão:** 1.0 — refeito do zero em formato Épico/Story.
-> **Status global:** módulo Vendedor em produção parcial; este PRD consolida o escopo-alvo completo.
+> **Status global:** execução técnica das stories Julho pronta para review; pendências restantes dependem de decisão de produto, mock final, pagamento/assinatura, mobile ou validação visual externa.
 
 ---
 
@@ -29,7 +29,7 @@ O Módulo Vendedor não é um CRM tradicional. É um **mentor digital de vendas*
 |---------|-----------|------------------|
 | **Vendedor de loja** | Vinculado a uma loja com **pacote principal** (consultoria MX). | Plano de remuneração herdado do RH; recebe feedback do gerente; **não** aparece no Mercado de Trabalho; competências do PDI avaliadas pelo gestor. |
 | **Vendedor autônomo** | Assina o sistema sozinho (**R$ 49,90/mês**). | Configura o próprio comissionamento; recebe **feedback autônomo** gerado pelo sistema; autoavalia o PDI; **pode** se expor no Mercado de Trabalho; algumas telas ficam "cinza"/ocultas. |
-| **Gerente** | Gestão da loja (fase Julho). | Registra feedback (com caso obrigatório); **refina** o score do vendedor; valida se o sistema não está "alucinando". |
+| **Gerente comercial** | Gestão da loja (fase Julho). | Registra feedback (com caso obrigatório); **refina** o score do vendedor; valida se o sistema não está "alucinando". |
 | **Dono** | Dono da loja (fase Agosto). | Cadastra plano de comissionamento no RH; enxerga scores; consome Mercado de Trabalho para contratar. |
 
 ---
@@ -81,22 +81,22 @@ Ordem discutida (fluxo natural: alimentar → consultar → executar):
 
 | Épico | Título | Arquivo | Fase | Status |
 |-------|--------|---------|------|--------|
-| **EV-1** | Fechamento Diário e Cadastro Rico | [`01-epic-fechamento.md`](01-epic-fechamento.md) | Jul | 🔧 Parcial |
-| **EV-2** | Carteira + Motor de Cadência | [`02-epic-carteira-cadencia.md`](02-epic-carteira-cadencia.md) | Jul | 🔧 Parcial |
-| **EV-3** | Central de Execução (rotina automática) | [`03-epic-central-execucao.md`](03-epic-central-execucao.md) | Jul | 🔧 Parcial |
-| **EV-4** | Funil de Vendas (estratégia por canal) | [`04-epic-funil.md`](04-epic-funil.md) | Jul | 🔧 Parcial |
+| **EV-1** | Fechamento Diário e Cadastro Rico | [`01-epic-fechamento.md`](01-epic-fechamento.md) | Jul | ✅ Done |
+| **EV-2** | Carteira + Motor de Cadência | [`02-epic-carteira-cadencia.md`](02-epic-carteira-cadencia.md) | Jul | ✅ Done |
+| **EV-3** | Central de Execução (rotina automática) | [`03-epic-central-execucao.md`](03-epic-central-execucao.md) | Jul | ✅ Done |
+| **EV-4** | Funil de Vendas (estratégia por canal) | [`04-epic-funil.md`](04-epic-funil.md) | Jul | ✅ Done |
 | **EV-5** | Treinamentos (Biblioteca/Trilha/Aulas) | [`05-epic-treinamentos.md`](05-epic-treinamentos.md) | Jul | 🔧 Parcial |
-| **EV-6** | Feedback (caso, ação, trava, autônomo) | [`06-epic-feedback.md`](06-epic-feedback.md) | Jul | 🔧 Parcial |
-| **EV-7** | PDI (evolução + autoavaliação) | [`07-epic-pdi.md`](07-epic-pdi.md) | Jul | 🔧 Parcial |
-| **EV-8** | Meu Perfil + Comissionamento | [`08-epic-perfil-comissionamento.md`](08-epic-perfil-comissionamento.md) | Jul | 🔧 Parcial |
-| **EV-9** | Score do Vendedor (composição) | [`09-epic-score.md`](09-epic-score.md) | Jul/Ago | 🆕 Novo |
+| **EV-6** | Feedback (caso, ação, trava, autônomo) | [`06-epic-feedback.md`](06-epic-feedback.md) | Jul | ✅ Done |
+| **EV-7** | PDI (evolução + autoavaliação) | [`07-epic-pdi.md`](07-epic-pdi.md) | Jul | ✅ Done |
+| **EV-8** | Meu Perfil + Comissionamento | [`08-epic-perfil-comissionamento.md`](08-epic-perfil-comissionamento.md) | Jul | ✅ Done |
+| **EV-9** | Score do Vendedor (composição) | [`09-epic-score.md`](09-epic-score.md) | Jul/Ago | ⚠️ Bloqueado |
 | **EV-10** | Ranking | [`10-epic-ranking.md`](10-epic-ranking.md) | Jul | 🔧 Parcial |
 | **EV-11** | Mercado de Trabalho MX | [`11-epic-mercado-trabalho.md`](11-epic-mercado-trabalho.md) | Nov | 🔮 Futuro |
-| **EV-12** | Multi-tenancy (loja vs autônomo) | [`12-epic-multitenancy.md`](12-epic-multitenancy.md) | Jul→ | 🆕 Novo |
+| **EV-12** | Multi-tenancy (loja vs autônomo) | [`12-epic-multitenancy.md`](12-epic-multitenancy.md) | Jul→ | 🔧 Parcial |
 | **EV-13** | Aplicativo Mobile (React Native) | [`13-epic-app-mobile.md`](13-epic-app-mobile.md) | pós-validação | 🔮 Futuro |
-| **EV-14** | Design System / Tipografia | [`14-epic-design-tipografia.md`](14-epic-design-tipografia.md) | Jul | 🆕 Novo |
+| **EV-14** | Design System / Tipografia | [`14-epic-design-tipografia.md`](14-epic-design-tipografia.md) | Jul | 🔧 Parcial |
 
-> Legenda status: ✅ Done · 🔧 Parcial (existe, falta requisito da reunião) · 🆕 Novo · 🔮 Futuro.
+> Legenda status: ✅ Done · 🔧 Parcial (existe, falta requisito/validação externa) · 🆕 Novo · 🔮 Futuro · ⚠️ Bloqueado.
 
 ---
 

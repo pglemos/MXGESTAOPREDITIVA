@@ -11,6 +11,9 @@ export {
   type RemuneracaoRegra,
   type RemuneracaoRegraInsert,
   type RemuneracaoRegraTipo,
+  type RemuneracaoTipoVeiculo,
+  type RemuneracaoVinculoTipo,
+  type RemuneracaoVenda,
   type RemuneracaoEstimadaResultado,
   type RemuneracaoResumoVendedor,
   type RemuneracaoBonusPatamarDetalhe,
@@ -25,6 +28,8 @@ import {
   type RemuneracaoBenchmark,
   type RemuneracaoRegra,
   type RemuneracaoRegraInsert,
+  type RemuneracaoVinculoTipo,
+  type RemuneracaoVenda,
 } from '../lib/comparativo'
 
 /** Planos de remuneração de uma loja + mutations. */
@@ -115,6 +120,10 @@ export function useRemuneracaoEstimadaVendedor(params: {
   vendasRealizadas: number
   vendasProjetadas: number
   meta: number
+  vendasDetalhadasRealizadas?: RemuneracaoVenda[]
+  faturamentoProjetado?: number
+  vinculoTipo?: RemuneracaoVinculoTipo
+  atingimentoLojaPercentual?: number
 }) {
   const cargo = params.cargo || 'Vendedor'
   const [plano, setPlano] = useState<RemuneracaoPlano | null>(null)
@@ -175,7 +184,21 @@ export function useRemuneracaoEstimadaVendedor(params: {
     vendasRealizadas: params.vendasRealizadas,
     vendasProjetadas: params.vendasProjetadas,
     meta: params.meta,
-  }), [plano, regras, params.vendasRealizadas, params.vendasProjetadas, params.meta])
+    vendasDetalhadasRealizadas: params.vendasDetalhadasRealizadas,
+    faturamentoProjetado: params.faturamentoProjetado,
+    vinculoTipo: params.vinculoTipo,
+    atingimentoLojaPercentual: params.atingimentoLojaPercentual,
+  }), [
+    plano,
+    regras,
+    params.vendasRealizadas,
+    params.vendasProjetadas,
+    params.meta,
+    params.vendasDetalhadasRealizadas,
+    params.faturamentoProjetado,
+    params.vinculoTipo,
+    params.atingimentoLojaPercentual,
+  ])
 
   return {
     estimativa: resumo.projetado,

@@ -51,10 +51,10 @@ export function ChannelsMatrixCard({ porCanal, vendasMes }: ChannelsMatrixCardPr
       />
       <CardHeader className="flex flex-row items-center justify-between mb-12 relative z-10 p-mx-0 bg-transparent border-none">
         <div>
-          <CardTitle className="text-2xl md:text-3xl mb-2 uppercase tracking-tighter leading-none font-black">
+          <CardTitle className="text-2xl md:text-3xl mb-2 uppercase tracking-tighter leading-none font-bold">
             Matrix de Canais
           </CardTitle>
-          <CardDescription className="uppercase font-black text-mx-tiny tracking-mx-widest">
+          <CardDescription className="uppercase font-bold text-mx-tiny tracking-mx-widest">
             DISTRIBUIÇÃO DE FECHAMENTOS POR ORIGEM
           </CardDescription>
         </div>
@@ -83,21 +83,21 @@ export function ChannelsMatrixCard({ porCanal, vendasMes }: ChannelsMatrixCardPr
               </div>
               <Badge
                 variant="outline"
-                className="text-mx-nano font-mono-numbers font-black border-border-strong px-2"
+                className="text-mx-nano font-mono-numbers font-bold border-border-strong px-2"
               >
                 {ch.pct}%
               </Badge>
             </div>
             <Typography
               variant="h1"
-              className="text-4xl sm:text-6xl font-mono-numbers mb-1 leading-none font-black"
+              className="text-4xl sm:text-6xl font-mono-numbers mb-1 leading-none font-bold"
             >
               {ch.value}
             </Typography>
             <Typography
               variant="caption"
               tone="muted"
-              className="tracking-mx-widest uppercase font-black text-mx-nano"
+              className="tracking-mx-widest uppercase font-bold text-mx-nano"
             >
               {ch.label}
             </Typography>

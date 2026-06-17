@@ -30,7 +30,7 @@ export class VendedorHomeErrorBoundary extends Component<Props, State> {
       return (
         <div
           role="alert"
-          className="my-mx-xs rounded-mx-lg border border-border-default bg-surface-alt p-mx-md text-mx-tiny font-black uppercase tracking-widest text-status-warning"
+          className="my-mx-xs rounded-mx-lg border border-border-default bg-surface-alt p-mx-md text-mx-tiny font-bold uppercase tracking-widest text-status-warning"
         >
           <strong>
             // Bloco indisponível{this.props.sectionName ? `: ${this.props.sectionName}` : ''}

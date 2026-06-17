@@ -6,9 +6,16 @@ import { Typography } from '@/components/atoms/Typography'
 import { useVendedorHomePage } from '@/features/vendedor-home/hooks/useVendedorHomePage'
 import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
 import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
+import { useVendedorPerfil } from '@/features/crm/hooks/useVendedorPerfil'
 import { useStoreMetaRules } from '@/hooks/useGoals'
-import { getDiasInfo } from '@/lib/calculations'
 import { CRM_CANAIS, CRM_CANAL_LABEL, type CrmCanal } from '@/lib/schemas/crm.schema'
+import {
+  calcularPlanoFunilPonderado,
+  normalizarCanalEstrategia,
+  type FunilCanalEstrategia,
+  type FunilCanalPlano,
+  type FunilPlanoFonte,
+} from '@/features/crm/lib/funil'
 
 const BRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
 const PCT = (v: number) => `${v.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`
@@ -18,6 +25,7 @@ export function FunilVendedor() {
   const { metaRules } = useStoreMetaRules()
   const { oportunidades } = useOportunidades()
   const { agendamentos } = useAgendamentos()
+  const { perfil } = useVendedorPerfil()
 
   const meta = metrics?.meta ?? 0
   const vendasMes = metrics?.vendasMes ?? 0
@@ -25,28 +33,18 @@ export function FunilVendedor() {
   const atingimento = meta > 0 ? Math.min(100, Math.round((vendasMes / meta) * 100)) : 0
   const projecao = metrics?.projecao ?? 0
 
-  // "O que falta" por canal: faltaX convertido em volume usando os benchmarks
-  // de conversão configurados da loja (regras_metas_loja).
   const plano = useMemo(() => {
-    const benchLeadAgd = metaRules?.bench_lead_agd ?? 20
-    const benchAgdVisita = metaRules?.bench_agd_visita ?? 60
-    const benchVisitaVnd = metaRules?.bench_visita_vnd ?? 33
-    const dias = getDiasInfo(undefined, metaRules?.projection_mode || 'calendar')
-    const chainInternet = (benchLeadAgd / 100) * (benchAgdVisita / 100) * (benchVisitaVnd / 100)
-    const chainCarteira = (benchAgdVisita / 100) * (benchVisitaVnd / 100)
-    const chainPorta = benchVisitaVnd / 100
-    const need = (chain: number) => (faltaX > 0 && chain > 0 ? Math.ceil(faltaX / chain) : 0)
-    const porDia = (n: number) => (dias.restantes > 0 ? Math.ceil(n / dias.restantes) : n)
-    return {
-      dias,
-      leads: need(chainInternet),
-      agds: need(chainCarteira),
-      atds: need(chainPorta),
-      leadsPorDia: porDia(need(chainInternet)),
-      agdsPorDia: porDia(need(chainCarteira)),
-      atdsPorDia: porDia(need(chainPorta)),
-    }
-  }, [faltaX, metaRules])
+    return calcularPlanoFunilPonderado({
+      faltaX,
+      metaRules,
+      oportunidades,
+      mixManual: {
+        internet: perfil.mix_canal_internet_pct,
+        carteira: perfil.mix_canal_carteira_pct,
+        porta: perfil.mix_canal_porta_pct,
+      },
+    })
+  }, [faltaX, metaRules, oportunidades, perfil.mix_canal_carteira_pct, perfil.mix_canal_internet_pct, perfil.mix_canal_porta_pct])
 
   // Ritmo real: 1 venda a cada N dias decorridos vs ritmo necessário pela meta.
   const ritmo = useMemo(() => {
@@ -58,17 +56,36 @@ export function FunilVendedor() {
   }, [meta, plano.dias.decorridos, plano.dias.total, projecao, vendasMes])
 
   // Destaques reais: conversão por canal das oportunidades do vendedor.
+  // EV-4.3: canais com 0 oportunidades nos últimos 90 dias são ocultados da visão principal.
   const canais = useMemo(() => {
+    const cutoff = new Date()
+    cutoff.setDate(cutoff.getDate() - 90)
+
     const rows = CRM_CANAIS.map(canal => {
       const byCanal = oportunidades.filter(item => item.canal === canal)
       const ganhos = byCanal.filter(item => item.etapa === 'ganho').length
-      return { canal: canal as CrmCanal, total: byCanal.length, ganhos, conversao: byCanal.length > 0 ? (ganhos / byCanal.length) * 100 : 0 }
+      const byCanal90d = byCanal.filter(item => new Date(item.created_at) >= cutoff)
+      return {
+        canal: canal as CrmCanal,
+        total: byCanal.length,
+        total90d: byCanal90d.length,
+        ganhos,
+        conversao: byCanal.length > 0 ? (ganhos / byCanal.length) * 100 : 0,
+      }
     })
     const comGanho = rows.filter(row => row.ganhos > 0).sort((a, b) => b.conversao - a.conversao)
     const melhor = comGanho[0] || null
-    const ativos = rows.filter(row => row.total > 0 && row.ganhos === 0).sort((a, b) => b.total - a.total)
+    // Apenas canais com atividade nos últimos 90 dias são considerados como oportunidade
+    const ativos = rows.filter(row => row.total90d > 0 && row.ganhos === 0).sort((a, b) => b.total90d - a.total90d)
     const maiorOportunidade = ativos[0] || null
-    return { melhor, maiorOportunidade }
+    // G2/EV-4.3: set de canais-estratégia com pelo menos 1 oportunidade nos últimos 90 dias
+    const canaisAtivos90d = new Set<FunilCanalEstrategia>(
+      rows
+        .filter(row => row.total90d > 0)
+        .map(row => normalizarCanalEstrategia(row.canal))
+        .filter((c): c is FunilCanalEstrategia => c !== null),
+    )
+    return { melhor, maiorOportunidade, canaisAtivos90d }
   }, [oportunidades])
 
   const agendamentosCarteiraFuturos = useMemo(() => {
@@ -92,7 +109,7 @@ export function FunilVendedor() {
               <Typography variant="p" tone="muted" className="text-sm">Acompanhe seu desempenho e saiba exatamente o que fazer para bater sua meta.</Typography>
             </div>
           </div>
-          <div className="hidden items-center gap-mx-xs text-sm font-black md:flex"><Calendar size={17} /> {hojeLabel}</div>
+          <div className="hidden items-center gap-mx-xs text-sm font-bold md:flex"><Calendar size={17} /> {hojeLabel}</div>
         </header>
 
         <section className="grid gap-mx-md xl:grid-cols-[1fr_1.1fr_1.15fr]">
@@ -112,13 +129,28 @@ export function FunilVendedor() {
                   : `Faltam ${faltaX} venda${faltaX === 1 ? '' : 's'} para você alcançar sua meta este mês.`}
             </Typography>
           </div>
-          {meta > 0 && (
-            <div className="mt-mx-md grid gap-mx-lg xl:grid-cols-3">
-              <ChannelCard tone="blue" icon={<Globe size={36} />} title="Internet" path="Lead → Agendamento → Visita → Venda" need={plano.leads} unit={plano.leads === 1 ? 'novo lead' : 'novos leads'} porDia={plano.leadsPorDia} faltaX={faltaX} diasRestantes={plano.dias.restantes} />
-              <ChannelCard tone="orange" icon={<Users size={36} />} title="Carteira" path="Agendamento → Visita → Venda" need={plano.agds} unit={plano.agds === 1 ? 'novo agendamento' : 'novos agendamentos'} porDia={plano.agdsPorDia} faltaX={faltaX} diasRestantes={plano.dias.restantes} />
-              <ChannelCard tone="green" icon={<DoorOpen size={36} />} title="Porta" path="Atendimento → Venda" need={plano.atds} unit={plano.atds === 1 ? 'atendimento' : 'atendimentos'} porDia={plano.atdsPorDia} faltaX={faltaX} diasRestantes={plano.dias.restantes} />
-            </div>
-          )}
+          {meta > 0 && (() => {
+            // G2/EV-4.3: hide channels with 0% operation for 3 months
+            const canaisVisiveis = canais.canaisAtivos90d.size > 0
+              ? plano.canais.filter(c => canais.canaisAtivos90d.has(c.canal))
+              : plano.canais
+            // Fallback: if filtering removes all, show all
+            const lista = canaisVisiveis.length > 0 ? canaisVisiveis : plano.canais
+            return (
+              <div className="mt-mx-md grid gap-mx-lg xl:grid-cols-3">
+                {lista.map(canal => (
+                  <ChannelCard
+                    key={canal.canal}
+                    canal={canal}
+                    icon={getCanalIcon(canal.canal)}
+                    fonte={plano.fonte}
+                    faltaX={faltaX}
+                    diasRestantes={plano.dias.restantes}
+                  />
+                ))}
+              </div>
+            )
+          })()}
         </section>
 
         <section className="grid gap-mx-lg xl:grid-cols-[minmax(0,.85fr)_minmax(0,1.15fr)]">
@@ -131,7 +163,7 @@ export function FunilVendedor() {
                 <Highlight icon={<Trophy size={34} />} label="Seu melhor canal" value="—" detail="Feche a primeira venda no funil para revelar seu melhor canal." />
               )}
               {canais.maiorOportunidade ? (
-                <Highlight icon={<Rocket size={34} />} label="Maior oportunidade" value={CRM_CANAL_LABEL[canais.maiorOportunidade.canal]} detail={`${canais.maiorOportunidade.total} oportunidade${canais.maiorOportunidade.total === 1 ? '' : 's'} sem venda ainda — avance essas negociações para destravar o canal.`} />
+                <Highlight icon={<Rocket size={34} />} label="Maior oportunidade" value={CRM_CANAL_LABEL[canais.maiorOportunidade.canal]} detail={`${canais.maiorOportunidade.total90d} oportunidade${canais.maiorOportunidade.total90d === 1 ? '' : 's'} sem venda ainda — avance essas negociações para destravar o canal.`} />
               ) : (
                 <Highlight icon={<Rocket size={34} />} label="Maior oportunidade" value="—" detail="Cadastre oportunidades no funil para o assistente apontar onde atacar." />
               )}
@@ -141,11 +173,11 @@ export function FunilVendedor() {
           <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
             <div className="flex items-center justify-between">
               <Typography variant="h2" className="text-xl uppercase tracking-normal">Assistente Comercial</Typography>
-              <span className="rounded-full bg-brand-primary/10 px-3 py-1 text-xs font-black text-brand-primary">Insights para você hoje</span>
+              <span className="rounded-full bg-brand-primary/10 px-3 py-1 text-xs font-bold text-brand-primary">Insights para você hoje</span>
             </div>
             <div className="mt-mx-md space-y-mx-sm">
-              {meta > 0 && faltaX > 0 && plano.leadsPorDia > 0 && (
-                <Insight tone="blue" text={`Você precisa de aproximadamente ${plano.leadsPorDia} lead${plano.leadsPorDia === 1 ? '' : 's'} por dia para atingir sua meta pela Internet (${plano.dias.restantes} dia${plano.dias.restantes === 1 ? '' : 's'} restantes).`} />
+              {meta > 0 && faltaX > 0 && plano.canais[0]?.necessidadePorDia > 0 && (
+                <Insight tone="blue" text={`Priorize ${plano.canais[0].titulo}: aproximadamente ${plano.canais[0].necessidadePorDia} ${plano.canais[0].necessidadePorDia === 1 ? plano.canais[0].unidadeSingular : plano.canais[0].unidadePlural} por dia para gerar ${plano.canais[0].vendasPlanejadas} venda${plano.canais[0].vendasPlanejadas === 1 ? '' : 's'} (${plano.dias.restantes} dia${plano.dias.restantes === 1 ? '' : 's'} restantes).`} />
               )}
               {canais.melhor && (
                 <Insight tone="green" text={`Seu melhor resultado está vindo do canal ${CRM_CANAL_LABEL[canais.melhor.canal]} (${PCT(canais.melhor.conversao)} de conversão). Continue priorizando esse canal.`} />
@@ -165,10 +197,10 @@ export function FunilVendedor() {
         <div className="flex items-center justify-between rounded-mx-md border border-brand-primary/10 bg-brand-primary/5 px-mx-lg py-mx-sm">
           <div className="flex items-center gap-mx-sm">
             <Lightbulb size={22} className="text-brand-primary" />
-            <Typography variant="p" className="font-black text-brand-primary">Dica do dia</Typography>
+            <Typography variant="p" className="font-bold text-brand-primary">Dica do dia</Typography>
             <Typography variant="p" className="text-sm font-semibold text-text-secondary">Sorria, ouça e faça perguntas. O cliente compra do vendedor em quem confia!</Typography>
           </div>
-          <Link to="/treinamentos" className="rounded-mx-md border border-border-subtle bg-white px-mx-md py-mx-xs text-sm font-black text-brand-primary">Ver treinamentos</Link>
+          <Link to="/treinamentos" className="rounded-mx-md border border-border-subtle bg-white px-mx-md py-mx-xs text-sm font-bold text-brand-primary">Ver treinamentos</Link>
         </div>
       </div>
     </main>
@@ -185,7 +217,7 @@ function GoalSummary({ meta, vendidos, faltam, atingimento }: { meta: number; ve
         <BigStat label="Faltam" value={meta > 0 ? String(faltam) : '—'} hint="veículos" tone={faltam === 0 && meta > 0 ? 'green' : 'red'} />
       </div>
       <Bar value={atingimento} tone="blue" />
-      <Typography variant="p" className="mt-mx-sm text-center font-black">
+      <Typography variant="p" className="mt-mx-sm text-center font-bold">
         {meta > 0 ? `${atingimento}% da meta alcançada` : 'Meta não cadastrada'}
       </Typography>
     </Card>
@@ -204,7 +236,7 @@ function CommissionSummary({ realizado, projetado, atingimento }: { realizado: C
         <BigStat label="Projetado" value={disponivel && projetado ? BRL(projetado.total) : '—'} />
       </div>
       <Bar value={atingimento} tone="green" />
-      <Typography variant="p" className="mt-mx-sm text-center font-black">
+      <Typography variant="p" className="mt-mx-sm text-center font-bold">
         {disponivel ? `${atingimento}% da meta de vendas` : 'Plano de remuneração não cadastrado'}
       </Typography>
     </Card>
@@ -219,19 +251,19 @@ function PaceSummary({ ritmo }: { ritmo: { cicloAtual: number | null; cicloNeces
         <div className="text-center">
           {ritmo.cicloAtual !== null ? (
             <>
-              <Typography variant="p" tone="muted" className="font-black">Você está vendendo</Typography>
+              <Typography variant="p" tone="muted" className="font-bold">Você está vendendo</Typography>
               <Typography variant="h1" className="mt-1 text-4xl text-brand-primary">1 carro</Typography>
               <Typography variant="h3" className="text-xl">a cada {ritmo.cicloAtual} dia{ritmo.cicloAtual === 1 ? '' : 's'}</Typography>
             </>
           ) : (
             <>
-              <Typography variant="p" tone="muted" className="font-black">Ainda sem vendas</Typography>
+              <Typography variant="p" tone="muted" className="font-bold">Ainda sem vendas</Typography>
               <Typography variant="h1" className="mt-1 text-4xl text-brand-primary">—</Typography>
               <Typography variant="h3" className="text-xl">neste mês</Typography>
             </>
           )}
           {ritmo.cicloNecessario !== null && (
-            <span className={`mt-mx-md inline-flex rounded-mx-md px-3 py-1 text-sm font-black ${ritmo.noRitmo ? 'bg-status-success-surface text-status-success' : 'bg-status-warning-surface text-status-warning'}`}>
+            <span className={`mt-mx-md inline-flex rounded-mx-md px-3 py-1 text-sm font-bold ${ritmo.noRitmo ? 'bg-status-success-surface text-status-success' : 'bg-status-warning-surface text-status-warning'}`}>
               {ritmo.noRitmo ? `No ritmo da meta (1 a cada ${ritmo.cicloNecessario} dia${ritmo.cicloNecessario === 1 ? '' : 's'})` : `Meta pede 1 a cada ${ritmo.cicloNecessario} dia${ritmo.cicloNecessario === 1 ? '' : 's'}`}
             </span>
           )}
@@ -244,18 +276,32 @@ function PaceSummary({ ritmo }: { ritmo: { cicloAtual: number | null; cicloNeces
   )
 }
 
-function ChannelCard({ tone, icon, title, path, need, unit, porDia, faltaX, diasRestantes }: { tone: 'blue' | 'orange' | 'green'; icon: React.ReactNode; title: string; path: string; need: number; unit: string; porDia: number; faltaX: number; diasRestantes: number }) {
+function getCanalIcon(canal: FunilCanalEstrategia) {
+  if (canal === 'internet') return <Globe size={36} />
+  if (canal === 'carteira') return <Users size={36} />
+  return <DoorOpen size={36} />
+}
+
+function ChannelCard({ canal, icon, fonte, faltaX, diasRestantes }: { canal: FunilCanalPlano; icon: React.ReactNode; fonte: FunilPlanoFonte; faltaX: number; diasRestantes: number }) {
   const toneMap = {
     blue: ['bg-brand-primary/5', 'text-brand-primary', 'bg-brand-primary/10'],
     orange: ['bg-status-warning-surface', 'text-status-warning', 'bg-status-warning/10'],
     green: ['bg-status-success-surface', 'text-status-success', 'bg-status-success/10'],
-  }[tone]
+  }[canal.tone]
   const metaBatida = faltaX === 0
+  const unit = canal.necessidade === 1 ? canal.unidadeSingular : canal.unidadePlural
+  const mixLabel = fonte === 'manual' ? 'Mix manual' : fonte === 'historico' ? 'Mix real 3 meses' : 'Plano base'
   return (
     <Card className={`rounded-mx-lg border border-border-subtle p-mx-lg shadow-mx-sm ${toneMap[0]}`}>
       <div className="flex items-center gap-mx-sm">
         <span className={`grid h-16 w-16 place-items-center rounded-full ${toneMap[2]} ${toneMap[1]}`}>{icon}</span>
-        <div><Typography variant="h2" className={`text-2xl uppercase ${toneMap[1]}`}>{title}</Typography><Typography variant="p" className="font-black">{path}</Typography></div>
+        <div>
+          <Typography variant="h2" className={`text-2xl uppercase ${toneMap[1]}`}>{canal.titulo}</Typography>
+          <Typography variant="p" className="font-bold">{canal.percurso}</Typography>
+          <Typography variant="caption" tone="muted" className="normal-case tracking-normal">
+            {fonte === 'fallback' ? mixLabel : `${mixLabel}: ${PCT(canal.percentual)}`}
+          </Typography>
+        </div>
       </div>
       <div className="mx-auto mt-mx-lg max-w-[270px] rounded-mx-md border border-border-subtle bg-white p-mx-lg text-center">
         {metaBatida ? (
@@ -267,31 +313,31 @@ function ChannelCard({ tone, icon, title, path, need, unit, porDia, faltaX, dias
         ) : (
           <>
             <Typography variant="caption" tone="muted" className="normal-case tracking-normal">Você precisa de</Typography>
-            <Typography variant="h1" className={`mt-1 text-5xl ${toneMap[1]}`}>{need}</Typography>
+            <Typography variant="h1" className={`mt-1 text-5xl ${toneMap[1]}`}>{canal.necessidade}</Typography>
             <Typography variant="h3">{unit}</Typography>
           </>
         )}
         <div className="mt-mx-md border-t border-border-subtle pt-mx-sm">
           {!metaBatida && (
-            <Typography variant="p" className={`inline-flex items-center gap-mx-xs font-black uppercase ${porDia <= 3 ? 'text-status-success' : 'text-status-warning'}`}>
-              {porDia <= 3 ? <ChevronRight size={16} /> : <AlertTriangle size={16} />} ≈{porDia} por dia
+            <Typography variant="p" className={`inline-flex items-center gap-mx-xs font-bold uppercase ${canal.necessidadePorDia <= 3 ? 'text-status-success' : 'text-status-warning'}`}>
+              {canal.necessidadePorDia <= 3 ? <ChevronRight size={16} /> : <AlertTriangle size={16} />} ≈{canal.necessidadePorDia} por dia
             </Typography>
           )}
           <Typography variant="caption" tone="muted" className="mt-1 block normal-case tracking-normal">
             {metaBatida
               ? 'Tudo daqui em diante aumenta sua comissão.'
-              : `É o que falta para gerar ${faltaX} venda${faltaX === 1 ? '' : 's'} em ${diasRestantes} dia${diasRestantes === 1 ? '' : 's'}.`}
+              : `É o que falta para gerar ${canal.vendasPlanejadas} de ${faltaX} venda${faltaX === 1 ? '' : 's'} em ${diasRestantes} dia${diasRestantes === 1 ? '' : 's'}.`}
           </Typography>
         </div>
       </div>
-      <Link to="/treinamentos" className={`mt-mx-md flex w-full items-center justify-center gap-mx-xs rounded-mx-md border border-border-subtle bg-white py-mx-sm text-sm font-black ${toneMap[1]}`}>Ver dicas para {title}<ChevronRight size={16} /></Link>
+      <Link to="/treinamentos" className={`mt-mx-md flex w-full items-center justify-center gap-mx-xs rounded-mx-md border border-border-subtle bg-white py-mx-sm text-sm font-bold ${toneMap[1]}`}>Ver dicas para {canal.titulo}<ChevronRight size={16} /></Link>
     </Card>
   )
 }
 
 function BigStat({ label, value, hint, tone = 'dark' }: { label: string; value: string; hint?: string; tone?: 'dark' | 'blue' | 'green' | 'red' }) {
   const color = tone === 'blue' ? 'text-brand-primary' : tone === 'green' ? 'text-status-success' : tone === 'red' ? 'text-status-error' : 'text-text-primary'
-  return <div className="border-r border-border-subtle last:border-r-0"><Typography variant="caption" tone="muted" className="font-black normal-case tracking-normal">{label}</Typography><Typography variant="h1" className={`mt-2 text-4xl ${color}`}>{value}</Typography>{hint && <Typography variant="p" className="font-black">{hint}</Typography>}</div>
+  return <div className="border-r border-border-subtle last:border-r-0"><Typography variant="caption" tone="muted" className="font-bold normal-case tracking-normal">{label}</Typography><Typography variant="h1" className={`mt-2 text-4xl ${color}`}>{value}</Typography>{hint && <Typography variant="p" className="font-bold">{hint}</Typography>}</div>
 }
 
 function Bar({ value, tone }: { value: number; tone: 'blue' | 'green' }) {
@@ -299,7 +345,7 @@ function Bar({ value, tone }: { value: number; tone: 'blue' | 'green' }) {
 }
 
 function Highlight({ icon, label, value, detail, badge }: { icon: React.ReactNode; label: string; value: string; detail: string; badge?: string }) {
-  return <div className="rounded-mx-lg bg-surface-alt p-mx-lg"><span className="mb-mx-md grid h-16 w-16 place-items-center rounded-full bg-status-success-surface text-status-success">{icon}</span><Typography variant="tiny" className="font-black uppercase text-status-success">{label}</Typography><Typography variant="h2" className="mt-1 text-3xl">{value}</Typography><Typography variant="p" className="mt-mx-xs text-sm font-semibold text-text-secondary">{detail}</Typography>{badge && <span className="mt-mx-md inline-flex rounded-mx-md bg-status-success-surface px-3 py-1 text-xs font-black text-status-success">{badge}</span>}</div>
+  return <div className="rounded-mx-lg bg-surface-alt p-mx-lg"><span className="mb-mx-md grid h-16 w-16 place-items-center rounded-full bg-status-success-surface text-status-success">{icon}</span><Typography variant="tiny" className="font-bold uppercase text-status-success">{label}</Typography><Typography variant="h2" className="mt-1 text-3xl">{value}</Typography><Typography variant="p" className="mt-mx-xs text-sm font-semibold text-text-secondary">{detail}</Typography>{badge && <span className="mt-mx-md inline-flex rounded-mx-md bg-status-success-surface px-3 py-1 text-xs font-bold text-status-success">{badge}</span>}</div>
 }
 
 function Insight({ text, tone }: { text: string; tone: 'blue' | 'green' | 'orange' }) {

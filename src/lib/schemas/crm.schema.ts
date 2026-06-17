@@ -10,6 +10,7 @@ export const CRM_CLIENTE_STATUS = ['oportunidade', 'ativo', 'pos_venda', 'aguard
 export const CRM_RELACIONAMENTO = ['excelente', 'bom', 'neutro', 'ruim', 'critico'] as const
 export const CRM_ETAPAS_FUNIL = ['prospeccao', 'qualificacao', 'apresentacao', 'negociacao', 'fechamento', 'ganho', 'perdido'] as const
 export const CRM_FINANCIAMENTO = ['aprovado', 'reprovado', 'nao_aplica', 'pendente'] as const
+export const CRM_TIPO_VEICULO = ['carro', 'moto', 'caminhao'] as const
 export const CRM_AGENDAMENTO_TIPO = ['visita', 'retorno', 'test_drive', 'entrega', 'negociacao'] as const
 export const CRM_AGENDAMENTO_STATUS = ['confirmado', 'aguardando', 'compareceu', 'nao_compareceu'] as const
 
@@ -18,6 +19,7 @@ export type CrmClienteStatus = (typeof CRM_CLIENTE_STATUS)[number]
 export type CrmRelacionamento = (typeof CRM_RELACIONAMENTO)[number]
 export type CrmEtapaFunil = (typeof CRM_ETAPAS_FUNIL)[number]
 export type CrmFinanciamento = (typeof CRM_FINANCIAMENTO)[number]
+export type CrmTipoVeiculo = (typeof CRM_TIPO_VEICULO)[number]
 export type CrmAgendamentoTipo = (typeof CRM_AGENDAMENTO_TIPO)[number]
 export type CrmAgendamentoStatus = (typeof CRM_AGENDAMENTO_STATUS)[number]
 
@@ -57,6 +59,19 @@ export const CRM_RELACIONAMENTO_LABEL: Record<CrmRelacionamento, string> = {
   critico: 'Crítico',
 }
 
+export const CRM_TIPO_VEICULO_LABEL: Record<CrmTipoVeiculo, string> = {
+  carro: 'Carro',
+  moto: 'Moto',
+  caminhao: 'Caminhão',
+}
+
+export const CRM_FINANCIAMENTO_LABEL: Record<CrmFinanciamento, string> = {
+  aprovado: 'Aprovado',
+  reprovado: 'Reprovado',
+  nao_aplica: 'Não se aplica',
+  pendente: 'Pendente',
+}
+
 export const CRM_AGENDAMENTO_STATUS_LABEL: Record<CrmAgendamentoStatus, string> = {
   confirmado: 'Confirmado',
   aguardando: 'Aguardando',
@@ -93,6 +108,7 @@ export const OportunidadeSchema = z.object({
   loja_id: z.string().uuid(),
   seller_user_id: z.string().uuid(),
   veiculo_interesse: z.string().nullable(),
+  tipo_veiculo: z.enum(CRM_TIPO_VEICULO).nullable().default(null),
   valor_negociado: z.coerce.number().default(0),
   etapa: z.enum(CRM_ETAPAS_FUNIL),
   canal: z.enum(CRM_CANAIS).nullable(),

@@ -134,7 +134,7 @@ export default function TrilhasVendedor() {
         <div className="min-w-0">
           <Typography variant="h1" className="text-3xl md:text-4xl">Minhas Trilhas</Typography>
           <Typography variant="p" tone="muted" className="mt-mx-xs">Caminhos de desenvolvimento alinhados ao seu papel e ambição.</Typography>
-          <Typography variant="tiny" tone="muted" className="mt-mx-xs block font-black uppercase tracking-widest">{total} trilhas · {totalHours}h estimadas</Typography>
+          <Typography variant="tiny" tone="muted" className="mt-mx-xs block font-bold uppercase tracking-widest">{total} trilhas · {totalHours}h estimadas</Typography>
         </div>
       </header>
 
@@ -145,9 +145,9 @@ export default function TrilhasVendedor() {
             <span className="flex h-mx-10 w-mx-10 items-center justify-center rounded-mx-full bg-status-success text-white shadow-mx-sm" aria-hidden="true">
               <Trophy size={18} />
             </span>
-            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Concluídas</Typography>
+            <Typography variant="tiny" tone="muted" className="font-bold uppercase tracking-widest">Concluídas</Typography>
           </div>
-          <Typography variant="h2" className="mt-mx-md text-3xl font-black tabular-nums">{concluidas}</Typography>
+          <Typography variant="h2" className="mt-mx-md text-3xl font-bold tabular-nums">{concluidas}</Typography>
           <Typography variant="tiny" tone="muted" className="mt-mx-xs block font-bold normal-case">de {total} trilhas</Typography>
         </Card>
 
@@ -156,9 +156,9 @@ export default function TrilhasVendedor() {
             <span className="flex h-mx-10 w-mx-10 items-center justify-center rounded-mx-full bg-status-info text-white shadow-mx-sm" aria-hidden="true">
               <Play size={18} />
             </span>
-            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Em andamento</Typography>
+            <Typography variant="tiny" tone="muted" className="font-bold uppercase tracking-widest">Em andamento</Typography>
           </div>
-          <Typography variant="h2" className="mt-mx-md text-3xl font-black tabular-nums">{emAndamento}</Typography>
+          <Typography variant="h2" className="mt-mx-md text-3xl font-bold tabular-nums">{emAndamento}</Typography>
           <Typography variant="tiny" tone="muted" className="mt-mx-xs block font-bold normal-case">continue de onde parou</Typography>
         </Card>
 
@@ -167,9 +167,9 @@ export default function TrilhasVendedor() {
             <span className="flex h-mx-10 w-mx-10 items-center justify-center rounded-mx-full text-white shadow-mx-sm" style={{ background: 'linear-gradient(135deg, var(--color-accent-purple) 0%, var(--color-accent-purple-strong) 100%)' }} aria-hidden="true">
               <Sparkles size={18} />
             </span>
-            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Recomendadas</Typography>
+            <Typography variant="tiny" tone="muted" className="font-bold uppercase tracking-widest">Recomendadas</Typography>
           </div>
-          <Typography variant="h2" className="mt-mx-md text-3xl font-black tabular-nums">{trilhasMock.filter(t => t.status === 'recomendada').length}</Typography>
+          <Typography variant="h2" className="mt-mx-md text-3xl font-bold tabular-nums">{trilhasMock.filter(t => t.status === 'recomendada').length}</Typography>
           <Typography variant="tiny" tone="muted" className="mt-mx-xs block font-bold normal-case">pelo Consultor MX IA</Typography>
         </Card>
       </section>
@@ -187,19 +187,19 @@ export default function TrilhasVendedor() {
                 <span className={cn('flex h-mx-12 w-mx-12 items-center justify-center rounded-mx-xl', status.iconBg, status.iconText)} aria-hidden="true">
                   {trilha.icon}
                 </span>
-                <span className={cn('inline-flex items-center rounded-mx-full px-mx-sm py-mx-tiny text-mx-tiny font-black uppercase tracking-tight', status.pill)}>
+                <span className={cn('inline-flex items-center rounded-mx-full px-mx-sm py-mx-tiny text-mx-tiny font-bold uppercase tracking-tight', status.pill)}>
                   {status.label}
                 </span>
               </div>
 
               <div className="mt-mx-md flex-1">
-                <Typography variant="tiny" tone="muted" className="block font-black uppercase tracking-widest">{categoryLabels[trilha.category]}</Typography>
-                <Typography variant="h3" className="mt-mx-tiny text-lg font-black leading-tight">{trilha.title}</Typography>
+                <Typography variant="tiny" tone="muted" className="block font-bold uppercase tracking-widest">{categoryLabels[trilha.category]}</Typography>
+                <Typography variant="h3" className="mt-mx-tiny text-lg font-bold leading-tight">{trilha.title}</Typography>
                 <Typography variant="p" tone="muted" className="mt-mx-xs text-sm leading-snug">{trilha.description}</Typography>
               </div>
 
               <div className="mt-mx-md space-y-mx-xs">
-                <div className="flex items-center justify-between text-mx-tiny font-black uppercase tracking-widest">
+                <div className="flex items-center justify-between text-mx-tiny font-bold uppercase tracking-widest">
                   <span className="text-text-tertiary">{trilha.completedModules}/{trilha.modules} módulos · {trilha.estimatedHours}h</span>
                   <span className="text-text-secondary tabular-nums">{progress}%</span>
                 </div>
@@ -212,14 +212,14 @@ export default function TrilhasVendedor() {
                 <button
                   type="button"
                   disabled
-                  className="mt-mx-md flex h-mx-11 w-full items-center justify-center gap-mx-xs rounded-mx-xl bg-surface-alt text-sm font-black text-text-tertiary cursor-not-allowed"
+                  className="mt-mx-md flex h-mx-11 w-full items-center justify-center gap-mx-xs rounded-mx-xl bg-surface-alt text-sm font-bold text-text-tertiary cursor-not-allowed"
                 >
                   <Lock size={14} /> {ctaLabel}
                 </button>
               ) : (
                 <Link
                   to="/treinamentos"
-                  className="mt-mx-md flex h-mx-11 w-full items-center justify-center gap-mx-xs rounded-mx-xl bg-status-info text-white text-sm font-black hover:bg-status-info/90 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-status-info/30"
+                  className="mt-mx-md flex h-mx-11 w-full items-center justify-center gap-mx-xs rounded-mx-xl bg-status-info text-white text-sm font-bold hover:bg-status-info/90 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-status-info/30"
                 >
                   <Play size={14} /> {ctaLabel}
                 </Link>

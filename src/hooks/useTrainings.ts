@@ -31,7 +31,7 @@ export type DevelopmentRecommendationRow = {
   id: string
   seller_id: string
   store_id: string | null
-  source_type: 'feedback' | 'pdi' | 'manual' | 'rotina'
+  source_type: 'feedback' | 'pdi' | 'funil' | 'manual' | 'rotina'
   source_id: string | null
   theme: string
   training_id: string | null
@@ -383,6 +383,19 @@ export function useDevelopmentTracks() {
     },
   })
 
+  const assignMaturityTrackMut = useMutation({
+    mutationFn: async (input?: { sellerId?: string | null }) => {
+      if (!profile) return { error: 'Não autenticado' }
+      const sellerId = input?.sellerId || profile.id
+      if (role === 'vendedor' && sellerId !== profile.id) return { error: 'Vendedor só pode atribuir a própria trilha.' }
+      const { error } = await supabase.rpc('atribuir_trilha_maturidade_vendedor', { p_seller_id: sellerId })
+      return { error: error?.message || null }
+    },
+    onSuccess: (result) => {
+      if (!result.error) queryClient.invalidateQueries({ queryKey: ['development-tracks'] })
+    },
+  })
+
   const completeStepMut = useMutation({
     mutationFn: async (input: { progressId: string; feedback?: string | null }) => {
       const { error } = await supabase.rpc('concluir_etapa_trilha', {
@@ -401,6 +414,7 @@ export function useDevelopmentTracks() {
     progress: data?.progress || [],
     loading,
     assignDefaultTrack: (input: Parameters<typeof assignDefaultTrackMut.mutateAsync>[0]) => assignDefaultTrackMut.mutateAsync(input),
+    assignMaturityTrack: (input?: Parameters<typeof assignMaturityTrackMut.mutateAsync>[0]) => assignMaturityTrackMut.mutateAsync(input),
     completeTrackStep: (input: Parameters<typeof completeStepMut.mutateAsync>[0]) => completeStepMut.mutateAsync(input),
     refetch,
   }

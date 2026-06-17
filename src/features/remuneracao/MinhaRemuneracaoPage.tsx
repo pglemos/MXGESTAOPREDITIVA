@@ -72,7 +72,7 @@ export default function MinhaRemuneracaoPage() {
           title="Minha Remuneração"
           description="Acompanhe como seu plano, suas vendas e sua meta formam a remuneração estimada do mês."
           breadcrumb={
-            <nav aria-label="Breadcrumb" className="flex items-center gap-mx-xs text-xs font-black uppercase tracking-widest text-text-tertiary">
+            <nav aria-label="Breadcrumb" className="flex items-center gap-mx-xs text-xs font-bold uppercase tracking-widest text-text-tertiary">
               <Link to="/home" className="text-brand-primary hover:underline">Meu Dia</Link>
               <span aria-hidden="true">/</span>
               <span>Minha Remuneração</span>
@@ -90,7 +90,7 @@ export default function MinhaRemuneracaoPage() {
 
         <section className="flex flex-col gap-mx-md border-b border-border-default pb-mx-lg md:flex-row md:items-end md:justify-between">
           <div>
-            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">
+            <Typography variant="tiny" tone="muted" className="font-bold uppercase tracking-widest">
               Visão do cálculo
             </Typography>
             <Typography variant="h2" className="mt-mx-xs">
@@ -166,7 +166,7 @@ function ModeButton({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        'min-h-mx-10 flex-1 rounded-mx-lg px-mx-md py-mx-xs text-xs font-black uppercase tracking-widest transition-colors md:flex-none',
+        'min-h-mx-10 flex-1 rounded-mx-lg px-mx-md py-mx-xs text-xs font-bold uppercase tracking-widest transition-colors md:flex-none',
         active ? 'bg-brand-primary text-white' : 'text-text-secondary hover:bg-surface-alt',
       )}
     >
@@ -204,7 +204,7 @@ function SummarySection({
         icon={<CircleDollarSign size={22} />}
         label="Comissão"
         value={formatCurrency(calculo.comissao)}
-        detail={calculo.regraComissaoAplicada ? `${formatCurrency(calculo.comissaoPorVenda)} por venda` : 'regra pendente'}
+        detail={commissionSummary(calculo)}
         tone={calculo.regraComissaoAplicada ? 'success' : 'warning'}
       />
       <SummaryCard
@@ -243,7 +243,7 @@ function SummaryCard({
       <span className={cn('flex h-mx-11 w-mx-11 items-center justify-center rounded-mx-xl border', toneClasses)} aria-hidden="true">
         {icon}
       </span>
-      <Typography variant="tiny" tone="muted" className="mt-mx-md block font-black uppercase tracking-widest">
+      <Typography variant="tiny" tone="muted" className="mt-mx-md block font-bold uppercase tracking-widest">
         {label}
       </Typography>
       <Typography variant="h1" className="mt-mx-xs text-3xl font-mono-numbers">
@@ -258,7 +258,7 @@ function SummaryCard({
 
 function PendingAlerts({ calculo }: { calculo: RemuneracaoEstimadaResultado }) {
   const alerts = [
-    !calculo.regraComissaoAplicada ? 'A regra de comissão por venda ainda não foi cadastrada.' : null,
+    !calculo.regraComissaoAplicada ? 'Nenhuma regra ativa de comissão foi cadastrada.' : null,
     calculo.meta <= 0 ? 'A meta mensal ainda não foi cadastrada; bônus de meta não é aplicado.' : null,
     calculo.bonusPatamares.length === 0 ? 'Os patamares de bônus ainda não foram cadastrados.' : null,
   ].filter((message): message is string => Boolean(message))
@@ -302,27 +302,59 @@ function PlanBreakdown({ calculo, plano }: { calculo: RemuneracaoEstimadaResulta
 
 function CommissionBreakdown({ calculo }: { calculo: RemuneracaoEstimadaResultado }) {
   const regra = calculo.regraComissaoAplicada
+  const componentes = [
+    {
+      label: 'Fixa por venda',
+      detail: `${formatCurrency(calculo.comissaoPorVenda)} x ${calculo.vendasConsideradas} venda(s)`,
+      value: calculo.comissaoFixa,
+    },
+    {
+      label: 'Percentual',
+      detail: `${formatCurrency(calculo.faturamentoConsiderado)} de faturamento`,
+      value: calculo.comissaoPercentual,
+    },
+    {
+      label: 'Categoria',
+      detail: 'Valor por tipo de veículo vendido',
+      value: calculo.comissaoCategoria,
+    },
+    {
+      label: 'Equipe',
+      detail: 'Plus por atingimento da loja',
+      value: calculo.comissaoEquipe,
+    },
+  ].filter(item => item.value > 0)
+
   return (
     <section className="space-y-mx-md" aria-labelledby="comissao-title">
       <SectionTitle
         id="comissao-title"
         title="Comissão por vendas"
-        description="A comissão usa somente a regra ativa com vigência mais recente."
+        description="A comissão combina as regras ativas aplicáveis ao modelo cadastrado."
         icon={<CircleDollarSign size={20} />}
       />
-      <Card className="border-none bg-white p-mx-lg shadow-mx-md">
-        <div className="grid gap-mx-lg md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-center">
-          <CalculationValue label="Valor por venda" value={formatCurrency(calculo.comissaoPorVenda)} />
-          <CalculationOperator>×</CalculationOperator>
-          <CalculationValue label="Vendas consideradas" value={String(calculo.vendasConsideradas)} />
-          <CalculationOperator>=</CalculationOperator>
-          <CalculationValue label="Subtotal de comissão" value={formatCurrency(calculo.comissao)} highlight />
-        </div>
-      </Card>
+      {componentes.length > 0 ? (
+        <Card className="border-none bg-white p-mx-lg shadow-mx-md">
+          <div className="grid gap-mx-sm md:grid-cols-2 xl:grid-cols-4">
+            {componentes.map(item => (
+              <CalculationValue key={item.label} label={item.label} value={formatCurrency(item.value)} detail={item.detail} />
+            ))}
+          </div>
+          <div className="mt-mx-md flex items-center justify-between gap-mx-md border-t border-border-default pt-mx-md">
+            <Typography variant="h3">Subtotal de comissão</Typography>
+            <Typography variant="h2" tone="brand" className="font-mono-numbers">{formatCurrency(calculo.comissao)}</Typography>
+          </div>
+        </Card>
+      ) : (
+        <Card className="border border-dashed border-border-default bg-white p-mx-lg shadow-none">
+          <Typography variant="p" className="font-bold">Regras pendentes</Typography>
+          <Typography variant="p" tone="muted" className="mt-mx-xs text-sm">Nenhuma regra ativa de comissão foi aplicada ao período.</Typography>
+        </Card>
+      )}
       <MetadataLine
         vigencia={regra?.vigencia_inicio}
         observacoes={regra?.observacoes}
-        fallback="Nenhuma regra ativa de comissão por venda."
+        fallback="Nenhuma regra ativa de comissão."
       />
     </section>
   )
@@ -345,7 +377,7 @@ function BonusBreakdown({ calculo }: { calculo: RemuneracaoEstimadaResultado }) 
         </div>
       ) : (
         <Card className="border border-dashed border-border-default bg-white p-mx-lg shadow-none">
-          <Typography variant="p" className="font-black">Patamares pendentes</Typography>
+          <Typography variant="p" className="font-bold">Patamares pendentes</Typography>
           <Typography variant="p" tone="muted" className="mt-mx-xs text-sm">Nenhuma regra de bônus foi cadastrada.</Typography>
         </Card>
       )}
@@ -366,7 +398,7 @@ function BonusTier({ patamar }: { patamar: RemuneracaoBonusPatamarDetalhe }) {
             ? <CheckCircle2 size={20} className="shrink-0 text-status-success" aria-hidden="true" />
             : <CalendarClock size={20} className="shrink-0 text-text-tertiary" aria-hidden="true" />}
           <div>
-            <Typography variant="p" className="font-black">{patamar.percentualMetaMin}% da meta</Typography>
+            <Typography variant="p" className="font-bold">{patamar.percentualMetaMin}% da meta</Typography>
             <Typography variant="tiny" tone="muted" className="block font-bold normal-case tracking-normal">
               Vigência: {formatDate(patamar.regra.vigencia_inicio)}
               {patamar.regra.observacoes ? ` · ${patamar.regra.observacoes}` : ''}
@@ -398,7 +430,7 @@ function FormulaBreakdown({ calculo }: { calculo: RemuneracaoEstimadaResultado }
           {calculo.formulaItens.map(item => (
             <div key={item.chave} className="flex flex-col gap-mx-xs py-mx-sm first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-mx-md">
               <div>
-                <Typography variant="p" className="font-black">{item.label}</Typography>
+                <Typography variant="p" className="font-bold">{item.label}</Typography>
                 <Typography variant="tiny" tone="muted" className="block font-bold normal-case tracking-normal">{item.descricao}</Typography>
               </div>
               <Typography variant="h3" className="shrink-0 font-mono-numbers">{formatCurrency(item.valor)}</Typography>
@@ -441,23 +473,30 @@ function SectionTitle({
 function ValueCard({ label, value }: { label: string; value: number }) {
   return (
     <Card className="border-none bg-white p-mx-md shadow-mx-sm">
-      <Typography variant="tiny" tone="muted" className="block font-black uppercase tracking-widest">{label}</Typography>
+      <Typography variant="tiny" tone="muted" className="block font-bold uppercase tracking-widest">{label}</Typography>
       <Typography variant="h2" className="mt-mx-xs font-mono-numbers">{formatCurrency(value)}</Typography>
     </Card>
   )
 }
 
-function CalculationValue({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
+function CalculationValue({
+  label,
+  value,
+  detail,
+  highlight = false,
+}: {
+  label: string
+  value: string
+  detail?: string
+  highlight?: boolean
+}) {
   return (
     <div className={cn('rounded-mx-xl p-mx-md text-center', highlight ? 'bg-mx-indigo-50' : 'bg-surface-alt')}>
-      <Typography variant="tiny" tone="muted" className="block font-black uppercase tracking-widest">{label}</Typography>
+      <Typography variant="tiny" tone="muted" className="block font-bold uppercase tracking-widest">{label}</Typography>
       <Typography variant="h2" tone={highlight ? 'brand' : 'default'} className="mt-mx-xs font-mono-numbers">{value}</Typography>
+      {detail && <Typography variant="tiny" tone="muted" className="mt-mx-xs block font-bold normal-case tracking-normal">{detail}</Typography>}
     </div>
   )
-}
-
-function CalculationOperator({ children }: { children: React.ReactNode }) {
-  return <Typography variant="h2" tone="muted" className="hidden text-center md:block">{children}</Typography>
 }
 
 function MetadataLine({
@@ -471,7 +510,7 @@ function MetadataLine({
 }) {
   return (
     <div className="flex flex-col gap-mx-xs rounded-mx-xl border border-border-default bg-white px-mx-md py-mx-sm sm:flex-row sm:items-center sm:justify-between">
-      <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">
+      <Typography variant="tiny" tone="muted" className="font-bold uppercase tracking-widest">
         Vigência: {vigencia ? formatDate(vigencia) : 'Pendente'}
       </Typography>
       <Typography variant="p" tone="muted" className="text-sm">{observacoes || fallback}</Typography>
@@ -485,6 +524,14 @@ function formatCurrency(value: number) {
     currency: 'BRL',
     maximumFractionDigits: 0,
   })
+}
+
+function commissionSummary(calculo: RemuneracaoEstimadaResultado): string {
+  if (!calculo.regraComissaoAplicada) return 'regra pendente'
+  if (calculo.comissaoPercentual > 0) return `${formatCurrency(calculo.faturamentoConsiderado)} de faturamento`
+  if (calculo.comissaoCategoria > 0) return 'por categoria de veículo'
+  if (calculo.comissaoEquipe > 0) return 'plus da meta da loja'
+  return `${formatCurrency(calculo.comissaoPorVenda)} por venda`
 }
 
 function formatDate(value: string) {

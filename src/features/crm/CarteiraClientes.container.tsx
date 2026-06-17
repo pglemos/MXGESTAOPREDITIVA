@@ -37,7 +37,7 @@ import { useClientes, type ClienteInput } from '@/features/crm/hooks/useClientes
 import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
 import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
 import { useAuth } from '@/hooks/useAuth'
-import { derivarProgresso, calcularPersistencia, type ProgressoCadencia } from '@/features/crm/lib/cadencia'
+import { derivarProgresso, calcularPersistencia, type CadenciaResultadoAcao, type ProgressoCadencia } from '@/features/crm/lib/cadencia'
 import { cn } from '@/lib/utils'
 import {
   CRM_CANAIS, CRM_CANAL_LABEL,
@@ -89,7 +89,7 @@ const EMPTY_FORM: ClienteInput = {
 
 export function CarteiraClientes() {
   const { profile } = useAuth()
-  const { clientes, metrics, loading, error, createCliente, deleteCliente } = useClientes()
+  const { clientes, metrics, loading, error, createCliente, deleteCliente, registrarStatusCadencia } = useClientes()
   const { oportunidades } = useOportunidades()
   const { agendamentos } = useAgendamentos()
   const [search, setSearch] = useState('')
@@ -102,6 +102,7 @@ export function CarteiraClientes() {
   const [saving, setSaving] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [panelClosed, setPanelClosed] = useState(false)
+  const [cadenciaSaving, setCadenciaSaving] = useState(false)
 
   const progressoPorCliente = useMemo(() => {
     const map = new Map<string, ProgressoCadencia>()
@@ -180,6 +181,14 @@ export function CarteiraClientes() {
     toast.success('Cliente removido.')
   }
 
+  async function handleRegistrarStatusCadencia(clienteId: string, status: CadenciaResultadoAcao) {
+    setCadenciaSaving(true)
+    const { error: statusError } = await registrarStatusCadencia({ clienteId, status })
+    setCadenciaSaving(false)
+    if (statusError) { toast.error(statusError); return }
+    toast.success('Cadência atualizada.')
+  }
+
   return (
     <main className="h-full w-full overflow-y-auto bg-white no-scrollbar">
       <div className="mx-auto flex max-w-[1800px] flex-col gap-mx-md px-mx-md pb-mx-xl md:px-mx-xl">
@@ -194,20 +203,20 @@ export function CarteiraClientes() {
             </div>
           </div>
           <div className="hidden items-center gap-mx-md lg:flex">
-            <span className="inline-flex items-center gap-mx-xs text-sm font-black text-text-primary">
+            <span className="inline-flex items-center gap-mx-xs text-sm font-bold text-text-primary">
               <CalendarDays size={18} /> {new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', weekday: 'long' }).format(new Date())}
             </span>
             <Button variant="outline" onClick={() => setStatusFilter('todos')}><Filter size={16} /> Filtros</Button>
             <button type="button" className="relative rounded-full p-mx-xs text-text-primary">
               <Bell size={23} />
-              <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-status-error px-1 text-[10px] font-black text-white">3</span>
+              <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-status-error px-1 text-[10px] font-bold text-white">3</span>
             </button>
             <div className="flex items-center gap-mx-sm">
-              <span className="flex h-mx-12 w-mx-12 items-center justify-center rounded-full bg-brand-primary text-sm font-black text-white">
+              <span className="flex h-mx-12 w-mx-12 items-center justify-center rounded-full bg-brand-primary text-sm font-bold text-white">
                 {getInitials(profile?.name || 'Vendedor')}
               </span>
               <div>
-                <Typography variant="p" className="font-black">{profile?.name || 'Vendedor'}</Typography>
+                <Typography variant="p" className="font-bold">{profile?.name || 'Vendedor'}</Typography>
                 <Typography variant="caption" tone="muted">Vendedor</Typography>
               </div>
               <ChevronDown size={18} className="text-text-muted" />
@@ -229,7 +238,7 @@ export function CarteiraClientes() {
                   <AlertCircle size={14} className="text-text-muted" />
                 </span>
                 <Typography variant="h2" className="text-3xl">{persistencia === null ? '—' : `${persistencia}%`}</Typography>
-                <Typography variant="caption" className="font-black text-status-success">
+                <Typography variant="caption" className="font-bold text-status-success">
                   {persistencia === null ? 'Sem base encerrada' : 'Você está acima da média!'}
                 </Typography>
               </div>
@@ -301,16 +310,16 @@ export function CarteiraClientes() {
                   <table className="w-full min-w-[1120px] text-left text-sm">
                     <thead>
                       <tr className="border-y border-border-subtle bg-surface-alt/40 text-[11px] uppercase tracking-wide text-text-muted">
-                        <th className="px-mx-sm py-mx-xs font-black">Cliente</th>
-                        <th className="px-mx-sm py-mx-xs font-black">Veículo Procurado</th>
-                        <th className="px-mx-sm py-mx-xs font-black">Origem</th>
-                        <th className="px-mx-sm py-mx-xs font-black">Etapa Atual</th>
-                        <th className="px-mx-sm py-mx-xs font-black">Cadência</th>
-                        <th className="px-mx-sm py-mx-xs font-black">Próxima Ação</th>
-                        <th className="px-mx-sm py-mx-xs font-black">Carro na troca</th>
-                        <th className="px-mx-sm py-mx-xs font-black">Ficha</th>
-                        <th className="px-mx-sm py-mx-xs font-black">Status</th>
-                        <th className="px-mx-sm py-mx-xs text-right font-black" aria-label="Ações" />
+                        <th className="px-mx-sm py-mx-xs font-bold">Cliente</th>
+                        <th className="px-mx-sm py-mx-xs font-bold">Veículo Procurado</th>
+                        <th className="px-mx-sm py-mx-xs font-bold">Origem</th>
+                        <th className="px-mx-sm py-mx-xs font-bold">Etapa Atual</th>
+                        <th className="px-mx-sm py-mx-xs font-bold">Cadência</th>
+                        <th className="px-mx-sm py-mx-xs font-bold">Próxima Ação</th>
+                        <th className="px-mx-sm py-mx-xs font-bold">Carro na troca</th>
+                        <th className="px-mx-sm py-mx-xs font-bold">Ficha</th>
+                        <th className="px-mx-sm py-mx-xs font-bold">Status</th>
+                        <th className="px-mx-sm py-mx-xs text-right font-bold" aria-label="Ações" />
                       </tr>
                     </thead>
                     <tbody>
@@ -330,7 +339,7 @@ export function CarteiraClientes() {
                               <span className="flex items-center gap-mx-xs">
                                 <ClienteAvatar nome={c.nome} />
                                 <span className="min-w-0">
-                                  <Typography variant="p" className="truncate font-black">{c.nome}</Typography>
+                                  <Typography variant="p" className="truncate font-bold">{c.nome}</Typography>
                                   <span className="inline-flex items-center gap-1 text-xs font-bold text-text-secondary">
                                     {c.telefone || 'Sem telefone'}
                                     {c.telefone && <MessageCircle size={13} className="text-status-success" />}
@@ -339,7 +348,7 @@ export function CarteiraClientes() {
                               </span>
                             </td>
                             <td className="px-mx-sm py-mx-sm">
-                              <Typography variant="p" className="font-black">{oportunidade?.veiculo_interesse || c.empresa || 'Não informado'}</Typography>
+                              <Typography variant="p" className="font-bold">{oportunidade?.veiculo_interesse || c.empresa || 'Não informado'}</Typography>
                               <Typography variant="caption" tone="muted">{oportunidade?.valor_negociado ? BRL(oportunidade.valor_negociado) : 'Interesse em aberto'}</Typography>
                             </td>
                             <td className="px-mx-sm py-mx-sm"><CanalBadge canal={c.canal_origem} /></td>
@@ -347,7 +356,7 @@ export function CarteiraClientes() {
                               <span className="inline-flex items-start gap-mx-xs">
                                 <CalendarDays size={18} className="mt-0.5 text-brand-primary" />
                                 <span>
-                                  <Typography variant="p" className="font-black">{progresso?.etapaAtual.label || 'Lead'}</Typography>
+                                  <Typography variant="p" className="font-bold">{progresso?.etapaAtual.label || 'Lead'}</Typography>
                                   <Typography variant="caption" tone="muted">Etapa {progresso ? progresso.etapaAtualIndex + 1 : 1} de {progresso?.etapas.length || 5}</Typography>
                                 </span>
                               </span>
@@ -356,11 +365,11 @@ export function CarteiraClientes() {
                               <ProgressInline value={progresso?.cadencia || 0} />
                             </td>
                             <td className="px-mx-sm py-mx-sm">
-                              <Typography variant="p" className="font-black">{c.proxima_acao || progresso?.etapaAtual.objetivo || 'Definir ação'}</Typography>
+                              <Typography variant="p" className="font-bold">{c.proxima_acao || progresso?.etapaAtual.objetivo || 'Definir ação'}</Typography>
                               <Typography variant="caption" tone="muted">{c.proxima_acao_em ? formatDateBR(c.proxima_acao_em) : 'Hoje'}</Typography>
                             </td>
                             <td className="px-mx-sm py-mx-sm">
-                              <span className={cn('inline-flex items-center gap-1 font-black', oportunidade?.carro_avaliado ? 'text-status-success' : 'text-status-error')}>
+                              <span className={cn('inline-flex items-center gap-1 font-bold', oportunidade?.carro_avaliado ? 'text-status-success' : 'text-status-error')}>
                                 {oportunidade?.carro_avaliado ? <Car size={16} /> : <X size={16} />} {oportunidade?.carro_avaliado ? 'Sim' : 'Não'}
                               </span>
                             </td>
@@ -383,7 +392,7 @@ export function CarteiraClientes() {
                 <span>Mostrando 1 a {clientesPaginados.length} de {filtered.length} clientes</span>
                 <span className="inline-flex items-center gap-mx-xs">
                   {[1, 2, 3, 4, 5].map(page => (
-                    <button key={page} type="button" className={cn('h-8 w-8 rounded-mx-md border text-xs font-black', page === 1 ? 'border-brand-primary bg-brand-primary/10 text-brand-primary' : 'border-border-subtle text-text-secondary')}>{page}</button>
+                    <button key={page} type="button" className={cn('h-8 w-8 rounded-mx-md border text-xs font-bold', page === 1 ? 'border-brand-primary bg-brand-primary/10 text-brand-primary' : 'border-border-subtle text-text-secondary')}>{page}</button>
                   ))}
                   <button type="button" className="h-8 rounded-mx-md border border-border-subtle px-2"><ChevronRight size={14} /></button>
                   <span className="ml-mx-sm rounded-mx-md border border-border-subtle px-3 py-1.5">8 por página</span>
@@ -404,7 +413,7 @@ export function CarteiraClientes() {
               <AnalyticsCard title="Origem dos Clientes">
                 <div className="flex items-center gap-mx-md">
                   <SourceDonut counts={canalCounts.map(c => c.count)} />
-                  <div className="space-y-mx-xs text-xs font-black">
+                  <div className="space-y-mx-xs text-xs font-bold">
                     {canalCounts.filter(c => c.count > 0).slice(0, 3).map(c => (
                       <div key={c.canal} className="flex items-center gap-mx-xs"><span className="h-2 w-2 rounded-full bg-brand-primary" /> {CRM_CANAL_LABEL[c.canal]} {c.count} ({percent(c.count, metrics.total)}%)</div>
                     ))}
@@ -425,7 +434,7 @@ export function CarteiraClientes() {
             <div className="flex items-center justify-between gap-mx-md rounded-mx-lg border border-status-success/20 bg-status-success/5 px-mx-lg py-mx-md">
               <span className="flex min-w-0 items-center gap-mx-md">
                 <span className="flex h-mx-11 w-mx-11 shrink-0 items-center justify-center rounded-full bg-status-success/10 text-status-success"><CheckCircle size={22} /></span>
-                <Typography variant="p" className="truncate font-black text-status-success">Dica do dia</Typography>
+                <Typography variant="p" className="truncate font-bold text-status-success">Dica do dia</Typography>
                 <Typography variant="p" tone="muted" className="hidden truncate font-bold lg:block">
                   Clientes que recebem 5 ou mais contatos têm mais chances de agendar uma visita. Continue seguindo sua cadência!
                 </Typography>
@@ -439,6 +448,8 @@ export function CarteiraClientes() {
               cliente={selectedCliente}
               progresso={progressoPorCliente.get(selectedCliente.id) || derivarProgresso(selectedCliente, oportunidades, agendamentos)}
               vendedor={(profile?.name || 'vendedor').split(' ')[0]}
+              statusSaving={cadenciaSaving}
+              onStatus={handleRegistrarStatusCadencia}
               onClose={() => { setSelectedId(null); setPanelClosed(true) }}
             />
           )}
@@ -484,7 +495,21 @@ export function CarteiraClientes() {
   )
 }
 
-function FluxoClientePanel({ cliente, progresso, vendedor, onClose }: { cliente: Cliente; progresso: ProgressoCadencia; vendedor: string; onClose: () => void }) {
+function FluxoClientePanel({
+  cliente,
+  progresso,
+  vendedor,
+  statusSaving,
+  onStatus,
+  onClose,
+}: {
+  cliente: Cliente
+  progresso: ProgressoCadencia
+  vendedor: string
+  statusSaving: boolean
+  onStatus: (clienteId: string, status: CadenciaResultadoAcao) => void
+  onClose: () => void
+}) {
   const primeiroNome = cliente.nome.split(' ')[0]
   const script = progresso.etapaAtual.script({ cliente: primeiroNome, vendedor })
   const canalLabel = cliente.canal_origem ? CRM_CANAL_LABEL[cliente.canal_origem] : 'Sem canal'
@@ -519,7 +544,7 @@ function FluxoClientePanel({ cliente, progresso, vendedor, onClose }: { cliente:
         <Button variant="ghost" size="icon" aria-label="Fechar painel" onClick={onClose}><X size={16} /></Button>
       </div>
 
-      <Typography variant="caption" tone="muted" className="mt-mx-md block font-black uppercase tracking-widest">Fluxo do Cliente</Typography>
+      <Typography variant="caption" tone="muted" className="mt-mx-md block font-bold uppercase tracking-widest">Fluxo do Cliente</Typography>
       <ol className="mt-mx-sm flex items-center gap-1" aria-label="Etapas da cadência">
         {progresso.etapas.map((etapa, index) => {
           const concluida = index < progresso.concluidas
@@ -527,7 +552,7 @@ function FluxoClientePanel({ cliente, progresso, vendedor, onClose }: { cliente:
           return (
             <li key={etapa.id} className="flex min-w-0 flex-1 flex-col items-center gap-1">
               <span className={cn(
-                'flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-black',
+                'flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold',
                 concluida ? 'bg-status-success text-white' : atual ? 'bg-brand-primary text-white ring-4 ring-brand-primary/20' : 'bg-surface-alt text-text-tertiary',
               )}>
                 {concluida ? <Check size={13} /> : index + 1}
@@ -539,7 +564,7 @@ function FluxoClientePanel({ cliente, progresso, vendedor, onClose }: { cliente:
       </ol>
 
       <div className="mt-mx-md flex items-center justify-between gap-mx-sm">
-        <Typography variant="p" className="font-black">
+        <Typography variant="p" className="font-bold">
           Etapa {Math.min(progresso.etapaAtualIndex + 1, progresso.etapas.length)} de {progresso.etapas.length} — {progresso.etapaAtual.label}
         </Typography>
         <Badge variant={progresso.cadencia >= 70 ? 'success' : 'info'}>{progresso.cadencia}% da cadência</Badge>
@@ -547,11 +572,11 @@ function FluxoClientePanel({ cliente, progresso, vendedor, onClose }: { cliente:
 
       <div className="mt-mx-md space-y-mx-md">
         <div>
-          <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">Objetivo da etapa</Typography>
+          <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-widest">Objetivo da etapa</Typography>
           <Typography variant="p" className="mt-mx-tiny text-sm">{progresso.etapaAtual.objetivo}</Typography>
         </div>
         <div>
-          <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">O que fazer</Typography>
+          <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-widest">O que fazer</Typography>
           <ul className="mt-mx-tiny space-y-mx-tiny">
             {progresso.etapaAtual.oQueFazer.map(item => (
               <li key={item} className="flex items-start gap-mx-xs text-sm text-text-secondary">
@@ -561,15 +586,26 @@ function FluxoClientePanel({ cliente, progresso, vendedor, onClose }: { cliente:
           </ul>
         </div>
         <div className="rounded-mx-lg bg-brand-primary/5 p-mx-md">
-          <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">Próxima ação</Typography>
+          <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-widest">Próxima ação</Typography>
           <Typography variant="p" className="mt-mx-tiny text-sm font-bold">
             {cliente.proxima_acao || progresso.etapaAtual.objetivo}
             {cliente.proxima_acao_em && <span className="block text-xs font-bold text-text-tertiary">{formatDateBR(cliente.proxima_acao_em)}</span>}
           </Typography>
+          <div className="mt-mx-sm grid grid-cols-1 gap-mx-xs sm:grid-cols-3">
+            <Button variant="outline" size="sm" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'feito')}>
+              <Check size={14} /> Feito
+            </Button>
+            <Button variant="outline" size="sm" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'nao_feito')}>
+              <X size={14} /> Sem contato
+            </Button>
+            <Button variant="outline" size="sm" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'aguardando')}>
+              <Hourglass size={14} /> Aguardando
+            </Button>
+          </div>
         </div>
         <div className="rounded-mx-lg border border-border-subtle bg-surface-alt p-mx-md">
           <div className="flex items-center justify-between gap-mx-sm">
-            <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">Script sugerido</Typography>
+            <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-widest">Script sugerido</Typography>
             <Button variant="ghost" size="icon" aria-label="Copiar script" onClick={copiarScript}><Copy size={14} /></Button>
           </div>
           <Typography variant="p" className="mt-mx-tiny text-sm italic text-text-secondary">"{script}"</Typography>
@@ -610,7 +646,7 @@ function SourceTab({ active, onClick, children }: { active: boolean; onClick: ()
       type="button"
       onClick={onClick}
       className={cn(
-        'inline-flex h-9 items-center gap-mx-xs rounded-mx-md border px-mx-sm text-sm font-black transition-colors',
+        'inline-flex h-9 items-center gap-mx-xs rounded-mx-md border px-mx-sm text-sm font-bold transition-colors',
         active ? 'border-brand-primary bg-brand-primary text-white shadow-mx-sm' : 'border-border-subtle bg-white text-text-secondary hover:bg-surface-alt',
       )}
     >
@@ -622,7 +658,7 @@ function SourceTab({ active, onClick, children }: { active: boolean; onClick: ()
 function ClienteAvatar({ nome }: { nome: string }) {
   const colors = ['bg-brand-primary', 'bg-status-success', 'bg-accent-purple', 'bg-status-warning', 'bg-status-info', 'bg-status-error']
   const color = colors[nome.length % colors.length]
-  return <span className={cn('flex h-mx-9 w-mx-9 shrink-0 items-center justify-center rounded-full text-xs font-black text-white', color)}>{getInitials(nome)}</span>
+  return <span className={cn('flex h-mx-9 w-mx-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white', color)}>{getInitials(nome)}</span>
 }
 
 function CanalBadge({ canal }: { canal: CrmCanal | null }) {
@@ -647,7 +683,7 @@ function ProgressInline({ value }: { value: number }) {
   const tone = value >= 70 ? 'bg-status-success' : value >= 40 ? 'bg-brand-primary' : 'bg-status-error'
   return (
     <span className="flex items-center gap-mx-xs">
-      <span className="text-xs font-black text-text-primary">{value}%</span>
+      <span className="text-xs font-bold text-text-primary">{value}%</span>
       <span className="h-1.5 w-16 rounded-full bg-surface-alt">
         <span className={cn('block h-1.5 rounded-full', tone)} style={{ width: `${Math.max(value, 5)}%` }} />
       </span>
@@ -700,7 +736,7 @@ function MiniBar({ label, value, total, tone }: { label: string; value: number; 
   const pct = percent(value, total)
   return (
     <div className="mb-mx-sm last:mb-0">
-      <div className="mb-mx-tiny flex items-center justify-between text-xs font-black text-text-secondary">
+      <div className="mb-mx-tiny flex items-center justify-between text-xs font-bold text-text-secondary">
         <span>{label}</span>
         <span>{value} ({pct}%)</span>
       </div>

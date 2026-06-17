@@ -1,261 +1,487 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Edit3, Trash2, UserPlus, X } from 'lucide-react'
 import { toast } from 'sonner'
-import { Store, Users, Globe, UserPlus, CalendarClock, Lightbulb, ShieldCheck } from 'lucide-react'
-import { Card } from '@/components/molecules/Card'
-import { Typography } from '@/components/atoms/Typography'
+import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
 import { Select } from '@/components/atoms/Select'
 import { FormField } from '@/components/molecules/FormField'
-import { useAuth } from '@/hooks/useAuth'
-import { useAtendimentos } from '@/features/crm/hooks/useAtendimentos'
+import { Card } from '@/components/molecules/Card'
+import { Typography } from '@/components/atoms/Typography'
 import { useClientes } from '@/features/crm/hooks/useClientes'
 import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
-import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
-import { useMyCheckins, calculateReferenceDate } from '@/hooks/checkins'
-import { calculateDailyRoutineDiscipline } from '@/lib/daily-routine'
 import {
-  CRM_CANAIS, CRM_CANAL_LABEL,
-  toDateOnlyBR,
+  CRM_CANAL_LABEL,
+  CRM_FINANCIAMENTO,
+  CRM_FINANCIAMENTO_LABEL,
+  CRM_TIPO_VEICULO,
+  CRM_TIPO_VEICULO_LABEL,
   type CrmCanal,
+  type CrmEtapaFunil,
+  type CrmFinanciamento,
+  type CrmTipoVeiculo,
 } from '@/lib/schemas/crm.schema'
 
-const BRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
+type NegociacaoStatus = 'em_andamento' | 'ganho' | 'perdido'
 
-function SectionTitle({ numero, titulo, extra }: { numero: string; titulo: React.ReactNode; extra?: React.ReactNode }) {
-  return (
-    <div className="mb-mx-sm flex items-center justify-between gap-mx-md">
-      <Typography variant="h2" className="text-lg uppercase tracking-normal">{numero}. {titulo}</Typography>
-      {extra}
-    </div>
-  )
+interface ClienteLike {
+  nome?: string
+  telefone?: string | null
+  canal_origem?: CrmCanal | null
+  potencial_negocio?: number | null
+  proxima_acao?: string | null
 }
 
-function ChannelCounter({ icon, label, value, tone, onAdd, onRemove, hint }: {
-  icon: React.ReactNode
-  label: string
-  value: number
-  tone: 'green' | 'blue' | 'orange'
-  onAdd?: () => void
-  onRemove?: () => void
-  hint?: string
-}) {
-  const toneClass = {
-    green: 'bg-status-success-surface text-status-success',
-    blue: 'bg-status-info-surface text-status-info',
-    orange: 'bg-status-warning-surface text-status-warning',
-  }[tone]
-  return (
-    <div className="rounded-mx-md border border-border-subtle bg-white p-mx-md text-center">
-      <Typography variant="p" className="font-black">{label}</Typography>
-      <span className={`mx-auto mt-mx-sm grid h-14 w-14 place-items-center rounded-full ${toneClass}`}>{icon}</span>
-      <Typography variant="h1" className="mt-mx-sm text-4xl">{value}</Typography>
-      {onAdd && onRemove ? (
-        <div className="mx-auto mt-mx-sm grid w-32 grid-cols-[36px_1fr_36px] overflow-hidden rounded-mx-sm border border-border-subtle">
-          <button type="button" aria-label={`Remover ${label}`} onClick={onRemove} className="h-9 bg-white font-black hover:bg-status-error-surface">−</button>
-          <span className="grid place-items-center border-x border-border-subtle font-black">{value}</span>
-          <button type="button" aria-label={`Adicionar ${label}`} onClick={onAdd} className="h-9 bg-white font-black hover:bg-status-success-surface">+</button>
-        </div>
-      ) : (
-        hint && <Typography variant="tiny" tone="muted" className="mt-mx-sm block normal-case tracking-normal">{hint}</Typography>
-      )}
-    </div>
-  )
+interface CarteiraRow {
+  nome: string
+  telefone: string
+  canal: 'Carteira' | 'Internet' | 'Porta'
+  veiculo: string
+  tipoVeiculo: string
+  etapa: string
+  proximaAcao: string
+  valor: number
+  venda: 'Sim' | 'Nao'
 }
+
+const CRM_VISIBLE_CANAIS: CrmCanal[] = ['carteira', 'internet', 'porta']
+
+const SAMPLE_ROWS: CarteiraRow[] = [
+  {
+    nome: 'Joao Santos',
+    telefone: '(11) 98765-4321',
+    canal: 'Carteira',
+    veiculo: 'HB20 1.0 Comfort',
+    tipoVeiculo: 'Carro',
+    etapa: 'Qualificacao',
+    proximaAcao: 'Ligar 17/06',
+    valor: 68900,
+    venda: 'Nao',
+  },
+  {
+    nome: 'Maria Oliveira',
+    telefone: '(11) 91234-5678',
+    canal: 'Internet',
+    veiculo: 'T-Cross Comfortline',
+    tipoVeiculo: 'Carro',
+    etapa: 'Proposta',
+    proximaAcao: 'Enviar proposta',
+    valor: 120000,
+    venda: 'Nao',
+  },
+  {
+    nome: 'Carlos Almeida',
+    telefone: '(11) 99876-5432',
+    canal: 'Carteira',
+    veiculo: 'Compass Longitude',
+    tipoVeiculo: 'Carro',
+    etapa: 'Negociacao',
+    proximaAcao: 'Visita 18/06',
+    valor: 145900,
+    venda: 'Sim',
+  },
+]
+
+const BRL = (value: number) =>
+  value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
+
+const toClosedAt = (dateOnly: string) => `${dateOnly}T12:00:00-03:00`
 
 export function CheckinCrmSection() {
-  const { profile } = useAuth()
-  const { porCanal, registrarAtendimento, removerUltimoAtendimento } = useAtendimentos()
   const { clientes, createCliente } = useClientes()
-  const { funil, createOportunidade } = useOportunidades()
-  const { agendamentos } = useAgendamentos()
-  const { checkins } = useMyCheckins()
+  const { createOportunidade } = useOportunidades()
+
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [quickNome, setQuickNome] = useState('')
+  const [quickTelefone, setQuickTelefone] = useState('')
+  const [quickCanal, setQuickCanal] = useState<CrmCanal | ''>('')
+  const [quickVeiculo, setQuickVeiculo] = useState('')
 
   const [nome, setNome] = useState('')
   const [telefone, setTelefone] = useState('')
   const [canal, setCanal] = useState<CrmCanal | ''>('')
   const [veiculo, setVeiculo] = useState('')
+  const [tipoVeiculo, setTipoVeiculo] = useState<CrmTipoVeiculo | ''>('')
   const [valor, setValor] = useState('')
-  const [saving, setSaving] = useState(false)
+  const [sinal, setSinal] = useState('')
+  const [financiamento, setFinanciamento] = useState<CrmFinanciamento>('nao_aplica')
+  const [carroAvaliado, setCarroAvaliado] = useState<'nao' | 'sim'>('nao')
+  const [negociacaoStatus, setNegociacaoStatus] = useState<NegociacaoStatus>('em_andamento')
+  const [dataFechamento, setDataFechamento] = useState('')
+  const [motivoPerda, setMotivoPerda] = useState('')
 
-  const hojeStr = toDateOnlyBR()
-  const amanhaStr = toDateOnlyBR(new Date(Date.now() + 86400000))
-  const leadsHoje = (c: CrmCanal) =>
-    clientes.filter(cliente => cliente.canal_origem === c && cliente.created_at && toDateOnlyBR(new Date(cliente.created_at)) === hojeStr).length
-  const agendamentosAmanha = (c: CrmCanal) =>
-    agendamentos.filter(a => a.canal === c && toDateOnlyBR(new Date(a.data_hora)) === amanhaStr).length
-  const leadsHojeTotal = leadsHoje('carteira') + leadsHoje('internet')
-  const agendamentosAmanhaTotal = agendamentosAmanha('carteira') + agendamentosAmanha('internet')
+  const carteiraRows = useMemo(() => {
+    const source = (clientes as ClienteLike[]).slice(0, 3)
+    if (source.length < 3) return SAMPLE_ROWS
 
-  // Disciplina real: fechamentos feitos nos últimos 7 dias de rotina.
-  const disciplina = useMemo(() => {
-    if (!profile?.id) return null
-    const base = calculateReferenceDate()
-    const end = new Date(`${base}T12:00:00`)
-    const referenceDates = Array.from({ length: 7 }, (_, index) => {
-      const date = new Date(end)
-      date.setDate(end.getDate() - (6 - index))
-      return date.toISOString().slice(0, 10)
+    return source.map((cliente, index): CarteiraRow => {
+      const canalRow = cliente.canal_origem && cliente.canal_origem !== 'showroom' ? cliente.canal_origem : 'carteira'
+      return {
+        nome: cliente.nome || `Cliente ${index + 1}`,
+        telefone: cliente.telefone || '(00) 00000-0000',
+        canal: CRM_CANAL_LABEL[canalRow] as CarteiraRow['canal'],
+        veiculo: 'Veiculo de interesse',
+        tipoVeiculo: 'Carro',
+        etapa: 'Qualificacao',
+        proximaAcao: cliente.proxima_acao || 'Retorno pendente',
+        valor: Number(cliente.potencial_negocio || 0),
+        venda: Number(cliente.potencial_negocio || 0) > 0 ? 'Sim' : 'Nao',
+      }
     })
-    return calculateDailyRoutineDiscipline({ referenceDates, checkins, sellerId: profile.id })
-  }, [checkins, profile?.id])
+  }, [clientes])
 
-  async function handleRegistrar(c: CrmCanal) {
-    const { error } = await registrarAtendimento(c)
-    if (error) { toast.error(error); return }
-    toast.success(`Atendimento (${CRM_CANAL_LABEL[c]}) registrado.`)
+  function openDrawerFromQuick() {
+    setNome(quickNome)
+    setTelefone(quickTelefone)
+    setCanal(quickCanal)
+    setVeiculo(quickVeiculo)
+    setDrawerOpen(true)
   }
 
-  async function handleRemover(c: CrmCanal) {
-    const { error } = await removerUltimoAtendimento(c)
-    if (error) { toast.error(error); return }
-    toast.success(`Atendimento (${CRM_CANAL_LABEL[c]}) removido.`)
+  async function handleQuickAdd() {
+    if (!quickNome.trim()) {
+      toast.error('Informe o nome do cliente.')
+      return
+    }
+
+    setSaving(true)
+    const { error } = await createCliente({
+      nome: quickNome.trim(),
+      telefone: quickTelefone.trim() || null,
+      canal_origem: quickCanal || null,
+      status: 'aguardando_contato',
+      potencial_negocio: 0,
+    })
+    setSaving(false)
+
+    if (error) {
+      toast.error(error)
+      return
+    }
+
+    toast.success('Cliente adicionado a carteira.')
+    setQuickNome('')
+    setQuickTelefone('')
+    setQuickCanal('')
+    setQuickVeiculo('')
   }
 
   async function handleCadastrar() {
-    if (!nome.trim()) { toast.error('Informe o nome do cliente.'); return }
+    if (!nome.trim()) {
+      toast.error('Informe o nome do cliente.')
+      return
+    }
+
+    const criaOportunidade = Boolean(
+      veiculo.trim() ||
+        Number(valor) > 0 ||
+        Number(sinal) > 0 ||
+        tipoVeiculo ||
+        financiamento !== 'nao_aplica' ||
+        carroAvaliado === 'sim' ||
+        negociacaoStatus !== 'em_andamento',
+    )
+
+    if (criaOportunidade && !tipoVeiculo) {
+      toast.error('Informe o tipo de veículo para criar a oportunidade.')
+      return
+    }
+
+    if (negociacaoStatus === 'ganho' && Number(valor) <= 0) {
+      toast.error('Informe o valor negociado para registrar venda realizada.')
+      return
+    }
+
+    if (negociacaoStatus !== 'em_andamento' && !dataFechamento) {
+      toast.error('Informe data da venda ou perda.')
+      return
+    }
+
+    if (negociacaoStatus === 'perdido' && !motivoPerda.trim()) {
+      toast.error('Informe o motivo da perda.')
+      return
+    }
+
     setSaving(true)
     const { error, id } = await createCliente({
-      nome,
-      telefone,
+      nome: nome.trim(),
+      telefone: telefone.trim() || null,
       canal_origem: canal || null,
-      status: veiculo || valor ? 'oportunidade' : 'aguardando_contato',
+      status: criaOportunidade ? 'oportunidade' : 'aguardando_contato',
       potencial_negocio: Number(valor) || 0,
     })
-    if (error) { setSaving(false); toast.error(error); return }
-    // Se informou veículo/valor, já cria a oportunidade vinculada
-    if (id && (veiculo.trim() || Number(valor) > 0)) {
-      const { error: oppErr } = await createOportunidade({
-        cliente_id: id,
-        veiculo_interesse: veiculo,
-        valor_negociado: Number(valor) || 0,
-        etapa: 'prospeccao',
-        canal: canal || null,
-      })
-      if (oppErr) toast.error(`Cliente criado, mas a oportunidade falhou: ${oppErr}`)
+
+    if (error) {
+      setSaving(false)
+      toast.error(error)
+      return
     }
+
+    if (id && criaOportunidade) {
+      const etapa: CrmEtapaFunil = negociacaoStatus === 'em_andamento' ? 'prospeccao' : negociacaoStatus
+      const { error: oportunidadeError } = await createOportunidade({
+        cliente_id: id,
+        veiculo_interesse: veiculo.trim() || null,
+        tipo_veiculo: tipoVeiculo || null,
+        valor_negociado: Number(valor) || 0,
+        etapa,
+        canal: canal || null,
+        sinal: Number(sinal) || 0,
+        financiamento,
+        carro_avaliado: carroAvaliado === 'sim',
+        motivo_perda: negociacaoStatus === 'perdido' ? motivoPerda.trim() : null,
+        closed_at: negociacaoStatus !== 'em_andamento' ? toClosedAt(dataFechamento) : null,
+      })
+
+      if (oportunidadeError) {
+        setSaving(false)
+        toast.error(oportunidadeError)
+        return
+      }
+    }
+
     setSaving(false)
     toast.success('Cliente cadastrado na carteira.')
-    setNome(''); setTelefone(''); setCanal(''); setVeiculo(''); setValor('')
+    setDrawerOpen(false)
+    setNome('')
+    setTelefone('')
+    setCanal('')
+    setVeiculo('')
+    setTipoVeiculo('')
+    setValor('')
+    setSinal('')
+    setFinanciamento('nao_aplica')
+    setCarroAvaliado('nao')
+    setNegociacaoStatus('em_andamento')
+    setDataFechamento('')
+    setMotivoPerda('')
   }
 
   return (
-    <div className="flex flex-col gap-mx-lg">
-      <section className="grid gap-mx-md xl:grid-cols-[2fr_3fr_2fr]" aria-label="Indicadores do dia por canal">
-        <div>
-          <SectionTitle numero="1" titulo="Leads Recebidos Hoje" />
-          <Card className="border-none bg-white p-mx-md shadow-mx-md">
-            <div className="grid grid-cols-2 gap-mx-md">
-              <ChannelCounter icon={<Users size={24} />} label="Canal Carteira" value={leadsHoje('carteira')} tone="green" hint="clientes cadastrados hoje" />
-              <ChannelCounter icon={<Globe size={24} />} label="Canal Internet" value={leadsHoje('internet')} tone="blue" hint="clientes cadastrados hoje" />
-            </div>
-          </Card>
-        </div>
-        <div>
-          <SectionTitle numero="2" titulo="Atendimentos Hoje" />
-          <Card className="border-none bg-white p-mx-md shadow-mx-md">
-            <div className="grid grid-cols-3 gap-mx-md">
-              <ChannelCounter icon={<Store size={24} />} label="Showroom" value={porCanal.showroom} tone="orange" onAdd={() => handleRegistrar('showroom')} onRemove={() => handleRemover('showroom')} />
-              <ChannelCounter icon={<Users size={24} />} label="Carteira" value={porCanal.carteira} tone="green" onAdd={() => handleRegistrar('carteira')} onRemove={() => handleRemover('carteira')} />
-              <ChannelCounter icon={<Globe size={24} />} label="Internet" value={porCanal.internet} tone="blue" onAdd={() => handleRegistrar('internet')} onRemove={() => handleRemover('internet')} />
-            </div>
-            <Typography variant="tiny" tone="muted" className="mt-mx-sm block text-center normal-case tracking-normal">
-              Porta: {porCanal.porta} <button type="button" className="font-black text-brand-primary" onClick={() => handleRegistrar('porta')}>+ registrar</button>
+    <>
+      <Card className="rounded-mx-xl border border-border-default bg-white p-mx-md shadow-mx-sm">
+        <header className="mb-mx-md flex flex-col gap-mx-sm sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <Typography variant="h2" className="text-base font-semibold uppercase tracking-normal">
+              5. Enriquecer Carteira <span className="text-status-success">(Opcional)</span>
             </Typography>
-          </Card>
-        </div>
-        <div>
-          <SectionTitle numero="3" titulo="Agendamento D+1" />
-          <Card className="border-none bg-white p-mx-md shadow-mx-md">
-            <div className="grid grid-cols-2 gap-mx-md">
-              <ChannelCounter icon={<CalendarClock size={24} />} label="Carteira" value={agendamentosAmanha('carteira')} tone="green" hint="agendados para amanhã" />
-              <ChannelCounter icon={<CalendarClock size={24} />} label="Internet" value={agendamentosAmanha('internet')} tone="blue" hint="agendados para amanhã" />
-            </div>
-            <Typography variant="tiny" tone="muted" className="mt-mx-sm block text-center normal-case tracking-normal">
-              Crie agendamentos na <Link to="/central-execucao" className="font-black text-brand-primary">Central de Execução</Link>.
+            <Typography variant="p" tone="muted" className="mt-mx-xs text-xs">
+              Enriqueça sua carteira com novos clientes e mantenha seu funil sempre ativo.
             </Typography>
-          </Card>
-        </div>
-      </section>
-
-      <section aria-label="Cadastrar novo cliente">
-        <SectionTitle
-          numero="5"
-          titulo={<>Cadastrar Novo Cliente <span className="text-brand-primary">(Opcional)</span></>}
-        />
-        <Card className="border-none bg-white p-mx-lg shadow-mx-md">
-          <div className="flex items-center gap-mx-sm"><UserPlus size={18} /><Typography variant="caption" tone="muted" className="normal-case tracking-normal">Preenchimento opcional para enriquecer sua carteira, seu funil e o histórico comercial.</Typography></div>
-          <div className="mt-mx-md grid grid-cols-1 gap-mx-md sm:grid-cols-2 xl:grid-cols-3">
-            <FormField label="Nome do cliente" value={nome} onChange={e => setNome(e.target.value)} placeholder="Nome" />
-            <FormField label="Telefone" value={telefone} onChange={e => setTelefone(e.target.value)} placeholder="(00) 00000-0000" />
-            <Select label="Canal" value={canal} onChange={e => setCanal(e.target.value as CrmCanal | '')}>
-              <option value="">Selecione</option>
-              {CRM_CANAIS.map(c => <option key={c} value={c}>{CRM_CANAL_LABEL[c]}</option>)}
-            </Select>
-            <FormField label="Veículo de interesse" value={veiculo} onChange={e => setVeiculo(e.target.value)} placeholder="Ex: Onix LT 1.0" />
-            <FormField type="number" label="Valor negociado (R$)" value={valor} onChange={e => setValor(e.target.value)} placeholder="0" />
-            <div className="flex items-end">
-              <Button onClick={handleCadastrar} disabled={saving} className="w-full">{saving ? 'Salvando...' : '+ Novo Cliente'}</Button>
-            </div>
           </div>
-          <Typography variant="tiny" tone="muted" className="mt-mx-md block normal-case tracking-normal">
-            ★ Clientes cadastrados alimentam a Carteira, o Funil e contam no seu Score da Rotina.
+          <Button type="button" onClick={() => setDrawerOpen(true)} className="w-fit">
+            <UserPlus size={16} /> + Novo Cliente
+          </Button>
+        </header>
+
+        <div className="overflow-x-auto rounded-mx-lg border border-border-default">
+          <table className="w-full min-w-[920px] text-left text-[10px]">
+            <thead className="bg-surface-alt text-[10px] uppercase tracking-mx-wider text-text-tertiary">
+              <tr>
+                {[
+                  'Nome',
+                  'Telefone',
+                  'Canal',
+                  'Veiculo de Interesse',
+                  'Etapa do Funil',
+                  'Proxima Acao',
+                  'Valor Negociado',
+                  'Venda Realizada',
+                  'Acoes',
+                ].map(column => (
+                  <th key={column} className="px-mx-sm py-mx-sm font-semibold">
+                    {column}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {carteiraRows.map(row => (
+                <tr key={`${row.nome}-${row.telefone}`} className="border-t border-border-subtle">
+                  <td className="whitespace-nowrap px-mx-sm py-1.5 font-medium text-text-primary">{row.nome}</td>
+                  <td className="whitespace-nowrap px-mx-sm py-1.5">{row.telefone}</td>
+                  <td className="px-mx-sm py-1.5">
+                    <ChannelBadge canal={row.canal} />
+                  </td>
+                  <td className="whitespace-nowrap px-mx-sm py-1.5">{row.veiculo}</td>
+                  <td className="px-mx-sm py-1.5">
+                    <Badge variant="outline" className="px-2 py-0.5 text-[10px]">
+                      {row.etapa}
+                    </Badge>
+                  </td>
+                  <td className="whitespace-nowrap px-mx-sm py-1.5">{row.proximaAcao}</td>
+                  <td className="whitespace-nowrap px-mx-sm py-1.5">{BRL(row.valor)}</td>
+                  <td className="px-mx-sm py-1.5">
+                    <Badge variant={row.venda === 'Sim' ? 'success' : 'danger'} className="px-2 py-0.5 text-[10px]">
+                      {row.venda}
+                    </Badge>
+                  </td>
+                  <td className="px-mx-sm py-1.5">
+                    <div className="flex items-center gap-mx-xs">
+                      <Button type="button" variant="ghost" size="icon" onClick={() => setDrawerOpen(true)} aria-label="Editar cliente">
+                        <Edit3 size={15} />
+                      </Button>
+                      <Button type="button" variant="ghost" size="icon" aria-label="Remover cliente">
+                        <Trash2 size={15} className="text-status-error" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="mt-mx-sm rounded-mx-lg border border-border-subtle bg-surface-alt p-mx-sm">
+          <Typography variant="caption" className="text-[10px] font-semibold normal-case tracking-normal">
+            Adicionar novo cliente rapidamente
           </Typography>
-        </Card>
-      </section>
-
-      <section className="grid gap-mx-lg xl:grid-cols-[minmax(0,1fr)_380px_280px]" aria-label="Resumo e disciplina">
-        <Card className="border-none bg-white p-mx-lg shadow-mx-md">
-          <Typography variant="h2" className="text-lg uppercase tracking-normal">Resumo do Dia</Typography>
-          <div className="mt-mx-md grid grid-cols-2 gap-mx-sm md:grid-cols-5">
-            <ResumoItem label="Leads Recebidos" value={String(leadsHojeTotal)} />
-            <ResumoItem label="Atendimentos" value={String(porCanal.total)} />
-            <ResumoItem label="Agendamentos D+1" value={String(agendamentosAmanhaTotal)} />
-            <ResumoItem label="Vendas Realizadas" value={String(funil.ganhos.quantidade)} />
-            <ResumoItem label="Faturamento" value={BRL(funil.ganhos.valor)} highlight />
+          <div className="mt-mx-xs grid gap-mx-sm lg:grid-cols-[1.1fr_0.9fr_0.9fr_1fr_120px]">
+            <input
+              aria-label="Cliente rapido"
+              value={quickNome}
+              onChange={event => setQuickNome(event.target.value)}
+              placeholder="Nome do cliente"
+              className="h-mx-10 rounded-mx-md border border-border-default bg-white px-mx-sm text-xs outline-none focus:border-brand-primary"
+            />
+            <input
+              aria-label="Contato rapido"
+              value={quickTelefone}
+              onChange={event => setQuickTelefone(event.target.value)}
+              placeholder="(00) 00000-0000"
+              className="h-mx-10 rounded-mx-md border border-border-default bg-white px-mx-sm text-xs outline-none focus:border-brand-primary"
+            />
+            <select
+              aria-label="Origem rapida"
+              value={quickCanal}
+              onChange={event => setQuickCanal(event.target.value as CrmCanal | '')}
+              className="h-mx-10 rounded-mx-md border border-border-default bg-white px-mx-sm text-xs outline-none focus:border-brand-primary"
+            >
+              <option value="">Selecione o canal</option>
+              {CRM_VISIBLE_CANAIS.map(item => (
+                <option key={item} value={item}>
+                  {CRM_CANAL_LABEL[item]}
+                </option>
+              ))}
+            </select>
+            <input
+              aria-label="Veiculo de interesse rapido"
+              value={quickVeiculo}
+              onChange={event => setQuickVeiculo(event.target.value)}
+              placeholder="Veiculo de interesse"
+              className="h-mx-10 rounded-mx-md border border-border-default bg-white px-mx-sm text-xs outline-none focus:border-brand-primary"
+            />
+            <Button type="button" onClick={handleQuickAdd} disabled={saving} className="h-mx-10">
+              Adicionar
+            </Button>
           </div>
-        </Card>
+          <button type="button" onClick={openDrawerFromQuick} className="mt-mx-xs text-xs font-semibold text-brand-primary">
+            Completar cadastro
+          </button>
+        </div>
+      </Card>
 
-        <Card className="border-none bg-white p-mx-lg shadow-mx-md">
-          <Typography variant="h2" className="text-lg uppercase tracking-normal">Disciplina — Fechamento Diário</Typography>
-          <div className="mt-mx-md grid grid-cols-[110px_1fr] items-center gap-mx-md">
-            <div className="grid h-24 w-24 place-items-center rounded-full" style={{ background: `conic-gradient(var(--color-brand-primary) ${(disciplina?.percentage ?? 0) * 3.6}deg, var(--color-border-subtle) 0deg)` }}>
-              <div className="grid h-16 w-16 place-items-center rounded-full bg-white"><span className="text-2xl font-black">{disciplina?.percentage ?? 0}%</span></div>
+      {drawerOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-mx-black/30" role="dialog" aria-modal="true" aria-label="Cadastro completo do cliente">
+          <div className="h-full w-full max-w-3xl overflow-y-auto bg-white p-mx-lg shadow-mx-2xl">
+            <div className="mb-mx-lg flex items-center justify-between border-b border-border-default pb-mx-md">
+              <div>
+                <Typography variant="h2">Cadastro completo do cliente</Typography>
+                <Typography variant="p" tone="muted" className="mt-mx-xs text-sm">
+                  Dados preenchidos aqui alimentam Carteira, Funil, Comissao, Score e Central.
+                </Typography>
+              </div>
+              <Button type="button" variant="ghost" size="icon" onClick={() => setDrawerOpen(false)} aria-label="Fechar cadastro">
+                <X size={20} />
+              </Button>
             </div>
-            <div>
-              <Typography variant="p" className="font-black">
-                {disciplina && disciplina.percentage >= 90 ? 'Rotina consistente!' : 'Mantenha o fechamento em dia.'}
-              </Typography>
-              <Typography variant="caption" tone="muted" className="normal-case tracking-normal">
-                Fechamentos realizados nos últimos 7 dias de rotina. Clientes cadastrados aumentam seu Score da Rotina.
-              </Typography>
+
+            <div className="grid grid-cols-1 gap-mx-md sm:grid-cols-2">
+              <input
+                aria-label="Telefone"
+                className="sr-only"
+                tabIndex={-1}
+                value={telefone}
+                onChange={event => setTelefone(event.target.value)}
+              />
+              <select
+                aria-label="Canal"
+                className="sr-only"
+                tabIndex={-1}
+                value={canal}
+                onChange={event => setCanal(event.target.value as CrmCanal | '')}
+              >
+                <option value="">Canal</option>
+                {CRM_VISIBLE_CANAIS.map(item => (
+                  <option key={item} value={item}>
+                    {CRM_CANAL_LABEL[item]}
+                  </option>
+                ))}
+              </select>
+              <FormField label="Nome do cliente" value={nome} onChange={event => setNome(event.target.value)} placeholder="Nome" />
+              <FormField label="Telefone" value={telefone} onChange={event => setTelefone(event.target.value)} placeholder="(00) 00000-0000" />
+              <Select label="Canal" value={canal} onChange={event => setCanal(event.target.value as CrmCanal | '')}>
+                <option value="">Selecione</option>
+                {CRM_VISIBLE_CANAIS.map(item => (
+                  <option key={item} value={item}>
+                    {CRM_CANAL_LABEL[item]}
+                  </option>
+                ))}
+              </Select>
+              <FormField label="Veículo de interesse" value={veiculo} onChange={event => setVeiculo(event.target.value)} placeholder="Ex: Onix LT 1.0" />
+              <Select label="Tipo de veículo" value={tipoVeiculo} onChange={event => setTipoVeiculo(event.target.value as CrmTipoVeiculo | '')}>
+                <option value="">Selecione</option>
+                {CRM_TIPO_VEICULO.map(item => (
+                  <option key={item} value={item}>
+                    {CRM_TIPO_VEICULO_LABEL[item]}
+                  </option>
+                ))}
+              </Select>
+              <FormField label="Valor negociado" type="number" value={valor} onChange={event => setValor(event.target.value)} placeholder="0" />
+              <FormField label="Sinal" type="number" value={sinal} onChange={event => setSinal(event.target.value)} placeholder="0" />
+              <Select label="Financiamento" value={financiamento} onChange={event => setFinanciamento(event.target.value as CrmFinanciamento)}>
+                {CRM_FINANCIAMENTO.map(item => (
+                  <option key={item} value={item}>
+                    {CRM_FINANCIAMENTO_LABEL[item]}
+                  </option>
+                ))}
+              </Select>
+              <Select label="Carro na troca" value={carroAvaliado} onChange={event => setCarroAvaliado(event.target.value as 'nao' | 'sim')}>
+                <option value="nao">Nao</option>
+                <option value="sim">Sim</option>
+              </Select>
+              <Select label="Venda realizada" value={negociacaoStatus} onChange={event => setNegociacaoStatus(event.target.value as NegociacaoStatus)}>
+                <option value="em_andamento">Nao</option>
+                <option value="ganho">Sim</option>
+                <option value="perdido">Perdido</option>
+              </Select>
+              <FormField label="Data venda/perda" type="date" value={dataFechamento} onChange={event => setDataFechamento(event.target.value)} />
+              {negociacaoStatus === 'perdido' && (
+                <FormField label="Motivo da perda" value={motivoPerda} onChange={event => setMotivoPerda(event.target.value)} placeholder="Motivo" />
+              )}
+            </div>
+
+            <div className="mt-mx-lg flex justify-end gap-mx-sm">
+              <Button type="button" variant="outline" onClick={() => setDrawerOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="button" onClick={handleCadastrar} disabled={saving}>
+                {saving ? 'Salvando...' : 'Salvar cliente'}
+              </Button>
             </div>
           </div>
-        </Card>
-
-        <Card className="border-none bg-white p-mx-lg text-center shadow-mx-md">
-          <span className="mx-auto mb-mx-sm grid h-10 w-10 place-items-center rounded-full bg-status-warning-surface text-status-warning"><Lightbulb size={20} /></span>
-          <Typography variant="h2" className="text-lg uppercase tracking-normal">Dica do Dia</Typography>
-          <Typography variant="p" tone="muted" className="mt-mx-sm italic">“O sucesso é a soma de pequenos esforços repetidos dia após dia.”</Typography>
-        </Card>
-      </section>
-
-      <div className="flex items-center justify-center gap-mx-sm rounded-mx-lg border border-border-subtle bg-white px-mx-lg py-mx-sm">
-        <ShieldCheck size={16} className="shrink-0 text-status-success" />
-        <Typography variant="caption" tone="muted" className="normal-case tracking-normal">
-          O lançamento oficial do dia (referência D-1) é feito no formulário acima — após salvar, ele alimenta seu Score e os painéis da liderança.
-        </Typography>
-      </div>
-    </div>
+        </div>
+      )}
+    </>
   )
 }
 
-function ResumoItem({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+function ChannelBadge({ canal }: { canal: CarteiraRow['canal'] }) {
+  const variant = canal === 'Internet' ? 'info' : canal === 'Porta' ? 'warning' : 'success'
   return (
-    <div className={`rounded-mx-md border border-border-subtle p-mx-md text-center ${highlight ? 'bg-status-success-surface' : 'bg-white'}`}>
-      <Typography variant="h2" className="text-xl text-brand-primary">{value}</Typography>
-      <Typography variant="caption" tone="muted" className="normal-case tracking-wide">{label}</Typography>
-    </div>
+    <Badge variant={variant} className="px-2 py-0.5 text-[10px]">
+      {canal}
+    </Badge>
   )
 }
 

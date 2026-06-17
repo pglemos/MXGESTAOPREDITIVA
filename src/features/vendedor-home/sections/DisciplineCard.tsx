@@ -42,7 +42,7 @@ export function DisciplineCard({ discipline }: DisciplineCardProps) {
             <Typography
               variant="tiny"
               tone="muted"
-              className="font-black uppercase tracking-mx-widest"
+              className="font-bold uppercase tracking-mx-widest"
             >
               Disciplina de lançamento
             </Typography>

@@ -2,7 +2,7 @@
 
 **Objetivo do épico:** capturar diariamente os dados que alimentam todo o sistema (score, funil, comissão, ranking) com o menor atrito possível, no layout aprovado pelo Daniel.
 
-**Fase:** Julho · **Status:** 🔧 Parcial
+**Fase:** Julho · **Status:** ✅ Done (execução técnica pronta para review)
 
 **Telas/arquivos atuais:** `src/features/checkin/` (`Checkin.container.tsx`, `sections/CheckinForm.tsx`, `sections/CheckinCrmSection.tsx`), tabelas `lancamentos_diarios` (D-1 oficial) e CRM (`clientes`, `oportunidades`, `agendamentos`, `atendimentos`).
 
@@ -21,10 +21,14 @@
 5. Card Disciplina (% dos últimos 7 dias) + Dica do Dia.
 6. Form oficial D-1 (`lancamentos_diarios`) preservado — é o sistema de record.
 
+**Notas técnicas:** manter `CheckinCrmSection` como camada visual do mock e preservar `lancamentos_diarios` como fonte oficial D-1; qualquer leitura auxiliar do CRM deve respeitar RLS por loja/vendedor e R-01.
+
+**Dependências:** nenhuma adicional; fundação já entregue no Fechamento Diário atual.
+
 ---
 
 ## EV-1.2 — Cadastro rico do cliente alimentando comissão
-**Status:** 🔧 Parcial
+**Status:** ✅ Done
 
 **Como** vendedor, **quero** registrar venda com sinal, financiamento, carro avaliado e **tipo de veículo** **para** o sistema calcular minha comissão pela regra correta da loja.
 
@@ -50,10 +54,14 @@
 2. Agendamentos D+1 = agendamentos reais de amanhã por canal.
 3. Atendimentos por canal persistem em `atendimentos` (com remover último).
 
+**Notas técnicas:** derivar contadores de `clientes`, `agendamentos` e `atendimentos` por data/canal; manter empty state honesto quando não houver registros.
+
+**Dependências:** CRM operacional e EV-1.1 preservando o fechamento como tela de entrada.
+
 ---
 
 ## EV-1.4 — Trava de fechamento por meta de feedback
-**Status:** 🆕 Novo
+**Status:** ✅ Done
 
 **Como** gerente, **quero** que o vendedor só feche o dia se cumpriu a ação do feedback (ou justificou) **para** garantir execução.
 
@@ -61,5 +69,7 @@
 1. Se há ação de feedback pendente do dia (ex.: "cadastrar 2 clientes/dia"), o botão "Finalizar fechamento" exige **observação obrigatória** com o motivo de não-cumprimento.
 2. A trava só vale quando a loja/gerente configurou aquela ação como obrigatória.
 3. Vendedor autônomo: a trava usa metas auto-definidas (feedback autônomo — ver EV-6.5).
+
+**Notas técnicas:** validar a finalização contra ações obrigatórias pendentes em `devolutivas`/ações de feedback; persistir justificativa vinculada ao fechamento do dia.
 
 **Dependências:** EV-6 (ação de feedback vinculada).

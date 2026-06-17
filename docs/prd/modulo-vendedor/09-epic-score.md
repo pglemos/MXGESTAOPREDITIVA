@@ -43,3 +43,7 @@
 1. Gerente tem controle de refinamento (mensal/semanal) sobre o score.
 2. Auditoria do ajuste (quem, quando, quanto).
 3. Vendedor autônomo não tem refinamento de gestor (score puro do sistema).
+
+**Notas técnicas:** registrar refinamentos em tabela auditável vinculada ao score calculado; cálculo final deve preservar o score bruto e o score refinado.
+
+**Dependências:** EV-9.1 e EV-12.

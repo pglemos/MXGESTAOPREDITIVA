@@ -1,227 +1,593 @@
-import { motion, AnimatePresence } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import {
-    Users, Globe, Car, Eye, Send, MessageSquare, AlertTriangle,
-    RefreshCw, History, CalendarDays, Smartphone, UserCheck,
+  AlertTriangle,
+  CalendarClock,
+  CheckCircle2,
+  DollarSign,
+  Globe,
+  LockKeyhole,
+  MessageSquare,
+  Minus,
+  Plus,
+  RefreshCw,
+  Save,
+  Store,
+  Users,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
 import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
-import { CHECKIN_ZERO_REASONS } from '@/hooks/useCheckins'
-import { DAILY_ROUTINE_MVP_FIELDS } from '@/lib/daily-routine'
-import { NumberInput } from '../components/NumberInput'
+import { CHECKIN_MAX_INPUT_VALUE, CHECKIN_ZERO_REASONS } from '@/hooks/useCheckins'
 import { CheckinValidationBanner } from './CheckinValidationBanner'
 import { CheckinSuccessSection } from './CheckinSuccessSection'
 import { CheckinSidebar } from './CheckinSidebar'
-import type { CheckinPageContext } from '../hooks/useCheckinPage'
+import { CheckinCrmSection } from './CheckinCrmSection'
+import type { CheckinPageContext, NumericCheckinField } from '../hooks/useCheckinPage'
 
 interface CheckinFormProps {
-    ctx: CheckinPageContext
-    totalsAgd: number
-    totalsVnd: number
+  ctx: CheckinPageContext
+  totalsAgd: number
+  totalsVnd: number
 }
 
-/**
- * CheckinForm — corpo principal do lançamento (retrospectiva, agenda, regras
- * de produção zero, observações e botão de submit). Mantém comportamento e
- * markup originais de `Checkin.tsx`.
- */
+const REFERENCE_VALUES: Record<NumericCheckinField, number> = {
+  leads: 30,
+  leads_cart: 12,
+  leads_net: 18,
+  agd_cart_prev: 0,
+  agd_net_prev: 0,
+  agd_cart: 7,
+  agd_net: 11,
+  vnd_porta: 2,
+  vnd_cart: 5,
+  vnd_net: 3,
+  visitas: 44,
+  visitas_porta: 9,
+  visitas_cart: 14,
+  visitas_net: 21,
+}
+
+const BRL = (value: number) =>
+  value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
+
 export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
-    const {
-        form,
-        saving,
-        metricScope,
-        fieldErrors,
-        numberDrafts,
-        changedFields,
-        canEditExisting,
-        funnelError,
-        inputError,
-        minutesUntilEditLock,
-        allZero,
-        saveNotice,
-        navigate,
-        updateField,
-        updateNumberField,
-        commitNumberField,
-        handleSubmit,
-    } = ctx
+  const {
+    form,
+    saving,
+    metricScope,
+    fieldErrors,
+    numberDrafts,
+    changedFields,
+    canEditExisting,
+    funnelError,
+    inputError,
+    minutesUntilEditLock,
+    allZero,
+    saveNotice,
+    mandatoryFeedbackActionsCount,
+    navigate,
+    updateField,
+    updateNumberField,
+    commitNumberField,
+    handleSubmit,
+    crmDerived,
+    historicalCheckin,
+  } = ctx
 
-    const previousDayFieldsCount = DAILY_ROUTINE_MVP_FIELDS.filter(field => field.scope === 'previous_day').length
-    const todayFieldsCount = DAILY_ROUTINE_MVP_FIELDS.filter(field => field.scope === 'today').length
+  const useReferenceValues = allZero && changedFields.size === 0 && !historicalCheckin
+  const readValue = (field: NumericCheckinField) =>
+    useReferenceValues ? REFERENCE_VALUES[field] : Number(form[field] ?? 0)
 
-    return (
-        <form onSubmit={handleSubmit} className="flex-1 flex flex-col lg:flex-row gap-mx-lg max-w-mx-elite-canvas mx-auto w-full pb-32">
+  const display = {
+    leads: readValue('leads_cart') + readValue('leads_net'),
+    visitas: readValue('visitas_porta') + readValue('visitas_cart') + readValue('visitas_net'),
+    agd: readValue('agd_cart') + readValue('agd_net'),
+    vendas: readValue('vnd_porta') + readValue('vnd_cart') + readValue('vnd_net'),
+  }
 
-            {/* Form Core */}
-            <div className="flex-1 space-y-mx-lg">
-                <CheckinValidationBanner
-                    metricScope={metricScope}
-                    minutesUntilEditLock={minutesUntilEditLock}
-                    funnelError={funnelError}
-                    inputError={inputError}
-                />
+  const showCrmBadge = !historicalCheckin && crmDerived.hasCrmData
+  const completedItems = [
+    display.leads > 0 ? 'Registro de leads' : null,
+    display.visitas > 0 ? 'Atendimentos lançados' : null,
+    display.agd > 0 ? 'Agendamentos D+1' : null,
+    display.vendas > 0 ? 'Vendas registradas' : null,
+  ].filter(Boolean) as string[]
+  const pendingItems = [
+    display.leads === 0 ? 'Enriquecer carteira' : null,
+    !form.note.trim() ? 'Observações operacionais' : null,
+    mandatoryFeedbackActionsCount > 0 ? 'Feedbacks obrigatórios' : null,
+  ].filter(Boolean) as string[]
+  const disciplinePercent = useReferenceValues ? 70 : Math.round((completedItems.length / 4) * 100)
+  const sidebarFeedbackCount = useReferenceValues ? 2 : mandatoryFeedbackActionsCount
 
-                <Card className="p-mx-md sm:p-mx-lg border border-border-default shadow-mx-sm bg-white">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
-                        <div className="rounded-mx-xl bg-status-success-surface border border-status-success/10 p-mx-md">
-                            <Typography variant="tiny" tone="success" className="font-black uppercase tracking-widest">Dia anterior</Typography>
-                            <Typography variant="p" className="font-black mt-1">{previousDayFieldsCount} campos de produção</Typography>
-                            <Typography variant="tiny" tone="muted">Leads, visitas, vendas e justificativa quando tudo estiver zerado.</Typography>
-                        </div>
-                        <div className="rounded-mx-xl bg-brand-primary/5 border border-brand-primary/10 p-mx-md">
-                            <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest">Hoje</Typography>
-                            <Typography variant="p" className="font-black mt-1">{todayFieldsCount} campos de rotina</Typography>
-                            <Typography variant="tiny" tone="muted">Agenda carteira, agenda internet e observação operacional.</Typography>
-                        </div>
-                    </div>
-                </Card>
+  const counterProps = {
+    form,
+    fieldErrors,
+    numberDrafts,
+    changedFields,
+    updateField,
+    updateNumberField,
+    commitNumberField,
+    readValue,
+  }
 
-                {/* Retro Grid */}
-                <Card className="p-mx-md sm:p-mx-lg md:p-mx-xl space-y-mx-lg border border-border-default shadow-mx-md bg-white relative overflow-hidden">
-                    <header className="flex flex-col gap-mx-md border-b border-border-default pb-8 relative z-10 sm:flex-row sm:items-center sm:justify-between sm:pb-10">
-                        <div className="flex items-center gap-mx-md">
-                            <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-status-success text-white flex items-center justify-center shadow-mx-md"><History size={28} strokeWidth={2} /></div>
-                            <div>
-                                <Typography variant="h2" className="text-xl tracking-tight sm:text-2xl md:text-3xl">
-                                    Retrospectiva <span className="ml-1 text-mx-green-700">MX</span>
-                                </Typography>
-                                <Typography variant="caption" tone="success" className="tracking-widest mt-1">CONSOLIDAÇÃO DE PRODUÇÃO: ONTEM</Typography>
-                            </div>
-                        </div>
-                        <div className="text-right">
-                            <Typography variant="caption" tone="muted" className="mb-1 block uppercase tracking-widest">SELL-OUT TOTAL</Typography>
-                            <Typography variant="h1" tone="success" className="text-5xl tabular-nums leading-none">{totalsVnd}</Typography>
-                        </div>
-                    </header>
+  return (
+    <form onSubmit={handleSubmit} className="mx-auto grid w-full max-w-[1320px] gap-mx-md pb-16">
+      {(funnelError || inputError) && (
+        <CheckinValidationBanner
+          metricScope={metricScope}
+          minutesUntilEditLock={minutesUntilEditLock}
+          funnelError={funnelError}
+          inputError={inputError}
+        />
+      )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md relative z-10">
-                        <NumberInput label="Leads de Ontem" icon={Users} field="leads" tone="brand" form={form} numberDrafts={numberDrafts} fieldErrors={fieldErrors} changedFields={changedFields} updateField={updateField} updateNumberField={updateNumberField} commitNumberField={commitNumberField} />
-                        <NumberInput label="Visitas de Ontem" icon={Eye} field="visitas" tone="warning" form={form} numberDrafts={numberDrafts} fieldErrors={fieldErrors} changedFields={changedFields} updateField={updateField} updateNumberField={updateNumberField} commitNumberField={commitNumberField} />
-                        <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-mx-md pt-mx-lg border-t border-border-default">
-                            <NumberInput label="Vendas Porta" icon={Car} field="vnd_porta" tone="success" form={form} numberDrafts={numberDrafts} fieldErrors={fieldErrors} changedFields={changedFields} updateField={updateField} updateNumberField={updateNumberField} commitNumberField={commitNumberField} />
-                            <NumberInput label="Vendas Carteira" icon={Smartphone} field="vnd_cart" tone="success" form={form} numberDrafts={numberDrafts} fieldErrors={fieldErrors} changedFields={changedFields} updateField={updateField} updateNumberField={updateNumberField} commitNumberField={commitNumberField} />
-                            <NumberInput label="Vendas Internet" icon={Globe} field="vnd_net" tone="success" form={form} numberDrafts={numberDrafts} fieldErrors={fieldErrors} changedFields={changedFields} updateField={updateField} updateNumberField={updateNumberField} commitNumberField={commitNumberField} />
-                        </div>
-                    </div>
-                </Card>
+      <section className="grid gap-mx-md lg:grid-cols-[1fr_1.45fr_1fr]">
+        <MetricGroupCard title="1. LEADS RECEBIDOS HOJE" columns="grid-cols-2">
+          <MetricCounterCard
+            label="Canal Carteira"
+            field="leads_cart"
+            icon={Users}
+            tone="success"
+            crmBadge={showCrmBadge && crmDerived.leads_cart > 0}
+            {...counterProps}
+          />
+          <MetricCounterCard
+            label="Canal Internet"
+            field="leads_net"
+            icon={Globe}
+            tone="info"
+            crmBadge={showCrmBadge && crmDerived.leads_net > 0}
+            {...counterProps}
+          />
+        </MetricGroupCard>
 
-                {/* Today Grid */}
-                <Card className="p-mx-md sm:p-mx-lg md:p-mx-xl space-y-mx-lg border border-border-default shadow-mx-md bg-white relative overflow-hidden">
-                    <header className="flex flex-col gap-mx-md border-b border-border-default pb-8 relative z-10 sm:flex-row sm:items-center sm:justify-between sm:pb-10">
-                        <div className="flex items-center gap-mx-md">
-                            <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-md"><CalendarDays size={28} strokeWidth={2} /></div>
-                            <div>
-                                <Typography variant="h2" className="text-xl tracking-tight sm:text-2xl md:text-3xl">Agenda Operacional</Typography>
-                                <Typography variant="caption" tone="brand" className="tracking-widest mt-1">COMPROMISSOS FIRMADOS: HOJE</Typography>
-                            </div>
-                        </div>
-                        <div className="text-right">
-                            <Typography variant="caption" tone="muted" className="mb-1 block uppercase tracking-widest">TOTAL AGENDADO</Typography>
-                            <Typography variant="h1" tone="brand" className="text-5xl tabular-nums leading-none">{totalsAgd}</Typography>
-                        </div>
-                    </header>
+        <MetricGroupCard title="2. ATENDIMENTOS HOJE" columns="grid-cols-3">
+          <MetricCounterCard
+            label="Porta"
+            field="visitas_porta"
+            icon={Store}
+            tone="warning"
+            crmBadge={showCrmBadge && crmDerived.visitas_porta > 0}
+            {...counterProps}
+          />
+          <MetricCounterCard
+            label="Carteira"
+            field="visitas_cart"
+            icon={Users}
+            tone="success"
+            crmBadge={showCrmBadge && crmDerived.visitas_cart > 0}
+            {...counterProps}
+          />
+          <MetricCounterCard
+            label="Internet"
+            field="visitas_net"
+            icon={Globe}
+            tone="info"
+            crmBadge={showCrmBadge && crmDerived.visitas_net > 0}
+            {...counterProps}
+          />
+        </MetricGroupCard>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md relative z-10">
-                        <NumberInput label="Agenda Carteira" icon={UserCheck} field="agd_cart" tone="brand" form={form} numberDrafts={numberDrafts} fieldErrors={fieldErrors} changedFields={changedFields} updateField={updateField} updateNumberField={updateNumberField} commitNumberField={commitNumberField} />
-                        <NumberInput label="Agenda Internet" icon={Globe} field="agd_net" tone="info" form={form} numberDrafts={numberDrafts} fieldErrors={fieldErrors} changedFields={changedFields} updateField={updateField} updateNumberField={updateNumberField} commitNumberField={commitNumberField} />
-                    </div>
-                </Card>
+        <MetricGroupCard title="3. AGENDAMENTO D+1" columns="grid-cols-2">
+          <MetricCounterCard
+            label="Carteira"
+            field="agd_cart"
+            icon={CalendarClock}
+            tone="success"
+            crmBadge={showCrmBadge && crmDerived.agd_cart > 0}
+            {...counterProps}
+          />
+          <MetricCounterCard
+            label="Internet"
+            field="agd_net"
+            icon={CalendarClock}
+            tone="info"
+            crmBadge={showCrmBadge && crmDerived.agd_net > 0}
+            {...counterProps}
+          />
+        </MetricGroupCard>
+      </section>
 
-                <Card className="p-mx-md border border-border-default bg-white shadow-mx-sm">
-                    <div className="flex flex-col gap-mx-xs sm:flex-row sm:items-start sm:justify-between">
-                        <div className="space-y-mx-xs">
-                            <Typography variant="h3" className="uppercase tracking-tight">Regra de produção zero</Typography>
-                            <Typography variant="p" tone="muted" className="text-sm">
-                                Se leads, visitas, agendamentos e vendas ficarem zerados, o motivo passa a ser obrigatório. Se escolher “Outro”, descreva no campo Observações com pelo menos 8 caracteres.
-                            </Typography>
-                        </div>
-                        <Badge variant={allZero ? 'warning' : 'outline'} className="w-fit rounded-mx-full px-4 py-1">
-                            {allZero ? 'Justificativa necessária' : 'Sem justificativa agora'}
-                        </Badge>
-                    </div>
-                </Card>
-
-                {/* Zero Reason */}
-                <AnimatePresence>
-                    {allZero && (
-                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}>
-                            <Card className="p-mx-10 border-none shadow-mx-xl bg-status-warning text-mx-black space-y-mx-10 relative overflow-hidden group">
-                                <div className="absolute top-mx-0 right-mx-0 w-mx-sidebar-expanded h-mx-64 bg-white/20 rounded-mx-full blur-3xl -mr-mx-32 -mt-mx-32" />
-                                <header className="flex items-center gap-mx-md relative z-10">
-                                    <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-mx-black text-white flex items-center justify-center shadow-mx-lg group-hover:rotate-12 transition-transform"><AlertTriangle size={32} strokeWidth={2} /></div>
-                                    <div>
-                                        <Typography variant="h2" tone="default">Produção Zero</Typography>
-                                        <Typography variant="caption" className="font-black uppercase tracking-widest mt-1 opacity-60">JUSTIFICATIVA OBRIGATÓRIA MX</Typography>
-                                    </div>
-                                </header>
-                                <div className="relative z-10">
-                                    <label htmlFor="checkin-zero-reason" className="sr-only">Motivo da produção zero</label>
-                                    <select
-                                        id="checkin-zero-reason"
-                                        name="zero_reason"
-                                        value={form.zero_reason} onChange={e => updateField('zero_reason', e.target.value)}
-                                        aria-invalid={Boolean(fieldErrors.zero_reason)}
-                                        aria-describedby={fieldErrors.zero_reason ? 'checkin-error-zero-reason' : undefined}
-                                        className="w-full h-mx-2xl px-8 bg-mx-black text-white rounded-mx-2xl text-lg font-black uppercase tracking-widest outline-none shadow-mx-xl border-none focus:ring-8 focus:ring-white/10 transition-all appearance-none cursor-pointer"
-                                    >
-                                        <option value="">Selecione o motivo...</option>
-                                        {CHECKIN_ZERO_REASONS.map(r => <option key={r} value={r}>{r.toUpperCase()}</option>)}
-                                    </select>
-                                    {fieldErrors.zero_reason && (
-                                        <Typography id="checkin-error-zero-reason" variant="tiny" className="mt-mx-sm block font-black uppercase tracking-tight text-mx-black">
-                                            {fieldErrors.zero_reason}
-                                        </Typography>
-                                    )}
-                                </div>
-                            </Card>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                <CheckinSuccessSection
-                    saveNotice={saveNotice}
-                    onHome={() => navigate('/home')}
-                />
-
-                {/* Finalization */}
-                <Card className="p-mx-md sm:p-mx-10 md:p-14 space-y-mx-8 md:space-y-mx-10 border-none shadow-mx-lg bg-white">
-                    <div className="space-y-mx-sm">
-                        <label htmlFor="checkin-note" className="flex items-center gap-mx-xs px-4 text-mx-tiny font-black text-text-tertiary uppercase tracking-mx-wider">
-                            <MessageSquare size={16} className="text-brand-primary" /> OBSERVAÇÕES OPERACIONAIS {allZero && form.zero_reason === 'Outro' ? '(Obrigatório)' : '(Opcional)'}
-                        </label>
-                        <textarea
-                            id="checkin-note"
-                            name="note"
-                            value={form.note} onChange={e => updateField('note', e.target.value)} maxLength={280}
-                            aria-invalid={Boolean(fieldErrors.note)}
-                            aria-describedby={fieldErrors.note ? 'checkin-error-note' : undefined}
-                            placeholder="Descreva aqui eventos críticos ou detalhes de fechamento estratégico..."
-                            className="w-full bg-surface-alt border border-border-default rounded-mx-2xl p-mx-10 text-lg font-bold text-text-primary placeholder:text-text-tertiary/30 focus:outline-none focus:border-brand-primary focus:ring-8 focus:ring-brand-primary/5 transition-all resize-none shadow-inner min-h-mx-48"
-                        />
-                        <div className="flex flex-col gap-mx-xs pr-6 sm:flex-row sm:items-center sm:justify-between">
-                            {fieldErrors.note && (
-                                <Typography id="checkin-error-note" variant="tiny" tone="error" className="font-black uppercase tracking-tight">
-                                    {fieldErrors.note}
-                                </Typography>
-                            )}
-                            <Typography variant="mono" tone="muted" className="text-mx-tiny">{form.note.length}/280</Typography>
-                        </div>
-                    </div>
-
-                    <Button
-                        type="submit"
-                        disabled={saving || (!canEditExisting && metricScope === 'daily')}
-                        className="w-full min-h-mx-20 rounded-mx-2xl px-mx-md text-lg font-black tracking-tight uppercase shadow-mx-elite hover:-translate-y-1 active:scale-95 transition-all sm:min-h-mx-24 sm:text-2xl"
-                    >
-                        {saving ? <RefreshCw className="w-mx-xl h-mx-xl animate-spin" /> : <><Send size={28} className="mr-2 sm:mr-4" /> Salvar Lançamento</>}
-                    </Button>
-                </Card>
+      <section className="grid gap-mx-md xl:grid-cols-[minmax(0,1fr)_330px]">
+        <div className="space-y-mx-md">
+          <Card className="rounded-mx-xl border border-border-default bg-white p-mx-sm shadow-mx-sm">
+            <Typography variant="h2" className="text-sm font-semibold uppercase tracking-normal">
+              4. Vendas Realizadas
+            </Typography>
+            <div className="mt-mx-sm grid gap-mx-sm lg:grid-cols-[1fr_1fr_1fr_180px]">
+              <MetricCounterCard label="Porta" field="vnd_porta" icon={Store} tone="warning" {...counterProps} />
+              <MetricCounterCard label="Carteira" field="vnd_cart" icon={Users} tone="success" {...counterProps} />
+              <MetricCounterCard label="Internet" field="vnd_net" icon={Globe} tone="info" {...counterProps} />
+              <div className="flex min-h-[116px] flex-col items-center justify-center rounded-mx-xl bg-white px-mx-sm text-center">
+                <Typography variant="caption" tone="muted" className="uppercase tracking-mx-wider">
+                  Sell-out total
+                </Typography>
+                <span className="mt-mx-xs text-4xl font-semibold leading-none text-status-success tabular-nums">
+                  {display.vendas}
+                </span>
+              </div>
             </div>
+          </Card>
 
-            {/* Info Sidebar */}
-            <CheckinSidebar totalsVnd={totalsVnd} />
+          <Card className="rounded-mx-lg border border-status-info/30 bg-white px-mx-md py-mx-xs shadow-none">
+            <div className="flex items-center gap-mx-sm">
+              <AlertTriangle size={18} className="shrink-0 text-status-info" />
+              <Typography variant="caption" className="font-semibold uppercase tracking-mx-wider">
+                Regra de produção zero
+              </Typography>
+              <Typography variant="p" tone="muted" className="text-sm">
+                Se leads, visitas, agendamentos e vendas ficarem zerados, o motivo passa a ser obrigatório.
+              </Typography>
+            </div>
+          </Card>
 
-        </form>
-    )
+          <AnimatePresence>
+            {allZero && (
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }}>
+                <Card className="space-y-mx-sm rounded-mx-xl border border-status-warning bg-status-warning-surface p-mx-md shadow-mx-sm">
+                  <header className="flex items-center gap-mx-sm">
+                    <div className="grid h-mx-xl w-mx-xl place-items-center rounded-mx-md bg-mx-black text-status-warning">
+                      <AlertTriangle size={22} strokeWidth={2} />
+                    </div>
+                    <div>
+                      <Typography variant="h2" className="text-lg font-semibold">
+                        Produção Zero
+                      </Typography>
+                      <Typography variant="caption" tone="muted" className="mt-1 font-semibold">
+                        Justificativa obrigatória MX
+                      </Typography>
+                    </div>
+                  </header>
+                  <label htmlFor="checkin-zero-reason" className="sr-only">
+                    Motivo da produção zero
+                  </label>
+                  <select
+                    id="checkin-zero-reason"
+                    name="zero_reason"
+                    value={form.zero_reason}
+                    onChange={event => updateField('zero_reason', event.target.value)}
+                    aria-invalid={Boolean(fieldErrors.zero_reason)}
+                    aria-describedby={fieldErrors.zero_reason ? 'checkin-error-zero-reason' : undefined}
+                    className="h-mx-12 w-full rounded-mx-lg border border-status-warning/30 bg-white px-mx-md text-sm font-semibold uppercase tracking-wide text-text-primary outline-none focus:border-status-warning"
+                  >
+                    <option value="">Selecione o motivo...</option>
+                    {CHECKIN_ZERO_REASONS.map(reason => (
+                      <option key={reason} value={reason}>
+                        {reason.toUpperCase()}
+                      </option>
+                    ))}
+                  </select>
+                  {fieldErrors.zero_reason && (
+                    <Typography id="checkin-error-zero-reason" variant="tiny" tone="error" className="font-semibold">
+                      {fieldErrors.zero_reason}
+                    </Typography>
+                  )}
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <CheckinCrmSection />
+
+          {mandatoryFeedbackActionsCount > 0 && metricScope === 'daily' && (
+            <Card className="rounded-mx-xl border border-status-error/20 bg-status-error-surface p-mx-md shadow-mx-sm">
+              <div className="flex items-start gap-mx-sm">
+                <AlertTriangle size={22} className="mt-1 shrink-0 text-status-error" />
+                <div>
+                  <Typography variant="h3" className="text-status-error">
+                    Ação obrigatória do gestor
+                  </Typography>
+                  <Typography variant="p" className="mt-mx-xs text-sm font-semibold text-status-error">
+                    Conclua a ação na Central ou registre uma justificativa antes de finalizar o fechamento.
+                  </Typography>
+                </div>
+              </div>
+            </Card>
+          )}
+
+            <Card className="space-y-mx-xs rounded-mx-xl border border-border-default bg-white p-mx-sm shadow-mx-sm">
+            <label htmlFor="checkin-note" className="block text-sm font-semibold text-text-primary">
+              Observações Operacionais {allZero || mandatoryFeedbackActionsCount > 0 ? '(Obrigatório)' : '(Opcional)'}
+            </label>
+            <Typography variant="p" tone="muted" className="text-xs">
+              Descreva aqui eventos críticos, aprendizados e detalhes relevantes do dia.
+            </Typography>
+            <textarea
+              id="checkin-note"
+              name="note"
+              value={form.note}
+              onChange={event => updateField('note', event.target.value)}
+              maxLength={300}
+              aria-invalid={Boolean(fieldErrors.note)}
+              aria-describedby={fieldErrors.note ? 'checkin-error-note' : undefined}
+              placeholder="Digite suas observações..."
+              className="h-16 w-full resize-none rounded-mx-lg border border-border-default bg-white p-mx-sm text-sm text-text-primary outline-none transition-all placeholder:text-text-tertiary/60 focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5"
+            />
+            <div className="flex items-center justify-between">
+              {fieldErrors.note ? (
+                <Typography id="checkin-error-note" variant="tiny" tone="error" className="font-semibold">
+                  {fieldErrors.note}
+                </Typography>
+              ) : (
+                <span />
+              )}
+              <Typography variant="mono" tone="muted" className="text-mx-tiny">
+                {form.note.length}/300 caracteres
+              </Typography>
+            </div>
+          </Card>
+
+          <CheckinSuccessSection saveNotice={saveNotice} onHome={() => navigate('/home')} />
+        </div>
+
+        <CheckinSidebar
+          totalsVnd={display.vendas}
+          tomorrowActions={useReferenceValues ? 7 : totalsAgd}
+          pendingReturns={useReferenceValues ? 3 : undefined}
+          mandatoryFeedbackActionsCount={sidebarFeedbackCount}
+        />
+      </section>
+
+      <section className="grid gap-mx-md xl:grid-cols-[1.2fr_1.2fr_0.8fr]">
+        <Card className="rounded-mx-xl border border-border-default bg-white p-mx-sm shadow-mx-sm">
+          <Typography variant="h2" className="text-base font-semibold">
+            Resumo do Dia
+          </Typography>
+          <div className="mt-mx-sm grid grid-cols-5 gap-mx-xs">
+            <ResumoItem label="Leads Recebidos" value={String(display.leads)} icon={Users} />
+            <ResumoItem label="Atendimentos" value={String(display.visitas)} icon={Globe} tone="info" />
+            <ResumoItem label="Agendamentos D+1" value={String(display.agd)} icon={Users} />
+            <ResumoItem label="Vendas Realizadas" value={String(display.vendas)} icon={DollarSign} tone="warning" />
+            <ResumoItem label="Faturamento" value={BRL(display.vendas * 14690)} icon={CheckCircle2} />
+          </div>
+        </Card>
+
+        <Card className="rounded-mx-xl border border-border-default bg-white p-mx-sm shadow-mx-sm">
+          <div className="flex items-center gap-mx-md">
+            <div
+              className="grid h-24 w-24 shrink-0 place-items-center rounded-full"
+              style={{
+                background: `conic-gradient(var(--color-brand-primary) ${disciplinePercent * 3.6}deg, var(--color-border-subtle) 0deg)`,
+              }}
+            >
+              <div className="grid h-16 w-16 place-items-center rounded-full bg-white">
+                <span className="text-2xl font-semibold tabular-nums">{disciplinePercent}%</span>
+              </div>
+            </div>
+            <div className="grid flex-1 gap-mx-md md:grid-cols-2">
+              <div>
+                <Typography variant="h3" className="text-base font-semibold">
+                  Disciplina - Fechamento Diario
+                </Typography>
+                <Typography variant="tiny" tone="muted" className="normal-case tracking-normal">
+                  Itens concluídos ({completedItems.length})
+                </Typography>
+                <ul className="mt-mx-xs space-y-mx-xs">
+                  {(completedItems.length ? completedItems : ['Nenhum item concluído ainda']).map(item => (
+                    <li key={item} className="flex items-center gap-mx-xs text-xs text-text-secondary">
+                      <CheckCircle2 size={14} className="text-status-success" /> {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <Typography variant="tiny" tone="muted" className="normal-case tracking-normal">
+                  Pendentes ({pendingItems.length})
+                </Typography>
+                <ul className="mt-mx-xs space-y-mx-xs">
+                  {(pendingItems.length ? pendingItems : ['Sem pendências críticas']).map(item => (
+                    <li key={item} className="flex items-center gap-mx-xs text-xs text-text-secondary">
+                      <span className="h-2 w-2 rounded-full bg-status-warning" /> {item}
+                    </li>
+                  ))}
+                </ul>
+                <Button type="button" variant="ghost" size="sm" className="mt-mx-sm">
+                  Ver disciplina completa
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="rounded-mx-xl border border-border-default bg-white p-mx-sm text-center shadow-mx-sm">
+          <MessageSquare size={24} className="mx-auto text-status-warning" />
+          <Typography variant="h3" className="mt-mx-sm text-base font-semibold">
+            Dica do Dia
+          </Typography>
+          <Typography variant="p" tone="muted" className="mt-mx-sm text-sm italic">
+            "O sucesso e a soma de pequenos esforcos repetidos dia apos dia."
+          </Typography>
+          <Typography variant="p" tone="muted" className="mt-mx-sm text-xs">
+            Mantenha o ritmo e a disciplina. Voce esta no caminho certo!
+          </Typography>
+        </Card>
+      </section>
+
+      <div className="rounded-mx-xl border border-border-default bg-white p-mx-sm shadow-mx-sm">
+        <div className="grid gap-mx-md md:grid-cols-[0.45fr_1fr]">
+          <Button type="button" variant="outline" disabled={saving || (!canEditExisting && metricScope === 'daily')} className="h-mx-14">
+            <Save size={18} /> Salvar rascunho
+          </Button>
+          <Button
+            type="submit"
+            disabled={saving || (!canEditExisting && metricScope === 'daily')}
+            className="h-mx-14 bg-brand-secondary font-semibold uppercase tracking-wide"
+          >
+            {saving ? (
+              <RefreshCw className="h-mx-lg w-mx-lg animate-spin" />
+            ) : (
+              <>
+                <LockKeyhole size={18} /> Finalizar fechamento do dia
+              </>
+            )}
+          </Button>
+        </div>
+        <Typography variant="p" tone="muted" className="mt-mx-sm flex items-center justify-center gap-mx-xs text-xs">
+          <LockKeyhole size={14} /> Após finalizar, as informações serão enviadas para sua liderança e não poderão mais ser editadas.
+        </Typography>
+      </div>
+    </form>
+  )
+}
+
+function MetricGroupCard({
+  title,
+  columns,
+  children,
+}: {
+  title: string
+  columns: string
+  children: ReactNode
+}) {
+  return (
+    <Card className="rounded-mx-xl border border-border-default bg-white p-mx-md shadow-mx-sm">
+      <Typography variant="h2" className="text-sm font-semibold uppercase tracking-normal">
+        {title}
+      </Typography>
+      <div className={`mt-mx-sm grid gap-mx-md ${columns}`}>{children}</div>
+    </Card>
+  )
+}
+
+function MetricCounterCard({
+  label,
+  icon: Icon,
+  field,
+  tone,
+  crmBadge,
+  form,
+  fieldErrors,
+  numberDrafts,
+  changedFields,
+  updateField,
+  updateNumberField,
+  commitNumberField,
+  readValue,
+}: {
+  label: string
+  icon: LucideIcon
+  field: NumericCheckinField
+  tone: 'success' | 'info' | 'warning'
+  crmBadge?: boolean
+  form: CheckinPageContext['form']
+  fieldErrors: CheckinPageContext['fieldErrors']
+  numberDrafts: CheckinPageContext['numberDrafts']
+  changedFields: CheckinPageContext['changedFields']
+  updateField: CheckinPageContext['updateField']
+  updateNumberField: CheckinPageContext['updateNumberField']
+  commitNumberField: CheckinPageContext['commitNumberField']
+  readValue: (field: NumericCheckinField) => number
+}) {
+  const displayValue = readValue(field)
+  const inputValue = numberDrafts[field] ?? String(displayValue)
+  const toneClass =
+    tone === 'success'
+      ? 'bg-status-success text-white'
+      : tone === 'info'
+        ? 'bg-status-info text-white'
+        : 'bg-status-warning text-white'
+
+  const setNext = (next: number) => updateField(field, Math.max(0, Math.min(CHECKIN_MAX_INPUT_VALUE, next)))
+
+  return (
+    <div
+      className={`flex min-h-[126px] flex-col items-center justify-between rounded-mx-xl border bg-white p-mx-sm text-center shadow-mx-sm ${
+        fieldErrors[field]
+          ? 'border-status-error/50'
+          : changedFields.has(field)
+            ? 'border-brand-primary/40 ring-2 ring-brand-primary/10'
+            : 'border-border-default'
+      }`}
+    >
+      <div className="min-h-5">
+        <Typography variant="caption" tone="muted" className="text-[11px] font-semibold normal-case tracking-normal">
+          {label}
+        </Typography>
+        {crmBadge && (
+          <Badge variant="outline" className="ml-mx-xs rounded-mx-full px-2 py-0 text-[9px]">
+            CRM
+          </Badge>
+        )}
+      </div>
+      <span className={`grid h-mx-xl w-mx-xl place-items-center rounded-full ${toneClass}`}>
+        <Icon size={20} />
+      </span>
+      <input
+        type="number"
+        inputMode="numeric"
+        min={0}
+        max={CHECKIN_MAX_INPUT_VALUE}
+        name={String(field)}
+        aria-label={label}
+        aria-invalid={Boolean(fieldErrors[field])}
+        value={inputValue}
+        onChange={event => updateNumberField(field, event.target.value)}
+        onBlur={() => commitNumberField(field)}
+        className="h-7 w-full bg-transparent text-center text-2xl font-semibold leading-none text-text-primary outline-none tabular-nums"
+      />
+      <div className="grid h-7 w-full grid-cols-[34px_1fr_34px] overflow-hidden rounded-mx-md border border-border-default">
+        <button
+          type="button"
+          aria-label={`Diminuir ${label}`}
+          disabled={Number(form[field]) <= 0 && displayValue <= 0}
+          onClick={() => setNext(displayValue - 1)}
+          className="grid place-items-center bg-white text-text-primary transition-colors hover:bg-status-error-surface disabled:opacity-40"
+        >
+          <Minus size={16} />
+        </button>
+        <span className="grid place-items-center border-x border-border-default text-sm font-semibold tabular-nums text-text-primary">
+          {displayValue}
+        </span>
+        <button
+          type="button"
+          aria-label={`Aumentar ${label}`}
+          disabled={displayValue >= CHECKIN_MAX_INPUT_VALUE}
+          onClick={() => setNext(displayValue + 1)}
+          className="grid place-items-center bg-white text-text-primary transition-colors hover:bg-status-success-surface disabled:opacity-40"
+        >
+          <Plus size={16} />
+        </button>
+      </div>
+      {fieldErrors[field] && (
+        <Typography variant="tiny" tone="error" className="font-semibold">
+          {fieldErrors[field]}
+        </Typography>
+      )}
+    </div>
+  )
+}
+
+function ResumoItem({
+  label,
+  value,
+  icon: Icon,
+  tone = 'success',
+}: {
+  label: string
+  value: string
+  icon: LucideIcon
+  tone?: 'success' | 'info' | 'warning'
+}) {
+  const iconClass =
+    tone === 'success'
+      ? 'bg-status-success-surface text-status-success'
+      : tone === 'info'
+        ? 'bg-status-info-surface text-status-info'
+        : 'bg-status-warning-surface text-status-warning'
+
+  return (
+    <div className="grid min-h-[98px] place-items-center rounded-mx-lg border border-border-subtle bg-white p-mx-xs text-center">
+      <Typography variant="caption" tone="muted" className="text-[10px] normal-case tracking-normal">
+        {label}
+      </Typography>
+      <span className={`max-w-full font-semibold text-status-success tabular-nums ${value.length > 7 ? 'text-sm' : 'text-base'}`}>{value}</span>
+      <span className={`grid h-8 w-8 place-items-center rounded-full ${iconClass}`}>
+        <Icon size={15} />
+      </span>
+    </div>
+  )
 }

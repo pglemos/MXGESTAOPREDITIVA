@@ -44,7 +44,7 @@ export function DailyCheckinBanner({ referenceDateLabel }: DailyCheckinBannerPro
               <Typography
                 variant="tiny"
                 tone="white"
-                className="font-black tracking-mx-widest opacity-75"
+                className="font-bold tracking-mx-widest opacity-75"
               >
                 Prazo {CHECKIN_DEADLINE_LABEL} · Edição até {CHECKIN_EDIT_LIMIT_LABEL}
               </Typography>

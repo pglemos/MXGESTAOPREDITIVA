@@ -16,6 +16,7 @@ import {
   type FeedbackListItem,
   type FeedbackTab,
 } from '../lib/helpers'
+import { validarFeedbackObrigatorio } from '../lib/validation'
 
 export function useStoreFeedback() {
   const { role } = useAuth()
@@ -53,6 +54,7 @@ export function useStoreFeedback() {
     positives: '',
     attention_points: '',
     action: '',
+    caso_motivo: '',
     notes: '',
   })
 
@@ -123,13 +125,9 @@ export function useStoreFeedback() {
   )
 
   const handleSubmit = useCallback(async () => {
-    if (
-      !formData.seller_id ||
-      !formData.positives.trim() ||
-      !formData.attention_points.trim() ||
-      !formData.action.trim()
-    ) {
-      toast.error('Preencha especialista, pontos fortes, pontos de atenção e ação.')
+    const validation = validarFeedbackObrigatorio(formData)
+    if (!validation.ok) {
+      toast.error(validation.message)
       return
     }
     setSaving(true)

@@ -9,6 +9,7 @@ import {
   type CrmEtapaFunil,
   type CrmCanal,
   type CrmFinanciamento,
+  type CrmTipoVeiculo,
 } from '@/lib/schemas/crm.schema'
 import { z } from 'zod'
 
@@ -20,12 +21,38 @@ export type OportunidadeComCliente = z.infer<typeof OportunidadeComClienteSchema
 export type OportunidadeInput = {
   cliente_id: string
   veiculo_interesse?: string | null
+  tipo_veiculo?: CrmTipoVeiculo | null
   valor_negociado?: number
   etapa?: CrmEtapaFunil
   canal?: CrmCanal | null
   sinal?: number
   financiamento?: CrmFinanciamento
   carro_avaliado?: boolean
+  motivo_perda?: string | null
+  closed_at?: string | null
+}
+
+export function buildOportunidadePayload(
+  input: OportunidadeInput,
+  context: { loja_id: string; seller_user_id: string },
+  nowIso = () => new Date().toISOString(),
+) {
+  const isTerminal = input.etapa === 'ganho' || input.etapa === 'perdido'
+  return {
+    cliente_id: input.cliente_id,
+    loja_id: context.loja_id,
+    seller_user_id: context.seller_user_id,
+    veiculo_interesse: input.veiculo_interesse?.trim() || null,
+    tipo_veiculo: input.tipo_veiculo || null,
+    valor_negociado: input.valor_negociado ?? 0,
+    etapa: input.etapa || 'prospeccao',
+    canal: input.canal || null,
+    sinal: input.sinal ?? 0,
+    financiamento: input.financiamento || 'nao_aplica',
+    carro_avaliado: input.carro_avaliado ?? false,
+    motivo_perda: input.etapa === 'perdido' ? (input.motivo_perda?.trim() || null) : null,
+    closed_at: isTerminal ? (input.closed_at || nowIso()) : null,
+  }
 }
 
 function parse(data: unknown): OportunidadeComCliente[] {
@@ -62,18 +89,7 @@ export function useOportunidades() {
     if (!supabaseUser) return { error: 'Sessão inválida.' }
     if (!effectiveStoreId) return { error: 'Loja não identificada para o vendedor.' }
     if (!input.cliente_id) return { error: 'Selecione o cliente da oportunidade.' }
-    const payload = {
-      cliente_id: input.cliente_id,
-      loja_id: effectiveStoreId,
-      seller_user_id: supabaseUser.id,
-      veiculo_interesse: input.veiculo_interesse?.trim() || null,
-      valor_negociado: input.valor_negociado ?? 0,
-      etapa: input.etapa || 'prospeccao',
-      canal: input.canal || null,
-      sinal: input.sinal ?? 0,
-      financiamento: input.financiamento || 'nao_aplica',
-      carro_avaliado: input.carro_avaliado ?? false,
-    }
+    const payload = buildOportunidadePayload(input, { loja_id: effectiveStoreId, seller_user_id: supabaseUser.id })
     const { error: insertError } = await supabase.from('oportunidades').insert(payload)
     if (insertError) return { error: insertError.message }
     await fetchOportunidades()

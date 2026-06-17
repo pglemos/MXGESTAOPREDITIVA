@@ -36,8 +36,8 @@ export function FeedbackList({ feedbacks, onShareWhatsApp, variant = 'admin' }: 
                       <div
                         className={
                           variant === 'admin'
-                            ? 'w-mx-xl h-mx-xl rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-text-primary text-sm group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-inner uppercase'
-                            : 'w-mx-xl h-mx-xl rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-black text-sm group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-inner uppercase'
+                            ? 'w-mx-xl h-mx-xl rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-bold text-text-primary text-sm group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-inner uppercase'
+                            : 'w-mx-xl h-mx-xl rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center font-bold text-sm group-hover:bg-brand-secondary group-hover:text-white transition-all shadow-inner uppercase'
                         }
                       >
                         {sellerName.substring(0, 2)}
@@ -45,7 +45,7 @@ export function FeedbackList({ feedbacks, onShareWhatsApp, variant = 'admin' }: 
                       <div>
                         <Typography
                           variant="h3"
-                          className="text-base font-black uppercase tracking-tight"
+                          className="text-base font-semibold uppercase tracking-tight"
                         >
                           {sellerName}
                         </Typography>
@@ -54,8 +54,8 @@ export function FeedbackList({ feedbacks, onShareWhatsApp, variant = 'admin' }: 
                           tone="muted"
                           className={
                             variant === 'admin'
-                              ? 'text-mx-tiny font-black uppercase'
-                              : 'font-black uppercase'
+                              ? 'text-mx-tiny font-medium uppercase'
+                              : 'font-medium uppercase'
                           }
                         >
                           {formatSafeDate(f.created_at)}
@@ -64,19 +64,36 @@ export function FeedbackList({ feedbacks, onShareWhatsApp, variant = 'admin' }: 
                     </div>
                     <Badge
                       variant={f.acknowledged ? 'success' : 'danger'}
-                      className="px-4 py-1 rounded-mx-lg text-mx-micro font-black uppercase shadow-sm border-none"
+                      className="px-4 py-1 rounded-mx-lg text-mx-micro font-semibold uppercase shadow-sm border-none"
                     >
                       {f.acknowledged ? 'LIDO' : 'PENDENTE'}
                     </Badge>
                   </header>
                   <div className="space-y-mx-md relative z-10">
+                    {f.caso_motivo && (
+                      <div className="p-mx-md bg-status-warning-surface rounded-mx-2xl border border-status-warning/10">
+                        <Typography
+                          variant="tiny"
+                          tone="warning"
+                          className="font-semibold uppercase tracking-widest text-mx-micro mb-3 block"
+                        >
+                          Caso/Motivo
+                        </Typography>
+                        <Typography
+                          variant="p"
+                          className="text-xs font-bold leading-relaxed text-text-secondary line-clamp-3"
+                        >
+                          {f.caso_motivo}
+                        </Typography>
+                      </div>
+                    )}
                     <div className="p-mx-md bg-surface-alt rounded-mx-2xl group-hover:bg-white group-hover:shadow-mx-sm transition-all">
                       {showActionHeader ? (
                         <header className="flex items-center justify-between mb-4 border-b border-border-strong/10 pb-3">
                           <Typography
                             variant="tiny"
                             tone="brand"
-                            className="font-black uppercase tracking-widest text-mx-micro"
+                            className="font-semibold uppercase tracking-widest text-mx-micro"
                           >
                             Plano de Ação
                           </Typography>
@@ -86,7 +103,7 @@ export function FeedbackList({ feedbacks, onShareWhatsApp, variant = 'admin' }: 
                         <Typography
                           variant="tiny"
                           tone="brand"
-                          className="font-black uppercase tracking-widest text-mx-micro mb-4 block"
+                          className="font-semibold uppercase tracking-widest text-mx-micro mb-4 block"
                         >
                           Plano de Ação
                         </Typography>

@@ -61,7 +61,7 @@ export function CheckinValidationBanner({
                 {inputError && (
                     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}>
                         <Card id="checkin-input-error" role="alert" className="p-mx-md bg-status-warning-surface border border-status-warning/20">
-                            <Typography variant="p" tone="warning" className="font-black uppercase tracking-tight">{inputError}</Typography>
+                            <Typography variant="p" tone="warning" className="font-semibold uppercase tracking-tight">{inputError}</Typography>
                         </Card>
                     </motion.div>
                 )}

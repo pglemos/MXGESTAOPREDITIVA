@@ -1,8 +1,10 @@
 import { describe, expect, test } from 'bun:test'
 import {
+  buildFunnelDevelopmentRecommendation,
   buildDevelopmentContentMetadata,
   buildNewCollaboratorTrack,
   buildDevelopmentRecommendation,
+  buildRecommendedDevelopmentCards,
   calculateAverageRating,
   filterDevelopmentContent,
   inferDevelopmentTheme,
@@ -77,6 +79,92 @@ describe('development content helpers', () => {
     expect(recommendation.theme).toBe('crm')
     expect(recommendation.training_id).toBe('crm-1')
     expect(recommendation.reason).toContain('feedback')
+  })
+
+  test('builds a deterministic recommendation from the main funnel bottleneck', () => {
+    const recommendation = buildFunnelDevelopmentRecommendation({
+      gargalo: {
+        etapa: 'agendamento',
+        total: 5,
+        pendentes: 4,
+        concluidos: 1,
+        cancelados: 0,
+        semSucesso: 2,
+        aguardando: 1,
+        reagendamentosSemSucesso: 1,
+      },
+      availableContent: [
+        { id: 'crm-1', title: 'CRM e follow-up', type: 'crm' },
+        { id: 'agd-1', title: 'Confirmacao de visita', type: 'agendamento' },
+      ],
+    })
+
+    expect(recommendation?.source_type).toBe('funil')
+    expect(recommendation?.theme).toBe('agendamento')
+    expect(recommendation?.training_id).toBe('agd-1')
+    expect(recommendation?.reason).toContain('gargalo de funil')
+    expect(recommendation?.reason).toContain('Agendamento')
+  })
+
+  test('builds explainable recommendation cards without duplicate trainings', () => {
+    const availableContent = [
+      { id: 'crm-1', title: 'CRM e follow-up', type: 'crm' },
+      { id: 'agd-1', title: 'Confirmacao de visita', type: 'agendamento' },
+      { id: 'pdi-1', title: 'Negociacao consultiva', type: 'fechamento' },
+    ]
+
+    const cards = buildRecommendedDevelopmentCards({
+      recommendations: [
+        {
+          id: 'rec-feedback',
+          seller_id: 'seller-1',
+          store_id: 'store-1',
+          source_type: 'feedback',
+          source_id: 'feedback-1',
+          theme: 'crm',
+          training_id: 'crm-1',
+          reason: 'Feedback apontou baixo retorno de CRM.',
+          status: 'recommended',
+          priority: 'high',
+          due_date: null,
+          created_at: '2026-06-17T10:00:00Z',
+          training: availableContent[0],
+        },
+        {
+          id: 'rec-pdi',
+          seller_id: 'seller-1',
+          store_id: 'store-1',
+          source_type: 'pdi',
+          source_id: 'pdi-1',
+          theme: 'fechamento',
+          training_id: null,
+          reason: 'PDI indicou competencia baixa em negociacao.',
+          status: 'recommended',
+          priority: 'medium',
+          due_date: null,
+          created_at: '2026-06-17T09:00:00Z',
+          training: null,
+        },
+      ],
+      funnelGap: {
+        etapa: 'agendamento',
+        total: 5,
+        pendentes: 4,
+        concluidos: 1,
+        cancelados: 0,
+        semSucesso: 2,
+        aguardando: 1,
+        reagendamentosSemSucesso: 1,
+      },
+      availableContent,
+      limit: 3,
+    })
+
+    expect(cards.map(card => card.sourceLabel)).toEqual(['Feedback', 'PDI', 'Funil'])
+    expect(cards.map(card => card.training.id)).toEqual(['crm-1', 'pdi-1', 'agd-1'])
+    expect(new Set(cards.map(card => card.training.id)).size).toBe(cards.length)
+    expect(cards[0].reason).toContain('baixo retorno')
+    expect(cards[2].reason).toContain('gargalo de funil')
   })
 
   test('unlocks onboarding steps by month and prior completion', () => {

@@ -6,6 +6,8 @@ export type RemuneracaoBenchmark = Database['public']['Tables']['remuneracao_ben
 export type RemuneracaoRegra = Database['public']['Tables']['remuneracao_regras']['Row']
 export type RemuneracaoRegraInsert = Database['public']['Tables']['remuneracao_regras']['Insert']
 export type RemuneracaoRegraTipo = Database['public']['Enums']['remuneracao_regra_tipo']
+export type RemuneracaoTipoVeiculo = 'carro' | 'moto' | 'caminhao'
+export type RemuneracaoVinculoTipo = 'loja' | 'autonomo'
 
 export type Classificacao = 'abaixo' | 'dentro' | 'acima' | 'sem_referencia'
 
@@ -21,6 +23,15 @@ export interface RemuneracaoEstimadaInput {
   regras: RemuneracaoRegra[]
   vendasConsideradas: number
   meta: number
+  vendasDetalhadas?: RemuneracaoVenda[]
+  faturamentoConsiderado?: number
+  vinculoTipo?: RemuneracaoVinculoTipo
+  atingimentoLojaPercentual?: number
+}
+
+export interface RemuneracaoVenda {
+  valor: number
+  tipo_veiculo?: RemuneracaoTipoVeiculo | string | null
 }
 
 export interface RemuneracaoBonusPatamarDetalhe {
@@ -46,13 +57,19 @@ export interface RemuneracaoEstimadaResultado {
   beneficios: number
   base: number
   comissaoPorVenda: number
+  comissaoFixa: number
+  comissaoPercentual: number
+  comissaoCategoria: number
+  comissaoEquipe: number
   comissao: number
   bonus: number
   total: number
   vendasConsideradas: number
+  faturamentoConsiderado: number
   meta: number
   atingimentoPercentual: number
   regraComissaoAplicada: RemuneracaoRegra | null
+  regrasComissaoAplicadas: RemuneracaoRegra[]
   regraBonusAplicada: RemuneracaoRegra | null
   bonusPatamares: RemuneracaoBonusPatamarDetalhe[]
   regrasAplicadas: RemuneracaoRegra[]
@@ -66,6 +83,10 @@ export interface RemuneracaoResumoVendedorInput {
   vendasRealizadas: number
   vendasProjetadas: number
   meta: number
+  vendasDetalhadasRealizadas?: RemuneracaoVenda[]
+  faturamentoProjetado?: number
+  vinculoTipo?: RemuneracaoVinculoTipo
+  atingimentoLojaPercentual?: number
 }
 
 export interface RemuneracaoResumoVendedor {
@@ -106,10 +127,19 @@ export function calcularRemuneracaoEstimada({
   regras,
   vendasConsideradas,
   meta,
+  vendasDetalhadas = [],
+  faturamentoConsiderado,
+  vinculoTipo = 'loja',
+  atingimentoLojaPercentual,
 }: RemuneracaoEstimadaInput): RemuneracaoEstimadaResultado {
   const vendas = Math.max(Number(vendasConsideradas || 0), 0)
   const metaMensal = Math.max(Number(meta || 0), 0)
   const atingimentoPercentual = metaMensal > 0 ? Math.round((vendas / metaMensal) * 100) : 0
+  const vendasValidas = vendasDetalhadas.filter(venda => Number.isFinite(Number(venda.valor)))
+  const faturamento = Math.max(
+    Number(faturamentoConsiderado ?? vendasValidas.reduce((acc, venda) => acc + Number(venda.valor || 0), 0)),
+    0,
+  )
 
   if (!plano) {
     return {
@@ -120,13 +150,19 @@ export function calcularRemuneracaoEstimada({
       beneficios: 0,
       base: 0,
       comissaoPorVenda: 0,
+      comissaoFixa: 0,
+      comissaoPercentual: 0,
+      comissaoCategoria: 0,
+      comissaoEquipe: 0,
       comissao: 0,
       bonus: 0,
       total: 0,
       vendasConsideradas: vendas,
+      faturamentoConsiderado: faturamento,
       meta: metaMensal,
       atingimentoPercentual,
       regraComissaoAplicada: null,
+      regrasComissaoAplicadas: [],
       regraBonusAplicada: null,
       bonusPatamares: [],
       regrasAplicadas: [],
@@ -145,7 +181,39 @@ export function calcularRemuneracaoEstimada({
     regrasAtivas.filter((regra) => regra.tipo === 'comissao_por_venda'),
   )
   const comissaoPorVenda = Number(regraComissaoAplicada?.valor || 0)
-  const comissao = vendas * comissaoPorVenda
+  const comissaoFixa = vendas * comissaoPorVenda
+
+  const regraPercentualAplicada = selecionarRegraMaisRecente(
+    regrasAtivas.filter((regra) => regra.tipo === 'percentual_faturamento'),
+  )
+  const comissaoPercentual = faturamento * (Number(regraPercentualAplicada?.valor || 0) / 100)
+
+  const regrasCategoria = selecionarRegraMaisRecentePorTipoVeiculo(
+    regrasAtivas.filter((regra) => regra.tipo === 'comissao_categoria'),
+  )
+  const comissaoCategoria = vendasValidas.reduce((acc, venda) => {
+    const regraCategoria = venda.tipo_veiculo ? regrasCategoria.get(venda.tipo_veiculo) : null
+    return acc + Number(regraCategoria?.valor || 0)
+  }, 0)
+
+  const regrasEquipe = selecionarBonusMaisRecentePorPatamar(
+    regrasAtivas.filter((regra) => regra.tipo === 'comissao_equipe'),
+  )
+  const regraEquipeAplicada = vinculoTipo === 'loja' && Number.isFinite(Number(atingimentoLojaPercentual))
+    ? [...regrasEquipe]
+        .filter((regra) => Number(atingimentoLojaPercentual) >= percentualMinimo(regra))
+        .sort((a, b) => percentualMinimo(b) - percentualMinimo(a))[0] || null
+    : null
+  const comissaoEquipe = Number(regraEquipeAplicada?.valor || 0)
+  const comissao = comissaoFixa + comissaoPercentual + comissaoCategoria + comissaoEquipe
+  const regrasComissaoAplicadas = [
+    regraComissaoAplicada,
+    regraPercentualAplicada,
+    ...Array.from(new Set(vendasValidas.map(venda => venda.tipo_veiculo).filter(Boolean)))
+      .map(tipoVeiculo => regrasCategoria.get(String(tipoVeiculo)))
+      .filter((regra): regra is RemuneracaoRegra => Boolean(regra)),
+    regraEquipeAplicada,
+  ].filter((regra): regra is RemuneracaoRegra => Boolean(regra))
 
   const bonusPorPatamar = selecionarBonusMaisRecentePorPatamar(
     regrasAtivas.filter((regra) => regra.tipo === 'bonus_meta'),
@@ -168,7 +236,7 @@ export function calcularRemuneracaoEstimada({
     }
   })
   const total = base + comissao + bonus
-  const regrasAplicadas = [regraComissaoAplicada, regraBonusAplicada].filter(
+  const regrasAplicadas = [...regrasComissaoAplicadas, regraBonusAplicada].filter(
     (regra): regra is RemuneracaoRegra => Boolean(regra),
   )
   const regrasNaoAtingidas = bonusPatamares.filter((patamar) => !patamar.atingido).map((patamar) => patamar.regra)
@@ -194,9 +262,9 @@ export function calcularRemuneracaoEstimada({
     {
       chave: 'comissao',
       label: 'Comissão por vendas',
-      descricao: regraComissaoAplicada
-        ? `${vendas} venda(s) consideradas multiplicadas pelo valor por venda.`
-        : 'Nenhuma regra ativa de comissão por venda.',
+      descricao: regrasComissaoAplicadas.length > 0
+        ? `Comissão calculada com ${vendas} venda(s) e ${formatCurrency(faturamento)} de faturamento.`
+        : 'Nenhuma regra ativa de comissão.',
       valor: comissao,
     },
     {
@@ -219,13 +287,19 @@ export function calcularRemuneracaoEstimada({
     beneficios,
     base,
     comissaoPorVenda,
+    comissaoFixa,
+    comissaoPercentual,
+    comissaoCategoria,
+    comissaoEquipe,
     comissao,
     bonus,
     total,
     vendasConsideradas: vendas,
+    faturamentoConsiderado: faturamento,
     meta: metaMensal,
     atingimentoPercentual,
-    regraComissaoAplicada,
+    regraComissaoAplicada: regrasComissaoAplicadas[0] || null,
+    regrasComissaoAplicadas,
     regraBonusAplicada,
     bonusPatamares,
     regrasAplicadas,
@@ -240,9 +314,15 @@ export function calcularResumoRemuneracaoVendedor({
   vendasRealizadas,
   vendasProjetadas,
   meta,
+  vendasDetalhadasRealizadas = [],
+  faturamentoProjetado,
+  vinculoTipo,
+  atingimentoLojaPercentual,
 }: RemuneracaoResumoVendedorInput): RemuneracaoResumoVendedor {
   const realizadas = Math.max(Number(vendasRealizadas || 0), 0)
   const projetadas = Math.max(Number(vendasProjetadas || 0), realizadas)
+  const faturamentoRealizado = vendasDetalhadasRealizadas.reduce((acc, venda) => acc + Number(venda.valor || 0), 0)
+  const ticketMedio = realizadas > 0 ? faturamentoRealizado / realizadas : 0
 
   return {
     realizado: calcularRemuneracaoEstimada({
@@ -250,12 +330,19 @@ export function calcularResumoRemuneracaoVendedor({
       regras,
       vendasConsideradas: realizadas,
       meta,
+      vendasDetalhadas: vendasDetalhadasRealizadas,
+      vinculoTipo,
+      atingimentoLojaPercentual,
     }),
     projetado: calcularRemuneracaoEstimada({
       plano,
       regras,
       vendasConsideradas: projetadas,
       meta,
+      vendasDetalhadas: vendasDetalhadasRealizadas,
+      faturamentoConsiderado: faturamentoProjetado ?? ticketMedio * projetadas,
+      vinculoTipo,
+      atingimentoLojaPercentual,
     }),
   }
 }
@@ -273,6 +360,15 @@ function selecionarBonusMaisRecentePorPatamar(regras: RemuneracaoRegra[]): Remun
   return [...porPatamar.values()].sort((a, b) => percentualMinimo(a) - percentualMinimo(b))
 }
 
+function selecionarRegraMaisRecentePorTipoVeiculo(regras: RemuneracaoRegra[]): Map<string, RemuneracaoRegra> {
+  const porTipo = new Map<string, RemuneracaoRegra>()
+  for (const regra of [...regras].sort(compararRegraMaisRecente)) {
+    const tipoVeiculo = regra.tipo_veiculo
+    if (tipoVeiculo && !porTipo.has(tipoVeiculo)) porTipo.set(tipoVeiculo, regra)
+  }
+  return porTipo
+}
+
 function compararRegraMaisRecente(a: RemuneracaoRegra, b: RemuneracaoRegra): number {
   return (
     b.vigencia_inicio.localeCompare(a.vigencia_inicio) ||
@@ -283,4 +379,12 @@ function compararRegraMaisRecente(a: RemuneracaoRegra, b: RemuneracaoRegra): num
 
 function percentualMinimo(regra: RemuneracaoRegra): number {
   return Math.max(Number(regra.percentual_meta_min || 0), 0)
+}
+
+function formatCurrency(value: number): string {
+  return value.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    maximumFractionDigits: 0,
+  })
 }

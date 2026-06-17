@@ -5,9 +5,25 @@ import { useClientes } from '@/features/crm/hooks/useClientes'
 import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
 import { useAtendimentos } from '@/features/crm/hooks/useAtendimentos'
 import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
+import { useCadenciaAnalytics } from '@/features/crm/hooks/useCadenciaAnalytics'
 import { CRM_ETAPA_LABEL, CRM_CANAL_LABEL } from '@/lib/schemas/crm.schema'
 
 const BRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
+const CADENCIA_ETAPA_LABEL: Record<string, string> = {
+  lead: 'Lead',
+  contato: 'Contato',
+  agendamento: 'Agendamento',
+  visita: 'Visita',
+  negociacao: 'Negociação',
+  venda: 'Venda',
+  atendimento: 'Atendimento',
+}
+const TIPO_VEICULO_LABEL: Record<string, string> = {
+  carro: 'Carro',
+  moto: 'Moto',
+  caminhao: 'Caminhão',
+  nao_informado: 'Não informado',
+}
 
 function KpiCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
@@ -34,12 +50,15 @@ function BarRow({ label, value, max, valueLabel }: { label: string; value: numbe
 
 export function RelatoriosVendedor() {
   const { metrics: clienteMetrics, clientes } = useClientes()
-  const { funil } = useOportunidades()
+  const { funil, oportunidades } = useOportunidades()
   const { porCanal } = useAtendimentos()
   const { metrics: agenda } = useAgendamentos()
+  const { analytics: cadenciaAnalytics, loading: cadenciaAnalyticsLoading, error: cadenciaAnalyticsError } = useCadenciaAnalytics(oportunidades)
 
   const maxEtapa = Math.max(1, ...funil.porEtapa.map(e => e.quantidade))
   const maxCanal = Math.max(1, porCanal.showroom, porCanal.carteira, porCanal.internet, porCanal.porta)
+  const maxGargalo = Math.max(1, ...cadenciaAnalytics.gargalos.map(item => item.total))
+  const maxDemanda = Math.max(1, ...cadenciaAnalytics.demandaVeiculos.map(item => item.quantidade))
 
   return (
     <main className="w-full h-full overflow-y-auto bg-surface-alt p-mx-md md:p-mx-lg no-scrollbar">
@@ -86,6 +105,78 @@ export function RelatoriosVendedor() {
             </div>
           </Card>
         </div>
+
+        <Card className="border-none bg-white p-mx-lg shadow-mx-md">
+          <div className="flex flex-col gap-mx-xs sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <Typography variant="h3" className="uppercase tracking-tight">Analytics de cadência</Typography>
+              <Typography variant="caption" tone="muted">
+                Gargalos por etapa, demanda real e conversão por fluxo versionado.
+              </Typography>
+            </div>
+            <div className="rounded-mx-md bg-surface-alt px-mx-md py-mx-sm text-right">
+              <Typography variant="caption" tone="muted" className="uppercase tracking-wide">Clientes em cadência</Typography>
+              <Typography variant="h2" className="mt-mx-xs text-2xl">{cadenciaAnalytics.totalEstados}</Typography>
+            </div>
+          </div>
+          {cadenciaAnalyticsError && (
+            <Typography variant="caption" tone="error" className="mt-mx-md block">
+              Não foi possível carregar analytics de cadência: {cadenciaAnalyticsError}
+            </Typography>
+          )}
+          {cadenciaAnalyticsLoading ? (
+            <Typography variant="caption" tone="muted" className="mt-mx-lg block">Carregando analytics de cadência...</Typography>
+          ) : cadenciaAnalytics.totalEstados === 0 ? (
+            <Typography variant="caption" tone="muted" className="mt-mx-lg block">
+              Os gargalos de cadência aparecem quando clientes entram no fluxo versionado.
+            </Typography>
+          ) : (
+            <div className="mt-mx-lg grid grid-cols-1 gap-mx-lg xl:grid-cols-3">
+              <div>
+                <Typography variant="caption" tone="muted" className="uppercase tracking-wide">Gargalos por etapa</Typography>
+                <div className="mt-mx-md flex flex-col gap-mx-sm">
+                  {cadenciaAnalytics.gargalos.slice(0, 5).map(item => (
+                    <BarRow
+                      key={item.etapa}
+                      label={CADENCIA_ETAPA_LABEL[item.etapa] || item.etapa}
+                      value={item.total}
+                      max={maxGargalo}
+                      valueLabel={`${item.pendentes} pend. · ${item.semSucesso} sem sucesso · ${item.reagendamentosSemSucesso} reag.`}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <Typography variant="caption" tone="muted" className="uppercase tracking-wide">Demanda por veículo</Typography>
+                <div className="mt-mx-md flex flex-col gap-mx-sm">
+                  {cadenciaAnalytics.demandaVeiculos.slice(0, 5).map(item => (
+                    <BarRow
+                      key={item.tipo_veiculo}
+                      label={TIPO_VEICULO_LABEL[item.tipo_veiculo] || item.tipo_veiculo}
+                      value={item.quantidade}
+                      max={maxDemanda}
+                      valueLabel={`${item.quantidade} · ${BRL(item.valorTotal)}`}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <Typography variant="caption" tone="muted" className="uppercase tracking-wide">Conversão por fluxo</Typography>
+                <div className="mt-mx-md flex flex-col gap-mx-sm">
+                  {cadenciaAnalytics.conversaoPorFluxo.slice(0, 5).map(item => (
+                    <BarRow
+                      key={`${item.fluxo_id}:${item.fluxo_version}`}
+                      label={`Fluxo ${item.fluxo_id.slice(0, 8)} v${item.fluxo_version}`}
+                      value={item.taxaConversao}
+                      max={100}
+                      valueLabel={`${item.taxaConversao}% · ${item.ganhos}/${item.totalClientes}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </Card>
 
         {clientes.length === 0 && (
           <Typography variant="caption" tone="muted">Os relatórios se preenchem conforme você cadastra clientes, oportunidades e atendimentos.</Typography>

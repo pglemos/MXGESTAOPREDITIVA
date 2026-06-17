@@ -33,9 +33,14 @@ import { useAuth } from '@/hooks/useAuth'
 import { calculateReferenceDate, useCheckinsToday } from '@/hooks/checkins'
 import { cn } from '@/lib/utils'
 import { useAgendamentos, type AgendamentoInput, type AgendamentoComCliente } from '@/features/crm/hooks/useAgendamentos'
+import { useAtendimentos } from '@/features/crm/hooks/useAtendimentos'
 import { useClientes } from '@/features/crm/hooks/useClientes'
+import { useCadenciaAgenda, type CadenciaAgendaItem } from '@/features/crm/hooks/useCadenciaAgenda'
+import { useFeedbackActions } from '@/features/crm/hooks/useFeedbackActions'
 import { useVendedorPerfil } from '@/features/crm/hooks/useVendedorPerfil'
-import { resolveCloseDayReminderSchedule } from '@/lib/daily-routine'
+import { montarDataHoraAcaoCadencia, type CadenciaResultadoAcao } from '@/features/crm/lib/cadencia'
+import { mapFeedbackActionToAgendaItem, type FeedbackActionRow } from '@/features/gerente-feedback/lib/feedback-actions'
+import { deriveDailyRoutineSlots, resolveCloseDayReminderSchedule, type DailyRoutineAutoSlot } from '@/lib/daily-routine'
 import {
   CRM_CANAIS,
   CRM_CANAL_LABEL,
@@ -53,10 +58,30 @@ const TIPO_LABEL: Record<string, string> = {
   test_drive: 'Test drive',
   entrega: 'Entrega',
   negociacao: 'Negociação',
+  feedback: 'Feedback do gestor',
 }
 
 type FiltroData = 'todos' | 'hoje' | 'atrasados' | 'proximos7'
 type CanalFiltro = 'todos' | CrmCanal
+type AgendaCentralStatus = CrmAgendamentoStatus | 'cadencia' | 'feedback_pendente'
+
+type AgendaCentralItem = {
+  id: string
+  origem: 'agendamento' | 'cadencia' | 'feedback'
+  data_hora: string
+  canal: CrmCanal | null
+  status: AgendaCentralStatus
+  statusLabel: string
+  proxima_acao: string | null
+  cliente: { nome: string; telefone: string | null } | null
+  oportunidade: { veiculo_interesse: string | null; valor_negociado?: number | null } | null
+  tipo: string | null
+  etapa: string | null
+  agendamento?: AgendamentoComCliente
+  cadencia?: CadenciaAgendaItem
+  feedbackAction?: FeedbackActionRow
+  alertTone?: 'error'
+}
 
 const EMPTY: AgendamentoInput = {
   cliente_id: '',
@@ -95,31 +120,46 @@ const canalTone: Record<string, string> = {
 }
 
 const statusTone: Record<string, string> = {
+  cadencia: 'bg-brand-primary/10 text-brand-primary border-brand-primary/20',
+  feedback_pendente: 'bg-status-error-surface text-status-error border-status-error/20',
   confirmado: 'bg-status-success-surface text-status-success border-status-success/20',
   aguardando: 'bg-status-info-surface text-status-info border-status-info/20',
   compareceu: 'bg-status-success-surface text-status-success border-status-success/20',
   nao_compareceu: 'bg-status-error-surface text-status-error border-status-error/20',
 }
 
-const routineSlots = [
-  { time: '08:00', title: 'Motivação', desc: 'Energia para atingir seus objetivos.' },
-  { time: '08:15', title: 'Organização do Dia', desc: 'Defina prioridades e responda clientes quentes.' },
-  { time: '08:55', title: 'Contato com Novos Leads', desc: 'Boas-vindas e qualificação de novos contatos.' },
-  { time: '11:00', title: 'Prospecção de Novos Clientes', desc: 'Aumente sua carteira de clientes.' },
-  { time: '13:00', title: 'Atendimento', desc: 'Atenda, retorne leads e confirme agendamentos.' },
-  { time: '16:00', title: 'Lista Quente', desc: 'Trabalhe objeções e negociações paradas.' },
-  { time: '17:00', title: 'Fechamento do Dia', desc: 'Atualize seu funil e prepare o dia seguinte.' },
-]
+function mapAgendamentoToAgendaItem(item: AgendamentoComCliente): AgendaCentralItem {
+  return {
+    id: item.id,
+    origem: 'agendamento',
+    data_hora: item.data_hora,
+    canal: item.canal,
+    status: item.status,
+    statusLabel: CRM_AGENDAMENTO_STATUS_LABEL[item.status],
+    proxima_acao: item.proxima_acao,
+    cliente: item.cliente ? { nome: item.cliente.nome, telefone: item.cliente.telefone } : null,
+    oportunidade: item.oportunidade || null,
+    tipo: item.tipo,
+    etapa: null,
+    agendamento: item,
+  }
+}
 
-function getRoutineState(time: string) {
-  const now = new Date()
-  const [h, m] = time.split(':').map(Number)
-  const slotDate = new Date()
-  slotDate.setHours(h || 0, m || 0, 0, 0)
-  const diff = slotDate.getTime() - now.getTime()
-  if (diff < -45 * 60 * 1000) return 'done'
-  if (diff <= 45 * 60 * 1000) return 'current'
-  return 'pending'
+function mapCadenciaToAgendaItem(item: CadenciaAgendaItem): AgendaCentralItem {
+  return {
+    id: `cadencia-${item.cadencia_estado_id}`,
+    origem: 'cadencia',
+    data_hora: montarDataHoraAcaoCadencia(item.proxima_acao_em, item.proxima_acao, item.canal),
+    canal: item.canal,
+    status: 'cadencia',
+    statusLabel: 'Cadência',
+    proxima_acao: item.proxima_acao,
+    cliente: { nome: item.cliente_nome, telefone: item.cliente_telefone },
+    oportunidade: null,
+    tipo: null,
+    etapa: item.etapa_atual,
+    cadencia: item,
+  }
 }
 
 function MetricCard({
@@ -147,7 +187,7 @@ function MetricCard({
       <div className="flex h-full items-center gap-mx-sm">
         <span className={cn('flex h-mx-xl w-mx-xl shrink-0 items-center justify-center rounded-mx-lg', toneClass)}>{icon}</span>
         <div className="min-w-0">
-          <Typography variant="tiny" className="text-[10px] font-black uppercase leading-tight tracking-normal text-text-primary">{label}</Typography>
+          <Typography variant="tiny" className="text-[10px] font-bold uppercase leading-tight tracking-normal text-text-primary">{label}</Typography>
           <Typography variant="h2" className="mt-1 text-2xl leading-none">{value}</Typography>
           <Typography variant="caption" tone="muted" className="mt-mx-xs block leading-tight tracking-normal">{hint}</Typography>
         </div>
@@ -166,12 +206,12 @@ function ScoreCard({ score, items }: { score: number; items: ScoreItem[] }) {
         <div className="relative flex h-[72px] w-[72px] items-center justify-center rounded-full" style={{ background: `conic-gradient(var(--color-brand-primary) ${score * 3.6}deg, var(--color-border-strong) 0deg)` }}>
           <div className="flex h-12 w-12 flex-col items-center justify-center rounded-full bg-white shadow-inner">
             <Typography variant="h2" className="text-lg leading-none text-brand-primary">{score}%</Typography>
-            <Typography variant="tiny" className="text-[8px] font-black leading-none tracking-normal text-brand-primary">{mood}</Typography>
+            <Typography variant="tiny" className="text-[8px] font-bold leading-none tracking-normal text-brand-primary">{mood}</Typography>
           </div>
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-mx-tiny">
-            <Typography variant="tiny" className="font-black uppercase leading-tight tracking-normal text-text-primary">Score da rotina</Typography>
+            <Typography variant="tiny" className="font-bold uppercase leading-tight tracking-normal text-text-primary">Score da rotina</Typography>
             <Info size={12} className="text-text-tertiary" />
           </div>
           <div className="mt-1 space-y-0.5">
@@ -190,7 +230,7 @@ function ScoreLine({ label, value, done, muted }: ScoreItem) {
         {done ? <Check size={10} /> : <Clock size={10} />}
       </span>
       <span className="font-bold leading-tight text-text-secondary">{label}{muted && <span className="block text-text-tertiary">{muted}</span>}</span>
-      <span className={cn('font-black', done ? 'text-brand-primary' : 'text-text-tertiary')}>{value}</span>
+      <span className={cn('font-bold', done ? 'text-brand-primary' : 'text-text-tertiary')}>{value}</span>
     </div>
   )
 }
@@ -201,7 +241,7 @@ function FilterButton({ active, children, onClick }: { active: boolean; children
       type="button"
       onClick={onClick}
       className={cn(
-        'inline-flex h-mx-11 items-center justify-center gap-mx-xs rounded-mx-md border px-mx-sm text-sm font-black transition-colors',
+        'inline-flex h-mx-11 items-center justify-center gap-mx-xs rounded-mx-md border px-mx-sm text-sm font-bold transition-colors',
         active ? 'border-brand-primary bg-brand-primary text-white shadow-mx-sm' : 'border-border-subtle bg-white text-text-secondary hover:border-brand-primary/30 hover:text-text-primary',
       )}
     >
@@ -211,35 +251,37 @@ function FilterButton({ active, children, onClick }: { active: boolean; children
 }
 
 function Pill({ children, className }: { children: React.ReactNode; className: string }) {
-  return <span className={cn('inline-flex rounded-mx-sm border px-2 py-1 text-xs font-black', className)}>{children}</span>
+  return <span className={cn('inline-flex rounded-mx-sm border px-2 py-1 text-xs font-bold', className)}>{children}</span>
 }
 
-function RoutineTimeline() {
+function RoutineTimeline({ slots }: { slots: DailyRoutineAutoSlot[] }) {
   return (
     <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
       <Typography variant="h3" className="text-base uppercase tracking-normal">Rotina do dia</Typography>
-      <Typography variant="caption" tone="muted" className="tracking-normal">Siga sua rotina e ganhe disciplina.</Typography>
+      <Typography variant="caption" tone="muted" className="tracking-normal">Checks automáticos por eventos reais do dia.</Typography>
       <ol className="mt-mx-sm space-y-mx-xs">
-        {routineSlots.map((slot, index) => {
-          const state = getRoutineState(slot.time)
-          const isLast = index === routineSlots.length - 1
+        {slots.map((slot, index) => {
+          const isLast = index === slots.length - 1
           return (
-            <li key={slot.time} className="relative grid grid-cols-[32px_48px_1fr] gap-mx-sm">
+            <li key={slot.key} className="relative grid grid-cols-[32px_48px_1fr] gap-mx-sm">
               {!isLast && <span className="absolute left-[15px] top-8 h-[calc(100%+8px)] w-px bg-border-subtle" />}
               <span
                 className={cn(
                   'relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 bg-white',
-                  state === 'done' && 'border-status-success bg-status-success text-white',
-                  state === 'current' && 'border-status-warning text-status-warning',
-                  state === 'pending' && 'border-border-strong text-border-strong',
+                  slot.state === 'done' && 'border-status-success bg-status-success text-white',
+                  slot.state === 'not_required' && 'border-brand-primary/30 text-brand-primary',
+                  slot.state === 'pending' && 'border-border-strong text-border-strong',
                 )}
               >
-                {state === 'done' ? <Check size={16} /> : state === 'current' ? <Clock size={15} /> : null}
+                {slot.state === 'done' ? <Check size={16} /> : slot.state === 'not_required' ? <Info size={15} /> : null}
               </span>
-              <Typography variant="caption" className="pt-1 font-black tracking-normal text-text-primary">{slot.time}</Typography>
+              <Typography variant="caption" className="pt-1 font-bold tracking-normal text-text-primary">{slot.time}</Typography>
               <div className="min-w-0">
-                <Typography variant="p" className="text-xs font-black leading-tight text-text-primary">{slot.title}</Typography>
+                <Typography variant="p" className="text-xs font-bold leading-tight text-text-primary">{slot.title}</Typography>
                 <Typography variant="caption" tone="muted" className="normal-case leading-snug tracking-normal">{slot.desc}</Typography>
+                <Typography variant="tiny" className={cn('mt-0.5 block font-bold normal-case tracking-normal', slot.state === 'done' ? 'text-status-success' : slot.state === 'not_required' ? 'text-brand-primary' : 'text-text-tertiary')}>
+                  {slot.progress}
+                </Typography>
               </div>
             </li>
           )
@@ -249,44 +291,82 @@ function RoutineTimeline() {
   )
 }
 
-function AgendaRow({ item, onWhatsApp, onEdit, onDelete }: { item: AgendamentoComCliente; onWhatsApp: () => void; onEdit: () => void; onDelete: () => void }) {
+function AgendaRow({
+  item,
+  statusSaving,
+  onWhatsApp,
+  onEdit,
+  onDelete,
+  onCadenciaStatus,
+  onFeedbackActionDone,
+}: {
+  item: AgendaCentralItem
+  statusSaving: boolean
+  onWhatsApp: () => void
+  onEdit: () => void
+  onDelete: () => void
+  onCadenciaStatus: (item: AgendaCentralItem, status: CadenciaResultadoAcao) => void
+  onFeedbackActionDone: (item: AgendaCentralItem) => void
+}) {
   const actionTime = getActionTime(item.proxima_acao)
-  const urgent = item.status === 'nao_compareceu' || (item.proxima_acao || '').toLowerCase().includes('urgente')
-  const vehicle = item.oportunidade?.veiculo_interesse || TIPO_LABEL[item.tipo] || 'Oportunidade'
-  const value = item.oportunidade?.valor_negociado ? BRL(item.oportunidade.valor_negociado) : item.tipo === 'negociacao' ? 'Proposta em aberto' : 'Valor a definir'
+  const urgent = item.alertTone === 'error' || item.status === 'nao_compareceu' || (item.proxima_acao || '').toLowerCase().includes('urgente')
+  const vehicle = item.oportunidade?.veiculo_interesse || (item.tipo ? TIPO_LABEL[item.tipo] : null) || (item.etapa ? `Cadência: ${item.etapa}` : 'Oportunidade')
+  const value = item.origem === 'feedback'
+    ? 'Alerta até concluir'
+    : item.oportunidade?.valor_negociado
+      ? BRL(item.oportunidade.valor_negociado)
+      : item.tipo === 'negociacao'
+        ? 'Proposta em aberto'
+        : item.origem === 'cadencia'
+          ? 'Ação sugerida'
+          : 'Valor a definir'
 
   return (
     <tr className="border-t border-border-subtle align-middle hover:bg-surface-alt/60">
       <td className="whitespace-nowrap px-mx-sm py-mx-md">
         <div className="flex items-center gap-mx-sm">
-          <Typography variant="p" className={cn('w-12 font-black text-brand-primary', urgent && 'text-status-error')}>{fmtHora(item.data_hora)}</Typography>
+          <Typography variant="p" className={cn('w-12 font-bold text-brand-primary', urgent && 'text-status-error')}>{fmtHora(item.data_hora)}</Typography>
           <Bell size={16} className={cn('text-text-tertiary', urgent && 'text-status-error')} />
         </div>
       </td>
       <td className="min-w-[170px] px-mx-sm py-mx-md">
-        <Typography variant="p" className="font-black leading-tight">{item.cliente?.nome || 'Cliente sem vínculo'}</Typography>
+        <Typography variant="p" className="font-bold leading-tight">{item.cliente?.nome || 'Cliente sem vínculo'}</Typography>
         <Typography variant="caption" tone="muted">{item.cliente?.telefone || 'Telefone não cadastrado'}</Typography>
       </td>
       <td className="min-w-[180px] px-mx-sm py-mx-md">
-        <Typography variant="p" className="font-black leading-tight">{vehicle}</Typography>
+        <Typography variant="p" className="font-bold leading-tight">{vehicle}</Typography>
         <Typography variant="caption" tone="muted">{value}</Typography>
       </td>
       <td className="px-mx-sm py-mx-md">
         <Pill className={canalTone[item.canal || 'porta'] || canalTone.porta}>{item.canal ? CRM_CANAL_LABEL[item.canal] : 'Sem canal'}</Pill>
       </td>
       <td className="px-mx-sm py-mx-md">
-        <Pill className={statusTone[item.status] || statusTone.aguardando}>{CRM_AGENDAMENTO_STATUS_LABEL[item.status]}</Pill>
+        <Pill className={statusTone[item.status] || statusTone.aguardando}>{item.statusLabel}</Pill>
       </td>
       <td className="min-w-[170px] px-mx-sm py-mx-md">
-        <Typography variant="p" className="font-black leading-tight">{item.proxima_acao || 'Definir próxima ação'}</Typography>
-        {actionTime && <Typography variant="caption" tone={urgent ? 'error' : 'muted'} className="font-black">{actionTime}</Typography>}
-        {urgent && !actionTime && <Typography variant="caption" tone="error" className="font-black">Urgente</Typography>}
+        <Typography variant="p" className="font-bold leading-tight">{item.proxima_acao || 'Definir próxima ação'}</Typography>
+        {actionTime && <Typography variant="caption" tone={urgent ? 'error' : 'muted'} className="font-bold">{actionTime}</Typography>}
+        {urgent && !actionTime && <Typography variant="caption" tone="error" className="font-bold">Urgente</Typography>}
       </td>
       <td className="min-w-[132px] px-mx-sm py-mx-md">
         <div className="flex items-center justify-end gap-mx-xs">
-          <Button variant="outline" size="icon" aria-label="WhatsApp" onClick={onWhatsApp} className="h-mx-9 w-mx-9 border-status-success/30 text-status-success hover:bg-status-success-surface"><MessageCircle size={15} /></Button>
-          <Button variant="outline" size="icon" aria-label="Editar agendamento" onClick={onEdit} className="h-mx-9 w-mx-9 border-brand-primary/30 text-brand-primary hover:bg-brand-primary/10"><Edit3 size={15} /></Button>
-          <Button variant="ghost" size="icon" aria-label="Excluir agendamento" onClick={onDelete} className="h-mx-9 w-mx-9 text-status-error hover:bg-status-error-surface"><Trash2 size={15} /></Button>
+          {item.origem !== 'feedback' && (
+            <Button variant="outline" size="icon" aria-label="WhatsApp" onClick={onWhatsApp} className="h-mx-9 w-mx-9 border-status-success/30 text-status-success hover:bg-status-success-surface"><MessageCircle size={15} /></Button>
+          )}
+          {item.origem === 'feedback' ? (
+            <Button variant="outline" size="icon" aria-label="Concluir ação do feedback" title="Concluir ação do feedback" disabled={statusSaving} onClick={() => onFeedbackActionDone(item)} className="h-mx-9 w-mx-9 border-status-success/30 text-status-success hover:bg-status-success-surface"><Check size={15} /></Button>
+          ) : item.origem === 'cadencia' ? (
+            <>
+              <Button variant="outline" size="icon" aria-label="Concluir ação de cadência" title="Concluir ação de cadência" disabled={statusSaving} onClick={() => onCadenciaStatus(item, 'feito')} className="h-mx-9 w-mx-9 border-status-success/30 text-status-success hover:bg-status-success-surface"><Check size={15} /></Button>
+              <Button variant="outline" size="icon" aria-label="Sem contato na cadência" title="Sem contato na cadência" disabled={statusSaving} onClick={() => onCadenciaStatus(item, 'nao_feito')} className="h-mx-9 w-mx-9 border-status-error/30 text-status-error hover:bg-status-error-surface"><XCircle size={15} /></Button>
+              <Button variant="outline" size="icon" aria-label="Aguardar cliente na cadência" title="Aguardar cliente na cadência" disabled={statusSaving} onClick={() => onCadenciaStatus(item, 'aguardando')} className="h-mx-9 w-mx-9 border-status-warning/30 text-status-warning hover:bg-status-warning-surface"><Clock size={15} /></Button>
+            </>
+          ) : (
+            <>
+              <Button variant="outline" size="icon" aria-label="Editar agendamento" onClick={onEdit} className="h-mx-9 w-mx-9 border-brand-primary/30 text-brand-primary hover:bg-brand-primary/10"><Edit3 size={15} /></Button>
+              <Button variant="ghost" size="icon" aria-label="Excluir agendamento" onClick={onDelete} className="h-mx-9 w-mx-9 text-status-error hover:bg-status-error-surface"><Trash2 size={15} /></Button>
+            </>
+          )}
         </div>
       </td>
     </tr>
@@ -297,7 +377,10 @@ export function CentralExecucao() {
   const { profile, activeStoreId, storeId } = useAuth()
   const effectiveStoreId = activeStoreId || storeId || null
   const { agendamentos, metrics, loading, error, createAgendamento, updateAgendamento, deleteAgendamento } = useAgendamentos()
-  const { clientes } = useClientes()
+  const { acoes: acoesCadencia, loading: cadenciaLoading, error: cadenciaError, refetch: refetchCadencia } = useCadenciaAgenda()
+  const { acoes: acoesFeedback, loading: feedbackActionsLoading, error: feedbackActionsError, refetch: refetchFeedbackActions, concluirAcaoFeedback } = useFeedbackActions()
+  const { porCanal: atendimentosPorCanal } = useAtendimentos()
+  const { clientes, registrarStatusCadencia, refetch: refetchClientes } = useClientes()
   const { perfil } = useVendedorPerfil()
   const referenceDate = calculateReferenceDate()
   const { todayCheckin, fetchTodayCheckin } = useCheckinsToday(profile, effectiveStoreId, referenceDate)
@@ -308,8 +391,11 @@ export function CentralExecucao() {
   const [form, setForm] = useState<AgendamentoInput>(EMPTY)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [cadenciaSavingId, setCadenciaSavingId] = useState<string | null>(null)
+  const [feedbackSavingId, setFeedbackSavingId] = useState<string | null>(null)
 
   const hoje = useMemo(() => new Date(), [])
+  const hojeStr = useMemo(() => toDateOnlyBR(), [])
   const closeDayReminder = resolveCloseDayReminderSchedule({
     enabled: perfil.fechar_dia_notificacao_ativa,
     reminderTime: perfil.fechar_dia_notificacao_hora,
@@ -317,10 +403,24 @@ export function CentralExecucao() {
     workDays: perfil.dias_trabalho,
   })
 
+  const agendaItens = useMemo(() => {
+    const feedbackItens: AgendaCentralItem[] = acoesFeedback.flatMap((acao) => {
+      const item = mapFeedbackActionToAgendaItem(acao, hoje)
+      return item ? [item as AgendaCentralItem] : []
+    })
+
+    const items: AgendaCentralItem[] = [
+      ...agendamentos.map(mapAgendamentoToAgendaItem),
+      ...acoesCadencia.map(mapCadenciaToAgendaItem),
+      ...feedbackItens,
+    ]
+    return items.sort((a, b) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime())
+  }, [acoesCadencia, acoesFeedback, agendamentos, hoje])
+
   const filtrados = useMemo(() => {
     const em7 = new Date()
     em7.setDate(em7.getDate() + 7)
-    return agendamentos.filter(a => {
+    return agendaItens.filter(a => {
       const d = new Date(a.data_hora)
       const matchData =
         filtro === 'todos' ? true
@@ -330,12 +430,34 @@ export function CentralExecucao() {
       const matchCanal = canalFiltro === 'todos' || a.canal === canalFiltro
       return matchData && matchCanal
     })
-  }, [agendamentos, canalFiltro, filtro, hoje])
+  }, [agendaItens, canalFiltro, filtro, hoje])
+
+  const rotinaSlots = useMemo(() => {
+    const clientesCriadosHoje = clientes.filter(c => c.created_at && toDateOnlyBR(new Date(c.created_at)) === hojeStr).length
+    const clientesAtualizadosHoje = clientes.filter(c => c.ultima_interacao === hojeStr).length
+    const agendamentosCriadosHoje = agendamentos.filter(a => a.created_at && toDateOnlyBR(new Date(a.created_at)) === hojeStr).length
+    const acoesListaQuenteHoje = agendaItens.filter((item) => {
+      if (!isSameDay(new Date(item.data_hora), hoje)) return false
+      const action = (item.proxima_acao || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+      return item.tipo === 'negociacao' || item.etapa === 'negociacao' || action.includes('proposta') || action.includes('negoci')
+    }).length
+
+    return deriveDailyRoutineSlots({
+      workStartTime: perfil.hora_entrada,
+      workEndTime: perfil.hora_saida,
+      atendimentosHoje: atendimentosPorCanal.total,
+      minimumAtendimentos: 5,
+      clientesCriadosHoje,
+      clientesAtualizadosHoje,
+      agendamentosCriadosHoje,
+      acoesListaQuenteHoje,
+      fechamentoDiarioFeito: Boolean(todayCheckin),
+    })
+  }, [agendamentos, agendaItens, atendimentosPorCanal.total, clientes, hoje, hojeStr, perfil.hora_entrada, perfil.hora_saida, todayCheckin])
 
   // Score da Rotina (spec): abriu Central=10%, Fechamento Diário=20%,
   // clientes cadastrados hoje: 1=40% / 2=60% / 3+=70%.
   const { score, scoreItems } = useMemo(() => {
-    const hojeStr = toDateOnlyBR()
     const clientesHoje = clientes.filter(c => c.created_at && toDateOnlyBR(new Date(c.created_at)) === hojeStr).length
     const fezFechamento = Boolean(todayCheckin)
     const clientePontos = clientesHoje >= 3 ? 70 : clientesHoje === 2 ? 60 : clientesHoje === 1 ? 40 : 0
@@ -406,7 +528,33 @@ export function CentralExecucao() {
     toast.success('Agendamento excluído.')
   }
 
-  function openWhatsApp(a: AgendamentoComCliente) {
+  async function handleCadenciaStatus(item: AgendaCentralItem, status: CadenciaResultadoAcao) {
+    if (!item.cadencia) return
+    setCadenciaSavingId(item.id)
+    const { error: statusError } = await registrarStatusCadencia({ clienteId: item.cadencia.cliente_id, status })
+    setCadenciaSavingId(null)
+    if (statusError) {
+      toast.error(statusError)
+      return
+    }
+    await Promise.all([refetchCadencia(), refetchClientes()])
+    toast.success('Cadência atualizada.')
+  }
+
+  async function handleFeedbackActionDone(item: AgendaCentralItem) {
+    if (!item.feedbackAction) return
+    setFeedbackSavingId(item.id)
+    const { error: actionError } = await concluirAcaoFeedback(item.feedbackAction.id)
+    setFeedbackSavingId(null)
+    if (actionError) {
+      toast.error(actionError)
+      return
+    }
+    await refetchFeedbackActions()
+    toast.success('Ação do feedback concluída.')
+  }
+
+  function openWhatsApp(a: AgendaCentralItem) {
     const tel = onlyDigits(a.cliente?.telefone)
     if (!tel) {
       toast.error('Cliente sem telefone cadastrado.')
@@ -428,7 +576,7 @@ export function CentralExecucao() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-mx-sm">
-            <div className="inline-flex h-mx-11 items-center gap-mx-xs rounded-mx-md bg-white px-mx-sm text-sm font-black text-text-primary shadow-mx-sm">
+            <div className="inline-flex h-mx-11 items-center gap-mx-xs rounded-mx-md bg-white px-mx-sm text-sm font-bold text-text-primary shadow-mx-sm">
               <Calendar size={16} className="text-text-secondary" />
               {getDateLabel(hoje)}
             </div>
@@ -438,13 +586,13 @@ export function CentralExecucao() {
             <div className="hidden items-center gap-mx-sm rounded-mx-md bg-white px-mx-sm py-mx-xs shadow-mx-sm xl:flex">
               <span className="relative">
                 <Bell size={20} className="text-text-secondary" />
-                <span className="absolute -right-1 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-status-error text-[10px] font-black text-white">3</span>
+                <span className="absolute -right-1 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-status-error text-[10px] font-bold text-white">3</span>
               </span>
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-primary/10 text-sm font-black text-brand-primary">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-primary/10 text-sm font-bold text-brand-primary">
                 {(profile?.name || 'V').slice(0, 1)}
               </span>
               <span>
-                <Typography variant="caption" className="block font-black text-text-primary">{profile?.name || 'Vendedor'}</Typography>
+                <Typography variant="caption" className="block font-bold text-text-primary">{profile?.name || 'Vendedor'}</Typography>
                 <Typography variant="tiny" tone="muted">Vendedor</Typography>
               </span>
               <ChevronDown size={16} className="text-text-tertiary" />
@@ -452,7 +600,7 @@ export function CentralExecucao() {
           </div>
         </header>
 
-        {error && <Typography className="text-status-error">{error}</Typography>}
+        {(error || cadenciaError || feedbackActionsError) && <Typography className="text-status-error">{error || cadenciaError || feedbackActionsError}</Typography>}
 
         <section className="grid grid-cols-2 gap-mx-sm md:grid-cols-3 xl:grid-cols-[repeat(5,minmax(140px,1fr))_minmax(270px,1.4fr)]" aria-label="Indicadores do dia">
           <MetricCard icon={<CalendarCheck size={24} />} label="Agendamentos hoje" value={String(metrics.agendamentosHoje)} hint="100% do dia" tone="blue" />
@@ -476,7 +624,7 @@ export function CentralExecucao() {
                 type="button"
                 onClick={() => setCanalFiltro('todos')}
                 className={cn(
-                  'inline-flex h-mx-11 items-center gap-mx-xs rounded-mx-md border px-mx-sm text-sm font-black transition-colors',
+                  'inline-flex h-mx-11 items-center gap-mx-xs rounded-mx-md border px-mx-sm text-sm font-bold transition-colors',
                   canalFiltro === 'todos' ? 'border-brand-primary/30 bg-brand-primary/10 text-brand-primary' : 'border-border-subtle bg-white text-text-secondary hover:border-brand-primary/30',
                 )}
               >
@@ -488,7 +636,7 @@ export function CentralExecucao() {
                   {CRM_CANAL_LABEL[canal]}
                 </FilterButton>
               ))}
-              <Link to="/carteira-clientes" className="inline-flex h-mx-11 items-center justify-center gap-mx-xs rounded-mx-md border border-brand-primary/30 bg-white px-mx-md text-sm font-black text-brand-primary transition-colors hover:bg-brand-primary/10">
+              <Link to="/carteira-clientes" className="inline-flex h-mx-11 items-center justify-center gap-mx-xs rounded-mx-md border border-brand-primary/30 bg-white px-mx-md text-sm font-bold text-brand-primary transition-colors hover:bg-brand-primary/10">
                 <Plus size={16} /> Novo Cliente
               </Link>
               <Button variant="outline" size="sm" onClick={openCreateModal} className="ml-auto h-mx-11 bg-white">
@@ -513,17 +661,17 @@ export function CentralExecucao() {
                   </colgroup>
                   <thead className="bg-surface-alt/70 text-text-secondary">
                     <tr>
-                      <th className="px-mx-sm py-mx-sm font-black">Horário</th>
-                      <th className="px-mx-sm py-mx-sm font-black">Cliente / Contato</th>
-                      <th className="px-mx-sm py-mx-sm font-black">Veículo de Interesse</th>
-                      <th className="px-mx-sm py-mx-sm font-black">Canal</th>
-                      <th className="px-mx-sm py-mx-sm font-black">Status</th>
-                      <th className="px-mx-sm py-mx-sm font-black">Próxima Ação</th>
-                      <th className="px-mx-sm py-mx-sm text-right font-black">Ações</th>
+                      <th className="px-mx-sm py-mx-sm font-bold">Horário</th>
+                      <th className="px-mx-sm py-mx-sm font-bold">Cliente / Contato</th>
+                      <th className="px-mx-sm py-mx-sm font-bold">Veículo de Interesse</th>
+                      <th className="px-mx-sm py-mx-sm font-bold">Canal</th>
+                      <th className="px-mx-sm py-mx-sm font-bold">Status</th>
+                      <th className="px-mx-sm py-mx-sm font-bold">Próxima Ação</th>
+                      <th className="px-mx-sm py-mx-sm text-right font-bold">Ações</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {loading ? (
+                    {loading || cadenciaLoading || feedbackActionsLoading ? (
                       <tr><td colSpan={7} className="p-mx-lg"><Typography tone="muted">Carregando agenda...</Typography></td></tr>
                     ) : filtrados.length === 0 ? (
                       <tr>
@@ -537,8 +685,11 @@ export function CentralExecucao() {
                           key={item.id}
                           item={item}
                           onWhatsApp={() => openWhatsApp(item)}
-                          onEdit={() => openEditModal(item)}
-                          onDelete={() => handleDelete(item.id, item.cliente?.nome || 'cliente')}
+                          statusSaving={cadenciaSavingId === item.id || feedbackSavingId === item.id}
+                          onEdit={() => item.agendamento && openEditModal(item.agendamento)}
+                          onDelete={() => item.agendamento && handleDelete(item.agendamento.id, item.cliente?.nome || 'cliente')}
+                          onCadenciaStatus={handleCadenciaStatus}
+                          onFeedbackActionDone={handleFeedbackActionDone}
                         />
                       ))
                     )}
@@ -549,7 +700,7 @@ export function CentralExecucao() {
           </section>
 
           <aside className="flex flex-col gap-mx-md">
-            <RoutineTimeline />
+            <RoutineTimeline slots={rotinaSlots} />
             <Card className="rounded-mx-lg border border-brand-primary/10 bg-brand-primary/5 p-mx-lg shadow-mx-sm">
               <div className="flex items-start gap-mx-sm">
                 <Target size={18} className="mt-1 text-brand-primary" />

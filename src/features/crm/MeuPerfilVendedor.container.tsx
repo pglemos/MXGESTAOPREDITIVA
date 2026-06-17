@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import {
-  Clock, Flag, GraduationCap, TrendingUp, DollarSign, Target, Briefcase, Mail, Phone, Save, BellRing,
+  Clock, Flag, GraduationCap, TrendingUp, DollarSign, Target, Briefcase, Mail, Phone, Save, BellRing, PieChart,
 } from 'lucide-react'
 import { Card } from '@/components/molecules/Card'
 import { PageHeader } from '@/components/molecules/PageHeader'
@@ -9,14 +9,26 @@ import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
+import { Select } from '@/components/atoms/Select'
 import { Textarea } from '@/components/atoms/Textarea'
 import { Avatar } from '@/components/atoms/Avatar'
 import { useAuth } from '@/hooks/useAuth'
 import { useVendedorHomePage } from '@/features/vendedor-home/hooks/useVendedorHomePage'
 import { useMeuScore } from '@/features/crm/hooks/useMeuScore'
-import { useVendedorPerfil, DIAS_SEMANA, type CarreiraInteresse } from '@/features/crm/hooks/useVendedorPerfil'
+import {
+  useVendedorPerfil,
+  DIAS_SEMANA,
+  MATURIDADE_VENDEDOR_LABEL,
+  VENDEDOR_EXPERIENCIA_DECLARADA,
+  VENDEDOR_EXPERIENCIA_LABEL,
+  derivarNivelMaturidadeVendedor,
+  type CarreiraInteresse,
+  type VendedorExperienciaDeclarada,
+} from '@/features/crm/hooks/useVendedorPerfil'
+import { podeExibirCarreiraMercado } from '@/features/crm/lib/vinculo-vendedor'
 
 const BRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
+type MixCanalField = 'mix_canal_internet_pct' | 'mix_canal_carteira_pct' | 'mix_canal_porta_pct'
 
 function SectionCard({ icon, title, subtitle, children, action }: { icon: React.ReactNode; title: string; subtitle?: string; children: React.ReactNode; action?: React.ReactNode }) {
   return (
@@ -60,7 +72,7 @@ export function MeuPerfilVendedor() {
   const { profile } = useAuth()
   const home = useVendedorHomePage()
   const { score: meuScore, bandLabel } = useMeuScore()
-  const { perfil, setPerfil, loading, savePerfil } = useVendedorPerfil()
+  const { perfil, setPerfil, vinculoTipo, loading, savePerfil } = useVendedorPerfil()
   const [savingSection, setSavingSection] = useState<string | null>(null)
 
   const metrics = home.metrics
@@ -68,6 +80,10 @@ export function MeuPerfilVendedor() {
   const treinos = home.treinamentos || []
   const treinosConcluidos = treinos.filter(t => t.watched).length
   const discipline = home.discipline
+  const nivelMaturidade = derivarNivelMaturidadeVendedor(perfil)
+  const mixCanaisTotal = (perfil.mix_canal_internet_pct || 0) + (perfil.mix_canal_carteira_pct || 0) + (perfil.mix_canal_porta_pct || 0)
+  const carreiraVisivel = podeExibirCarreiraMercado(vinculoTipo)
+  const vinculoLabel = vinculoTipo === 'autonomo' ? 'Autônomo' : 'Vendedor de loja'
 
   async function save(section: string) {
     setSavingSection(section)
@@ -90,6 +106,14 @@ export function MeuPerfilVendedor() {
     })
   }
 
+  function updateMixCanal(field: MixCanalField, value: string) {
+    const numberValue = Number(value)
+    setPerfil({
+      ...perfil,
+      [field]: value === '' || !Number.isFinite(numberValue) ? null : Math.min(100, Math.max(0, numberValue)),
+    })
+  }
+
   return (
     <main className="w-full h-full overflow-y-auto bg-surface-alt p-mx-md md:p-mx-lg no-scrollbar">
       <div className="flex flex-col gap-mx-lg pb-28">
@@ -97,7 +121,7 @@ export function MeuPerfilVendedor() {
           title="Meu Perfil"
           description="Suas informações, metas e desenvolvimento."
           actions={
-            <span className="hidden items-center gap-mx-xs rounded-mx-md border border-border-subtle bg-white px-mx-md py-mx-sm text-sm font-black md:flex">
+            <span className="hidden items-center gap-mx-xs rounded-mx-md border border-border-subtle bg-white px-mx-md py-mx-sm text-sm font-bold md:flex">
               {new Date().toLocaleDateString('pt-BR')} ({new Date().toLocaleDateString('pt-BR', { weekday: 'long' })})
             </span>
           }
@@ -110,7 +134,10 @@ export function MeuPerfilVendedor() {
               <Avatar src={profile?.avatar_url || undefined} alt={profile?.name || 'Vendedor'} fallback={profile?.name || 'V'} size="lg" className="h-24 w-24 rounded-mx-2xl" />
               <div className="flex-1">
                 <Typography variant="h2" className="text-2xl">{profile?.name || 'Vendedor'}</Typography>
-                <Badge variant="info" className="mt-mx-xs">Vendedor</Badge>
+                <div className="mt-mx-xs flex flex-wrap gap-mx-xs">
+                  <Badge variant="info">Vendedor</Badge>
+                  <Badge variant={vinculoTipo === 'autonomo' ? 'success' : 'outline'}>{vinculoLabel}</Badge>
+                </div>
                 <div className="mt-mx-md grid grid-cols-1 gap-mx-xs sm:grid-cols-2">
                   {profile?.email && <InfoRow icon={<Mail size={14} />} label="E-mail" value={profile.email} />}
                   {profile?.phone && <InfoRow icon={<Phone size={14} />} label="Telefone" value={profile.phone} />}
@@ -128,7 +155,7 @@ export function MeuPerfilVendedor() {
         </div>
 
         {/* Rotina + Objetivos + Formação */}
-        <div className="grid grid-cols-1 gap-mx-lg xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-mx-lg xl:grid-cols-4">
           <SectionCard
             icon={<Clock size={18} />} title="Minha Rotina" subtitle="Seu horário de trabalho."
             action={<Button size="sm" onClick={() => save('rotina')} disabled={savingSection === 'rotina' || loading}><Save size={14} /> Salvar</Button>}
@@ -157,7 +184,7 @@ export function MeuPerfilVendedor() {
                   className="mt-1 h-mx-sm w-mx-sm accent-brand-secondary"
                 />
                 <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-mx-xs text-sm font-black text-text-primary">
+                  <span className="flex items-center gap-mx-xs text-sm font-bold text-text-primary">
                     <BellRing size={14} /> Receber lembrete para Fechar o dia
                   </span>
                   <Typography variant="caption" tone="muted" className="mt-mx-tiny block">
@@ -190,6 +217,21 @@ export function MeuPerfilVendedor() {
             </div>
           </SectionCard>
 
+          <SectionCard
+            icon={<PieChart size={18} />} title="Mix de Canais" subtitle="Internet, carteira e porta/showroom."
+            action={<Button size="sm" onClick={() => save('mix-canais')} disabled={savingSection === 'mix-canais' || loading}><Save size={14} /> Salvar</Button>}
+          >
+            <div className="space-y-mx-sm">
+              <PercentageField label="Internet" value={perfil.mix_canal_internet_pct} onChange={v => updateMixCanal('mix_canal_internet_pct', v)} />
+              <PercentageField label="Carteira" value={perfil.mix_canal_carteira_pct} onChange={v => updateMixCanal('mix_canal_carteira_pct', v)} />
+              <PercentageField label="Porta/Showroom" value={perfil.mix_canal_porta_pct} onChange={v => updateMixCanal('mix_canal_porta_pct', v)} />
+              <div className="rounded-mx-lg bg-surface-alt p-mx-sm">
+                <Typography variant="caption" tone="muted" className="block">Total informado</Typography>
+                <Typography variant="h3" className={mixCanaisTotal > 0 ? 'text-brand-primary' : 'text-text-muted'}>{mixCanaisTotal.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%</Typography>
+              </div>
+            </div>
+          </SectionCard>
+
           <SectionCard icon={<GraduationCap size={18} />} title="Minha Formação" subtitle="Treinamentos e certificações.">
             <div className="space-y-mx-sm">
               <div className="flex items-center justify-between"><Typography variant="p">Treinamentos concluídos</Typography><Typography variant="h3">{treinosConcluidos}</Typography></div>
@@ -197,9 +239,48 @@ export function MeuPerfilVendedor() {
               <div className="flex items-center justify-between"><Typography variant="p">Progresso</Typography><Typography variant="h3">{treinos.length > 0 ? Math.round(treinosConcluidos / treinos.length * 100) : 0}%</Typography></div>
             </div>
           </SectionCard>
+
+          <SectionCard
+            icon={<Briefcase size={18} />} title="Maturidade Comercial" subtitle="Base da trilha N1–N4."
+            action={<Button size="sm" onClick={() => save('maturidade')} disabled={savingSection === 'maturidade' || loading}><Save size={14} /> Salvar</Button>}
+          >
+            <div className="space-y-mx-sm">
+              <div>
+                <Typography variant="caption" tone="muted" className="mb-mx-tiny block">Tempo de mercado (anos)</Typography>
+                <Input
+                  type="number"
+                  min={0}
+                  step={0.5}
+                  value={perfil.tempo_mercado_anos ?? ''}
+                  onChange={e => {
+                    const value = e.target.value
+                    const numberValue = Number(value)
+                    setPerfil({ ...perfil, tempo_mercado_anos: value === '' || !Number.isFinite(numberValue) ? null : Math.max(0, numberValue) })
+                  }}
+                  placeholder="Ex: 5"
+                />
+              </div>
+              <Select
+                label="Experiência declarada"
+                value={perfil.experiencia_declarada || ''}
+                onChange={e => setPerfil({ ...perfil, experiencia_declarada: (e.target.value || null) as VendedorExperienciaDeclarada | null })}
+              >
+                <option value="">Selecione</option>
+                {VENDEDOR_EXPERIENCIA_DECLARADA.map(exp => <option key={exp} value={exp}>{VENDEDOR_EXPERIENCIA_LABEL[exp]}</option>)}
+              </Select>
+              <div>
+                <Typography variant="caption" tone="muted" className="mb-mx-tiny block">Cargo atual</Typography>
+                <Input value={perfil.cargo_atual || ''} onChange={e => setPerfil({ ...perfil, cargo_atual: e.target.value })} placeholder="Ex: Vendedor" />
+              </div>
+              <div className="rounded-mx-lg border border-brand-primary/15 bg-brand-primary/5 p-mx-sm">
+                <Typography variant="caption" tone="muted" className="block">Nível sugerido para trilha</Typography>
+                <Typography variant="h3" className="text-brand-primary">{MATURIDADE_VENDEDOR_LABEL[nivelMaturidade]}</Typography>
+              </div>
+            </div>
+          </SectionCard>
         </div>
 
-        {/* Histórico + Remuneração + Carreira */}
+        {/* Histórico + Remuneração */}
         <div className="grid grid-cols-1 gap-mx-lg xl:grid-cols-3">
           <SectionCard icon={<TrendingUp size={18} />} title="Meu Histórico" subtitle="Acompanhe sua evolução.">
             <div className="grid grid-cols-3 gap-mx-sm">
@@ -214,33 +295,61 @@ export function MeuPerfilVendedor() {
               <div className="space-y-mx-sm">
                 <div className="flex justify-between"><Typography variant="p" tone="muted">Comissão</Typography><Typography variant="p" className="font-semibold">{BRL(remu.comissao)}</Typography></div>
                 <div className="flex justify-between"><Typography variant="p" tone="muted">Bônus</Typography><Typography variant="p" className="font-semibold">{BRL(remu.bonus)}</Typography></div>
-                <div className="flex justify-between border-t border-border-subtle pt-mx-xs"><Typography variant="p" className="font-semibold">Total estimado</Typography><Typography variant="p" className="font-black text-status-success">{BRL(remu.total)}</Typography></div>
+                <div className="flex justify-between border-t border-border-subtle pt-mx-xs"><Typography variant="p" className="font-semibold">Total estimado</Typography><Typography variant="p" className="font-bold text-status-success">{BRL(remu.total)}</Typography></div>
               </div>
             ) : (
               <Typography variant="p" tone="muted">Plano de remuneração não cadastrado. Procure seu gestor.</Typography>
             )}
           </SectionCard>
 
-          <SectionCard
-            icon={<Briefcase size={18} />} title="Oportunidades de Carreira" subtitle="Avance na sua jornada."
-            action={<Button size="sm" onClick={() => save('carreira')} disabled={savingSection === 'carreira' || loading}><Save size={14} /> Salvar</Button>}
-          >
-            <Typography variant="caption" tone="muted">Tenho interesse em receber oportunidades?</Typography>
-            <div className="mt-mx-xs space-y-mx-xs">
-              {([['nao', 'Não tenho interesse'], ['confidencial', 'Sim, apenas confidencialmente'], ['disponivel', 'Sim, disponível para o mercado']] as [CarreiraInteresse, string][]).map(([val, label]) => (
-                <label key={val} className="flex items-center gap-mx-sm cursor-pointer">
-                  <input type="radio" name="carreira" checked={perfil.carreira_interesse === val} onChange={() => setPerfil({ ...perfil, carreira_interesse: val })} />
-                  <Typography variant="p">{label}</Typography>
-                </label>
-              ))}
-            </div>
-            <div className="mt-mx-md grid grid-cols-2 gap-mx-sm">
-              <Input type="number" placeholder="Pretensão mín." value={perfil.pretensao_min ?? ''} onChange={e => setPerfil({ ...perfil, pretensao_min: e.target.value ? Number(e.target.value) : null })} />
-              <Input type="number" placeholder="Pretensão máx." value={perfil.pretensao_max ?? ''} onChange={e => setPerfil({ ...perfil, pretensao_max: e.target.value ? Number(e.target.value) : null })} />
-            </div>
-            <Input className="mt-mx-sm" placeholder="Cargos de interesse" value={perfil.cargos_interesse ?? ''} onChange={e => setPerfil({ ...perfil, cargos_interesse: e.target.value })} />
-            <Input className="mt-mx-sm" placeholder="Cidades de interesse" value={perfil.cidades_interesse ?? ''} onChange={e => setPerfil({ ...perfil, cidades_interesse: e.target.value })} />
-          </SectionCard>
+          {carreiraVisivel && (
+            <SectionCard
+              icon={<Briefcase size={18} />}
+              title="Oportunidades de Carreira"
+              subtitle="Disponibilidade e interesses profissionais."
+              action={<Button size="sm" onClick={() => save('carreira')} disabled={savingSection === 'carreira' || loading}><Save size={14} /> Salvar</Button>}
+            >
+              <div className="grid gap-mx-sm md:grid-cols-2">
+                <Select
+                  label="Disponibilidade"
+                  value={perfil.carreira_interesse}
+                  onChange={e => setPerfil({ ...perfil, carreira_interesse: e.target.value as CarreiraInteresse })}
+                >
+                  <option value="nao">Sem interesse</option>
+                  <option value="confidencial">Confidencial</option>
+                  <option value="disponivel">Disponível</option>
+                </Select>
+                <div>
+                  <Typography variant="caption" tone="muted" className="mb-mx-tiny block">Pretensão mínima</Typography>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={perfil.pretensao_min ?? ''}
+                    onChange={e => setPerfil({ ...perfil, pretensao_min: numberOrNull(e.target.value) })}
+                    placeholder="5000"
+                  />
+                </div>
+                <div>
+                  <Typography variant="caption" tone="muted" className="mb-mx-tiny block">Pretensão máxima</Typography>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={perfil.pretensao_max ?? ''}
+                    onChange={e => setPerfil({ ...perfil, pretensao_max: numberOrNull(e.target.value) })}
+                    placeholder="8000"
+                  />
+                </div>
+                <div>
+                  <Typography variant="caption" tone="muted" className="mb-mx-tiny block">Cargos de interesse</Typography>
+                  <Input value={perfil.cargos_interesse || ''} onChange={e => setPerfil({ ...perfil, cargos_interesse: e.target.value })} placeholder="Gerente comercial" />
+                </div>
+                <div className="md:col-span-2">
+                  <Typography variant="caption" tone="muted" className="mb-mx-tiny block">Cidades de interesse</Typography>
+                  <Input value={perfil.cidades_interesse || ''} onChange={e => setPerfil({ ...perfil, cidades_interesse: e.target.value })} placeholder="Belo Horizonte, São Paulo" />
+                </div>
+              </div>
+            </SectionCard>
+          )}
         </div>
 
         <footer className="flex items-center justify-center gap-mx-xs text-sm font-semibold text-text-secondary">
@@ -258,6 +367,28 @@ function TimeField({ label, value, onChange, disabled = false }: { label: string
       <Input type="time" value={value ? value.slice(0, 5) : ''} onChange={e => onChange(e.target.value)} disabled={disabled} />
     </div>
   )
+}
+
+function PercentageField({ label, value, onChange }: { label: string; value: number | null; onChange: (v: string) => void }) {
+  return (
+    <div>
+      <Typography variant="caption" tone="muted" className="mb-mx-tiny block">{label}</Typography>
+      <Input
+        type="number"
+        min={0}
+        max={100}
+        step={1}
+        value={value ?? ''}
+        onChange={e => onChange(e.target.value)}
+        placeholder="0"
+      />
+    </div>
+  )
+}
+
+function numberOrNull(value: string) {
+  const numberValue = Number(value)
+  return value === '' || !Number.isFinite(numberValue) ? null : Math.max(0, numberValue)
 }
 
 function LabeledArea({ label, value, onChange }: { label: string; value: string | null; onChange: (v: string) => void }) {

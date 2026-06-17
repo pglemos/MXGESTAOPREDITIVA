@@ -2,7 +2,7 @@
 
 **Objetivo:** o Meu Perfil é o **cadastro-base** do vendedor (rotina, objetivos, formação=currículo, remuneração). Alimenta a Central (jornada), a Trilha (maturidade), a comissão (modelo) e o Mercado de Trabalho (currículo).
 
-**Fase:** Julho · **Status:** 🔧 Parcial (cadastro de rotina/objetivos/carreira existe; falta comissionamento configurável, campos de maturidade e ocultar Carreira para vendedor de loja).
+**Fase:** Julho · **Status:** ✅ Done (execução técnica pronta para review).
 
 **Arquivos atuais:** `src/features/crm/MeuPerfilVendedor.container.tsx`, `useVendedorPerfil`, tabela `vendedor_perfil`.
 
@@ -11,6 +11,8 @@
 ## EV-8.1 — Cadastro (rotina, objetivos, formação)
 **Status:** ✅ Done
 
+**Como** vendedor, **quero** manter meu perfil, rotina e objetivos atualizados **para** alimentar Central, treinamentos e currículo.
+
 **Critérios de aceitação:**
 1. Dados pessoais e profissionais.
 2. **Horário de trabalho** (entrada, almoço, saída, dias) — define a Rotina do Dia na Central (EV-3.3).
@@ -18,10 +20,14 @@
 4. Formação (treinamentos/certificações) = base do currículo do Mercado de Trabalho.
 5. Edição real persistida em `vendedor_perfil`.
 
+**Notas técnicas:** `vendedor_perfil` é cadastro-base do vendedor; alterações devem respeitar RLS e alimentar consumidores sem duplicação de campos.
+
+**Dependências:** autenticação/perfil do vendedor existente.
+
 ---
 
 ## EV-8.2 — Campos de maturidade (tempo de mercado, experiência, cargo)
-**Status:** 🆕 Novo
+**Status:** ✅ Done
 
 **Como** sistema, **quero** saber tempo de mercado, experiência e cargo do vendedor **para** atribuir a trilha (N1–N4) e calibrar a estratégia.
 
@@ -32,10 +38,12 @@
 
 **Notas técnicas:** adicionar campos a `vendedor_perfil`; migration.
 
+**Dependências:** EV-5.3 e EV-11.1.
+
 ---
 
 ## EV-8.3 — Comissionamento configurável
-**Status:** 🆕 Novo
+**Status:** ✅ Done
 
 **Como** vendedor/gestor, **quero** configurar o modelo de comissão **para** o sistema calcular minha remuneração corretamente.
 
@@ -57,7 +65,7 @@
 ---
 
 ## EV-8.4 — Ocultar "Oportunidades de Carreira" para vendedor de loja
-**Status:** 🆕 Novo (decisão imediata)
+**Status:** ✅ Done
 
 **Como** dono de loja, **quero** que o vendedor vinculado **não** veja "Oportunidades de Carreira" **para** não estimular saída.
 
@@ -65,5 +73,7 @@
 1. O card/aba "Oportunidades de Carreira" do Meu Perfil **não aparece** para vendedor vinculado a loja com pacote principal.
 2. Aparece apenas para **autônomo**.
 3. Como o conceito de autônomo ainda não existe no sistema, hoje o card fica **oculto para todos** (até EV-12).
+
+**Notas técnicas:** regra de visibilidade deve consultar vínculo canônico de EV-12; enquanto não existir, feature flag/guard mantém card oculto globalmente.
 
 **Dependências:** EV-12.

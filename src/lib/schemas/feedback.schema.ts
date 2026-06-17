@@ -3,7 +3,7 @@ import { z } from 'zod'
 export const FeedbackSchema = z.object({
   id: z.string().uuid(),
   store_id: z.string(),
-  manager_id: z.string(),
+  manager_id: z.string().nullable(),
   seller_id: z.string(),
   week_reference: z.string(),
   leads_week: z.number(),
@@ -17,6 +17,7 @@ export const FeedbackSchema = z.object({
   positives: z.string(),
   attention_points: z.string(),
   action: z.string(),
+  caso_motivo: z.string().nullable().optional().default(null),
   notes: z.string().nullable(),
   team_avg_json: z.record(z.string(), z.unknown()),
   diagnostic_json: z.record(z.string(), z.unknown()),
