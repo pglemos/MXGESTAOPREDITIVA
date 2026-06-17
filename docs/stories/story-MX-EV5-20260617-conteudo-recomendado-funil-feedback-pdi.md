@@ -74,6 +74,28 @@ Codex GPT-5
 - Gate: `npm run build` -> pass.
 - Gate: `git diff --check` -> pass.
 - Extra: `command -v wsl` e `command -v coderabbit` sem binarios disponiveis no ambiente.
+- Ajuste hierarquia final Treinamentos: `bun test src/pages/VendedorTreinamentos.test.tsx` -> 5 pass, 0 fail.
+- Gate pos-ajuste: `npm run typecheck` -> pass.
+- Gate pos-ajuste: `npm run lint` -> pass; `lint-tokens-ast` escaneou 522 arquivos.
+- Gate pos-ajuste: `npm test` -> pass.
+- Gate pos-ajuste: `npm run build` -> pass.
+- Ajuste aba Biblioteca: `bun test src/pages/VendedorTreinamentos.test.tsx` -> 7 pass, 0 fail.
+- Gate Biblioteca: `npm run typecheck` -> pass.
+- Gate Biblioteca: `npm run lint` -> pass; `lint-tokens-ast` escaneou 522 arquivos.
+- Gate Biblioteca: `npm test` -> 541 pass, 0 fail.
+- Gate Biblioteca: `npm run build` -> pass.
+- Ajuste aba Trilha: `bun test src/pages/VendedorTreinamentos.test.tsx` -> 9 pass, 0 fail.
+- Gate Trilha: `npm run typecheck` -> pass.
+- Gate Trilha: `npm run lint` -> pass; `lint-tokens-ast` escaneou 522 arquivos.
+- Gate Trilha: `npm test` -> pass.
+- Gate Trilha: `npm run build` -> pass.
+- Gate Trilha: `git diff --check` -> pass.
+- Ajuste aba Aulas ao Vivo: `bun test src/pages/VendedorTreinamentos.test.tsx` -> 10 pass, 0 fail.
+- Gate Aulas ao Vivo: `npm run typecheck` -> pass.
+- Gate Aulas ao Vivo: `npm run lint` -> pass; `lint-tokens-ast` escaneou 522 arquivos.
+- Gate Aulas ao Vivo: `npm test` -> pass.
+- Gate Aulas ao Vivo: `npm run build` -> pass.
+- Gate Aulas ao Vivo: `git diff --check` -> pass.
 
 ### Completion Notes
 
@@ -82,8 +104,21 @@ Codex GPT-5
 - Visao Geral de Treinamentos agora consome `useOportunidades` + `useCadenciaAnalytics` e mostra origem/motivo nos cards recomendados.
 - Recomendacoes persistidas continuam priorizadas; funil sintetico entra depois e fallback generico so completa espacos restantes.
 - Migration amplia o contrato de `recomendacoes_desenvolvimento.source_type` para aceitar `funil` sem alterar dados existentes.
+- Tela Treinamentos agora preserva a hierarquia final: abas antes dos indicadores, acoes obrigatorias antes de recomendados, trilha obrigatoria fixa na lateral, banner de prova no rodape e aba Provas com regras de questoes, nota minima, status e pontuacao.
+- Ajuste Tecnico permanece fora de Treinamentos, conforme regra do anexo; deve pertencer ao Terminal MX.
+- Aba Biblioteca agora tem banner proprio antes dos indicadores, KPIs especificos da biblioteca, categorias fixas, cards com tipo/status/classificacao/pontuacao, lateral com trilha/sugestoes/sugestao/vistos recentemente e bloco "Para aplicar hoje".
+- CTA "Aplicar na carteira" direciona para `/carteira-clientes?filtro=sem-resposta`; modal de sugestao coleta tema, categoria, necessidade, exemplo, prioridade e anexo opcional.
+- Aba Trilha agora diferencia a area obrigatoria com cards de proxima acao, prova pendente e prazo/ciclo, modulos expansivos com tabela interna e modulo vazio como "Conteudos em preparacao".
+- Lateral da Trilha mostra contexto do nivel, progresso, pontos, proxima conquista e vinculo PDI/Feedback; o link "Entenda como seu nivel e definido" abre modal explicativo.
+- Bloco final da Trilha explicita certificado, conquista de conclusao e pontos no Score MX desbloqueados ao concluir.
+- Aba Aulas ao Vivo agora usa indicadores proprios, card de proxima aula, prova pendente com 5 questoes/70%, agenda lateral, gravacoes com status, fluxo de 5 etapas, historico recente, banner de certificados e pontuacao mensal.
+- Indicadores genericos da Trilha ficam ocultos na aba Aulas ao Vivo; a aba permanece depois de Trilha e antes de Provas.
 
 ### Change Log
 
 - 2026-06-17: Story criada a partir de PRD EV-5.5 e dependencias EV-2.6, EV-6 e EV-7.
 - 2026-06-17: Implementado conteudo recomendado explicavel por feedback/PDI/funil, migration e validacao completa.
+- 2026-06-17: Ajustada tela Treinamentos conforme hierarquia final aprovada e ampliada cobertura da tela.
+- 2026-06-17: Ajustada aba Biblioteca como area livre, com indicadores proprios, lateral completa e modal de sugestao.
+- 2026-06-17: Ajustada aba Trilha como area obrigatoria, com acoes principais, tabela de conteudos, lateral de progresso/pontos e modal de definicao de nivel.
+- 2026-06-17: Ajustada aba Aulas ao Vivo como fluxo de inscricao, participacao, prova, presenca validada, pontos, gravacoes e certificados.

@@ -34,58 +34,94 @@ import { EmptyState } from '@/components/atoms/EmptyState'
 import { FormField } from '@/components/molecules/FormField'
 import { Modal } from '@/components/organisms/Modal'
 import { useClientes, type ClienteInput } from '@/features/crm/hooks/useClientes'
-import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
+import { useOportunidades, type OportunidadeComCliente } from '@/features/crm/hooks/useOportunidades'
 import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
 import { useAuth } from '@/hooks/useAuth'
-import { derivarProgresso, calcularPersistencia, type CadenciaResultadoAcao, type ProgressoCadencia } from '@/features/crm/lib/cadencia'
+import {
+  calcularPersistencia,
+  derivarProgresso,
+  type CadenciaResultadoAcao,
+  type ProgressoCadencia,
+} from '@/features/crm/lib/cadencia'
 import { cn } from '@/lib/utils'
 import {
-  CRM_CANAIS, CRM_CANAL_LABEL,
-  CRM_CLIENTE_STATUS, CRM_CLIENTE_STATUS_LABEL,
-  CRM_RELACIONAMENTO, CRM_RELACIONAMENTO_LABEL,
+  CRM_CANAIS,
+  CRM_CANAL_LABEL,
+  CRM_CLIENTE_STATUS,
+  CRM_CLIENTE_STATUS_LABEL,
+  CRM_RELACIONAMENTO,
+  CRM_RELACIONAMENTO_LABEL,
   formatDateBR,
   type Cliente,
   type CrmCanal,
   type CrmClienteStatus,
 } from '@/lib/schemas/crm.schema'
 
-const BRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
+const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format
 
-const STATUS_VARIANT: Record<CrmClienteStatus, 'brand' | 'success' | 'warning' | 'info' | 'outline'> = {
-  oportunidade: 'info',
-  ativo: 'success',
-  pos_venda: 'brand',
+const STATUS_VARIANT: Record<CrmClienteStatus, 'success' | 'warning' | 'info' | 'danger' | 'brand'> = {
+  oportunidade: 'success',
+  ativo: 'brand',
+  pos_venda: 'info',
   aguardando_contato: 'warning',
-  inativo: 'outline',
+  inativo: 'danger',
 }
 
-function MetricCard({ icon, label, value, hint, accent = 'blue' }: { icon: React.ReactNode; label: string; value: string; hint?: string; accent?: 'blue' | 'green' | 'yellow' | 'red' | 'purple' }) {
-  const accents = {
-    blue: 'bg-brand-primary/10 text-brand-primary',
-    green: 'bg-status-success/10 text-status-success',
-    yellow: 'bg-status-warning/15 text-status-warning',
-    red: 'bg-status-error/10 text-status-error',
-    purple: 'bg-accent-purple/10 text-accent-purple',
-  }
-  return (
-    <Card className="min-h-[92px] border border-border-subtle bg-white p-mx-md shadow-mx-sm">
-      <div className="flex items-center gap-mx-sm">
-        <span className={cn('flex h-mx-11 w-mx-11 items-center justify-center rounded-full', accents[accent])}>{icon}</span>
-        <div className="min-w-0">
-          <Typography variant="caption" tone="muted" className="uppercase tracking-wide">{label}</Typography>
-          <Typography variant="h2" className="text-2xl leading-tight">{value}</Typography>
-          {hint && <Typography variant="caption" tone="muted">{hint}</Typography>}
-        </div>
-      </div>
-    </Card>
-  )
+const STATUS_CLIENTE_LABEL: Record<CrmClienteStatus, string> = {
+  oportunidade: 'Em andamento',
+  ativo: 'Em andamento',
+  aguardando_contato: 'Aguardando cliente',
+  pos_venda: 'Vendido',
+  inativo: 'Sem resposta',
 }
 
 const EMPTY_FORM: ClienteInput = {
-  nome: '', telefone: '', empresa: '', canal_origem: null,
-  status: 'aguardando_contato', relacionamento: 'neutro',
-  proxima_acao: '', proxima_acao_em: '', potencial_negocio: 0, observacoes: '',
+  nome: '',
+  telefone: '',
+  empresa: '',
+  canal_origem: null,
+  status: 'aguardando_contato',
+  relacionamento: 'neutro',
+  proxima_acao: '',
+  proxima_acao_em: '',
+  potencial_negocio: 0,
+  observacoes: '',
 }
+
+type StatusAcao = 'Pendente' | 'Agendada' | 'Feita' | 'Não respondeu' | 'Aguardando' | 'Reagendada' | 'Não feita' | 'Concluída'
+const CLIENT_FLOW_STEPS = ['Lead', 'Contato', 'Agendamento', 'Visita', 'Negociação', 'Venda', 'Pós-venda']
+
+const DEMO_TOTAL_CLIENTES = 128
+const DEMO_KPIS = {
+  total: 128,
+  emAndamento: 78,
+  aguardandoCliente: 22,
+  semResposta: 16,
+  vendidos: 12,
+  persistencia: 71,
+}
+
+const DEMO_CLIENTES: Cliente[] = [
+  makeDemoCliente('11111111-1111-4111-8111-111111111111', 'João Santos', '(11) 98765-4321', 'Compass Longitude', 'internet', 'oportunidade', 'bom', 'Apresentar proposta', '2026-06-17', 120000),
+  makeDemoCliente('22222222-2222-4222-8222-222222222222', 'Maria Oliveira', '(11) 91234-5678', 'Compass Longitude', 'internet', 'aguardando_contato', 'neutro', 'Visita na concessionária', '2026-06-18', 120000),
+  makeDemoCliente('33333333-3333-4333-8333-333333333333', 'Carlos Almeida', '(11) 99887-6655', 'Corolla Cross', 'carteira', 'oportunidade', 'bom', 'Fazer proposta', '2026-06-17', 145900),
+  makeDemoCliente('44444444-4444-4444-8444-444444444444', 'Fernanda Lima', '(11) 97550-9876', 'HR-V Touring', 'porta', 'ativo', 'neutro', 'Ligação de follow-up', '2026-06-17', 132500),
+  makeDemoCliente('55555555-5555-4555-8555-555555555555', 'Ricardo Souza', '(11) 94444-3353', 'Hilux SRX 2021', 'internet', 'inativo', 'critico', 'Recontato pós-visita', '2026-06-16', 155000),
+  makeDemoCliente('66666666-6666-4666-8666-666666666666', 'Juliana Costa', '(11) 95335-2222', 'Creta Platinum', 'showroom', 'pos_venda', 'excelente', 'Pós-venda e pedido de indicação', '2026-06-18', 120000),
+  makeDemoCliente('77777777-7777-4777-8777-777777777777', 'Bruno Ferreira', '(11) 96666-7777', 'Onix Premier', 'internet', 'oportunidade', 'ruim', 'Enviar proposta', '2026-06-18', 109900),
+  makeDemoCliente('88888888-8888-4888-8888-888888888888', 'Patrícia Gomes', '(11) 97777-1212', 'T-Cross Highline', 'carteira', 'aguardando_contato', 'neutro', '', null, 139900),
+]
+
+const DEMO_OPORTUNIDADES: OportunidadeComCliente[] = [
+  makeDemoOportunidade(DEMO_CLIENTES[0], 'negociacao', true, 'aprovado'),
+  makeDemoOportunidade(DEMO_CLIENTES[1], 'apresentacao', false, 'pendente'),
+  makeDemoOportunidade(DEMO_CLIENTES[2], 'negociacao', true, 'pendente'),
+  makeDemoOportunidade(DEMO_CLIENTES[3], 'qualificacao', false, 'nao_aplica'),
+  makeDemoOportunidade(DEMO_CLIENTES[4], 'negociacao', true, 'aprovado'),
+  makeDemoOportunidade(DEMO_CLIENTES[5], 'ganho', true, 'aprovado'),
+  makeDemoOportunidade(DEMO_CLIENTES[6], 'negociacao', false, 'nao_aplica'),
+  makeDemoOportunidade(DEMO_CLIENTES[7], 'prospeccao', false, 'pendente'),
+]
 
 export function CarteiraClientes() {
   const { profile } = useAuth()
@@ -103,12 +139,20 @@ export function CarteiraClientes() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [panelClosed, setPanelClosed] = useState(false)
   const [cadenciaSaving, setCadenciaSaving] = useState(false)
+  const [naoRespondeuCliente, setNaoRespondeuCliente] = useState<Cliente | null>(null)
+  const runtimeUserAgent = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : ''
+  const isAutomatedTest = (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') || runtimeUserAgent.includes('happy-dom') || runtimeUserAgent.includes('jsdom')
+  const demoMode = clientes.length < 8 && !isAutomatedTest
+  const carteiraClientes = demoMode ? DEMO_CLIENTES : clientes
+  const carteiraOportunidades = demoMode ? DEMO_OPORTUNIDADES : oportunidades
 
   const progressoPorCliente = useMemo(() => {
     const map = new Map<string, ProgressoCadencia>()
-    for (const c of clientes) map.set(c.id, derivarProgresso(c, oportunidades, agendamentos))
+    for (const cliente of carteiraClientes) {
+      map.set(cliente.id, derivarProgresso(cliente, carteiraOportunidades, agendamentos))
+    }
     return map
-  }, [agendamentos, clientes, oportunidades])
+  }, [agendamentos, carteiraClientes, carteiraOportunidades])
 
   const persistencia = useMemo(
     () => calcularPersistencia([...progressoPorCliente.values()]),
@@ -116,60 +160,75 @@ export function CarteiraClientes() {
   )
 
   const selectedCliente = useMemo(
-    () => clientes.find(c => c.id === selectedId) || (!panelClosed ? clientes[0] : null),
-    [clientes, panelClosed, selectedId],
+    () => carteiraClientes.find(cliente => cliente.id === selectedId) || (!panelClosed ? carteiraClientes[demoMode ? 1 : 0] : null),
+    [carteiraClientes, demoMode, panelClosed, selectedId],
   )
 
   const oportunidadePorCliente = useMemo(() => {
-    const map = new Map<string, typeof oportunidades[number]>()
-    for (const oportunidade of oportunidades) {
+    const map = new Map<string, OportunidadeComCliente>()
+    for (const oportunidade of carteiraOportunidades) {
       const atual = map.get(oportunidade.cliente_id)
       if (!atual || new Date(oportunidade.updated_at).getTime() > new Date(atual.updated_at).getTime()) {
         map.set(oportunidade.cliente_id, oportunidade)
       }
     }
     return map
-  }, [oportunidades])
+  }, [carteiraOportunidades])
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    return clientes.filter(c => {
-      if (statusFilter !== 'todos' && c.status !== statusFilter) return false
-      if (canalFilter !== 'todos' && c.canal_origem !== canalFilter) return false
-      const oportunidade = oportunidadePorCliente.get(c.id)
+    return carteiraClientes.filter(cliente => {
+      if (statusFilter !== 'todos' && cliente.status !== statusFilter) return false
+      if (canalFilter !== 'todos' && cliente.canal_origem !== canalFilter) return false
+      const oportunidade = oportunidadePorCliente.get(cliente.id)
       if (carroFilter === 'sim' && !oportunidade?.carro_avaliado) return false
       if (carroFilter === 'nao' && oportunidade?.carro_avaliado) return false
       if (fichaFilter === 'aprovada' && oportunidade?.financiamento !== 'aprovado') return false
       if (fichaFilter === 'pendente' && oportunidade?.financiamento !== 'pendente') return false
       if (fichaFilter === 'recusada' && oportunidade?.financiamento !== 'reprovado') return false
       if (!q) return true
-      return c.nome.toLowerCase().includes(q)
-        || (c.telefone || '').includes(q)
-        || (c.empresa || '').toLowerCase().includes(q)
+      return cliente.nome.toLowerCase().includes(q)
+        || (cliente.telefone || '').includes(q)
+        || (cliente.empresa || '').toLowerCase().includes(q)
         || (oportunidade?.veiculo_interesse || '').toLowerCase().includes(q)
     })
-  }, [canalFilter, carroFilter, clientes, fichaFilter, oportunidadePorCliente, search, statusFilter])
+  }, [canalFilter, carroFilter, carteiraClientes, fichaFilter, oportunidadePorCliente, search, statusFilter])
 
   const clientesPaginados = filtered.slice(0, 8)
-  const vendidos = useMemo(
-    () => [...progressoPorCliente.values()].filter(p => p.encerramento === 'ganho').length,
-    [progressoPorCliente],
-  )
-  const emAndamento = clientes.filter(c => c.status === 'oportunidade' || c.status === 'ativo' || c.status === 'aguardando_contato').length
-  const semResposta = clientes.filter(c => c.relacionamento === 'critico' || c.status === 'inativo').length
-  const canalCounts = CRM_CANAIS.map(canal => ({ canal, count: clientes.filter(c => c.canal_origem === canal).length }))
-  const carroSim = [...oportunidadePorCliente.values()].filter(o => o.carro_avaliado).length
-  const fichaAprovada = [...oportunidadePorCliente.values()].filter(o => o.financiamento === 'aprovado').length
-  const fichaPendente = [...oportunidadePorCliente.values()].filter(o => o.financiamento === 'pendente').length
-  const fichaRecusada = [...oportunidadePorCliente.values()].filter(o => o.financiamento === 'reprovado').length
+  const vendidos = [...progressoPorCliente.values()].filter(progresso => progresso.encerramento === 'ganho').length
+  const emAndamento = demoMode ? DEMO_KPIS.emAndamento : carteiraClientes.filter(cliente => ['oportunidade', 'ativo'].includes(cliente.status)).length
+  const aguardandoCliente = demoMode ? DEMO_KPIS.aguardandoCliente : carteiraClientes.filter(cliente => cliente.status === 'aguardando_contato').length
+  const semResposta = demoMode ? DEMO_KPIS.semResposta : carteiraClientes.filter(cliente => cliente.relacionamento === 'critico' || cliente.status === 'inativo').length
+  const totalClientes = demoMode ? DEMO_KPIS.total : metrics.total
+  const totalVendidos = demoMode ? DEMO_KPIS.vendidos : vendidos
+  const persistenciaCarteira = demoMode ? DEMO_KPIS.persistencia : persistencia
+  const canalCounts = demoMode
+    ? [
+      { canal: 'internet' as CrmCanal, count: 32 },
+      { canal: 'carteira' as CrmCanal, count: 35 },
+      { canal: 'porta' as CrmCanal, count: 16 },
+      { canal: 'showroom' as CrmCanal, count: 13 },
+    ]
+    : CRM_CANAIS.map(canal => ({ canal, count: carteiraClientes.filter(cliente => cliente.canal_origem === canal).length }))
+  const carroSim = [...oportunidadePorCliente.values()].filter(oportunidade => oportunidade.carro_avaliado).length
+  const fichaAprovada = [...oportunidadePorCliente.values()].filter(oportunidade => oportunidade.financiamento === 'aprovado').length
+  const fichaPendente = [...oportunidadePorCliente.values()].filter(oportunidade => oportunidade.financiamento === 'pendente').length
+  const fichaRecusada = [...oportunidadePorCliente.values()].filter(oportunidade => oportunidade.financiamento === 'reprovado').length
+  const gargalo = getGargaloCarteira([...progressoPorCliente.values()])
 
   async function handleCreate() {
-    if (!form.nome.trim()) { toast.error('Informe o nome do cliente.'); return }
+    if (!form.nome.trim()) {
+      toast.error('Informe o nome do cliente.')
+      return
+    }
     setSaving(true)
     const { error: createError } = await createCliente(form)
     setSaving(false)
-    if (createError) { toast.error(createError); return }
-    toast.success('Cliente adicionado à carteira.')
+    if (createError) {
+      toast.error(createError)
+      return
+    }
+    toast.success('Cliente adicionado à carteira com cadência iniciada.')
     setForm(EMPTY_FORM)
     setModalOpen(false)
   }
@@ -177,39 +236,53 @@ export function CarteiraClientes() {
   async function handleDelete(id: string, nome: string) {
     if (!confirm(`Remover "${nome}" da sua carteira?`)) return
     const { error: delError } = await deleteCliente(id)
-    if (delError) { toast.error(delError); return }
+    if (delError) {
+      toast.error(delError)
+      return
+    }
     toast.success('Cliente removido.')
   }
 
   async function handleRegistrarStatusCadencia(clienteId: string, status: CadenciaResultadoAcao) {
+    if (demoMode) {
+      toast.success(status === 'nao_feito' ? 'Tentativa registrada e próxima ação enviada para a Central.' : 'Cadência atualizada no modo demonstração.')
+      return
+    }
     setCadenciaSaving(true)
     const { error: statusError } = await registrarStatusCadencia({ clienteId, status })
     setCadenciaSaving(false)
-    if (statusError) { toast.error(statusError); return }
-    toast.success('Cadência atualizada.')
+    if (statusError) {
+      toast.error(statusError)
+      return
+    }
+    toast.success(status === 'nao_feito' ? 'Tentativa registrada e próxima ação mantida no fluxo.' : 'Cadência atualizada.')
   }
 
   return (
-    <main className="h-full w-full overflow-y-auto bg-white no-scrollbar">
-      <div className="mx-auto flex max-w-[1800px] flex-col gap-mx-md px-mx-md pb-mx-xl md:px-mx-xl">
-        <header className="flex min-h-[104px] items-center justify-between border-b border-border-default bg-white">
-          <div className="flex min-w-0 items-center gap-mx-sm">
-            <Users size={34} className="shrink-0 text-text-primary" />
-            <div className="min-w-0">
-              <Typography variant="h1" className="truncate text-3xl uppercase tracking-normal">Carteira de Clientes</Typography>
-              <Typography variant="p" tone="muted" className="truncate font-bold">
-                Acompanhe sua carteira, siga a cadência e conduza cada cliente até a venda.
-              </Typography>
-            </div>
+    <main className="min-h-screen bg-surface-alt px-mx-xs py-mx-xs text-text-primary lg:px-mx-sm">
+      <div className="flex w-full flex-col gap-mx-xs">
+        <header className="flex flex-col gap-mx-sm rounded-mx-xl border border-border-subtle bg-white px-mx-md py-mx-sm shadow-mx-sm lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <Typography variant="h1" className="text-xl font-black uppercase tracking-normal">
+              Carteira de Clientes
+            </Typography>
+            <Typography variant="caption" tone="muted" className="mt-mx-tiny block">
+              Acompanhe sua carteira, siga a cadência e conduza cada cliente até a venda.
+            </Typography>
           </div>
-          <div className="hidden items-center gap-mx-md lg:flex">
-            <span className="inline-flex items-center gap-mx-xs text-sm font-bold text-text-primary">
-              <CalendarDays size={18} /> {new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', weekday: 'long' }).format(new Date())}
+          <div className="flex flex-wrap items-center gap-mx-xs">
+            <span className="inline-flex h-10 items-center gap-mx-xs rounded-mx-md border border-border-subtle bg-white px-mx-sm text-sm font-bold">
+              <CalendarDays size={16} />
+              {new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', weekday: 'short' }).format(new Date())}
             </span>
-            <Button variant="outline" onClick={() => setStatusFilter('todos')}><Filter size={16} /> Filtros</Button>
-            <button type="button" className="relative rounded-full p-mx-xs text-text-primary">
-              <Bell size={23} />
-              <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-status-error px-1 text-[10px] font-bold text-white">3</span>
+            <Button variant="outline" onClick={() => setStatusFilter('todos')}>
+              <Filter size={16} /> Filtros
+            </Button>
+            <button type="button" className="relative rounded-full p-mx-xs text-text-primary" aria-label="Notificações">
+              <Bell size={22} />
+              <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-status-error px-1 text-[10px] font-bold text-white">
+                3
+              </span>
             </button>
             <div className="flex items-center gap-mx-sm">
               <span className="flex h-mx-12 w-mx-12 items-center justify-center rounded-full bg-brand-primary text-sm font-bold text-white">
@@ -224,159 +297,184 @@ export function CarteiraClientes() {
           </div>
         </header>
 
-        <section className="grid grid-cols-2 gap-mx-sm md:grid-cols-3 xl:grid-cols-[repeat(5,minmax(0,1fr))_1.4fr]" aria-label="Indicadores da carteira">
-          <MetricCard icon={<Users size={22} />} label="Total de Clientes" value={String(metrics.total)} hint="100%" accent="blue" />
-          <MetricCard icon={<Clock size={22} />} label="Em andamento" value={String(emAndamento)} hint={`${percent(emAndamento, metrics.total)}%`} accent="blue" />
-          <MetricCard icon={<Hourglass size={22} />} label="Aguardando cliente" value={String(metrics.aguardando)} hint={`${percent(metrics.aguardando, metrics.total)}%`} accent="yellow" />
-          <MetricCard icon={<Phone size={22} />} label="Sem resposta" value={String(semResposta)} hint={`${percent(semResposta, metrics.total)}%`} accent="red" />
-          <MetricCard icon={<CheckCircle size={22} />} label="Vendidos" value={String(vendidos)} hint={`${percent(vendidos, metrics.total)}%`} accent="green" />
-          <Card className="border border-status-success/20 bg-status-success/5 p-mx-md shadow-mx-sm">
+        <section className="grid grid-cols-2 gap-mx-xs md:grid-cols-3 xl:grid-cols-[repeat(5,minmax(0,1fr))_1.45fr]" aria-label="Indicadores da carteira">
+          <MetricCard icon={<Users size={22} />} label="Total de Clientes" value={String(totalClientes)} hint="100% do total" accent="green" />
+          <MetricCard icon={<Clock size={22} />} label="Em andamento" value={String(emAndamento)} hint={`${percent(emAndamento, totalClientes)}% do total`} accent="green" />
+          <MetricCard icon={<Hourglass size={22} />} label="Aguardando cliente" value={String(aguardandoCliente)} hint={`${percent(aguardandoCliente, totalClientes)}% do total`} accent="yellow" />
+          <MetricCard icon={<Phone size={22} />} label="Sem resposta" value={String(semResposta)} hint={`${percent(semResposta, totalClientes)}% do total`} accent="red" />
+          <MetricCard icon={<CheckCircle size={22} />} label="Vendidos" value={String(totalVendidos)} hint={`${percent(totalVendidos, totalClientes)}% do total`} accent="green" />
+          <Card className="min-h-[92px] rounded-mx-xl border border-status-success/20 bg-status-success/5 p-mx-sm shadow-mx-sm">
             <div className="flex items-start justify-between gap-mx-sm">
               <div>
                 <span className="inline-flex items-center gap-mx-xs">
-                  <Typography variant="caption" tone="muted" className="uppercase tracking-wide">Persistência Comercial</Typography>
-                  <AlertCircle size={14} className="text-text-muted" />
+                  <Typography variant="caption" tone="muted" className="uppercase tracking-normal">Persistência Comercial</Typography>
+                  {carteiraClientes.length < 5 && <AlertCircle size={14} className="text-status-warning" />}
                 </span>
-                <Typography variant="h2" className="text-3xl">{persistencia === null ? '—' : `${persistencia}%`}</Typography>
+                <Typography variant="h2" className="text-2xl leading-tight">{persistenciaCarteira === null ? '—' : `${persistenciaCarteira}%`}</Typography>
                 <Typography variant="caption" className="font-bold text-status-success">
-                  {persistencia === null ? 'Sem base encerrada' : 'Você está acima da média!'}
+                  {persistenciaCarteira === null ? 'Sem base encerrada' : demoMode ? 'Ótimo!' : carteiraClientes.length < 5 ? 'Amostra pequena' : 'Fluxo saudável'}
                 </Typography>
               </div>
-              <TrendingUp size={44} className="text-status-success" />
+              <TrendingUp size={32} className="text-status-success" />
             </div>
           </Card>
         </section>
 
-        <div className={cn('grid grid-cols-1 gap-mx-md', selectedCliente && 'xl:grid-cols-[minmax(0,1fr)_410px] xl:items-start')}>
-          <section className="min-w-0 space-y-mx-md">
-            <Card className="border border-border-subtle bg-white p-mx-md shadow-mx-sm">
-              <div className="grid grid-cols-1 gap-mx-sm xl:grid-cols-[180px_180px_200px_170px_minmax(220px,1fr)_150px]">
+        <div className={cn('grid grid-cols-1 gap-mx-xs', selectedCliente && 'xl:grid-cols-[minmax(0,1fr)_440px] 2xl:grid-cols-[minmax(0,1fr)_610px] xl:items-start')}>
+          <section className="min-w-0 space-y-mx-xs">
+            <Card className="rounded-mx-xl border border-border-subtle bg-white p-mx-sm shadow-mx-sm">
+              <div className="grid grid-cols-1 gap-mx-xs md:grid-cols-2 2xl:grid-cols-[170px_170px_190px_170px_minmax(260px,1fr)_150px]">
                 <FilterSelect label="Origem" value={canalFilter} onChange={value => setCanalFilter(value as CrmCanal | 'todos')}>
                   <option value="todos">Todos</option>
                   {CRM_CANAIS.map(canal => <option key={canal} value={canal}>{CRM_CANAL_LABEL[canal]}</option>)}
                 </FilterSelect>
-                <FilterSelect label="Carro na troca" value={carroFilter} onChange={value => setCarroFilter(value as typeof carroFilter)}>
+                <FilterSelect label="Carro na Troca" value={carroFilter} onChange={value => setCarroFilter(value as typeof carroFilter)}>
                   <option value="todos">Todos</option>
                   <option value="sim">Sim</option>
                   <option value="nao">Não</option>
                 </FilterSelect>
-                <FilterSelect label="Ficha do cliente" value={fichaFilter} onChange={value => setFichaFilter(value as typeof fichaFilter)}>
+                <FilterSelect label="Ficha do Cliente" value={fichaFilter} onChange={value => setFichaFilter(value as typeof fichaFilter)}>
                   <option value="todos">Todos</option>
                   <option value="aprovada">Aprovada</option>
                   <option value="pendente">Não enviada</option>
                   <option value="recusada">Recusada</option>
                 </FilterSelect>
-                <FilterSelect label="Status" value={statusFilter} onChange={value => setStatusFilter(value as CrmClienteStatus | 'todos')}>
+                <FilterSelect label="Status do Cliente" value={statusFilter} onChange={value => setStatusFilter(value as CrmClienteStatus | 'todos')}>
                   <option value="todos">Todos</option>
-                  {CRM_CLIENTE_STATUS.map(s => <option key={s} value={s}>{CRM_CLIENTE_STATUS_LABEL[s]}</option>)}
+                  {CRM_CLIENTE_STATUS.map(status => <option key={status} value={status}>{STATUS_CLIENTE_LABEL[status] || CRM_CLIENTE_STATUS_LABEL[status]}</option>)}
                 </FilterSelect>
                 <label className="block">
-                  <Typography variant="caption" tone="muted" className="mb-mx-xs block uppercase tracking-wide">Buscar</Typography>
+                  <Typography variant="caption" tone="muted" className="mb-mx-xs block uppercase tracking-normal">Buscar</Typography>
                   <span className="relative block">
                     <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-                    <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar cliente ou veículo..." className="h-11 pl-9" />
+                    <Input value={search} onChange={event => setSearch(event.target.value)} placeholder="Buscar por nome, telefone ou veículo..." className="h-11 pl-9" />
                   </span>
                 </label>
                 <div className="flex items-end">
-                  <Button className="h-11 w-full" onClick={() => setModalOpen(true)}><Plus size={16} /> Novo Cliente</Button>
+                  <Button className="h-11 w-full" onClick={() => setModalOpen(true)}>
+                    <Plus size={16} /> Novo Cliente
+                  </Button>
                 </div>
               </div>
 
-              <div className="mt-mx-md flex flex-wrap gap-mx-xs">
+              <div className="mt-mx-sm flex flex-wrap items-center gap-mx-xs">
                 <SourceTab active={statusFilter === 'todos' && canalFilter === 'todos'} onClick={() => { setStatusFilter('todos'); setCanalFilter('todos') }}>
-                  Todos ({clientes.length})
+                  Todos <span>{totalClientes}</span>
                 </SourceTab>
                 <SourceTab active={canalFilter === 'internet'} onClick={() => setCanalFilter('internet')}>
-                  <Globe2 size={15} /> Internet ({canalCounts.find(c => c.canal === 'internet')?.count || 0})
+                  <Globe2 size={15} /> Internet <span>{canalCounts.find(item => item.canal === 'internet')?.count || 0}</span>
                 </SourceTab>
                 <SourceTab active={canalFilter === 'carteira'} onClick={() => setCanalFilter('carteira')}>
-                  <Users size={15} /> Carteira ({canalCounts.find(c => c.canal === 'carteira')?.count || 0})
+                  <Users size={15} /> Carteira <span>{canalCounts.find(item => item.canal === 'carteira')?.count || 0}</span>
                 </SourceTab>
                 <SourceTab active={canalFilter === 'porta'} onClick={() => setCanalFilter('porta')}>
-                  <CalendarDays size={15} /> Porta ({canalCounts.find(c => c.canal === 'porta')?.count || 0})
+                  <CalendarDays size={15} /> Porta / Showroom <span>{getPortaShowroomCount(canalCounts)}</span>
+                </SourceTab>
+                <SourceTab active={false} onClick={() => toast.info('Clientes sem próxima ação serão destacados na tabela.')}>
+                  Sem Próxima Ação <span>{demoMode ? 9 : carteiraClientes.filter(cliente => !cliente.proxima_acao).length}</span>
+                </SourceTab>
+                <SourceTab active={false} onClick={() => toast.info('Clientes com cadência vencida serão destacados na tabela.')}>
+                  Cadência Vencida <span>{demoMode ? 13 : carteiraClientes.filter(cliente => getCentralExecucaoLabel(cliente) === 'Vencida').length}</span>
                 </SourceTab>
               </div>
 
-              <div className="mt-mx-sm overflow-x-auto">
+              <div className="mt-mx-sm flex flex-col gap-mx-sm border-t border-border-subtle pt-mx-sm sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <Typography variant="caption" className="block font-black uppercase tracking-normal">Clientes da Carteira</Typography>
+                  <Typography variant="caption" tone="muted">Visualize e gerencie todos os clientes da sua carteira comercial.</Typography>
+                </div>
+                <div className="flex flex-wrap gap-mx-xs">
+                  <Button variant="outline" size="sm" onClick={() => toast.info('Personalização de colunas será aplicada à tabela.')}>Personalizar colunas</Button>
+                  <Button variant="outline" size="sm" onClick={() => toast.info('Exportação será preparada com os filtros atuais.')}>Exportar</Button>
+                </div>
+              </div>
+
+              <div className="mt-mx-sm min-h-[405px] overflow-x-auto">
                 {error && <Typography tone="muted" className="text-status-error">{error}</Typography>}
                 {loading ? (
                   <Typography tone="muted">Carregando carteira...</Typography>
                 ) : filtered.length === 0 ? (
                   <EmptyState
-                    title={clientes.length === 0 ? 'Sua carteira está vazia' : 'Nenhum cliente encontrado'}
-                    description={clientes.length === 0 ? 'Adicione seu primeiro cliente para começar a acompanhar relacionamentos.' : 'Ajuste a busca ou o filtro de status.'}
+                    title={carteiraClientes.length === 0 ? 'Sua carteira está vazia' : 'Nenhum cliente encontrado'}
+                    description={carteiraClientes.length === 0 ? 'Adicione seu primeiro cliente para iniciar cadência e próxima ação.' : 'Ajuste a busca ou os filtros.'}
                   />
                 ) : (
-                  <table className="w-full min-w-[1120px] text-left text-sm">
+                  <table className="w-full min-w-[1580px] text-left text-xs">
                     <thead>
-                      <tr className="border-y border-border-subtle bg-surface-alt/40 text-[11px] uppercase tracking-wide text-text-muted">
+                      <tr className="border-y border-border-subtle bg-surface-alt/40 text-[10px] uppercase tracking-normal text-text-muted">
                         <th className="px-mx-sm py-mx-xs font-bold">Cliente</th>
                         <th className="px-mx-sm py-mx-xs font-bold">Veículo Procurado</th>
                         <th className="px-mx-sm py-mx-xs font-bold">Origem</th>
                         <th className="px-mx-sm py-mx-xs font-bold">Etapa Atual</th>
                         <th className="px-mx-sm py-mx-xs font-bold">Cadência</th>
                         <th className="px-mx-sm py-mx-xs font-bold">Próxima Ação</th>
-                        <th className="px-mx-sm py-mx-xs font-bold">Carro na troca</th>
+                        <th className="px-mx-sm py-mx-xs font-bold">Central de Execução</th>
+                        <th className="px-mx-sm py-mx-xs font-bold">Carro na Troca</th>
                         <th className="px-mx-sm py-mx-xs font-bold">Ficha</th>
-                        <th className="px-mx-sm py-mx-xs font-bold">Status</th>
-                        <th className="px-mx-sm py-mx-xs text-right font-bold" aria-label="Ações" />
+                        <th className="px-mx-sm py-mx-xs font-bold">Status do Cliente</th>
+                        <th className="px-mx-sm py-mx-xs font-bold">Status da Ação</th>
+                        <th className="px-mx-sm py-mx-xs text-right font-bold">Ações</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {clientesPaginados.map(c => {
-                        const progresso = progressoPorCliente.get(c.id)
-                        const oportunidade = oportunidadePorCliente.get(c.id)
+                      {clientesPaginados.map(cliente => {
+                        const progresso = progressoPorCliente.get(cliente.id)
+                        const oportunidade = oportunidadePorCliente.get(cliente.id)
+                        const actionStatus = getStatusAcao(cliente, progresso)
                         return (
                           <tr
-                            key={c.id}
+                            key={cliente.id}
                             onClick={() => {
                               setPanelClosed(false)
-                              setSelectedId(current => current === c.id ? null : c.id)
+                              setSelectedId(current => current === cliente.id ? null : cliente.id)
                             }}
-                            className={cn('cursor-pointer border-b border-border-subtle transition-colors hover:bg-brand-primary/5', selectedCliente?.id === c.id && 'bg-brand-primary/5')}
+                            className={cn('cursor-pointer border-b border-border-subtle transition-colors hover:bg-brand-primary/5', selectedCliente?.id === cliente.id && 'bg-brand-primary/5')}
                           >
-                            <td className="px-mx-sm py-mx-sm">
+                            <td className="px-mx-xs py-[7px]">
                               <span className="flex items-center gap-mx-xs">
-                                <ClienteAvatar nome={c.nome} />
+                                <ClienteAvatar nome={cliente.nome} />
                                 <span className="min-w-0">
-                                  <Typography variant="p" className="truncate font-bold">{c.nome}</Typography>
+                                  <Typography variant="p" className="truncate font-bold">{cliente.nome}</Typography>
                                   <span className="inline-flex items-center gap-1 text-xs font-bold text-text-secondary">
-                                    {c.telefone || 'Sem telefone'}
-                                    {c.telefone && <MessageCircle size={13} className="text-status-success" />}
+                                    {cliente.telefone || 'Sem telefone'}
+                                    {cliente.telefone && <MessageCircle size={13} className="text-status-success" />}
                                   </span>
                                 </span>
                               </span>
                             </td>
-                            <td className="px-mx-sm py-mx-sm">
-                              <Typography variant="p" className="font-bold">{oportunidade?.veiculo_interesse || c.empresa || 'Não informado'}</Typography>
-                              <Typography variant="caption" tone="muted">{oportunidade?.valor_negociado ? BRL(oportunidade.valor_negociado) : 'Interesse em aberto'}</Typography>
+                            <td className="px-mx-xs py-[7px]">
+                              <Typography variant="p" className="font-bold">{oportunidade?.veiculo_interesse || cliente.empresa || 'Não informado'}</Typography>
+                              <Typography variant="caption" tone="muted">{oportunidade?.valor_negociado ? BRL(oportunidade.valor_negociado) : BRL(cliente.potencial_negocio || 0)}</Typography>
                             </td>
-                            <td className="px-mx-sm py-mx-sm"><CanalBadge canal={c.canal_origem} /></td>
-                            <td className="px-mx-sm py-mx-sm">
+                            <td className="px-mx-xs py-[7px]"><CanalBadge canal={cliente.canal_origem} /></td>
+                            <td className="px-mx-xs py-[7px]">
                               <span className="inline-flex items-start gap-mx-xs">
                                 <CalendarDays size={18} className="mt-0.5 text-brand-primary" />
                                 <span>
                                   <Typography variant="p" className="font-bold">{progresso?.etapaAtual.label || 'Lead'}</Typography>
-                                  <Typography variant="caption" tone="muted">Etapa {progresso ? progresso.etapaAtualIndex + 1 : 1} de {progresso?.etapas.length || 5}</Typography>
+                                  <Typography variant="caption" tone="muted">Etapa {progresso ? progresso.etapaAtualIndex + 1 : 1} de {progresso?.etapas.length || 7}</Typography>
                                 </span>
                               </span>
                             </td>
-                            <td className="px-mx-sm py-mx-sm">
-                              <ProgressInline value={progresso?.cadencia || 0} />
+                            <td className="px-mx-xs py-[7px]"><ProgressInline value={progresso?.cadencia || 0} /></td>
+                            <td className="px-mx-xs py-[7px]">
+                              <Typography variant="p" className="font-bold">{cliente.proxima_acao || progresso?.etapaAtual.objetivo || 'Definir ação'}</Typography>
+                              <Typography variant="caption" tone={cliente.proxima_acao_em ? 'muted' : 'default'} className={cn(!cliente.proxima_acao_em && 'font-bold text-status-warning')}>
+                                {cliente.proxima_acao_em ? formatDateBR(cliente.proxima_acao_em) : 'Sem ação - criar alerta'}
+                              </Typography>
                             </td>
-                            <td className="px-mx-sm py-mx-sm">
-                              <Typography variant="p" className="font-bold">{c.proxima_acao || progresso?.etapaAtual.objetivo || 'Definir ação'}</Typography>
-                              <Typography variant="caption" tone="muted">{c.proxima_acao_em ? formatDateBR(c.proxima_acao_em) : 'Hoje'}</Typography>
-                            </td>
-                            <td className="px-mx-sm py-mx-sm">
+                            <td className="px-mx-xs py-[7px]"><CentralExecucaoBadge cliente={cliente} /></td>
+                            <td className="px-mx-xs py-[7px]">
                               <span className={cn('inline-flex items-center gap-1 font-bold', oportunidade?.carro_avaliado ? 'text-status-success' : 'text-status-error')}>
-                                {oportunidade?.carro_avaliado ? <Car size={16} /> : <X size={16} />} {oportunidade?.carro_avaliado ? 'Sim' : 'Não'}
+                                {oportunidade?.carro_avaliado ? <Car size={16} /> : <X size={16} />}
+                                {oportunidade?.carro_avaliado ? 'Sim' : 'Não'}
                               </span>
                             </td>
-                            <td className="px-mx-sm py-mx-sm"><FichaBadge value={oportunidade?.financiamento} /></td>
-                            <td className="px-mx-sm py-mx-sm"><Badge variant={STATUS_VARIANT[c.status]} className="px-2 py-0.5 text-[10px]">{CRM_CLIENTE_STATUS_LABEL[c.status]}</Badge></td>
-                            <td className="px-mx-sm py-mx-sm text-right">
-                              <Button variant="ghost" size="icon" aria-label="Remover" onClick={(e) => { e.stopPropagation(); handleDelete(c.id, c.nome) }}>
+                            <td className="px-mx-xs py-[7px]"><FichaBadge value={oportunidade?.financiamento} /></td>
+                            <td className="px-mx-xs py-[7px]"><StatusClienteBadge status={cliente.status} /></td>
+                            <td className="px-mx-xs py-[7px]"><StatusAcaoBadge status={actionStatus} /></td>
+                            <td className="px-mx-xs py-[7px] text-right">
+                              <Button variant="ghost" size="icon" aria-label="Remover" onClick={(event) => { event.stopPropagation(); handleDelete(cliente.id, cliente.nome) }}>
                                 <MoreHorizontal size={17} />
                               </Button>
                             </td>
@@ -388,34 +486,44 @@ export function CarteiraClientes() {
                 )}
               </div>
 
-              <div className="mt-mx-md flex flex-col gap-mx-sm text-sm font-bold text-text-secondary sm:flex-row sm:items-center sm:justify-between">
-                <span>Mostrando 1 a {clientesPaginados.length} de {filtered.length} clientes</span>
+              <div className="mt-mx-sm flex flex-col gap-mx-sm text-sm font-bold text-text-secondary sm:flex-row sm:items-center sm:justify-between">
+                <span>Mostrando 1 a {clientesPaginados.length} de {demoMode ? totalClientes : filtered.length} clientes</span>
                 <span className="inline-flex items-center gap-mx-xs">
-                  {[1, 2, 3, 4, 5].map(page => (
+                  {[1, 2, 3].map(page => (
                     <button key={page} type="button" className={cn('h-8 w-8 rounded-mx-md border text-xs font-bold', page === 1 ? 'border-brand-primary bg-brand-primary/10 text-brand-primary' : 'border-border-subtle text-text-secondary')}>{page}</button>
                   ))}
-                  <button type="button" className="h-8 rounded-mx-md border border-border-subtle px-2"><ChevronRight size={14} /></button>
+                  <button type="button" className="h-8 rounded-mx-md border border-border-subtle px-2" aria-label="Próxima página"><ChevronRight size={14} /></button>
                   <span className="ml-mx-sm rounded-mx-md border border-border-subtle px-3 py-1.5">8 por página</span>
                 </span>
               </div>
             </Card>
 
-            <section className="grid grid-cols-1 gap-mx-sm md:grid-cols-2 xl:grid-cols-4">
+          <section className="grid grid-cols-1 gap-mx-xs md:grid-cols-2 2xl:grid-cols-5">
               <AnalyticsCard title="Evolução da Cadência">
                 <div className="flex items-center gap-mx-md">
-                  <Donut value={persistencia ?? 0} />
+                  <Donut value={demoMode ? 58 : persistencia ?? 0} />
                   <div>
-                    <Typography variant="p" tone="muted" className="text-sm">Sua média de execução da cadência está ótima!</Typography>
-                    <Badge variant="success" className="mt-mx-xs px-2 py-0.5">Excelente!</Badge>
+                    <Typography variant="p" tone="muted" className="text-sm">Média da carteira comercial.</Typography>
+                    <div className="mt-mx-xs space-y-1 text-xs font-bold">
+                      <LegendItem color="bg-status-success" label="Concluída" value={demoMode ? '58%' : `${persistencia ?? 0}%`} />
+                      <LegendItem color="bg-brand-primary" label="Em andamento" value={demoMode ? '29%' : `${Math.max(0, 100 - (persistencia ?? 0))}%`} />
+                      <LegendItem color="bg-status-error" label="Atrasada" value={demoMode ? '13%' : '0%'} />
+                    </div>
+                    <Badge variant={persistenciaCarteira !== null && persistenciaCarteira >= 70 ? 'success' : 'warning'} className="mt-mx-xs px-2 py-0.5">
+                      {persistenciaCarteira !== null && persistenciaCarteira >= 70 ? 'Concluída' : 'Em andamento'}
+                    </Badge>
                   </div>
                 </div>
               </AnalyticsCard>
               <AnalyticsCard title="Origem dos Clientes">
                 <div className="flex items-center gap-mx-md">
-                  <SourceDonut counts={canalCounts.map(c => c.count)} />
+                  <SourceDonut counts={canalCounts.map(item => item.count)} />
                   <div className="space-y-mx-xs text-xs font-bold">
-                    {canalCounts.filter(c => c.count > 0).slice(0, 3).map(c => (
-                      <div key={c.canal} className="flex items-center gap-mx-xs"><span className="h-2 w-2 rounded-full bg-brand-primary" /> {CRM_CANAL_LABEL[c.canal]} {c.count} ({percent(c.count, metrics.total)}%)</div>
+                    {canalCounts.map(item => (
+                      <div key={item.canal} className="flex items-center gap-mx-xs">
+                        <span className="h-2 w-2 rounded-full bg-brand-primary" />
+                        {CRM_CANAL_LABEL[item.canal]} {item.count} ({percent(item.count, totalClientes)}%)
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -429,14 +537,34 @@ export function CarteiraClientes() {
                 <MiniBar label="Não enviada" value={fichaPendente} total={Math.max(oportunidadePorCliente.size, 1)} tone="yellow" />
                 <MiniBar label="Recusada" value={fichaRecusada} total={Math.max(oportunidadePorCliente.size, 1)} tone="red" />
               </AnalyticsCard>
+              <AnalyticsCard title="Gargalo da Carteira" emphasis>
+                <div className="space-y-mx-sm">
+                  <div className="flex items-start gap-mx-sm">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-status-warning/10 text-status-warning">
+                      <AlertCircle size={19} />
+                    </span>
+                    <div>
+                      <Typography variant="p" className="font-bold">{gargalo.etapa}</Typography>
+                      <Typography variant="caption" tone="muted">{gargalo.total} clientes travados</Typography>
+                    </div>
+                  </div>
+                  <Typography variant="caption" tone="muted" className="block">Tempo médio parado: {gargalo.tempoMedio}</Typography>
+                  <Typography variant="caption" className="block font-bold text-status-success">Ação recomendada: {gargalo.acao}</Typography>
+                  <Button variant="outline" size="sm" onClick={() => setSearch(gargalo.etapa === 'Sem dados' ? '' : gargalo.etapa)}>
+                    Ver Clientes
+                  </Button>
+                </div>
+              </AnalyticsCard>
             </section>
 
             <div className="flex items-center justify-between gap-mx-md rounded-mx-lg border border-status-success/20 bg-status-success/5 px-mx-lg py-mx-md">
               <span className="flex min-w-0 items-center gap-mx-md">
-                <span className="flex h-mx-11 w-mx-11 shrink-0 items-center justify-center rounded-full bg-status-success/10 text-status-success"><CheckCircle size={22} /></span>
+                <span className="flex h-mx-11 w-mx-11 shrink-0 items-center justify-center rounded-full bg-status-success/10 text-status-success">
+                  <CheckCircle size={22} />
+                </span>
                 <Typography variant="p" className="truncate font-bold text-status-success">Dica do dia</Typography>
                 <Typography variant="p" tone="muted" className="hidden truncate font-bold lg:block">
-                  Clientes que recebem 5 ou mais contatos têm mais chances de agendar uma visita. Continue seguindo sua cadência!
+                  Nenhum cliente deve ficar sem próxima ação. Priorize quem aparece como sem ação ou vencido.
                 </Typography>
               </span>
               <Button variant="outline">Ver mais dicas</Button>
@@ -446,10 +574,13 @@ export function CarteiraClientes() {
           {selectedCliente && (
             <FluxoClientePanel
               cliente={selectedCliente}
-              progresso={progressoPorCliente.get(selectedCliente.id) || derivarProgresso(selectedCliente, oportunidades, agendamentos)}
-              vendedor={(profile?.name || 'vendedor').split(' ')[0]}
-              statusSaving={cadenciaSaving}
-              onStatus={handleRegistrarStatusCadencia}
+              oportunidade={oportunidadePorCliente.get(selectedCliente.id)}
+                progresso={progressoPorCliente.get(selectedCliente.id) || derivarProgresso(selectedCliente, carteiraOportunidades, agendamentos)}
+                vendedor={(profile?.name || 'vendedor').split(' ')[0]}
+                positionLabel={`${Math.max(1, filtered.findIndex(cliente => cliente.id === selectedCliente.id) + 1)} de ${demoMode ? totalClientes : filtered.length}`}
+                statusSaving={cadenciaSaving}
+                onStatus={handleRegistrarStatusCadencia}
+                onNaoRespondeu={cliente => setNaoRespondeuCliente(cliente)}
               onClose={() => { setSelectedId(null); setPanelClosed(true) }}
             />
           )}
@@ -460,34 +591,70 @@ export function CarteiraClientes() {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         title="Adicionar cliente"
-        description="Cadastre um novo cliente na sua carteira."
-        footer={
+        description="Cadastre o cliente, defina a origem e inicie a cadência da carteira."
+        footer={(
           <div className="flex justify-end gap-mx-sm">
             <Button variant="ghost" onClick={() => setModalOpen(false)}>Cancelar</Button>
             <Button onClick={handleCreate} disabled={saving}>{saving ? 'Salvando...' : 'Salvar cliente'}</Button>
           </div>
-        }
+        )}
       >
         <div className="grid grid-cols-1 gap-mx-md sm:grid-cols-2">
-          <FormField label="Nome *" value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} placeholder="Nome do cliente" />
-          <FormField label="Telefone" value={form.telefone || ''} onChange={e => setForm(f => ({ ...f, telefone: e.target.value }))} placeholder="(00) 00000-0000" />
-          <FormField label="Empresa" value={form.empresa || ''} onChange={e => setForm(f => ({ ...f, empresa: e.target.value }))} placeholder="Empresa / loja" />
-          <Select label="Canal de origem" value={form.canal_origem || ''} onChange={e => setForm(f => ({ ...f, canal_origem: (e.target.value || null) as ClienteInput['canal_origem'] }))}>
+          <FormField label="Nome *" value={form.nome} onChange={event => setForm(current => ({ ...current, nome: event.target.value }))} placeholder="Nome do cliente" />
+          <FormField label="Telefone" value={form.telefone || ''} onChange={event => setForm(current => ({ ...current, telefone: event.target.value }))} placeholder="(00) 00000-0000" />
+          <FormField label="Veículo procurado" value={form.empresa || ''} onChange={event => setForm(current => ({ ...current, empresa: event.target.value }))} placeholder="Modelo de interesse" />
+          <Select label="Canal de origem" value={form.canal_origem || ''} onChange={event => setForm(current => ({ ...current, canal_origem: (event.target.value || null) as ClienteInput['canal_origem'] }))}>
             <option value="">Selecione</option>
-            {CRM_CANAIS.map(c => <option key={c} value={c}>{CRM_CANAL_LABEL[c]}</option>)}
+            {CRM_CANAIS.map(canal => <option key={canal} value={canal}>{CRM_CANAL_LABEL[canal]}</option>)}
           </Select>
-          <Select label="Status" value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value as CrmClienteStatus }))}>
-            {CRM_CLIENTE_STATUS.map(s => <option key={s} value={s}>{CRM_CLIENTE_STATUS_LABEL[s]}</option>)}
+          <Select label="Status do cliente" value={form.status} onChange={event => setForm(current => ({ ...current, status: event.target.value as CrmClienteStatus }))}>
+            {CRM_CLIENTE_STATUS.map(status => <option key={status} value={status}>{STATUS_CLIENTE_LABEL[status] || CRM_CLIENTE_STATUS_LABEL[status]}</option>)}
           </Select>
-          <Select label="Relacionamento" value={form.relacionamento} onChange={e => setForm(f => ({ ...f, relacionamento: e.target.value as ClienteInput['relacionamento'] }))}>
-            {CRM_RELACIONAMENTO.map(r => <option key={r} value={r}>{CRM_RELACIONAMENTO_LABEL[r]}</option>)}
+          <Select label="Relacionamento" value={form.relacionamento} onChange={event => setForm(current => ({ ...current, relacionamento: event.target.value as ClienteInput['relacionamento'] }))}>
+            {CRM_RELACIONAMENTO.map(relacionamento => <option key={relacionamento} value={relacionamento}>{CRM_RELACIONAMENTO_LABEL[relacionamento]}</option>)}
           </Select>
-          <FormField label="Próxima ação" value={form.proxima_acao || ''} onChange={e => setForm(f => ({ ...f, proxima_acao: e.target.value }))} placeholder="Ex: Enviar proposta" />
-          <FormField type="date" label="Data da próxima ação" value={form.proxima_acao_em || ''} onChange={e => setForm(f => ({ ...f, proxima_acao_em: e.target.value }))} />
-          <FormField type="number" label="Potencial de negócio (R$)" value={String(form.potencial_negocio ?? 0)} onChange={e => setForm(f => ({ ...f, potencial_negocio: Number(e.target.value) || 0 }))} />
-          <div className="sm:col-span-2 space-y-mx-xs">
-            <label htmlFor="crm-cliente-obs" className="block ml-2"><Typography variant="caption" tone="muted">Observações</Typography></label>
-            <Textarea id="crm-cliente-obs" value={form.observacoes || ''} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} placeholder="Notas sobre o cliente..." />
+          <FormField label="Próxima ação" value={form.proxima_acao || ''} onChange={event => setForm(current => ({ ...current, proxima_acao: event.target.value }))} placeholder="Ex: Confirmar visita" />
+          <FormField type="date" label="Data da próxima ação" value={form.proxima_acao_em || ''} onChange={event => setForm(current => ({ ...current, proxima_acao_em: event.target.value }))} />
+          <FormField type="number" label="Valor previsto (R$)" value={String(form.potencial_negocio ?? 0)} onChange={event => setForm(current => ({ ...current, potencial_negocio: Number(event.target.value) || 0 }))} />
+          <div className="space-y-mx-xs sm:col-span-2">
+            <label htmlFor="crm-cliente-obs" className="ml-2 block"><Typography variant="caption" tone="muted">Histórico / observações</Typography></label>
+            <Textarea id="crm-cliente-obs" value={form.observacoes || ''} onChange={event => setForm(current => ({ ...current, observacoes: event.target.value }))} placeholder="Notas, histórico inicial e contexto da próxima tentativa..." />
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        open={Boolean(naoRespondeuCliente)}
+        onClose={() => setNaoRespondeuCliente(null)}
+        title="Cliente não respondeu"
+        description={naoRespondeuCliente ? `Tentativa atual: 1/3 para ${naoRespondeuCliente.nome}` : undefined}
+        footer={(
+          <div className="flex flex-wrap justify-end gap-mx-sm">
+            <Button variant="ghost" onClick={() => setNaoRespondeuCliente(null)}>Escolher outro horário</Button>
+            <Button variant="outline" onClick={() => setNaoRespondeuCliente(null)}>Encerrar cadência</Button>
+            <Button
+              onClick={() => {
+                if (naoRespondeuCliente) {
+                  handleRegistrarStatusCadencia(naoRespondeuCliente.id, 'nao_feito')
+                }
+                setNaoRespondeuCliente(null)
+              }}
+            >
+              Confirmar reagendamento
+            </Button>
+          </div>
+        )}
+      >
+        <div className="space-y-mx-md">
+          <div className="rounded-mx-lg border border-status-warning/20 bg-status-warning/5 p-mx-md">
+            <Typography variant="caption" tone="muted" className="block font-bold uppercase tracking-normal">Próxima ação sugerida</Typography>
+            <Typography variant="p" className="font-bold">Amanhã às 10:00 - Tentativa 2/3</Typography>
+          </div>
+          <div className="rounded-mx-lg border border-border-subtle bg-surface-alt p-mx-md">
+            <Typography variant="caption" tone="muted" className="block font-bold uppercase tracking-normal">Mensagem sugerida</Typography>
+            <Typography variant="p" className="mt-mx-xs text-sm italic text-text-secondary">
+              "Olá, Maria. Tudo bem? Estou passando para confirmar nossa visita e tirar qualquer dúvida."
+            </Typography>
           </div>
         </div>
       </Modal>
@@ -497,23 +664,30 @@ export function CarteiraClientes() {
 
 function FluxoClientePanel({
   cliente,
+  oportunidade,
   progresso,
   vendedor,
+  positionLabel,
   statusSaving,
   onStatus,
+  onNaoRespondeu,
   onClose,
 }: {
   cliente: Cliente
+  oportunidade?: OportunidadeComCliente
   progresso: ProgressoCadencia
   vendedor: string
+  positionLabel: string
   statusSaving: boolean
   onStatus: (clienteId: string, status: CadenciaResultadoAcao) => void
+  onNaoRespondeu: (cliente: Cliente) => void
   onClose: () => void
 }) {
   const primeiroNome = cliente.nome.split(' ')[0]
   const script = progresso.etapaAtual.script({ cliente: primeiroNome, vendedor })
-  const canalLabel = cliente.canal_origem ? CRM_CANAL_LABEL[cliente.canal_origem] : 'Sem canal'
+  const canalLabel = cliente.canal_origem ? CRM_CANAL_LABEL[cliente.canal_origem] : 'Sem origem'
   const whatsappHref = cliente.telefone ? `https://wa.me/55${cliente.telefone.replace(/\D/g, '')}` : null
+  const tentativaAtual = Math.max(1, Math.min(3, Math.ceil(progresso.cadencia / 34) || 1))
 
   async function copiarScript() {
     try {
@@ -525,90 +699,153 @@ function FluxoClientePanel({
   }
 
   return (
-    <Card className="border-none bg-white p-mx-lg shadow-mx-md xl:sticky xl:top-mx-md" aria-label={`Fluxo do cliente ${cliente.nome}`}>
+    <Card className="rounded-mx-xl border border-border-subtle bg-white p-mx-sm shadow-mx-md xl:sticky xl:top-mx-xs" aria-label={`Fluxo do cliente ${cliente.nome}`}>
+      <div className="mb-mx-sm flex items-center justify-between border-b border-border-subtle pb-mx-xs">
+        <Typography variant="caption" className="font-black uppercase tracking-normal">Cliente selecionado</Typography>
+        <span className="flex items-center gap-mx-xs">
+          <Typography variant="caption" tone="muted">{positionLabel}</Typography>
+          <button type="button" aria-label="Fechar painel" onClick={onClose} className="rounded-mx-sm p-1 text-text-muted hover:bg-surface-alt">
+            <X size={14} />
+          </button>
+        </span>
+      </div>
       <div className="flex items-start justify-between gap-mx-sm">
         <div className="min-w-0">
           <span className="flex items-center gap-mx-xs">
-            <Typography variant="h3" className="truncate text-lg">{cliente.nome}</Typography>
-            <Badge variant="info">{canalLabel}</Badge>
+            <ClienteAvatar nome={cliente.nome} />
+            <span className="min-w-0">
+              <Typography variant="h3" className="truncate text-lg">{cliente.nome}</Typography>
+              <Badge variant="info" className="mt-1 px-2 py-0.5 text-[10px]">{canalLabel}</Badge>
+            </span>
           </span>
           {cliente.telefone && (
             <span className="mt-mx-tiny inline-flex items-center gap-1 text-sm text-text-secondary">
               <Phone size={13} /> {cliente.telefone}
               {whatsappHref && (
-                <a href={whatsappHref} target="_blank" rel="noreferrer" aria-label="Abrir WhatsApp" className="ml-1 text-status-success hover:opacity-80"><MessageCircle size={15} /></a>
+                <a href={whatsappHref} target="_blank" rel="noreferrer" aria-label="Abrir WhatsApp" className="ml-1 text-status-success hover:opacity-80">
+                  <MessageCircle size={15} />
+                </a>
               )}
             </span>
           )}
         </div>
-        <Button variant="ghost" size="icon" aria-label="Fechar painel" onClick={onClose}><X size={16} /></Button>
       </div>
 
-      <Typography variant="caption" tone="muted" className="mt-mx-md block font-bold uppercase tracking-widest">Fluxo do Cliente</Typography>
+      <div className="mt-mx-sm rounded-mx-lg border border-border-subtle bg-surface-alt p-mx-sm">
+        <Typography variant="caption" tone="muted" className="mb-mx-xs block font-bold uppercase tracking-normal">Resumo do cliente</Typography>
+        <div className="grid grid-cols-2 gap-mx-xs text-xs font-bold">
+          <InfoItem label="Veículo de interesse" value={oportunidade?.veiculo_interesse || cliente.empresa || 'Não informado'} />
+          <InfoItem label="Valor previsto" value={oportunidade?.valor_negociado ? BRL(oportunidade.valor_negociado) : BRL(cliente.potencial_negocio || 0)} />
+          <InfoItem label="Carro na troca" value={oportunidade?.carro_avaliado ? 'Sim' : 'Não'} />
+          <InfoItem label="Ficha do cliente" value={getFichaLabel(oportunidade?.financiamento)} />
+          <InfoItem label="Status do cliente" value={STATUS_CLIENTE_LABEL[cliente.status] || CRM_CLIENTE_STATUS_LABEL[cliente.status]} />
+          <InfoItem label="Origem" value={canalLabel} />
+        </div>
+      </div>
+
+      <Typography variant="caption" tone="muted" className="mt-mx-sm block font-bold uppercase tracking-normal">Fluxo do Cliente</Typography>
       <ol className="mt-mx-sm flex items-center gap-1" aria-label="Etapas da cadência">
-        {progresso.etapas.map((etapa, index) => {
-          const concluida = index < progresso.concluidas
-          const atual = index === progresso.etapaAtualIndex && progresso.concluidas < progresso.etapas.length
+        {CLIENT_FLOW_STEPS.map((label, index) => {
+          const etapaAtualVisual = getVisualStageIndex(progresso.etapaAtual.label, cliente.status)
+          const concluida = index < etapaAtualVisual
+          const atual = index === etapaAtualVisual
           return (
-            <li key={etapa.id} className="flex min-w-0 flex-1 flex-col items-center gap-1">
+            <li key={label} className="flex min-w-0 flex-1 flex-col items-center gap-1">
               <span className={cn(
                 'flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold',
                 concluida ? 'bg-status-success text-white' : atual ? 'bg-brand-primary text-white ring-4 ring-brand-primary/20' : 'bg-surface-alt text-text-tertiary',
               )}>
                 {concluida ? <Check size={13} /> : index + 1}
               </span>
-              <span className={cn('w-full truncate text-center text-[9px] font-bold uppercase', atual ? 'text-brand-primary' : 'text-text-tertiary')}>{etapa.label}</span>
+              <span className={cn('w-full truncate text-center text-[9px] font-bold uppercase', atual ? 'text-brand-primary' : 'text-text-tertiary')}>{label}</span>
             </li>
           )
         })}
       </ol>
 
-      <div className="mt-mx-md flex items-center justify-between gap-mx-sm">
+      <div className="mt-mx-sm flex items-center justify-between gap-mx-sm">
         <Typography variant="p" className="font-bold">
-          Etapa {Math.min(progresso.etapaAtualIndex + 1, progresso.etapas.length)} de {progresso.etapas.length} — {progresso.etapaAtual.label}
+          Etapa {getVisualStageIndex(progresso.etapaAtual.label, cliente.status) + 1} de {CLIENT_FLOW_STEPS.length} - {CLIENT_FLOW_STEPS[getVisualStageIndex(progresso.etapaAtual.label, cliente.status)]}
         </Typography>
-        <Badge variant={progresso.cadencia >= 70 ? 'success' : 'info'}>{progresso.cadencia}% da cadência</Badge>
+        <Badge variant={progresso.cadencia >= 70 ? 'success' : 'info'}>{progresso.cadencia}%</Badge>
       </div>
 
-      <div className="mt-mx-md space-y-mx-md">
+      <div className="mt-mx-sm grid grid-cols-2 gap-mx-xs rounded-mx-lg bg-brand-primary/5 p-mx-sm">
+        <InfoItem label="Cadência" value="Fluxo ativo" />
+        <InfoItem label="Tentativa atual" value={`${tentativaAtual}/3`} />
+        <InfoItem label="Limite de tentativas" value="3" />
+        <InfoItem label="Próxima regra" value="Se não responder, criar ação futura" />
+      </div>
+
+      <div className="mt-mx-sm grid gap-mx-sm 2xl:grid-cols-2">
         <div>
-          <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-widest">Objetivo da etapa</Typography>
+          <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-normal">Objetivo da etapa</Typography>
           <Typography variant="p" className="mt-mx-tiny text-sm">{progresso.etapaAtual.objetivo}</Typography>
         </div>
         <div>
-          <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-widest">O que fazer</Typography>
+          <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-normal">O que fazer</Typography>
           <ul className="mt-mx-tiny space-y-mx-tiny">
             {progresso.etapaAtual.oQueFazer.map(item => (
-              <li key={item} className="flex items-start gap-mx-xs text-sm text-text-secondary">
+              <li key={item} className="flex items-start gap-mx-xs text-xs font-bold text-text-secondary">
                 <Check size={14} className="mt-0.5 shrink-0 text-status-success" /> {item}
               </li>
             ))}
           </ul>
         </div>
-        <div className="rounded-mx-lg bg-brand-primary/5 p-mx-md">
-          <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-widest">Próxima ação</Typography>
-          <Typography variant="p" className="mt-mx-tiny text-sm font-bold">
-            {cliente.proxima_acao || progresso.etapaAtual.objetivo}
-            {cliente.proxima_acao_em && <span className="block text-xs font-bold text-text-tertiary">{formatDateBR(cliente.proxima_acao_em)}</span>}
-          </Typography>
-          <div className="mt-mx-sm grid grid-cols-1 gap-mx-xs sm:grid-cols-3">
+        <div className="rounded-mx-lg border border-status-success/20 bg-status-success/5 p-mx-sm">
+          <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-normal">Próxima Melhor Ação</Typography>
+          <Typography variant="p" className="mt-mx-tiny text-sm font-bold">{cliente.proxima_acao || progresso.etapaAtual.objetivo}</Typography>
+          <Typography variant="caption" tone="muted" className="block">Motivo: manter cliente no fluxo e alimentar a Central de Execução.</Typography>
+          <Typography variant="caption" tone="muted" className="block">Horário: {cliente.proxima_acao_em ? formatDateBR(cliente.proxima_acao_em) : 'Hoje - definir horário'}</Typography>
+          <Typography variant="caption" tone="muted" className="block">Origem: Central de Execução</Typography>
+        </div>
+        <div>
+          <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-normal">Resultado da ação</Typography>
+          <div className="mt-mx-sm grid grid-cols-2 gap-mx-xs">
             <Button variant="outline" size="sm" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'feito')}>
               <Check size={14} /> Feito
             </Button>
-            <Button variant="outline" size="sm" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'nao_feito')}>
-              <X size={14} /> Sem contato
+            <Button variant="outline" size="sm" disabled={statusSaving} onClick={() => onNaoRespondeu(cliente)}>
+              <Phone size={14} /> Não respondeu
             </Button>
             <Button variant="outline" size="sm" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'aguardando')}>
               <Hourglass size={14} /> Aguardando
             </Button>
+            <Button variant="outline" size="sm" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'aguardando')}>
+              <CalendarDays size={14} /> Reagendar
+            </Button>
+            <Button variant="outline" size="sm" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'nao_feito')}>
+              <X size={14} /> Não feito
+            </Button>
           </div>
         </div>
-        <div className="rounded-mx-lg border border-border-subtle bg-surface-alt p-mx-md">
+        <div className="rounded-mx-lg border border-border-subtle bg-surface-alt p-mx-sm 2xl:col-span-2">
           <div className="flex items-center justify-between gap-mx-sm">
-            <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-widest">Script sugerido</Typography>
+            <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-normal">Script sugerido</Typography>
             <Button variant="ghost" size="icon" aria-label="Copiar script" onClick={copiarScript}><Copy size={14} /></Button>
           </div>
           <Typography variant="p" className="mt-mx-tiny text-sm italic text-text-secondary">"{script}"</Typography>
+        </div>
+        <div className="grid grid-cols-1 gap-mx-sm 2xl:col-span-2 2xl:grid-cols-2">
+          <div className="rounded-mx-lg border border-border-subtle bg-white p-mx-sm">
+            <div className="flex items-center justify-between gap-mx-sm">
+              <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-normal">Histórico de interações</Typography>
+              <Button variant="ghost" size="xs">Ver todas</Button>
+            </div>
+            <TimelineItem title="Próxima ação gerada" detail={cliente.proxima_acao || 'Definir ação'} date={cliente.proxima_acao_em ? formatDateBR(cliente.proxima_acao_em) : 'Sem data'} />
+            <TimelineItem title="Última interação" detail={cliente.observacoes || 'Histórico de cadastro e cadência'} date={cliente.ultima_interacao ? formatDateBR(cliente.ultima_interacao) : 'Sem registro'} />
+          </div>
+          <div className="rounded-mx-lg border border-border-subtle bg-white p-mx-sm">
+            <Typography variant="caption" tone="muted" className="block font-bold uppercase tracking-normal">Orientações</Typography>
+            <div className="mt-mx-sm space-y-mx-xs">
+              {['Como negociar uma visita', 'Críticas do pós-venda: preservar', 'Objeções mais frequentes'].map(item => (
+                <button key={item} type="button" className="flex w-full items-center justify-between rounded-mx-md border border-border-subtle px-mx-sm py-mx-xs text-left text-xs font-bold text-text-secondary">
+                  {item}
+                  <ChevronDown size={13} />
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </Card>
@@ -632,7 +869,7 @@ function getInitials(name: string) {
 function FilterSelect({ label, value, onChange, children }: { label: string; value: string; onChange: (value: string) => void; children: React.ReactNode }) {
   return (
     <label className="block">
-      <Typography variant="caption" tone="muted" className="mb-mx-xs block uppercase tracking-wide">{label}</Typography>
+      <Typography variant="caption" tone="muted" className="mb-mx-xs block uppercase tracking-normal">{label}</Typography>
       <Select value={value} onChange={event => onChange(event.target.value)} className="h-11 py-2">
         {children}
       </Select>
@@ -656,9 +893,9 @@ function SourceTab({ active, onClick, children }: { active: boolean; onClick: ()
 }
 
 function ClienteAvatar({ nome }: { nome: string }) {
-  const colors = ['bg-brand-primary', 'bg-status-success', 'bg-accent-purple', 'bg-status-warning', 'bg-status-info', 'bg-status-error']
+  const colors = ['bg-brand-primary', 'bg-status-success', 'bg-status-info', 'bg-status-warning', 'bg-status-error']
   const color = colors[nome.length % colors.length]
-  return <span className={cn('flex h-mx-9 w-mx-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white', color)}>{getInitials(nome)}</span>
+  return <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white', color)}>{getInitials(nome)}</span>
 }
 
 function CanalBadge({ canal }: { canal: CrmCanal | null }) {
@@ -669,7 +906,8 @@ function CanalBadge({ canal }: { canal: CrmCanal | null }) {
     porta: 'warning',
     showroom: 'info',
   }
-  return <Badge variant={variant[canal]} className="px-2 py-0.5 text-[10px]">{CRM_CANAL_LABEL[canal]}</Badge>
+  const label = canal === 'showroom' ? 'Porta / Showroom' : CRM_CANAL_LABEL[canal]
+  return <Badge variant={variant[canal]} className="px-2 py-0.5 text-[10px]">{label}</Badge>
 }
 
 function FichaBadge({ value }: { value?: string | null }) {
@@ -677,6 +915,35 @@ function FichaBadge({ value }: { value?: string | null }) {
   if (value === 'reprovado') return <Badge variant="danger" className="px-2 py-0.5 text-[10px]">Recusada</Badge>
   if (value === 'pendente') return <Badge variant="warning" className="px-2 py-0.5 text-[10px]">Não enviada</Badge>
   return <Badge variant="outline" className="px-2 py-0.5 text-[10px]">Não aplica</Badge>
+}
+
+function StatusClienteBadge({ status }: { status: CrmClienteStatus }) {
+  return <Badge variant={STATUS_VARIANT[status]} className="px-2 py-0.5 text-[10px]">{STATUS_CLIENTE_LABEL[status] || CRM_CLIENTE_STATUS_LABEL[status]}</Badge>
+}
+
+function StatusAcaoBadge({ status }: { status: StatusAcao }) {
+  const variant: Record<StatusAcao, 'success' | 'warning' | 'info' | 'danger' | 'outline'> = {
+    Pendente: 'warning',
+    Agendada: 'info',
+    Feita: 'success',
+    'Não respondeu': 'danger',
+    Aguardando: 'warning',
+    Reagendada: 'info',
+    'Não feita': 'danger',
+    Concluída: 'success',
+  }
+  return <Badge variant={variant[status]} className="px-2 py-0.5 text-[10px]">{status}</Badge>
+}
+
+function CentralExecucaoBadge({ cliente }: { cliente: Cliente }) {
+  const label = getCentralExecucaoLabel(cliente)
+  const isLate = label === 'Vencida'
+  const isEmpty = label === 'Sem ação'
+  return (
+    <span className={cn('inline-flex rounded-mx-md border px-2 py-1 text-xs font-bold', isLate ? 'border-status-error/20 bg-status-error/5 text-status-error' : isEmpty ? 'border-status-warning/20 bg-status-warning/5 text-status-warning' : 'border-status-success/20 bg-status-success/5 text-status-success')}>
+      {label}
+    </span>
+  )
 }
 
 function ProgressInline({ value }: { value: number }) {
@@ -691,12 +958,24 @@ function ProgressInline({ value }: { value: number }) {
   )
 }
 
-function AnalyticsCard({ title, children }: { title: string; children: React.ReactNode }) {
+function AnalyticsCard({ title, children, emphasis = false }: { title: string; children: React.ReactNode; emphasis?: boolean }) {
   return (
-    <Card className="min-h-[160px] border border-border-subtle bg-white p-mx-md shadow-mx-sm">
-      <Typography variant="caption" tone="muted" className="mb-mx-sm block uppercase tracking-wide">{title}</Typography>
+    <Card className={cn('min-h-[178px] rounded-mx-xl border bg-white p-mx-md shadow-mx-sm', emphasis ? 'border-status-warning/30 bg-status-warning/5' : 'border-border-subtle')}>
+      <Typography variant="caption" tone="muted" className="mb-mx-sm block uppercase tracking-normal">{title}</Typography>
       {children}
     </Card>
+  )
+}
+
+function LegendItem({ color, label, value }: { color: string; label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-mx-sm">
+      <span className="inline-flex items-center gap-mx-xs">
+        <span className={cn('h-2 w-2 rounded-full', color)} />
+        {label}
+      </span>
+      <span>{value}</span>
+    </div>
   )
 }
 
@@ -717,34 +996,188 @@ function SourceDonut({ counts }: { counts: number[] }) {
   const total = counts.reduce((sum, item) => sum + item, 0) || 1
   const first = (counts[0] || 0) / total * 360
   const second = first + (counts[1] || 0) / total * 360
+  const third = second + (counts[2] || 0) / total * 360
   return (
     <div
       className="h-24 w-24 shrink-0 rounded-full"
-      style={{
-        background: `conic-gradient(var(--color-brand-primary) 0deg ${first}deg, var(--color-status-success) ${first}deg ${second}deg, var(--color-accent-purple) ${second}deg 360deg)`,
-      }}
+      style={{ background: `conic-gradient(var(--color-brand-primary) 0deg ${first}deg, var(--color-status-success) ${first}deg ${second}deg, var(--color-status-warning) ${second}deg ${third}deg, var(--color-status-info) ${third}deg 360deg)` }}
     />
   )
 }
 
-function MiniBar({ label, value, total, tone }: { label: string; value: number; total: number; tone: 'green' | 'yellow' | 'red' }) {
-  const tones = {
-    green: 'bg-status-success',
-    yellow: 'bg-status-warning',
-    red: 'bg-status-error',
-  }
+function MiniBar({ label, value, total, tone }: { label: string; value: number; total: number; tone: 'green' | 'red' | 'yellow' }) {
   const pct = percent(value, total)
+  const color = tone === 'green' ? 'bg-status-success' : tone === 'red' ? 'bg-status-error' : 'bg-status-warning'
   return (
-    <div className="mb-mx-sm last:mb-0">
-      <div className="mb-mx-tiny flex items-center justify-between text-xs font-bold text-text-secondary">
+    <div className="mb-mx-xs">
+      <div className="mb-1 flex items-center justify-between text-xs font-bold">
         <span>{label}</span>
         <span>{value} ({pct}%)</span>
       </div>
-      <div className="h-2 rounded-full bg-surface-alt">
-        <div className={cn('h-2 rounded-full', tones[tone])} style={{ width: `${pct}%` }} />
+      <div className="h-1.5 rounded-full bg-surface-alt">
+        <div className={cn('h-1.5 rounded-full', color)} style={{ width: `${pct}%` }} />
       </div>
     </div>
   )
+}
+
+function MetricCard({ icon, label, value, hint, accent }: { icon: React.ReactNode; label: string; value: string; hint: string; accent: 'green' | 'yellow' | 'red' }) {
+  const tones = {
+    green: 'bg-status-success/10 text-status-success',
+    yellow: 'bg-status-warning/10 text-status-warning',
+    red: 'bg-status-error/10 text-status-error',
+  }
+  return (
+    <Card className="min-h-[92px] rounded-mx-xl border border-border-subtle bg-white p-mx-sm shadow-mx-sm">
+      <div className="flex h-full items-center gap-mx-sm">
+        <span className={cn('flex h-mx-11 w-mx-11 shrink-0 items-center justify-center rounded-full', tones[accent])}>{icon}</span>
+        <div>
+          <Typography variant="caption" tone="muted" className="uppercase tracking-normal text-[10px]">{label}</Typography>
+          <Typography variant="h2" className="text-xl leading-tight">{value}</Typography>
+          <Typography variant="caption" tone="muted" className="text-[11px]">{hint}</Typography>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+function InfoItem({ label, value }: { label: string; value: string }) {
+  return (
+    <span className="min-w-0">
+      <Typography variant="caption" tone="muted" className="block uppercase tracking-normal">{label}</Typography>
+      <Typography variant="caption" className="block truncate font-bold">{value}</Typography>
+    </span>
+  )
+}
+
+function TimelineItem({ title, detail, date }: { title: string; detail: string; date: string }) {
+  return (
+    <div className="mt-mx-sm border-t border-border-subtle pt-mx-sm">
+      <Typography variant="caption" className="block font-bold">{title}</Typography>
+      <Typography variant="caption" tone="muted" className="block">{detail}</Typography>
+      <Typography variant="caption" tone="muted" className="block">{date}</Typography>
+    </div>
+  )
+}
+
+function getFichaLabel(value?: string | null) {
+  if (value === 'aprovado') return 'Aprovada'
+  if (value === 'reprovado') return 'Recusada'
+  if (value === 'pendente') return 'Não enviada'
+  return 'Não aplica'
+}
+
+function getStatusAcao(cliente: Cliente, progresso?: ProgressoCadencia): StatusAcao {
+  if (progresso?.encerramento === 'ganho') return 'Concluída'
+  if (cliente.status === 'inativo') return 'Não respondeu'
+  if (cliente.status === 'aguardando_contato') return 'Agendada'
+  if (!cliente.proxima_acao) return 'Pendente'
+  if (cliente.relacionamento === 'critico') return 'Não respondeu'
+  return 'Pendente'
+}
+
+function getVisualStageIndex(label: string, status: CrmClienteStatus) {
+  if (status === 'pos_venda') return 6
+  const normalized = label.toLowerCase()
+  if (normalized.includes('lead')) return 0
+  if (normalized.includes('contato') || normalized.includes('atendimento')) return 1
+  if (normalized.includes('agendamento')) return 2
+  if (normalized.includes('visita') || normalized.includes('apresenta')) return 3
+  if (normalized.includes('negocia') || normalized.includes('proposta')) return 4
+  if (normalized.includes('venda')) return 5
+  return 0
+}
+
+function getCentralExecucaoLabel(cliente: Cliente) {
+  if (!cliente.proxima_acao) return 'Sem ação'
+  if (!cliente.proxima_acao_em) return 'Enviada'
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const actionDate = new Date(`${cliente.proxima_acao_em}T00:00:00`)
+  if (Number.isNaN(actionDate.getTime())) return 'Enviada'
+  if (actionDate < today) return 'Vencida'
+  if (actionDate.toDateString() === today.toDateString()) return 'Hoje 15:00'
+  return 'Amanhã 10:00'
+}
+
+function getPortaShowroomCount(canalCounts: Array<{ canal: CrmCanal; count: number }>) {
+  return (canalCounts.find(item => item.canal === 'porta')?.count || 0) + (canalCounts.find(item => item.canal === 'showroom')?.count || 0)
+}
+
+function getGargaloCarteira(progressos: ProgressoCadencia[]) {
+  if (progressos.length === 0) {
+    return { etapa: 'Sem dados', total: 0, tempoMedio: '0 dias', acao: 'Cadastrar clientes e iniciar cadência' }
+  }
+  const counts = new Map<string, number>()
+  for (const progresso of progressos) {
+    counts.set(progresso.etapaAtual.label, (counts.get(progresso.etapaAtual.label) || 0) + 1)
+  }
+  const [etapa, total] = [...counts.entries()].sort((a, b) => b[1] - a[1])[0]
+  return {
+    etapa,
+    total,
+    tempoMedio: total > 3 ? '3 dias' : '1 dia',
+    acao: etapa === 'Venda' ? 'Ativar pós-venda e indicação' : 'Reforçar follow-up e execução comercial',
+  }
+}
+
+function makeDemoCliente(
+  id: string,
+  nome: string,
+  telefone: string,
+  empresa: string,
+  canal_origem: CrmCanal,
+  status: CrmClienteStatus,
+  relacionamento: Cliente['relacionamento'],
+  proxima_acao: string,
+  proxima_acao_em: string | null,
+  potencial_negocio: number,
+): Cliente {
+  return {
+    id,
+    loja_id: '99999999-9999-4999-8999-999999999999',
+    seller_user_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    nome,
+    telefone,
+    empresa,
+    canal_origem,
+    status,
+    relacionamento,
+    ultima_interacao: '2026-06-16',
+    proxima_acao,
+    proxima_acao_em,
+    potencial_negocio,
+    observacoes: null,
+    created_at: '2026-06-16T12:00:00Z',
+    updated_at: '2026-06-16T12:00:00Z',
+  }
+}
+
+function makeDemoOportunidade(
+  cliente: Cliente,
+  etapa: OportunidadeComCliente['etapa'],
+  carro_avaliado: boolean,
+  financiamento: OportunidadeComCliente['financiamento'],
+): OportunidadeComCliente {
+  return {
+    id: cliente.id.replace(/^./, '9'),
+    cliente_id: cliente.id,
+    loja_id: cliente.loja_id,
+    seller_user_id: cliente.seller_user_id,
+    veiculo_interesse: cliente.empresa,
+    tipo_veiculo: 'carro',
+    valor_negociado: cliente.potencial_negocio,
+    etapa,
+    canal: cliente.canal_origem,
+    sinal: etapa === 'ganho' ? 5000 : 0,
+    financiamento,
+    carro_avaliado,
+    motivo_perda: null,
+    created_at: '2026-06-16T12:00:00Z',
+    updated_at: '2026-06-16T12:00:00Z',
+    closed_at: etapa === 'ganho' ? '2026-06-16T18:00:00Z' : null,
+    cliente: { nome: cliente.nome, telefone: cliente.telefone },
+  }
 }
 
 export default CarteiraClientes

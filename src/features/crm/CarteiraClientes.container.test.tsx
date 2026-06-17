@@ -8,6 +8,13 @@ const registrarStatusCadencia = mock(async () => ({ error: null }))
 const toastSuccess = mock(() => {})
 const toastError = mock(() => {})
 
+globalThis.getComputedStyle ||= (() => ({ animationName: 'none' })) as typeof getComputedStyle
+globalThis.MutationObserver ||= class {
+  observe() {}
+  disconnect() {}
+  takeRecords() { return [] }
+} as unknown as typeof MutationObserver
+
 const cliente = {
   id: 'cliente-1',
   loja_id: 'loja-1',
@@ -132,6 +139,23 @@ mock.module('@/features/crm/hooks/useAgendamentos', () => ({
   }),
 }))
 
+mock.module('@/components/organisms/Modal', () => ({
+  Modal: ({ open, title, description, children, footer }: {
+    open: boolean
+    title: string
+    description?: string
+    children: React.ReactNode
+    footer?: React.ReactNode
+  }) => open ? (
+    <section role="dialog" aria-label={title}>
+      <h2>{title}</h2>
+      {description && <p>{description}</p>}
+      {children}
+      {footer}
+    </section>
+  ) : null,
+}))
+
 const { CarteiraClientes } = await import('./CarteiraClientes.container')
 
 afterEach(() => {
@@ -156,14 +180,17 @@ describe('CarteiraClientes', () => {
     expect(toastSuccess).toHaveBeenCalledWith('Cadência atualizada.')
   })
 
-  it('registra tentativa sem contato como status nao_feito', async () => {
+  it('registra tentativa nao respondeu como status nao_feito', async () => {
     render(<CarteiraClientes />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Sem contato' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Não respondeu' }))
+    expect(screen.getByRole('heading', { name: 'Cliente não respondeu' })).toBeTruthy()
+    expect(screen.getByText('Amanhã às 10:00 - Tentativa 2/3')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar reagendamento' }))
 
     await waitFor(() => {
       expect(registrarStatusCadencia).toHaveBeenCalledWith({ clienteId: 'cliente-1', status: 'nao_feito' })
     })
-    expect(toastSuccess).toHaveBeenCalledWith('Cadência atualizada.')
+    expect(toastSuccess).toHaveBeenCalledWith('Tentativa registrada e próxima ação mantida no fluxo.')
   })
 })

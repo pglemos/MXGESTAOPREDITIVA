@@ -1,6 +1,6 @@
 import React from 'react'
 import { afterEach, describe, expect, it, mock } from 'bun:test'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
 const assignMaturityTrack = mock(async () => ({ error: null }))
@@ -216,6 +216,62 @@ describe('VendedorTreinamentos', () => {
     expect(assignMaturityTrack).not.toHaveBeenCalled()
   })
 
+  it('estrutura a aba Trilha como area obrigatoria com acoes, modulos, pontos e desbloqueios', () => {
+    renderPage('/vendedor/treinamentos?tab=trilha')
+
+    const tabs = screen.getByRole('tablist', { name: /abas de treinamentos/i })
+    expect(within(tabs).getByRole('tab', { name: 'Trilha' })).toHaveAttribute('aria-selected', 'true')
+    expect(within(tabs).getByRole('tab', { name: 'Provas' })).toBeInTheDocument()
+
+    const actions = screen.getByLabelText('Ações obrigatórias da Trilha')
+    expect(within(actions).getByText('Próxima ação obrigatória')).toBeInTheDocument()
+    expect(within(actions).getByText('Fechamento e contorno de objeções')).toBeInTheDocument()
+    expect(within(actions).getByText('Prova pendente')).toBeInTheDocument()
+    expect(within(actions).getByText('Responder prova')).toBeInTheDocument()
+    expect(within(actions).getByText('Prazo da trilha')).toBeInTheDocument()
+    expect(within(actions).getByText('Ciclo atual: Jun/2026 a Dez/2026')).toBeInTheDocument()
+    expect(within(actions).getByText('Prazo final: 31/12/2026')).toBeInTheDocument()
+
+    const moduleOne = screen.getByLabelText('Módulo 1 Negociação e Fechamento')
+    for (const header of ['Conteúdo', 'Tipo', 'Duração', 'Progresso', 'Prova', 'Nota mínima', 'Pontos', 'Status', 'Ação']) {
+      expect(within(moduleOne).getByText(header)).toBeInTheDocument()
+    }
+    expect(within(moduleOne).getByText('Fechamento e contorno de objeções')).toBeInTheDocument()
+    expect(within(moduleOne).getByText('Prova obrigatória')).toBeInTheDocument()
+    expect(within(moduleOne).getByText('70%')).toBeInTheDocument()
+    expect(within(moduleOne).getByText('Sandbox MX Fechamento')).toBeInTheDocument()
+    expect(within(moduleOne).getByText('35%')).toBeInTheDocument()
+    expect(screen.getAllByText('Não iniciado').length).toBeGreaterThanOrEqual(2)
+    expect(within(screen.getByLabelText('Módulo 4 Liderança e Influência')).getByText('Conteúdos em preparação')).toBeInTheDocument()
+
+    const sidebar = screen.getByLabelText('Detalhes da Trilha obrigatória')
+    expect(within(sidebar).getByText('Sobre sua Trilha obrigatória')).toBeInTheDocument()
+    expect(within(sidebar).getByText('Seu progresso')).toBeInTheDocument()
+    expect(within(sidebar).getByText('Pontos da Trilha')).toBeInTheDocument()
+    expect(within(sidebar).getByText('Próxima conquista')).toBeInTheDocument()
+    expect(within(sidebar).getByText('Vinculado ao PDI / Feedback')).toBeInTheDocument()
+    expect(within(sidebar).getByText('Melhorar follow-up com clientes sem resposta.')).toBeInTheDocument()
+    expect(screen.getByText('Ao concluir esta trilha, você desbloqueia:')).toBeInTheDocument()
+    expect(screen.getByText(/Certificado/)).toBeInTheDocument()
+    expect(screen.getByText('Conquista de conclusão')).toBeInTheDocument()
+    expect(screen.getByText('Pontos no Score MX')).toBeInTheDocument()
+  })
+
+  it('abre modal explicando como o nivel da Trilha e definido', () => {
+    renderPage('/vendedor/treinamentos?tab=trilha')
+
+    fireEvent.click(screen.getByRole('button', { name: /entenda como seu nível é definido/i }))
+
+    const dialog = screen.getByRole('dialog', { name: 'Entenda como seu nível é definido' })
+    expect(within(dialog).getAllByText('Meu Perfil').length).toBeGreaterThan(0)
+    expect(within(dialog).getByText('Tempo de mercado')).toBeInTheDocument()
+    expect(within(dialog).getByText('Experiência declarada')).toBeInTheDocument()
+    expect(within(dialog).getByText('Diagnóstico inicial')).toBeInTheDocument()
+    expect(within(dialog).getByText('Desempenho')).toBeInTheDocument()
+    expect(within(dialog).getByText('Avaliações anteriores')).toBeInTheDocument()
+    expect(within(dialog).getByText(/N1, N2, N3 e N4/)).toBeInTheDocument()
+  })
+
   it('mostra recomendacoes explicaveis de feedback e funil na visao geral', () => {
     developmentRecommendations = [
       {
@@ -257,5 +313,132 @@ describe('VendedorTreinamentos', () => {
     expect(screen.getByText('Funil')).toBeInTheDocument()
     expect(screen.getByText(/gargalo de funil/i)).toBeInTheDocument()
     expect(screen.getByText('Confirmacao de visita')).toBeInTheDocument()
+  })
+
+  it('preserva hierarquia final: abas, indicadores, obrigatorios, recomendados, lateral e banner', () => {
+    renderPage()
+
+    const tabs = screen.getByRole('tablist', { name: /abas de treinamentos/i })
+    const summary = screen.getByLabelText('Resumo de treinamentos')
+    const mandatoryActions = screen.getByLabelText('Próximas ações obrigatórias')
+    const recommendations = screen.getByLabelText('Recomendado para você')
+    const requiredTrack = screen.getByLabelText('Trilha obrigatória')
+
+    expect(Boolean(tabs.compareDocumentPosition(summary) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true)
+    expect(Boolean(summary.compareDocumentPosition(mandatoryActions) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true)
+    expect(Boolean(mandatoryActions.compareDocumentPosition(recommendations) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true)
+
+    expect(within(mandatoryActions).getByText('Próxima aula obrigatória')).toBeInTheDocument()
+    expect(within(mandatoryActions).getByText('Prova pendente')).toBeInTheDocument()
+    expect(within(mandatoryActions).getByText('Próxima aula ao vivo')).toBeInTheDocument()
+    expect(within(requiredTrack).getByText('Ciclo: Jun/2026 a Dez/2026')).toBeInTheDocument()
+    expect(within(requiredTrack).getByText('Prazo final: 31/12/2026')).toBeInTheDocument()
+    expect(screen.getByText('A prova é sua confirmação de presença!')).toBeInTheDocument()
+  })
+
+  it('estrutura a aba Aulas ao Vivo com indicadores, prova, agenda, gravacoes e pontuacao proprios', () => {
+    renderPage('/vendedor/treinamentos?tab=aulas')
+
+    const tabs = screen.getByRole('tablist', { name: /abas de treinamentos/i })
+    expect(within(tabs).getByRole('tab', { name: 'Aulas ao Vivo' })).toHaveAttribute('aria-selected', 'true')
+    expect(within(tabs).getByRole('tab', { name: 'Trilha' })).toBeInTheDocument()
+    expect(within(tabs).queryByRole('tab', { name: 'Trilhas' })).not.toBeInTheDocument()
+    expect(within(tabs).getByRole('tab', { name: 'Provas' })).toBeInTheDocument()
+    expect(screen.queryByLabelText('Resumo de treinamentos')).not.toBeInTheDocument()
+
+    const indicators = screen.getByLabelText('Indicadores de Aulas ao Vivo')
+    expect(within(indicators).getByText('Próximas aulas')).toBeInTheDocument()
+    expect(within(indicators).getByText('Aulas confirmadas')).toBeInTheDocument()
+    expect(within(indicators).getByText('Presenças validadas')).toBeInTheDocument()
+    expect(within(indicators).getByText('Provas pendentes')).toBeInTheDocument()
+    expect(within(indicators).getByText('Média nas provas')).toBeInTheDocument()
+    expect(within(indicators).getByText('Pontos acumulados')).toBeInTheDocument()
+
+    expect(screen.getByText('Próxima aula ao vivo')).toBeInTheDocument()
+    expect(screen.getAllByText('Como aumentar agendamentos na internet').length).toBeGreaterThan(0)
+    expect(screen.getByText('Sua presença será validada pela prova após a aula.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /participar da aula/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /adicionar ao calendário/i })).toBeInTheDocument()
+
+    expect(screen.getAllByText('Prova pendente').length).toBeGreaterThan(0)
+    expect(screen.getByText('Técnicas de Fechamento')).toBeInTheDocument()
+    expect(screen.getAllByText('5 questões').length).toBeGreaterThan(0)
+    expect(screen.getByText('Nota mínima: 70%')).toBeInTheDocument()
+    expect(screen.getByText('Prazo: hoje até 23:59')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /responder prova/i })).toBeInTheDocument()
+    expect(screen.queryByText(/5 10 perguntas/i)).not.toBeInTheDocument()
+
+    const sidebar = screen.getByLabelText('Agenda e gravações de Aulas ao Vivo')
+    expect(within(sidebar).getByText('Agenda de aulas')).toBeInTheDocument()
+    expect(within(sidebar).getByText('Gravações disponíveis')).toBeInTheDocument()
+    expect(within(sidebar).getByText('Sua pontuação')).toBeInTheDocument()
+    expect(within(sidebar).getAllByText(/\+20 pts/).length).toBeGreaterThan(0)
+
+    expect(screen.getAllByText('Como funciona').length).toBeGreaterThan(0)
+    expect(screen.getByText('1. Confirme presença')).toBeInTheDocument()
+    expect(screen.getByText('2. Participe da aula')).toBeInTheDocument()
+    expect(screen.getByText('3. Faça a prova')).toBeInTheDocument()
+    expect(screen.getByText('4. Valide sua presença')).toBeInTheDocument()
+    expect(screen.getByText('5. Ganhe pontos no Score')).toBeInTheDocument()
+    expect(screen.getByText('Suas aulas recentes')).toBeInTheDocument()
+    expect(screen.getByText('Horas de conteúdo')).toBeInTheDocument()
+    expect(screen.getByText('Presença que gera resultado!')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /ver meus certificados/i })).toBeInTheDocument()
+  })
+
+  it('exibe aba Provas com regras, status e pontuacao do Score MX', () => {
+    renderPage('/vendedor/treinamentos?tab=provas')
+
+    expect(screen.getByRole('heading', { name: 'Provas' })).toBeInTheDocument()
+    expect(screen.getByText('Pendente')).toBeInTheDocument()
+    expect(screen.getByText(/5 questões · nota mínima 70% · pontuação \+20 pts/i)).toBeInTheDocument()
+    expect(screen.getByText('Histórico de pontuação')).toBeInTheDocument()
+    expect(screen.getByText('Score MX')).toBeInTheDocument()
+  })
+
+  it('estrutura a Biblioteca como area livre com indicadores, cards completos e lateral propria', () => {
+    renderPage('/vendedor/treinamentos?tab=biblioteca')
+
+    const banner = screen.getByText(/Biblioteca livre/i).closest('div')
+    const libraryMetrics = screen.getByLabelText('Indicadores da Biblioteca')
+    const categories = screen.getByLabelText('Categorias da Biblioteca')
+
+    expect(banner).not.toBeNull()
+    expect(Boolean(banner!.compareDocumentPosition(libraryMetrics) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true)
+    expect(screen.queryByLabelText('Resumo de treinamentos')).not.toBeInTheDocument()
+
+    expect(within(libraryMetrics).getByText('Conteúdos disponíveis')).toBeInTheDocument()
+    expect(within(libraryMetrics).getByText('Assistidos')).toBeInTheDocument()
+    expect(within(libraryMetrics).getByText('Em andamento')).toBeInTheDocument()
+    expect(within(libraryMetrics).getByText('Favoritos')).toBeInTheDocument()
+    expect(within(libraryMetrics).getByText('Vistos recentemente')).toBeInTheDocument()
+    expect(within(libraryMetrics).getByText('Impacto no Score')).toBeInTheDocument()
+
+    expect(within(categories).getByText('Todos')).toBeInTheDocument()
+    expect(within(categories).getByText('WhatsApp')).toBeInTheDocument()
+    expect(within(categories).getByText('Troca / Avaliação')).toBeInTheDocument()
+    expect(screen.getAllByText('Obrigatório').length + screen.getAllByText('Recomendado').length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Pontua no Score|Não pontua/).length).toBeGreaterThan(0)
+
+    expect(screen.getByText('Trilha obrigatória')).toBeInTheDocument()
+    expect(screen.getByText('Sugestões para você')).toBeInTheDocument()
+    expect(screen.getAllByText('Sugerir conteúdo').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Vistos recentemente').length).toBeGreaterThan(0)
+    expect(screen.getByText('Para aplicar hoje')).toBeInTheDocument()
+    expect(screen.getByText('A prova é sua confirmação de presença!')).toBeInTheDocument()
+  })
+
+  it('abre modal de sugerir conteudo com os campos exigidos', () => {
+    renderPage('/vendedor/treinamentos?tab=biblioteca')
+
+    fireEvent.click(screen.getAllByRole('button', { name: /sugerir conteúdo/i })[0])
+
+    const dialog = screen.getByRole('dialog', { name: 'Sugerir conteúdo' })
+    expect(within(dialog).getByText('Tema')).toBeInTheDocument()
+    expect(within(dialog).getByText('Categoria')).toBeInTheDocument()
+    expect(within(dialog).getByText('Descrição da necessidade')).toBeInTheDocument()
+    expect(within(dialog).getByText('Exemplo de situação real')).toBeInTheDocument()
+    expect(within(dialog).getByText('Prioridade')).toBeInTheDocument()
+    expect(within(dialog).getByText('Anexo opcional')).toBeInTheDocument()
   })
 })
