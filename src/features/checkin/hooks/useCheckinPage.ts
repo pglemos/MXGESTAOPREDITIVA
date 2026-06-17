@@ -280,16 +280,22 @@ export function useCheckinPage() {
             setInputError(`Lançamentos diários ficam bloqueados após ${CHECKIN_EDIT_LIMIT_LABEL}.`)
             toast.error(`Lançamentos diários ficam bloqueados após ${CHECKIN_EDIT_LIMIT_LABEL}.`); return
         }
-        if (allZero && !form.zero_reason) {
-            setFieldError('zero_reason', 'Selecione o motivo da produção zero.')
-            setInputError('Justificativa obrigatória para produção zero.')
-            toast.error('Justificativa obrigatória para produção zero.')
-            return
-        }
-        if (allZero && form.zero_reason === 'Outro' && form.note.trim().length < 8) {
-            setFieldError('note', 'Descreva o motivo “Outro” com pelo menos 8 caracteres.')
-            setInputError('Descreva o motivo com pelo menos 8 caracteres quando selecionar Outro.')
-            toast.error('Descreva o motivo quando selecionar Outro.')
+    if (allZero && !form.zero_reason) {
+      setFieldError('zero_reason', 'Selecione o motivo da produção zero.')
+      setInputError('Justificativa obrigatória para produção zero.')
+      toast.error('Justificativa obrigatória para produção zero.')
+      return
+    }
+    if (allZero && !form.note.trim()) {
+      setFieldError('note', 'Descreva a observação da produção zero.')
+      setInputError('Observação obrigatória para produção zero.')
+      toast.error('Observação obrigatória para produção zero.')
+      return
+    }
+    if (allZero && form.zero_reason === 'Outro' && form.note.trim().length < 8) {
+      setFieldError('note', 'Descreva o motivo “Outro” com pelo menos 8 caracteres.')
+      setInputError('Descreva o motivo com pelo menos 8 caracteres quando selecionar Outro.')
+      toast.error('Descreva o motivo quando selecionar Outro.')
             return
         }
         if (funnelError) { setInputError(funnelError); toast.error(funnelError); return }

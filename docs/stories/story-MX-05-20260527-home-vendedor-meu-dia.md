@@ -116,3 +116,7 @@ Esta story formaliza a Home pessoal do vendedor. O working tree atual ja indica 
 ### Change Log Update — 2026-06-03
 
 - 2026-06-03: Card de comissão hardcoded substituído por "Salário Estimado" calculado por plano real (`remuneracao_planos`) + regras reais (`remuneracao_regras`). Sem plano para cargo `Vendedor`, a Home mantém estado pendente sem inventar valores.
+
+### Change Log Update — 2026-06-17
+
+- 2026-06-17: Reorganizada a Home/Dashboard do Vendedor conforme referência operacional: cinco KPIs na primeira linha, Central de Execução + Fechar Meu Dia + Ranking na segunda, e Evolução + Conquistas + Treinamentos + Feedback na terceira. Ajustes finos finais: saudação sem placeholder "Vendedor", meta 8/5/7/63%, comissão monetária coerente, fechamento sem "0 de 0", pendências orientativas e textos sem truncamento crítico. Gates executados: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`. Auditoria Playwright autenticada com `vendedor@mxgestaopreditiva.com.br` em `/home`; captura final salva fora do repo em `/tmp/vendedor-home-validacao-final.png`.

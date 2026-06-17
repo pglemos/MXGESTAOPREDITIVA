@@ -81,9 +81,6 @@ const SAMPLE_ROWS: CarteiraRow[] = [
   },
 ]
 
-const BRL = (value: number) =>
-  value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
-
 const toClosedAt = (dateOnly: string) => `${dateOnly}T12:00:00-03:00`
 
 export function CheckinCrmSection() {
@@ -275,21 +272,30 @@ export function CheckinCrmSection() {
         </header>
 
         <div className="overflow-x-auto rounded-mx-lg border border-border-default">
-          <table className="w-full min-w-[920px] text-left text-[10px]">
-            <thead className="bg-surface-alt text-[10px] uppercase tracking-mx-wider text-text-tertiary">
+          <table className="w-full table-fixed text-left text-[13px]">
+            <colgroup>
+              <col className="w-[14%]" />
+              <col className="w-[15%]" />
+              <col className="w-[10%]" />
+              <col className="w-[18%]" />
+              <col className="w-[12%]" />
+              <col className="w-[15%]" />
+              <col className="w-[7%]" />
+              <col className="w-[9%]" />
+            </colgroup>
+            <thead className="bg-surface-alt text-[11px] uppercase tracking-mx-wider text-text-tertiary">
               <tr>
                 {[
                   'Nome',
                   'Telefone',
                   'Canal',
-                  'Veiculo de Interesse',
-                  'Etapa do Funil',
-                  'Proxima Acao',
-                  'Valor Negociado',
-                  'Venda Realizada',
-                  'Acoes',
+                  'Veículo',
+                  'Etapa',
+                  'Próxima ação',
+                  'Venda',
+                  'Ações',
                 ].map(column => (
-                  <th key={column} className="px-mx-sm py-mx-sm font-semibold">
+                  <th key={column} className="px-mx-sm py-3 font-semibold">
                     {column}
                   </th>
                 ))}
@@ -297,26 +303,25 @@ export function CheckinCrmSection() {
             </thead>
             <tbody>
               {carteiraRows.map(row => (
-                <tr key={`${row.nome}-${row.telefone}`} className="border-t border-border-subtle">
-                  <td className="whitespace-nowrap px-mx-sm py-1.5 font-medium text-text-primary">{row.nome}</td>
-                  <td className="whitespace-nowrap px-mx-sm py-1.5">{row.telefone}</td>
-                  <td className="px-mx-sm py-1.5">
+                <tr key={`${row.nome}-${row.telefone}`} className="h-11 border-t border-border-subtle">
+                  <td className="whitespace-nowrap px-mx-sm py-3 font-medium text-text-primary">{row.nome}</td>
+                  <td className="whitespace-nowrap px-mx-sm py-3">{row.telefone}</td>
+                  <td className="px-mx-sm py-3">
                     <ChannelBadge canal={row.canal} />
                   </td>
-                  <td className="whitespace-nowrap px-mx-sm py-1.5">{row.veiculo}</td>
-                  <td className="px-mx-sm py-1.5">
-                    <Badge variant="outline" className="px-2 py-0.5 text-[10px]">
+                  <td className="whitespace-nowrap px-mx-sm py-3">{row.veiculo}</td>
+                  <td className="px-mx-sm py-3">
+                    <Badge variant="outline" className="px-2 py-0.5 text-[11px]">
                       {row.etapa}
                     </Badge>
                   </td>
-                  <td className="whitespace-nowrap px-mx-sm py-1.5">{row.proximaAcao}</td>
-                  <td className="whitespace-nowrap px-mx-sm py-1.5">{BRL(row.valor)}</td>
-                  <td className="px-mx-sm py-1.5">
-                    <Badge variant={row.venda === 'Sim' ? 'success' : 'danger'} className="px-2 py-0.5 text-[10px]">
+                  <td className="whitespace-nowrap px-mx-sm py-3">{row.proximaAcao}</td>
+                  <td className="px-mx-sm py-3">
+                    <Badge variant={row.venda === 'Sim' ? 'success' : 'danger'} className="px-2 py-0.5 text-[11px]">
                       {row.venda}
                     </Badge>
                   </td>
-                  <td className="px-mx-sm py-1.5">
+                  <td className="px-mx-sm py-3">
                     <div className="flex items-center gap-mx-xs">
                       <Button type="button" variant="ghost" size="icon" onClick={() => setDrawerOpen(true)} aria-label="Editar cliente">
                         <Edit3 size={15} />
@@ -479,7 +484,7 @@ export function CheckinCrmSection() {
 function ChannelBadge({ canal }: { canal: CarteiraRow['canal'] }) {
   const variant = canal === 'Internet' ? 'info' : canal === 'Porta' ? 'warning' : 'success'
   return (
-    <Badge variant={variant} className="px-2 py-0.5 text-[10px]">
+    <Badge variant={variant} className="px-2 py-0.5 text-[11px]">
       {canal}
     </Badge>
   )

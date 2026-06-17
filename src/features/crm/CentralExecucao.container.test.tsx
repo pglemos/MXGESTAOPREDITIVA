@@ -195,11 +195,13 @@ describe('CentralExecucao', () => {
 
     expect(await screen.findByText('Ana Souza')).toBeTruthy()
     expect(screen.getByText('Enviar mensagem 1 de primeiro contato')).toBeTruthy()
-    expect(screen.getByText('Cadência')).toBeTruthy()
+    expect(screen.getAllByText('Cadência').length).toBeGreaterThan(0)
+    expect(screen.getByText('Ações Comerciais de Hoje')).toBeTruthy()
+    expect(screen.getByText('Status da Ação')).toBeTruthy()
     expect(screen.getAllByText('08:55').length).toBeGreaterThan(0)
     expect(screen.getByText('5/5 atendimentos')).toBeTruthy()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Concluir ação de cadência' }))
+    fireEvent.click(screen.getAllByRole('button', { name: /Feito/i })[0])
 
     await waitFor(() => {
       expect(registrarStatusCadencia).toHaveBeenCalledWith({
@@ -234,12 +236,12 @@ describe('CentralExecucao', () => {
 
     render(<MemoryRouter><CentralExecucao /></MemoryRouter>)
 
-    expect(await screen.findByText('Ação do gestor')).toBeTruthy()
-    expect(screen.getByText('Agendar 3 retornos/dia às 10:00')).toBeTruthy()
-    expect(screen.getByText('Feedback')).toBeTruthy()
-    expect(screen.getByText('Alerta até concluir')).toBeTruthy()
+    expect((await screen.findAllByText('Ação do gestor')).length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Agendar 3 retornos/dia às 10:00').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Feedback').length).toBeGreaterThan(0)
+    expect(screen.getByText('Ação obrigatória')).toBeTruthy()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Concluir ação do feedback' }))
+    fireEvent.click(screen.getAllByRole('button', { name: /Feito/i })[1])
 
     await waitFor(() => {
       expect(concluirAcaoFeedback).toHaveBeenCalledWith('action-feedback-1')

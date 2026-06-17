@@ -22,17 +22,17 @@ export function CheckinSidebar({
 
   return (
     <aside className="space-y-mx-md">
-      <Card className="rounded-mx-xl border border-border-default bg-white p-mx-lg shadow-mx-sm">
-        <header className="flex items-center gap-mx-sm border-b border-border-default pb-mx-md">
-          <div className="grid h-mx-xl w-mx-xl place-items-center rounded-full bg-brand-primary/10 text-brand-primary">
-            <CalendarClock size={22} />
+      <Card className="rounded-mx-xl border border-border-default bg-white p-mx-md shadow-mx-sm">
+        <header className="flex items-center gap-mx-sm border-b border-border-default pb-mx-sm">
+          <div className="grid h-mx-lg w-mx-lg place-items-center rounded-full bg-brand-primary/10 text-brand-primary">
+            <CalendarClock size={18} />
           </div>
-          <Typography variant="h3" className="text-base font-semibold">
+          <Typography variant="h3" className="text-sm font-semibold">
             Central de Execução
           </Typography>
         </header>
-        <div className="mt-mx-md grid gap-mx-sm">
-          <SideMetric label="Ações geradas para amanhã" value={tomorrowActions} tone="success" />
+        <div className="mt-mx-sm grid gap-mx-xs">
+          <SideMetric label="Ações para amanhã" value={tomorrowActions} tone="success" />
           <SideMetric label="Retornos pendentes" value={returns} tone="warning" />
           <SideMetric
             label="Feedbacks obrigatórios"
@@ -40,32 +40,32 @@ export function CheckinSidebar({
             tone={mandatoryFeedbackActionsCount > 0 ? 'error' : 'success'}
           />
         </div>
-        <Button asChild variant="outline" className="mt-mx-md w-full justify-center">
+        <Button asChild variant="outline" size="sm" className="mt-mx-sm w-full justify-center">
           <Link to="/central-execucao">
             Ver Central de Execução <ArrowRight size={16} />
           </Link>
         </Button>
       </Card>
 
-      <Card className="rounded-mx-xl border border-border-default bg-white p-mx-lg shadow-mx-sm">
-        <header className="flex items-center gap-mx-sm border-b border-border-default pb-mx-md">
-          <div className="grid h-mx-xl w-mx-xl place-items-center rounded-full bg-status-success-surface text-status-success">
-            <ShieldCheck size={22} />
+      <Card className="rounded-mx-xl border border-border-default bg-white p-mx-md shadow-mx-sm">
+        <header className="flex items-center gap-mx-sm border-b border-border-default pb-mx-sm">
+          <div className="grid h-mx-lg w-mx-lg place-items-center rounded-full bg-status-success-surface text-status-success">
+            <ShieldCheck size={18} />
           </div>
-          <Typography variant="h3" className="text-base font-semibold">
+          <Typography variant="h3" className="text-sm font-semibold">
             Contrato MX
           </Typography>
         </header>
-        <ul className="mt-mx-md space-y-mx-md">
+        <ul className="mt-mx-sm space-y-mx-sm">
           {[
             `Envie o registro diário até ${CHECKIN_DEADLINE_LABEL}.`,
             `Correções ficam disponíveis até ${CHECKIN_EDIT_LIMIT_LABEL}.`,
             'A agenda de hoje determina o ritmo de amanhã.',
             'Justificativa obrigatória para itens zerados.',
           ].map(text => (
-            <li key={text} className="flex gap-mx-sm">
-              <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-status-success" />
-              <Typography variant="p" tone="muted" className="text-sm leading-relaxed">
+            <li key={text} className="flex gap-mx-xs">
+              <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-status-success" />
+              <Typography variant="p" tone="muted" className="text-xs leading-relaxed">
                 {text}
               </Typography>
             </li>
@@ -89,11 +89,11 @@ function SideMetric({
     tone === 'success' ? 'text-status-success' : tone === 'warning' ? 'text-status-warning' : 'text-status-error'
 
   return (
-    <div className="flex items-center justify-between rounded-mx-lg border border-border-subtle bg-surface-alt px-mx-md py-mx-sm">
-      <Typography variant="p" tone="muted" className="text-sm">
+    <div className="flex items-center justify-between rounded-mx-lg border border-border-subtle bg-surface-alt px-mx-sm py-mx-xs">
+      <Typography variant="p" tone="muted" className="text-xs">
         {label}
       </Typography>
-      <span className={`text-xl font-semibold tabular-nums ${toneClass}`}>{value}</span>
+      <span className={`text-lg font-semibold tabular-nums ${toneClass}`}>{value}</span>
     </div>
   )
 }

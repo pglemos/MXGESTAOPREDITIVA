@@ -345,8 +345,8 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
   }
 
   return (
-    <div className="mx-auto grid w-full max-w-[1320px] gap-mx-md pb-16">
-      <section className="grid gap-mx-md xl:grid-cols-[minmax(0,1fr)_300px]">
+    <div className="mx-auto grid w-full max-w-[1440px] gap-mx-md pb-16">
+      <section className="grid gap-mx-md xl:grid-cols-[minmax(0,1fr)_280px]">
         <Card className="rounded-mx-xl border border-border-default bg-white p-mx-md shadow-mx-sm">
           <div className="flex items-center gap-mx-md">
             <div className="grid h-mx-xl w-mx-xl place-items-center rounded-full bg-status-info text-white">
@@ -378,7 +378,7 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
         </Card>
       </section>
 
-      <section className="grid gap-mx-md xl:grid-cols-[minmax(0,1fr)_300px]">
+      <section className="grid gap-mx-md xl:grid-cols-[minmax(0,1fr)_280px]">
         <div className="space-y-mx-md">
           <Card className="rounded-mx-xl border border-border-default bg-white p-mx-md shadow-mx-sm">
             <Typography variant="h2" className="text-base font-semibold uppercase tracking-normal">
@@ -411,21 +411,21 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
               </Typography>
             </div>
             <div className="overflow-x-auto rounded-mx-lg border border-border-default">
-              <table className="w-full table-fixed text-left text-xs">
+              <table className="w-full table-fixed text-left text-[13px]">
                 <colgroup>
-                  <col className="w-[14%]" />
-                  <col className="w-[11%]" />
-                  <col className="w-[8%]" />
                   <col className="w-[10%]" />
-                  <col className="w-[18%]" />
-                  <col className="w-[19%]" />
-                  <col className="w-[12%]" />
+                  <col className="w-[9%]" />
+                  <col className="w-[7%]" />
                   <col className="w-[8%]" />
+                  <col className="w-[24%]" />
+                  <col className="w-[28%]" />
+                  <col className="w-[9%]" />
+                  <col className="w-[5%]" />
                 </colgroup>
-                <thead className="bg-surface-alt text-[10px] uppercase tracking-mx-wider text-text-tertiary">
+                <thead className="bg-surface-alt text-[11px] uppercase tracking-mx-wider text-text-tertiary">
                   <tr>
                     {['Campo', 'Canal', 'Valor Atual', 'Novo Valor', 'Motivo do Ajuste', 'Observação', 'Status', ''].map(column => (
-                      <th key={column} className="px-mx-sm py-2 font-semibold">
+                      <th key={column} className="px-mx-md py-3 font-semibold">
                         {column}
                       </th>
                     ))}
@@ -433,15 +433,15 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
                 </thead>
                 <tbody>
                   {rows.map(row => (
-                    <tr key={row.id} className="border-t border-border-subtle align-top">
-                      <td className="px-mx-sm py-1.5 font-medium leading-tight text-text-primary">
+                    <tr key={row.id} className="h-11 border-t border-border-subtle align-top">
+                      <td className="px-mx-md py-2.5 font-medium leading-tight text-text-primary">
                         {row.field}
                       </td>
-                      <td className="px-mx-sm py-1.5">
+                      <td className="px-mx-md py-2.5">
                         <ChannelBadge channel={row.channel} />
                       </td>
-                      <td className="px-mx-sm py-1.5 font-semibold tabular-nums">{row.currentValue}</td>
-                      <td className="px-mx-sm py-1.5">
+                      <td className="px-mx-md py-2.5 font-semibold tabular-nums">{row.currentValue}</td>
+                      <td className="px-mx-md py-2.5">
                         <input
                           type="number"
                           min={0}
@@ -449,19 +449,19 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
                           value={row.newValue}
                           onChange={event => updateRow(row.id, { newValue: Math.max(0, Number(event.target.value)) })}
                           className={cn(
-                            'h-8 w-20 rounded-mx-md border px-2 text-center text-sm font-semibold tabular-nums outline-none focus:border-brand-primary',
+                            'h-10 w-24 rounded-mx-md border px-2 text-center text-[13px] font-semibold tabular-nums outline-none focus:border-brand-primary',
                             row.newValue !== row.currentValue
                               ? 'border-status-success bg-status-success-surface'
                               : 'border-border-default bg-white',
                           )}
                         />
                       </td>
-                      <td className="px-mx-sm py-1.5">
+                      <td className="px-mx-md py-2.5">
                         <select
                           disabled={!canEditExisting}
                           value={row.reason}
                           onChange={event => updateRow(row.id, { reason: event.target.value })}
-                          className="h-8 w-full rounded-mx-md border border-border-default bg-white px-2 text-xs"
+                          className="h-10 w-full min-w-0 rounded-mx-md border border-border-default bg-white px-mx-sm text-[13px]"
                         >
                           <option value="">Selecione</option>
                           {ADJUSTMENT_REASONS.map(reason => (
@@ -471,19 +471,19 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
                           ))}
                         </select>
                       </td>
-                      <td className="px-mx-sm py-1.5">
+                      <td className="px-mx-md py-2.5">
                         <input
                           disabled={!canEditExisting}
                           value={row.note}
                           onChange={event => updateRow(row.id, { note: event.target.value })}
                           placeholder="Digite uma observação"
-                          className="h-8 w-full rounded-mx-md border border-border-default bg-white px-2 text-xs outline-none focus:border-brand-primary"
+                          className="h-10 w-full min-w-0 rounded-mx-md border border-border-default bg-white px-mx-sm text-[13px] outline-none focus:border-brand-primary"
                         />
                       </td>
-                      <td className="px-mx-sm py-1.5">
+                      <td className="px-mx-md py-2.5">
                         <StatusBadge status={row.status} />
                       </td>
-                      <td className="px-mx-xs py-1.5 text-center">
+                      <td className="px-mx-sm py-2.5 text-center">
                         <Button type="button" variant="ghost" size="icon" onClick={() => removeRow(row.id)} disabled={!canEditExisting}>
                           <Trash2 size={15} className="text-status-error" />
                         </Button>
@@ -508,11 +508,11 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
               3. Histórico de ajustes
             </Typography>
             <div className="overflow-x-auto rounded-mx-lg border border-border-default">
-              <table className="w-full min-w-[760px] text-left text-xs">
-                <thead className="bg-surface-alt text-[10px] uppercase tracking-mx-wider text-text-tertiary">
+              <table className="w-full min-w-[880px] text-left text-[13px]">
+                <thead className="bg-surface-alt text-[11px] uppercase tracking-mx-wider text-text-tertiary">
                   <tr>
                     {['Data/Hora', 'Usuário', 'Campo Ajustado', 'Canal', 'De', 'Para', 'Motivo', 'Status'].map(column => (
-                      <th key={column} className="px-mx-sm py-2 font-semibold">
+                      <th key={column} className="px-mx-md py-3 font-semibold">
                         {column}
                       </th>
                     ))}
@@ -520,17 +520,17 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
                 </thead>
                 <tbody>
                   {[...historyRows, ...SAMPLE_HISTORY].map((row, index) => (
-                    <tr key={`${row.id}-${index}`} className="border-t border-border-subtle">
-                      <td className="px-mx-sm py-1.5">
+                    <tr key={`${row.id}-${index}`} className="h-11 border-t border-border-subtle">
+                      <td className="px-mx-md py-2.5">
                         {index < historyRows.length ? '16/06/2026 08:51' : SAMPLE_HISTORY_DATES[index - historyRows.length]}
                       </td>
-                      <td className="px-mx-sm py-1.5">Vendedor MX Consultoria 1</td>
-                      <td className="px-mx-sm py-1.5">{row.field}</td>
-                      <td className="px-mx-sm py-1.5">{row.channel.replace('Canal ', '')}</td>
-                      <td className="px-mx-sm py-1.5 tabular-nums">{row.currentValue}</td>
-                      <td className="px-mx-sm py-1.5 tabular-nums">{row.newValue}</td>
-                      <td className="px-mx-sm py-1.5">{row.reason || 'Ajuste de contagem'}</td>
-                      <td className="px-mx-sm py-1.5">
+                      <td className="px-mx-md py-2.5">Vendedor MX Consultoria 1</td>
+                      <td className="px-mx-md py-2.5">{row.field}</td>
+                      <td className="px-mx-md py-2.5">{row.channel.replace('Canal ', '')}</td>
+                      <td className="px-mx-md py-2.5 tabular-nums">{row.currentValue}</td>
+                      <td className="px-mx-md py-2.5 tabular-nums">{row.newValue}</td>
+                      <td className="px-mx-md py-2.5">{row.reason || 'Ajuste de contagem'}</td>
+                      <td className="px-mx-md py-2.5">
                         <StatusBadge status={row.status} />
                       </td>
                     </tr>
@@ -601,9 +601,22 @@ function AdjustmentSummaryCard({
         changed ? 'border-status-success/60 ring-2 ring-status-success/10' : 'border-border-default',
       )}
     >
-      <Typography variant="h3" className="text-sm font-semibold">
-        {field}
-      </Typography>
+      <div className="flex min-h-8 items-start justify-center">
+        {changed ? (
+          <Badge variant="success" className="px-2 py-0.5 text-[11px]">
+            Alterado
+          </Badge>
+        ) : (
+          <Typography variant="h3" className="text-sm font-semibold">
+            {field}
+          </Typography>
+        )}
+      </div>
+      {changed && (
+        <Typography variant="h3" className="text-sm font-semibold">
+          {field}
+        </Typography>
+      )}
       <span className={`grid h-mx-xl w-mx-xl place-items-center rounded-full ${iconClass}`}>
         <Icon size={20} />
       </span>
@@ -683,22 +696,22 @@ function ImpactCard({
           Resumo do Impacto
         </Typography>
       </header>
-      <table className="w-full text-left text-xs">
-        <thead className="text-[10px] uppercase tracking-mx-wider text-text-tertiary">
+  <table className="w-full text-left text-[13px]">
+  <thead className="text-[11px] uppercase tracking-mx-wider text-text-tertiary">
           <tr className="border-b border-border-default">
             <th className="py-mx-sm font-semibold">Indicador</th>
-            <th className="py-mx-sm text-right font-semibold">Antes</th>
-            <th className="py-mx-sm text-right font-semibold">Depois</th>
-            <th className="py-mx-sm text-right font-semibold">Δ</th>
+  <th className="py-mx-sm pl-mx-xs text-right font-semibold">Antes</th>
+  <th className="py-mx-sm pl-mx-xs text-right font-semibold">Depois</th>
+  <th className="py-mx-sm pl-mx-xs text-right font-semibold">Δ</th>
           </tr>
         </thead>
         <tbody>
           {impactRows.map(row => (
-            <tr key={row.field} className="border-b border-border-subtle">
+  <tr key={row.field} className="h-11 border-b border-border-subtle">
               <td className="py-mx-sm pr-mx-sm">{row.field}</td>
-              <td className="py-mx-sm text-right tabular-nums">{row.before}</td>
-              <td className="py-mx-sm text-right font-semibold text-status-success tabular-nums">{row.after}</td>
-              <td className={`py-mx-sm text-right font-semibold tabular-nums ${deltaClass(row.delta)}`}>
+  <td className="py-mx-sm pl-mx-xs text-right tabular-nums">{row.before}</td>
+  <td className="py-mx-sm pl-mx-xs text-right font-semibold text-status-success tabular-nums">{row.after}</td>
+  <td className={`py-mx-sm pl-mx-xs text-right font-semibold tabular-nums ${deltaClass(row.delta)}`}>
                 {row.delta > 0 ? '+' : ''}
                 {row.delta}
               </td>
@@ -710,7 +723,7 @@ function ImpactCard({
         <Typography variant="caption" className="font-semibold normal-case tracking-normal">
           Faturamento (Previsto)
         </Typography>
-        <div className="mt-mx-sm grid grid-cols-3 gap-mx-xs text-[11px] font-semibold">
+  <div className="mt-mx-sm grid grid-cols-3 gap-mx-sm text-[11px] font-semibold">
           <span className="whitespace-nowrap">{BRL(beforeRevenue)}</span>
           <span className="whitespace-nowrap">{BRL(afterRevenue)}</span>
           <span className="whitespace-nowrap text-status-success">+{BRL(Math.max(0, afterRevenue - beforeRevenue))}</span>
@@ -728,7 +741,7 @@ function ImpactCard({
 function StatusBadge({ status }: { status: AdjustmentStatus }) {
   const variant = status === 'Pendente' ? 'warning' : status === 'Aprovado' ? 'success' : 'info'
   return (
-    <Badge variant={variant} className="px-2 py-0.5 text-[10px]">
+  <Badge variant={variant} className="px-2 py-0.5 text-xs">
       {status}
     </Badge>
   )
@@ -738,7 +751,7 @@ function ChannelBadge({ channel }: { channel: AdjustmentChannel }) {
   const label = channel.replace('Canal ', '')
   const variant = channel === 'Canal Internet' ? 'info' : channel === 'Porta' ? 'warning' : 'success'
   return (
-    <Badge variant={variant} className="px-2 py-0.5 text-[10px]">
+  <Badge variant={variant} className="px-2 py-0.5 text-xs">
       {label}
     </Badge>
   )

@@ -87,6 +87,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
     agd: readValue('agd_cart') + readValue('agd_net'),
     vendas: readValue('vnd_porta') + readValue('vnd_cart') + readValue('vnd_net'),
   }
+  const productionZeroActive = display.leads === 0 && display.visitas === 0 && display.agd === 0 && display.vendas === 0
 
   const showCrmBadge = !historicalCheckin && crmDerived.hasCrmData
   const completedItems = [
@@ -115,7 +116,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mx-auto grid w-full max-w-[1320px] gap-mx-md pb-16">
+    <form onSubmit={handleSubmit} className="mx-auto grid w-full max-w-[1440px] gap-mx-md pb-16">
       {(funnelError || inputError) && (
         <CheckinValidationBanner
           metricScope={metricScope}
@@ -226,7 +227,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
           </Card>
 
           <AnimatePresence>
-            {allZero && (
+            {productionZeroActive && (
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }}>
                 <Card className="space-y-mx-sm rounded-mx-xl border border-status-warning bg-status-warning-surface p-mx-md shadow-mx-sm">
                   <header className="flex items-center gap-mx-sm">
@@ -291,7 +292,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
 
             <Card className="space-y-mx-xs rounded-mx-xl border border-border-default bg-white p-mx-sm shadow-mx-sm">
             <label htmlFor="checkin-note" className="block text-sm font-semibold text-text-primary">
-              Observações Operacionais {allZero || mandatoryFeedbackActionsCount > 0 ? '(Obrigatório)' : '(Opcional)'}
+                    Observações Operacionais {productionZeroActive || mandatoryFeedbackActionsCount > 0 ? '(Obrigatório)' : '(Opcional)'}
             </label>
             <Typography variant="p" tone="muted" className="text-xs">
               Descreva aqui eventos críticos, aprendizados e detalhes relevantes do dia.
