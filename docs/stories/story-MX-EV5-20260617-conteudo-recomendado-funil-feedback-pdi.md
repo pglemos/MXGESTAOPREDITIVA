@@ -96,6 +96,12 @@ Codex GPT-5
 - Gate Aulas ao Vivo: `npm test` -> pass.
 - Gate Aulas ao Vivo: `npm run build` -> pass.
 - Gate Aulas ao Vivo: `git diff --check` -> pass.
+- Ajuste aba Provas: `bun test src/pages/VendedorTreinamentos.test.tsx` -> 10 pass, 0 fail.
+- Gate Provas: `npm run typecheck` -> pass.
+- Gate Provas: `npm run lint` -> pass; `lint-tokens-ast` escaneou 522 arquivos.
+- Gate Provas: `npm test` -> pass.
+- Gate Provas: `npm run build` -> pass.
+- Gate Provas: `git diff --check` -> pass.
 
 ### Completion Notes
 
@@ -113,6 +119,8 @@ Codex GPT-5
 - Bloco final da Trilha explicita certificado, conquista de conclusao e pontos no Score MX desbloqueados ao concluir.
 - Aba Aulas ao Vivo agora usa indicadores proprios, card de proxima aula, prova pendente com 5 questoes/70%, agenda lateral, gravacoes com status, fluxo de 5 etapas, historico recente, banner de certificados e pontuacao mensal.
 - Indicadores genericos da Trilha ficam ocultos na aba Aulas ao Vivo; a aba permanece depois de Trilha e antes de Provas.
+- Aba Provas agora usa indicadores proprios, card de proxima prova obrigatoria, regras 5 questoes/70%/1 tentativa, fluxo de 5 etapas, metricas recentes, tabela "Minhas provas", lateral de agenda/resultados/pontuacao e banner de certificados.
+- Prova reprovada mostra somente "Ver resultado" com tentativa 1/1, sem acao "Refazer", mantendo a regra de tentativa unica.
 
 ### Change Log
 
@@ -122,3 +130,4 @@ Codex GPT-5
 - 2026-06-17: Ajustada aba Biblioteca como area livre, com indicadores proprios, lateral completa e modal de sugestao.
 - 2026-06-17: Ajustada aba Trilha como area obrigatoria, com acoes principais, tabela de conteudos, lateral de progresso/pontos e modal de definicao de nivel.
 - 2026-06-17: Ajustada aba Aulas ao Vivo como fluxo de inscricao, participacao, prova, presenca validada, pontos, gravacoes e certificados.
+- 2026-06-17: Ajustada aba Provas com indicadores proprios, prova obrigatoria, regras, tabela de provas, lateral e bloqueio de refazer reprovada.

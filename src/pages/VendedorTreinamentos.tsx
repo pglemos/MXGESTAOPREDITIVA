@@ -374,7 +374,7 @@ export default function VendedorTreinamentos() {
 
         <TrainingTabs activeTab={activeTab} onTab={setTab} />
 
-        {activeTab !== 'biblioteca' && activeTab !== 'aulas' && (
+        {activeTab !== 'biblioteca' && activeTab !== 'aulas' && activeTab !== 'provas' && (
           <section className="grid grid-cols-1 gap-mx-sm md:grid-cols-3 xl:grid-cols-6" aria-label="Resumo de treinamentos">
             <SummaryCard
               icon={<ShieldCheck size={22} />}
@@ -2637,6 +2637,99 @@ function AulasEmptyState({ onOpenLibrary, onOpenTrack }: { onOpenLibrary: () => 
   )
 }
 
+type ProofStatus = 'Pendente' | 'Aprovada' | 'Reprovada' | 'Expirada' | 'Em andamento'
+
+type ProofRow = {
+  title: string
+  origin: 'Aula ao Vivo' | 'Biblioteca' | 'Trilha'
+  context: string
+  required: boolean
+  minGrade: string
+  userGrade: string
+  status: ProofStatus
+  deadline: string
+  attempts: string
+  action: string
+}
+
+type ProofScheduleItem = {
+  dayLabel: string
+  day: string
+  month: string
+  title: string
+  deadline: string
+  origin: ProofRow['origin']
+}
+
+const PROOF_ROWS: ProofRow[] = [
+  {
+    title: 'Técnicas de Fechamento',
+    origin: 'Aula ao Vivo',
+    context: 'Negociação sem desconto',
+    required: true,
+    minGrade: '70%',
+    userGrade: '—',
+    status: 'Pendente',
+    deadline: 'Hoje 23:59',
+    attempts: '0/1',
+    action: 'Iniciar',
+  },
+  {
+    title: 'Negociação sem desconto',
+    origin: 'Biblioteca',
+    context: 'Conteúdo livre',
+    required: false,
+    minGrade: '70%',
+    userGrade: '90%',
+    status: 'Aprovada',
+    deadline: 'Concluída',
+    attempts: '1/1',
+    action: 'Ver resultado',
+  },
+  {
+    title: 'História, valores e cultura da loja',
+    origin: 'Trilha',
+    context: 'Módulo institucional',
+    required: true,
+    minGrade: '70%',
+    userGrade: '85%',
+    status: 'Aprovada',
+    deadline: 'Concluída',
+    attempts: '1/1',
+    action: 'Ver resultado',
+  },
+  {
+    title: 'Pós-venda que gera indicação',
+    origin: 'Biblioteca',
+    context: 'Relacionamento',
+    required: false,
+    minGrade: '70%',
+    userGrade: '60%',
+    status: 'Reprovada',
+    deadline: 'Encerrada',
+    attempts: '1/1',
+    action: 'Ver resultado',
+  },
+  {
+    title: 'Como lidar com objeções de preço',
+    origin: 'Aula ao Vivo',
+    context: 'Fechamento',
+    required: true,
+    minGrade: '70%',
+    userGrade: '80%',
+    status: 'Aprovada',
+    deadline: 'Concluída',
+    attempts: '1/1',
+    action: 'Ver resultado',
+  },
+]
+
+const PROOF_SCHEDULE: ProofScheduleItem[] = [
+  { dayLabel: 'QUI', day: '29', month: 'MAI', title: 'Técnicas de Fechamento', deadline: 'Prazo: hoje até 23:59', origin: 'Aula ao Vivo' },
+  { dayLabel: 'QUI', day: '12', month: 'JUN', title: 'História, valores e cultura da loja', deadline: 'Prazo: 10/06 até 23:59', origin: 'Trilha' },
+  { dayLabel: 'QUI', day: '26', month: 'JUN', title: 'Pós-venda que gera indicação', deadline: 'Prazo: 24/06 até 23:59', origin: 'Biblioteca' },
+]
+
 function ProvasTab({
   trainings,
   scoreSnapshot,
@@ -2648,93 +2741,343 @@ function ProvasTab({
   onOpenAulas: () => void
   onOpenTrack: () => void
 }) {
-  const completedProofs = trainings.filter((training) => training.watched)
+  const completedProofs = Math.max(PROOF_ROWS.filter((proof) => proof.status === 'Aprovada').length, trainings.filter((training) => training.watched).length)
+  const scorePoints = Math.max(scoreSnapshot.earned, 210)
+
+  const handleProofAction = (proof: ProofRow) => {
+    if (proof.status === 'Pendente') {
+      toast.info('Fluxo de prova será aberto pelo player da aula.')
+      return
+    }
+
+    if (proof.origin === 'Trilha') {
+      onOpenTrack()
+      return
+    }
+
+    toast.info(`Resultado de ${proof.title}.`)
+  }
 
   return (
-    <div className="grid grid-cols-1 gap-mx-xl xl:grid-cols-[minmax(0,1fr)_360px]">
-      <section className="space-y-mx-md">
-        <div>
-          <Typography variant="h2" className="text-3xl tracking-normal">Provas</Typography>
-          <Typography variant="p" tone="muted">
-            Provas pendentes, concluídas, notas e tentativas. Cada prova tem 5 questões, nota mínima 70% e pode pontuar no Score MX.
-          </Typography>
+    <section className="space-y-mx-lg" aria-label="Provas">
+      <div className="flex justify-end">
+        <Button variant="outline" size="sm" onClick={() => document.getElementById('provas-como-funciona')?.scrollIntoView({ behavior: 'smooth' })}>
+          <Info size={16} /> Como funciona
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-mx-sm md:grid-cols-3 xl:grid-cols-6" aria-label="Indicadores de Provas">
+        <ProofMetricCard icon={<FileQuestion size={22} />} label="Provas pendentes" value="2" hint="para realizar" tone="warning" />
+        <ProofMetricCard icon={<CheckCircle size={22} />} label="Provas aprovadas" value="8" hint="concluídas" tone="success" />
+        <ProofMetricCard icon={<X size={22} />} label="Reprovadas" value="1" hint="neste mês" tone="danger" />
+        <ProofMetricCard icon={<Star size={22} />} label="Média nas provas" value="87%" hint="de aproveitamento" tone="brand" />
+        <ProofMetricCard icon={<Target size={22} />} label="Presenças validadas" value="5" hint="neste mês" tone="success" />
+        <ProofMetricCard icon={<Award size={22} />} label="Pontos no Score" value={`${scorePoints} pts`} hint="neste mês" tone="warning" />
+      </div>
+
+      <div className="grid grid-cols-1 gap-mx-lg xl:grid-cols-[minmax(0,1fr)_420px]">
+        <div className="space-y-mx-md">
+          <div className="grid grid-cols-1 gap-mx-md lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+            <NextRequiredProofCard onOpenAulas={onOpenAulas} />
+            <ProofRulesCard />
+          </div>
+
+          <ProofHowItWorks />
+          <ProofRecentMetrics completedProofs={Math.max(completedProofs, 9)} scorePoints={scorePoints} />
+          <MyProofsTable proofs={PROOF_ROWS} onAction={handleProofAction} />
+          <ProofCertificatesBanner />
         </div>
 
-        <Card className="rounded-mx-lg border border-status-warning/20 bg-white p-mx-lg shadow-none">
-          <div className="flex flex-col gap-mx-md lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-start gap-mx-md">
-              <span className="grid h-mx-12 w-mx-12 shrink-0 place-items-center rounded-full bg-status-warning-surface text-status-warning">
-                <FileQuestion size={22} />
-              </span>
-              <div>
-                <Badge variant="warning" className="mb-mx-xs">Pendente</Badge>
-                <Typography variant="h3">{PENDING_EXAM.title}</Typography>
-                <Typography variant="p" tone="muted" className="mt-mx-xs">
-                  {PENDING_EXAM.questions} questões · nota mínima {PENDING_EXAM.minGrade}% · pontuação +{PENDING_EXAM.points} pts · 1 tentativa disponível
-                </Typography>
-              </div>
+        <aside className="space-y-mx-md" aria-label="Agenda e resultados de Provas">
+          <ProofScheduleCard items={PROOF_SCHEDULE} />
+          <ProofResultsCard results={PROOF_ROWS.filter((proof) => proof.status === 'Aprovada').slice(0, 3)} />
+          <ProofMonthlyScoreCard scorePoints={scorePoints} />
+        </aside>
+      </div>
+    </section>
+  )
+}
+
+function ProofMetricCard({ icon, label, value, hint, tone }: { icon: ReactNode; label: string; value: string; hint: string; tone: 'brand' | 'success' | 'warning' | 'danger' }) {
+  const toneClass = tone === 'success'
+    ? 'bg-status-success-surface text-status-success'
+    : tone === 'warning'
+      ? 'bg-status-warning-surface text-status-warning'
+      : tone === 'danger'
+        ? 'bg-status-error-surface text-status-error'
+        : 'bg-accent-purple-soft text-accent-purple'
+
+  return (
+    <Card className="rounded-mx-lg border border-border-default bg-white p-mx-md shadow-none">
+      <div className="flex items-center gap-mx-sm">
+        <span className={cn('grid h-mx-11 w-mx-11 shrink-0 place-items-center rounded-full', toneClass)}>{icon}</span>
+        <div>
+          <Typography variant="caption" className="tracking-normal text-text-primary">{label}</Typography>
+          <Typography variant="h2" className="text-2xl tracking-normal">{value}</Typography>
+          <Typography variant="tiny" tone="muted" className="tracking-normal">{hint}</Typography>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+function NextRequiredProofCard({ onOpenAulas }: { onOpenAulas: () => void }) {
+  return (
+    <Card className="rounded-mx-lg border border-border-default bg-white p-mx-lg shadow-none">
+      <Typography variant="h3" className="mb-mx-md uppercase">Próxima prova obrigatória</Typography>
+      <div className="flex flex-col gap-mx-lg lg:flex-row lg:items-center">
+        <span className="grid h-28 w-28 shrink-0 place-items-center rounded-full bg-status-success-surface text-mx-green-700">
+          <ClipboardCheck size={54} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <Typography variant="h2" className="text-3xl">Técnicas de Fechamento</Typography>
+          <Typography variant="p" className="mt-mx-xs font-semibold text-mx-green-700">
+            Aula ao Vivo <span className="text-text-tertiary">• Negociação sem desconto</span>
+          </Typography>
+          <div className="mt-mx-md grid grid-cols-1 gap-mx-sm text-sm font-semibold text-text-secondary sm:grid-cols-2">
+            <span className="inline-flex items-center gap-mx-xs"><ClipboardCheck size={16} /> 5 questões</span>
+            <span className="inline-flex items-center gap-mx-xs"><CalendarDays size={16} /> Prazo: hoje até 23:59</span>
+            <span className="inline-flex items-center gap-mx-xs"><Target size={16} /> Nota mínima: 70%</span>
+            <span className="inline-flex items-center gap-mx-xs"><Star size={16} /> Pontuação: +20 pts no Score</span>
+            <span className="inline-flex items-center gap-mx-xs"><Clock size={16} /> Tempo estimado: 8 min</span>
+          </div>
+        </div>
+      </div>
+      <div className="mt-mx-md rounded-mx-md border border-mx-green-700/20 bg-status-success-surface px-mx-sm py-mx-xs">
+        <Typography variant="p" className="font-semibold text-mx-green-700">Ao atingir 70% ou mais, sua presença será validada automaticamente.</Typography>
+      </div>
+      <div className="mt-mx-md flex flex-wrap gap-mx-sm">
+        <Button onClick={() => toast.info('Fluxo de prova será aberto pelo player da aula.')}>Iniciar prova</Button>
+        <Button variant="outline" onClick={onOpenAulas}><BookOpen size={16} /> Ver conteúdo</Button>
+        <Button variant="ghost" onClick={() => document.getElementById('provas-como-funciona')?.scrollIntoView({ behavior: 'smooth' })}>
+          <Info size={16} /> Como funciona
+        </Button>
+      </div>
+    </Card>
+  )
+}
+
+function ProofRulesCard() {
+  const rules = ['5 questões objetivas', 'nota mínima 70%', '1 tentativa por prova', 'libera presença validada', 'gera pontuação no Score MX']
+
+  return (
+    <Card className="rounded-mx-lg border border-border-default bg-white p-mx-lg shadow-none">
+      <Typography variant="h3" className="uppercase">Regras da prova</Typography>
+      <div className="mt-mx-md space-y-mx-sm">
+        {rules.map((rule) => (
+          <div key={rule} className="flex items-center gap-mx-sm text-sm font-semibold text-text-secondary">
+            <CheckCircle size={16} className="text-status-success" />
+            <span>{rule}</span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-mx-lg flex items-center justify-between rounded-mx-md border border-mx-green-700/15 bg-status-success-surface p-mx-md">
+        <div className="flex items-center gap-mx-sm">
+          <TrendingUp size={24} className="text-mx-green-700" />
+          <Typography variant="p" className="font-semibold text-text-primary">Impacto no Score</Typography>
+        </div>
+        <Typography variant="h2">+20 pts</Typography>
+      </div>
+    </Card>
+  )
+}
+
+function ProofHowItWorks() {
+  const steps = [
+    { icon: <ClipboardCheck size={22} />, title: '1. Acesse a prova', text: 'Localize a prova na sua lista.' },
+    { icon: <FileQuestion size={22} />, title: '2. Responda 5 questões', text: 'São questões objetivas e rápidas.' },
+    { icon: <CheckCircle size={22} />, title: '3. Atinga 70% ou mais', text: 'Esse é o mínimo para aprovação.' },
+    { icon: <Target size={22} />, title: '4. Valide sua presença', text: 'Sua presença é validada automaticamente.' },
+    { icon: <Star size={22} />, title: '5. Ganhe pontos no Score', text: 'Cada aprovação impulsiona seu Score.' },
+  ]
+
+  return (
+    <Card id="provas-como-funciona" className="rounded-mx-lg border border-border-default bg-white p-mx-lg shadow-none">
+      <Typography variant="h3" className="mb-mx-md uppercase">Como funciona</Typography>
+      <div className="grid grid-cols-1 gap-mx-md lg:grid-cols-5">
+        {steps.map((step, index) => (
+          <div key={step.title} className="flex items-start gap-mx-sm">
+            <span className="grid h-mx-11 w-mx-11 shrink-0 place-items-center rounded-full bg-status-success-surface text-mx-green-700">{step.icon}</span>
+            <div>
+              <Typography variant="p" className="font-semibold text-text-primary">{step.title}</Typography>
+              <Typography variant="tiny" tone="muted" className="tracking-normal">{step.text}</Typography>
             </div>
-            <Button onClick={() => toast.info('Fluxo de prova será aberto pelo player da aula.')}>Responder prova</Button>
+            {index < steps.length - 1 && <ChevronRight size={16} className="ml-auto mt-mx-sm hidden text-text-tertiary lg:block" />}
           </div>
-        </Card>
+        ))}
+      </div>
+    </Card>
+  )
+}
 
-        <Card className="rounded-mx-lg border border-border-default bg-white p-mx-lg shadow-none">
-          <Typography variant="h3" className="uppercase">Provas concluídas</Typography>
-          <div className="mt-mx-md overflow-hidden rounded-mx-md border border-border-default">
-            {completedProofs.length === 0 && (
-              <Typography variant="p" tone="muted" className="block p-mx-md">
-                Nenhuma prova concluída ainda.
-              </Typography>
-            )}
+function ProofRecentMetrics({ completedProofs, scorePoints }: { completedProofs: number; scorePoints: number }) {
+  return (
+    <Card className="rounded-mx-lg border border-border-default bg-white p-mx-lg shadow-none">
+      <Typography variant="h3" className="uppercase">Suas provas recentes</Typography>
+      <div className="mt-mx-md grid grid-cols-1 gap-mx-md md:grid-cols-4">
+        <ProofRecentMetric icon={<CheckCircle size={22} />} label="Provas concluídas" value={String(completedProofs)} hint="nos últimos 30 dias" />
+        <ProofRecentMetric icon={<Target size={22} />} label="Média de acertos" value="87%" hint="nas provas" />
+        <ProofRecentMetric icon={<Star size={22} />} label="Pontos conquistados" value={String(scorePoints)} hint="em provas" />
+        <ProofRecentMetric icon={<Clock size={22} />} label="Horas estudadas" value="7h 30m" hint="nas últimas 4 semanas" />
+      </div>
+    </Card>
+  )
+}
 
-            {completedProofs.map((training) => (
-              <div key={training.id} className="grid grid-cols-1 gap-mx-sm border-b border-border-default p-mx-md last:border-b-0 md:grid-cols-[minmax(0,1fr)_140px_120px_120px] md:items-center">
-                <Typography variant="p" className="font-semibold text-text-primary">{training.title}</Typography>
-                <span className="text-sm font-semibold text-text-secondary">Nota: 100%</span>
-                <Badge variant="success">Aprovado</Badge>
-                <span className="text-sm font-semibold text-mx-green-700">+10 pts</span>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </section>
-
-      <aside className="space-y-mx-md">
-        <Card className="rounded-mx-lg border border-border-default p-mx-lg shadow-none">
-          <Typography variant="h3">Regras da prova</Typography>
-          <div className="mt-mx-sm space-y-mx-sm">
-            <Rule icon={<ClipboardCheck size={18} />} title="5 questões" text="Formato padrão para validar presença e conteúdo obrigatório." />
-            <Rule icon={<Medal size={18} />} title="Nota mínima 70%" text="Aprovação registra presença e libera pontuação." />
-            <Rule icon={<TrendingUp size={18} />} title="Score MX" text="Aprovação e presença validada alimentam seu histórico de pontos." />
-          </div>
-        </Card>
-
-        <Card className="rounded-mx-lg border border-status-info/20 bg-status-info-surface p-mx-lg shadow-none">
-          <Typography variant="h3">Histórico de pontuação</Typography>
-          <div className="mt-mx-sm grid grid-cols-3 gap-mx-xs rounded-mx-md bg-white p-mx-sm text-center">
-            <MiniScore value={`${scoreSnapshot.earned} pts`} label="ganhos" />
-            <MiniScore value={`${scoreSnapshot.available} pts`} label="disponíveis" />
-            <MiniScore value={`${scoreSnapshot.pending} pts`} label="pendentes" />
-          </div>
-          <div className="mt-mx-md grid gap-mx-xs">
-            <Button variant="outline" onClick={onOpenAulas}>Ver aulas ao vivo</Button>
-            <Button variant="outline" onClick={onOpenTrack}>Ver trilha obrigatória</Button>
-          </div>
-        </Card>
-      </aside>
+function ProofRecentMetric({ icon, label, value, hint }: { icon: ReactNode; label: string; value: string; hint: string }) {
+  return (
+    <div className="flex items-center gap-mx-md rounded-mx-md border border-border-default p-mx-md">
+      <span className="grid h-mx-12 w-mx-12 shrink-0 place-items-center rounded-full bg-status-success-surface text-mx-green-700">{icon}</span>
+      <div>
+        <Typography variant="caption" className="tracking-normal text-text-primary">{label}</Typography>
+        <Typography variant="h2" className="text-2xl">{value}</Typography>
+        <Typography variant="tiny" tone="muted" className="tracking-normal">{hint}</Typography>
+      </div>
     </div>
   )
 }
 
-function Rule({ icon, title, text }: { icon: ReactNode; title: string; text: string }) {
+function MyProofsTable({ proofs, onAction }: { proofs: ProofRow[]; onAction: (proof: ProofRow) => void }) {
   return (
-    <div className="flex gap-mx-sm">
-      <span className="mt-1 text-status-info">{icon}</span>
-      <span>
-        <Typography variant="p" className="font-semibold text-text-primary">{title}</Typography>
-        <Typography variant="tiny" tone="muted" className="tracking-normal">{text}</Typography>
-      </span>
-    </div>
+    <Card className="rounded-mx-lg border border-border-default bg-white p-mx-lg shadow-none">
+      <Typography variant="h3" className="uppercase">Minhas provas</Typography>
+      <div className="mt-mx-sm overflow-x-auto rounded-mx-md border border-border-default">
+        <table className="min-w-[1060px] w-full text-left text-xs">
+          <thead className="bg-surface-alt text-text-tertiary">
+            <tr>
+              {['Prova', 'Origem', 'Obrigatória', 'Nota mínima', 'Sua nota', 'Status', 'Prazo', 'Tentativas', 'Ação'].map((header) => (
+                <th key={header} className="px-mx-sm py-mx-xs font-semibold">{header}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border-default bg-white">
+            {proofs.map((proof) => (
+              <tr key={proof.title}>
+                <td className="px-mx-sm py-mx-xs font-semibold text-text-primary">{proof.title}</td>
+                <td className="px-mx-sm py-mx-xs">
+                  <Typography variant="tiny" className="block font-semibold tracking-normal text-text-primary">{proof.origin}</Typography>
+                  <Typography variant="tiny" tone="muted" className="tracking-normal">{proof.context}</Typography>
+                </td>
+                <td className="px-mx-sm py-mx-xs"><Badge variant={proof.required ? 'warning' : 'outline'}>{proof.required ? 'Sim' : 'Não'}</Badge></td>
+                <td className="px-mx-sm py-mx-xs font-semibold text-text-secondary">{proof.minGrade}</td>
+                <td className="px-mx-sm py-mx-xs font-semibold text-text-secondary">{proof.userGrade}</td>
+                <td className="px-mx-sm py-mx-xs"><ProofStatusBadge status={proof.status} /></td>
+                <td className="px-mx-sm py-mx-xs font-semibold text-text-secondary">{proof.deadline}</td>
+                <td className="px-mx-sm py-mx-xs font-semibold text-text-secondary">{proof.attempts}</td>
+                <td className="px-mx-sm py-mx-xs">
+                  <Button variant={proof.status === 'Pendente' ? 'primary' : 'outline'} size="xs" onClick={() => onAction(proof)}>
+                    {proof.status === 'Pendente' ? <Play size={14} /> : <Eye size={14} />} {proof.action}
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  )
+}
+
+function ProofStatusBadge({ status }: { status: ProofStatus }) {
+  if (status === 'Aprovada') return <Badge variant="success" className="bg-status-success-surface text-status-success">{status}</Badge>
+  if (status === 'Reprovada') return <Badge variant="danger" className="bg-status-error-surface text-status-error">{status}</Badge>
+  if (status === 'Pendente') return <Badge variant="warning" className="bg-status-warning-surface text-status-warning">{status}</Badge>
+  if (status === 'Em andamento') return <Badge variant="info" className="bg-status-info-surface text-status-info">{status}</Badge>
+  return <Badge variant="outline">{status}</Badge>
+}
+
+function ProofScheduleCard({ items }: { items: ProofScheduleItem[] }) {
+  return (
+    <Card className="rounded-mx-lg border border-border-default bg-white p-mx-lg shadow-none">
+      <div className="mb-mx-sm flex items-center justify-between gap-mx-sm">
+        <Typography variant="h3" className="uppercase">Agenda de provas</Typography>
+        <button type="button" className="text-xs font-semibold text-mx-green-700">Ver calendário completo <ChevronRight size={13} className="inline" /></button>
+      </div>
+      <div className="divide-y divide-border-default">
+        {items.map((item) => (
+          <button key={item.title} type="button" className="flex w-full items-center gap-mx-md py-mx-sm text-left">
+            <div className="flex h-mx-16 w-mx-14 shrink-0 flex-col items-center justify-center rounded-mx-md bg-status-success-surface">
+              <span className="text-xs font-semibold uppercase text-mx-green-700">{item.dayLabel}</span>
+              <span className="text-2xl font-semibold text-text-primary">{item.day}</span>
+              <span className="text-xs font-semibold uppercase text-text-secondary">{item.month}</span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <Typography variant="p" className="font-semibold text-text-primary">{item.title}</Typography>
+              <Typography variant="tiny" tone="muted" className="tracking-normal">{item.deadline}</Typography>
+              <Badge variant="outline" className="mt-1">{item.origin}</Badge>
+            </div>
+            <ChevronRight size={17} />
+          </button>
+        ))}
+      </div>
+      <button type="button" className="mt-mx-sm w-full text-center text-sm font-semibold text-mx-green-700">Ver todas provas agendadas <ChevronRight size={14} className="inline" /></button>
+    </Card>
+  )
+}
+
+function ProofResultsCard({ results }: { results: ProofRow[] }) {
+  return (
+    <Card className="rounded-mx-lg border border-border-default bg-white p-mx-lg shadow-none">
+      <div className="mb-mx-sm flex items-center justify-between gap-mx-sm">
+        <Typography variant="h3" className="uppercase">Últimos resultados</Typography>
+        <button type="button" className="text-xs font-semibold text-mx-green-700">Ver todas <ChevronRight size={13} className="inline" /></button>
+      </div>
+      <div className="divide-y divide-border-default">
+        {results.map((result, index) => (
+          <button key={result.title} type="button" className="grid w-full grid-cols-[minmax(0,1fr)_56px_90px_18px] items-center gap-mx-sm py-mx-sm text-left">
+            <div className="min-w-0">
+              <Typography variant="p" className="truncate font-semibold text-text-primary">{result.title}</Typography>
+              <Typography variant="tiny" tone="muted" className="tracking-normal">{result.origin} • Concluída em {index === 0 ? '13/06/2026' : index === 1 ? '10/06/2026' : '05/06/2026'}</Typography>
+            </div>
+            <Typography variant="p" className="font-semibold text-text-primary">{result.userGrade}</Typography>
+            <ProofStatusBadge status={result.status} />
+            <ChevronRight size={16} />
+          </button>
+        ))}
+      </div>
+    </Card>
+  )
+}
+
+function ProofCertificatesBanner() {
+  return (
+    <Card className="rounded-mx-lg border border-mx-green-700/15 bg-status-success-surface p-mx-lg shadow-none">
+      <div className="flex flex-col gap-mx-md md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-mx-md">
+          <span className="grid h-mx-14 w-mx-14 shrink-0 place-items-center rounded-full bg-white text-mx-green-700">
+            <Medal size={28} />
+          </span>
+          <div>
+            <Typography variant="h3">Aprendizado validado gera resultado!</Typography>
+            <Typography variant="p" tone="muted">Conclua as provas obrigatórias, valide presença e aumente seu Score MX.</Typography>
+          </div>
+        </div>
+        <Button variant="outline"><Award size={16} /> Ver meus certificados</Button>
+      </div>
+    </Card>
+  )
+}
+
+function ProofMonthlyScoreCard({ scorePoints }: { scorePoints: number }) {
+  return (
+    <Card className="rounded-mx-lg border border-mx-green-700/15 bg-status-success-surface p-mx-lg shadow-none">
+      <div className="flex items-center justify-between gap-mx-md">
+        <div className="flex items-center gap-mx-md">
+          <span className="grid h-mx-14 w-mx-14 shrink-0 place-items-center rounded-full bg-white text-mx-green-700">
+            <Star size={26} />
+          </span>
+          <div>
+            <Typography variant="h3" className="uppercase">Sua pontuação</Typography>
+            <Typography variant="p" tone="muted">Participe das provas, valide sua presença e suba no ranking.</Typography>
+          </div>
+        </div>
+        <div className="text-right">
+          <Typography variant="h2" className="text-3xl">{scorePoints}</Typography>
+          <Typography variant="p" className="font-semibold text-text-primary">pts</Typography>
+          <Typography variant="tiny" tone="muted" className="tracking-normal">neste mês</Typography>
+        </div>
+      </div>
+    </Card>
   )
 }
 

@@ -364,7 +364,7 @@ describe('VendedorTreinamentos', () => {
     expect(screen.getByText('Técnicas de Fechamento')).toBeInTheDocument()
     expect(screen.getAllByText('5 questões').length).toBeGreaterThan(0)
     expect(screen.getByText('Nota mínima: 70%')).toBeInTheDocument()
-    expect(screen.getByText('Prazo: hoje até 23:59')).toBeInTheDocument()
+    expect(screen.getAllByText('Prazo: hoje até 23:59').length).toBeGreaterThan(0)
     expect(screen.getByRole('button', { name: /responder prova/i })).toBeInTheDocument()
     expect(screen.queryByText(/5 10 perguntas/i)).not.toBeInTheDocument()
 
@@ -386,14 +386,76 @@ describe('VendedorTreinamentos', () => {
     expect(screen.getByRole('button', { name: /ver meus certificados/i })).toBeInTheDocument()
   })
 
-  it('exibe aba Provas com regras, status e pontuacao do Score MX', () => {
+  it('estrutura a aba Provas com indicadores, prova obrigatoria, regras, tabela e lateral propria', () => {
     renderPage('/vendedor/treinamentos?tab=provas')
 
-    expect(screen.getByRole('heading', { name: 'Provas' })).toBeInTheDocument()
-    expect(screen.getByText('Pendente')).toBeInTheDocument()
-    expect(screen.getByText(/5 questões · nota mínima 70% · pontuação \+20 pts/i)).toBeInTheDocument()
-    expect(screen.getByText('Histórico de pontuação')).toBeInTheDocument()
-    expect(screen.getByText('Score MX')).toBeInTheDocument()
+    const tabs = screen.getByRole('tablist', { name: /abas de treinamentos/i })
+    expect(within(tabs).getByRole('tab', { name: 'Trilha' })).toBeInTheDocument()
+    expect(within(tabs).queryByRole('tab', { name: 'Trilhas' })).not.toBeInTheDocument()
+    expect(within(tabs).getByRole('tab', { name: 'Provas', selected: true })).toBeInTheDocument()
+    expect(screen.queryByLabelText('Resumo de treinamentos')).not.toBeInTheDocument()
+
+    const indicators = screen.getByLabelText('Indicadores de Provas')
+    expect(within(indicators).getByText('Provas pendentes')).toBeInTheDocument()
+    expect(within(indicators).getByText('Provas aprovadas')).toBeInTheDocument()
+    expect(within(indicators).getByText('Reprovadas')).toBeInTheDocument()
+    expect(within(indicators).getByText('Média nas provas')).toBeInTheDocument()
+    expect(within(indicators).getByText('Presenças validadas')).toBeInTheDocument()
+    expect(within(indicators).getByText('Pontos no Score')).toBeInTheDocument()
+
+    expect(screen.getByText('Próxima prova obrigatória')).toBeInTheDocument()
+    expect(screen.getAllByText('Técnicas de Fechamento').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Aula ao Vivo').length).toBeGreaterThan(0)
+    expect(screen.getByText('• Negociação sem desconto')).toBeInTheDocument()
+    expect(screen.getAllByText('5 questões').length).toBeGreaterThan(0)
+    expect(screen.getByText('Nota mínima: 70%')).toBeInTheDocument()
+    expect(screen.getByText('Tempo estimado: 8 min')).toBeInTheDocument()
+    expect(screen.getAllByText('Prazo: hoje até 23:59').length).toBeGreaterThan(0)
+    expect(screen.getByText('Pontuação: +20 pts no Score')).toBeInTheDocument()
+    expect(screen.getByText('Ao atingir 70% ou mais, sua presença será validada automaticamente.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /iniciar prova/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /ver conteúdo/i })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /como funciona/i }).length).toBeGreaterThan(0)
+
+    expect(screen.getByText('Regras da prova')).toBeInTheDocument()
+    expect(screen.getByText('5 questões objetivas')).toBeInTheDocument()
+    expect(screen.getByText('nota mínima 70%')).toBeInTheDocument()
+    expect(screen.getByText('1 tentativa por prova')).toBeInTheDocument()
+    expect(screen.getByText('libera presença validada')).toBeInTheDocument()
+    expect(screen.getByText('gera pontuação no Score MX')).toBeInTheDocument()
+    expect(screen.getByText('Impacto no Score')).toBeInTheDocument()
+    expect(screen.getByText('+20 pts')).toBeInTheDocument()
+
+    const sidebar = screen.getByLabelText('Agenda e resultados de Provas')
+    expect(within(sidebar).getByText('Agenda de provas')).toBeInTheDocument()
+    expect(within(sidebar).getByText('Últimos resultados')).toBeInTheDocument()
+    expect(within(sidebar).getByText('Sua pontuação')).toBeInTheDocument()
+
+    expect(screen.getByText('1. Acesse a prova')).toBeInTheDocument()
+    expect(screen.getByText('2. Responda 5 questões')).toBeInTheDocument()
+    expect(screen.getByText('3. Atinga 70% ou mais')).toBeInTheDocument()
+    expect(screen.getByText('4. Valide sua presença')).toBeInTheDocument()
+    expect(screen.getByText('5. Ganhe pontos no Score')).toBeInTheDocument()
+    expect(screen.queryByText(/5 10 perguntas|5 a 10 perguntas/i)).not.toBeInTheDocument()
+
+    expect(screen.getByText('Suas provas recentes')).toBeInTheDocument()
+    expect(screen.getByText('Provas concluídas')).toBeInTheDocument()
+    expect(screen.getByText('Média de acertos')).toBeInTheDocument()
+    expect(screen.getByText('Pontos conquistados')).toBeInTheDocument()
+    expect(screen.getByText('Horas estudadas')).toBeInTheDocument()
+
+    const table = screen.getByRole('table')
+    for (const header of ['Prova', 'Origem', 'Obrigatória', 'Nota mínima', 'Sua nota', 'Status', 'Prazo', 'Tentativas', 'Ação']) {
+      expect(within(table).getByText(header)).toBeInTheDocument()
+    }
+    expect(within(table).getByText('Pós-venda que gera indicação')).toBeInTheDocument()
+    expect(within(table).getByText('Reprovada')).toBeInTheDocument()
+    expect(within(table).getByText('Encerrada')).toBeInTheDocument()
+    expect(within(table).getAllByText('1/1').length).toBeGreaterThan(0)
+    expect(screen.queryByRole('button', { name: /refazer/i })).not.toBeInTheDocument()
+
+    expect(screen.getByText('Aprendizado validado gera resultado!')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /ver meus certificados/i })).toBeInTheDocument()
   })
 
   it('estrutura a Biblioteca como area livre com indicadores, cards completos e lateral propria', () => {
