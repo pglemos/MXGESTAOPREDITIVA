@@ -85,6 +85,9 @@ const STATUS_CLIENTE_LABEL: Record<CrmClienteStatus, string> = {
 
 type FiltroData = 'todos' | 'hoje' | 'atrasados' | 'proximos7'
 type CanalFiltro = 'todos' | CrmCanal
+type OrigemFiltro = 'todos' | 'Carteira' | 'Cadência' | 'Feedback' | 'Manual' | 'Agendamento' | 'Rotina' | 'Funil de Vendas'
+type PrioridadeFiltro = 'todos' | PrioridadeAcao
+type StatusFiltro = 'todos' | 'Pendente' | 'Confirmado' | 'Feito' | 'Não respondeu' | 'Aguardando' | 'Reagendado' | 'Concluído' | 'Não feito'
 type AgendaCentralStatus = CrmAgendamentoStatus | 'cadencia' | 'feedback_pendente' | 'reagendado'
 type OrigemAcao = 'agendamento' | 'cadencia' | 'feedback'
 type PrioridadeAcao = 'Urgente' | 'Alta' | 'Média' | 'Baixa'
@@ -121,8 +124,12 @@ type ScoreLine = {
   label: string
   value: string
   done: boolean
-  tone?: 'green' | 'orange' | 'muted'
+  tone?: 'green' | 'orange' | 'red' | 'muted'
 }
+
+const ORIGEM_FILTROS: OrigemFiltro[] = ['todos', 'Carteira', 'Cadência', 'Feedback', 'Manual', 'Agendamento', 'Rotina', 'Funil de Vendas']
+const PRIORIDADE_FILTROS: PrioridadeFiltro[] = ['todos', 'Urgente', 'Alta', 'Média', 'Baixa']
+const STATUS_FILTROS: StatusFiltro[] = ['todos', 'Pendente', 'Confirmado', 'Feito', 'Não respondeu', 'Aguardando', 'Reagendado', 'Concluído', 'Não feito']
 
 const EMPTY_AGENDAMENTO: AgendamentoInput = {
   cliente_id: '',
@@ -243,6 +250,26 @@ function getOrigemLabel(item: AgendaCentralItem) {
   return 'Manual'
 }
 
+function getOrigemFilterLabel(item: AgendaCentralItem): OrigemFiltro {
+  if (item.canal === 'carteira') return 'Carteira'
+  if (item.origem === 'cadencia') return 'Cadência'
+  if (item.origem === 'feedback') return 'Feedback'
+  if (item.tipo === 'negociacao') return 'Funil de Vendas'
+  return getOrigemLabel(item) as OrigemFiltro
+}
+
+function getStatusFilterLabel(item: AgendaCentralItem): StatusFiltro {
+  if (item.status === 'cadencia' || item.status === 'feedback_pendente') return 'Pendente'
+  if (item.status === 'confirmado') return 'Confirmado'
+  if (item.status === 'compareceu') return 'Feito'
+  if (item.status === 'nao_compareceu') return 'Não respondeu'
+  if (item.status === 'aguardando') return 'Aguardando'
+  if (item.status === 'reagendado') return 'Reagendado'
+  if (item.feedbackAction?.status === 'concluida') return 'Concluído'
+  if (item.cadencia?.last_result === 'nao_feito') return 'Não feito'
+  return 'Pendente'
+}
+
 function getCadenciaLabel(item: AgendaCentralItem) {
   if (item.origem === 'cadencia' && item.cadencia) {
     return `${humanizeKey(item.cadencia.etapa_atual)} · ${item.cadencia.passo_atual_key.replace(/_/g, ' ')}`
@@ -261,7 +288,12 @@ function getPriority(item: AgendaCentralItem, now = new Date()): PrioridadeAcao 
 }
 
 function Pill({ children, className }: { children: React.ReactNode; className: string }) {
-  return <span className={cn('inline-flex rounded-mx-sm border px-2 py-1 text-xs font-bold', className)}>{children}</span>
+  return <span className={cn('inline-flex rounded-mx-sm border px-2.5 py-1 text-xs font-bold', className)}>{children}</span>
+}
+
+function isSchemaCacheLoadError(error: unknown): boolean {
+  const message = String(error || '').toLowerCase()
+  return message.includes('schema cache') || message.includes('could not find table') || message.includes('could not find function')
 }
 
 function MetricCard({
@@ -285,13 +317,13 @@ function MetricCard({
   }[tone]
 
   return (
-    <Card className="h-[124px] rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
-      <div className="flex h-full items-center gap-mx-sm">
-        <span className={cn('flex h-mx-2xl w-mx-2xl shrink-0 items-center justify-center rounded-full', toneClass)}>{icon}</span>
+  <Card className="h-full min-h-[144px] rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
+      <div className="grid h-full grid-cols-[48px_minmax(0,1fr)] items-center gap-mx-sm">
+        <span className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-full', toneClass)}>{icon}</span>
         <div className="min-w-0">
-          <Typography variant="tiny" className="font-bold uppercase leading-tight tracking-normal text-text-primary">{label}</Typography>
+          <Typography variant="caption" className="max-w-full whitespace-normal text-[13px] font-bold leading-snug tracking-normal text-text-primary">{label}</Typography>
           <Typography variant="h2" className="mt-1 text-3xl leading-none text-text-primary">{value}</Typography>
-          <Typography variant="caption" tone="muted" className="mt-mx-xs block leading-tight tracking-normal">{hint}</Typography>
+          <Typography variant="caption" tone="muted" className="mt-mx-xs block text-sm font-bold leading-tight tracking-normal">{hint}</Typography>
         </div>
       </div>
     </Card>
@@ -300,25 +332,25 @@ function MetricCard({
 
 function ScoreCard({ score, items }: { score: number; items: ScoreLine[] }) {
   return (
-    <Card className="h-[124px] rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
-      <div className="grid h-full grid-cols-[96px_1fr] items-center gap-mx-md">
-        <div className="relative flex h-[86px] w-[86px] items-center justify-center rounded-full" style={{ background: `conic-gradient(var(--color-brand-primary) ${score * 3.6}deg, var(--color-border-subtle) 0deg)` }}>
-          <div className="flex h-[68px] w-[68px] flex-col items-center justify-center rounded-full bg-white">
-            <Typography variant="h2" className="text-2xl leading-none text-brand-primary">{score}%</Typography>
+  <Card className="h-full min-h-[144px] rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
+      <div className="grid h-full grid-cols-[110px_1fr] items-center gap-mx-md">
+        <div className="relative flex h-[104px] w-[104px] items-center justify-center rounded-full" style={{ background: `conic-gradient(var(--color-brand-primary) ${score * 3.6}deg, var(--color-border-subtle) 0deg)` }}>
+          <div className="flex h-[78px] w-[78px] flex-col items-center justify-center rounded-full bg-white">
+            <Typography variant="h2" className="text-3xl leading-none text-brand-primary">{score}%</Typography>
             <Typography variant="tiny" className="font-bold leading-none tracking-normal text-brand-primary">{score >= 70 ? 'Bom!' : 'Foco!'}</Typography>
           </div>
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-mx-tiny">
-            <Typography variant="tiny" className="font-bold uppercase tracking-normal text-text-primary">Score da Rotina</Typography>
+            <Typography variant="caption" className="font-bold tracking-normal text-text-primary">Score da Rotina</Typography>
             <Info size={12} className="text-text-tertiary" />
           </div>
-          <div className="mt-2 space-y-1">
-            {items.map(item => (
-              <div key={item.label} className="grid grid-cols-[14px_1fr_auto] items-center gap-1.5 text-[11px]">
-                <span className={cn('flex h-3.5 w-3.5 items-center justify-center rounded-full text-white', item.done ? 'bg-status-success' : item.tone === 'orange' ? 'bg-status-warning' : 'border border-border-strong bg-white')} />
+          <div className="mt-2 space-y-1.5">
+            {items.slice(0, 4).map(item => (
+              <div key={item.label} className="grid grid-cols-[14px_1fr_auto] items-center gap-2 text-[12px]">
+                <span className={cn('flex h-3.5 w-3.5 items-center justify-center rounded-full text-white', item.done ? 'bg-status-success' : item.tone === 'orange' ? 'bg-status-warning' : item.tone === 'red' ? 'bg-status-error' : 'border border-border-strong bg-white')} />
                 <span className="truncate font-semibold text-text-secondary">{item.label}</span>
-                <span className={cn('font-bold', item.done ? 'text-brand-primary' : item.tone === 'orange' ? 'text-status-warning' : 'text-text-tertiary')}>{item.value}</span>
+                <span className={cn('font-bold', item.done ? 'text-brand-primary' : item.tone === 'orange' ? 'text-status-warning' : item.tone === 'red' ? 'text-status-error' : 'text-text-tertiary')}>{item.value}</span>
               </div>
             ))}
           </div>
@@ -330,7 +362,7 @@ function ScoreCard({ score, items }: { score: number; items: ScoreLine[] }) {
 
 function RoutineTimeline({ slots }: { slots: DailyRoutineAutoSlot[] }) {
   return (
-    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
+    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
       <div className="flex items-start justify-between gap-mx-sm">
         <div>
           <Typography variant="h3" className="text-base tracking-normal">Rotina do Dia</Typography>
@@ -338,16 +370,16 @@ function RoutineTimeline({ slots }: { slots: DailyRoutineAutoSlot[] }) {
         </div>
         <MoreHorizontal size={18} className="text-text-tertiary" />
       </div>
-      <div className="mt-mx-sm space-y-mx-xs">
+      <div className="mt-mx-md space-y-mx-sm">
         {slots.map((slot, index) => (
-          <div key={slot.key} className="relative grid grid-cols-[24px_42px_1fr] gap-mx-xs">
-            {index < slots.length - 1 && <span className="absolute left-[11px] top-6 h-[calc(100%+4px)] w-px bg-border-subtle" />}
-            <span className={cn('relative z-10 mt-0.5 flex h-6 w-6 items-center justify-center rounded-full border bg-white', slot.state === 'done' ? 'border-status-success bg-status-success text-white' : 'border-border-strong text-text-tertiary')}>
+          <div key={slot.key} className="relative grid grid-cols-[28px_46px_1fr] gap-mx-sm">
+            {index < slots.length - 1 && <span className="absolute left-[13px] top-7 h-[calc(100%+6px)] w-px bg-border-subtle" />}
+            <span className={cn('relative z-10 mt-0.5 flex h-7 w-7 items-center justify-center rounded-full border bg-white', slot.state === 'done' ? 'border-status-success bg-status-success text-white' : 'border-border-strong text-text-tertiary')}>
               {slot.state === 'done' ? <Check size={12} /> : null}
             </span>
-            <Typography variant="caption" className="pt-1 font-bold text-text-primary">{slot.time}</Typography>
+            <Typography variant="caption" className="pt-1.5 text-sm font-bold text-text-primary">{slot.time}</Typography>
             <div className="min-w-0">
-              <Typography variant="p" className="text-xs font-bold leading-tight text-text-primary">{slot.title}</Typography>
+              <Typography variant="p" className="text-sm font-bold leading-tight text-text-primary">{slot.title}</Typography>
               <Typography variant="caption" tone="muted" className="normal-case leading-snug tracking-normal">{slot.progress}</Typography>
             </div>
           </div>
@@ -371,7 +403,7 @@ function IconAction({
   className?: string
 }) {
   return (
-    <Button variant="outline" size="icon" aria-label={label} title={label} disabled={disabled} onClick={onClick} className={cn('h-8 w-8 rounded-mx-md bg-white', className)}>
+  <Button variant="outline" size="icon" aria-label={label} title={label} disabled={disabled} onClick={onClick} className={cn('h-7 w-7 rounded-mx-sm bg-white sm:h-7 sm:w-7 [&_svg]:size-3.5', className)}>
       {children}
     </Button>
   )
@@ -385,6 +417,7 @@ function AgendaRow({
   onCadenciaStatus,
   onFeedbackActionDone,
   onReagendar,
+  onNotDone,
   onMore,
 }: {
   item: AgendaCentralItem
@@ -394,6 +427,7 @@ function AgendaRow({
   onCadenciaStatus: (item: AgendaCentralItem, status: CadenciaResultadoAcao) => void
   onFeedbackActionDone: (item: AgendaCentralItem) => void
   onReagendar: () => void
+  onNotDone: (item: AgendaCentralItem) => void
   onMore: () => void
 }) {
   const actionTime = getActionTime(item.proxima_acao)
@@ -428,49 +462,54 @@ function AgendaRow({
 
   return (
     <tr className="border-t border-border-subtle align-middle hover:bg-surface-alt/60">
-      <td className="whitespace-nowrap px-mx-sm py-mx-md">
+<td className="whitespace-nowrap px-mx-sm py-mx-md">
         <div className="flex items-center gap-mx-xs">
           <Typography variant="p" className={cn('w-12 font-bold text-brand-primary', priority === 'Urgente' && 'text-status-error')}>{fmtHora(item.data_hora)}</Typography>
           <Bell size={14} className={cn('text-text-tertiary', priority === 'Urgente' && 'text-status-error')} />
         </div>
       </td>
-      <td className="min-w-[154px] px-mx-sm py-mx-md">
+<td className="min-w-[124px] px-mx-sm py-mx-md">
         <Typography variant="p" className="font-bold leading-tight text-text-primary">{item.cliente?.nome || 'Cliente sem vínculo'}</Typography>
         <Typography variant="caption" tone="muted">{item.cliente?.telefone || 'Telefone não cadastrado'}</Typography>
       </td>
-      <td className="min-w-[170px] px-mx-sm py-mx-md">
+<td className="min-w-[132px] px-mx-sm py-mx-md">
         <Typography variant="p" className="font-bold leading-tight text-text-primary">{vehicle}</Typography>
         <Typography variant="caption" tone="muted">{value}</Typography>
       </td>
-      <td className="px-mx-sm py-mx-md">
+<td className="px-mx-sm py-mx-md">
         <Pill className={canalTone[item.canal || 'porta'] || canalTone.porta}>{item.canal ? CRM_CANAL_LABEL[item.canal] : 'Carteira'}</Pill>
       </td>
-      <td className="px-mx-sm py-mx-md">
+<td className="px-mx-sm py-mx-md">
         <Pill className={origemTone[origem] || origemTone.Manual}>{origem}</Pill>
       </td>
-      <td className="px-mx-sm py-mx-md">
+<td className="px-mx-sm py-mx-md">
         <Typography variant="caption" className="font-bold text-text-secondary">{humanizeKey(item.etapa)}</Typography>
       </td>
-      <td className="px-mx-sm py-mx-md">
+<td className="px-mx-sm py-mx-md">
         <Pill className={statusTone[item.status] || statusTone.aguardando}>{item.statusLabel}</Pill>
       </td>
-      <td className="min-w-[142px] px-mx-sm py-mx-md">
+<td className="min-w-[104px] px-mx-sm py-mx-md">
         <Typography variant="caption" className="font-bold text-text-primary">{getCadenciaLabel(item)}</Typography>
       </td>
-      <td className="min-w-[160px] px-mx-sm py-mx-md">
+<td className="min-w-[122px] px-mx-sm py-mx-md">
         <Typography variant="p" className="font-bold leading-tight text-text-primary">{item.proxima_acao || 'Definir próxima ação'}</Typography>
         {actionTime && <Typography variant="caption" tone="muted" className="font-bold">{actionTime}</Typography>}
       </td>
-      <td className="px-mx-sm py-mx-md">
+<td className="px-mx-sm py-mx-md">
         <Pill className={prioridadeTone[priority]}>{priority}</Pill>
       </td>
-      <td className="min-w-[180px] px-mx-sm py-mx-md">
+  <td className="min-w-[76px] px-mx-sm py-mx-md">
         <div className="flex items-center justify-end gap-1">
           {item.origem !== 'feedback' && (
             <IconAction label="WhatsApp" onClick={onWhatsApp} className="border-status-success/30 text-status-success hover:bg-status-success-surface">
               <MessageCircle size={14} />
             </IconAction>
           )}
+          <Button variant="ghost" size="icon" aria-label="Mais ações" title="Mais ações" onClick={onMore} className="h-7 w-7 rounded-mx-sm border border-border-subtle bg-white sm:h-7 sm:w-7 [&_svg]:size-3.5">
+            <MoreHorizontal size={15} />
+          </Button>
+        </div>
+        <div className="sr-only">
           <IconAction label="Feito" disabled={statusSaving} onClick={handleDone} className="border-status-success/30 text-status-success hover:bg-status-success-surface">
             <Check size={14} />
           </IconAction>
@@ -483,9 +522,9 @@ function AgendaRow({
           <IconAction label="Reagendar" onClick={onReagendar} className="border-brand-primary/30 text-brand-primary hover:bg-brand-primary/10">
             <RotateCcw size={14} />
           </IconAction>
-          <Button variant="ghost" size="icon" aria-label="Mais ações" title="Mais ações" onClick={onMore} className="h-8 w-8 rounded-mx-md">
-            <MoreHorizontal size={15} />
-          </Button>
+          <IconAction label="Não feito" disabled={statusSaving} onClick={() => onNotDone(item)} className="border-status-error/30 text-status-error hover:bg-status-error-surface">
+            <AlarmClock size={14} />
+          </IconAction>
         </div>
       </td>
     </tr>
@@ -514,6 +553,9 @@ export function CentralExecucao() {
 
   const [filtro, setFiltro] = useState<FiltroData>('todos')
   const [canalFiltro, setCanalFiltro] = useState<CanalFiltro>('todos')
+  const [origemFiltro, setOrigemFiltro] = useState<OrigemFiltro>('todos')
+  const [prioridadeFiltro, setPrioridadeFiltro] = useState<PrioridadeFiltro>('todos')
+  const [statusFiltro, setStatusFiltro] = useState<StatusFiltro>('todos')
   const [agendaModalOpen, setAgendaModalOpen] = useState(false)
   const [clienteModalOpen, setClienteModalOpen] = useState(false)
   const [form, setForm] = useState<AgendamentoInput>(EMPTY_AGENDAMENTO)
@@ -567,9 +609,12 @@ export function CentralExecucao() {
         || (filtro === 'atrasados' && data < hoje && !isSameDay(data, hoje))
         || (filtro === 'proximos7' && data >= hoje && data <= em7)
       const matchCanal = canalFiltro === 'todos' || item.canal === canalFiltro
-      return matchDate && matchCanal
+      const matchOrigem = origemFiltro === 'todos' || getOrigemFilterLabel(item) === origemFiltro
+      const matchPrioridade = prioridadeFiltro === 'todos' || getPriority(item) === prioridadeFiltro
+      const matchStatus = statusFiltro === 'todos' || getStatusFilterLabel(item) === statusFiltro
+      return matchDate && matchCanal && matchOrigem && matchPrioridade && matchStatus
     })
-  }, [agendaItens, canalFiltro, filtro, hoje])
+  }, [agendaItens, canalFiltro, filtro, hoje, origemFiltro, prioridadeFiltro, statusFiltro])
 
   const rotinaSlots = useMemo(() => {
     const clientesCriadosHoje = clientes.filter(c => c.created_at && toDateOnlyBR(new Date(c.created_at)) === hojeStr).length
@@ -597,23 +642,39 @@ export function CentralExecucao() {
     () => clientes.filter(cliente => cliente.updated_at && toDateOnlyBR(new Date(cliente.updated_at)) === hojeStr).length,
     [clientes, hojeStr],
   )
+  const clientesCriadosHojeScore = useMemo(
+    () => clientes.filter(cliente => cliente.created_at && toDateOnlyBR(new Date(cliente.created_at)) === hojeStr).length,
+    [clientes, hojeStr],
+  )
+  const retornosExecutadosHoje = metrics.compareceram + metrics.naoCompareceram
+  const semRespostaReagendados = agendaItens.filter(item => item.status === 'reagendado' || item.cadencia?.last_result === 'nao_feito').length
+  const feedbackObrigatorioCumprido = acoesFeedback.length > 0 && acoesFeedback.every(acao => acao.status !== 'pendente')
+  const scoreChecks = [
+    true,
+    clientesAtualizadosHoje > 0,
+    retornosExecutadosHoje > 0,
+    semRespostaReagendados > 0,
+    clientesCriadosHojeScore > 0,
+    feedbackObrigatorioCumprido || acoesFeedback.length === 0,
+    Boolean(todayCheckin),
+  ]
   const score = Math.min(
     100,
-    10
-      + (clientesAtualizadosHoje > 0 ? 35 : 0)
-      + (metrics.compareceram + metrics.naoCompareceram + metrics.aguardando > 0 ? 25 : 0)
-      + (todayCheckin ? 30 : 0),
+    Math.round((scoreChecks.filter(Boolean).length / scoreChecks.length) * 100),
   )
   const scoreItems: ScoreLine[] = [
-    { label: 'Abriu a Central de Execução', value: '100%', done: true, tone: 'green' },
-    { label: 'Atualizou status dos clientes', value: clientesAtualizadosHoje > 0 ? '75%' : '0%', done: clientesAtualizadosHoje > 0, tone: 'green' },
-    { label: 'Executou retornos', value: metrics.compareceram + metrics.naoCompareceram > 0 ? '50%' : '0%', done: metrics.compareceram + metrics.naoCompareceram > 0, tone: 'orange' },
+    { label: 'Abriu Central de Execução', value: '100%', done: true, tone: 'green' },
+    { label: 'Atualizou status dos clientes', value: clientesAtualizadosHoje > 0 ? '100%' : '0%', done: clientesAtualizadosHoje > 0, tone: 'green' },
+    { label: 'Executou retornos', value: retornosExecutadosHoje > 0 ? '100%' : '0%', done: retornosExecutadosHoje > 0, tone: 'orange' },
+    { label: 'Reagendou sem resposta', value: semRespostaReagendados > 0 ? '100%' : '0%', done: semRespostaReagendados > 0, tone: 'orange' },
+    { label: 'Inseriu novos clientes', value: clientesCriadosHojeScore > 0 ? '100%' : '0%', done: clientesCriadosHojeScore > 0, tone: 'green' },
+    { label: 'Cumpriu feedback obrigatório', value: feedbackObrigatorioCumprido || acoesFeedback.length === 0 ? '100%' : '0%', done: feedbackObrigatorioCumprido || acoesFeedback.length === 0, tone: 'red' },
     { label: 'Fez Fechamento Diário', value: todayCheckin ? '100%' : '0%', done: Boolean(todayCheckin), tone: 'muted' },
   ]
 
   const pendencias = useMemo(() => {
     const clientesSemStatusAtualizado = clientes.filter(cliente => !cliente.updated_at || toDateOnlyBR(new Date(cliente.updated_at)) !== hojeStr).length
-    const feedbackObrigatorio = acoesFeedback.filter(acao => acao.obrigatoria_fechamento).length
+    const feedbackObrigatorio = acoesFeedback.filter(acao => acao.obrigatoria_fechamento && acao.status === 'pendente').length
     const acaoSemProximaEtapa = agendaItens.filter(item => !item.proxima_acao).length
     return [
       { label: 'clientes sem status atualizado', value: clientesSemStatusAtualizado, tone: 'green' },
@@ -623,19 +684,11 @@ export function CentralExecucao() {
     ]
   }, [acoesFeedback, agendaItens, clientes, hojeStr, todayCheckin])
 
-  const statusDia = useMemo(() => {
-    const atrasados = agendaItens.some(item => {
-      const data = new Date(item.data_hora)
-      return data < hoje && !isSameDay(data, hoje)
-    })
-    if (atrasados) return 'Ações atrasadas'
-    if (todayCheckin) return 'Fechamento concluído'
-    if (pendencias.some(item => item.value > 0)) return 'Fechamento pendente'
-    return 'Dia em andamento'
-  }, [agendaItens, hoje, pendencias, todayCheckin])
+  const statusDia = useMemo(() => todayCheckin ? 'Fechamento concluído' : 'Dia em andamento', [todayCheckin])
 
-  const feedbackObrigatorio = acoesFeedback.find(acao => acao.obrigatoria_fechamento) || acoesFeedback[0]
-  const hasLoadError = Boolean(error || cadenciaError || feedbackActionsError)
+  const feedbackObrigatorioPendente = acoesFeedback.find(acao => acao.obrigatoria_fechamento && acao.status === 'pendente')
+    || acoesFeedback.find(acao => acao.status === 'pendente')
+const hasLoadError = Boolean(error || (cadenciaError && !isSchemaCacheLoadError(cadenciaError)) || (feedbackActionsError && !isSchemaCacheLoadError(feedbackActionsError)))
 
   function openCreateModal() {
     setEditingId(null)
@@ -768,7 +821,7 @@ export function CentralExecucao() {
 
   return (
     <main className="min-h-full w-full bg-white p-mx-sm md:p-mx-md">
-      <div className="mx-auto flex max-w-[1520px] flex-col gap-mx-md pb-20">
+      <div className="mx-auto flex max-w-[1680px] flex-col gap-mx-md pb-20">
         <header className="flex flex-col gap-mx-md rounded-mx-xl border border-border-subtle bg-white px-mx-lg py-mx-md shadow-mx-sm lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
             <Typography variant="h1" className="text-2xl leading-tight text-text-primary">Central de Execução</Typography>
@@ -794,7 +847,7 @@ export function CentralExecucao() {
               <span>
                 <Typography variant="caption" className="block font-bold text-text-primary">{profile?.name || 'Vendedor'}</Typography>
                 <Typography variant="tiny" tone="muted">Vendedor</Typography>
-                <span className={cn('mt-1 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold', statusDia === 'Ações atrasadas' ? 'border-status-error/30 bg-status-error-surface text-status-error' : 'border-status-success/20 bg-status-success-surface text-status-success')}>
+<span className="mt-1 inline-flex rounded-full border border-status-success/20 bg-status-success-surface px-2 py-0.5 text-[10px] font-bold text-status-success">
                   {statusDia}
                 </span>
               </span>
@@ -804,13 +857,16 @@ export function CentralExecucao() {
         </header>
 
         {hasLoadError && (
-          <div className="rounded-mx-md border border-status-error/20 bg-status-error-surface px-mx-md py-mx-sm">
-            <Typography className="text-status-error">Não foi possível carregar ações de cadência. Tente novamente.</Typography>
-          </div>
+        <div className="flex flex-wrap items-center justify-between gap-mx-sm rounded-mx-lg border border-status-error/20 bg-status-error-surface/35 px-mx-lg py-mx-sm shadow-mx-xs">
+          <Typography className="text-sm font-semibold text-status-error">Ações de cadência não carregadas. Tentaremos novamente automaticamente.</Typography>
+          <Button variant="outline" size="sm" onClick={() => { void refetchCadencia(); void refetchFeedbackActions() }} className="h-mx-9 border-status-error/20 bg-white text-status-error shadow-mx-xs">
+            Recarregar
+          </Button>
+        </div>
         )}
 
-        <section className="grid grid-cols-1 gap-mx-sm md:grid-cols-2 xl:grid-cols-[repeat(5,minmax(145px,1fr))_minmax(330px,1.7fr)]" aria-label="Indicadores do dia">
-          <MetricCard icon={<CalendarCheck size={24} />} label="Agendamentos Hoje" value={String(metrics.agendamentosHoje)} hint="100% do dia" tone="green" />
+      <section className="grid grid-cols-1 gap-mx-sm md:grid-cols-2 xl:grid-cols-[repeat(5,minmax(178px,1fr))_minmax(420px,1.8fr)]" aria-label="Indicadores do dia">
+        <MetricCard icon={<CalendarCheck size={24} />} label="Agendamentos Hoje" value={String(metrics.agendamentosHoje)} hint={metrics.agendamentosHoje > 0 ? '100% do dia' : 'Sem agenda hoje'} tone="green" />
           <MetricCard icon={<CheckCircle2 size={24} />} label="Compareceram" value={String(metrics.compareceram)} hint={`${metrics.taxaComparecimento}% do dia`} tone="green" />
           <MetricCard icon={<XCircle size={24} />} label="Não Compareceram" value={String(metrics.naoCompareceram)} hint={`${metrics.agendamentosHoje ? Math.round((metrics.naoCompareceram / metrics.agendamentosHoje) * 100) : 0}% do dia`} tone="red" />
           <MetricCard icon={<Clock size={24} />} label="Em Negociação" value={String(metrics.emNegociacao)} hint={`${metrics.agendamentosHoje ? Math.round((metrics.emNegociacao / metrics.agendamentosHoje) * 100) : 0}% do dia`} tone="orange" />
@@ -818,73 +874,77 @@ export function CentralExecucao() {
           <ScoreCard score={score} items={scoreItems} />
         </section>
 
-        <div className="grid grid-cols-1 gap-mx-md xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid grid-cols-1 gap-mx-sm xl:grid-cols-[minmax(0,1fr)_344px]">
           <div className="min-w-0 space-y-mx-md">
-            <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
-              <div className="flex flex-wrap items-center gap-mx-xs">
+      <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
+        <div className="flex flex-wrap items-center gap-mx-xs">
                 <FilterButton active={filtro === 'todos'} onClick={() => setFiltro('todos')}>Todos</FilterButton>
                 <FilterButton active={filtro === 'hoje'} onClick={() => setFiltro('hoje')}><Calendar size={15} /> Hoje</FilterButton>
                 <FilterButton active={filtro === 'atrasados'} onClick={() => setFiltro('atrasados')}><AlarmClock size={15} /> Atrasados</FilterButton>
-                <FilterButton active={filtro === 'proximos7'} onClick={() => setFiltro('proximos7')}><CalendarCheck size={15} /> Próximos 7 dias</FilterButton>
+          <FilterButton active={filtro === 'proximos7'} onClick={() => setFiltro('proximos7')}><CalendarCheck size={15} /> Próx. 7 dias</FilterButton>
                 <FilterSelectButton active={canalFiltro === 'todos'} onClick={() => setCanalFiltro('todos')}>Todos os Canais</FilterSelectButton>
-                <FilterSelectButton active={false} onClick={() => toast.info('Filtro por origem será aplicado automaticamente pelos dados exibidos.')}>Origem da ação</FilterSelectButton>
-                <FilterSelectButton active={false} onClick={() => toast.info('Prioridades são calculadas conforme prazo, origem e etapa.')}>Prioridade</FilterSelectButton>
-                <FilterSelectButton active={false} onClick={() => toast.info('Use a coluna Status da Ação para acompanhar cada cliente.')}>Status da ação</FilterSelectButton>
+                <FilterDropdown label="Origem da ação" value={origemFiltro} values={ORIGEM_FILTROS} onChange={value => setOrigemFiltro(value as OrigemFiltro)} />
+                <FilterDropdown label="Prioridade" value={prioridadeFiltro} values={PRIORIDADE_FILTROS} onChange={value => setPrioridadeFiltro(value as PrioridadeFiltro)} />
+                <FilterDropdown label="Status da ação" value={statusFiltro} values={STATUS_FILTROS} onChange={value => setStatusFiltro(value as StatusFiltro)} />
               </div>
-              <div className="mt-mx-sm flex flex-wrap items-center gap-mx-xs">
-                {CRM_CANAIS.filter(canal => canal !== 'porta').map(canal => (
-                  <FilterButton key={canal} active={canalFiltro === canal} onClick={() => setCanalFiltro(canalFiltro === canal ? 'todos' : canal)}>
-                    {canal === 'carteira' ? <SquareUserRound size={15} /> : canal === 'internet' ? <CalendarCheck size={15} /> : <Store size={15} />}
-                    {CRM_CANAL_LABEL[canal]}
-                  </FilterButton>
-                ))}
-                <Button variant="outline" size="sm" onClick={openCreateModal} className="ml-auto h-mx-10 border-brand-primary/30 bg-white text-brand-primary">
-                  <Plus size={15} /> Nova Atividade
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => setClienteModalOpen(true)} className="h-mx-10 border-brand-primary/30 bg-white text-brand-primary">
-                  <UserPlus size={15} /> Novo Cliente
-                </Button>
-                <Button size="sm" onClick={openCreateModal} className="h-mx-10">
-                  <CalendarCheck size={15} /> Novo Agendamento
-                </Button>
-              </div>
+        <div className="mt-mx-md flex flex-wrap items-center justify-between gap-mx-md">
+          <div className="flex flex-wrap items-center gap-mx-sm">
+            {CRM_CANAIS.filter(canal => canal !== 'porta').map(canal => (
+              <FilterButton key={canal} active={canalFiltro === canal} onClick={() => setCanalFiltro(canalFiltro === canal ? 'todos' : canal)}>
+                {canal === 'carteira' ? <SquareUserRound size={15} /> : canal === 'internet' ? <CalendarCheck size={15} /> : <Store size={15} />}
+                {CRM_CANAL_LABEL[canal]}
+              </FilterButton>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-mx-sm">
+            <Button variant="outline" size="sm" onClick={openCreateModal} className="h-mx-10 border-brand-primary/30 bg-white text-brand-primary">
+              <Plus size={15} /> Nova Atividade
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setClienteModalOpen(true)} className="h-mx-10 border-brand-primary/30 bg-white text-brand-primary">
+              <UserPlus size={15} /> Novo Cliente
+            </Button>
+            <Button size="sm" onClick={openCreateModal} className="h-mx-10">
+              <CalendarCheck size={15} /> Novo Agendamento
+            </Button>
+          </div>
+        </div>
             </Card>
 
-            <Card className="overflow-hidden rounded-mx-lg border border-border-subtle bg-white p-0 shadow-mx-sm">
-              <div className="border-b border-border-subtle px-mx-md py-mx-md">
-                <Typography variant="h3" className="tracking-normal text-text-primary">Ações Comerciais de Hoje</Typography>
-                <Typography variant="caption" tone="muted">Clientes, retornos e rotinas que precisam ser executados hoje.</Typography>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[1260px] table-fixed text-left text-sm">
-                  <colgroup>
-                    <col className="w-[82px]" />
-                    <col className="w-[154px]" />
-                    <col className="w-[170px]" />
-                    <col className="w-[86px]" />
-                    <col className="w-[100px]" />
-                    <col className="w-[110px]" />
-                    <col className="w-[120px]" />
-                    <col className="w-[142px]" />
-                    <col className="w-[160px]" />
-                    <col className="w-[90px]" />
-                    <col className="w-[180px]" />
-                  </colgroup>
-                  <thead className="bg-surface-alt/70 text-text-secondary">
-                    <tr>
-                      <th className="px-mx-sm py-mx-sm font-bold">Horário</th>
-                      <th className="px-mx-sm py-mx-sm font-bold">Cliente / Contato</th>
-                      <th className="px-mx-sm py-mx-sm font-bold">Veículo de Interesse</th>
-                      <th className="px-mx-sm py-mx-sm font-bold">Canal</th>
-                      <th className="px-mx-sm py-mx-sm font-bold">Origem</th>
-                      <th className="px-mx-sm py-mx-sm font-bold">Etapa do Funil</th>
-                      <th className="px-mx-sm py-mx-sm font-bold">Status da Ação</th>
-                      <th className="px-mx-sm py-mx-sm font-bold">Cadência / Tentativa</th>
-                      <th className="px-mx-sm py-mx-sm font-bold">Próxima Ação</th>
-                      <th className="px-mx-sm py-mx-sm font-bold">Prioridade</th>
-                      <th className="px-mx-sm py-mx-sm text-right font-bold">Ações</th>
-                    </tr>
-                  </thead>
+      <Card className="overflow-hidden rounded-mx-lg border border-border-subtle bg-white p-0 shadow-mx-md">
+        <div className="border-b border-border-subtle px-mx-lg py-mx-md">
+          <Typography variant="h3" className="tracking-normal text-text-primary">Ações Comerciais de Hoje</Typography>
+          <Typography variant="caption" tone="muted">Clientes, retornos e rotinas que precisam ser executados hoje.</Typography>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[1128px] table-fixed text-left text-sm">
+            <colgroup>
+              <col className="w-[62px]" />
+              <col className="w-[128px]" />
+              <col className="w-[132px]" />
+              <col className="w-[78px]" />
+              <col className="w-[84px]" />
+              <col className="w-[96px]" />
+              <col className="w-[102px]" />
+              <col className="w-[106px]" />
+              <col className="w-[122px]" />
+              <col className="w-[84px]" />
+              <col className="w-[134px]" />
+            </colgroup>
+            <thead className="bg-surface-alt/70 text-text-secondary">
+              <tr>
+                <th className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Horário</th>
+                <th className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Cliente / Contato</th>
+                <th className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Veículo de Interesse</th>
+                <th className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Canal</th>
+                <th className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Origem</th>
+                <th className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Etapa do Funil</th>
+                <th className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Status da Ação</th>
+                <th className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Cadência / Tentativa</th>
+                <th className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Próxima Ação</th>
+                <th className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Prioridade</th>
+                <th className="px-mx-sm py-mx-sm text-right text-[13px] font-bold leading-tight">Ações</th>
+              </tr>
+            </thead>
                   <tbody>
                     {loading || cadenciaLoading || feedbackActionsLoading ? (
                       <tr><td colSpan={11} className="p-mx-lg"><Typography tone="muted">Carregando ações comerciais...</Typography></td></tr>
@@ -908,6 +968,7 @@ export function CentralExecucao() {
                           onCadenciaStatus={handleCadenciaStatus}
                           onFeedbackActionDone={handleFeedbackActionDone}
                           onReagendar={() => item.agendamento ? openEditModal(item.agendamento) : toast.info('Sugestão: reagende a próxima tentativa no próximo horário disponível.')}
+                          onNotDone={() => item.cadencia ? handleCadenciaStatus(item, 'nao_feito') : item.agendamento ? handleAgendamentoStatus(item, 'nao_compareceu') : toast.info('Ação marcada para revisão na Central.')}
                           onMore={() => toast.info('Abra a Carteira para ver o histórico completo do cliente.')}
                         />
                       ))
@@ -918,34 +979,36 @@ export function CentralExecucao() {
             </Card>
           </div>
 
-          <aside className="flex flex-col gap-mx-sm">
-            <RoutineTimeline slots={rotinaSlots} />
+        <aside className="flex flex-col gap-mx-md">
+          <RoutineTimeline slots={rotinaSlots} />
 
-            <Card className="rounded-mx-lg border border-status-error/20 bg-status-error-surface/30 p-mx-md shadow-mx-sm">
-              <div className="flex items-center justify-between gap-mx-sm">
-                <Typography variant="h3" className="text-base tracking-normal text-status-error">Feedback Obrigatório</Typography>
-                {feedbackObrigatorio && <Pill className="border-status-error/20 bg-white text-status-error">Pendente</Pill>}
-              </div>
-              {feedbackObrigatorio ? (
-                <div className="mt-mx-sm space-y-mx-xs">
-                  <Typography variant="p" className="text-sm font-bold text-text-primary">{feedbackObrigatorio.action_text}</Typography>
-                  <Typography variant="caption" tone="muted">Progresso</Typography>
-                  <div className="h-1.5 rounded-full bg-white">
-                    <span className="block h-full w-1/3 rounded-full bg-status-error" />
-                  </div>
-                  <div className="flex justify-end gap-mx-xs pt-mx-xs">
-                    <Button variant="outline" size="sm" className="bg-white">Ver ação</Button>
-                    <Button variant="ghost" size="sm" className="bg-white">Justificar</Button>
-                  </div>
+          <Card className="rounded-mx-lg border border-status-error/25 bg-status-error-surface/35 p-mx-lg shadow-mx-sm">
+            <div className="flex items-center justify-between gap-mx-sm">
+              <Typography variant="h3" className="text-base tracking-normal text-status-error">Feedback Obrigatório</Typography>
+              {feedbackObrigatorioPendente && <Pill className="border-status-error/20 bg-white text-status-error">Pendente</Pill>}
+            </div>
+            {feedbackObrigatorioPendente ? (
+              <div className="mt-mx-md space-y-mx-sm">
+                <Typography variant="p" className="text-sm font-bold text-text-primary">{feedbackObrigatorioPendente.action_text}</Typography>
+                <Typography variant="caption" tone="muted">Progresso</Typography>
+                <div className="h-1.5 rounded-full bg-white">
+                  <span className="block h-full w-1/3 rounded-full bg-status-error" />
                 </div>
-              ) : (
-                <Typography variant="caption" tone="muted" className="mt-mx-sm block">Nenhuma ação obrigatória vinculada.</Typography>
-              )}
-            </Card>
+                <div className="flex justify-end gap-mx-xs pt-mx-xs">
+                  <Button variant="outline" size="sm" className="bg-white">Ver ação</Button>
+                  <Button variant="ghost" size="sm" className="bg-white">Justificar</Button>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-mx-md rounded-mx-md border border-status-error/10 bg-white/70 px-mx-md py-mx-sm">
+                <Typography variant="caption" tone="muted" className="block leading-relaxed">Nenhuma ação obrigatória no momento.</Typography>
+              </div>
+            )}
+          </Card>
 
-            <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
-              <Typography variant="h3" className="text-base tracking-normal">Pendências para Fechamento</Typography>
-              <div className="mt-mx-sm space-y-mx-xs">
+          <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
+            <Typography variant="h3" className="text-base tracking-normal">Pendências para Fechamento</Typography>
+            <div className="mt-mx-md space-y-mx-sm">
                 {pendencias.map(item => (
                   <div key={item.label} className="flex items-center justify-between gap-mx-sm">
                     <div className="flex min-w-0 items-center gap-mx-xs">
@@ -955,14 +1018,14 @@ export function CentralExecucao() {
                   </div>
                 ))}
               </div>
-              <Button asChild variant="outline" className="mt-mx-sm w-full border-brand-primary/30 text-brand-primary">
-                <Link to="/lancamento-diario">Ir para Fechamento Diário</Link>
-              </Button>
-            </Card>
+            <Button asChild variant="outline" className="mt-mx-md w-full border-brand-primary/30 text-brand-primary">
+              <Link to="/lancamento-diario">Ir para Fechamento Diário</Link>
+            </Button>
+          </Card>
 
-            <Card className="rounded-mx-lg border border-brand-primary/10 bg-brand-primary/5 p-mx-md shadow-mx-sm">
-              <div className="flex items-start gap-mx-sm">
-                <Target size={18} className="mt-1 text-brand-primary" />
+          <Card className="rounded-mx-lg border border-brand-primary/10 bg-brand-primary/5 p-mx-lg shadow-mx-sm">
+            <div className="flex items-start gap-mx-sm">
+              <Target size={18} className="mt-1 text-brand-primary" />
                 <div>
                   <Typography variant="h3" className="text-base text-brand-primary">Dica do Dia</Typography>
                   <Typography variant="p" className="mt-mx-xs text-sm font-semibold text-brand-primary">Foque nas negociações mais próximas do fechamento. Vender é prioridade.</Typography>
@@ -1030,7 +1093,7 @@ export function CentralExecucao() {
           <Select label="Etapa inicial do funil" value={clienteForm.etapa} onChange={event => setClienteForm(current => ({ ...current, etapa: event.target.value as CrmClienteStatus }))}>
             {Object.entries(STATUS_CLIENTE_LABEL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </Select>
-          <FormField type="datetime-local" label="Data/horário da próxima ação *" value={clienteForm.data_hora} onChange={event => setClienteForm(current => ({ ...current, data_hora: event.target.value }))} />
+            <FormField type="datetime-local" label="Data/hora próxima ação *" value={clienteForm.data_hora} onChange={event => setClienteForm(current => ({ ...current, data_hora: event.target.value }))} />
           <div className="sm:col-span-2">
             <FormField label="Próxima ação" value={clienteForm.proxima_acao} onChange={event => setClienteForm(current => ({ ...current, proxima_acao: event.target.value }))} />
           </div>
@@ -1046,7 +1109,7 @@ function FilterButton({ active, children, onClick }: { active: boolean; children
       type="button"
       onClick={onClick}
       className={cn(
-        'inline-flex h-mx-10 items-center justify-center gap-mx-xs rounded-mx-md border px-mx-sm text-sm font-bold transition-colors',
+          'inline-flex h-mx-10 items-center justify-center gap-mx-xs rounded-mx-md border px-mx-sm text-[13px] font-bold transition-colors',
         active ? 'border-brand-primary bg-brand-primary text-white shadow-mx-sm' : 'border-border-subtle bg-white text-text-secondary hover:border-brand-primary/30 hover:text-text-primary',
       )}
     >
@@ -1061,13 +1124,42 @@ function FilterSelectButton({ active, children, onClick }: { active: boolean; ch
       type="button"
       onClick={onClick}
       className={cn(
-        'inline-flex h-mx-10 items-center justify-center gap-mx-xs rounded-mx-md border px-mx-md text-sm font-bold transition-colors',
+'inline-flex h-mx-10 w-[170px] items-center justify-center gap-mx-xs whitespace-nowrap rounded-mx-md border px-mx-sm text-[13px] font-bold transition-colors',
         active ? 'border-brand-primary/30 bg-brand-primary/10 text-brand-primary' : 'border-border-subtle bg-white text-text-secondary hover:border-brand-primary/30',
       )}
     >
       {children}
       <ChevronDown size={15} />
     </button>
+  )
+}
+
+function FilterDropdown({
+  label,
+  value,
+  values,
+  onChange,
+}: {
+  label: string
+  value: string
+  values: readonly string[]
+  onChange: (value: string) => void
+}) {
+  return (
+<label className="inline-flex h-mx-10 w-[164px] items-center justify-center gap-mx-xs whitespace-nowrap rounded-mx-md border border-border-subtle bg-white px-mx-sm text-[13px] font-bold text-text-secondary transition-colors hover:border-brand-primary/30 hover:text-text-primary">
+      <span className="sr-only">{label}</span>
+      <select
+        aria-label={label}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+className="min-w-0 flex-1 appearance-none bg-transparent pr-mx-xs text-[13px] font-bold outline-none"
+      >
+        {values.map((option) => (
+          <option key={option} value={option}>{option === 'todos' ? label : option}</option>
+        ))}
+      </select>
+      <ChevronDown size={15} />
+    </label>
   )
 }
 

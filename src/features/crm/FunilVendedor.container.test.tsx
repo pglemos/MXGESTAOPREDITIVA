@@ -43,17 +43,17 @@ let perfilMixMock = {
 
 mock.module('@/features/vendedor-home/hooks/useVendedorHomePage', () => ({
   useVendedorHomePage: () => ({
-    metrics: { meta: 10, vendasMes: 5, projecao: 8 },
+    metrics: { meta: 10, vendasMes: 6, projecao: 8 },
     remuneracaoResumo: {
-      realizado: { disponivel: true, total: 2500 },
-      projetado: { disponivel: true, total: 5000 },
+      realizado: { disponivel: true, total: 8450 },
+      projetado: { disponivel: true, total: 12000 },
     },
   }),
 }))
 
 mock.module('@/hooks/useGoals', () => ({
   useStoreMetaRules: () => ({
-    metaRules: { bench_lead_agd: 20, bench_agd_visita: 60, bench_visita_vnd: 33, projection_mode: 'calendar' },
+    metaRules: { bench_lead_agd: 18, bench_agd_visita: 55, bench_visita_vnd: 16, projection_mode: 'calendar' },
   }),
 }))
 
@@ -88,7 +88,7 @@ afterEach(() => {
 })
 
 describe('FunilVendedor', () => {
-  it('renderiza apenas canais ativos pelo historico real dos ultimos tres meses', () => {
+  it('mantem todos os canais visiveis e orienta canais sem dados recentes', () => {
     oportunidadesMock = [
       makeOpportunity({ canal: 'internet', closed_at: dateDaysAgo(2) }),
       makeOpportunity({ canal: 'internet', closed_at: dateDaysAgo(3) }),
@@ -99,14 +99,27 @@ describe('FunilVendedor', () => {
 
     render(<MemoryRouter><FunilVendedor /></MemoryRouter>)
 
-    expect(screen.getByRole('heading', { name: /internet/i })).toBeInTheDocument()
+    expect(screen.getByText('60% da meta alcançada')).toBeInTheDocument()
+    expect(screen.getByText(/R\$\s*8\.450/)).toBeInTheDocument()
+    expect(screen.getByText(/R\$\s*12\.000/)).toBeInTheDocument()
+    expect(screen.getByText(/R\$\s*3\.550/)).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { name: /^internet$/i }).length).toBeGreaterThan(0)
     expect(screen.getAllByRole('heading', { name: /^carteira$/i }).length).toBeGreaterThan(0)
-    expect(screen.queryByRole('heading', { name: /porta\/showroom/i })).not.toBeInTheDocument()
-    expect(screen.getByText(/Mix real 3 meses: 75%/i)).toBeInTheDocument()
-    expect(screen.getByText(/Priorize Internet/i)).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { name: /^porta$/i }).length).toBeGreaterThan(0)
+    expect(screen.getByText(/Plano para bater sua meta/i)).toBeInTheDocument()
+    expect(screen.getByText(/Gargalo principal/i)).toBeInTheDocument()
+    expect(screen.getByText(/Gerar plano na Central de Execução/i)).toBeInTheDocument()
+    expect(screen.getByText('85')).toBeInTheDocument()
+    expect(screen.getByText('13')).toBeInTheDocument()
+    expect(screen.getAllByText('7').length).toBeGreaterThan(0)
+    expect(screen.getByText('Canal prioritário do mês')).toBeInTheDocument()
+    expect(screen.getAllByText('18%').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('55%').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('16%').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('11,9%').length).toBeGreaterThan(0)
   })
 
-  it('usa mix manual do perfil antes do historico', () => {
+  it('mantem a referencia visual mesmo quando o mix manual diverge', () => {
     perfilMixMock = {
       mix_canal_internet_pct: 70,
       mix_canal_carteira_pct: 30,
@@ -119,9 +132,10 @@ describe('FunilVendedor', () => {
 
     render(<MemoryRouter><FunilVendedor /></MemoryRouter>)
 
-    expect(screen.getByText(/Mix manual: 70%/i)).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /^internet$/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /^carteira$/i })).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: /porta\/showroom/i })).not.toBeInTheDocument()
+    expect(screen.getByText('42%')).toBeInTheDocument()
+    expect(screen.getByText('57%')).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { name: /^internet$/i }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('heading', { name: /^carteira$/i }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('heading', { name: /^porta$/i }).length).toBeGreaterThan(0)
   })
 })

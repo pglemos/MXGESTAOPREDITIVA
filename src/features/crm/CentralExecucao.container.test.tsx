@@ -1,6 +1,6 @@
 import React from 'react'
 import { afterEach, describe, expect, it, mock } from 'bun:test'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
 const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date())
@@ -13,6 +13,7 @@ const concluirAcaoFeedback = mock(async () => ({ error: null }))
 const toastSuccess = mock(() => {})
 const toastError = mock(() => {})
 let feedbackActionsMock: unknown[] = []
+let cadenciaErrorMock: string | null = null
 
 const cadenceAction = {
   cadencia_estado_id: '33333333-3333-4333-8333-333333333333',
@@ -98,7 +99,7 @@ mock.module('@/features/crm/hooks/useCadenciaAgenda', () => ({
   useCadenciaAgenda: () => ({
     acoes: [cadenceAction],
     loading: false,
-    error: null,
+    error: cadenciaErrorMock,
     refetch: refetchCadencia,
   }),
 }))
@@ -187,9 +188,29 @@ afterEach(() => {
   toastSuccess.mockClear()
   toastError.mockClear()
   feedbackActionsMock = []
+  cadenciaErrorMock = null
 })
 
 describe('CentralExecucao', () => {
+  it('mostra estado neutro quando nao ha feedback obrigatorio pendente', async () => {
+    render(<MemoryRouter><CentralExecucao /></MemoryRouter>)
+
+    expect(await screen.findByText('Nenhuma ação obrigatória no momento.')).toBeTruthy()
+  })
+
+  it('mostra alerta discreto quando a cadencia falha sem expor erro tecnico', async () => {
+    cadenciaErrorMock = 'relation cadencia_estados does not exist'
+
+    render(<MemoryRouter><CentralExecucao /></MemoryRouter>)
+
+    expect(await screen.findByText('Ações de cadência não carregadas. Tentaremos novamente automaticamente.')).toBeTruthy()
+    expect(screen.queryByText('relation cadencia_estados does not exist')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: /Recarregar/i }))
+    expect(refetchCadencia).toHaveBeenCalled()
+    expect(refetchFeedbackActions).toHaveBeenCalled()
+  })
+
   it('mostra acao de cadencia na agenda e conclui pelo mesmo status da Carteira', async () => {
     render(<MemoryRouter><CentralExecucao /></MemoryRouter>)
 
@@ -241,7 +262,12 @@ describe('CentralExecucao', () => {
     expect(screen.getAllByText('Feedback').length).toBeGreaterThan(0)
     expect(screen.getByText('Ação obrigatória')).toBeTruthy()
 
-    fireEvent.click(screen.getAllByRole('button', { name: /Feito/i })[1])
+    const feedbackRow = screen
+      .getAllByText('Agendar 3 retornos/dia às 10:00')[0]
+      .closest('tr')
+
+    expect(feedbackRow).toBeTruthy()
+    fireEvent.click(within(feedbackRow as HTMLElement).getByRole('button', { name: /^Feito$/i }))
 
     await waitFor(() => {
       expect(concluirAcaoFeedback).toHaveBeenCalledWith('action-feedback-1')

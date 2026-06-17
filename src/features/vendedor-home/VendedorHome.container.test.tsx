@@ -1,11 +1,132 @@
 import React from 'react'
-import { describe, expect, it } from 'bun:test'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it, mock } from 'bun:test'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
-import { EstimatedSalaryCard } from './VendedorHome.container'
+
+mock.module('@/hooks/useAuth', () => ({
+  useAuth: () => ({
+    profile: {
+      id: 'seller-1',
+      name: 'Vendedor MX Consultoria 1',
+      avatar_url: null,
+    },
+  }),
+}))
+
+mock.module('@/hooks/useNotifications', () => ({
+  useNotifications: () => ({
+    unreadCount: 0,
+  }),
+}))
+
+mock.module('@/features/vendedor-home/hooks/useVendedorHomePage', () => ({
+  useVendedorHomePage: () => ({
+    remuneration: null,
+    remuneracaoEstimada: {
+      disponivel: true,
+      cargo: 'Vendedor',
+      salarioFixo: 0,
+      salarioVariavel: 0,
+      beneficios: 0,
+      base: 0,
+      comissaoPorVenda: 0,
+      comissao: 4800,
+      bonus: 0,
+      total: 4800,
+      vendasConsideradas: 5,
+      meta: 8,
+      atingimentoPercentual: 63,
+      regraComissaoAplicada: null,
+      regraBonusAplicada: null,
+      bonusPatamares: [],
+      regrasAplicadas: [],
+      regrasNaoAtingidas: [],
+      formulaItens: [],
+    },
+    discipline: { percentage: 0 },
+    devolutivas: [],
+    treinamentos: [
+      { id: 'training-1', title: 'História, valores e cultura da MX', watched: false, progress_percent: 60 },
+      { id: 'training-2', title: 'Funil comercial e conversões', watched: false, progress_percent: 45 },
+    ],
+    checkins: [],
+    todayCheckin: null,
+    ranking: [],
+  }),
+}))
+
+mock.module('@/features/crm/hooks/useMeuScore', () => ({
+  useMeuScore: () => ({
+    score: {
+      value: 40,
+      band: 'critical',
+      dimDisciplina: 0,
+      dimResultado: 100,
+      dimProcesso: 0,
+      period: '2026-06',
+    },
+    bandLabel: { critical: 'Crítico' },
+    nextBand: { critical: 'Atenção' },
+  }),
+}))
+
+mock.module('@/features/crm/hooks/useAgendamentos', () => ({
+  useAgendamentos: () => ({
+    agendamentos: [],
+    metrics: {
+      agendamentosHoje: 0,
+      confirmados: 0,
+      aguardando: 0,
+    },
+  }),
+}))
+
+mock.module('@/features/crm/hooks/useOportunidades', () => ({
+  useOportunidades: () => ({
+    oportunidades: [],
+  }),
+}))
+
+const { VendedorHome, EstimatedSalaryCard } = await import('./VendedorHome.container')
+
+afterEach(() => {
+  cleanup()
+})
+
+describe('VendedorHome', () => {
+  it('mantem a estrutura da home e orienta os estados vazios do vendedor', () => {
+    render(
+      <MemoryRouter>
+        <VendedorHome />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('heading', { name: /bom dia, consultor!/i })).toBeInTheDocument()
+    expect(screen.getByText(/crítico/i)).toBeInTheDocument()
+    expect(screen.getByText(/400 \/ 1000 pts/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/nenhuma atividade executada ainda/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/comece pela central de execução/i).length).toBeGreaterThan(0)
+    expect(screen.getByText(/plano de ataque de hoje/i)).toBeInTheDocument()
+    expect(screen.getByText(/5 retornos de carteira/i)).toBeInTheDocument()
+    expect(screen.getByText(/3 novos agendamentos/i)).toBeInTheDocument()
+    expect(screen.getByText(/2 prospecções/i)).toBeInTheDocument()
+    expect(screen.queryByText(/próxima melhor ação/i)).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /^fechar meu dia$/i })).toBeInTheDocument()
+    expect(screen.getByText(/história, valores e cultura da mx/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/nenhum feedback recebido ainda/i)).toHaveLength(1)
+    expect(screen.getByText(/ação vinculada, prazo, status e confirmação de leitura/i)).toBeInTheDocument()
+
+    const topCards = screen.getByText(/minha meta/i).closest('section')
+    expect(topCards).not.toBeNull()
+    expect(within(topCards as HTMLElement).getByText(/comissão estimada/i)).toBeInTheDocument()
+    expect(within(topCards as HTMLElement).getByText(/agendamentos hoje/i)).toBeInTheDocument()
+    expect(within(topCards as HTMLElement).getByText(/atividades hoje/i)).toBeInTheDocument()
+    expect(within(topCards as HTMLElement).getByText(/meu score mx/i)).toBeInTheDocument()
+  })
+})
 
 describe('EstimatedSalaryCard', () => {
-  it('navega para o cálculo detalhado mesmo quando a remuneração está pendente', () => {
+  it('navega para o cálculo detalhado mesmo quando remuneração está pendente', () => {
     render(
       <MemoryRouter>
         <Routes>

@@ -174,15 +174,15 @@
   --radius-mx-4xl: 3rem;
 
   /* Layout Matrix Expansion (Centralized) */
-  --spacing-mx-layout-offset-top: 104px;
+--spacing-mx-layout-offset-top: 80px;
   --spacing-mx-layout-offset-bottom: 120px;
-  --spacing-mx-layout-drawer-left: 136px;
+--spacing-mx-layout-drawer-left: 112px;
   --height-mx-layout-viewport: calc(100vh - var(--spacing-mx-layout-offset-bottom));
 
   --width-mx-sidebar-collapsed: 80px;
   --width-mx-sidebar-expanded: 280px;
   --width-mx-header: 100%;
-  --height-mx-header: 80px;
+--height-mx-header: 64px;
 
   /* Semantic Glows */
   --shadow-mx-glow-brand: 0 0 20px rgba(34, 197, 94, 0.3);

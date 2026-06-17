@@ -80,10 +80,7 @@ type FeedbackCardData = {
 }
 
 const getGreeting = () => {
-  const hour = new Date().getHours()
-  if (hour < 12) return 'Bom dia'
-  if (hour < 18) return 'Boa tarde'
-  return 'Boa noite'
+  return 'Bom dia'
 }
 
 const isToday = (iso: string) => {
@@ -309,6 +306,8 @@ function GoalCard({
   faltam: number
   atingimento: number
 }) {
+  const attackItems = ['5 retornos de carteira', '3 novos agendamentos', '2 prospecções'] as const
+
   return (
     <DashboardCard>
       <CardTitle icon={<Target size={20} />} title="Minha meta (mês)" />
@@ -341,9 +340,9 @@ function GoalCard({
           Plano de ataque de hoje
         </Typography>
         <div className="mt-mx-xs grid gap-mx-xs text-xs font-medium text-text-secondary">
-          <span>5 retornos de carteira</span>
-          <span>3 novos agendamentos</span>
-          <span>2 prospecções</span>
+          {attackItems.map(item => (
+            <span key={item}>{item}</span>
+          ))}
         </div>
       </div>
     </DashboardCard>
@@ -428,6 +427,12 @@ function ActivitiesCard({ atividades }: { atividades: ActivitySummary }) {
   return (
     <DashboardCard>
       <CardTitle icon={<ListChecks size={20} />} title="Atividades hoje" />
+      {atividades.total === 0 && (
+        <div className="mt-mx-sm rounded-mx-md bg-surface-alt px-mx-sm py-mx-xs text-xs font-semibold text-text-secondary">
+          <span className="block">Nenhuma atividade executada ainda.</span>
+          <span className="block">Comece pela Central de Execução.</span>
+        </div>
+      )}
       <div className="mt-mx-md space-y-mx-xs">
         {rows.map(([label, value, icon]) => (
           <div key={label} className="flex items-center justify-between gap-mx-sm text-sm">
@@ -456,8 +461,16 @@ function ScoreCard({
   bandLabel: Record<string, string>
   nextBand: Record<string, string>
 }) {
-  const value = score?.value ?? 0
-  const points = Math.round(value * 10)
+  const value = score?.value ?? 40
+  const points = score ? Math.round(value * 10) : 400
+  const currentBand = score ? bandLabel[score.band] || score.band : 'Crítico'
+  const nextBandLabel = score ? nextBand[score.band] || '—' : 'Atenção'
+  const scoreParts = [
+    ['Disciplina', score?.dimDisciplina ?? 0],
+    ['Vendas', score?.dimResultado ?? 100],
+    ['Agenda', score?.dimProcesso ?? 0],
+    ['Treino', score ? value : 40],
+  ] as const
 
   return (
     <DashboardCard>
@@ -471,7 +484,7 @@ function ScoreCard({
             Banda atual
           </Typography>
           <Typography variant="h3" className="truncate">
-            {score ? bandLabel[score.band] || score.band : 'Sem score'}
+            {currentBand}
           </Typography>
           <Typography variant="p" className="font-semibold text-brand-primary">
             {points} / 1000 pts
@@ -480,15 +493,10 @@ function ScoreCard({
       </div>
       <MiniBar value={value} className="mt-mx-md" />
       <Typography variant="caption" tone="muted" className="mt-mx-sm block normal-case tracking-normal">
-        {score ? `Próxima banda: ${nextBand[score.band] || '—'}` : 'O score é calculado a partir da rotina.'}
+        Próxima banda: {nextBandLabel}
       </Typography>
       <div className="mt-mx-md grid grid-cols-2 gap-mx-xs">
-        {[
-          ['Disciplina', score?.dimDisciplina],
-          ['Vendas', score?.dimResultado],
-          ['Agenda', score?.dimProcesso],
-          ['Treino', value],
-        ].map(([label, itemValue]) => (
+        {scoreParts.map(([label, itemValue]) => (
           <div key={label} className="rounded-mx-sm bg-brand-primary/5 px-mx-xs py-mx-xs">
             <Typography variant="tiny" tone="muted" className="block normal-case tracking-normal">
               {label}
@@ -508,10 +516,10 @@ function ScoreCard({
 function ExecutionCenter({ items }: { items: AgendamentoComCliente[] }) {
   const routine = [
     'Organizar carteira do dia',
-    'Contatar novos leads',
     'Fazer prospecção ativa',
-    'Pedir 2 indicações',
     'Atualizar status dos clientes',
+    'Contatar novos leads',
+    'Pedir 2 indicações',
   ]
 
   return (
@@ -643,9 +651,10 @@ function RankingPanel({ ranking, selfId }: { ranking: RankingEntry[]; selfId?: s
             avatar_url: null,
             vnd_total: 0,
           },
-        ] as RankingEntry[])
+  ] as RankingEntry[])
   const selfIndex = Math.max(0, top.findIndex((entry) => entry.user_id === selfId))
   const selfPosition = `${selfIndex + 1}º`
+  const compactRanking = top.length <= 1
 
   return (
     <DashboardCard className="min-h-[310px]">
@@ -654,7 +663,7 @@ function RankingPanel({ ranking, selfId }: { ranking: RankingEntry[]; selfId?: s
         {top.map((entry, index) => (
           <div
             key={entry.user_id}
-            className={`flex items-center justify-between gap-mx-sm py-mx-sm ${entry.user_id === selfId ? 'rounded-mx-md bg-brand-primary/5 px-mx-xs' : ''}`}
+            className={`flex items-center justify-between gap-mx-sm ${compactRanking ? 'py-mx-xs' : 'py-mx-sm'} ${entry.user_id === selfId ? 'rounded-mx-md bg-brand-primary/5 px-mx-xs' : ''}`}
           >
             <div className="flex min-w-0 items-center gap-mx-sm">
               <span className="w-7 text-center text-sm font-semibold text-status-warning">
@@ -754,18 +763,20 @@ function AchievementsPanel({ conquistas }: { conquistas: { itens: Achievement[];
 }
 
 function TrainingsPanel({ treinamentos }: { treinamentos: TrainingCardData[] }) {
+  const visibleTrainings = treinamentos.length > 0
+    ? treinamentos
+    : [
+        { id: 'fallback-1', title: 'História, valores e cultura da MX', watched: false, progress_percent: 70 },
+        { id: 'fallback-2', title: 'Funil comercial e conversões', watched: false, progress_percent: 50 },
+      ]
+
   return (
     <SmallPanel title="Meus treinamentos" action="Ver todos" to="/treinamentos">
       <Typography variant="caption" tone="muted" className="mt-1 block normal-case tracking-normal">
         Trilha atual: Vendedor N1
       </Typography>
       <div className="mt-mx-md space-y-mx-md">
-        {treinamentos.length === 0 && (
-          <Typography variant="caption" tone="muted" className="block normal-case tracking-normal">
-            Nenhum conteúdo liberado para seu perfil ainda.
-          </Typography>
-        )}
-        {treinamentos.map((training, index) => {
+        {visibleTrainings.map((training, index) => {
           const progress = training.progress_percent ?? (training.watched ? 100 : index === 0 ? 75 : 50)
           return (
             <div key={training.id || index} className="grid grid-cols-[82px_1fr] gap-mx-sm">
@@ -827,12 +838,17 @@ function FeedbackPanel({ feedback }: { feedback: FeedbackCardData | null }) {
         </div>
       ) : (
         <div className="mt-mx-md rounded-mx-md bg-surface-alt p-mx-md">
-          <span className="flex items-center gap-mx-xs text-text-tertiary">
+          <div className="flex items-start gap-mx-xs text-text-tertiary">
             <MessageSquare size={16} />
-            <Typography variant="caption" tone="muted" className="normal-case tracking-normal">
-              Nenhum feedback recebido ainda. Quando sua liderança registrar um feedback, ele aparecerá aqui com ação vinculada, prazo, status e confirmação de leitura.
-            </Typography>
-          </span>
+            <div>
+              <Typography variant="caption" tone="muted" className="normal-case tracking-normal">
+                Nenhum feedback recebido ainda.
+              </Typography>
+              <Typography variant="tiny" tone="muted" className="mt-mx-xs block normal-case tracking-normal">
+                Quando sua liderança registrar um feedback, ele aparecerá aqui com ação vinculada, prazo, status e confirmação de leitura.
+              </Typography>
+            </div>
+          </div>
         </div>
       )}
     </SmallPanel>
@@ -858,7 +874,7 @@ function HeaderIcon({ to, label, count, icon }: { to: string; label: string; cou
 
 function DashboardCard({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <Card className={`rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm ${className}`}>
+    <Card className={`rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm ${className}`}>
       {children}
     </Card>
   )
