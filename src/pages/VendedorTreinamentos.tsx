@@ -370,7 +370,7 @@ export default function VendedorTreinamentos() {
   return (
     <main className="h-full overflow-y-auto bg-white p-mx-lg">
       <div className="mx-auto flex max-w-[1760px] flex-col gap-mx-lg">
-        <TrainingHeader profileName={profile?.name || 'João Silva'} avatarUrl={profile?.avatar_url || null} />
+        <TrainingHeader />
 
         <TrainingTabs activeTab={activeTab} onTab={setTab} />
 
@@ -515,7 +515,7 @@ export default function VendedorTreinamentos() {
   )
 }
 
-function TrainingHeader({ profileName, avatarUrl }: { profileName: string; avatarUrl: string | null }) {
+function TrainingHeader() {
   return (
     <header className="flex flex-col gap-mx-md border-b border-border-default pb-mx-md xl:flex-row xl:items-center xl:justify-between">
       <div className="flex items-center gap-mx-sm">
@@ -528,23 +528,11 @@ function TrainingHeader({ profileName, avatarUrl }: { profileName: string; avata
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-mx-md text-sm font-semibold text-text-primary">
-        <span className="inline-flex items-center gap-mx-xs rounded-mx-md border border-border-default bg-white px-mx-sm py-mx-xs">
-          <CalendarDays size={17} />
-          {todayLabel()}
-        </span>
-        <span className="relative inline-flex h-mx-10 w-mx-10 items-center justify-center rounded-full border border-border-default bg-white">
-          <Bell size={18} />
-          <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-status-error px-1 text-[10px] text-white">3</span>
-        </span>
-        <div className="flex items-center gap-mx-xs">
-          <Avatar src={avatarUrl || undefined} fallback={profileName} alt={profileName} size="md" />
-          <div className="hidden md:block">
-            <Typography variant="p" className="font-semibold leading-none text-text-primary">{profileName}</Typography>
-            <Typography variant="tiny" tone="muted" className="tracking-normal">Vendedor</Typography>
-          </div>
-        </div>
-      </div>
+      {/* Data contextual apenas; notificações e perfil já vivem no top bar global (evita duplicação). */}
+      <span className="inline-flex items-center gap-mx-xs rounded-mx-md border border-border-default bg-white px-mx-sm py-mx-xs text-sm font-semibold text-text-primary">
+        <CalendarDays size={17} />
+        {todayLabel()}
+      </span>
     </header>
   )
 }
