@@ -214,7 +214,7 @@ describe('VendedorFeedback', () => {
   it('estrutura a tela Feedback com KPIs, ações vinculadas, pendências, lateral, histórico e evolução', () => {
     render(<MemoryRouter><VendedorFeedback /></MemoryRouter>)
 
-    expect(screen.getByRole('heading', { name: 'FEEDBACK' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Feedback' })).toBeInTheDocument()
     expect(screen.getByText('Receba feedbacks, leia com atenção e confirme para acompanharmos seu desenvolvimento.')).toBeInTheDocument()
 
     const kpis = screen.getByLabelText('KPIs de feedback')

@@ -16,7 +16,7 @@ import { Button } from '@/components/atoms/Button'
 import { EmptyState } from '@/components/atoms/EmptyState'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
-import { PageHeader } from '@/components/molecules/PageHeader'
+import { PageHeading } from '@/components/molecules/PageHeading'
 import { cn } from '@/lib/utils'
 import { useVendedorHomePage } from '@/features/vendedor-home/hooks/useVendedorHomePage'
 import type {
@@ -68,9 +68,9 @@ export default function MinhaRemuneracaoPage() {
   return (
     <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-md no-scrollbar md:p-mx-lg">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-mx-lg pb-28">
-        <PageHeader
+        <PageHeading
           title="Minha Remuneração"
-          description="Acompanhe como seu plano, suas vendas e sua meta formam a remuneração estimada do mês."
+          subtitle="Acompanhe como seu plano, suas vendas e sua meta formam a remuneração estimada do mês."
           breadcrumb={
             <nav aria-label="Breadcrumb" className="flex items-center gap-mx-xs text-xs font-bold uppercase tracking-widest text-text-tertiary">
               <Link to="/home" className="text-brand-primary hover:underline">Meu Dia</Link>

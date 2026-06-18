@@ -7,16 +7,19 @@ type PageHeadingProps = {
   subtitle?: ReactNode
   /** Slot de ações/filtros à direita. */
   actions?: ReactNode
+  /** Breadcrumb opcional renderizado acima do título. */
+  breadcrumb?: ReactNode
 }
 
 /**
  * Cabeçalho de página canônico do sistema — espelha o padrão da tela /classificacao:
  * barra de acento + título h1 + subtítulo em caps. Usar em todas as telas de conteúdo.
  */
-export function PageHeading({ title, subtitle, actions }: PageHeadingProps) {
+export function PageHeading({ title, subtitle, actions, breadcrumb }: PageHeadingProps) {
   return (
     <header className="flex shrink-0 flex-col justify-between gap-mx-lg border-b border-border-default pb-mx-lg lg:flex-row lg:items-center">
       <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
+        {breadcrumb && <div className="mb-mx-xs">{breadcrumb}</div>}
         <div className="flex items-center justify-center gap-mx-sm lg:justify-start">
           <div className="h-mx-10 w-mx-xs shrink-0 rounded-mx-full bg-brand-primary shadow-mx-md" aria-hidden="true" />
           <Typography variant="h1">{title}</Typography>
