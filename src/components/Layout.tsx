@@ -105,8 +105,8 @@ const categoryDescriptions: Record<string, string> = {
   PESSOAS: 'Feedbacks e desenvolvimento da equipe.',
   FERRAMENTAS: 'Universidade MX, biblioteca e consultor inteligente.',
   'Meu Dia': 'Agenda, funil, meta, fechamento diário e performance pessoal.',
-  NAVEGAÇÃO: 'Meu dia, agenda, funil, feedbacks, PDI, treinamentos e trilhas.',
-  Evolução: 'Feedbacks, PDI, treinamentos e trilhas liberadas.',
+  NAVEGAÇÃO: 'Meu dia, agenda, funil, feedbacks, PDI e treinamentos.',
+  Evolução: 'Feedbacks, PDI e treinamentos liberados.',
 }
 
 const navegacaoInternaMx: NavCategory[] = [
@@ -230,14 +230,12 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Terminal MX', path: '/vendedor/terminal-mx', icon: <CheckSquare size={16} /> },
         { label: 'Central de Execução', path: '/central-execucao', icon: <CalendarCheck size={16} /> },
         { label: 'Carteira', path: '/carteira-clientes', icon: <Users size={16} /> },
-        { label: 'Leads', path: '/leads', icon: <Sparkles size={16} /> },
         { label: 'Funil', path: '/meu-funil', icon: <Filter size={16} /> },
         { label: 'Relatórios', path: '/relatorios-vendedor', icon: <FileBarChart size={16} /> },
         { label: 'Feedbacks', path: '/devolutivas', icon: <MessageSquare size={16} /> },
         { label: 'Consultor IA', path: STORE_CONSULTOR_IA_PATH, icon: <Bot size={16} /> },
         { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
         { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
-        { label: 'Trilhas', path: '/trilhas', icon: <RouteIcon size={16} /> },
         { label: 'Ranking', path: '/classificacao', icon: <Trophy size={16} /> },
         { label: 'Meu Perfil', path: '/perfil', icon: <User size={16} /> },
         { label: 'Configurações', path: '/vendedor/configuracoes', icon: <Settings size={16} /> },
