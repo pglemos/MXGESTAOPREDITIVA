@@ -676,7 +676,7 @@ function LinkedActionsSection({
             <thead className="bg-surface-alt text-xs uppercase text-text-secondary">
               <tr>
                 {['Ação', 'Origem', 'Competência', 'Meta', 'Progresso', 'Prazo', 'Status', 'Ações'].map(header => (
-                  <th key={header} className="px-mx-md py-mx-sm font-black">{header}</th>
+                  <th scope="col" key={header} className="px-mx-md py-mx-sm font-black">{header}</th>
                 ))}
               </tr>
             </thead>
@@ -761,7 +761,7 @@ function PendingFeedbacksSection({
               <thead className="bg-surface-alt text-xs uppercase text-text-secondary">
                 <tr>
                   {['Data', 'Tipo', 'Competência', 'Motivo / Caso', 'Indicador', 'Comentário do líder', 'Responsável', 'Ação vinculada', 'Ações'].map(header => (
-                    <th key={header} className="px-mx-md py-mx-sm font-black">{header}</th>
+                    <th scope="col" key={header} className="px-mx-md py-mx-sm font-black">{header}</th>
                   ))}
                 </tr>
               </thead>
@@ -917,7 +917,7 @@ function HistorySection({ feedbacks }: { feedbacks: FeedbackView[] }) {
             <thead className="bg-surface-alt text-xs uppercase text-text-secondary">
               <tr>
                 {['Data', 'Tipo', 'Competência', 'Motivo / Caso', 'Ação vinculada', 'Responsável', 'Confirmado em', 'Meu comentário', 'Status'].map(header => (
-                  <th key={header} className="px-mx-md py-mx-sm font-black">{header}</th>
+                  <th scope="col" key={header} className="px-mx-md py-mx-sm font-black">{header}</th>
                 ))}
               </tr>
             </thead>
