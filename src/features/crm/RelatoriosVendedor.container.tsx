@@ -1,6 +1,6 @@
 import { Users, Target, TrendingUp, DollarSign, ShoppingBag, Phone } from 'lucide-react'
 import { Card } from '@/components/molecules/Card'
-import { PageHeader } from '@/components/molecules/PageHeader'
+import { PageHeading } from '@/components/molecules/PageHeading'
 import { StatCard } from '@/components/molecules/StatCard'
 import { Typography } from '@/components/atoms/Typography'
 import { useClientes } from '@/features/crm/hooks/useClientes'
@@ -55,7 +55,7 @@ export function RelatoriosVendedor() {
   return (
     <main className="w-full h-full overflow-y-auto bg-surface-alt p-mx-md md:p-mx-lg no-scrollbar">
       <div className="flex flex-col gap-mx-lg pb-28">
-        <PageHeader title="Relatórios" description="Visão consolidada da sua performance comercial — dados reais." />
+        <PageHeading title="Relatórios" subtitle="Visão consolidada da sua performance comercial — dados reais." />
 
         <section className="grid grid-cols-2 gap-mx-md md:grid-cols-3 xl:grid-cols-6" aria-label="KPIs">
           <StatCard tone="blue" icon={<Users size={22} />} label="Clientes" value={String(clienteMetrics.total)} />

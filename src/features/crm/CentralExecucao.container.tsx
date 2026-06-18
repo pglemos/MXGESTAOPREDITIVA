@@ -29,7 +29,7 @@ import { Select } from '@/components/atoms/Select'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
 import { FormField } from '@/components/molecules/FormField'
-import { PageHeader } from '@/components/molecules/PageHeader'
+import { PageHeading } from '@/components/molecules/PageHeading'
 import { Modal } from '@/components/organisms/Modal'
 import { calculateReferenceDate, useCheckinsToday } from '@/hooks/checkins'
 import { useAuth } from '@/hooks/useAuth'
@@ -882,9 +882,9 @@ const hasLoadError = Boolean(
   return (
     <main className="min-h-full w-full bg-surface-alt p-mx-md md:p-mx-lg">
       <div className="mx-auto flex max-w-[1680px] flex-col gap-mx-lg pb-20">
-        <PageHeader
+        <PageHeading
           title="Central de Execução"
-          description="Sua rotina diária. Organize seu dia e foque no que gera resultado."
+          subtitle="Sua rotina diária. Organize seu dia e foque no que gera resultado."
           actions={(
             <>
               <span className="inline-flex h-mx-11 items-center gap-mx-xs rounded-mx-md border border-border-subtle bg-white px-mx-sm text-sm font-bold text-text-primary shadow-mx-sm">

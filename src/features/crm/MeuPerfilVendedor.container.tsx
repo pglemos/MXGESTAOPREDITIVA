@@ -37,7 +37,7 @@ import { Select } from '@/components/atoms/Select'
 import { Textarea } from '@/components/atoms/Textarea'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
-import { PageHeader } from '@/components/molecules/PageHeader'
+import { PageHeading } from '@/components/molecules/PageHeading'
 import {
   DIAS_SEMANA,
   MATURIDADE_VENDEDOR_LABEL,
@@ -166,9 +166,9 @@ export function MeuPerfilVendedor() {
   return (
     <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-md no-scrollbar md:p-mx-lg">
       <div className="mx-auto flex max-w-[1800px] flex-col gap-mx-lg pb-28">
-        <PageHeader
+        <PageHeading
           title="Meu Perfil"
-          description="Suas informações, rotina, metas e evolução profissional."
+          subtitle="Suas informações, rotina, metas e evolução profissional."
           actions={
             <div className="flex flex-wrap items-center gap-mx-xs">
               <span className="inline-flex items-center gap-mx-xs rounded-mx-md border border-border-subtle bg-white px-mx-md py-mx-sm text-sm font-bold text-text-primary shadow-mx-sm">

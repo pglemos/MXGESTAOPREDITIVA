@@ -25,7 +25,7 @@ import {
 import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
-import { PageHeader } from '@/components/molecules/PageHeader'
+import { PageHeading } from '@/components/molecules/PageHeading'
 import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
 import { useFunnelMetricsSnapshot, type FunnelMetricsSnapshot } from '@/features/crm/hooks/useFunnelMetricsSnapshot'
 import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
@@ -291,9 +291,9 @@ export function FunilVendedor() {
   return (
     <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-md md:p-mx-lg no-scrollbar">
       <div className="mx-auto flex max-w-[1768px] flex-col gap-mx-lg pb-mx-md">
-        <PageHeader
+        <PageHeading
           title="Funil de Vendas"
-          description="Acompanhe seu desempenho e saiba exatamente o que fazer para bater sua meta."
+          subtitle="Acompanhe seu desempenho e saiba exatamente o que fazer para bater sua meta."
           actions={(
             <>
               <span className="inline-flex h-11 items-center gap-mx-sm rounded-mx-md border border-border-subtle bg-white px-mx-md text-sm font-semibold capitalize shadow-mx-xs">
