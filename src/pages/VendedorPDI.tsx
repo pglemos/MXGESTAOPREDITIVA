@@ -362,28 +362,10 @@ return (
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-mx-sm text-sm font-bold text-text-primary">
-            <span className="inline-flex h-10 items-center gap-mx-xs rounded-mx-md border border-border-subtle bg-white px-mx-sm">
-              <Calendar size={17} /> {capitalize(hojeLabel)}
-            </span>
-            <button
-              type="button"
-              aria-label="Notificações do PDI"
-              className="relative flex h-10 w-10 items-center justify-center rounded-mx-md border border-border-subtle bg-white text-text-secondary"
-            >
-              <Bell size={17} />
-              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-status-error px-1 text-[10px] font-bold text-white">8</span>
-            </button>
-            <div className="flex min-w-[220px] items-center gap-mx-sm rounded-mx-md border border-border-subtle bg-white px-mx-sm py-2">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-status-success-surface text-sm font-black text-status-success">
-                {(profile?.name || activePDI?.seller_name || 'VM').slice(0, 2).toUpperCase()}
-              </span>
-              <div className="min-w-0">
-                <div className="truncate text-xs font-black">{activePDI?.seller_name || profile?.name || 'Vendedor MX Consultoria 1'}</div>
-                <div className="text-xs font-semibold text-text-tertiary">Vendedor</div>
-              </div>
-            </div>
-          </div>
+          {/* Data contextual apenas; notificações e perfil já vivem no top bar global (evita duplicação). */}
+          <span className="inline-flex h-10 items-center gap-mx-xs rounded-mx-md border border-border-subtle bg-white px-mx-sm text-sm font-bold text-text-primary">
+            <Calendar size={17} /> {capitalize(hojeLabel)}
+          </span>
         </header>
 
         {loading && !activePDI && <Typography tone="muted">Carregando seu PDI...</Typography>}
