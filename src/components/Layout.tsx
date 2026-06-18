@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { Outlet, NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { useNotifications } from '@/hooks/useData'
 import { useFeedbacks } from '@/hooks/useFeedbacks'
@@ -18,11 +18,8 @@ import {
   Filter,
   Handshake,
   FileBarChart,
-  Route as RouteIcon,
   Activity,
-  Clock,
   CalendarCheck,
-  Sparkles,
 } from 'lucide-react'
 import { cn, slugify } from '@/lib/utils'
 import { Typography } from './atoms/Typography'
@@ -511,61 +508,9 @@ className={cn(
           aria-label="Menu Lateral Principal"
         >
           <nav className="flex flex-col items-center gap-mx-sm w-full" aria-label="Módulos de Gestão">
-            {role === 'vendedor' || role === 'gerente' || role === 'dono' ? (
-              // Vendedor + Gerente + Dono: items renderizados diretamente como
-              // NavLinks na sidebar (sem drawer). Preserva as secoes do navConfig
-              // com separadores visuais sutis entre grupos (ex: Home | CENTRAL MX
-              // | GESTAO | SUPORTE no dono).
-              categories.map((cat, catIndex) => (
-                <div key={cat.category} className="flex flex-col items-center gap-mx-sm w-full">
-                  {catIndex > 0 && (
-                    <span className="block h-px w-mx-9 bg-border-default" aria-hidden="true" />
-                  )}
-                  {cat.items.map((item) => {
-                    // Match leva em conta tanto pathname quanto query (?ownerSection=X)
-                    // para evitar que multiplos items na mesma URL base fiquem todos
-                    // ativos simultaneamente.
-                    const [itemPathname, itemSearch = ''] = item.path.split('?')
-                    const itemParams = new URLSearchParams(itemSearch)
-                    const itemOwnerSection = itemParams.get('ownerSection')
-                    const currentParams = new URLSearchParams(location.search)
-                    const currentOwnerSection = currentParams.get('ownerSection')
-                    const pathnameMatches = location.pathname === itemPathname
-                    const isActive = itemOwnerSection
-                      ? pathnameMatches && currentOwnerSection === itemOwnerSection
-                      : pathnameMatches && !currentOwnerSection
-                    return (
-                      <Link
-                        key={`${item.label}-${item.path}`}
-                        to={item.path}
-                        aria-label={`${item.label} (${cat.category})`}
-                        aria-current={isActive ? 'page' : undefined}
-                        onClick={() => { setIsDrawerOpen(false); setMobileMenuOpen(false); }}
-                        className={cn(
-                          "w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center transition-all relative group focus-visible:ring-4 focus-visible:ring-brand-primary/15 focus-visible:outline-none",
-                          isActive ? 'bg-brand-secondary text-white shadow-mx-lg' : 'text-text-tertiary hover:bg-surface-alt hover:text-text-primary'
-                        )}
-                      >
-                        <span aria-hidden="true">{React.cloneElement(item.icon as React.ReactElement<{ size?: number }>, { size: 22 })}</span>
-                        {(navBadges[item.path] || 0) > 0 && (
-                          <span
-                            aria-label={`${navBadges[item.path]} pendente(s)`}
-                            className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-status-error px-1 text-[10px] font-black text-white"
-                          >
-                            {navBadges[item.path]}
-                          </span>
-                        )}
-                        <div className="absolute mx-layout-tooltip-offset px-3 py-1.5 bg-brand-secondary text-white text-mx-micro font-black uppercase tracking-widest rounded-mx-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[70] whitespace-nowrap shadow-mx-lg" role="tooltip">
-                          {item.label}
-                        </div>
-                      </Link>
-                    )
-                  })}
-                </div>
-              ))
-            ) : (
-              // Demais papéis (gerente/dono/admin): botões de categoria que abrem drawer
-              categories.map((cat) => (
+            {categories.map((cat) => {
+              const categoryBadgeCount = cat.items.reduce((total, item) => total + (navBadges[item.path] || 0), 0)
+              return (
                 <button
                   type="button"
                   aria-label={`Abrir módulo: ${cat.category}`}
@@ -586,12 +531,20 @@ className={cn(
                   )}
                 >
                   {cat.icon}
+                  {categoryBadgeCount > 0 && (
+                    <span
+                      aria-label={`${categoryBadgeCount} pendente(s)`}
+                      className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-status-error px-1 text-[10px] font-black text-white"
+                    >
+                      {categoryBadgeCount}
+                    </span>
+                  )}
                   <div className="absolute mx-layout-tooltip-offset px-3 py-1.5 bg-brand-secondary text-white text-mx-micro font-black uppercase tracking-widest rounded-mx-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[70] whitespace-nowrap shadow-mx-lg" role="tooltip">
                     {cat.category}
                   </div>
                 </button>
-              ))
-            )}
+              )
+            })}
           </nav>
           {roleSidebarCta && (
             <button
@@ -662,19 +615,32 @@ className={cn(
                 </label>
               </div>
               <div className="flex-1 overflow-y-auto p-mx-sm space-y-mx-tiny no-scrollbar">
-                {activeCategoryData?.items.length ? activeCategoryData.items.map(item => (
-                  <NavLink
-                    key={`${item.label}-${item.path}`} to={item.path} onClick={() => setIsDrawerOpen(false)}
-                    aria-current={location.pathname === item.path ? 'page' : undefined}
-                    className={({ isActive }) => cn(
-                      "flex items-center gap-mx-xs px-mx-md py-3 rounded-mx-lg text-xs font-black uppercase tracking-tight transition-all focus-visible:ring-2 focus-visible:ring-brand-primary/20 focus-visible:outline-none",
-                      isActive ? 'bg-mx-indigo-50 text-brand-primary' : 'text-text-secondary hover:bg-surface-alt'
-                    )}
-                  >
-                    <span className="shrink-0" aria-hidden="true">{item.icon}</span>
-                    <span className="truncate">{item.label}</span>
-                  </NavLink>
-                )) : (
+                {activeCategoryData?.items.length ? activeCategoryData.items.map(item => {
+                  const itemBadgeCount = navBadges[item.path] || 0
+                  return (
+                    <NavLink
+                      key={`${item.label}-${item.path}`} to={item.path} onClick={() => setIsDrawerOpen(false)}
+                      aria-current={location.pathname === item.path ? 'page' : undefined}
+                      className={({ isActive }) => cn(
+                        "flex items-center justify-between gap-mx-xs px-mx-md py-3 rounded-mx-lg text-xs font-black uppercase tracking-tight transition-all focus-visible:ring-2 focus-visible:ring-brand-primary/20 focus-visible:outline-none",
+                        isActive ? 'bg-mx-indigo-50 text-brand-primary' : 'text-text-secondary hover:bg-surface-alt'
+                      )}
+                    >
+                      <span className="flex min-w-0 items-center gap-mx-xs">
+                        <span className="shrink-0" aria-hidden="true">{item.icon}</span>
+                        <span className="truncate">{item.label}</span>
+                      </span>
+                      {itemBadgeCount > 0 && (
+                        <span
+                          aria-label={`${itemBadgeCount} pendente(s)`}
+                          className="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-status-error px-1 text-[10px] font-black text-white"
+                        >
+                          {itemBadgeCount}
+                        </span>
+                      )}
+                    </NavLink>
+                  )
+                }) : (
                   <div className="rounded-mx-xl border border-dashed border-border-default bg-surface-alt p-mx-md text-center">
                     <Typography variant="p" tone="muted">Nenhum módulo encontrado para a busca atual.</Typography>
                   </div>

@@ -107,7 +107,7 @@ function TabButton({
       type="button"
       onClick={onClick}
       className={cn(
-        'relative h-full min-w-0 flex-1 whitespace-nowrap rounded-mx-lg px-mx-sm text-xs font-semibold uppercase tracking-normal transition-all sm:w-44 sm:flex-none sm:px-mx-md sm:text-sm',
+        'relative h-full min-w-0 flex-1 whitespace-nowrap rounded-mx-lg px-mx-xs text-xs font-semibold uppercase tracking-normal transition-all sm:w-44 sm:flex-none sm:px-mx-md sm:text-sm',
         active ? 'bg-white text-text-primary shadow-mx-sm' : 'text-text-tertiary hover:text-text-primary',
       )}
     >
