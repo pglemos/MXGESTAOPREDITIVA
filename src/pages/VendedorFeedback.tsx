@@ -22,6 +22,7 @@ import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
+import { PageHeading } from '@/components/molecules/PageHeading'
 import { Modal } from '@/components/organisms/Modal'
 import { useFeedbacks } from '@/hooks/useData'
 import { useAuth } from '@/hooks/useAuth'
@@ -535,36 +536,15 @@ export default function VendedorFeedback() {
   return (
     <main className="min-h-screen bg-surface-alt/40 p-mx-md lg:p-mx-xl">
       <div className="mx-auto max-w-[1800px] space-y-mx-lg">
-        <header className="flex flex-col gap-mx-md lg:flex-row lg:items-start lg:justify-between">
-          <div className="flex items-start gap-mx-sm">
-            <span className="mt-1 grid h-mx-10 w-mx-10 place-items-center rounded-mx-md border border-border-default bg-white text-text-primary">
-              <MessageSquare size={24} />
-            </span>
-            <div>
-              <Typography variant="h1" className="text-3xl uppercase leading-tight tracking-normal">FEEDBACK</Typography>
-              <Typography variant="p" tone="muted" className="mt-1">
-                Receba feedbacks, leia com atenção e confirme para acompanharmos seu desenvolvimento.
-              </Typography>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-mx-sm text-sm font-semibold text-text-primary">
-            <span className="inline-flex items-center gap-mx-xs rounded-mx-md border border-border-default bg-white px-mx-sm py-mx-xs">
+        <PageHeading
+          title="Feedback"
+          subtitle="Receba feedbacks, leia com atenção e confirme para acompanharmos seu desenvolvimento."
+          actions={(
+            <span className="inline-flex items-center gap-mx-xs rounded-mx-md border border-border-default bg-white px-mx-sm py-mx-xs text-sm font-semibold text-text-primary">
               <Calendar size={16} /> {hojeLabel}
             </span>
-            <span className="grid h-mx-10 w-mx-10 place-items-center rounded-full border border-border-default bg-white">
-              <Bell size={17} />
-            </span>
-            <div className="flex items-center gap-mx-sm rounded-mx-md border border-border-default bg-white px-mx-sm py-mx-xs">
-              <span className="grid h-mx-9 w-mx-9 place-items-center rounded-full bg-status-success-surface text-xs font-black text-status-success">
-                {(profile?.name || 'VM').split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase()}
-              </span>
-              <div>
-                <Typography variant="caption" className="block tracking-normal text-text-primary">{profile?.name || 'Vendedor MX Consultoria 1'}</Typography>
-                <Typography variant="tiny" tone="muted" className="block tracking-normal">VENDEDOR</Typography>
-              </div>
-            </div>
-          </div>
-        </header>
+          )}
+        />
 
         <section className="grid grid-cols-1 gap-mx-sm md:grid-cols-2 xl:grid-cols-6" aria-label="KPIs de feedback">
           {KPI_CARDS.map(card => (

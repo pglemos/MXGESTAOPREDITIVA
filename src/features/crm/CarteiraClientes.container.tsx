@@ -24,6 +24,7 @@ import {
   X,
 } from 'lucide-react'
 import { Card } from '@/components/molecules/Card'
+import { PageHeading } from '@/components/molecules/PageHeading'
 import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
@@ -259,43 +260,23 @@ export function CarteiraClientes() {
   }
 
   return (
-    <main className="min-h-screen bg-surface-alt px-mx-xs py-mx-xs text-text-primary lg:px-mx-sm">
+    <main className="min-h-screen bg-surface-alt p-mx-md text-text-primary md:p-mx-lg">
       <div className="flex w-full flex-col gap-mx-xs">
-        <header className="flex flex-col gap-mx-sm rounded-mx-xl border border-border-subtle bg-white px-mx-md py-mx-sm shadow-mx-sm lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <Typography variant="h1" className="text-xl font-black uppercase tracking-normal">
-              Carteira de Clientes
-            </Typography>
-            <Typography variant="caption" tone="muted" className="mt-mx-tiny block">
-              Acompanhe sua carteira, siga a cadência e conduza cada cliente até a venda.
-            </Typography>
-          </div>
-          <div className="flex flex-wrap items-center gap-mx-xs">
-            <span className="inline-flex h-10 items-center gap-mx-xs rounded-mx-md border border-border-subtle bg-white px-mx-sm text-sm font-bold">
-              <CalendarDays size={16} />
-              {new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', weekday: 'short' }).format(new Date())}
-            </span>
-            <Button variant="outline" onClick={() => setStatusFilter('todos')}>
-              <Filter size={16} /> Filtros
-            </Button>
-            <button type="button" className="relative rounded-full p-mx-xs text-text-primary" aria-label="Notificações">
-              <Bell size={22} />
-              <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-status-error px-1 text-[10px] font-bold text-white">
-                3
+        <PageHeading
+          title="Carteira de Clientes"
+          subtitle="Acompanhe sua carteira, siga a cadência e conduza cada cliente até a venda."
+          actions={(
+            <>
+              <span className="inline-flex h-10 items-center gap-mx-xs rounded-mx-md border border-border-subtle bg-white px-mx-sm text-sm font-bold">
+                <CalendarDays size={16} />
+                {new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', weekday: 'short' }).format(new Date())}
               </span>
-            </button>
-            <div className="flex items-center gap-mx-sm">
-              <span className="flex h-mx-12 w-mx-12 items-center justify-center rounded-full bg-brand-primary text-sm font-bold text-white">
-                {getInitials(profile?.name || 'Vendedor')}
-              </span>
-              <div>
-                <Typography variant="p" className="font-bold">{profile?.name || 'Vendedor'}</Typography>
-                <Typography variant="caption" tone="muted">Vendedor</Typography>
-              </div>
-              <ChevronDown size={18} className="text-text-muted" />
-            </div>
-          </div>
-        </header>
+              <Button variant="outline" onClick={() => setStatusFilter('todos')}>
+                <Filter size={16} /> Filtros
+              </Button>
+            </>
+          )}
+        />
 
         <section className="grid grid-cols-2 gap-mx-xs md:grid-cols-3 xl:grid-cols-[repeat(5,minmax(0,1fr))_1.45fr]" aria-label="Indicadores da carteira">
           <MetricCard icon={<Users size={22} />} label="Total de Clientes" value={String(totalClientes)} hint="100% do total" accent="green" />
