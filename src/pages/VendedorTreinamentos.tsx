@@ -357,7 +357,7 @@ export default function VendedorTreinamentos() {
 
   if (loading) {
     return (
-      <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-md md:p-mx-lg no-scrollbar">
+      <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
         <Skeleton className="h-mx-16 w-full rounded-mx-xl" />
         <div className="mt-mx-lg grid grid-cols-1 gap-mx-md md:grid-cols-3">
           <Skeleton className="h-mx-64 rounded-mx-xl" />
@@ -370,7 +370,7 @@ export default function VendedorTreinamentos() {
 
   return (
     <main className="h-full overflow-y-auto bg-white p-mx-lg">
-      <div className="mx-auto flex max-w-[1760px] flex-col gap-mx-lg">
+      <div className="flex flex-col gap-mx-lg">
         <TrainingHeader />
 
         <TrainingTabs activeTab={activeTab} onTab={setTab} />
