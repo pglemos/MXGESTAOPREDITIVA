@@ -106,4 +106,25 @@ describe('route access matrix', () => {
     expect(getRouteAccessRule('/configuracoes')?.capability).toBe('view_configurations')
     expect(getRouteAccessRule('/pdi/abc/print')?.capability).toBe('print_pdi')
   })
+
+  it('allows vendedor route aliases without opening admin configurations', () => {
+    for (const route of [
+      '/feedback',
+      '/funil',
+      '/vendedor/funil',
+      '/vendedor/meu-funil',
+      '/vendedor/feedback',
+      '/vendedor/devolutivas',
+      '/vendedor/treinamentos',
+      '/vendedor/terminal-mx',
+    ]) {
+      expect(canAccessPath(route, 'vendedor')).toBe(true)
+      expect(getRouteAccessRule(route)).not.toBeNull()
+    }
+
+    expect(canAccessPath('/vendedor/terminal-mx', 'gerente')).toBe(false)
+    expect(canAccessPath('/vendedor/configuracoes', 'vendedor')).toBe(true)
+    expect(canAccessPath('/vendedor/configuracoes', 'gerente')).toBe(false)
+    expect(canAccessPath('/configuracoes', 'vendedor')).toBe(false)
+  })
 })

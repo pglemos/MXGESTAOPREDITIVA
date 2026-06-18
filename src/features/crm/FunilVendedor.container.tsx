@@ -11,17 +11,22 @@ import {
   Filter,
   Gauge,
   Globe2,
+  History,
   Lightbulb,
+  RefreshCw,
   Rocket,
+  Save,
   Target,
   TrendingUp,
   Trophy,
   Users,
   Wallet,
 } from 'lucide-react'
+import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
 import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
+import { useFunnelMetricsSnapshot, type FunnelMetricsSnapshot } from '@/features/crm/hooks/useFunnelMetricsSnapshot'
 import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
 import { useVendedorPerfil } from '@/features/crm/hooks/useVendedorPerfil'
 import {
@@ -170,7 +175,7 @@ export function FunilVendedor() {
   const [period, setPeriod] = useState<PeriodKey>('90')
   const { metrics, remuneracaoResumo } = useVendedorHomePage()
   const { metaRules } = useStoreMetaRules()
-  const { oportunidades } = useOportunidades()
+  const { oportunidades, error: oportunidadesError, refetch } = useOportunidades()
   const { agendamentos } = useAgendamentos()
   const { perfil } = useVendedorPerfil()
 
@@ -180,10 +185,26 @@ export function FunilVendedor() {
   const faltam = Math.max(meta - vendasMes, 0)
   const atingimento = meta > 0 ? Math.min(100, Math.round((vendasMes / meta) * 100)) : 0
 
-  const periodInfo = useMemo(() => getPeriodInfo(period), [period])
-  const oportunidadesPeriodo = useMemo(
-    () => oportunidades.filter((item) => {
-      const date = getOpportunityDate(item)
+ const periodInfo = useMemo(() => getPeriodInfo(period), [period])
+ const snapshotPeriodEnd = useMemo(() => {
+ const end = new Date()
+ end.setHours(23, 59, 59, 999)
+ return end
+ }, [period])
+ const {
+ snapshot: funnelSnapshot,
+ loading: funnelSnapshotLoading,
+ saving: funnelSnapshotSaving,
+ error: funnelSnapshotError,
+ refreshSnapshot: refreshFunnelSnapshot,
+ } = useFunnelMetricsSnapshot({
+ periodStart: periodInfo.start,
+ periodEnd: snapshotPeriodEnd,
+ periodKey: period,
+ })
+ const oportunidadesPeriodo = useMemo(
+ () => oportunidades.filter((item) => {
+ const date = getOpportunityDate(item)
       return date ? date >= periodInfo.start : false
     }),
     [oportunidades, periodInfo.start],
@@ -257,6 +278,15 @@ export function FunilVendedor() {
   const displayComissaoRealizada = { disponivel: true, total: FUNIL_REFERENCE_META.comissaoRealizada }
   const displayComissaoProjetada = { disponivel: true, total: FUNIL_REFERENCE_META.comissaoProjetada }
 
+  if (oportunidadesError) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 py-20">
+        <Typography variant="p" className="text-sm font-bold text-status-error">Erro ao carregar dados do funil.</Typography>
+        <Button type="button" variant="secondary" size="sm" onClick={() => refetch()}>Tentar novamente</Button>
+      </div>
+    )
+  }
+
   return (
     <main className="h-full w-full overflow-y-auto bg-white px-mx-md py-mx-sm md:px-mx-xl md:py-mx-sm no-scrollbar">
       <div className="mx-auto flex max-w-[1768px] flex-col gap-mx-sm pb-mx-md [zoom:0.86]">
@@ -295,20 +325,29 @@ export function FunilVendedor() {
           </div>
         </header>
 
-        <section className="grid gap-mx-sm xl:grid-cols-[1fr_1.1fr_1.05fr]">
-          <GoalSummary meta={FUNIL_REFERENCE_META.meta} vendidos={FUNIL_REFERENCE_META.vendasMes} faltam={FUNIL_REFERENCE_META.faltam} atingimento={FUNIL_REFERENCE_META.atingimento} />
-          <CommissionSummary
+ <section className="grid gap-mx-sm xl:grid-cols-[1fr_1.1fr_1.05fr]">
+ <GoalSummary meta={FUNIL_REFERENCE_META.meta} vendidos={FUNIL_REFERENCE_META.vendasMes} faltam={FUNIL_REFERENCE_META.faltam} atingimento={FUNIL_REFERENCE_META.atingimento} />
+ <CommissionSummary
             realizado={displayComissaoRealizada}
             projetado={displayComissaoProjetada}
             faltante={FUNIL_REFERENCE_META.comissaoFaltante}
             atingimento={FUNIL_REFERENCE_META.atingimento}
           />
-          <PaceSummary ritmo={FUNIL_REFERENCE_META.ritmo} />
-        </section>
+ <PaceSummary ritmo={FUNIL_REFERENCE_META.ritmo} />
+ </section>
 
-        <PlanCard
-          faltam={FUNIL_REFERENCE_META.faltam}
-          diasRestantes={FUNIL_REFERENCE_META.diasRestantes}
+ <FunnelSnapshotCard
+ snapshot={funnelSnapshot}
+ loading={funnelSnapshotLoading}
+ saving={funnelSnapshotSaving}
+ error={funnelSnapshotError}
+ periodLabel={periodInfo.label}
+ onRefresh={refreshFunnelSnapshot}
+ />
+
+ <PlanCard
+ faltam={FUNIL_REFERENCE_META.faltam}
+ diasRestantes={FUNIL_REFERENCE_META.diasRestantes}
           priority={displayPriority}
           channelDecisions={displayChannels}
           planNeeds={FUNIL_REFERENCE_META.planNeeds}
@@ -412,8 +451,8 @@ function CommissionSummary({
 }
 
 function PaceSummary({ ritmo }: { ritmo: { cicloAtual: number | null; cicloNecessario: number | null; noRitmo: boolean; gaugePct: number } }) {
-  return (
-    <DashboardCard>
+ return (
+ <DashboardCard>
       <CardTitle icon={<Rocket size={22} />} title="Ritmo atual" />
       <div className="mt-mx-sm grid grid-cols-[minmax(0,1fr)_104px] items-center gap-mx-sm md:grid-cols-[minmax(0,1fr)_116px]">
         <div className="min-w-0">
@@ -451,14 +490,80 @@ function PaceSummary({ ritmo }: { ritmo: { cicloAtual: number | null; cicloNeces
           </div>
         </div>
       </div>
-    </DashboardCard>
-  )
+ </DashboardCard>
+ )
+}
+
+function FunnelSnapshotCard({
+ snapshot,
+ loading,
+ saving,
+ error,
+ periodLabel,
+ onRefresh,
+}: {
+ snapshot: FunnelMetricsSnapshot | null
+ loading: boolean
+ saving: boolean
+ error: string | null
+ periodLabel: string
+ onRefresh: () => Promise<{ error: string | null }>
+}) {
+ const totals = snapshot?.totals || {}
+ const oportunidades = getSnapshotNumber(totals, 'oportunidades_total')
+ const ganhos = snapshot?.vendas_realizadas ?? getSnapshotNumber(totals, 'ganhos')
+ const perdidos = getSnapshotNumber(totals, 'perdidos')
+ const canais = snapshot ? Object.keys(snapshot.channels).length : 0
+ const lastUpdate = formatSnapshotDate(snapshot?.updated_at || snapshot?.created_at)
+ const statusText = loading
+ ? 'Carregando snapshot'
+ : snapshot
+ ? `Atualizado em ${lastUpdate}`
+ : `Sem snapshot salvo para ${periodLabel}`
+
+ return (
+ <DashboardCard className="border-brand-primary/20 bg-brand-primary/5">
+ <div className="flex flex-col gap-mx-sm md:flex-row md:items-center md:justify-between">
+ <div>
+ <CardTitle icon={<History size={22} />} title="Snapshot historico" />
+ <Typography variant="p" className="mt-1 text-sm font-semibold text-text-secondary">
+ {statusText}
+ </Typography>
+ </div>
+ <Button
+ type="button"
+ variant="secondary"
+ size="sm"
+ onClick={() => {
+ void onRefresh()
+ }}
+ disabled={saving}
+ >
+ {saving ? <RefreshCw className="animate-spin" /> : <Save />}
+ {saving ? 'Registrando' : 'Registrar snapshot'}
+ </Button>
+ </div>
+
+ <div className="mt-mx-sm grid grid-cols-2 gap-mx-xs text-center md:grid-cols-4">
+ <BigStat label="Oportunidades" value={loading ? '--' : String(oportunidades)} />
+ <BigStat label="Ganhos" value={loading ? '--' : String(ganhos)} tone="green" />
+ <BigStat label="Perdidos" value={loading ? '--' : String(perdidos)} tone={perdidos > 0 ? 'red' : 'dark'} />
+ <BigStat label="Canais" value={loading ? '--' : String(canais)} hint="com dados" />
+ </div>
+
+ {error && (
+ <Typography variant="caption" className="mt-mx-sm block rounded-mx-md bg-status-error/10 p-mx-sm font-semibold normal-case tracking-normal text-status-error">
+ {error}
+ </Typography>
+ )}
+ </DashboardCard>
+ )
 }
 
 function PlanCard({
-  faltam,
-  diasRestantes,
-  priority,
+ faltam,
+ diasRestantes,
+ priority,
   channelDecisions,
   planNeeds,
 }: {
@@ -883,13 +988,31 @@ function buildBottleneck(channel: ChannelDecision, carteiraFutureCount: number, 
 }
 
 function sourceLabelFor(fonte: FunilPlanoFonte) {
-  if (fonte === 'manual') return 'Mix manual'
-  if (fonte === 'historico') return 'Mix real'
-  return 'Plano base'
+ if (fonte === 'manual') return 'Mix manual'
+ if (fonte === 'historico') return 'Mix real'
+ return 'Plano base'
+}
+
+function getSnapshotNumber(record: Record<string, unknown>, key: string) {
+ const value = record[key]
+ const parsed = Number(value ?? 0)
+ return Number.isFinite(parsed) ? parsed : 0
+}
+
+function formatSnapshotDate(value?: string) {
+ if (!value) return '--'
+ const date = new Date(value)
+ if (Number.isNaN(date.getTime())) return '--'
+ return date.toLocaleString('pt-BR', {
+ day: '2-digit',
+ month: '2-digit',
+ hour: '2-digit',
+ minute: '2-digit',
+ })
 }
 
 function DashboardCard({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <Card className={`rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm ${className}`}>{children}</Card>
+ return <Card className={`rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm ${className}`}>{children}</Card>
 }
 
 function CardTitle({ icon, title, tone = 'default' }: { icon: ReactNode; title: string; tone?: 'default' | 'error' }) {

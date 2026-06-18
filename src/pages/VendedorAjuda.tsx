@@ -34,8 +34,8 @@ export default function VendedorAjuda() {
 
           <div className="mt-mx-lg grid grid-cols-1 gap-mx-sm sm:grid-cols-2">
             {[
-              { title: 'Lançamento de hoje', desc: 'Preencher ou revisar produção D-1 e agenda de hoje.', icon: CheckSquare, to: '/lancamento-diario' },
-              { title: 'Corrigir um dia', desc: 'Ajustar um lançamento anterior com motivo.', icon: History, to: '/lancamento-diario' },
+              { title: 'Lançamento de hoje', desc: 'Preencher ou revisar produção D-1 e agenda de hoje.', icon: CheckSquare, to: '/vendedor/terminal-mx' },
+              { title: 'Corrigir um dia', desc: 'Ajustar um lançamento anterior com motivo.', icon: History, to: '/vendedor/terminal-mx' },
               { title: 'Alertas pendentes', desc: 'Ver cobranças, feedbacks e avisos obrigatórios.', icon: Bell, to: '/notificacoes' },
               { title: 'Devolutivas', desc: 'Confirmar ciência e ver próximos passos do gestor.', icon: MessageSquare, to: '/devolutivas' },
             ].map(item => (

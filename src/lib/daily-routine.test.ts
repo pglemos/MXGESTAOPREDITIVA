@@ -80,7 +80,7 @@ describe('daily routine helpers', () => {
 
     expect(reminder.dedupe_key).toBe('daily-routine:store-1:seller-1:2026-05-14')
     expect(reminder.recipient_id).toBe('seller-1')
-    expect(reminder.link).toBe('/lancamento-diario')
+  expect(reminder.link).toBe('/vendedor/terminal-mx')
   })
 
   test('resolves close-day reminder from profile schedule', () => {
@@ -93,7 +93,7 @@ describe('daily routine helpers', () => {
       enabled: true,
       time: '18:00',
       workDays: ['seg', 'ter'],
-      link: '/lancamento-diario',
+    link: '/vendedor/terminal-mx',
     })
 
     expect(resolveCloseDayReminderSchedule({

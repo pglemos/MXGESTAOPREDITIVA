@@ -118,6 +118,7 @@ export type Database = {
           status: Database["public"]["Enums"]["crm_agendamento_status"]
           tipo: Database["public"]["Enums"]["crm_agendamento_tipo"]
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           canal?: Database["public"]["Enums"]["crm_canal"] | null
@@ -133,6 +134,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["crm_agendamento_status"]
           tipo?: Database["public"]["Enums"]["crm_agendamento_tipo"]
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           canal?: Database["public"]["Enums"]["crm_canal"] | null
@@ -148,6 +150,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["crm_agendamento_status"]
           tipo?: Database["public"]["Enums"]["crm_agendamento_tipo"]
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -174,6 +177,13 @@ export type Database = {
           {
             foreignKeyName: "agendamentos_seller_user_id_fkey"
             columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agendamentos_updated_by_fkey"
+            columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
@@ -497,6 +507,7 @@ export type Database = {
           loja_id: string
           observacoes: string | null
           seller_user_id: string
+          updated_by: string | null
         }
         Insert: {
           canal: Database["public"]["Enums"]["crm_canal"]
@@ -507,6 +518,7 @@ export type Database = {
           loja_id: string
           observacoes?: string | null
           seller_user_id: string
+          updated_by?: string | null
         }
         Update: {
           canal?: Database["public"]["Enums"]["crm_canal"]
@@ -517,6 +529,7 @@ export type Database = {
           loja_id?: string
           observacoes?: string | null
           seller_user_id?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -540,153 +553,11 @@ export type Database = {
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
-        ]
-      }
-      cadencia_estado_cliente: {
-        Row: {
-          cliente_id: string
-          created_at: string
-          etapa_atual: string
-          fluxo_id: string
-          fluxo_version: number
-          historico: Json
-          id: string
-          last_result: string | null
-          loja_id: string
-          passo_atual_key: string
-          proxima_acao: string
-          proxima_acao_em: string
-          seller_user_id: string
-          status: string
-          tentativa_limite: number
-          tentativas_passo: number
-          reagendamentos_sem_sucesso: number
-          updated_at: string
-        }
-        Insert: {
-          cliente_id: string
-          created_at?: string
-          etapa_atual: string
-          fluxo_id: string
-          fluxo_version: number
-          historico?: Json
-          id?: string
-          last_result?: string | null
-          loja_id: string
-          passo_atual_key: string
-          proxima_acao: string
-          proxima_acao_em: string
-          seller_user_id: string
-          status?: string
-          tentativa_limite?: number
-          tentativas_passo?: number
-          reagendamentos_sem_sucesso?: number
-          updated_at?: string
-        }
-        Update: {
-          cliente_id?: string
-          created_at?: string
-          etapa_atual?: string
-          fluxo_id?: string
-          fluxo_version?: number
-          historico?: Json
-          id?: string
-          last_result?: string | null
-          loja_id?: string
-          passo_atual_key?: string
-          proxima_acao?: string
-          proxima_acao_em?: string
-          seller_user_id?: string
-          status?: string
-          tentativa_limite?: number
-          tentativas_passo?: number
-          reagendamentos_sem_sucesso?: number
-          updated_at?: string
-        }
-        Relationships: [
           {
-            foreignKeyName: "cadencia_estado_cliente_cliente_id_fkey"
-            columns: ["cliente_id"]
-            isOneToOne: true
-            referencedRelation: "clientes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cadencia_estado_cliente_fluxo_id_fkey"
-            columns: ["fluxo_id"]
-            isOneToOne: false
-            referencedRelation: "cadencia_fluxos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cadencia_estado_cliente_loja_id_fkey"
-            columns: ["loja_id"]
-            isOneToOne: false
-            referencedRelation: "lojas"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cadencia_estado_cliente_seller_user_id_fkey"
-            columns: ["seller_user_id"]
+            foreignKeyName: "atendimentos_updated_by_fkey"
+            columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      cadencia_fluxos: {
-        Row: {
-          active: boolean
-          canal: Database["public"]["Enums"]["crm_canal"]
-          created_at: string
-          created_by: string | null
-          etapa_inicial: string
-          id: string
-          loja_id: string | null
-          nome: string
-          passos: Json
-          updated_at: string
-          version: number
-        }
-        Insert: {
-          active?: boolean
-          canal: Database["public"]["Enums"]["crm_canal"]
-          created_at?: string
-          created_by?: string | null
-          etapa_inicial: string
-          id?: string
-          loja_id?: string | null
-          nome: string
-          passos: Json
-          updated_at?: string
-          version?: number
-        }
-        Update: {
-          active?: boolean
-          canal?: Database["public"]["Enums"]["crm_canal"]
-          created_at?: string
-          created_by?: string | null
-          etapa_inicial?: string
-          id?: string
-          loja_id?: string | null
-          nome?: string
-          passos?: Json
-          updated_at?: string
-          version?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cadencia_fluxos_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cadencia_fluxos_loja_id_fkey"
-            columns: ["loja_id"]
-            isOneToOne: false
-            referencedRelation: "lojas"
             referencedColumns: ["id"]
           },
         ]
@@ -820,6 +691,7 @@ export type Database = {
           nota: number | null
           pontos: number
           respostas: Json | null
+          updated_by: string | null
           user_id: string
         }
         Insert: {
@@ -831,6 +703,7 @@ export type Database = {
           nota?: number | null
           pontos?: number
           respostas?: Json | null
+          updated_by?: string | null
           user_id: string
         }
         Update: {
@@ -842,6 +715,7 @@ export type Database = {
           nota?: number | null
           pontos?: number
           respostas?: Json | null
+          updated_by?: string | null
           user_id?: string
         }
         Relationships: [
@@ -857,6 +731,13 @@ export type Database = {
             columns: ["loja_id"]
             isOneToOne: false
             referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aula_presencas_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
           {
@@ -876,6 +757,7 @@ export type Database = {
           nota_minima: number
           pontos_score: number
           questoes: Json
+          updated_by: string | null
         }
         Insert: {
           aula_id: string
@@ -884,6 +766,7 @@ export type Database = {
           nota_minima?: number
           pontos_score?: number
           questoes?: Json
+          updated_by?: string | null
         }
         Update: {
           aula_id?: string
@@ -892,6 +775,7 @@ export type Database = {
           nota_minima?: number
           pontos_score?: number
           questoes?: Json
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -899,6 +783,13 @@ export type Database = {
             columns: ["aula_id"]
             isOneToOne: true
             referencedRelation: "aulas_ao_vivo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aula_provas_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -918,6 +809,7 @@ export type Database = {
           status: string
           titulo: string
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           created_at?: string
@@ -933,6 +825,7 @@ export type Database = {
           status?: string
           titulo: string
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           created_at?: string
@@ -948,6 +841,7 @@ export type Database = {
           status?: string
           titulo?: string
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -962,6 +856,13 @@ export type Database = {
             columns: ["loja_id"]
             isOneToOne: false
             referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "aulas_ao_vivo_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -1185,6 +1086,175 @@ export type Database = {
           },
           {
             foreignKeyName: "store_benchmarks_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cadencia_estado_cliente: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          etapa_atual: string
+          fluxo_id: string
+          fluxo_version: number
+          historico: Json
+          id: string
+          last_result: string | null
+          loja_id: string
+          passo_atual_key: string
+          proxima_acao: string
+          proxima_acao_em: string
+          reagendamentos_sem_sucesso: number
+          seller_user_id: string
+          status: string
+          tentativa_limite: number
+          tentativas_passo: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          etapa_atual: string
+          fluxo_id: string
+          fluxo_version: number
+          historico?: Json
+          id?: string
+          last_result?: string | null
+          loja_id: string
+          passo_atual_key: string
+          proxima_acao: string
+          proxima_acao_em: string
+          reagendamentos_sem_sucesso?: number
+          seller_user_id: string
+          status?: string
+          tentativa_limite?: number
+          tentativas_passo?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          etapa_atual?: string
+          fluxo_id?: string
+          fluxo_version?: number
+          historico?: Json
+          id?: string
+          last_result?: string | null
+          loja_id?: string
+          passo_atual_key?: string
+          proxima_acao?: string
+          proxima_acao_em?: string
+          reagendamentos_sem_sucesso?: number
+          seller_user_id?: string
+          status?: string
+          tentativa_limite?: number
+          tentativas_passo?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cadencia_estado_cliente_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: true
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cadencia_estado_cliente_fluxo_id_fkey"
+            columns: ["fluxo_id"]
+            isOneToOne: false
+            referencedRelation: "cadencia_fluxos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cadencia_estado_cliente_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cadencia_estado_cliente_seller_user_id_fkey"
+            columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cadencia_estado_cliente_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cadencia_fluxos: {
+        Row: {
+          active: boolean
+          canal: Database["public"]["Enums"]["crm_canal"]
+          created_at: string
+          created_by: string | null
+          etapa_inicial: string
+          id: string
+          loja_id: string | null
+          nome: string
+          passos: Json
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }
+        Insert: {
+          active?: boolean
+          canal: Database["public"]["Enums"]["crm_canal"]
+          created_at?: string
+          created_by?: string | null
+          etapa_inicial: string
+          id?: string
+          loja_id?: string | null
+          nome: string
+          passos: Json
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Update: {
+          active?: boolean
+          canal?: Database["public"]["Enums"]["crm_canal"]
+          created_at?: string
+          created_by?: string | null
+          etapa_inicial?: string
+          id?: string
+          loja_id?: string | null
+          nome?: string
+          passos?: Json
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cadencia_fluxos_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cadencia_fluxos_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cadencia_fluxos_updated_by_fkey"
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "usuarios"
@@ -1505,6 +1575,7 @@ export type Database = {
           telefone: string | null
           ultima_interacao: string | null
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           canal_origem?: Database["public"]["Enums"]["crm_canal"] | null
@@ -1523,6 +1594,7 @@ export type Database = {
           telefone?: string | null
           ultima_interacao?: string | null
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           canal_origem?: Database["public"]["Enums"]["crm_canal"] | null
@@ -1541,6 +1613,7 @@ export type Database = {
           telefone?: string | null
           ultima_interacao?: string | null
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -1553,6 +1626,13 @@ export type Database = {
           {
             foreignKeyName: "clientes_seller_user_id_fkey"
             columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clientes_updated_by_fkey"
+            columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
@@ -2375,6 +2455,102 @@ export type Database = {
           },
         ]
       }
+      devolutiva_acoes: {
+        Row: {
+          action_text: string
+          concluida_at: string | null
+          concluida_por: string | null
+          created_at: string
+          data_inicio: string
+          devolutiva_id: string
+          horario_sugerido: string
+          id: string
+          justificativa: string | null
+          manager_id: string | null
+          obrigatoria_fechamento: boolean
+          recorrencia: string
+          seller_id: string
+          status: string
+          store_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          action_text: string
+          concluida_at?: string | null
+          concluida_por?: string | null
+          created_at?: string
+          data_inicio?: string
+          devolutiva_id: string
+          horario_sugerido?: string
+          id?: string
+          justificativa?: string | null
+          manager_id?: string | null
+          obrigatoria_fechamento?: boolean
+          recorrencia?: string
+          seller_id: string
+          status?: string
+          store_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          action_text?: string
+          concluida_at?: string | null
+          concluida_por?: string | null
+          created_at?: string
+          data_inicio?: string
+          devolutiva_id?: string
+          horario_sugerido?: string
+          id?: string
+          justificativa?: string | null
+          manager_id?: string | null
+          obrigatoria_fechamento?: boolean
+          recorrencia?: string
+          seller_id?: string
+          status?: string
+          store_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "devolutiva_acoes_concluida_por_fkey"
+            columns: ["concluida_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "devolutiva_acoes_devolutiva_id_fkey"
+            columns: ["devolutiva_id"]
+            isOneToOne: false
+            referencedRelation: "devolutivas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "devolutiva_acoes_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "devolutiva_acoes_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "devolutiva_acoes_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       devolutivas: {
         Row: {
           acknowledged: boolean | null
@@ -2400,6 +2576,7 @@ export type Database = {
           tx_agd_visita: number
           tx_lead_agd: number
           tx_visita_vnd: number
+          updated_by: string | null
           visit_week: number
           vnd_week: number
           week_reference: string
@@ -2428,6 +2605,7 @@ export type Database = {
           tx_agd_visita?: number
           tx_lead_agd?: number
           tx_visita_vnd?: number
+          updated_by?: string | null
           visit_week?: number
           vnd_week?: number
           week_reference: string
@@ -2456,6 +2634,7 @@ export type Database = {
           tx_agd_visita?: number
           tx_lead_agd?: number
           tx_visita_vnd?: number
+          updated_by?: string | null
           visit_week?: number
           vnd_week?: number
           week_reference?: string
@@ -2464,6 +2643,13 @@ export type Database = {
           {
             foreignKeyName: "devolutivas_gerente_id_fkey"
             columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "devolutivas_updated_by_fkey"
+            columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
@@ -2480,92 +2666,6 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "lojas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      devolutiva_acoes: {
-        Row: {
-          action_text: string
-          concluida_at: string | null
-          concluida_por: string | null
-          created_at: string
-          data_inicio: string
-          devolutiva_id: string
-          horario_sugerido: string
-          id: string
-          justificativa: string | null
-          manager_id: string | null
-          obrigatoria_fechamento: boolean
-          recorrencia: string
-          seller_id: string
-          status: string
-          store_id: string
-          updated_at: string
-        }
-        Insert: {
-          action_text: string
-          concluida_at?: string | null
-          concluida_por?: string | null
-          created_at?: string
-          data_inicio?: string
-          devolutiva_id: string
-          horario_sugerido?: string
-          id?: string
-          justificativa?: string | null
-          manager_id?: string | null
-          obrigatoria_fechamento?: boolean
-          recorrencia?: string
-          seller_id: string
-          status?: string
-          store_id: string
-          updated_at?: string
-        }
-        Update: {
-          action_text?: string
-          concluida_at?: string | null
-          concluida_por?: string | null
-          created_at?: string
-          data_inicio?: string
-          devolutiva_id?: string
-          horario_sugerido?: string
-          id?: string
-          justificativa?: string | null
-          manager_id?: string | null
-          obrigatoria_fechamento?: boolean
-          recorrencia?: string
-          seller_id?: string
-          status?: string
-          store_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "devolutiva_acoes_concluida_por_fkey"
-            columns: ["concluida_por"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "devolutiva_acoes_devolutiva_id_fkey"
-            columns: ["devolutiva_id"]
-            isOneToOne: true
-            referencedRelation: "devolutivas"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "devolutiva_acoes_manager_id_fkey"
-            columns: ["manager_id"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "devolutiva_acoes_seller_id_fkey"
-            columns: ["seller_id"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -3291,6 +3391,150 @@ export type Database = {
           },
         ]
       }
+      execution_actions: {
+        Row: {
+          alert_tone: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_at: string
+          id: string
+          justificativa: string | null
+          metadata: Json
+          priority: string
+          seller_id: string
+          source_id: string | null
+          source_type: string
+          status: string
+          store_id: string | null
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          alert_tone?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_at: string
+          id?: string
+          justificativa?: string | null
+          metadata?: Json
+          priority?: string
+          seller_id: string
+          source_id?: string | null
+          source_type: string
+          status?: string
+          store_id?: string | null
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          alert_tone?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_at?: string
+          id?: string
+          justificativa?: string | null
+          metadata?: Json
+          priority?: string
+          seller_id?: string
+          source_id?: string | null
+          source_type?: string
+          status?: string
+          store_id?: string | null
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "execution_actions_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "execution_actions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "execution_actions_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "execution_actions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "execution_actions_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feedback_action_catalog: {
+        Row: {
+          action_key: string
+          action_template: string
+          active: boolean
+          catalog_version: number
+          created_at: string
+          description: string
+          flow_metadata: Json
+          id: string
+          suggested_time: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          action_key: string
+          action_template: string
+          active?: boolean
+          catalog_version: number
+          created_at?: string
+          description: string
+          flow_metadata?: Json
+          id?: string
+          suggested_time?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          action_key?: string
+          action_template?: string
+          active?: boolean
+          catalog_version?: number
+          created_at?: string
+          description?: string
+          flow_metadata?: Json
+          id?: string
+          suggested_time?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       financeiro_consultoria: {
         Row: {
           capital_proprio: number | null
@@ -3487,6 +3731,95 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clientes_consultoria"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      funnel_metrics: {
+        Row: {
+          atingimento: number | null
+          channels: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          loja_id: string
+          meta: number | null
+          period_end: string
+          period_key: string
+          period_start: string
+          seller_user_id: string
+          source: string
+          totals: Json
+          updated_at: string
+          updated_by: string | null
+          vendas_faltantes: number | null
+          vendas_realizadas: number
+        }
+        Insert: {
+          atingimento?: number | null
+          channels?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          loja_id: string
+          meta?: number | null
+          period_end: string
+          period_key?: string
+          period_start: string
+          seller_user_id: string
+          source?: string
+          totals?: Json
+          updated_at?: string
+          updated_by?: string | null
+          vendas_faltantes?: number | null
+          vendas_realizadas?: number
+        }
+        Update: {
+          atingimento?: number | null
+          channels?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          loja_id?: string
+          meta?: number | null
+          period_end?: string
+          period_key?: string
+          period_start?: string
+          seller_user_id?: string
+          source?: string
+          totals?: Json
+          updated_at?: string
+          updated_by?: string | null
+          vendas_faltantes?: number | null
+          vendas_realizadas?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "funnel_metrics_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "funnel_metrics_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "funnel_metrics_seller_user_id_fkey"
+            columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "funnel_metrics_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -5100,6 +5433,7 @@ export type Database = {
           sinal: number
           tipo_veiculo: Database["public"]["Enums"]["crm_tipo_veiculo"] | null
           updated_at: string
+          updated_by: string | null
           valor_negociado: number
           veiculo_interesse: string | null
         }
@@ -5118,6 +5452,7 @@ export type Database = {
           sinal?: number
           tipo_veiculo?: Database["public"]["Enums"]["crm_tipo_veiculo"] | null
           updated_at?: string
+          updated_by?: string | null
           valor_negociado?: number
           veiculo_interesse?: string | null
         }
@@ -5136,6 +5471,7 @@ export type Database = {
           sinal?: number
           tipo_veiculo?: Database["public"]["Enums"]["crm_tipo_veiculo"] | null
           updated_at?: string
+          updated_by?: string | null
           valor_negociado?: number
           veiculo_interesse?: string | null
         }
@@ -5157,6 +5493,13 @@ export type Database = {
           {
             foreignKeyName: "oportunidades_seller_user_id_fkey"
             columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oportunidades_updated_by_fkey"
+            columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
@@ -5442,6 +5785,7 @@ export type Database = {
           prazo: string
           sessao_id: string
           tipo: string
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
@@ -5450,6 +5794,7 @@ export type Database = {
           prazo: string
           sessao_id: string
           tipo: string
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
@@ -5458,6 +5803,7 @@ export type Database = {
           prazo?: string
           sessao_id?: string
           tipo?: string
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -5465,6 +5811,13 @@ export type Database = {
             columns: ["sessao_id"]
             isOneToOne: false
             referencedRelation: "pdi_sessoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pdi_metas_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -5543,6 +5896,7 @@ export type Database = {
       pdi_plano_acao: {
         Row: {
           aprovado_por: string | null
+          central_enviada_at: string | null
           competencia_id: string
           created_at: string | null
           custo: string
@@ -5552,12 +5906,15 @@ export type Database = {
           evidencia_url: string | null
           id: string
           impacto: string
+          justificativa: string | null
           sessao_id: string
           status: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           aprovado_por?: string | null
+          central_enviada_at?: string | null
           competencia_id: string
           created_at?: string | null
           custo: string
@@ -5567,12 +5924,15 @@ export type Database = {
           evidencia_url?: string | null
           id?: string
           impacto: string
+          justificativa?: string | null
           sessao_id: string
           status?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           aprovado_por?: string | null
+          central_enviada_at?: string | null
           competencia_id?: string
           created_at?: string | null
           custo?: string
@@ -5582,9 +5942,11 @@ export type Database = {
           evidencia_url?: string | null
           id?: string
           impacto?: string
+          justificativa?: string | null
           sessao_id?: string
           status?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -5599,6 +5961,13 @@ export type Database = {
             columns: ["sessao_id"]
             isOneToOne: false
             referencedRelation: "pdi_sessoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pdi_plano_acao_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -5653,6 +6022,7 @@ export type Database = {
           proxima_revisao_data: string | null
           status: string
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           cargo_id?: string | null
@@ -5665,6 +6035,7 @@ export type Database = {
           proxima_revisao_data?: string | null
           status?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           cargo_id?: string | null
@@ -5677,6 +6048,7 @@ export type Database = {
           proxima_revisao_data?: string | null
           status?: string
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -5684,6 +6056,13 @@ export type Database = {
             columns: ["cargo_id"]
             isOneToOne: false
             referencedRelation: "pdi_niveis_cargo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pdi_sessoes_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -6914,8 +7293,8 @@ export type Database = {
           loja_id: string
           observacoes: string | null
           percentual_meta_min: number | null
-          tipo_veiculo: string | null
           tipo: Database["public"]["Enums"]["remuneracao_regra_tipo"]
+          tipo_veiculo: string | null
           updated_at: string
           valor: number
           vigencia_inicio: string
@@ -6929,8 +7308,8 @@ export type Database = {
           loja_id: string
           observacoes?: string | null
           percentual_meta_min?: number | null
-          tipo_veiculo?: string | null
           tipo: Database["public"]["Enums"]["remuneracao_regra_tipo"]
+          tipo_veiculo?: string | null
           updated_at?: string
           valor?: number
           vigencia_inicio?: string
@@ -6944,8 +7323,8 @@ export type Database = {
           loja_id?: string
           observacoes?: string | null
           percentual_meta_min?: number | null
-          tipo_veiculo?: string | null
           tipo?: Database["public"]["Enums"]["remuneracao_regra_tipo"]
+          tipo_veiculo?: string | null
           updated_at?: string
           valor?: number
           vigencia_inicio?: string
@@ -7460,6 +7839,83 @@ export type Database = {
             columns: ["calculation_id"]
             isOneToOne: false
             referencedRelation: "score_calculations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seller_product_categories: {
+        Row: {
+          category_key: string
+          category_label: string
+          created_at: string
+          created_by: string | null
+          id: string
+          monthly_goal: number
+          monthly_sales: number
+          notes: string | null
+          proficiency: string
+          seller_id: string
+          store_id: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          category_key: string
+          category_label: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          monthly_goal?: number
+          monthly_sales?: number
+          notes?: string | null
+          proficiency?: string
+          seller_id: string
+          store_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          category_key?: string
+          category_label?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          monthly_goal?: number
+          monthly_sales?: number
+          notes?: string | null
+          proficiency?: string
+          seller_id?: string
+          store_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_product_categories_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_product_categories_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_product_categories_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_product_categories_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -8385,9 +8841,9 @@ export type Database = {
       }
       vendedor_perfil: {
         Row: {
+          cargo_atual: string | null
           cargos_interesse: string | null
           carreira_interesse: Database["public"]["Enums"]["carreira_interesse"]
-          cargo_atual: string | null
           cidades_interesse: string | null
           created_at: string
           dias_trabalho: string[]
@@ -8411,12 +8867,13 @@ export type Database = {
           seller_user_id: string
           tempo_mercado_anos: number | null
           updated_at: string
+          updated_by: string | null
           vinculo_tipo: Database["public"]["Enums"]["vendedor_vinculo_tipo"]
         }
         Insert: {
+          cargo_atual?: string | null
           cargos_interesse?: string | null
           carreira_interesse?: Database["public"]["Enums"]["carreira_interesse"]
-          cargo_atual?: string | null
           cidades_interesse?: string | null
           created_at?: string
           dias_trabalho?: string[]
@@ -8440,12 +8897,13 @@ export type Database = {
           seller_user_id: string
           tempo_mercado_anos?: number | null
           updated_at?: string
+          updated_by?: string | null
           vinculo_tipo?: Database["public"]["Enums"]["vendedor_vinculo_tipo"]
         }
         Update: {
+          cargo_atual?: string | null
           cargos_interesse?: string | null
           carreira_interesse?: Database["public"]["Enums"]["carreira_interesse"]
-          cargo_atual?: string | null
           cidades_interesse?: string | null
           created_at?: string
           dias_trabalho?: string[]
@@ -8469,6 +8927,7 @@ export type Database = {
           seller_user_id?: string
           tempo_mercado_anos?: number | null
           updated_at?: string
+          updated_by?: string | null
           vinculo_tipo?: Database["public"]["Enums"]["vendedor_vinculo_tipo"]
         }
         Relationships: [
@@ -8483,6 +8942,13 @@ export type Database = {
             foreignKeyName: "vendedor_perfil_seller_user_id_fkey"
             columns: ["seller_user_id"]
             isOneToOne: true
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendedor_perfil_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
@@ -8912,6 +9378,10 @@ export type Database = {
         Args: { p_action_id: string; p_approval_payload: Json }
         Returns: undefined
       }
+      atribuir_trilha_maturidade_vendedor: {
+        Args: { p_seller_id?: string }
+        Returns: string
+      }
       can_access_consulting_client: {
         Args: { p_client_id: string }
         Returns: boolean
@@ -9177,6 +9647,18 @@ export type Database = {
       eh_admin_master_mx: { Args: { uid?: string }; Returns: boolean }
       eh_administrador_mx: { Args: { uid?: string }; Returns: boolean }
       eh_area_interna_mx: { Args: { uid?: string }; Returns: boolean }
+      exportar_contatos_cadastros_mx: {
+        Args: never
+        Returns: {
+          email: string
+          loja: string
+          nome: string
+          origem: string
+          papel: string
+          telefone: string
+          vinculo_desde: string
+        }[]
+      }
       gerar_alertas_loja: {
         Args: { p_period?: string; p_store_id: string }
         Returns: {
@@ -9471,46 +9953,13 @@ export type Database = {
         Args: { p_roles: string[]; p_store_id: string }
         Returns: boolean
       }
-      atribuir_trilha_maturidade_vendedor: {
-        Args: { p_seller_id?: string }
-        Returns: string
-      }
       inicializar_cadencia_cliente: {
         Args: { p_cliente_id: string }
         Returns: string
       }
-      listar_acoes_cadencia_vendedor: {
-        Args: {
-          p_data_fim?: string | null
-          p_data_inicio?: string | null
-        }
-        Returns: {
-          cadencia_estado_id: string
-          canal: Database["public"]["Enums"]["crm_canal"] | null
-          cliente_id: string
-          cliente_nome: string
-          cliente_telefone: string | null
-          etapa_atual: string
-          last_result: string | null
-          loja_id: string
-          passo_atual_key: string
-          proxima_acao: string
-          proxima_acao_em: string
-          seller_user_id: string
-          status: string
-        }[]
-      }
       inicializar_progresso_trilha: {
         Args: { p_assignment_id: string }
         Returns: number
-      }
-      registrar_status_acao_cadencia: {
-        Args: {
-          p_cliente_id: string
-          p_observacao?: string | null
-          p_status: string
-        }
-        Returns: string
       }
       is_admin:
         | { Args: never; Returns: boolean }
@@ -9520,6 +9969,24 @@ export type Database = {
       is_manager_of: { Args: { p_store_id: string }; Returns: boolean }
       is_member_of: { Args: { p_store_id: string }; Returns: boolean }
       is_owner_of: { Args: { p_store_id: string }; Returns: boolean }
+      listar_acoes_cadencia_vendedor: {
+        Args: { p_data_fim?: string; p_data_inicio?: string }
+        Returns: {
+          cadencia_estado_id: string
+          canal: Database["public"]["Enums"]["crm_canal"]
+          cliente_id: string
+          cliente_nome: string
+          cliente_telefone: string
+          etapa_atual: string
+          last_result: string
+          loja_id: string
+          passo_atual_key: string
+          proxima_acao: string
+          proxima_acao_em: string
+          seller_user_id: string
+          status: string
+        }[]
+      }
       listar_benchmark_anonimo_lojas: {
         Args: never
         Returns: {
@@ -9531,16 +9998,6 @@ export type Database = {
           total_vendas: number
           total_visitas: number
         }[]
-      }
-      resolve_vendedor_maturidade_track_type: {
-        Args: {
-          p_cargo_atual: string | null
-          p_experiencia:
-            | Database["public"]["Enums"]["vendedor_experiencia_declarada"]
-            | null
-          p_tempo_mercado_anos: number | null
-        }
-        Returns: string
       }
       log_rpc_error: {
         Args: {
@@ -9554,6 +10011,21 @@ export type Database = {
       }
       modulo_cliente_consultoria_habilitado: {
         Args: { p_cliente_id: string; p_modulo_chave: string }
+        Returns: boolean
+      }
+      mx_can_read_funnel_metrics: {
+        Args: { p_loja_id: string; p_seller_user_id: string }
+        Returns: boolean
+      }
+      mx_can_read_score_calculation: {
+        Args: { p_calculation_id: string }
+        Returns: boolean
+      }
+      mx_can_read_score_scope: {
+        Args: {
+          p_scope_id: string
+          p_scope_type: Database["public"]["Enums"]["score_scope_type"]
+        }
         Returns: boolean
       }
       mx_development_theme_from_text: {
@@ -9624,6 +10096,10 @@ export type Database = {
         }
         Returns: string
       }
+      registrar_status_acao_cadencia: {
+        Args: { p_cliente_id: string; p_observacao?: string; p_status: string }
+        Returns: string
+      }
       reject_correction_request: {
         Args: { request_id: string }
         Returns: undefined
@@ -9657,6 +10133,14 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      resolve_vendedor_maturidade_track_type: {
+        Args: {
+          p_cargo_atual: string
+          p_experiencia: Database["public"]["Enums"]["vendedor_experiencia_declarada"]
+          p_tempo_mercado_anos: number
+        }
+        Returns: string
+      }
       send_broadcast_notification: {
         Args: {
           p_link?: string
@@ -9680,6 +10164,38 @@ export type Database = {
         Returns: boolean
       }
       update_my_profile: { Args: { p_updates: Json }; Returns: Json }
+      upsert_funnel_metrics_snapshot: {
+        Args: {
+          p_period_end: string
+          p_period_key?: string
+          p_period_start: string
+        }
+        Returns: {
+          atingimento: number | null
+          channels: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          loja_id: string
+          meta: number | null
+          period_end: string
+          period_key: string
+          period_start: string
+          seller_user_id: string
+          source: string
+          totals: Json
+          updated_at: string
+          updated_by: string | null
+          vendas_faltantes: number | null
+          vendas_realizadas: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "funnel_metrics"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       user_has_min_hierarchy: {
         Args: { p_min: number; uid?: string }
         Returns: boolean
@@ -9691,6 +10207,48 @@ export type Database = {
       user_is_master_loja: {
         Args: { p_loja_id: string; uid?: string }
         Returns: boolean
+      }
+      vendedor_atualizar_pdi_acao: {
+        Args: {
+          p_acao_id: string
+          p_custo: string
+          p_data_conclusao: string
+          p_descricao_acao: string
+          p_impacto: string
+        }
+        Returns: string
+      }
+      vendedor_atualizar_pdi_acao_status: {
+        Args: { p_acao_id: string; p_justificativa?: string; p_status: string }
+        Returns: string
+      }
+      vendedor_atualizar_pdi_metas: {
+        Args: { p_metas: Json; p_prazo: string; p_sessao_id: string }
+        Returns: number
+      }
+      vendedor_concluir_execution_action: {
+        Args: { p_action_id: string }
+        Returns: string
+      }
+      vendedor_criar_pdi_acao: {
+        Args: {
+          p_competencia_id: string
+          p_custo?: string
+          p_data_conclusao: string
+          p_descricao_acao: string
+          p_impacto: string
+          p_sessao_id: string
+          p_status?: string
+        }
+        Returns: string
+      }
+      vendedor_enviar_pdi_acao_central: {
+        Args: { p_acao_id: string }
+        Returns: string
+      }
+      vendedor_vincular_conteudo_pdi_acao: {
+        Args: { p_acao_id: string }
+        Returns: string
       }
     }
     Enums: {
@@ -9744,13 +10302,6 @@ export type Database = {
       crm_financiamento: "aprovado" | "reprovado" | "nao_aplica" | "pendente"
       crm_relacionamento: "excelente" | "bom" | "neutro" | "ruim" | "critico"
       crm_tipo_veiculo: "carro" | "moto" | "caminhao"
-      vendedor_experiencia_declarada:
-        | "sem_experiencia"
-        | "iniciante"
-        | "intermediario"
-        | "experiente"
-        | "especialista"
-      vendedor_vinculo_tipo: "loja" | "autonomo"
       executive_agenda_integration_status:
         | "conectado"
         | "pendente"
@@ -9767,10 +10318,22 @@ export type Database = {
         | "dentro"
         | "acima"
         | "sem_referencia"
-      remuneracao_regra_tipo: "comissao_por_venda" | "bonus_meta" | "percentual_faturamento" | "comissao_categoria" | "comissao_equipe"
+      remuneracao_regra_tipo:
+        | "comissao_por_venda"
+        | "bonus_meta"
+        | "percentual_faturamento"
+        | "comissao_categoria"
+        | "comissao_equipe"
       score_band: "elite" | "excellent" | "good" | "attention" | "critical"
       score_dimension: "resultado" | "processo" | "disciplina"
       score_scope_type: "store" | "department" | "individual" | "process"
+      vendedor_experiencia_declarada:
+        | "sem_experiencia"
+        | "iniciante"
+        | "intermediario"
+        | "experiente"
+        | "especialista"
+      vendedor_vinculo_tipo: "loja" | "autonomo"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -9954,14 +10517,6 @@ export const Constants = {
       crm_financiamento: ["aprovado", "reprovado", "nao_aplica", "pendente"],
       crm_relacionamento: ["excelente", "bom", "neutro", "ruim", "critico"],
       crm_tipo_veiculo: ["carro", "moto", "caminhao"],
-      vendedor_experiencia_declarada: [
-        "sem_experiencia",
-        "iniciante",
-        "intermediario",
-        "experiente",
-        "especialista",
-      ],
-      vendedor_vinculo_tipo: ["loja", "autonomo"],
       executive_agenda_integration_status: [
         "conectado",
         "pendente",
@@ -9981,10 +10536,24 @@ export const Constants = {
         "acima",
         "sem_referencia",
       ],
-      remuneracao_regra_tipo: ["comissao_por_venda", "bonus_meta", "percentual_faturamento", "comissao_categoria", "comissao_equipe"],
+      remuneracao_regra_tipo: [
+        "comissao_por_venda",
+        "bonus_meta",
+        "percentual_faturamento",
+        "comissao_categoria",
+        "comissao_equipe",
+      ],
       score_band: ["elite", "excellent", "good", "attention", "critical"],
       score_dimension: ["resultado", "processo", "disciplina"],
       score_scope_type: ["store", "department", "individual", "process"],
+      vendedor_experiencia_declarada: [
+        "sem_experiencia",
+        "iniciante",
+        "intermediario",
+        "experiente",
+        "especialista",
+      ],
+      vendedor_vinculo_tipo: ["loja", "autonomo"],
     },
   },
 } as const

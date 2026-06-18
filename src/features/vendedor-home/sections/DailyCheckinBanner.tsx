@@ -22,7 +22,7 @@ export function DailyCheckinBanner({ referenceDateLabel }: DailyCheckinBannerPro
       aria-labelledby="daily-checkin-title"
     >
       <Link
-        to="/lancamento-diario"
+        to="/vendedor/terminal-mx"
         className="group relative grid w-full min-w-0 gap-mx-lg overflow-hidden rounded-mx-3xl bg-brand-primary p-mx-md text-white shadow-mx-xl transition-all hover:-translate-y-0.5 hover:shadow-mx-2xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/30 md:grid-cols-[1fr_auto] md:items-center md:p-mx-lg"
       >
         <div

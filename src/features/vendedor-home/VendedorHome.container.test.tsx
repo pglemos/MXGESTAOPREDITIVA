@@ -56,6 +56,20 @@ mock.module('@/features/vendedor-home/hooks/useVendedorHomePage', () => ({
 }))
 
 mock.module('@/features/crm/hooks/useMeuScore', () => ({
+  BAND_LABEL: {
+    elite: 'Elite MX',
+    excellent: 'Excelente',
+    good: 'Bom',
+    attention: 'Atenção',
+    critical: 'Crítico',
+  },
+  NEXT_BAND: {
+    critical: 'Atenção',
+    attention: 'Bom',
+    good: 'Excelente',
+    excellent: 'Elite MX',
+    elite: 'Elite MX',
+  },
   useMeuScore: () => ({
     score: {
       value: 40,
@@ -82,6 +96,24 @@ mock.module('@/features/crm/hooks/useAgendamentos', () => ({
 }))
 
 mock.module('@/features/crm/hooks/useOportunidades', () => ({
+  buildOportunidadePayload: (input: any, context: any, nowIso = () => new Date().toISOString()) => {
+    const isTerminal = input.etapa === 'ganho' || input.etapa === 'perdido'
+    return {
+      cliente_id: input.cliente_id,
+      loja_id: context.loja_id,
+      seller_user_id: context.seller_user_id,
+      veiculo_interesse: input.veiculo_interesse?.trim() || null,
+      tipo_veiculo: input.tipo_veiculo || null,
+      valor_negociado: input.valor_negociado ?? 0,
+      etapa: input.etapa || 'prospeccao',
+      canal: input.canal || null,
+      sinal: input.sinal ?? 0,
+      financiamento: input.financiamento || 'nao_aplica',
+      carro_avaliado: input.carro_avaliado ?? false,
+      motivo_perda: input.etapa === 'perdido' ? (input.motivo_perda?.trim() || null) : null,
+      closed_at: isTerminal ? (input.closed_at || nowIso()) : null,
+    }
+  },
   useOportunidades: () => ({
     oportunidades: [],
   }),

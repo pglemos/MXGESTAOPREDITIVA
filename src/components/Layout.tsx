@@ -227,7 +227,7 @@ const navConfig: Record<string, NavCategory[]> = {
       items: [
         // Cada item tem icone unico dentro do papel para identificacao intuitiva
         { label: 'Meu Dia', path: '/home', icon: <Home size={16} /> },
-        { label: 'Fechamento Diário', path: '/lancamento-diario', icon: <CheckSquare size={16} /> },
+        { label: 'Terminal MX', path: '/vendedor/terminal-mx', icon: <CheckSquare size={16} /> },
         { label: 'Central de Execução', path: '/central-execucao', icon: <CalendarCheck size={16} /> },
         { label: 'Carteira', path: '/carteira-clientes', icon: <Users size={16} /> },
         { label: 'Leads', path: '/leads', icon: <Sparkles size={16} /> },
@@ -240,6 +240,7 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Trilhas', path: '/trilhas', icon: <RouteIcon size={16} /> },
         { label: 'Ranking', path: '/classificacao', icon: <Trophy size={16} /> },
         { label: 'Meu Perfil', path: '/perfil', icon: <User size={16} /> },
+        { label: 'Configurações', path: '/vendedor/configuracoes', icon: <Settings size={16} /> },
       ]
     }
   ]
@@ -254,7 +255,7 @@ export default function Layout() {
   const navBadges: Record<string, number> = { '/devolutivas': pendingFeedbackCount }
 const navigate = useNavigate()
 const location = useLocation()
-const isCheckinRoute = location.pathname === '/lancamento-diario'
+  const isCheckinRoute = location.pathname === '/lancamento-diario' || location.pathname === '/vendedor/terminal-mx'
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
@@ -815,9 +816,9 @@ className={cn(
           
           {role === 'vendedor' && (
             <NavLink
-              to="/lancamento-diario"
-              aria-label="Fazer Lançamento Diário"
-              aria-current={location.pathname === '/lancamento-diario' ? 'page' : undefined}
+              to="/vendedor/terminal-mx"
+              aria-label="Abrir Terminal MX"
+              aria-current={isCheckinRoute ? 'page' : undefined}
               className="min-w-0 h-mx-12 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
             >
               <CheckSquare size={20} />

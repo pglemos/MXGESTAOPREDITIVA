@@ -49,6 +49,7 @@ import { useAgendamentos, type AgendamentoComCliente, type AgendamentoInput } fr
 import { useAtendimentos } from '@/features/crm/hooks/useAtendimentos'
 import { useCadenciaAgenda, type CadenciaAgendaItem } from '@/features/crm/hooks/useCadenciaAgenda'
 import { useClientes, type ClienteInput } from '@/features/crm/hooks/useClientes'
+import { useExecutionActions, type ExecutionActionRow } from '@/features/crm/hooks/useExecutionActions'
 import { useFeedbackActions } from '@/features/crm/hooks/useFeedbackActions'
 import { useVendedorPerfil } from '@/features/crm/hooks/useVendedorPerfil'
 import { montarDataHoraAcaoCadencia, type CadenciaResultadoAcao } from '@/features/crm/lib/cadencia'
@@ -85,11 +86,11 @@ const STATUS_CLIENTE_LABEL: Record<CrmClienteStatus, string> = {
 
 type FiltroData = 'todos' | 'hoje' | 'atrasados' | 'proximos7'
 type CanalFiltro = 'todos' | CrmCanal
-type OrigemFiltro = 'todos' | 'Carteira' | 'Cadência' | 'Feedback' | 'Manual' | 'Agendamento' | 'Rotina' | 'Funil de Vendas'
+type OrigemFiltro = 'todos' | 'Carteira' | 'Cadência' | 'Feedback' | 'PDI' | 'Manual' | 'Agendamento' | 'Rotina' | 'Funil de Vendas'
 type PrioridadeFiltro = 'todos' | PrioridadeAcao
 type StatusFiltro = 'todos' | 'Pendente' | 'Confirmado' | 'Feito' | 'Não respondeu' | 'Aguardando' | 'Reagendado' | 'Concluído' | 'Não feito'
-type AgendaCentralStatus = CrmAgendamentoStatus | 'cadencia' | 'feedback_pendente' | 'reagendado'
-type OrigemAcao = 'agendamento' | 'cadencia' | 'feedback'
+type AgendaCentralStatus = CrmAgendamentoStatus | 'cadencia' | 'feedback_pendente' | 'execution_pendente' | 'reagendado'
+type OrigemAcao = 'agendamento' | 'cadencia' | 'feedback' | 'execution'
 type PrioridadeAcao = 'Urgente' | 'Alta' | 'Média' | 'Baixa'
 
 type AgendaCentralItem = {
@@ -106,8 +107,9 @@ type AgendaCentralItem = {
   etapa: string | null
   agendamento?: AgendamentoComCliente
   cadencia?: CadenciaAgendaItem
+  executionAction?: ExecutionActionRow
   feedbackAction?: FeedbackActionRow
-  alertTone?: 'error'
+  alertTone?: 'error' | 'warning' | 'info'
 }
 
 type NewClientForm = {
@@ -160,6 +162,7 @@ const canalTone: Record<string, string> = {
 const origemTone: Record<string, string> = {
   Cadência: 'bg-status-info-surface text-status-info border-status-info/20',
   Feedback: 'bg-brand-primary/10 text-brand-primary border-brand-primary/20',
+  PDI: 'bg-status-warning-surface text-status-warning border-status-warning/20',
   Manual: 'bg-surface-alt text-text-secondary border-border-subtle',
   Agendamento: 'bg-brand-primary/10 text-brand-primary border-brand-primary/20',
 }
@@ -174,6 +177,7 @@ const prioridadeTone: Record<PrioridadeAcao, string> = {
 const statusTone: Record<string, string> = {
   cadencia: 'bg-status-info-surface text-status-info border-status-info/20',
   feedback_pendente: 'bg-status-error-surface text-status-error border-status-error/20',
+  execution_pendente: 'bg-status-warning-surface text-status-warning border-status-warning/20',
   confirmado: 'bg-status-success-surface text-status-success border-status-success/20',
   aguardando: 'bg-status-info-surface text-status-info border-status-info/20',
   compareceu: 'bg-status-success-surface text-status-success border-status-success/20',
@@ -243,9 +247,36 @@ function mapCadenciaToAgendaItem(item: CadenciaAgendaItem): AgendaCentralItem {
   }
 }
 
+function mapExecutionActionToAgendaItem(action: ExecutionActionRow): AgendaCentralItem {
+  return {
+    id: `execution-${action.id}`,
+    origem: 'execution',
+    data_hora: action.due_at,
+    canal: null,
+    status: 'execution_pendente',
+    statusLabel: action.source_type === 'pdi' ? 'PDI' : 'Pendente',
+    proxima_acao: action.title,
+    cliente: { nome: executionSourceLabel(action), telefone: null },
+    oportunidade: null,
+    tipo: action.source_type,
+    etapa: null,
+    executionAction: action,
+    alertTone: action.alert_tone,
+  }
+}
+
+function executionSourceLabel(action: ExecutionActionRow) {
+  if (action.source_type === 'pdi') return 'Plano de Desenvolvimento'
+  if (action.source_type === 'funil') return 'Funil de Vendas'
+  if (action.source_type === 'feedback') return 'Feedback'
+  return 'Central de Execução'
+}
+
 function getOrigemLabel(item: AgendaCentralItem) {
   if (item.origem === 'cadencia') return 'Cadência'
   if (item.origem === 'feedback') return 'Feedback'
+  if (item.origem === 'execution' && item.executionAction?.source_type === 'pdi') return 'PDI'
+  if (item.origem === 'execution') return 'Manual'
   if (item.tipo === 'retorno' || item.tipo === 'visita' || item.tipo === 'test_drive') return 'Agendamento'
   return 'Manual'
 }
@@ -254,12 +285,13 @@ function getOrigemFilterLabel(item: AgendaCentralItem): OrigemFiltro {
   if (item.canal === 'carteira') return 'Carteira'
   if (item.origem === 'cadencia') return 'Cadência'
   if (item.origem === 'feedback') return 'Feedback'
+  if (item.origem === 'execution' && item.executionAction?.source_type === 'pdi') return 'PDI'
   if (item.tipo === 'negociacao') return 'Funil de Vendas'
   return getOrigemLabel(item) as OrigemFiltro
 }
 
 function getStatusFilterLabel(item: AgendaCentralItem): StatusFiltro {
-  if (item.status === 'cadencia' || item.status === 'feedback_pendente') return 'Pendente'
+  if (item.status === 'cadencia' || item.status === 'feedback_pendente' || item.status === 'execution_pendente') return 'Pendente'
   if (item.status === 'confirmado') return 'Confirmado'
   if (item.status === 'compareceu') return 'Feito'
   if (item.status === 'nao_compareceu') return 'Não respondeu'
@@ -414,9 +446,10 @@ function AgendaRow({
   statusSaving,
   onWhatsApp,
   onAgendamentoStatus,
-  onCadenciaStatus,
-  onFeedbackActionDone,
-  onReagendar,
+onCadenciaStatus,
+onFeedbackActionDone,
+onExecutionActionDone,
+onReagendar,
   onNotDone,
   onMore,
 }: {
@@ -424,9 +457,10 @@ function AgendaRow({
   statusSaving: boolean
   onWhatsApp: () => void
   onAgendamentoStatus: (item: AgendaCentralItem, status: CrmAgendamentoStatus) => void
-  onCadenciaStatus: (item: AgendaCentralItem, status: CadenciaResultadoAcao) => void
-  onFeedbackActionDone: (item: AgendaCentralItem) => void
-  onReagendar: () => void
+onCadenciaStatus: (item: AgendaCentralItem, status: CadenciaResultadoAcao) => void
+onFeedbackActionDone: (item: AgendaCentralItem) => void
+onExecutionActionDone: (item: AgendaCentralItem) => void
+onReagendar: () => void
   onNotDone: (item: AgendaCentralItem) => void
   onMore: () => void
 }) {
@@ -434,19 +468,22 @@ function AgendaRow({
   const vehicle = item.oportunidade?.veiculo_interesse || (item.tipo ? TIPO_LABEL[item.tipo] : null) || 'Oportunidade'
   const value = item.oportunidade?.valor_negociado
     ? item.oportunidade.valor_negociado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
-    : item.origem === 'feedback'
-      ? 'Ação obrigatória'
-      : item.origem === 'cadencia'
-        ? 'Ação sugerida'
+: item.origem === 'feedback'
+? 'Ação obrigatória'
+ : item.origem === 'execution'
+ ? 'Ação rastreável'
+: item.origem === 'cadencia'
+? 'Ação sugerida'
         : 'Valor a definir'
   const priority = getPriority(item)
   const origem = getOrigemLabel(item)
 
-  function handleDone() {
-    if (item.origem === 'feedback') return onFeedbackActionDone(item)
-    if (item.origem === 'cadencia') return onCadenciaStatus(item, 'feito')
-    return onAgendamentoStatus(item, 'compareceu')
-  }
+function handleDone() {
+if (item.origem === 'feedback') return onFeedbackActionDone(item)
+if (item.origem === 'execution') return onExecutionActionDone(item)
+if (item.origem === 'cadencia') return onCadenciaStatus(item, 'feito')
+return onAgendamentoStatus(item, 'compareceu')
+}
 
   function handleNoAnswer() {
     if (item.origem === 'cadencia') return onCadenciaStatus(item, 'nao_feito')
@@ -543,8 +580,9 @@ export function CentralExecucao() {
     updateAgendamento,
     updateStatus,
   } = useAgendamentos()
-  const { acoes: acoesCadencia, loading: cadenciaLoading, error: cadenciaError, refetch: refetchCadencia } = useCadenciaAgenda()
-  const { acoes: acoesFeedback, loading: feedbackActionsLoading, error: feedbackActionsError, refetch: refetchFeedbackActions, concluirAcaoFeedback } = useFeedbackActions()
+const { acoes: acoesCadencia, loading: cadenciaLoading, error: cadenciaError, refetch: refetchCadencia } = useCadenciaAgenda()
+const { acoes: acoesFeedback, loading: feedbackActionsLoading, error: feedbackActionsError, refetch: refetchFeedbackActions, concluirAcaoFeedback } = useFeedbackActions()
+const { acoes: acoesExecucao, loading: executionActionsLoading, error: executionActionsError, refetch: refetchExecutionActions, concluirExecutionAction } = useExecutionActions()
   const { porCanal: atendimentosPorCanal } = useAtendimentos()
   const { clientes, createCliente, registrarStatusCadencia, refetch: refetchClientes } = useClientes()
   const { perfil } = useVendedorPerfil()
@@ -562,9 +600,10 @@ export function CentralExecucao() {
   const [clienteForm, setClienteForm] = useState<NewClientForm>(EMPTY_CLIENTE)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-  const [cadenciaSavingId, setCadenciaSavingId] = useState<string | null>(null)
-  const [feedbackSavingId, setFeedbackSavingId] = useState<string | null>(null)
-  const [agendamentoSavingId, setAgendamentoSavingId] = useState<string | null>(null)
+const [cadenciaSavingId, setCadenciaSavingId] = useState<string | null>(null)
+const [feedbackSavingId, setFeedbackSavingId] = useState<string | null>(null)
+const [executionSavingId, setExecutionSavingId] = useState<string | null>(null)
+const [agendamentoSavingId, setAgendamentoSavingId] = useState<string | null>(null)
 
   const hoje = useMemo(() => new Date(), [])
   const hojeStr = useMemo(() => toDateOnlyBR(), [])
@@ -582,21 +621,23 @@ export function CentralExecucao() {
   useEffect(() => {
     if (error) console.error('Erro ao carregar agendamentos da Central de Execução:', error)
     if (cadenciaError) console.error('Erro ao carregar ações de cadência:', cadenciaError)
-    if (feedbackActionsError) console.error('Erro ao carregar ações de feedback:', feedbackActionsError)
-  }, [error, cadenciaError, feedbackActionsError])
+if (feedbackActionsError) console.error('Erro ao carregar ações de feedback:', feedbackActionsError)
+if (executionActionsError) console.error('Erro ao carregar ações da Central:', executionActionsError)
+}, [error, cadenciaError, feedbackActionsError, executionActionsError])
 
   const agendaItens = useMemo(() => {
     const feedbackItens: AgendaCentralItem[] = acoesFeedback.flatMap((acao) => {
       const item = mapFeedbackActionToAgendaItem(acao, hoje)
       return item ? [item as AgendaCentralItem] : []
     })
-    const items: AgendaCentralItem[] = [
-      ...agendamentos.map(mapAgendamentoToAgendaItem),
-      ...acoesCadencia.map(mapCadenciaToAgendaItem),
-      ...feedbackItens,
-    ]
-    return items.sort((a, b) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime())
-  }, [acoesCadencia, acoesFeedback, agendamentos, hoje])
+const items: AgendaCentralItem[] = [
+...agendamentos.map(mapAgendamentoToAgendaItem),
+...acoesCadencia.map(mapCadenciaToAgendaItem),
+...acoesExecucao.map(mapExecutionActionToAgendaItem),
+...feedbackItens,
+]
+return items.sort((a, b) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime())
+}, [acoesCadencia, acoesExecucao, acoesFeedback, agendamentos, hoje])
 
   const filtrados = useMemo(() => {
     const em7 = new Date()
@@ -688,7 +729,12 @@ export function CentralExecucao() {
 
   const feedbackObrigatorioPendente = acoesFeedback.find(acao => acao.obrigatoria_fechamento && acao.status === 'pendente')
     || acoesFeedback.find(acao => acao.status === 'pendente')
-const hasLoadError = Boolean(error || (cadenciaError && !isSchemaCacheLoadError(cadenciaError)) || (feedbackActionsError && !isSchemaCacheLoadError(feedbackActionsError)))
+const hasLoadError = Boolean(
+  error
+  || (cadenciaError && !isSchemaCacheLoadError(cadenciaError))
+  || (feedbackActionsError && !isSchemaCacheLoadError(feedbackActionsError))
+  || (executionActionsError && !isSchemaCacheLoadError(executionActionsError))
+)
 
   function openCreateModal() {
     setEditingId(null)
@@ -809,6 +855,19 @@ const hasLoadError = Boolean(error || (cadenciaError && !isSchemaCacheLoadError(
     toast.success('Ação do feedback concluída.')
   }
 
+  async function handleExecutionActionDone(item: AgendaCentralItem) {
+    if (!item.executionAction) return
+    setExecutionSavingId(item.id)
+    const { error: actionError } = await concluirExecutionAction(item.executionAction.id)
+    setExecutionSavingId(null)
+    if (actionError) {
+      toast.error(actionError)
+      return
+    }
+    await refetchExecutionActions()
+    toast.success('Ação da Central concluída.')
+  }
+
   function openWhatsApp(item: AgendaCentralItem) {
     const tel = onlyDigits(item.cliente?.telefone)
     if (!tel) {
@@ -859,7 +918,7 @@ const hasLoadError = Boolean(error || (cadenciaError && !isSchemaCacheLoadError(
         {hasLoadError && (
         <div className="flex flex-wrap items-center justify-between gap-mx-sm rounded-mx-lg border border-status-error/20 bg-status-error-surface/35 px-mx-lg py-mx-sm shadow-mx-xs">
           <Typography className="text-sm font-semibold text-status-error">Ações de cadência não carregadas. Tentaremos novamente automaticamente.</Typography>
-          <Button variant="outline" size="sm" onClick={() => { void refetchCadencia(); void refetchFeedbackActions() }} className="h-mx-9 border-status-error/20 bg-white text-status-error shadow-mx-xs">
+          <Button variant="outline" size="sm" onClick={() => { void refetchCadencia(); void refetchFeedbackActions(); void refetchExecutionActions() }} className="h-mx-9 border-status-error/20 bg-white text-status-error shadow-mx-xs">
             Recarregar
           </Button>
         </div>
@@ -946,7 +1005,7 @@ const hasLoadError = Boolean(error || (cadenciaError && !isSchemaCacheLoadError(
               </tr>
             </thead>
                   <tbody>
-                    {loading || cadenciaLoading || feedbackActionsLoading ? (
+{loading || cadenciaLoading || feedbackActionsLoading || executionActionsLoading ? (
                       <tr><td colSpan={11} className="p-mx-lg"><Typography tone="muted">Carregando ações comerciais...</Typography></td></tr>
                     ) : filtrados.length === 0 ? (
                       <tr>
@@ -963,10 +1022,11 @@ const hasLoadError = Boolean(error || (cadenciaError && !isSchemaCacheLoadError(
                           key={item.id}
                           item={item}
                           onWhatsApp={() => openWhatsApp(item)}
-                          statusSaving={cadenciaSavingId === item.id || feedbackSavingId === item.id || agendamentoSavingId === item.id}
+statusSaving={cadenciaSavingId === item.id || feedbackSavingId === item.id || executionSavingId === item.id || agendamentoSavingId === item.id}
                           onAgendamentoStatus={handleAgendamentoStatus}
-                          onCadenciaStatus={handleCadenciaStatus}
-                          onFeedbackActionDone={handleFeedbackActionDone}
+onCadenciaStatus={handleCadenciaStatus}
+onFeedbackActionDone={handleFeedbackActionDone}
+onExecutionActionDone={handleExecutionActionDone}
                           onReagendar={() => item.agendamento ? openEditModal(item.agendamento) : toast.info('Sugestão: reagende a próxima tentativa no próximo horário disponível.')}
                           onNotDone={() => item.cadencia ? handleCadenciaStatus(item, 'nao_feito') : item.agendamento ? handleAgendamentoStatus(item, 'nao_compareceu') : toast.info('Ação marcada para revisão na Central.')}
                           onMore={() => toast.info('Abra a Carteira para ver o histórico completo do cliente.')}
@@ -1019,7 +1079,7 @@ const hasLoadError = Boolean(error || (cadenciaError && !isSchemaCacheLoadError(
                 ))}
               </div>
             <Button asChild variant="outline" className="mt-mx-md w-full border-brand-primary/30 text-brand-primary">
-              <Link to="/lancamento-diario">Ir para Fechamento Diário</Link>
+              <Link to="/vendedor/terminal-mx">Ir para Terminal MX</Link>
             </Button>
           </Card>
 

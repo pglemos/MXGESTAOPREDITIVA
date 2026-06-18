@@ -11,7 +11,7 @@ export type MeuScore = {
   period: string
 } | null
 
-const BAND_LABEL: Record<string, string> = {
+export const BAND_LABEL: Record<string, string> = {
   elite: 'Elite MX',
   excellent: 'Excelente',
   good: 'Bom',
@@ -19,7 +19,7 @@ const BAND_LABEL: Record<string, string> = {
   critical: 'Crítico',
 }
 
-const NEXT_BAND: Record<string, string> = {
+export const NEXT_BAND: Record<string, string> = {
   critical: 'Atenção',
   attention: 'Bom',
   good: 'Excelente',
@@ -85,5 +85,3 @@ export function useMeuScore() {
 
   return { score, loading, refetch: fetchScore, bandLabel: BAND_LABEL, nextBand: NEXT_BAND }
 }
-
-export { BAND_LABEL, NEXT_BAND }

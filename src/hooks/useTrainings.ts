@@ -373,7 +373,7 @@ export function useDevelopmentTracks() {
         target_type: 'all',
         type: 'training',
         priority: 'high',
-        link: '/vendedor/treinamentos',
+        link: '/treinamentos',
         read: false,
       })
       return { error: null }

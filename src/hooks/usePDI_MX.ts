@@ -45,15 +45,17 @@ export interface PDIAvaliacao360 {
 }
 
 export interface PDIPlanoAcao360 {
-    id?: string
-    sessao_id?: string
-    competencia_id: string
-    competencia: string
-    descricao_acao: string
-    data_conclusao: string
-    impacto: string
-    custo: string
-    status?: string
+  id?: string
+  sessao_id?: string
+  competencia_id: string
+  competencia: string
+  descricao_acao: string
+  data_conclusao: string
+  impacto: string
+  custo: string
+  status?: string
+  justificativa?: string | null
+  central_enviada_at?: string | null
 }
 
 export interface PDISessionSummary {
@@ -140,8 +142,10 @@ type PDIPlanoAcaoRow = {
     descricao_acao: string
     data_conclusao: string
     impacto: string
-    custo: string
-    status?: string | null
+  custo: string
+  status?: string | null
+  justificativa?: string | null
+  central_enviada_at?: string | null
 }
 
 type PDIUserIdentityRow = {
@@ -181,6 +185,36 @@ const pdiSessionBundleSchema = z.object({
 })
 
 type PDISessionBundlePayload = z.infer<typeof pdiSessionBundleSchema>
+
+export type PDICreateActionInput = {
+  sessaoId: string
+  competenciaId: string
+  descricaoAcao: string
+  dataConclusao: string
+  impacto: string
+  custo: string
+  status?: 'pendente' | 'em_andamento'
+}
+
+export type PDIUpdateActionInput = {
+  actionId: string
+  descricaoAcao: string
+  dataConclusao: string
+  impacto: string
+  custo: string
+}
+
+export type PDIUpdateActionStatusInput = {
+  actionId: string
+  status: 'pendente' | 'em_andamento' | 'concluida' | 'justificada'
+  justificativa?: string
+}
+
+export type PDIUpdateGoalsInput = {
+  sessaoId: string
+  prazo: string
+  metas: Array<{ descricao: string; tipo?: string }>
+}
 
 function joinMetas(metas: PDIMeta360[], prazo: string) {
     return metas
@@ -236,7 +270,7 @@ async function fetchPDISessions360(params: {
             .in('sessao_id', sessionIds),
         supabase
             .from('pdi_plano_acao')
-            .select('id, sessao_id, competencia_id, descricao_acao, data_conclusao, impacto, custo, status, competencia:pdi_competencias(id,nome,tipo,ordem)')
+            .select('id, sessao_id, competencia_id, descricao_acao, data_conclusao, impacto, custo, status, justificativa, central_enviada_at, competencia:pdi_competencias(id,nome,tipo,ordem)')
             .in('sessao_id', sessionIds)
             .order('data_conclusao', { ascending: true }),
         userIds.length ? supabase.from('usuarios').select('id,name,avatar_url').in('id', userIds) : Promise.resolve({ data: [], error: null }),
@@ -286,6 +320,8 @@ async function fetchPDISessions360(params: {
             impacto: acao.impacto,
             custo: acao.custo,
             status: acao.status ?? undefined,
+            justificativa: acao.justificativa ?? null,
+            central_enviada_at: acao.central_enviada_at ?? null,
         })
         planoBySession.set(acao.sessao_id, list)
     })
@@ -366,7 +402,7 @@ export function usePDI_MX() {
         return data as PDISuggestedAction[]
     }, [])
 
-    const saveSessionBundle = useCallback(async (payload: PDISessionBundlePayload) => {
+const saveSessionBundle = useCallback(async (payload: PDISessionBundlePayload) => {
         const parsed = pdiSessionBundleSchema.safeParse(payload)
         if (!parsed.success) {
             throw new Error(parsed.error.issues[0]?.message || 'Bundle de PDI inválido.')
@@ -385,10 +421,115 @@ export function usePDI_MX() {
         }
         queryClient.invalidateQueries({ queryKey: ['pdi-sessions'] })
         queryClient.invalidateQueries({ queryKey: ['development-recommendations'] })
-        return data // Returns session UUID
-    }, [queryClient])
+return data // Returns session UUID
+}, [queryClient])
 
-    const fetchPrintBundle = useCallback(async (sessaoId: string) => {
+const createSellerPDIAction = useCallback(async (input: PDICreateActionInput) => {
+setLoading(true)
+setError(null)
+const { data, error } = await supabase.rpc('vendedor_criar_pdi_acao', {
+p_sessao_id: input.sessaoId,
+p_competencia_id: input.competenciaId,
+p_descricao_acao: input.descricaoAcao,
+p_data_conclusao: input.dataConclusao,
+p_impacto: input.impacto,
+p_custo: input.custo,
+p_status: input.status || 'pendente',
+})
+setLoading(false)
+if (error) {
+setError(error.message)
+return { id: null, error: error.message }
+}
+queryClient.invalidateQueries({ queryKey: ['pdi-sessions'] })
+return { id: data as string, error: null }
+}, [queryClient])
+
+const updateSellerPDIAction = useCallback(async (input: PDIUpdateActionInput) => {
+setLoading(true)
+setError(null)
+const { data, error } = await supabase.rpc('vendedor_atualizar_pdi_acao', {
+p_acao_id: input.actionId,
+p_descricao_acao: input.descricaoAcao,
+p_data_conclusao: input.dataConclusao,
+p_impacto: input.impacto,
+p_custo: input.custo,
+})
+setLoading(false)
+if (error) {
+setError(error.message)
+return { id: null, error: error.message }
+}
+queryClient.invalidateQueries({ queryKey: ['pdi-sessions'] })
+return { id: data as string, error: null }
+}, [queryClient])
+
+const updateSellerPDIActionStatus = useCallback(async (input: PDIUpdateActionStatusInput) => {
+setLoading(true)
+setError(null)
+const { data, error } = await supabase.rpc('vendedor_atualizar_pdi_acao_status', {
+p_acao_id: input.actionId,
+p_status: input.status,
+p_justificativa: input.justificativa || null,
+})
+setLoading(false)
+if (error) {
+setError(error.message)
+return { id: null, error: error.message }
+}
+queryClient.invalidateQueries({ queryKey: ['pdi-sessions'] })
+return { id: data as string, error: null }
+}, [queryClient])
+
+const updateSellerPDIGoals = useCallback(async (input: PDIUpdateGoalsInput) => {
+setLoading(true)
+setError(null)
+const { data, error } = await supabase.rpc('vendedor_atualizar_pdi_metas', {
+p_sessao_id: input.sessaoId,
+p_prazo: input.prazo,
+p_metas: input.metas,
+})
+setLoading(false)
+if (error) {
+setError(error.message)
+return { count: 0, error: error.message }
+}
+queryClient.invalidateQueries({ queryKey: ['pdi-sessions'] })
+return { count: Number(data || 0), error: null }
+}, [queryClient])
+
+const linkSellerPDIActionContent = useCallback(async (actionId: string) => {
+setLoading(true)
+setError(null)
+const { data, error } = await supabase.rpc('vendedor_vincular_conteudo_pdi_acao', {
+p_acao_id: actionId,
+})
+setLoading(false)
+if (error) {
+setError(error.message)
+return { id: null, error: error.message }
+}
+queryClient.invalidateQueries({ queryKey: ['development-recommendations'] })
+return { id: data as string, error: null }
+}, [queryClient])
+
+const sendSellerPDIActionToCentral = useCallback(async (actionId: string) => {
+setLoading(true)
+setError(null)
+const { data, error } = await supabase.rpc('vendedor_enviar_pdi_acao_central', {
+p_acao_id: actionId,
+})
+setLoading(false)
+if (error) {
+setError(error.message)
+return { id: null, error: error.message }
+}
+queryClient.invalidateQueries({ queryKey: ['pdi-sessions'] })
+queryClient.invalidateQueries({ queryKey: ['execution-actions'] })
+return { id: data as string, error: null }
+}, [queryClient])
+
+const fetchPrintBundle = useCallback(async (sessaoId: string) => {
         setLoading(true)
         const { data, error } = await supabase.rpc('get_pdi_print_bundle', { p_sessao_id: sessaoId })
         setLoading(false)
@@ -405,6 +546,12 @@ export function usePDI_MX() {
         fetchTemplate,
         fetchSuggestedActions,
         saveSessionBundle,
+        createSellerPDIAction,
+        updateSellerPDIAction,
+        updateSellerPDIActionStatus,
+        updateSellerPDIGoals,
+        linkSellerPDIActionContent,
+        sendSellerPDIActionToCentral,
         fetchPrintBundle
     }
 }

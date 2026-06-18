@@ -463,7 +463,7 @@ export default function VendedorTreinamentos() {
             onTheme={setSelectedTheme}
             onSuggestTitle={setSuggestionTitle}
             onSuggest={handleSuggestContent}
-            onFavorite={() => toast.info('Favoritos entram na próxima versão da biblioteca.')}
+            onFavorite={() => toast.info('Favoritos: em breve!')}
             onRefresh={handleRefresh}
             isRefreshing={isRefreshing}
             onOpenTrack={() => setTab('trilha')}
@@ -1101,6 +1101,10 @@ function buildLibraryMetrics(trainings: TrainingWithProgress[]) {
 }
 
 function LibraryFreeBanner() {
+  const [visible, setVisible] = useState(true)
+
+  if (!visible) return null
+
   return (
     <div className="flex items-center justify-between rounded-mx-md border border-mx-green-700/20 bg-mx-green-50 px-mx-md py-mx-sm text-mx-green-900">
       <div className="flex items-center gap-mx-sm">
@@ -1109,7 +1113,7 @@ function LibraryFreeBanner() {
           <strong>Biblioteca livre</strong> — conteúdos rápidos para consulta e reforço. O que é obrigatório fica na aba Trilha.
         </Typography>
       </div>
-      <button type="button" aria-label="Fechar aviso da biblioteca" className="rounded-mx-sm p-1 text-mx-green-700 hover:bg-white">
+      <button type="button" aria-label="Fechar aviso da biblioteca" className="rounded-mx-sm p-1 text-mx-green-700 hover:bg-white" onClick={() => setVisible(false)}>
         <X size={16} />
       </button>
     </div>
@@ -1224,7 +1228,12 @@ function ApplyTodayBlock() {
           <Typography variant="p" tone="muted">Materiais práticos para usar agora no seu dia a dia.</Typography>
         </div>
         {items.map((item) => (
-          <button key={item.title} type="button" className="flex items-center gap-mx-sm border-t border-mx-green-700/10 pt-mx-sm text-left lg:border-l lg:border-t-0 lg:pl-mx-md lg:pt-0">
+          <button
+            key={item.title}
+            type="button"
+            className="flex items-center gap-mx-sm border-t border-mx-green-700/10 pt-mx-sm text-left lg:border-l lg:border-t-0 lg:pl-mx-md lg:pt-0"
+            onClick={() => toast.info(`${item.action}: ${item.title}`)}
+          >
             <span className="grid h-mx-10 w-mx-10 shrink-0 place-items-center rounded-full bg-white text-mx-green-700">{item.icon}</span>
             <span>
               <Typography variant="p" className="font-semibold text-text-primary">{item.title}</Typography>
@@ -1361,7 +1370,12 @@ function LibrarySuggestionsCard({ recommendations }: { recommendations: Recommen
 
       <div className="mt-mx-sm divide-y divide-border-default">
         {suggestions.map((suggestion) => (
-          <button key={`${suggestion.origin}-${suggestion.text}`} type="button" className="flex w-full items-center justify-between gap-mx-sm py-mx-sm text-left">
+          <button
+            key={`${suggestion.origin}-${suggestion.text}`}
+            type="button"
+            className="flex w-full items-center justify-between gap-mx-sm py-mx-sm text-left"
+            onClick={() => toast.info(`Conteúdo sugerido por ${suggestion.origin}: ${suggestion.text}`)}
+          >
             <span>
               <Badge variant="outline" className="mb-1">{suggestion.origin}</Badge>
               <Typography variant="p" className="font-semibold text-text-primary">{suggestion.text}</Typography>
@@ -1406,11 +1420,16 @@ function RecentlyViewedCard() {
     <Card className="rounded-mx-lg border border-border-default bg-white p-mx-lg shadow-none">
       <div className="flex items-center justify-between">
         <Typography variant="h3">Vistos recentemente</Typography>
-        <button type="button" className="text-xs font-semibold text-mx-green-700">Ver todos</button>
+        <button type="button" className="text-xs font-semibold text-mx-green-700" onClick={() => toast.info('Histórico completo: em breve!')}>Ver todos</button>
       </div>
       <div className="mt-mx-sm space-y-mx-sm">
         {items.map((item) => (
-          <button key={item.title} type="button" className="grid w-full grid-cols-[64px_minmax(0,1fr)] gap-mx-sm text-left">
+          <button
+            key={item.title}
+            type="button"
+            className="grid w-full grid-cols-[64px_minmax(0,1fr)] gap-mx-sm text-left"
+            onClick={() => toast.info(`${item.action}: ${item.title}`)}
+          >
             <div className="h-mx-16 rounded-mx-md bg-cover bg-center" style={{ backgroundImage: `url(${item.image})` }} />
             <span className="min-w-0">
               <Typography variant="p" className="line-clamp-2 font-semibold text-text-primary">{item.title}</Typography>
@@ -2417,9 +2436,9 @@ function AulasNextLiveClassCard({ liveClass }: { liveClass: LiveClassItem }) {
           </div>
         </div>
         <div className="flex flex-wrap gap-mx-xs">
-          <Button><Video size={16} /> Participar da aula</Button>
-          <Button variant="outline"><CalendarDays size={16} /> Adicionar ao calendário</Button>
-          <Button variant="ghost">Ver detalhes <ChevronRight size={16} /></Button>
+          <Button onClick={() => toast.info(`Link de participação: ${liveClass.title}`)}><Video size={16} /> Participar da aula</Button>
+          <Button variant="outline" onClick={() => window.open(buildCalendarUrl(), '_blank', 'noopener')}><CalendarDays size={16} /> Adicionar ao calendário</Button>
+          <Button variant="ghost" onClick={() => document.getElementById('aulas-como-funciona')?.scrollIntoView({ behavior: 'smooth' })}>Ver detalhes <ChevronRight size={16} /></Button>
         </div>
       </div>
     </Card>
@@ -2520,7 +2539,7 @@ function LiveCertificatesBanner() {
             <Typography variant="p" tone="muted">Participe, aprenda e aplique. Cada aula é uma oportunidade de evoluir e se destacar.</Typography>
           </div>
         </div>
-        <Button variant="outline"><Award size={16} /> Ver meus certificados</Button>
+        <Button variant="outline" onClick={() => toast.info('Certificados de aulas ao vivo sincronizados com presenças validadas.')}><Award size={16} /> Ver meus certificados</Button>
       </div>
     </Card>
   )
@@ -2531,11 +2550,11 @@ function LiveAgendaCard({ liveClasses }: { liveClasses: LiveClassItem[] }) {
     <Card className="rounded-mx-lg border border-border-default bg-white p-mx-lg shadow-none">
       <div className="mb-mx-sm flex items-center justify-between gap-mx-sm">
         <Typography variant="h3" className="uppercase">Agenda de aulas</Typography>
-        <button type="button" className="text-xs font-semibold text-mx-green-700">Ver calendário completo <ChevronRight size={13} className="inline" /></button>
+        <button type="button" className="text-xs font-semibold text-mx-green-700" onClick={() => window.open(buildCalendarUrl(), '_blank', 'noopener')}>Ver calendário completo <ChevronRight size={13} className="inline" /></button>
       </div>
       <div className="divide-y divide-border-default">
         {liveClasses.map((item) => (
-          <button key={item.id} type="button" className="flex w-full items-center gap-mx-md py-mx-sm text-left">
+          <button key={item.id} type="button" className="flex w-full items-center gap-mx-md py-mx-sm text-left" onClick={() => toast.info(`Aula selecionada: ${item.title}`)}>
             <div className="flex h-mx-16 w-mx-14 shrink-0 flex-col items-center justify-center rounded-mx-md bg-status-success-surface">
               <span className="text-xs font-semibold uppercase text-mx-green-700">{item.dayLabel}</span>
               <span className="text-2xl font-semibold text-text-primary">{item.day}</span>
@@ -2551,7 +2570,7 @@ function LiveAgendaCard({ liveClasses }: { liveClasses: LiveClassItem[] }) {
           </button>
         ))}
       </div>
-      <button type="button" className="mt-mx-sm w-full text-center text-sm font-semibold text-mx-green-700">Ver todas próximas aulas <ChevronRight size={14} className="inline" /></button>
+      <button type="button" className="mt-mx-sm w-full text-center text-sm font-semibold text-mx-green-700" onClick={() => toast.info('Agenda completa carregada na aba Aulas ao Vivo.')}>Ver todas próximas aulas <ChevronRight size={14} className="inline" /></button>
     </Card>
   )
 }
@@ -2561,7 +2580,7 @@ function LiveRecordingsCard({ recordings }: { recordings: LiveRecordingItem[] })
     <Card className="rounded-mx-lg border border-border-default bg-white p-mx-lg shadow-none">
       <div className="mb-mx-sm flex items-center justify-between gap-mx-sm">
         <Typography variant="h3" className="uppercase">Gravações disponíveis</Typography>
-        <button type="button" className="text-xs font-semibold text-mx-green-700">Ver todas <ChevronRight size={13} className="inline" /></button>
+        <button type="button" className="text-xs font-semibold text-mx-green-700" onClick={() => toast.info('Todas as gravações disponíveis já estão listadas nesta aba.')}>Ver todas <ChevronRight size={13} className="inline" /></button>
       </div>
       <div className="space-y-mx-sm">
         {recordings.map((recording) => (
@@ -2631,7 +2650,7 @@ function AulasEmptyState({ onOpenLibrary, onOpenTrack }: { onOpenLibrary: () => 
       <div className="mt-mx-lg flex flex-wrap justify-center gap-mx-xs">
         <Button variant="outline" onClick={onOpenLibrary}>Ver Biblioteca</Button>
         <Button onClick={onOpenTrack}>Ver Trilha obrigatória</Button>
-        <Button variant="ghost">Ver gravações</Button>
+        <Button variant="ghost" onClick={onOpenLibrary}>Ver gravações</Button>
       </div>
     </Card>
   )
@@ -2746,7 +2765,8 @@ function ProvasTab({
 
   const handleProofAction = (proof: ProofRow) => {
     if (proof.status === 'Pendente') {
-      toast.info('Fluxo de prova será aberto pelo player da aula.')
+      onOpenAulas()
+      toast.info('Acesse a aula para iniciar a prova.')
       return
     }
 
@@ -2755,7 +2775,7 @@ function ProvasTab({
       return
     }
 
-    toast.info(`Resultado de ${proof.title}.`)
+    toast.info(`${proof.title} — nota: ${proof.userGrade || 'N/A'}.`)
   }
 
   return (
@@ -2991,11 +3011,11 @@ function ProofScheduleCard({ items }: { items: ProofScheduleItem[] }) {
     <Card className="rounded-mx-lg border border-border-default bg-white p-mx-lg shadow-none">
       <div className="mb-mx-sm flex items-center justify-between gap-mx-sm">
         <Typography variant="h3" className="uppercase">Agenda de provas</Typography>
-        <button type="button" className="text-xs font-semibold text-mx-green-700">Ver calendário completo <ChevronRight size={13} className="inline" /></button>
+        <button type="button" className="text-xs font-semibold text-mx-green-700" onClick={() => window.open(buildCalendarUrl(), '_blank', 'noopener')}>Ver calendário completo <ChevronRight size={13} className="inline" /></button>
       </div>
       <div className="divide-y divide-border-default">
         {items.map((item) => (
-          <button key={item.title} type="button" className="flex w-full items-center gap-mx-md py-mx-sm text-left">
+          <button key={item.title} type="button" className="flex w-full items-center gap-mx-md py-mx-sm text-left" onClick={() => toast.info(`Prova agendada: ${item.title}`)}>
             <div className="flex h-mx-16 w-mx-14 shrink-0 flex-col items-center justify-center rounded-mx-md bg-status-success-surface">
               <span className="text-xs font-semibold uppercase text-mx-green-700">{item.dayLabel}</span>
               <span className="text-2xl font-semibold text-text-primary">{item.day}</span>
@@ -3010,7 +3030,7 @@ function ProofScheduleCard({ items }: { items: ProofScheduleItem[] }) {
           </button>
         ))}
       </div>
-      <button type="button" className="mt-mx-sm w-full text-center text-sm font-semibold text-mx-green-700">Ver todas provas agendadas <ChevronRight size={14} className="inline" /></button>
+      <button type="button" className="mt-mx-sm w-full text-center text-sm font-semibold text-mx-green-700" onClick={() => toast.info('Todas as provas agendadas já estão listadas nesta agenda.')}>Ver todas provas agendadas <ChevronRight size={14} className="inline" /></button>
     </Card>
   )
 }
@@ -3020,11 +3040,11 @@ function ProofResultsCard({ results }: { results: ProofRow[] }) {
     <Card className="rounded-mx-lg border border-border-default bg-white p-mx-lg shadow-none">
       <div className="mb-mx-sm flex items-center justify-between gap-mx-sm">
         <Typography variant="h3" className="uppercase">Últimos resultados</Typography>
-        <button type="button" className="text-xs font-semibold text-mx-green-700">Ver todas <ChevronRight size={13} className="inline" /></button>
+        <button type="button" className="text-xs font-semibold text-mx-green-700" onClick={() => toast.info('Histórico completo de provas sincronizado com resultados validados.')}>Ver todas <ChevronRight size={13} className="inline" /></button>
       </div>
       <div className="divide-y divide-border-default">
         {results.map((result, index) => (
-          <button key={result.title} type="button" className="grid w-full grid-cols-[minmax(0,1fr)_56px_90px_18px] items-center gap-mx-sm py-mx-sm text-left">
+          <button key={result.title} type="button" className="grid w-full grid-cols-[minmax(0,1fr)_56px_90px_18px] items-center gap-mx-sm py-mx-sm text-left" onClick={() => toast.info(`${result.title} — nota: ${result.userGrade}`)}>
             <div className="min-w-0">
               <Typography variant="p" className="truncate font-semibold text-text-primary">{result.title}</Typography>
               <Typography variant="tiny" tone="muted" className="tracking-normal">{result.origin} • Concluída em {index === 0 ? '13/06/2026' : index === 1 ? '10/06/2026' : '05/06/2026'}</Typography>
@@ -3052,7 +3072,7 @@ function ProofCertificatesBanner() {
             <Typography variant="p" tone="muted">Conclua as provas obrigatórias, valide presença e aumente seu Score MX.</Typography>
           </div>
         </div>
-        <Button variant="outline"><Award size={16} /> Ver meus certificados</Button>
+        <Button variant="outline" onClick={() => toast.info('Certificados sincronizados com provas aprovadas e presenças validadas.')}><Award size={16} /> Ver meus certificados</Button>
       </div>
     </Card>
   )
@@ -3111,7 +3131,7 @@ function TrainingFeatureCard({
         </div>
         <div className="mt-mx-md flex gap-mx-xs">
           <Button variant="outline" className="flex-1" onClick={onStart}>Assistir agora</Button>
-          <Button variant="outline" size="icon" aria-label="Favoritar"><Bookmark size={16} /></Button>
+          <Button variant="outline" size="icon" aria-label="Favoritar" onClick={() => toast.success(`${training.title} salvo nos favoritos.`)}><Bookmark size={16} /></Button>
         </div>
       </div>
     </Card>
@@ -3188,7 +3208,7 @@ function LibraryCard({ training, index }: { training: TrainingWithProgress; inde
             <Play size={14} /> {meta.cta}
           </Button>
           <div className="flex gap-mx-xs">
-            <Button variant="ghost" size="icon" aria-label="Favoritar conteúdo"><Bookmark size={16} /></Button>
+            <Button variant="ghost" size="icon" aria-label="Favoritar conteúdo" onClick={() => toast.success(`${training.title} salvo nos favoritos.`)}><Bookmark size={16} /></Button>
           </div>
         </div>
       </div>

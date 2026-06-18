@@ -65,7 +65,7 @@ export default function GerenteTreinamentos() {
             message: `Olá! Notamos que o módulo "${trainingTitle}" ainda não foi concluído. Este conteúdo é vital para o seu atingimento de meta esta semana.`,
             type: 'training',
             priority: 'medium',
-            link: '/vendedor/treinamentos'
+            link: '/treinamentos'
         })
         setIsAssigning(false)
         if (error) toast.error('Falha ao enviar lembrete.')
@@ -85,7 +85,7 @@ export default function GerenteTreinamentos() {
             message: `O gerente solicitou a conclusão do treinamento: "${training?.title}". Todos devem concluir este módulo nas próximas 24h.`,
             type: 'training',
             priority: 'high',
-            link: '/vendedor/treinamentos'
+            link: '/treinamentos'
         }))
 
         await Promise.all(promises)
@@ -112,7 +112,7 @@ export default function GerenteTreinamentos() {
             message: `Seu gestor solicitou que você assista ao módulo: "${training?.title}". Foco na melhoria do seu gargalo tático.`,
             type: 'training',
             priority: 'high',
-            link: '/vendedor/treinamentos'
+            link: '/treinamentos'
         })
         setIsAssigning(false)
 

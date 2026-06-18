@@ -633,7 +633,7 @@ function CloseDayCard({
           )}
         </div>
       </div>
-      <Link to="/lancamento-diario" className="mt-mx-lg flex h-11 w-full items-center justify-center rounded-mx-md bg-brand-primary text-sm font-semibold text-white">
+<Link to="/vendedor/terminal-mx" className="mt-mx-lg flex h-11 w-full items-center justify-center rounded-mx-md bg-brand-primary text-sm font-semibold text-white">
         Fechar meu dia
       </Link>
     </DashboardCard>
@@ -700,7 +700,7 @@ function EvolutionPanel({ series }: { series: Array<{ label: string; value: numb
     .join(' ')
 
   return (
-    <SmallPanel title="Minha evolução" action="Ver histórico" to="/lancamento-diario">
+    <SmallPanel title="Minha evolução" action="Ver histórico" to="/vendedor/terminal-mx">
       <Typography variant="caption" tone="muted" className="mt-1 block normal-case tracking-normal">
         Vendas dos últimos 7 dias
       </Typography>

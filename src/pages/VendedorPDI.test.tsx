@@ -1,8 +1,32 @@
 import React from 'react'
 import { afterEach, describe, expect, it, mock } from 'bun:test'
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import type { PDIAvaliacao360, PDISessionSummary } from '@/hooks/usePDI_MX'
+import type { PDIAvaliacao360, PDIMeta360, PDIPlanoAcao360, PDISessionSummary } from '@/hooks/usePDI_MX'
+
+const testWindow = globalThis.window as typeof globalThis.window & { TypeError?: typeof TypeError }
+if (testWindow?.Event) {
+  globalThis.Event = testWindow.Event as typeof globalThis.Event
+}
+if (testWindow?.CustomEvent) {
+  globalThis.CustomEvent = testWindow.CustomEvent as typeof globalThis.CustomEvent
+}
+if (testWindow?.NodeFilter) {
+  globalThis.NodeFilter = testWindow.NodeFilter as typeof globalThis.NodeFilter
+}
+if (testWindow && !testWindow.TypeError) {
+  testWindow.TypeError = TypeError
+}
+if (!globalThis.getComputedStyle) {
+  globalThis.getComputedStyle = (() => ({ animationName: 'none' })) as typeof globalThis.getComputedStyle
+}
+if (!globalThis.MutationObserver) {
+  globalThis.MutationObserver = class {
+    observe() {}
+    disconnect() {}
+    takeRecords() { return [] }
+  } as typeof globalThis.MutationObserver
+}
 
 let pdisMock: PDISessionSummary[] = []
 let vinculoTipoMock: 'loja' | 'autonomo' = 'loja'
@@ -11,6 +35,13 @@ const fetchCargos = mock(async () => [])
 const fetchTemplate = mock(async () => null)
 const fetchSuggestedActions = mock(async () => [])
 const saveSessionBundle = mock(async () => 'pdi-auto-1')
+const refetchPDI = mock(async () => {})
+const createSellerPDIAction = mock(async () => ({ id: 'acao-nova-1', error: null }))
+const updateSellerPDIAction = mock(async () => ({ id: 'acao-1', error: null }))
+const updateSellerPDIActionStatus = mock(async () => ({ id: 'acao-1', error: null }))
+const updateSellerPDIGoals = mock(async () => ({ count: 2, error: null }))
+const linkSellerPDIActionContent = mock(async () => ({ id: 'rec-1', error: null }))
+const sendSellerPDIActionToCentral = mock(async () => ({ id: 'execution-1', error: null }))
 
 const pdiTemplateMock = {
   escala: [
@@ -27,20 +58,27 @@ const pdiTemplateMock = {
 }
 
 mock.module('@/hooks/usePDI_MX', () => ({
-  useMyPDISessions: () => ({
-    pdis: pdisMock,
-    loading: false,
-  }),
+useMyPDISessions: () => ({
+pdis: pdisMock,
+loading: false,
+refetch: refetchPDI,
+}),
   usePDI_MX: () => ({
     cargos: [{ id: 'cargo-1', nome: 'Consultor', nivel: 1, nota_min: 6, nota_max: 10 }],
     template: pdiTemplateMock,
     loading: false,
     error: null,
     fetchCargos,
-    fetchTemplate,
-    fetchSuggestedActions,
-    saveSessionBundle,
-  }),
+fetchTemplate,
+fetchSuggestedActions,
+saveSessionBundle,
+createSellerPDIAction,
+updateSellerPDIAction,
+updateSellerPDIActionStatus,
+updateSellerPDIGoals,
+linkSellerPDIActionContent,
+sendSellerPDIActionToCentral,
+}),
 }))
 
 mock.module('@/hooks/useAuth', () => ({
@@ -129,7 +167,12 @@ function avaliacao(input: Partial<PDIAvaliacao360> & { competencia_id: string; c
   }
 }
 
-function session(id: string, date: string, avaliacoes: PDIAvaliacao360[]): PDISessionSummary {
+function session(
+  id: string,
+  date: string,
+  avaliacoes: PDIAvaliacao360[],
+  overrides: Partial<PDISessionSummary> = {},
+): PDISessionSummary {
   return {
     id,
     colaborador_id: 'seller-1',
@@ -147,7 +190,42 @@ function session(id: string, date: string, avaliacoes: PDIAvaliacao360[]): PDISe
     meta_6m: '',
     meta_12m: '',
     meta_24m: '',
+    ...overrides,
   }
+}
+
+function metasPDI(): PDIMeta360[] {
+  return [
+    { id: 'meta-curto-1', prazo: '6_meses', tipo: 'profissional', descricao: 'Ser o vendedor número 1 da loja' },
+    { id: 'meta-curto-2', prazo: '6_meses', tipo: 'profissional', descricao: 'Atingir R$ 1.200.000 em vendas' },
+    { id: 'meta-medio-1', prazo: '12_meses', tipo: 'profissional', descricao: 'Ser Gerente de Vendas' },
+    { id: 'meta-longo-1', prazo: '24_meses', tipo: 'profissional', descricao: 'Ser Diretor Comercial' },
+  ]
+}
+
+function planoAcaoPDI(): PDIPlanoAcao360[] {
+  return [
+    {
+      id: 'acao-1',
+      competencia_id: 'prospeccao',
+      competencia: 'Prospecção',
+      descricao_acao: 'Realizar 10 contatos ativos por dia',
+      data_conclusao: '2026-06-30',
+      impacto: 'Curto Prazo (1 ano)',
+      custo: 'Gestor',
+      status: 'Em andamento',
+    },
+    {
+      id: 'acao-2',
+      competencia_id: 'fechamento',
+      competencia: 'Fechamento de Venda',
+      descricao_acao: 'Treinamento: Técnicas de Fechamento',
+      data_conclusao: '2026-06-15',
+      impacto: 'Curto Prazo (1 ano)',
+      custo: 'Gestor',
+      status: 'Concluída',
+    },
+  ]
 }
 
 function renderPage() {
@@ -163,12 +241,85 @@ afterEach(() => {
   pdisMock = []
   vinculoTipoMock = 'loja'
   fetchCargos.mockClear()
-  fetchTemplate.mockClear()
-  fetchSuggestedActions.mockClear()
-  saveSessionBundle.mockClear()
+fetchTemplate.mockClear()
+fetchSuggestedActions.mockClear()
+saveSessionBundle.mockClear()
+refetchPDI.mockClear()
+createSellerPDIAction.mockClear()
+updateSellerPDIAction.mockClear()
+updateSellerPDIActionStatus.mockClear()
+updateSellerPDIGoals.mockClear()
+linkSellerPDIActionContent.mockClear()
+sendSellerPDIActionToCentral.mockClear()
 })
 
 describe('VendedorPDI', () => {
+  it('organiza o PDI do vendedor na hierarquia aprovada com resumo, lateral, historico e conteudos', () => {
+    const avaliacoesAtuais = [
+      avaliacao({ competencia_id: 'prospeccao', competencia: 'Prospecção', tipo: 'tecnica', nota: 8.2, origem_nota: 'gestor' }),
+      avaliacao({ competencia_id: 'fechamento', competencia: 'Fechamento de Venda', tipo: 'tecnica', nota: 8.3, origem_nota: 'gestor' }),
+      avaliacao({ competencia_id: 'lideranca', competencia: 'Liderança', tipo: 'comportamental', nota: 6.8, origem_nota: 'autoavaliacao' }),
+      avaliacao({ competencia_id: 'comunicacao', competencia: 'Comunicação', tipo: 'comportamental', nota: 7.6, origem_nota: 'gestor' }),
+      avaliacao({ competencia_id: 'organizacao', competencia: 'Organização', tipo: 'comportamental', nota: 7.9, origem_nota: 'gestor' }),
+    ]
+
+    pdisMock = [
+      session('pdi-2', '2026-06-17', avaliacoesAtuais, {
+        proxima_revisao_data: '2026-07-22',
+        metas: metasPDI(),
+        plano_acao: planoAcaoPDI(),
+        top_5_gaps: avaliacoesAtuais.slice(2),
+      }),
+      session('pdi-1', '2026-05-17', [
+        avaliacao({ competencia_id: 'prospeccao', competencia: 'Prospecção', tipo: 'tecnica', nota: 7.2, origem_nota: 'gestor' }),
+        avaliacao({ competencia_id: 'fechamento', competencia: 'Fechamento de Venda', tipo: 'tecnica', nota: 7.6, origem_nota: 'gestor' }),
+        avaliacao({ competencia_id: 'lideranca', competencia: 'Liderança', tipo: 'comportamental', nota: 6.2, origem_nota: 'autoavaliacao' }),
+      ]),
+    ]
+
+    renderPage()
+
+    const bodyText = document.body.textContent || ''
+    const hierarchy = [
+      'Nota geral do PDI',
+      'Conquistas',
+      'Competências e Desenvolvimento',
+      'Plano de Ação',
+      'Evolução do PDI',
+      'Histórico de avaliações',
+      'Conteúdos recomendados para evoluir',
+    ]
+
+    const positions = hierarchy.map(label => bodyText.indexOf(label))
+    expect(positions.every(position => position >= 0)).toBe(true)
+    positions.slice(1).forEach((position, index) => {
+      expect(position).toBeGreaterThan(positions[index])
+    })
+
+    expect(screen.getByText('Ser o vendedor número 1 da loja')).toBeInTheDocument()
+    expect(screen.getByText('Atingir R$ 1.200.000 em vendas')).toBeInTheDocument()
+    expect(screen.getByText('Ser Gerente de Vendas')).toBeInTheDocument()
+    expect(screen.getByText('Ser Diretor Comercial')).toBeInTheDocument()
+    expect(screen.getByText('5 de 12')).toBeInTheDocument()
+    expect(screen.getAllByText('Gestor + indicadores').length).toBeGreaterThan(0)
+    expect(screen.getByText('Autoavaliação + gestor')).toBeInTheDocument()
+    expect(screen.getByText('Competências Técnicas')).toBeInTheDocument()
+    expect(screen.getByText('Competências Comportamentais')).toBeInTheDocument()
+    expect(screen.getByText('Realizar 10 contatos ativos por dia')).toBeInTheDocument()
+    expect(screen.getByText('Treinamento: Técnicas de Fechamento')).toBeInTheDocument()
+    for (const header of ['Ação', 'Competência', 'Conquista vinculada', 'Origem', 'Prazo', 'Status', 'Progresso', 'Ações']) {
+      expect(screen.getAllByRole('columnheader', { name: header }).length).toBeGreaterThan(0)
+    }
+    expect(screen.getByText('30/06/2026')).toBeInTheDocument()
+    expect(screen.getByText('15/06/2026')).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /editar conquistas/i })).toHaveLength(3)
+    expect(screen.getByRole('button', { name: /nova ação/i })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /^ver detalhe$/i })).toHaveLength(2)
+    expect(screen.getByText('Liderança Situacional na Prática')).toBeInTheDocument()
+    expect(screen.getByText(/O PDI orienta desenvolvimento/i)).toBeInTheDocument()
+    expect(screen.getAllByText('22/07/2026').length).toBeGreaterThan(0)
+  })
+
   it('renderiza painel de evolucao comparando sessoes por competencia', () => {
     pdisMock = [
       session('pdi-2', '2026-03-10', [
@@ -183,7 +334,7 @@ describe('VendedorPDI', () => {
 
     renderPage()
 
-    const heading = screen.getByRole('heading', { name: /evolução das notas/i })
+    const heading = screen.getByRole('heading', { name: /evolução do pdi/i })
     const panel = heading.closest('section')
     expect(panel).not.toBeNull()
     expect(within(panel as HTMLElement).getAllByText('Planejamento').length).toBeGreaterThan(0)
@@ -201,7 +352,7 @@ describe('VendedorPDI', () => {
 
     renderPage()
 
-    expect(screen.getByRole('heading', { name: /evolução das notas/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /evolução do pdi/i })).toBeInTheDocument()
     expect(screen.getByText(/evolução disponível quando houver duas sessões avaliadas/i)).toBeInTheDocument()
   })
 
@@ -215,12 +366,82 @@ describe('VendedorPDI', () => {
     expect(screen.getByRole('button', { name: /salvar autoavaliação/i })).toBeInTheDocument()
   })
 
-  it('nao mostra formulario de autoavaliacao para vendedor de loja', () => {
-    vinculoTipoMock = 'loja'
+it('nao mostra formulario de autoavaliacao para vendedor de loja', () => {
+vinculoTipoMock = 'loja'
 
-    renderPage()
+renderPage()
 
-    expect(screen.queryByRole('heading', { name: /autoavaliação/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /salvar autoavaliação/i })).not.toBeInTheDocument()
-  })
+expect(screen.queryByRole('heading', { name: /autoavaliação/i })).not.toBeInTheDocument()
+expect(screen.queryByRole('button', { name: /salvar autoavaliação/i })).not.toBeInTheDocument()
+})
+
+it('salva nova acao do PDI em vez de apenas fechar o modal', async () => {
+const avaliacoesAtuais = [
+avaliacao({ competencia_id: 'prospeccao', competencia: 'Prospecção', tipo: 'tecnica', nota: 8.2, origem_nota: 'gestor' }),
+]
+pdisMock = [
+session('pdi-2', '2026-06-17', avaliacoesAtuais, {
+metas: metasPDI(),
+plano_acao: planoAcaoPDI(),
+top_5_gaps: avaliacoesAtuais,
+}),
+]
+
+renderPage()
+
+fireEvent.click(screen.getByRole('button', { name: /nova ação/i }))
+const titleInput = screen.getByLabelText(/título da ação/i)
+fireEvent.change(titleInput, { target: { value: 'Criar rotina de prospecção ativa' } })
+;(titleInput as HTMLInputElement).setAttribute('value', 'Criar rotina de prospecção ativa')
+const prazoInput = screen.getByLabelText(/^prazo$/i)
+fireEvent.change(prazoInput, { target: { value: '2026-07-10' } })
+;(prazoInput as HTMLInputElement).setAttribute('value', '2026-07-10')
+fireEvent.click(screen.getByRole('button', { name: /^salvar ação$/i }))
+
+await waitFor(() => {
+expect(createSellerPDIAction).toHaveBeenCalledWith(expect.objectContaining({
+sessaoId: 'pdi-2',
+competenciaId: 'prospeccao',
+descricaoAcao: 'Criar rotina de prospecção ativa',
+dataConclusao: '2026-07-10',
+}))
+})
+expect(refetchPDI).toHaveBeenCalled()
+})
+
+it('executa acoes do detalhe do PDI com persistencia', async () => {
+const avaliacoesAtuais = [
+avaliacao({ competencia_id: 'prospeccao', competencia: 'Prospecção', tipo: 'tecnica', nota: 8.2, origem_nota: 'gestor' }),
+]
+pdisMock = [
+session('pdi-2', '2026-06-17', avaliacoesAtuais, {
+metas: metasPDI(),
+plano_acao: planoAcaoPDI(),
+top_5_gaps: avaliacoesAtuais,
+}),
+]
+
+renderPage()
+
+fireEvent.click(screen.getAllByRole('button', { name: /^ver detalhe$/i })[0])
+fireEvent.change(screen.getByLabelText(/justificativa/i), { target: { value: 'Carteira atrasou retorno.' } })
+fireEvent.click(screen.getByRole('button', { name: /justificar atraso/i }))
+
+await waitFor(() => {
+expect(updateSellerPDIActionStatus).toHaveBeenCalledWith({
+actionId: 'acao-1',
+status: 'justificada',
+justificativa: 'Carteira atrasou retorno.',
+})
+})
+
+fireEvent.click(screen.getAllByRole('button', { name: /^ver detalhe$/i })[0])
+fireEvent.click(screen.getByRole('button', { name: /vincular conteúdo/i }))
+fireEvent.click(screen.getByRole('button', { name: /enviar para central de execução/i }))
+
+await waitFor(() => {
+expect(linkSellerPDIActionContent).toHaveBeenCalledWith('acao-1')
+expect(sendSellerPDIActionToCentral).toHaveBeenCalledWith('acao-1')
+})
+})
 })
