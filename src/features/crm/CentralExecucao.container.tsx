@@ -29,6 +29,7 @@ import { Select } from '@/components/atoms/Select'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
 import { FormField } from '@/components/molecules/FormField'
+import { PageHeader } from '@/components/molecules/PageHeader'
 import { Modal } from '@/components/organisms/Modal'
 import { calculateReferenceDate, useCheckinsToday } from '@/hooks/checkins'
 import { useAuth } from '@/hooks/useAuth'
@@ -881,39 +882,24 @@ const hasLoadError = Boolean(
   return (
     <main className="min-h-full w-full bg-white p-mx-sm md:p-mx-md">
       <div className="mx-auto flex max-w-[1680px] flex-col gap-mx-md pb-20">
-        <header className="flex flex-col gap-mx-md rounded-mx-xl border border-border-subtle bg-white px-mx-lg py-mx-md shadow-mx-sm lg:flex-row lg:items-center lg:justify-between">
-          <div className="min-w-0">
-            <Typography variant="h1" className="text-2xl leading-tight text-text-primary">Central de Execução</Typography>
-            <Typography variant="caption" tone="muted">Sua rotina diária. Organize seu dia e foque no que gera resultado.</Typography>
-          </div>
-          <div className="flex flex-wrap items-center gap-mx-sm">
-            <div className="inline-flex h-mx-11 items-center gap-mx-xs rounded-mx-md border border-border-subtle bg-white px-mx-sm text-sm font-bold text-text-primary shadow-mx-sm">
-              <Calendar size={16} className="text-text-secondary" />
-              {getDateLabel(hoje)}
-              <ChevronDown size={15} className="text-text-tertiary" />
-            </div>
-            <Button variant="outline" onClick={() => toast.info('Agenda sincronizada com a rotina local.')} className="h-mx-11 bg-white">
-              <RotateCcw size={16} /> Sincronizar Agenda
-            </Button>
-            <div className="relative flex h-mx-11 w-mx-11 items-center justify-center rounded-mx-md border border-border-subtle bg-white shadow-mx-sm">
-              <Bell size={18} className="text-text-secondary" />
-              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-status-error text-[10px] font-bold text-white">{Math.min(pendencias.reduce((acc, item) => acc + item.value, 0), 9)}</span>
-            </div>
-            <div className="flex items-center gap-mx-sm rounded-mx-md bg-white px-mx-sm py-mx-xs">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-primary/10 text-sm font-bold text-brand-primary">
-                {(profile?.name || 'V').slice(0, 1)}
+        <PageHeader
+          title="Central de Execução"
+          description="Sua rotina diária. Organize seu dia e foque no que gera resultado."
+          actions={(
+            <>
+              <span className="inline-flex h-mx-11 items-center gap-mx-xs rounded-mx-md border border-border-subtle bg-white px-mx-sm text-sm font-bold text-text-primary shadow-mx-sm">
+                <Calendar size={16} className="text-text-secondary" />
+                {getDateLabel(hoje)}
               </span>
-              <span>
-                <Typography variant="caption" className="block font-bold text-text-primary">{profile?.name || 'Vendedor'}</Typography>
-                <Typography variant="tiny" tone="muted">Vendedor</Typography>
-<span className="mt-1 inline-flex rounded-full border border-status-success/20 bg-status-success-surface px-2 py-0.5 text-[10px] font-bold text-status-success">
-                  {statusDia}
-                </span>
+              <span className="inline-flex h-mx-11 items-center rounded-mx-md border border-status-success/20 bg-status-success-surface px-mx-sm text-xs font-bold text-status-success">
+                {statusDia}
               </span>
-              <ChevronDown size={16} className="text-text-tertiary" />
-            </div>
-          </div>
-        </header>
+              <Button variant="outline" onClick={() => toast.info('Agenda sincronizada com a rotina local.')} className="h-mx-11 bg-white">
+                <RotateCcw size={16} /> Sincronizar Agenda
+              </Button>
+            </>
+          )}
+        />
 
         {hasLoadError && (
         <div className="flex flex-wrap items-center justify-between gap-mx-sm rounded-mx-lg border border-status-error/20 bg-status-error-surface/35 px-mx-lg py-mx-sm shadow-mx-xs">

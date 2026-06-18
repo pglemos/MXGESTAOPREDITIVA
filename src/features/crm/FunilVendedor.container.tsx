@@ -25,6 +25,7 @@ import {
 import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
+import { PageHeader } from '@/components/molecules/PageHeader'
 import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
 import { useFunnelMetricsSnapshot, type FunnelMetricsSnapshot } from '@/features/crm/hooks/useFunnelMetricsSnapshot'
 import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
@@ -290,40 +291,31 @@ export function FunilVendedor() {
   return (
     <main className="h-full w-full overflow-y-auto bg-white px-mx-md py-mx-sm md:px-mx-xl md:py-mx-sm no-scrollbar">
       <div className="mx-auto flex max-w-[1768px] flex-col gap-mx-sm pb-mx-md [zoom:0.86]">
-        <header className="flex flex-col gap-mx-sm border-b border-border-subtle pb-mx-sm xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex min-w-0 items-center gap-mx-md">
-            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-brand-primary/10 text-brand-primary ring-4 ring-brand-primary/5">
-              <Target size={34} />
-            </span>
-            <div className="min-w-0">
-              <Typography variant="h1" className="text-3xl uppercase leading-tight tracking-normal">
-                Funil de Vendas
-              </Typography>
-              <Typography variant="p" tone="muted" className="text-sm">
-                Acompanhe seu desempenho e saiba exatamente o que fazer para bater sua meta.
-              </Typography>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-mx-sm">
-            <span className="inline-flex h-11 items-center gap-mx-sm rounded-mx-md border border-border-subtle bg-white px-mx-md text-sm font-semibold capitalize shadow-mx-xs">
-              <CalendarDays size={17} />
-              {hojeLabel}
-            </span>
-            <label className="inline-flex h-11 items-center gap-mx-sm rounded-mx-md border border-border-subtle bg-white px-mx-md text-sm font-semibold shadow-mx-xs">
-              <Filter size={16} />
-              <select
-                className="bg-transparent font-semibold outline-none"
-                value={period}
-                onChange={(event) => setPeriod(event.target.value as PeriodKey)}
-                aria-label="Período do funil"
-              >
-                {PERIOD_OPTIONS.map((option) => (
-                  <option key={option.key} value={option.key}>{option.label}</option>
-                ))}
-              </select>
-            </label>
-          </div>
-        </header>
+        <PageHeader
+          title="Funil de Vendas"
+          description="Acompanhe seu desempenho e saiba exatamente o que fazer para bater sua meta."
+          actions={(
+            <>
+              <span className="inline-flex h-11 items-center gap-mx-sm rounded-mx-md border border-border-subtle bg-white px-mx-md text-sm font-semibold capitalize shadow-mx-xs">
+                <CalendarDays size={17} />
+                {hojeLabel}
+              </span>
+              <label className="inline-flex h-11 items-center gap-mx-sm rounded-mx-md border border-border-subtle bg-white px-mx-md text-sm font-semibold shadow-mx-xs">
+                <Filter size={16} />
+                <select
+                  className="bg-transparent font-semibold outline-none"
+                  value={period}
+                  onChange={(event) => setPeriod(event.target.value as PeriodKey)}
+                  aria-label="Período do funil"
+                >
+                  {PERIOD_OPTIONS.map((option) => (
+                    <option key={option.key} value={option.key}>{option.label}</option>
+                  ))}
+                </select>
+              </label>
+            </>
+          )}
+        />
 
  <section className="grid gap-mx-sm xl:grid-cols-[1fr_1.1fr_1.05fr]">
  <GoalSummary meta={FUNIL_REFERENCE_META.meta} vendidos={FUNIL_REFERENCE_META.vendasMes} faltam={FUNIL_REFERENCE_META.faltam} atingimento={FUNIL_REFERENCE_META.atingimento} />

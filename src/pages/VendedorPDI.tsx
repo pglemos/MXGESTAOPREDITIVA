@@ -23,6 +23,7 @@ import { Button } from '@/components/atoms/Button'
 import { EmptyState } from '@/components/atoms/EmptyState'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
+import { PageHeader } from '@/components/molecules/PageHeader'
 import { Modal } from '@/components/organisms/Modal'
 import { useAuth } from '@/hooks/useAuth'
 import { useMyPDISessions, usePDI_MX } from '@/hooks/usePDI_MX'
@@ -353,20 +354,15 @@ async function handleSendToCentral(action: PDIPlanoAcao360) {
 return (
     <main className="h-full w-full overflow-y-auto bg-white p-mx-md md:p-mx-lg no-scrollbar">
       <div className="mx-auto flex max-w-[1500px] flex-col gap-mx-lg pb-20">
-        <header className="flex flex-col gap-mx-md border-b border-border-subtle pb-mx-md lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-mx-sm">
-            <Star size={34} className="text-brand-primary" />
-            <div>
-              <Typography variant="h1" className="text-3xl uppercase leading-tight tracking-normal">PDI</Typography>
-              <Typography variant="p" tone="muted" className="text-sm">Seu Plano de Desenvolvimento Individual</Typography>
-            </div>
-          </div>
-
-          {/* Data contextual apenas; notificações e perfil já vivem no top bar global (evita duplicação). */}
-          <span className="inline-flex h-10 items-center gap-mx-xs rounded-mx-md border border-border-subtle bg-white px-mx-sm text-sm font-bold text-text-primary">
-            <Calendar size={17} /> {capitalize(hojeLabel)}
-          </span>
-        </header>
+        <PageHeader
+          title="PDI"
+          description="Seu Plano de Desenvolvimento Individual"
+          actions={(
+            <span className="inline-flex h-10 items-center gap-mx-xs rounded-mx-md border border-border-subtle bg-white px-mx-sm text-sm font-bold text-text-primary">
+              <Calendar size={17} /> {capitalize(hojeLabel)}
+            </span>
+          )}
+        />
 
         {loading && !activePDI && <Typography tone="muted">Carregando seu PDI...</Typography>}
 
