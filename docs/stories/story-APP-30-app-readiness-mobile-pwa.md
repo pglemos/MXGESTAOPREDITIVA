@@ -62,6 +62,7 @@ para submeter ou preparar distribuicao sem levar problemas basicos de UX, segura
 - Validacao local com Playwright/dev-bypass em 1366x768, 768x1024, 390x844 e 360x740 retornou `[]` para overflow horizontal real fora de containers com scroll intencional.
 - Gates executados: `npm run lint`, `npm run typecheck`, `npm test`.
 - Sidebar premium do vendedor alinhado para `Fechamento Diário`, `Funil de Vendas`, `Feedback`, `Treinamento` e `Meu Perfil`; redirects e shortcut PWA apontam para `/terminal-mx`.
+- Restaurado `Meu Dia` no sidebar do vendedor com ícone e rota `/home`; login padrão do vendedor voltou para `/home`, mantendo `Fechamento Diário` em `/terminal-mx`.
 
 ## File List
 

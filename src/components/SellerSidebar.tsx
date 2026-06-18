@@ -7,6 +7,7 @@ import {
   ChevronDown,
   Funnel,
   GraduationCap,
+  Home,
   Layers,
   LogOut,
   Menu,
@@ -58,6 +59,7 @@ const sellerSections: SellerNavSection[] = [
   {
     label: 'OPERAÇÃO',
     items: [
+      { label: 'Meu Dia', path: '/home', icon: Home, activePaths: ['/home', '/meu-dia'] },
       { label: 'Fechamento Diário', path: '/terminal-mx', icon: CalendarCheck, activePaths: ['/terminal-mx', '/vendedor/terminal-mx', '/lancamento-diario', '/fechamento-diario'] },
       { label: 'Central de Execução', path: '/central-de-execucao', icon: Layers, activePaths: ['/central-de-execucao', '/central-execucao'] },
     ],

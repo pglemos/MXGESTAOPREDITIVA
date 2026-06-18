@@ -102,7 +102,7 @@ const categoryDescriptions: Record<string, string> = {
   COMERCIAL: 'Home, equipe, agenda, funil, negociações, metas e relatórios.',
   PESSOAS: 'Feedbacks e desenvolvimento da equipe.',
   FERRAMENTAS: 'Universidade MX, biblioteca e consultor inteligente.',
-  OPERAÇÃO: 'Fechamento Diário, Central de Execução, carteira, funil e relatórios.',
+  OPERAÇÃO: 'Meu Dia, Fechamento Diário, Central de Execução, carteira, funil e relatórios.',
   'EVOLUÇÃO': 'Feedback, PDI, treinamento e ranking.',
   CONTA: 'Meu Perfil e configurações.',
 }
@@ -222,8 +222,9 @@ const navConfig: Record<string, NavCategory[]> = {
   vendedor: [
     {
       // Agrupado por domínio (espelha o padrão Gerente/Admin) para evitar stack plano de 13 itens.
-      category: 'OPERAÇÃO', icon: <CheckSquare size={22} />,
+      category: 'OPERAÇÃO', icon: <Home size={22} />,
       items: [
+        { label: 'Meu Dia', path: '/home', icon: <Home size={16} /> },
         { label: 'Fechamento Diário', path: '/vendedor/terminal-mx', icon: <CheckSquare size={16} /> },
         { label: 'Central de Execução', path: '/central-execucao', icon: <CalendarCheck size={16} /> },
         { label: 'Carteira de Clientes', path: '/carteira-clientes', icon: <Users size={16} /> },

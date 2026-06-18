@@ -184,7 +184,7 @@ function RoleRedirect() {
     const storeDashboardPath = membership?.store?.name ? `/lojas/${slugify(membership.store.name)}` : '/classificacao'
     return <Navigate to={storeDashboardPath} replace />
   }
-  if (role === 'vendedor') return <Navigate to="/terminal-mx" replace />
+  if (role === 'vendedor') return <Navigate to="/home" replace />
   return <Navigate to="/login" replace />
 }
 
@@ -240,7 +240,7 @@ export default function App() {
 
             {/* Home universal — vendedor e gerente renderizam seu cockpit em /home.
                 Dono e admin redirecionam (dono escolhe loja em /lojas, admin vai pra /painel). */}
-<Route path="meu-dia" element={<RedirectWithSearch to="/terminal-mx" />} />
+<Route path="meu-dia" element={<RedirectWithSearch to="/home" />} />
 <Route path="home" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<VendedorHome />} gerente={<DashboardLoja />} dono={<RoleRedirect />} admin={<RoleRedirect />} />
             </Suspense>} />
