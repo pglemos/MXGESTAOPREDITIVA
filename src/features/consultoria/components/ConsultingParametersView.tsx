@@ -91,23 +91,27 @@ export function ConsultingParametersView() {
 
   if (loading) {
     return (
-      <Card className="p-mx-lg border-none shadow-mx-md bg-white">
-        <Typography variant="p">Carregando parametros PMR...</Typography>
-      </Card>
+      <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
+        <Card className="p-mx-lg border-none shadow-mx-md bg-white">
+          <Typography variant="p">Carregando parametros PMR...</Typography>
+        </Card>
+      </main>
     )
   }
 
   if (error) {
     return (
-      <Card className="p-mx-lg border-none shadow-mx-md bg-white">
-        <Typography variant="h3" tone="error">Parametros indisponiveis</Typography>
-        <Typography variant="p" tone="muted">{error}</Typography>
-      </Card>
+      <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
+        <Card className="p-mx-lg border-none shadow-mx-md bg-white">
+          <Typography variant="h3" tone="error">Parametros indisponiveis</Typography>
+          <Typography variant="p" tone="muted">{error}</Typography>
+        </Card>
+      </main>
     )
   }
 
   return (
-    <section className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+    <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar flex flex-col gap-mx-lg">
       <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-mx-md border-b border-border-default pb-10">
         <div className="space-y-mx-sm">
           <Typography variant="h1">Parametros PMR</Typography>
@@ -208,6 +212,6 @@ export function ConsultingParametersView() {
           </form>
         </Card>
       </div>
-    </section>
+    </main>
   )
 }

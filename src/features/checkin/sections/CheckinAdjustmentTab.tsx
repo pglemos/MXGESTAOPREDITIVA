@@ -344,8 +344,8 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
     }
   }
 
-  return (
-    <div className="mx-auto grid w-full max-w-[1440px] gap-mx-md pb-16">
+return (
+<div className="mt-mx-lg grid w-full gap-mx-md pb-16">
       <section className="grid gap-mx-md xl:grid-cols-[minmax(0,1fr)_280px]">
         <Card className="rounded-mx-xl border border-border-default bg-white p-mx-md shadow-mx-sm">
           <div className="flex items-center gap-mx-md">

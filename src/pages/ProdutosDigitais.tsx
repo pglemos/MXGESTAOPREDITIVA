@@ -405,7 +405,7 @@ export default function ProdutosDigitais() {
   }
 
   return (
-    <main className="w-full h-full flex flex-col gap-mx-md sm:gap-mx-lg p-mx-sm sm:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+    <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
       <header className="flex flex-col xl:flex-row xl:items-start justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
         <div className="flex min-w-0 flex-col gap-mx-tiny">
           <div className="flex items-center gap-mx-sm">

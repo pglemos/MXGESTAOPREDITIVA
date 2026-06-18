@@ -112,7 +112,7 @@ export function AgendaAdmin() {
   }, [visits, scheduleEvents])
 
   return (
-    <main className="w-full h-full flex flex-col gap-mx-md sm:gap-mx-lg p-mx-sm sm:p-mx-lg overflow-y-auto no-scrollbar bg-white relative">
+  <main className="h-full w-full overflow-y-auto bg-white p-mx-lg no-scrollbar">
       <AgendaErrorBoundary sectionName="header">
         <AgendaHeader
           metrics={metrics}

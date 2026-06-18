@@ -137,7 +137,7 @@ function PageShell({ children }: { children: React.ReactNode }) {
 
 function MinhaRemuneracaoLoading() {
   return (
-    <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-md no-scrollbar md:p-mx-lg" aria-busy="true">
+    <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar" aria-busy="true">
       <div className="grid w-full gap-mx-lg">
         <div className="h-mx-20 animate-pulse rounded-mx-xl bg-white" />
         <div className="grid gap-mx-md md:grid-cols-3">

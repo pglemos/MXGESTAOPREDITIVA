@@ -260,7 +260,7 @@ export function CarteiraClientes() {
   }
 
   return (
-    <main className="min-h-screen bg-surface-alt p-mx-lg text-text-primary">
+  <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg text-text-primary no-scrollbar">
       <div className="flex w-full flex-col gap-mx-xs">
         <PageHeading
           title="Carteira de Clientes"

@@ -100,8 +100,8 @@ export default function Simulacao() {
   }
 
   return (
-    <main className="w-full h-full overflow-y-auto no-scrollbar bg-surface-alt p-mx-md md:p-mx-xl">
-      <div className="max-w-6xl mx-auto space-y-mx-xl">
+<main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
+<div className="space-y-mx-xl">
         <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-mx-lg border-b border-border-default pb-8">
           <div className="space-y-mx-xs">
             <Badge variant="success" className="uppercase font-black tracking-mx-widest">Admin Master MX</Badge>

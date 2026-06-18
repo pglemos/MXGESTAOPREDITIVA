@@ -55,7 +55,7 @@ export function Checkin() {
     const dateStr = todayDisplay.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-md p-mx-sm md:p-mx-md overflow-y-auto no-scrollbar bg-surface-alt relative">
+        <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
             {checkinLoadError && (
                 <div role="alert" className="rounded-mx-2xl border border-status-error/20 bg-status-error-surface px-mx-md py-mx-sm text-sm font-bold text-status-error">
                     {checkinLoadError}

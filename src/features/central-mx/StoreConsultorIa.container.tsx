@@ -60,7 +60,7 @@ export function StoreConsultorIa() {
   }
 
   return (
-    <main className="w-full h-full overflow-y-auto bg-surface-alt p-mx-md md:p-mx-lg no-scrollbar" id="main-content">
+  <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar" id="main-content">
       <div className="flex flex-col gap-mx-md pb-28">
         <header className="flex flex-col gap-mx-md border-b border-border-subtle pb-mx-lg lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">

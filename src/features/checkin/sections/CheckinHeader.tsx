@@ -42,8 +42,8 @@ export function CheckinHeader({
             : 'NO PRAZO. EDIÇÃO BLOQUEIA EM 09:45.'
 
   return (
-    <header className="shrink-0 border-b border-border-default pb-mx-md">
-      <div className="mx-auto w-full max-w-[1440px]">
+  <header className="shrink-0 border-b border-border-default pb-mx-lg">
+      <div className="w-full">
         <div className="flex flex-col gap-mx-md lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <div className="flex items-center gap-mx-sm">
@@ -69,7 +69,7 @@ export function CheckinHeader({
         </div>
 
         <div className="mt-mx-md flex flex-wrap items-center gap-mx-lg pl-6">
-          <div className="inline-flex h-mx-12 overflow-hidden rounded-mx-xl border border-border-default bg-white p-mx-tiny shadow-mx-sm">
+      <div className="inline-flex h-mx-12 w-full max-w-md overflow-hidden rounded-mx-xl border border-border-default bg-white p-mx-tiny shadow-mx-sm sm:w-auto">
             <TabButton active={metricScope === 'daily'} onClick={() => setMetricScope('daily')}>
               Registro Diário
             </TabButton>
@@ -107,11 +107,11 @@ function TabButton({
       type="button"
       onClick={onClick}
       className={cn(
-        'relative h-full w-44 whitespace-nowrap rounded-mx-lg px-mx-md text-sm font-semibold uppercase tracking-normal transition-all',
+        'relative h-full min-w-0 flex-1 whitespace-nowrap rounded-mx-lg px-mx-sm text-xs font-semibold uppercase tracking-normal transition-all sm:w-44 sm:flex-none sm:px-mx-md sm:text-sm',
         active ? 'bg-white text-text-primary shadow-mx-sm' : 'text-text-tertiary hover:text-text-primary',
       )}
     >
-      {children}
+      <span className="block truncate">{children}</span>
       {active && <span className="absolute inset-x-mx-md bottom-0 h-0.5 rounded-full bg-brand-primary" />}
     </button>
   )

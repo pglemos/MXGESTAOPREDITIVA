@@ -30,17 +30,19 @@ export function AdminPerformanceView() {
 
   if (loading) {
     return (
-      <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
+      <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
+        <div className="flex h-full w-full flex-col items-center justify-center">
         <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
         <Typography variant="caption" tone="muted" className="animate-pulse">
           Carregando matriz executiva da rede...
         </Typography>
-      </div>
+        </div>
+      </main>
     )
   }
 
   return (
-    <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md sm:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+    <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
       <AdminHeader
         metrics={metrics}
         isRefetching={isRefetching}

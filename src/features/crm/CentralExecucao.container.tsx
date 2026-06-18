@@ -880,7 +880,7 @@ const hasLoadError = Boolean(
   }
 
   return (
-    <main className="min-h-full w-full bg-surface-alt p-mx-lg">
+  <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
       <div className="flex flex-col gap-mx-lg pb-20">
         <PageHeading
           title="Central de Execução"

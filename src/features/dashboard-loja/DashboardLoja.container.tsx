@@ -88,7 +88,7 @@ export function DashboardLoja() {
   }
 
   return (
-    <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt" id="main-content">
+  <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar" id="main-content">
       {!isFocusedRolePerformance && (
         <DashboardErrorBoundary sectionName="Header">
           <DashboardHeader

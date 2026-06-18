@@ -116,7 +116,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mx-auto grid w-full max-w-[1440px] gap-mx-md pb-16">
+<form onSubmit={handleSubmit} className="mt-mx-lg grid w-full gap-mx-md pb-16">
       {(funnelError || inputError) && (
         <CheckinValidationBanner
           metricScope={metricScope}

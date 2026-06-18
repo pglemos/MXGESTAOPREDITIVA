@@ -113,15 +113,17 @@ export default function SellerPerformance() {
     ], [navigate])
 
     if (loading && ranking.length === 0) return (
-        <div className="h-screen w-full flex flex-col items-center justify-center bg-surface-alt">
-            <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
-            <Typography variant="caption" tone="muted" className="animate-pulse">Consolidando Performance...</Typography>
-        </div>
+        <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
+            <div className="flex h-full w-full flex-col items-center justify-center">
+                <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
+                <Typography variant="caption" tone="muted" className="animate-pulse">Consolidando Performance...</Typography>
+            </div>
+        </main>
     )
 
     if (sellerId && !seller) {
         return (
-            <main className="p-mx-md sm:p-mx-lg lg:p-mx-xl mx-auto space-y-mx-lg" style={{ maxWidth: '960px' }}>
+<main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
                 <Card className="p-mx-xl border-none shadow-mx-xl bg-white text-center space-y-mx-lg">
                     <div className="w-mx-20 h-mx-20 rounded-mx-2xl bg-surface-alt border border-border-default flex items-center justify-center mx-auto text-text-tertiary">
                         <Search size={34} />
@@ -148,7 +150,7 @@ export default function SellerPerformance() {
 
     if (sellerId && seller) {
         return (
-            <main className="p-mx-md sm:p-mx-lg lg:p-mx-xl mx-auto space-y-mx-lg" style={{ maxWidth: '1600px' }}>
+<main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
                 <header className="flex flex-col md:flex-row md:items-center justify-between gap-mx-md bg-mx-black p-mx-lg rounded-mx-2xl shadow-mx-xl relative overflow-hidden group">
                     <div className="absolute inset-0 bg-mx-matrix opacity-20" />
                     <div className="relative z-10 flex flex-col gap-mx-tiny">
@@ -294,7 +296,7 @@ export default function SellerPerformance() {
 
     // Fallback: If no seller ID or seller not found, show the ranking (as it was before)
     return (
-        <main className="p-mx-md sm:p-mx-lg lg:p-mx-xl mx-auto space-y-mx-lg" style={{ maxWidth: '1600px' }}>
+<main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-mx-md bg-mx-black p-mx-lg rounded-mx-2xl shadow-mx-xl relative overflow-hidden group">
                 <div className="absolute inset-0 bg-mx-matrix opacity-20" />
                 <div className="relative z-10 flex flex-col gap-mx-tiny">

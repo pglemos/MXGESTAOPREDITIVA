@@ -248,7 +248,7 @@ export default function Reprocessamento() {
     ], [])
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg overflow-y-auto no-scrollbar bg-brand-secondary" id="main-content">
+        <main className="h-full w-full overflow-y-auto bg-brand-secondary p-mx-lg no-scrollbar" id="main-content">
             
             <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-white/10 pb-10 shrink-0">
                 <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
