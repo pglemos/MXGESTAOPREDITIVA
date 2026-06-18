@@ -38,6 +38,7 @@ import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Skeleton } from '@/components/atoms/Skeleton'
 import { Card } from '@/components/molecules/Card'
+import { PageHeader } from '@/components/molecules/PageHeader'
 import { Typography } from '@/components/atoms/Typography'
 import { useAuth } from '@/hooks/useAuth'
 import {
@@ -517,23 +518,16 @@ export default function VendedorTreinamentos() {
 
 function TrainingHeader() {
   return (
-    <header className="flex flex-col gap-mx-md border-b border-border-default pb-mx-md xl:flex-row xl:items-center xl:justify-between">
-      <div className="flex items-center gap-mx-sm">
-        <GraduationCap size={34} className="text-text-primary" />
-        <div>
-          <Typography variant="h1" className="text-3xl uppercase tracking-normal">Treinamentos</Typography>
-          <Typography variant="p" tone="muted" className="text-sm">
-            Aprenda, aplique e evolua. Seu conhecimento move suas vendas.
-          </Typography>
-        </div>
-      </div>
-
-      {/* Data contextual apenas; notificações e perfil já vivem no top bar global (evita duplicação). */}
-      <span className="inline-flex items-center gap-mx-xs rounded-mx-md border border-border-default bg-white px-mx-sm py-mx-xs text-sm font-semibold text-text-primary">
-        <CalendarDays size={17} />
-        {todayLabel()}
-      </span>
-    </header>
+    <PageHeader
+      title="Treinamentos"
+      description="Aprenda, aplique e evolua. Seu conhecimento move suas vendas."
+      actions={(
+        <span className="inline-flex items-center gap-mx-xs rounded-mx-md border border-border-default bg-white px-mx-sm py-mx-xs text-sm font-semibold text-text-primary">
+          <CalendarDays size={17} />
+          {todayLabel()}
+        </span>
+      )}
+    />
   )
 }
 
