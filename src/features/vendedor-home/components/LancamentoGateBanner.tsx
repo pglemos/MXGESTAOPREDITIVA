@@ -40,8 +40,8 @@ export function LancamentoGateBanner({ isLocked, referenceDateLabel }: Props) {
           </Typography>
         </div>
       </div>
-      <Link
-        to="/lancamento-diario"
+<Link
+to="/vendedor/terminal-mx"
         className="inline-flex items-center justify-center gap-mx-xs rounded-mx-xl bg-status-warning px-mx-md h-mx-12 text-pure-white font-bold uppercase tracking-widest text-sm shadow-mx-sm hover:shadow-mx-md transition-shadow focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-status-warning/40"
       >
         Fazer lançamento agora

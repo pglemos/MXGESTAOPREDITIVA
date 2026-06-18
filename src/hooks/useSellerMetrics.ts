@@ -85,5 +85,5 @@ export function useSellerMetrics({
             vendasSemana, 
             competitors 
         }
-    }, [checkins, profile, sellerGoals, storeGoal, ranking, todayCheckin])
+    }, [checkins, profile, sellerGoals, storeGoal, ranking, todayCheckin, projectionMode])
 }

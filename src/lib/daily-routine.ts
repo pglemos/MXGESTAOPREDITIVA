@@ -34,8 +34,10 @@ export type CloseDayReminderSchedule = {
   enabled: boolean
   time: string | null
   workDays: string[]
-  link: '/lancamento-diario'
+  link: typeof TERMINAL_MX_PATH
 }
+
+export const TERMINAL_MX_PATH = '/vendedor/terminal-mx' as const
 
 export type DailyRoutineAutoSlotKey =
   | 'mentalidade'
@@ -120,7 +122,7 @@ export function buildDailyRoutineReminder(input: {
     priority: 'high',
     recipient_id: input.seller.id,
     store_id: input.storeId,
-    link: '/lancamento-diario',
+    link: TERMINAL_MX_PATH,
   }
 }
 
@@ -137,7 +139,7 @@ export function resolveCloseDayReminderSchedule(input: {
     enabled: input.enabled && Boolean(time) && workDays.length > 0,
     time: time ? time.slice(0, 5) : null,
     workDays,
-    link: '/lancamento-diario',
+    link: TERMINAL_MX_PATH,
   }
 }
 

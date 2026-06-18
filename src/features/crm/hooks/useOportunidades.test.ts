@@ -1,5 +1,8 @@
-import { describe, expect, it } from 'bun:test'
-import { buildOportunidadePayload } from './useOportunidades'
+import { describe, expect, it, mock } from 'bun:test'
+
+mock.restore()
+
+const { buildOportunidadePayload } = await import('./useOportunidades')
 
 describe('buildOportunidadePayload', () => {
   it('monta payload de venda realizada com closed_at informado', () => {

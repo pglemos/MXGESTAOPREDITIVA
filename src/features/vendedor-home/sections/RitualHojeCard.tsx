@@ -31,7 +31,7 @@ export function RitualHojeCard({ hasTodayCheckin }: RitualHojeCardProps) {
             variant={hasTodayCheckin ? 'outline' : 'primary'}
             className="h-mx-12 rounded-mx-xl justify-start"
           >
-            <Link to="/lancamento-diario">
+            <Link to="/vendedor/terminal-mx">
               <CheckSquare size={16} className="mr-2" />
               {hasTodayCheckin ? 'Revisar lançamento' : 'Fazer lançamento'}
             </Link>

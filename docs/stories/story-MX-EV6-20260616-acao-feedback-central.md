@@ -54,10 +54,21 @@ Ready for Review
 - `src/features/gerente-feedback/lib/feedback-actions.ts`
 - `src/features/gerente-feedback/lib/feedback-actions.test.ts`
 - `src/features/crm/hooks/useFeedbackActions.ts`
+- `src/features/crm/hooks/useExecutionActions.ts`
 - `src/features/crm/CentralExecucao.container.tsx`
 - `src/features/crm/CentralExecucao.container.test.tsx`
+- `supabase/migrations/20260617006000_pdi_vendedor_execucao_actions.sql`
+- `src/lib/pdi-vendedor-execution-actions-migration.test.ts`
 - `src/hooks/useFeedbacks.ts`
 - `src/types/database.generated.ts`
+- `src/pages/VendedorFeedback.tsx`
+- `src/pages/VendedorFeedback.test.tsx`
+- `src/features/crm/hooks/useOportunidades.test.ts`
+- `src/pages/VendedorTreinamentos.test.tsx`
+- `src/features/vendedor-home/VendedorHome.container.test.tsx`
+- `src/features/crm/FunilVendedor.container.test.tsx`
+- `src/pages/VendedorPDI.test.tsx`
+- `src/pages/VendedorPDI.tsx`
 
 ## Dev Agent Record
 
@@ -78,6 +89,16 @@ Codex GPT-5
 - `git diff --check` - passou.
 - `command -v wsl` - indisponivel neste ambiente.
 - `command -v coderabbit` - indisponivel neste ambiente.
+- Ajuste tela Feedback vendedor: `bun test src/pages/VendedorFeedback.test.tsx` - passou, 5 testes.
+- Gate tela Feedback: `bun test src/features/crm/hooks/useOportunidades.test.ts src/pages/VendedorFeedback.test.tsx src/pages/VendedorTreinamentos.test.tsx src/features/vendedor-home/VendedorHome.container.test.tsx src/features/crm/FunilVendedor.container.test.tsx` - passou.
+- Gate tela Feedback: `npm run typecheck` - passou.
+- Gate tela Feedback: `npm run lint` - passou, incluindo token lint em 522 arquivos.
+- Gate tela Feedback: `npm test` - passou.
+- Gate tela Feedback: `npm run build` - passou.
+- Gate tela Feedback: `git diff --check` - passou.
+- Ajuste auxiliar de gate: `bun test src/pages/VendedorPDI.test.tsx` - passou, 5 testes.
+- Gate workspace atual: `npm test` - passou, 548 testes.
+- Gate workspace atual: `npm run build` - passou.
 
 ### Completion Notes
 
@@ -87,8 +108,17 @@ Codex GPT-5
 - Hook `useFeedbackActions` lista acoes pendentes do vendedor e permite concluir pela Central.
 - `CentralExecucao` agrega `feedback` como terceira origem de agenda, com alerta vermelho e botao de conclusao.
 - Testes cobrem migration, helper e renderizacao/conclusao da acao de feedback na Central.
+- `VendedorFeedback` segue a hierarquia final: header, 6 KPIs, acoes vinculadas, pendencias, lateral de orientacao/impacto/Central, historico e evolucao.
+- Feedback pendente exibe motivo/caso, indicador, responsavel e acao vinculada; comentario, detalhe da acao e justificativa usam modais.
+- Confirmacao de leitura nao conclui acao obrigatoria; a acao permanece pendente ate execucao ou justificativa.
+- Ajuste Tecnico permanece fora de Feedback.
+- `execution_actions` criado como persistencia propria da Central para acoes rastreaveis de PDI/funil/manual, mantendo `devolutiva_acoes` para feedback recorrente.
+- `CentralExecucao` passa a agregar acoes persistidas de `execution_actions` e permite concluir item PDI pela Central.
+- Validacao 2026-06-17: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` passaram; teste focado `bun test src/pages/VendedorPDI.test.tsx src/features/crm/CentralExecucao.container.test.tsx src/lib/pdi-vendedor-execution-actions-migration.test.ts` tambem passou.
 
 ### Change Log
 
 - 2026-06-16: Story criada a partir de PRD EV-6.3 / EV-3.4.
 - 2026-06-16: Implementada acao de feedback na Central e validada por testes focados, gates globais e build.
+- 2026-06-17: Ajustada tela Feedback do vendedor conforme hierarquia final aprovada e validada por testes/gates.
+- 2026-06-17: Adicionada persistencia propria da Central para acoes enviadas do PDI e teste focado de conclusao.

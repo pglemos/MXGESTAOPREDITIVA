@@ -8,11 +8,14 @@ const fetchTodayCheckin = mock(async () => {})
 const refetchCadencia = mock(async () => {})
 const refetchClientes = mock(async () => {})
 const refetchFeedbackActions = mock(async () => {})
+const refetchExecutionActions = mock(async () => {})
 const registrarStatusCadencia = mock(async () => ({ error: null }))
 const concluirAcaoFeedback = mock(async () => ({ error: null }))
+const concluirExecutionAction = mock(async () => ({ error: null }))
 const toastSuccess = mock(() => {})
 const toastError = mock(() => {})
 let feedbackActionsMock: unknown[] = []
+let executionActionsMock: unknown[] = []
 let cadenciaErrorMock: string | null = null
 
 const cadenceAction = {
@@ -29,6 +32,28 @@ const cadenceAction = {
   proxima_acao_em: today,
   status: 'ativo',
   last_result: null,
+}
+
+function parseCadenciaAgendaMock(data: unknown) {
+  if (!Array.isArray(data)) return []
+  const required = [
+    'cadencia_estado_id',
+    'cliente_id',
+    'cliente_nome',
+    'loja_id',
+    'seller_user_id',
+    'passo_atual_key',
+    'etapa_atual',
+    'proxima_acao',
+    'proxima_acao_em',
+    'status',
+  ]
+
+  return data.filter((row) => {
+    if (!row || typeof row !== 'object') return false
+    const item = row as Record<string, unknown>
+    return required.every((key) => typeof item[key] === 'string')
+  })
 }
 
 mock.module('sonner', () => ({
@@ -96,6 +121,7 @@ mock.module('@/features/crm/hooks/useAtendimentos', () => ({
 }))
 
 mock.module('@/features/crm/hooks/useCadenciaAgenda', () => ({
+  parseCadenciaAgenda: parseCadenciaAgendaMock,
   useCadenciaAgenda: () => ({
     acoes: [cadenceAction],
     loading: false,
@@ -111,6 +137,16 @@ mock.module('@/features/crm/hooks/useFeedbackActions', () => ({
     error: null,
     refetch: refetchFeedbackActions,
     concluirAcaoFeedback,
+  }),
+}))
+
+mock.module('@/features/crm/hooks/useExecutionActions', () => ({
+  useExecutionActions: () => ({
+    acoes: executionActionsMock,
+    loading: false,
+    error: null,
+    refetch: refetchExecutionActions,
+    concluirExecutionAction,
   }),
 }))
 
@@ -181,14 +217,17 @@ afterEach(() => {
   cleanup()
   fetchTodayCheckin.mockClear()
   refetchCadencia.mockClear()
-  refetchClientes.mockClear()
-  refetchFeedbackActions.mockClear()
-  registrarStatusCadencia.mockClear()
-  concluirAcaoFeedback.mockClear()
+refetchClientes.mockClear()
+refetchFeedbackActions.mockClear()
+refetchExecutionActions.mockClear()
+registrarStatusCadencia.mockClear()
+concluirAcaoFeedback.mockClear()
+concluirExecutionAction.mockClear()
   toastSuccess.mockClear()
   toastError.mockClear()
-  feedbackActionsMock = []
-  cadenciaErrorMock = null
+feedbackActionsMock = []
+executionActionsMock = []
+cadenciaErrorMock = null
 })
 
 describe('CentralExecucao', () => {
@@ -272,7 +311,50 @@ describe('CentralExecucao', () => {
     await waitFor(() => {
       expect(concluirAcaoFeedback).toHaveBeenCalledWith('action-feedback-1')
     })
-    expect(refetchFeedbackActions).toHaveBeenCalled()
-    expect(toastSuccess).toHaveBeenCalledWith('Ação do feedback concluída.')
+  expect(refetchFeedbackActions).toHaveBeenCalled()
+  expect(toastSuccess).toHaveBeenCalledWith('Ação do feedback concluída.')
+})
+
+it('mostra acao de PDI persistida e permite concluir pela Central', async () => {
+  executionActionsMock = [{
+    id: 'execution-pdi-1',
+    store_id: '44444444-4444-4444-8444-444444444444',
+    seller_id: '22222222-2222-4222-8222-222222222222',
+    source_type: 'pdi',
+    source_id: 'pdi-action-1',
+    title: 'Realizar 10 contatos ativos por dia',
+    description: 'PDI: Curto Prazo',
+    due_at: `${today}T11:00:00Z`,
+    status: 'pendente',
+    priority: 'medium',
+    alert_tone: 'warning',
+    created_by: '22222222-2222-4222-8222-222222222222',
+    completed_at: null,
+    completed_by: null,
+    justificativa: null,
+    metadata: { pdi_acao_id: 'pdi-action-1' },
+    created_at: `${today}T09:00:00Z`,
+    updated_at: `${today}T09:00:00Z`,
+  }]
+
+  render(<MemoryRouter><CentralExecucao /></MemoryRouter>)
+
+  expect(await screen.findByText('Plano de Desenvolvimento')).toBeTruthy()
+  expect(screen.getAllByText('Realizar 10 contatos ativos por dia').length).toBeGreaterThan(0)
+  expect(screen.getAllByText('PDI').length).toBeGreaterThan(0)
+  expect(screen.getByText('Ação rastreável')).toBeTruthy()
+
+  const pdiRow = screen
+    .getAllByText('Realizar 10 contatos ativos por dia')[0]
+    .closest('tr')
+
+  expect(pdiRow).toBeTruthy()
+  fireEvent.click(within(pdiRow as HTMLElement).getByRole('button', { name: /^Feito$/i }))
+
+  await waitFor(() => {
+    expect(concluirExecutionAction).toHaveBeenCalledWith('execution-pdi-1')
   })
+  expect(refetchExecutionActions).toHaveBeenCalled()
+  expect(toastSuccess).toHaveBeenCalledWith('Ação da Central concluída.')
+})
 })
