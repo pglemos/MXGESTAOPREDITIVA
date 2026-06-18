@@ -38,7 +38,7 @@ import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Skeleton } from '@/components/atoms/Skeleton'
 import { Card } from '@/components/molecules/Card'
-import { PageHeader } from '@/components/molecules/PageHeader'
+import { PageHeading } from '@/components/molecules/PageHeading'
 import { Typography } from '@/components/atoms/Typography'
 import { useAuth } from '@/hooks/useAuth'
 import {
@@ -518,9 +518,9 @@ export default function VendedorTreinamentos() {
 
 function TrainingHeader() {
   return (
-    <PageHeader
+    <PageHeading
       title="Treinamentos"
-      description="Aprenda, aplique e evolua. Seu conhecimento move suas vendas."
+      subtitle="Aprenda, aplique e evolua. Seu conhecimento move suas vendas."
       actions={(
         <span className="inline-flex items-center gap-mx-xs rounded-mx-md border border-border-default bg-white px-mx-sm py-mx-xs text-sm font-semibold text-text-primary">
           <CalendarDays size={17} />

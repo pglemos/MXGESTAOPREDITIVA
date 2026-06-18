@@ -2,7 +2,7 @@ import { MessageSquare, RefreshCw, Trophy } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
-import { PageHeader } from '@/components/molecules/PageHeader'
+import { PageHeading } from '@/components/molecules/PageHeading'
 import { LastUpdated } from '@/components/molecules/LastUpdated'
 
 interface VendedorHomeHeaderProps {
@@ -27,9 +27,9 @@ export function VendedorHomeHeader({
   onRefresh,
 }: VendedorHomeHeaderProps) {
   return (
-    <PageHeader
+    <PageHeading
       title={`Olá, ${firstName}`}
-      description="Painel de performance individual"
+      subtitle="Painel de performance individual"
       actions={
         <div className="flex flex-wrap items-center justify-end gap-mx-sm">
           <LastUpdated value={lastUpdatedAt} className="hidden xl:inline-flex" />
