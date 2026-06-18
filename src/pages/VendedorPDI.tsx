@@ -352,7 +352,7 @@ async function handleSendToCentral(action: PDIPlanoAcao360) {
 }
 
 return (
-    <main className="h-full w-full overflow-y-auto bg-white p-mx-md md:p-mx-lg no-scrollbar">
+    <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-md md:p-mx-lg no-scrollbar">
       <div className="mx-auto flex max-w-[1500px] flex-col gap-mx-lg pb-20">
         <PageHeader
           title="PDI"

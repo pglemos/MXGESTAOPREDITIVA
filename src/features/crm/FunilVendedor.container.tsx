@@ -289,8 +289,8 @@ export function FunilVendedor() {
   }
 
   return (
-    <main className="h-full w-full overflow-y-auto bg-white px-mx-md py-mx-sm md:px-mx-xl md:py-mx-sm no-scrollbar">
-      <div className="mx-auto flex max-w-[1768px] flex-col gap-mx-sm pb-mx-md [zoom:0.86]">
+    <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-md md:p-mx-lg no-scrollbar">
+      <div className="mx-auto flex max-w-[1768px] flex-col gap-mx-lg pb-mx-md">
         <PageHeader
           title="Funil de Vendas"
           description="Acompanhe seu desempenho e saiba exatamente o que fazer para bater sua meta."
