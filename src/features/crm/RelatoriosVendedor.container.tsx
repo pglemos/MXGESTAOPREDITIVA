@@ -1,5 +1,7 @@
+import { Users, Target, TrendingUp, DollarSign, ShoppingBag, Phone } from 'lucide-react'
 import { Card } from '@/components/molecules/Card'
 import { PageHeader } from '@/components/molecules/PageHeader'
+import { StatCard } from '@/components/molecules/StatCard'
 import { Typography } from '@/components/atoms/Typography'
 import { useClientes } from '@/features/crm/hooks/useClientes'
 import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
@@ -23,16 +25,6 @@ const TIPO_VEICULO_LABEL: Record<string, string> = {
   moto: 'Moto',
   caminhao: 'Caminhão',
   nao_informado: 'Não informado',
-}
-
-function KpiCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
-  return (
-    <Card className="border-none bg-white p-mx-lg shadow-mx-md">
-      <Typography variant="caption" tone="muted" className="uppercase tracking-wide">{label}</Typography>
-      <Typography variant="h2" className="mt-mx-xs text-2xl">{value}</Typography>
-      {hint && <Typography variant="caption" tone="muted">{hint}</Typography>}
-    </Card>
-  )
 }
 
 function BarRow({ label, value, max, valueLabel }: { label: string; value: number; max: number; valueLabel?: string }) {
@@ -66,12 +58,12 @@ export function RelatoriosVendedor() {
         <PageHeader title="Relatórios" description="Visão consolidada da sua performance comercial — dados reais." />
 
         <section className="grid grid-cols-2 gap-mx-md md:grid-cols-3 xl:grid-cols-6" aria-label="KPIs">
-          <KpiCard label="Clientes" value={String(clienteMetrics.total)} />
-          <KpiCard label="Oportunidades" value={String(funil.totalOportunidades)} />
-          <KpiCard label="Taxa Conversão" value={`${funil.taxaConversaoGeral}%`} />
-          <KpiCard label="Ticket Médio" value={BRL(funil.ticketMedio)} />
-          <KpiCard label="Vendas" value={String(funil.ganhos.quantidade)} hint={BRL(funil.ganhos.valor)} />
-          <KpiCard label="Atendimentos hoje" value={String(porCanal.total)} />
+          <StatCard tone="blue" icon={<Users size={22} />} label="Clientes" value={String(clienteMetrics.total)} />
+          <StatCard tone="brand" icon={<Target size={22} />} label="Oportunidades" value={String(funil.totalOportunidades)} />
+          <StatCard tone="green" icon={<TrendingUp size={22} />} label="Taxa Conversão" value={`${funil.taxaConversaoGeral}%`} />
+          <StatCard tone="green" icon={<DollarSign size={22} />} label="Ticket Médio" value={BRL(funil.ticketMedio)} />
+          <StatCard tone="green" icon={<ShoppingBag size={22} />} label="Vendas" value={String(funil.ganhos.quantidade)} detail={BRL(funil.ganhos.valor)} />
+          <StatCard tone="orange" icon={<Phone size={22} />} label="Atendimentos hoje" value={String(porCanal.total)} />
         </section>
 
         <div className="grid grid-cols-1 gap-mx-lg xl:grid-cols-2">
