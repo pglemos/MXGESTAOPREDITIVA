@@ -1786,15 +1786,15 @@ function TrackModuleCard({
               <table className="min-w-[980px] w-full text-left text-xs">
                 <thead className="bg-surface-alt text-text-tertiary">
                   <tr>
-                    <th className="px-mx-sm py-mx-xs font-semibold">Conteúdo</th>
-                    <th className="px-mx-sm py-mx-xs font-semibold">Tipo</th>
-                    <th className="px-mx-sm py-mx-xs font-semibold">Duração</th>
-                    <th className="px-mx-sm py-mx-xs font-semibold">Progresso</th>
-                    <th className="px-mx-sm py-mx-xs font-semibold">Prova</th>
-                    <th className="px-mx-sm py-mx-xs font-semibold">Nota mínima</th>
-                    <th className="px-mx-sm py-mx-xs font-semibold">Pontos</th>
-                    <th className="px-mx-sm py-mx-xs font-semibold">Status</th>
-                    <th className="px-mx-sm py-mx-xs font-semibold">Ação</th>
+                    <th scope="col" className="px-mx-sm py-mx-xs font-semibold">Conteúdo</th>
+                    <th scope="col" className="px-mx-sm py-mx-xs font-semibold">Tipo</th>
+                    <th scope="col" className="px-mx-sm py-mx-xs font-semibold">Duração</th>
+                    <th scope="col" className="px-mx-sm py-mx-xs font-semibold">Progresso</th>
+                    <th scope="col" className="px-mx-sm py-mx-xs font-semibold">Prova</th>
+                    <th scope="col" className="px-mx-sm py-mx-xs font-semibold">Nota mínima</th>
+                    <th scope="col" className="px-mx-sm py-mx-xs font-semibold">Pontos</th>
+                    <th scope="col" className="px-mx-sm py-mx-xs font-semibold">Status</th>
+                    <th scope="col" className="px-mx-sm py-mx-xs font-semibold">Ação</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border-default bg-white">
@@ -2966,7 +2966,7 @@ function MyProofsTable({ proofs, onAction }: { proofs: ProofRow[]; onAction: (pr
           <thead className="bg-surface-alt text-text-tertiary">
             <tr>
               {['Prova', 'Origem', 'Obrigatória', 'Nota mínima', 'Sua nota', 'Status', 'Prazo', 'Tentativas', 'Ação'].map((header) => (
-                <th key={header} className="px-mx-sm py-mx-xs font-semibold">{header}</th>
+                <th scope="col" key={header} className="px-mx-sm py-mx-xs font-semibold">{header}</th>
               ))}
             </tr>
           </thead>

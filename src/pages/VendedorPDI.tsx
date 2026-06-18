@@ -648,7 +648,7 @@ function CompetencyPanel({ icon, title, rows }: { icon: ReactNode; title: string
             <thead className="text-xs uppercase text-text-secondary">
               <tr>
                 {['Competência', 'Nota atual', 'Alvo', 'Origem da nota'].map(label => (
-                  <th key={label} className="pb-mx-sm font-black">{label}</th>
+                  <th scope="col" key={label} className="pb-mx-sm font-black">{label}</th>
                 ))}
               </tr>
             </thead>
@@ -682,7 +682,7 @@ function ActionPlanTable({ rows, onDetail }: { rows: ActionRow[]; onDetail: (row
           <thead className="bg-surface-alt text-xs uppercase text-text-secondary">
             <tr>
               {['Ação', 'Competência', 'Conquista vinculada', 'Origem', 'Prazo', 'Status', 'Progresso', 'Ações'].map(label => (
-                <th key={label} className="px-mx-md py-mx-sm font-black">{label}</th>
+                <th scope="col" key={label} className="px-mx-md py-mx-sm font-black">{label}</th>
               ))}
             </tr>
           </thead>
@@ -839,7 +839,7 @@ function HistoryTable({ rows }: { rows: HistoryRow[] }) {
           <thead className="bg-surface-alt text-xs uppercase text-text-secondary">
             <tr>
               {['Data', 'Avaliador', 'Competência', 'Antes → Depois', 'Evolução'].map(label => (
-                <th key={label} className="px-mx-md py-mx-sm font-black">{label}</th>
+                <th scope="col" key={label} className="px-mx-md py-mx-sm font-black">{label}</th>
               ))}
             </tr>
           </thead>

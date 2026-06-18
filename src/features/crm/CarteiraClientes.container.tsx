@@ -402,18 +402,18 @@ export function CarteiraClientes() {
                   <table className="w-full min-w-[1580px] text-left text-xs">
                     <thead>
                       <tr className="border-y border-border-subtle bg-surface-alt/40 text-[10px] uppercase tracking-normal text-text-muted">
-                        <th className="px-mx-sm py-mx-xs font-bold">Cliente</th>
-                        <th className="px-mx-sm py-mx-xs font-bold">Veículo Procurado</th>
-                        <th className="px-mx-sm py-mx-xs font-bold">Origem</th>
-                        <th className="px-mx-sm py-mx-xs font-bold">Etapa Atual</th>
-                        <th className="px-mx-sm py-mx-xs font-bold">Cadência</th>
-                        <th className="px-mx-sm py-mx-xs font-bold">Próxima Ação</th>
-                        <th className="px-mx-sm py-mx-xs font-bold">Central de Execução</th>
-                        <th className="px-mx-sm py-mx-xs font-bold">Carro na Troca</th>
-                        <th className="px-mx-sm py-mx-xs font-bold">Ficha</th>
-                        <th className="px-mx-sm py-mx-xs font-bold">Status do Cliente</th>
-                        <th className="px-mx-sm py-mx-xs font-bold">Status da Ação</th>
-                        <th className="px-mx-sm py-mx-xs text-right font-bold">Ações</th>
+                        <th scope="col" className="px-mx-sm py-mx-xs font-bold">Cliente</th>
+                        <th scope="col" className="px-mx-sm py-mx-xs font-bold">Veículo Procurado</th>
+                        <th scope="col" className="px-mx-sm py-mx-xs font-bold">Origem</th>
+                        <th scope="col" className="px-mx-sm py-mx-xs font-bold">Etapa Atual</th>
+                        <th scope="col" className="px-mx-sm py-mx-xs font-bold">Cadência</th>
+                        <th scope="col" className="px-mx-sm py-mx-xs font-bold">Próxima Ação</th>
+                        <th scope="col" className="px-mx-sm py-mx-xs font-bold">Central de Execução</th>
+                        <th scope="col" className="px-mx-sm py-mx-xs font-bold">Carro na Troca</th>
+                        <th scope="col" className="px-mx-sm py-mx-xs font-bold">Ficha</th>
+                        <th scope="col" className="px-mx-sm py-mx-xs font-bold">Status do Cliente</th>
+                        <th scope="col" className="px-mx-sm py-mx-xs font-bold">Status da Ação</th>
+                        <th scope="col" className="px-mx-sm py-mx-xs text-right font-bold">Ações</th>
                       </tr>
                     </thead>
                     <tbody>

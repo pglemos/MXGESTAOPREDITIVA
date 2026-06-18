@@ -991,17 +991,17 @@ const hasLoadError = Boolean(
             </colgroup>
             <thead className="bg-surface-alt/70 text-text-secondary">
               <tr>
-                <th className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Horário</th>
-                <th className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Cliente / Contato</th>
-                <th className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Veículo de Interesse</th>
-                <th className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Canal</th>
-                <th className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Origem</th>
-                <th className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Etapa do Funil</th>
-                <th className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Status da Ação</th>
-                <th className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Cadência / Tentativa</th>
-                <th className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Próxima Ação</th>
-                <th className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Prioridade</th>
-                <th className="px-mx-sm py-mx-sm text-right text-[13px] font-bold leading-tight">Ações</th>
+                <th scope="col" className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Horário</th>
+                <th scope="col" className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Cliente / Contato</th>
+                <th scope="col" className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Veículo de Interesse</th>
+                <th scope="col" className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Canal</th>
+                <th scope="col" className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Origem</th>
+                <th scope="col" className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Etapa do Funil</th>
+                <th scope="col" className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Status da Ação</th>
+                <th scope="col" className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Cadência / Tentativa</th>
+                <th scope="col" className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Próxima Ação</th>
+                <th scope="col" className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Prioridade</th>
+                <th scope="col" className="px-mx-sm py-mx-sm text-right text-[13px] font-bold leading-tight">Ações</th>
               </tr>
             </thead>
                   <tbody>

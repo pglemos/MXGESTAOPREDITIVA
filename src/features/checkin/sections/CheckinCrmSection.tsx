@@ -295,7 +295,7 @@ export function CheckinCrmSection() {
                   'Venda',
                   'Ações',
                 ].map(column => (
-                  <th key={column} className="px-mx-sm py-3 font-semibold">
+                  <th scope="col" key={column} className="px-mx-sm py-3 font-semibold">
                     {column}
                   </th>
                 ))}

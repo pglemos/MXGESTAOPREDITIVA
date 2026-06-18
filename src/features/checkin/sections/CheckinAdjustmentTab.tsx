@@ -425,7 +425,7 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
                 <thead className="bg-surface-alt text-[11px] uppercase tracking-mx-wider text-text-tertiary">
                   <tr>
                     {['Campo', 'Canal', 'Valor Atual', 'Novo Valor', 'Motivo do Ajuste', 'Observação', 'Status', ''].map(column => (
-                      <th key={column} className="px-mx-md py-3 font-semibold">
+                      <th scope="col" key={column} className="px-mx-md py-3 font-semibold">
                         {column}
                       </th>
                     ))}
@@ -512,7 +512,7 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
                 <thead className="bg-surface-alt text-[11px] uppercase tracking-mx-wider text-text-tertiary">
                   <tr>
                     {['Data/Hora', 'Usuário', 'Campo Ajustado', 'Canal', 'De', 'Para', 'Motivo', 'Status'].map(column => (
-                      <th key={column} className="px-mx-md py-3 font-semibold">
+                      <th scope="col" key={column} className="px-mx-md py-3 font-semibold">
                         {column}
                       </th>
                     ))}
@@ -699,10 +699,10 @@ function ImpactCard({
   <table className="w-full text-left text-[13px]">
   <thead className="text-[11px] uppercase tracking-mx-wider text-text-tertiary">
           <tr className="border-b border-border-default">
-            <th className="py-mx-sm font-semibold">Indicador</th>
-  <th className="py-mx-sm pl-mx-xs text-right font-semibold">Antes</th>
-  <th className="py-mx-sm pl-mx-xs text-right font-semibold">Depois</th>
-  <th className="py-mx-sm pl-mx-xs text-right font-semibold">Δ</th>
+            <th scope="col" className="py-mx-sm font-semibold">Indicador</th>
+  <th scope="col" className="py-mx-sm pl-mx-xs text-right font-semibold">Antes</th>
+  <th scope="col" className="py-mx-sm pl-mx-xs text-right font-semibold">Depois</th>
+  <th scope="col" className="py-mx-sm pl-mx-xs text-right font-semibold">Δ</th>
           </tr>
         </thead>
         <tbody>
