@@ -413,8 +413,7 @@ const location = useLocation()
       {/* Top Header - Accessibility Hardening */}
 <header
 className={cn(
-  'w-full flex items-center justify-between z-60 bg-white border-b border-border-default shrink-0 sticky top-mx-0',
-          isCheckinRoute ? 'h-mx-12 px-mx-md' : 'h-16 px-mx-lg',
+  'w-full flex items-center justify-between z-60 bg-white border-b border-border-default shrink-0 sticky top-mx-0 h-16 px-mx-lg',
 )}
 role="banner"
 >
@@ -500,16 +499,14 @@ role="banner"
 
 <div
 className={cn(
-  'flex flex-1 relative',
-          isCheckinRoute ? 'gap-mx-sm p-mx-xs pb-mx-12' : 'gap-mx-sm p-mx-sm pb-mx-12 md:p-mx-sm',
+  'flex flex-1 relative gap-mx-sm p-mx-sm pb-mx-12 md:p-mx-sm',
 )}
 >
 
         {/* Sidebar Minimalista - Semantic Nav */}
         <aside
 className={cn(
-  'hidden md:flex flex-col items-center shrink-0 bg-white border border-border-default shadow-mx-sm sticky mx-layout-sticky-offset z-[60]',
-          isCheckinRoute ? 'w-mx-14 rounded-mx-2xl py-mx-sm gap-mx-xs' : 'w-mx-20 rounded-mx-3xl py-mx-sm gap-mx-xs',
+  'hidden md:flex flex-col items-center shrink-0 bg-white border border-border-default shadow-mx-sm sticky mx-layout-sticky-offset z-[60] w-mx-20 rounded-mx-3xl py-mx-sm gap-mx-xs',
 )}
           aria-label="Menu Lateral Principal"
         >
