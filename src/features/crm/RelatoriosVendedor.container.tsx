@@ -53,7 +53,7 @@ export function RelatoriosVendedor() {
   const maxDemanda = Math.max(1, ...cadenciaAnalytics.demandaVeiculos.map(item => item.quantidade))
 
   return (
-    <main className="w-full h-full overflow-y-auto bg-surface-alt p-mx-md md:p-mx-lg no-scrollbar">
+    <main className="w-full h-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
       <div className="flex flex-col gap-mx-lg pb-28">
         <PageHeading title="Relatórios" subtitle="Visão consolidada da sua performance comercial — dados reais." />
 

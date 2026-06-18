@@ -352,8 +352,8 @@ async function handleSendToCentral(action: PDIPlanoAcao360) {
 }
 
 return (
-    <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-md md:p-mx-lg no-scrollbar">
-      <div className="mx-auto flex max-w-[1500px] flex-col gap-mx-lg pb-20">
+    <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
+      <div className="flex flex-col gap-mx-lg pb-20">
         <PageHeading
           title="PDI"
           subtitle="Seu Plano de Desenvolvimento Individual"

@@ -164,8 +164,8 @@ export function MeuPerfilVendedor() {
   }
 
   return (
-    <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-md no-scrollbar md:p-mx-lg">
-      <div className="mx-auto flex max-w-[1800px] flex-col gap-mx-lg pb-28">
+    <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
+      <div className="flex flex-col gap-mx-lg pb-28">
         <PageHeading
           title="Meu Perfil"
           subtitle="Suas informações, rotina, metas e evolução profissional."

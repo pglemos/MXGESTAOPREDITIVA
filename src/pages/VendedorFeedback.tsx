@@ -534,8 +534,8 @@ export default function VendedorFeedback() {
   }
 
   return (
-    <main className="min-h-screen bg-surface-alt/40 p-mx-md lg:p-mx-xl">
-      <div className="mx-auto max-w-[1800px] space-y-mx-lg">
+    <main className="min-h-screen bg-surface-alt p-mx-lg">
+      <div className="space-y-mx-lg">
         <PageHeading
           title="Feedback"
           subtitle="Receba feedbacks, leia com atenção e confirme para acompanharmos seu desenvolvimento."

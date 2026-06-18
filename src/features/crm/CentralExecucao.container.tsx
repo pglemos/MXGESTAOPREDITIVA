@@ -880,8 +880,8 @@ const hasLoadError = Boolean(
   }
 
   return (
-    <main className="min-h-full w-full bg-surface-alt p-mx-md md:p-mx-lg">
-      <div className="mx-auto flex max-w-[1680px] flex-col gap-mx-lg pb-20">
+    <main className="min-h-full w-full bg-surface-alt p-mx-lg">
+      <div className="flex flex-col gap-mx-lg pb-20">
         <PageHeading
           title="Central de Execução"
           subtitle="Sua rotina diária. Organize seu dia e foque no que gera resultado."

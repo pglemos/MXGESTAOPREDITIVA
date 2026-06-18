@@ -66,8 +66,8 @@ export default function MinhaRemuneracaoPage() {
   }
 
   return (
-    <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-md no-scrollbar md:p-mx-lg">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-mx-lg pb-28">
+    <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
+      <div className="flex w-full flex-col gap-mx-lg pb-28">
         <PageHeading
           title="Minha Remuneração"
           subtitle="Acompanhe como seu plano, suas vendas e sua meta formam a remuneração estimada do mês."
@@ -127,7 +127,7 @@ export default function MinhaRemuneracaoPage() {
 
 function PageShell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-md no-scrollbar md:p-mx-lg">
+    <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
       <div className="mx-auto flex min-h-full w-full max-w-4xl items-center justify-center py-mx-xl">
         {children}
       </div>
@@ -138,7 +138,7 @@ function PageShell({ children }: { children: React.ReactNode }) {
 function MinhaRemuneracaoLoading() {
   return (
     <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-md no-scrollbar md:p-mx-lg" aria-busy="true">
-      <div className="mx-auto grid w-full max-w-6xl gap-mx-lg">
+      <div className="grid w-full gap-mx-lg">
         <div className="h-mx-20 animate-pulse rounded-mx-xl bg-white" />
         <div className="grid gap-mx-md md:grid-cols-3">
           <div className="h-mx-40 animate-pulse rounded-mx-xl bg-white" />
