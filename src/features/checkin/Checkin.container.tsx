@@ -36,7 +36,7 @@ export function Checkin() {
         return (
             <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
                 <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
-                <Typography variant="caption" tone="muted" className="animate-pulse">Sincronizando Terminal...</Typography>
+                <Typography variant="caption" tone="muted" className="animate-pulse">Sincronizando Fechamento Diário...</Typography>
             </div>
         )
     }
@@ -46,7 +46,7 @@ export function Checkin() {
             <main className="h-full w-full flex flex-col items-center justify-center text-center p-mx-xl bg-white">
                 <ShieldCheck size={64} className="text-text-tertiary/20 mb-8" aria-hidden="true" />
                 <Typography variant="h2" className="mb-4">Acesso Reservado</Typography>
-                <Typography variant="p" tone="muted" className="max-w-sm mx-auto uppercase tracking-widest leading-relaxed opacity-60">O lançamento diário operacional é restrito ao corpo de vendas. Gestores e equipe MX auditam via malha de rede.</Typography>
+                <Typography variant="p" tone="muted" className="max-w-sm mx-auto uppercase tracking-widest leading-relaxed opacity-60">O Fechamento Diário operacional é restrito ao corpo de vendas. Gestores e equipe MX auditam via malha de rede.</Typography>
             </main>
         )
     }

@@ -29,17 +29,17 @@ describe('VendedorAjuda', () => {
 
   it('renders all four help action cards', () => {
     renderPage()
-    expect(screen.getByText('Lançamento de hoje')).toBeTruthy()
+    expect(screen.getByText('Fechamento Diário')).toBeTruthy()
     expect(screen.getByText('Corrigir um dia')).toBeTruthy()
     expect(screen.getByText('Alertas pendentes')).toBeTruthy()
-    expect(screen.getByText('Devolutivas')).toBeTruthy()
+    expect(screen.getByText('Feedback')).toBeTruthy()
   })
 
   it('renders help card descriptions', () => {
     renderPage()
-    expect(screen.getByText('Preencher ou revisar produção D-1 e agenda de hoje.')).toBeTruthy()
+    expect(screen.getByText('Preencher ou revisar produção D-1 e Central de Execução de hoje.')).toBeTruthy()
     expect(screen.getByText('Ajustar um lançamento anterior com motivo.')).toBeTruthy()
-    expect(screen.getByText('Ver cobranças, feedbacks e avisos obrigatórios.')).toBeTruthy()
+    expect(screen.getByText('Ver cobranças, feedback e avisos obrigatórios.')).toBeTruthy()
     expect(screen.getByText('Confirmar ciência e ver próximos passos do gestor.')).toBeTruthy()
   })
 

@@ -328,7 +328,7 @@ describe('VendedorTreinamentos', () => {
 
     expect(screen.getByText('Feedback')).toBeInTheDocument()
     expect(screen.getByText(/dificuldade em fechamento consultivo/i)).toBeInTheDocument()
-    expect(screen.getByText('Funil')).toBeInTheDocument()
+    expect(screen.getByText('Funil de Vendas')).toBeInTheDocument()
     expect(screen.getByText(/gargalo de funil/i)).toBeInTheDocument()
     expect(screen.getByText('Confirmacao de visita')).toBeInTheDocument()
   })

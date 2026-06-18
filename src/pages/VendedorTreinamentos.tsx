@@ -333,7 +333,7 @@ export default function VendedorTreinamentos() {
     setIsRefreshing(true)
     await refetch()
     setIsRefreshing(false)
-    toast.success('Treinamentos sincronizados.')
+    toast.success('Treinamento sincronizado.')
   }
 
   async function handleSuggestContent() {
@@ -416,7 +416,7 @@ export default function VendedorTreinamentos() {
               icon={<TrendingUp size={22} />}
               label="Impacto no Score"
               value={`${SCORE_IMPACT_PERCENT}%`}
-              hint="peso dos Treinamentos no Score"
+              hint="peso do Treinamento no Score"
               tone="warning"
             />
           </section>
@@ -519,7 +519,7 @@ export default function VendedorTreinamentos() {
 function TrainingHeader() {
   return (
     <PageHeading
-      title="Treinamentos"
+      title="Treinamento"
       subtitle="Aprenda, aplique e evolua. Seu conhecimento move suas vendas."
       actions={(
         <span className="inline-flex items-center gap-mx-xs rounded-mx-md border border-border-default bg-white px-mx-sm py-mx-xs text-sm font-semibold text-text-primary">

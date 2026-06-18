@@ -34,10 +34,10 @@ export default function VendedorAjuda() {
 
           <div className="mt-mx-lg grid grid-cols-1 gap-mx-sm sm:grid-cols-2">
             {[
-              { title: 'Lançamento de hoje', desc: 'Preencher ou revisar produção D-1 e agenda de hoje.', icon: CheckSquare, to: '/vendedor/terminal-mx' },
+              { title: 'Fechamento Diário', desc: 'Preencher ou revisar produção D-1 e Central de Execução de hoje.', icon: CheckSquare, to: '/vendedor/terminal-mx' },
               { title: 'Corrigir um dia', desc: 'Ajustar um lançamento anterior com motivo.', icon: History, to: '/vendedor/terminal-mx' },
-              { title: 'Alertas pendentes', desc: 'Ver cobranças, feedbacks e avisos obrigatórios.', icon: Bell, to: '/notificacoes' },
-              { title: 'Devolutivas', desc: 'Confirmar ciência e ver próximos passos do gestor.', icon: MessageSquare, to: '/devolutivas' },
+              { title: 'Alertas pendentes', desc: 'Ver cobranças, feedback e avisos obrigatórios.', icon: Bell, to: '/notificacoes' },
+              { title: 'Feedback', desc: 'Confirmar ciência e ver próximos passos do gestor.', icon: MessageSquare, to: '/devolutivas' },
             ].map(item => (
               <Button key={item.title} asChild variant="outline" className="h-auto justify-start rounded-mx-2xl bg-white p-mx-md text-left">
                 <Link to={item.to}>

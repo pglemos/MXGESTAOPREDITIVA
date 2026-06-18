@@ -21,12 +21,12 @@ describe('VendedorConfiguracoes', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByRole('heading', { name: 'Configurações' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Configurações do Vendedor' })).toBeInTheDocument()
     expect(screen.getByText('Ana Vendedora')).toBeInTheDocument()
     expect(screen.getByText('MX Teste')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Abrir perfil' })).toHaveAttribute('href', '/perfil')
+    expect(screen.getByRole('link', { name: 'Abrir Meu Perfil' })).toHaveAttribute('href', '/perfil')
     expect(screen.getByRole('link', { name: 'Ver notificações' })).toHaveAttribute('href', '/notificacoes')
-    expect(screen.getByRole('link', { name: 'Abrir treinamentos' })).toHaveAttribute('href', '/treinamentos')
+    expect(screen.getByRole('link', { name: 'Abrir treinamento' })).toHaveAttribute('href', '/treinamentos')
     expect(screen.getByRole('link', { name: 'Abrir ajuda' })).toHaveAttribute('href', '/ajuda')
     expect(screen.getByText(/Configurações administrativas seguem restritas/i)).toBeInTheDocument()
   })

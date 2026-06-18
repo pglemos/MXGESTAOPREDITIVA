@@ -218,7 +218,7 @@ describe('VendedorFeedback', () => {
     expect(screen.getByText('Receba feedbacks, leia com atenção e confirme para acompanharmos seu desenvolvimento.')).toBeInTheDocument()
 
     const kpis = screen.getByLabelText('KPIs de feedback')
-    expect(within(kpis).getByText('Feedbacks recebidos')).toBeInTheDocument()
+    expect(within(kpis).getByText('Feedback recebido')).toBeInTheDocument()
     expect(within(kpis).getByText('Positivos')).toBeInTheDocument()
     expect(within(kpis).getByText('Desenvolvimento')).toBeInTheDocument()
     expect(within(kpis).getByText('Pendentes')).toBeInTheDocument()
@@ -232,7 +232,7 @@ describe('VendedorFeedback', () => {
     expect(within(actions).getAllByRole('button', { name: /marcar como feito/i }).length).toBeGreaterThan(0)
     expect(within(actions).getAllByRole('button', { name: /justificar/i }).length).toBeGreaterThan(0)
 
-    const pending = screen.getByLabelText('Feedbacks pendentes')
+    const pending = screen.getByLabelText('Feedback pendente')
     for (const header of ['Data', 'Tipo', 'Competência', 'Motivo / Caso', 'Indicador', 'Comentário do líder', 'Responsável', 'Ação vinculada', 'Ações']) {
       expect(within(pending).getByText(header)).toBeInTheDocument()
     }

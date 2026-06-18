@@ -99,7 +99,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
   const pendingItems = [
     display.leads === 0 ? 'Enriquecer carteira' : null,
     !form.note.trim() ? 'Observações operacionais' : null,
-    mandatoryFeedbackActionsCount > 0 ? 'Feedbacks obrigatórios' : null,
+    mandatoryFeedbackActionsCount > 0 ? 'Feedback obrigatório' : null,
   ].filter(Boolean) as string[]
   const disciplinePercent = useReferenceValues ? 70 : Math.round((completedItems.length / 4) * 100)
   const sidebarFeedbackCount = useReferenceValues ? 2 : mandatoryFeedbackActionsCount

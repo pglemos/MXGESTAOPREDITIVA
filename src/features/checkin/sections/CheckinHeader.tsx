@@ -49,7 +49,7 @@ export function CheckinHeader({
             <div className="flex items-center gap-mx-sm">
               <div className="h-mx-10 w-mx-xs rounded-mx-full bg-brand-primary shadow-mx-md" aria-hidden="true" />
               <Typography variant="h1" className="text-4xl leading-tight">
-                Terminal <span className="text-mx-green-700">MX</span>
+                Fechamento <span className="text-mx-green-700">Diário</span>
               </Typography>
             </div>
             <Typography variant="caption" tone="muted" className="mt-mx-xs block pl-6">
@@ -71,7 +71,7 @@ export function CheckinHeader({
         <div className="mt-mx-md flex flex-wrap items-center gap-mx-lg pl-6">
       <div className="inline-flex h-mx-12 w-full max-w-md overflow-hidden rounded-mx-xl border border-border-default bg-white p-mx-tiny shadow-mx-sm sm:w-auto">
             <TabButton active={metricScope === 'daily'} onClick={() => setMetricScope('daily')}>
-              Registro Diário
+              Fechamento Diário
             </TabButton>
             <TabButton active={metricScope === 'adjustment'} onClick={() => setMetricScope('adjustment')}>
               Ajuste Técnico

@@ -160,7 +160,7 @@ describe('development content helpers', () => {
       limit: 3,
     })
 
-    expect(cards.map(card => card.sourceLabel)).toEqual(['Feedback', 'PDI', 'Funil'])
+  expect(cards.map(card => card.sourceLabel)).toEqual(['Feedback', 'PDI', 'Funil de Vendas'])
     expect(cards.map(card => card.training.id)).toEqual(['crm-1', 'pdi-1', 'agd-1'])
     expect(new Set(cards.map(card => card.training.id)).size).toBe(cards.length)
     expect(cards[0].reason).toContain('baixo retorno')

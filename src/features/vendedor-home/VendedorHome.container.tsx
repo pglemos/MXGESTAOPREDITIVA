@@ -96,13 +96,13 @@ const isToday = (iso: string) => {
 
 const resolveGreetingName = (name?: string | null) => {
   const trimmed = name?.trim()
-  if (!trimmed) return 'Consultor'
+  if (!trimmed) return 'Vendedor'
 
   const parts = trimmed.split(/\s+/)
   const [first] = parts
-  if (first?.toLowerCase() === 'vendedor') return 'Consultor'
+  if (first?.toLowerCase() === 'vendedor') return 'Vendedor'
 
-  return first || 'Consultor'
+  return first || 'Vendedor'
 }
 
 export function VendedorHome() {
@@ -201,7 +201,7 @@ export function VendedorHome() {
       <div className="flex flex-col gap-mx-lg pb-20">
         <PageHeading
           title={`${getGreeting()}, ${firstName}! 👋`}
-          subtitle="Vamos pra cima! Foque nas atividades de hoje e faça acontecer."
+        subtitle="Organize sua rotina, execute as ações certas e registre o Fechamento Diário."
           actions={(
             <span className="inline-flex h-12 items-center gap-mx-sm rounded-mx-md border border-border-subtle bg-white px-mx-md text-sm font-semibold capitalize shadow-mx-xs">
               {todayLabel}
@@ -397,7 +397,7 @@ function ActivitiesCard({ atividades }: { atividades: ActivitySummary }) {
     ['Retornos', atividades.retornos, <MessageCircle size={15} />],
     ['Prospecções', atividades.prospeccoes, <UserRound size={15} />],
     ['Indicações', atividades.indicacoes, <Award size={15} />],
-    ['Feedbacks obrigatórios', atividades.feedbacksObrigatorios, <ListChecks size={15} />],
+    ['Feedback obrigatório', atividades.feedbacksObrigatorios, <ListChecks size={15} />],
   ]
 
   return (
@@ -444,7 +444,7 @@ function ScoreCard({
   const scoreParts = [
     ['Disciplina', score?.dimDisciplina ?? 0],
     ['Vendas', score?.dimResultado ?? 100],
-    ['Agenda', score?.dimProcesso ?? 0],
+    ['Execução', score?.dimProcesso ?? 0],
     ['Treino', score ? value : 40],
   ] as const
 
@@ -500,7 +500,7 @@ function ExecutionCenter({ items }: { items: AgendamentoComCliente[] }) {
 
   return (
     <DashboardCard className="min-h-[310px]">
-      <PanelTitle title="Minha Central de Execução Hoje" subtitle="Ações que movimentam sua meta hoje." />
+      <PanelTitle title="Central de Execução de Hoje" subtitle="Carteira, prospecção, status e próximos passos." />
       <div className="mt-mx-md space-y-mx-xs">
         {items.length === 0 ? (
           <div className="rounded-mx-md bg-surface-alt p-mx-md">
@@ -523,7 +523,7 @@ function ExecutionCenter({ items }: { items: AgendamentoComCliente[] }) {
       <div className="mt-mx-md flex flex-wrap gap-mx-sm">
         <Link to="/central-execucao" className="inline-flex h-10 flex-1 items-center justify-center gap-mx-xs rounded-mx-md bg-brand-primary px-mx-md text-sm font-semibold text-white">
           <Plus size={16} />
-          Nova Atividade
+          Registrar ação
         </Link>
         <Link to="/central-execucao" className="inline-flex h-10 flex-1 items-center justify-center gap-mx-xs rounded-mx-md border border-brand-primary/30 bg-brand-primary/5 px-mx-md text-sm font-semibold text-brand-primary">
           Ver Central de Execução
@@ -579,15 +579,15 @@ function CloseDayCard({
   const activityProgress = hasActivities ? Math.round((atividadesConcluidas / atividadesTotal) * 100) : 0
   const completion = fechamentoFeito ? 100 : Math.max(20, Math.round((activityProgress + disciplina) / 2))
   const pendencias = [
-    !fechamentoFeito ? 'Registro diário' : null,
+    !fechamentoFeito ? 'Fechamento Diário' : null,
     !hasActivities || atividadesConcluidas === 0 ? 'Atividades não executadas' : null,
-    feedbacksPendentes > 0 ? `${feedbacksPendentes} feedback${feedbacksPendentes === 1 ? '' : 's'} obrigatório${feedbacksPendentes === 1 ? '' : 's'}` : null,
+    feedbacksPendentes > 0 ? `${feedbacksPendentes} feedback obrigatório${feedbacksPendentes === 1 ? '' : 's'}` : null,
     clientesSemStatus > 0 ? `${clientesSemStatus} cliente${clientesSemStatus === 1 ? '' : 's'} sem status atualizado` : 'Clientes sem status atualizado',
   ].filter(Boolean)
 
   return (
     <DashboardCard className="min-h-[310px]">
-      <PanelTitle title="Fechar meu dia" subtitle="Registre suas atividades e finalize o dia com foco!" />
+      <PanelTitle title="Fechamento Diário" subtitle="Confirme produção, pendências e justificativas do dia." />
       <div className="mt-mx-lg grid grid-cols-[96px_minmax(0,1fr)] items-center gap-mx-md">
         <ProgressRing value={completion} label="do dia concluído" />
         <div className="space-y-mx-sm">
@@ -597,7 +597,7 @@ function CloseDayCard({
           <Typography variant="p" className="font-semibold text-text-primary">
             Concluído:
           </Typography>
-          <CheckRow label="Central acessada" value="ok" done />
+          <CheckRow label="Central de Execução acessada" value="ok" done />
           <CheckRow label="Próximos passos sugeridos" value="ok" done />
           <Typography variant="p" className="pt-mx-xs font-semibold text-text-primary">
             Pendências:
@@ -610,7 +610,7 @@ function CloseDayCard({
         </div>
       </div>
 <Link to="/vendedor/terminal-mx" className="mt-mx-lg flex h-11 w-full items-center justify-center rounded-mx-md bg-brand-primary text-sm font-semibold text-white">
-        Fechar meu dia
+        Abrir Fechamento Diário
       </Link>
     </DashboardCard>
   )

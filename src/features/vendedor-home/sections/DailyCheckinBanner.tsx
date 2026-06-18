@@ -10,7 +10,7 @@ interface DailyCheckinBannerProps {
 }
 
 /**
- * Banner promovendo o Lançamento Diário pendente.
+ * Banner promovendo o Fechamento Diário pendente.
  * Story 3.4 reconciliada (ADR-0050).
  */
 export function DailyCheckinBanner({ referenceDateLabel }: DailyCheckinBannerProps) {
@@ -55,10 +55,10 @@ export function DailyCheckinBanner({ referenceDateLabel }: DailyCheckinBannerPro
               tone="white"
               className="text-xl leading-tight sm:text-3xl"
             >
-              Lançamento Diário
+              Fechamento Diário
             </Typography>
             <Typography variant="p" tone="white" className="max-w-3xl text-sm opacity-85">
-              Etapa 1: produção de {referenceDateLabel}. Etapa 2: agenda de hoje. As datas ficam
+              Etapa 1: produção de {referenceDateLabel}. Etapa 2: Central de Execução de hoje. As datas ficam
               separadas para evitar troca no início do expediente.
             </Typography>
           </div>
@@ -69,7 +69,7 @@ export function DailyCheckinBanner({ referenceDateLabel }: DailyCheckinBannerPro
               Ação obrigatória
             </Typography>
             <Typography variant="caption" className="block truncate text-brand-secondary">
-              Abrir lançamento
+              Abrir Fechamento
             </Typography>
           </div>
           <div className="flex h-mx-12 w-mx-12 shrink-0 items-center justify-center rounded-mx-xl bg-brand-primary text-white transition-transform group-hover:translate-x-1">

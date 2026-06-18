@@ -894,8 +894,8 @@ const hasLoadError = Boolean(
               <span className="inline-flex h-mx-11 items-center rounded-mx-md border border-status-success/20 bg-status-success-surface px-mx-sm text-xs font-bold text-status-success">
                 {statusDia}
               </span>
-              <Button variant="outline" onClick={() => toast.info('Agenda sincronizada com a rotina local.')} className="h-mx-11 bg-white">
-                <RotateCcw size={16} /> Sincronizar Agenda
+              <Button variant="outline" onClick={() => toast.info('Central sincronizada com a rotina local.')} className="h-mx-11 bg-white">
+                <RotateCcw size={16} /> Sincronizar Central
               </Button>
             </>
           )}
@@ -911,7 +911,7 @@ const hasLoadError = Boolean(
         )}
 
       <section className="grid grid-cols-1 gap-mx-sm md:grid-cols-2 xl:grid-cols-[repeat(5,minmax(178px,1fr))_minmax(420px,1.8fr)]" aria-label="Indicadores do dia">
-        <MetricCard icon={<CalendarCheck size={24} />} label="Agendamentos Hoje" value={String(metrics.agendamentosHoje)} hint={metrics.agendamentosHoje > 0 ? '100% do dia' : 'Sem agenda hoje'} tone="green" />
+          <MetricCard icon={<CalendarCheck size={24} />} label="Agendamentos Hoje" value={String(metrics.agendamentosHoje)} hint={metrics.agendamentosHoje > 0 ? '100% do dia' : 'Sem ações hoje'} tone="green" />
           <MetricCard icon={<CheckCircle2 size={24} />} label="Compareceram" value={String(metrics.compareceram)} hint={`${metrics.taxaComparecimento}% do dia`} tone="green" />
           <MetricCard icon={<XCircle size={24} />} label="Não Compareceram" value={String(metrics.naoCompareceram)} hint={`${metrics.agendamentosHoje ? Math.round((metrics.naoCompareceram / metrics.agendamentosHoje) * 100) : 0}% do dia`} tone="red" />
           <MetricCard icon={<Clock size={24} />} label="Em Negociação" value={String(metrics.emNegociacao)} hint={`${metrics.agendamentosHoje ? Math.round((metrics.emNegociacao / metrics.agendamentosHoje) * 100) : 0}% do dia`} tone="orange" />
@@ -943,7 +943,7 @@ const hasLoadError = Boolean(
           </div>
           <div className="flex flex-wrap items-center gap-mx-sm">
             <Button variant="outline" size="sm" onClick={openCreateModal} className="h-mx-10 border-brand-primary/30 bg-white text-brand-primary">
-              <Plus size={15} /> Nova Atividade
+              <Plus size={15} /> Registrar ação
             </Button>
             <Button variant="outline" size="sm" onClick={() => setClienteModalOpen(true)} className="h-mx-10 border-brand-primary/30 bg-white text-brand-primary">
               <UserPlus size={15} /> Novo Cliente
@@ -1065,7 +1065,7 @@ onExecutionActionDone={handleExecutionActionDone}
                 ))}
               </div>
             <Button asChild variant="outline" className="mt-mx-md w-full border-brand-primary/30 text-brand-primary">
-              <Link to="/vendedor/terminal-mx">Ir para Terminal MX</Link>
+              <Link to="/vendedor/terminal-mx">Ir para Fechamento Diário</Link>
             </Button>
           </Card>
 

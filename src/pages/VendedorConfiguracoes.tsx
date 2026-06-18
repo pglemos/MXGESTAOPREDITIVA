@@ -9,10 +9,10 @@ import { useAuth } from '@/hooks/useAuth'
 
 const SETTINGS = [
   {
-    title: 'Conta e perfil',
+    title: 'Meu Perfil',
     description: 'Dados profissionais, rotina, objetivos e remuneração.',
     to: '/perfil',
-    cta: 'Abrir perfil',
+    cta: 'Abrir Meu Perfil',
     icon: UserRound,
   },
   {
@@ -23,15 +23,15 @@ const SETTINGS = [
     icon: Bell,
   },
   {
-    title: 'Treinamentos',
+    title: 'Treinamento',
     description: 'Trilhas, aulas, biblioteca e provas.',
     to: '/treinamentos',
-    cta: 'Abrir treinamentos',
+    cta: 'Abrir treinamento',
     icon: GraduationCap,
   },
   {
     title: 'Ajuda',
-    description: 'Suporte operacional para rotina, correções e devolutivas.',
+    description: 'Suporte operacional para rotina, correções e feedback.',
     to: '/ajuda',
     cta: 'Abrir ajuda',
     icon: HelpCircle,
@@ -45,7 +45,7 @@ export default function VendedorConfiguracoes() {
     <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
       <div className="flex flex-col gap-mx-lg pb-28">
         <PageHeading
-          title="Configurações"
+        title="Configurações do Vendedor"
           subtitle="Preferências e atalhos operacionais do vendedor."
           actions={
             <Badge variant="brand" className="rounded-mx-full px-mx-md py-mx-sm uppercase">

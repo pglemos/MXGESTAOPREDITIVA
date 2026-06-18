@@ -50,7 +50,7 @@ export default defineConfig({
           { src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
         ],
         shortcuts: [
-          { name: 'Lançamento Diário', short_name: 'Lançamento', url: '/lancamento-diario', description: 'Registrar lançamento diário' },
+          { name: 'Fechamento Diário', short_name: 'Fechamento', url: '/lancamento-diario', description: 'Registrar fechamento diário' },
           { name: 'Classificação', short_name: 'Classificação', url: '/classificacao', description: 'Ver classificação ao vivo' },
           { name: 'Home', short_name: 'Home', url: '/home', description: 'Tela inicial' },
         ],

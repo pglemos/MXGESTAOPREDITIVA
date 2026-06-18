@@ -103,7 +103,7 @@ const categoryDescriptions: Record<string, string> = {
   FERRAMENTAS: 'Universidade MX, biblioteca e consultor inteligente.',
   'Meu Dia': 'Agenda, funil, meta, fechamento diário e performance pessoal.',
   'MEU DIA': 'Meu dia, terminal, central, carteira, funil e relatórios.',
-  'EVOLUÇÃO': 'Feedbacks, PDI, treinamentos e ranking.',
+  'EVOLUÇÃO': 'Feedback, PDI, treinamento e ranking.',
   CONTA: 'Meu perfil e configurações.',
 }
 
@@ -225,19 +225,19 @@ const navConfig: Record<string, NavCategory[]> = {
       category: 'MEU DIA', icon: <Home size={22} />,
       items: [
         { label: 'Meu Dia', path: '/home', icon: <Home size={16} /> },
-        { label: 'Terminal MX', path: '/vendedor/terminal-mx', icon: <CheckSquare size={16} /> },
+        { label: 'Fechamento Diário', path: '/vendedor/terminal-mx', icon: <CheckSquare size={16} /> },
         { label: 'Central de Execução', path: '/central-execucao', icon: <CalendarCheck size={16} /> },
-        { label: 'Carteira', path: '/carteira-clientes', icon: <Users size={16} /> },
-        { label: 'Funil', path: '/meu-funil', icon: <Filter size={16} /> },
+        { label: 'Carteira de Clientes', path: '/carteira-clientes', icon: <Users size={16} /> },
+        { label: 'Funil de Vendas', path: '/meu-funil', icon: <Filter size={16} /> },
         { label: 'Relatórios', path: '/relatorios-vendedor', icon: <FileBarChart size={16} /> },
       ]
     },
     {
       category: 'EVOLUÇÃO', icon: <TrendingUp size={22} />,
       items: [
-        { label: 'Feedbacks', path: '/devolutivas', icon: <MessageSquare size={16} /> },
+        { label: 'Feedback', path: '/devolutivas', icon: <MessageSquare size={16} /> },
         { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
-        { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
+        { label: 'Treinamento', path: '/treinamentos', icon: <GraduationCap size={16} /> },
         { label: 'Ranking', path: '/classificacao', icon: <Trophy size={16} /> },
       ]
     },
@@ -424,7 +424,7 @@ role="banner"
             <img src={MxLogo} alt="MX Performance" className="h-full w-auto object-contain" />
           </button>
           <div className="flex flex-col min-w-0">
-            <Typography as="span" variant="h3" className="text-xl tracking-tighter text-text-primary whitespace-nowrap truncate uppercase font-black">
+          <Typography as="span" variant="h3" className="text-xl tracking-normal text-text-primary whitespace-nowrap truncate uppercase font-semibold">
               MX <span className="text-mx-green-700">PERFORMANCE</span>
             </Typography>
           </div>
@@ -794,12 +794,12 @@ className={cn(
           {role === 'vendedor' && (
             <NavLink
               to="/vendedor/terminal-mx"
-              aria-label="Abrir Terminal MX"
+              aria-label="Abrir Fechamento Diário"
               aria-current={isCheckinRoute ? 'page' : undefined}
               className="min-w-0 h-mx-12 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
             >
               <CheckSquare size={20} />
-              <span className="max-w-full truncate text-mx-micro font-black uppercase leading-none">Lançar</span>
+              <span className="max-w-full truncate text-mx-micro font-semibold uppercase leading-none">Fechar</span>
             </NavLink>
           )}
 

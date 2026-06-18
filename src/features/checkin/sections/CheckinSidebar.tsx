@@ -35,7 +35,7 @@ export function CheckinSidebar({
           <SideMetric label="Ações para amanhã" value={tomorrowActions} tone="success" />
           <SideMetric label="Retornos pendentes" value={returns} tone="warning" />
           <SideMetric
-            label="Feedbacks obrigatórios"
+            label="Feedback obrigatório"
             value={mandatoryFeedbackActionsCount}
             tone={mandatoryFeedbackActionsCount > 0 ? 'error' : 'success'}
           />
@@ -58,9 +58,9 @@ export function CheckinSidebar({
         </header>
         <ul className="mt-mx-sm space-y-mx-sm">
           {[
-            `Envie o registro diário até ${CHECKIN_DEADLINE_LABEL}.`,
+            `Envie o Fechamento Diário até ${CHECKIN_DEADLINE_LABEL}.`,
             `Correções ficam disponíveis até ${CHECKIN_EDIT_LIMIT_LABEL}.`,
-            'A agenda de hoje determina o ritmo de amanhã.',
+            'A Central de Execução de hoje determina o ritmo de amanhã.',
             'Justificativa obrigatória para itens zerados.',
           ].map(text => (
             <li key={text} className="flex gap-mx-xs">

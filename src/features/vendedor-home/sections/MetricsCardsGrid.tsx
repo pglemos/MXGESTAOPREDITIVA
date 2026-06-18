@@ -10,7 +10,7 @@ interface MetricsCardsGridProps {
 }
 
 /**
- * Grid de 4 KPIs principais do vendedor: produção ontem, agenda, projeção, meta.
+ * Grid de 4 KPIs principais do vendedor: produção ontem, execução, projeção, meta.
  * Story 3.4 reconciliada (ADR-0050).
  */
 export function MetricsCardsGrid({
@@ -31,7 +31,7 @@ export function MetricsCardsGrid({
         description="Total de unidades vendidas no dia anterior"
       />
       <MXScoreCard
-        label="Agenda de Hoje"
+        label="Execução Hoje"
         value={agendamentosHoje}
         sub="COMPROMISSOS"
         icon={CalendarDays}

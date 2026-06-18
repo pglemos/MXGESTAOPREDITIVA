@@ -107,7 +107,7 @@ export const DEVELOPMENT_THEMES: Array<{ key: DevelopmentTheme; label: string; a
   { key: 'financiamento', label: 'Financiamento', aliases: ['financiamento', 'ficha', 'credito'] },
   { key: 'carro_de_troca', label: 'Carro de troca', aliases: ['troca', 'avaliacao', 'usado'] },
   { key: 'fechamento', label: 'Fechamento', aliases: ['fechamento', 'negociacao', 'proposta'] },
-  { key: 'funil', label: 'Funil', aliases: ['funil', 'conversao', 'visita'] },
+  { key: 'funil', label: 'Funil de Vendas', aliases: ['funil', 'conversao', 'visita'] },
   { key: 'rotina_diaria', label: 'Rotina diária', aliases: ['rotina', 'diaria', 'checkin', 'puxada'] },
   { key: 'crm', label: 'CRM', aliases: ['crm', 'follow', 'retorno'] },
   { key: 'institucional', label: 'Institucional', aliases: ['institucional', 'historia', 'valores', 'cultura'] },
@@ -119,7 +119,7 @@ const THEME_BY_KEY = new Map(DEVELOPMENT_THEMES.map(theme => [theme.key, theme])
 const DEVELOPMENT_RECOMMENDATION_SOURCE_LABELS: Record<DevelopmentRecommendationSource, string> = {
   feedback: 'Feedback',
   pdi: 'PDI',
-  funil: 'Funil',
+  funil: 'Funil de Vendas',
   manual: 'Curadoria',
   rotina: 'Rotina',
 }

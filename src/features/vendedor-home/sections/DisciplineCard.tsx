@@ -18,7 +18,7 @@ interface DisciplineCardProps {
 }
 
 /**
- * Card "Disciplina de lançamento" — % de puxadas nos últimos 7 dias.
+ * Card "Disciplina do Fechamento" — % de puxadas nos últimos 7 dias.
  * Story 3.4 reconciliada (ADR-0050).
  */
 export function DisciplineCard({ discipline }: DisciplineCardProps) {
@@ -44,7 +44,7 @@ export function DisciplineCard({ discipline }: DisciplineCardProps) {
               tone="muted"
               className="font-bold uppercase tracking-mx-widest"
             >
-              Disciplina de lançamento
+              Disciplina do Fechamento
             </Typography>
             <Typography variant="h2" className="text-2xl sm:text-3xl uppercase tracking-tight">
               {discipline.label}

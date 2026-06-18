@@ -9,7 +9,7 @@ interface RitualHojeCardProps {
 }
 
 /**
- * Card "Ritual de hoje" — atalhos para lançamento, alertas e ajuda.
+ * Card "Ritual de hoje" — atalhos para Fechamento Diário, alertas e ajuda.
  * Story 3.4 reconciliada (ADR-0050).
  */
 export function RitualHojeCard({ hasTodayCheckin }: RitualHojeCardProps) {
@@ -21,7 +21,7 @@ export function RitualHojeCard({ hasTodayCheckin }: RitualHojeCardProps) {
             Ritual de hoje
           </Typography>
           <Typography variant="p" tone="muted" className="text-sm">
-            Primeiro confira o lançamento obrigatório; depois veja alertas e suporte sem sair
+            Primeiro confira o Fechamento Diário obrigatório; depois veja alertas e suporte sem sair
             da rotina.
           </Typography>
         </div>
@@ -33,7 +33,7 @@ export function RitualHojeCard({ hasTodayCheckin }: RitualHojeCardProps) {
           >
             <Link to="/vendedor/terminal-mx">
               <CheckSquare size={16} className="mr-2" />
-              {hasTodayCheckin ? 'Revisar lançamento' : 'Fazer lançamento'}
+              {hasTodayCheckin ? 'Revisar Fechamento' : 'Fazer Fechamento'}
             </Link>
           </Button>
           <Button asChild variant="outline" className="h-mx-12 rounded-mx-xl justify-start bg-white">

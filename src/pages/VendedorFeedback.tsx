@@ -92,12 +92,12 @@ type FeedbackDiagnostic = {
 const MES_CURTO = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ']
 
 const KPI_CARDS = [
-  { icon: <MessageSquare size={22} />, label: 'Feedbacks recebidos', value: '18', detail: 'nos últimos 90 dias', tone: 'blue' as const, action: 'Ver todos' },
+  { icon: <MessageSquare size={22} />, label: 'Feedback recebido', value: '18', detail: 'nos últimos 90 dias', tone: 'blue' as const, action: 'Ver todos' },
   { icon: <ThumbsUp size={22} />, label: 'Positivos', value: '12', detail: '67% do total', tone: 'green' as const, action: 'Ver detalhes' },
   { icon: <TrendingUp size={22} />, label: 'Desenvolvimento', value: '6', detail: '33% do total', tone: 'orange' as const, action: 'Ver detalhes' },
   { icon: <AlertCircle size={22} />, label: 'Pendentes', value: '3', detail: 'aguardando confirmação', tone: 'red' as const, action: 'Ver pendentes' },
   { icon: <ClipboardCheck size={22} />, label: 'Ações obrigatórias', value: '2', detail: 'vinculadas à rotina', tone: 'purple' as const, action: 'Ver ações' },
-  { icon: <CheckCircle2 size={22} />, label: 'Engajamento com feedback', value: '95%', detail: 'feedbacks confirmados', tone: 'green' as const, action: 'Entenda o cálculo' },
+  { icon: <CheckCircle2 size={22} />, label: 'Engajamento com feedback', value: '95%', detail: 'feedback confirmado', tone: 'green' as const, action: 'Entenda o cálculo' },
 ]
 
 const DEMO_ACTIONS: FeedbackActionView[] = [
@@ -715,14 +715,14 @@ function PendingFeedbacksSection({
 }) {
   const navigate = useNavigate()
   return (
-    <section aria-label="Feedbacks pendentes">
+    <section aria-label="Feedback pendente">
       <div className="mb-mx-sm flex items-center gap-mx-sm">
-        <Typography variant="h2" className="text-xl tracking-normal">Feedbacks pendentes</Typography>
+        <Typography variant="h2" className="text-xl tracking-normal">Feedback pendente</Typography>
         <span className="grid h-mx-6 min-w-mx-6 place-items-center rounded-full bg-status-error px-mx-xs text-xs font-black text-white">{feedbacks.length}</span>
       </div>
       <Card className="overflow-hidden rounded-mx-lg border border-border-default bg-white p-0 shadow-none">
         {loading && feedbacks.length === 0 && (
-          <Typography tone="muted" className="p-mx-md">Carregando feedbacks...</Typography>
+          <Typography tone="muted" className="p-mx-md">Carregando feedback...</Typography>
         )}
         {!loading && feedbacks.length === 0 && (
           <div className="p-mx-lg text-center">

@@ -133,7 +133,7 @@ describe('VendedorHome', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByRole('heading', { name: /bom dia, consultor!/i })).toBeInTheDocument()
+expect(screen.getByRole('heading', { name: /bom dia, vendedor!/i })).toBeInTheDocument()
     expect(screen.getByText(/crítico/i)).toBeInTheDocument()
     expect(screen.getByText(/400 \/ 1000 pts/i)).toBeInTheDocument()
     expect(screen.getAllByText(/nenhuma atividade executada ainda/i).length).toBeGreaterThan(0)
@@ -143,7 +143,7 @@ describe('VendedorHome', () => {
     expect(screen.getByText(/3 novos agendamentos/i)).toBeInTheDocument()
     expect(screen.getByText(/2 prospecções/i)).toBeInTheDocument()
     expect(screen.queryByText(/próxima melhor ação/i)).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /^fechar meu dia$/i })).toBeInTheDocument()
+expect(screen.getByRole('link', { name: /^abrir fechamento diário$/i })).toBeInTheDocument()
     expect(screen.getByText(/história, valores e cultura da mx/i)).toBeInTheDocument()
     expect(screen.getAllByText(/nenhum feedback recebido ainda/i)).toHaveLength(1)
     expect(screen.getByText(/ação vinculada, prazo, status e confirmação de leitura/i)).toBeInTheDocument()

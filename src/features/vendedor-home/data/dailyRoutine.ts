@@ -13,7 +13,7 @@ export interface DailyRoutineSlot {
 
 export const DAILY_ROUTINE_SLOTS: DailyRoutineSlot[] = [
   { time: '1', task: 'Energia', desc: 'Foco e preparação da abordagem.' },
-  { time: '2', task: 'Organização', desc: 'Terminal MX e estratégia.' },
+  { time: '2', task: 'Organização', desc: 'Fechamento Diário e estratégia.' },
   { time: '3', task: 'Leads', desc: 'Boas-vindas e classificação.' },
   { time: '4', task: 'Prospecção', desc: 'Carteira e redes sociais.' },
   { time: '5', task: 'Atendimento', desc: 'Execução de agendados.' },
