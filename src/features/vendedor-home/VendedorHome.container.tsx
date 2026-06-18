@@ -20,6 +20,7 @@ import { Link } from 'react-router-dom'
 import { Avatar } from '@/components/atoms/Avatar'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
+import { PageHeading } from '@/components/molecules/PageHeading'
 import { useAuth } from '@/hooks/useAuth'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useVendedorHomePage } from '@/features/vendedor-home/hooks/useVendedorHomePage'
@@ -198,41 +199,16 @@ export function VendedorHome() {
   return (
     <main className="h-full w-full overflow-y-auto bg-surface-alt/40 p-mx-md md:p-mx-xl no-scrollbar">
       <div className="mx-auto flex max-w-[1520px] flex-col gap-mx-lg pb-20">
-        <header className="flex flex-col gap-mx-md border-b border-border-subtle pb-mx-md xl:flex-row xl:items-center xl:justify-between">
-          <div className="min-w-0">
-            <Typography variant="h1" className="text-3xl leading-tight md:text-4xl">
-              {getGreeting()}, {firstName}! 👋
-            </Typography>
-            <Typography variant="p" tone="muted" className="mt-1">
-              Vamos pra cima! Foque nas atividades de hoje e faça acontecer.
-            </Typography>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-mx-sm">
+        <PageHeading
+          title={`${getGreeting()}, ${firstName}! 👋`}
+          subtitle="Vamos pra cima! Foque nas atividades de hoje e faça acontecer."
+          actions={(
             <span className="inline-flex h-12 items-center gap-mx-sm rounded-mx-md border border-border-subtle bg-white px-mx-md text-sm font-semibold capitalize shadow-mx-xs">
               {todayLabel}
               <CalendarDays size={16} className="text-text-tertiary" />
             </span>
-            <HeaderIcon to="/notificacoes" label="Notificações" count={unreadCount} icon={<Bell size={19} />} />
-            <HeaderIcon to="/devolutivas" label="Mensagens e feedbacks" count={feedbacksPendentes} icon={<MessageCircle size={20} />} />
-            <div className="flex items-center gap-mx-sm rounded-mx-md bg-white px-mx-sm py-mx-xs shadow-mx-xs">
-              <Avatar
-                src={profile?.avatar_url || undefined}
-                fallback={profile?.name || 'V'}
-                alt={profile?.name || 'Vendedor'}
-                className="h-11 w-11 rounded-full"
-              />
-              <div className="min-w-[120px]">
-                <Typography variant="p" className="truncate font-semibold text-text-primary">
-                  {profile?.name || 'Vendedor'}
-                </Typography>
-                <Typography variant="tiny" tone="muted">
-                  Vendedor
-                </Typography>
-              </div>
-            </div>
-          </div>
-        </header>
+          )}
+        />
 
         <section className="grid gap-mx-md md:grid-cols-2 xl:grid-cols-5">
           <GoalCard meta={meta} vendidos={vendasMes} projecao={projecao} faltam={faltam} atingimento={atingimento} />
