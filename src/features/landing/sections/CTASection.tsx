@@ -5,7 +5,7 @@ export function CTASection() {
             <div className="cta-mega" data-reveal>
               <div className="cta-grid">
                 <div>                  <h2 id="cta-h">Pare de gerir a loja<br />no <span className="it">improviso.</span></h2>
-                  <p>MX Performance é o sistema operacional para lojas automotivas que conecta lançamento diário, metas, classificação, funil, devolutivas, PDI, treinamentos, relatórios, agenda e consultoria — em uma única plataforma.</p>
+                  <p>MX Performance é o sistema operacional para lojas automotivas que conecta Fechamento Diário, metas, classificação, funil, devolutivas, PDI, treinamentos, relatórios, agenda e consultoria — em uma única plataforma.</p>
                   <div className="hero-ctas">
                     <a className="btn btn-primary" href="/login">Ver o MX Performance em ação <span className="arrow">→</span></a>
                     <a className="btn btn-ghost" href="https://www.instagram.com/mxconsultoriabr" target="_blank" rel="noreferrer">Falar com a MX <span className="arrow">↗</span></a>

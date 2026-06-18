@@ -57,7 +57,7 @@ describe('AlertCard', () => {
     expect(clicked).toBe(true)
   })
 
-  it('renderiza CTA como span quando onQuickAction é omitido', () => {
+  it('renderiza CTA sem callback como ação indisponível', () => {
     render(
       React.createElement(AlertCard, {
         type: 'positive',
@@ -65,8 +65,9 @@ describe('AlertCard', () => {
         quickActionLabel: 'Apenas informativo',
       })
     )
-    expect(screen.queryByRole('button')).toBeNull()
-    expect(screen.getByText(/apenas informativo/i)).toBeInTheDocument()
+    const action = screen.getByRole('button', { name: /apenas informativo/i })
+    expect(action).toHaveAttribute('aria-disabled', 'true')
+    expect(action).toHaveAttribute('tabindex', '-1')
   })
 
   it('exibe título "Crítico" para type=critical', () => {
@@ -87,5 +88,13 @@ describe('AlertCard', () => {
   it('exibe título "Consultivo" para type=consultive', () => {
     render(React.createElement(AlertCard, { type: 'consultive', ...baseProps }))
     expect(screen.getByText('Consultivo')).toBeInTheDocument()
+  })
+
+  it('representa ação rápida sem callback como botão indisponível fora da ordem de foco', () => {
+    render(React.createElement(AlertCard, { type: 'warning', ...baseProps, quickActionLabel: 'Ação Rápida' }))
+
+    const action = screen.getByRole('button', { name: 'Ação Rápida' })
+    expect(action).toHaveAttribute('aria-disabled', 'true')
+    expect(action).toHaveAttribute('tabindex', '-1')
   })
 })

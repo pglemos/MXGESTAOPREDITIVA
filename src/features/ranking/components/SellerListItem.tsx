@@ -43,7 +43,7 @@ export function SellerListItem({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.01 }}
       onClick={() => onSelect(seller.user_id)}
-      className="w-full max-w-full min-w-0 cursor-pointer sm:hover:scale-[1.01] transition-transform"
+      className="w-full max-w-full min-w-0 cursor-pointer transition-transform"
     >
       <Card className={cn(
         "p-mx-lg md:p-mx-xl w-full max-w-full min-w-0 flex flex-col lg:flex-row lg:items-center gap-mx-md lg:gap-mx-10 border-none shadow-mx-lg transition-all relative overflow-hidden",

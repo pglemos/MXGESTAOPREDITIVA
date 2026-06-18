@@ -50,14 +50,16 @@ export default function RemuneracaoPage() {
           title={loading ? 'Carregando lojas…' : 'Selecione uma loja'}
           description="Escolha a loja para gerenciar a remuneração dos cargos."
         />
-      ) : (
-        <>
-          <TabNav tabs={TABS} activeTab={tab} onTabChange={setTab} />
-          {tab === 'cadastro' && <CadastroPlanos lojaId={lojaSelecionada} />}
-          {tab === 'regras' && <CadastroRegras lojaId={lojaSelecionada} />}
-          {tab === 'comparativo' && <ComparativoMercado lojaId={lojaSelecionada} />}
-        </>
-      )}
+) : (
+<>
+<TabNav tabs={TABS} activeTab={tab} onTabChange={setTab} />
+<section id={`${tab}-panel`} role="tabpanel" aria-labelledby={`${tab}-tab`}>
+{tab === 'cadastro' && <CadastroPlanos lojaId={lojaSelecionada} />}
+{tab === 'regras' && <CadastroRegras lojaId={lojaSelecionada} />}
+{tab === 'comparativo' && <ComparativoMercado lojaId={lojaSelecionada} />}
+</section>
+</>
+)}
     </div>
   )
 }

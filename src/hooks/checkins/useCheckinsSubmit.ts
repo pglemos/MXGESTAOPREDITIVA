@@ -41,7 +41,7 @@ export function useCheckinsSubmit(args: UseCheckinsSubmitArgs) {
         const isDaily = scope === 'daily' && finalDate === referenceDate
 
         if (isDaily && !canEditCurrentCheckin()) {
-            return { error: `Lançamentos diários ficam disponíveis somente até ${CHECKIN_EDIT_LIMIT_LABEL}.` }
+            return { error: `Fechamentos diários ficam disponíveis somente até ${CHECKIN_EDIT_LIMIT_LABEL}.` }
         }
 
         const normalizeText = (str?: string | null) => {

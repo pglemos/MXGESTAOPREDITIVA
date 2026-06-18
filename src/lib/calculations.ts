@@ -4,7 +4,7 @@
 
 import type { DailyCheckin, CheckinTotals, FunnelData, FunnelDiagnostic, Benchmark, CheckinFormData, StoreMetaRules } from '@/types/database'
 
-/** Calcula totais de lançamento diário (agd_total, vnd_total) */
+/** Calcula totais de Fechamento Diário (agd_total, vnd_total) */
 export function calcularTotais(c: Partial<DailyCheckin> | CheckinFormData): CheckinTotals {
     // Se for FormData (nomes simples)
     if ('leads' in c) {
@@ -139,7 +139,7 @@ export function gerarDiagnosticoMX(funil: FunnelData, isVendaLoja = false, rules
         return {
             gargalo: 'SEM_DADOS',
             diagnostico: 'Sem dados suficientes para diagnóstico.',
-            sugestao: 'Realizar lançamento diário regularmente para gerar dados de funil.'
+            sugestao: 'Realizar Fechamento Diário regularmente para gerar dados de funil.'
         }
     }
 

@@ -20,7 +20,7 @@ function safeHash(value: unknown) {
  * nao eh acessivel para o role do usuario logado (evita loop 403).
  */
 function defaultRedirectForRole(role: UserRole | null | undefined): string {
-  if (role === 'vendedor') return '/home'
+  if (role === 'vendedor') return '/terminal-mx'
   if (role === 'gerente') return '/home'
   if (role === 'dono') return '/lojas'
   // administrador_*, consultor_mx

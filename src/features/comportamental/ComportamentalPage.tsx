@@ -21,7 +21,9 @@ export default function ComportamentalPage() {
         description="Aplique o teste no onboarding e construa o banco de perfis vencedores."
       />
       <TabNav tabs={TABS} activeTab={tab} onTabChange={setTab} />
-      {tab === 'teste' ? <TesteComportamental /> : <BancoTalentos />}
+      <section id={`${tab}-panel`} role="tabpanel" aria-labelledby={`${tab}-tab`}>
+        {tab === 'teste' ? <TesteComportamental /> : <BancoTalentos />}
+      </section>
     </div>
   )
 }

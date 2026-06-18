@@ -13,6 +13,18 @@ describe("Avatar", () => {
     expect(screen.getByText("JD")).toBeDefined();
   });
 
+  test("uses fallback name as accessible image name when alt is omitted", () => {
+    render(<Avatar src="https://example.com/photo.jpg" fallback="Jane Doe" />);
+
+    expect(screen.getByRole("img", { name: "Jane Doe" })).toBeDefined();
+  });
+
+  test("exposes fallback initials as an accessible image", () => {
+    render(<Avatar fallback="Jane Doe" />);
+
+    expect(screen.getByRole("img", { name: "Jane Doe" })).toBeDefined();
+  });
+
   test("renders image when src provided", () => {
     render(<Avatar src="https://example.com/photo.jpg" alt="User photo" />);
     const img = screen.getByRole("img");

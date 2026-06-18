@@ -31,7 +31,7 @@ export function GlobalRankingHeader({
   onRefresh, isRefetching, lastUpdatedAt,
 }: Props) {
   return (
-    <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
+<header className="flex min-w-0 flex-col 2xl:flex-row 2xl:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
       <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
         <div className="flex items-center justify-center lg:justify-start gap-mx-sm">
           <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
@@ -42,7 +42,7 @@ export function GlobalRankingHeader({
         </Typography>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full lg:w-auto">
+<div className="flex min-w-0 flex-col items-center gap-mx-sm shrink-0 w-full sm:flex-row sm:flex-wrap sm:justify-center 2xl:w-auto 2xl:justify-end">
         <div className="grid grid-cols-1 sm:flex w-full sm:w-auto bg-white p-1.5 rounded-2xl border border-border-default shadow-mx-sm mr-0 sm:mr-4 gap-mx-xs" role="tablist" aria-label="Modo da classificação">
           <button type="button" role="tab" aria-selected={viewMode === 'leaderboard'} onClick={() => onChangeViewMode('leaderboard')} className={cn("px-4 py-2 rounded-xl text-mx-tiny font-bold uppercase tracking-wider transition-all flex items-center justify-center whitespace-nowrap gap-mx-xs", viewMode === 'leaderboard' ? 'bg-mx-black text-brand-primary shadow-lg' : 'text-text-tertiary hover:bg-white/60')}>
             <Trophy size={14} /> Ranking
@@ -55,8 +55,8 @@ export function GlobalRankingHeader({
           </button>
         </div>
 
-        <div className="flex items-center gap-mx-sm w-full sm:w-auto order-1 sm:order-none">
-          <LastUpdated value={lastUpdatedAt} className="hidden xl:inline-flex" />
+<div className="order-1 flex w-full min-w-0 flex-wrap items-center justify-center gap-mx-sm sm:order-none 2xl:w-auto 2xl:justify-end">
+<LastUpdated value={lastUpdatedAt} className="hidden 2xl:inline-flex" />
           <Button
             variant="outline"
             onClick={onToggleHideStoreNames}

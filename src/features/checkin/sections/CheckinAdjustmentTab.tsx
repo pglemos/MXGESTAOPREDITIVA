@@ -47,7 +47,7 @@ const ADJUSTMENT_REASONS = [
   'Ajuste de contagem',
   'Erro operacional',
   'Duplicidade removida',
-  'Lançamento esquecido',
+  'Fechamento esquecido',
   'Outro',
 ]
 

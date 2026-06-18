@@ -80,13 +80,14 @@ describe('route access matrix', () => {
     expect(canAccessPath('/rota-inexistente', 'vendedor')).toBe(false)
   })
 
-  it('gates configurations and PDI print by capability-level role groups', () => {
+  it('gates privileged configurations and PDI print by capability-level role groups', () => {
     expect(canAccessPath('/configuracoes', 'administrador_mx')).toBe(true)
     expect(canAccessPath('/configuracoes', 'dono')).toBe(true)
     expect(canAccessPath('/configuracoes', 'gerente')).toBe(true)
-    expect(canAccessPath('/configuracoes', 'vendedor')).toBe(false)
+    expect(canAccessPath('/configuracoes', 'vendedor')).toBe(true)
     expect(canAccessPath('/settings', 'dono')).toBe(true)
     expect(canAccessPath('/settings', 'vendedor')).toBe(false)
+    expect(canAccessPath('/configuracoes/operacional', 'vendedor')).toBe(false)
     expect(canAccessPath('/produtos', 'gerente')).toBe(true)
     expect(canAccessPath('/produtos', 'vendedor')).toBe(false)
     expect(canAccessPath('/pdi/abc/print', 'gerente')).toBe(true)
@@ -103,7 +104,7 @@ describe('route access matrix', () => {
   it('stores capability metadata on sensitive route rules', () => {
     expect(getRouteAccessRule('/simulacao/vendedor')?.capability).toBe('simulate_role')
     expect(getRouteAccessRule('/produtos')?.capability).toBe('view_products')
-    expect(getRouteAccessRule('/configuracoes')?.capability).toBe('view_configurations')
+    expect(getRouteAccessRule('/settings')?.capability).toBe('view_configurations')
     expect(getRouteAccessRule('/pdi/abc/print')?.capability).toBe('print_pdi')
   })
 
@@ -116,7 +117,15 @@ describe('route access matrix', () => {
       '/vendedor/feedback',
       '/vendedor/devolutivas',
       '/vendedor/treinamentos',
-      '/vendedor/terminal-mx',
+'/vendedor/terminal-mx',
+'/meu-dia',
+'/fechamento-diario',
+'/terminal-mx',
+      '/central-de-execucao',
+      '/funil-comercial',
+      '/relatorios',
+      '/feedbacks',
+      '/consultor-ia',
     ]) {
       expect(canAccessPath(route, 'vendedor')).toBe(true)
       expect(getRouteAccessRule(route)).not.toBeNull()
@@ -125,6 +134,7 @@ describe('route access matrix', () => {
     expect(canAccessPath('/vendedor/terminal-mx', 'gerente')).toBe(false)
     expect(canAccessPath('/vendedor/configuracoes', 'vendedor')).toBe(true)
     expect(canAccessPath('/vendedor/configuracoes', 'gerente')).toBe(false)
-    expect(canAccessPath('/configuracoes', 'vendedor')).toBe(false)
+    expect(canAccessPath('/configuracoes', 'vendedor')).toBe(true)
+    expect(canAccessPath('/configuracoes/operacional', 'vendedor')).toBe(false)
   })
 })

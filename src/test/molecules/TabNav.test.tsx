@@ -44,4 +44,20 @@ describe("TabNav", () => {
 
     expect(selected).toBe("files");
   });
+
+  test("links tabs to controlled panels when panel ids are provided", () => {
+    render(
+      <TabNav
+        tabs={[
+          { key: "overview", label: "Visão Geral", controls: "overview-panel" },
+          { key: "files", label: "Arquivos", controls: "files-panel" },
+        ]}
+        activeTab="overview"
+        onTabChange={() => {}}
+      />
+    );
+
+    expect(screen.getByRole("tab", { name: "Visão Geral" }).getAttribute("aria-controls")).toBe("overview-panel");
+    expect(screen.getByRole("tab", { name: "Arquivos" }).getAttribute("aria-controls")).toBe("files-panel");
+  });
 });

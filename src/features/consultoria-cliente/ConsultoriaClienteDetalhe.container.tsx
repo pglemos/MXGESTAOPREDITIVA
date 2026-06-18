@@ -116,17 +116,19 @@ export function ConsultoriaClienteDetalhe() {
 
       <TabNav tabs={TABS} activeTab={activeTab} onTabChange={handleTabChange} />
 
-      <TabContentRouter
-        activeTab={activeTab}
-        client={client}
-        clientId={clientId!}
-        clientSlug={clientSlug}
-        resolvedStoreId={resolvedStoreId}
-        canManage={canManage}
-        methodologySteps={methodologySteps}
-        onOpenLegacyCompletion={legacyApi.openLegacyCompletionModal}
-        onOpenVisitModal={visitFormApi.openVisitModal}
-      />
+      <section id={`${activeTab}-panel`} role="tabpanel" aria-labelledby={`${activeTab}-tab`}>
+        <TabContentRouter
+          activeTab={activeTab}
+          client={client}
+          clientId={clientId!}
+          clientSlug={clientSlug}
+          resolvedStoreId={resolvedStoreId}
+          canManage={canManage}
+          methodologySteps={methodologySteps}
+          onOpenLegacyCompletion={legacyApi.openLegacyCompletionModal}
+          onOpenVisitModal={visitFormApi.openVisitModal}
+        />
+      </section>
 
       <LegacyCompletionModal
         open={legacyApi.showLegacyCompletionModal}

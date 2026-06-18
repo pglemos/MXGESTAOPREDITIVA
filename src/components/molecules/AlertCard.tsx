@@ -124,17 +124,24 @@ export const AlertCard = React.forwardRef<HTMLDivElement, AlertCardProps>(
                     className={cn(
                       'inline-flex items-center gap-1.5 text-sm font-bold px-3 py-1.5 rounded-mx-lg transition-colors',
                       'bg-white border border-border-strong hover:bg-surface-alt',
-                      'focus:outline-none focus:ring-2 focus:ring-offset-1',
-                      type === 'critical' && 'focus:ring-status-error',
-                      type === 'warning' && 'focus:ring-status-warning',
-                      type === 'positive' && 'focus:ring-status-success',
-                      type === 'consultive' && 'focus:ring-alert-consultive'
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1',
+                      type === 'critical' && 'focus-visible:ring-status-error',
+                      type === 'warning' && 'focus-visible:ring-status-warning',
+                      type === 'positive' && 'focus-visible:ring-status-success',
+                      type === 'consultive' && 'focus-visible:ring-alert-consultive'
                     )}
                   >
                     {quickActionLabel} <span aria-hidden="true">→</span>
                   </button>
                 ) : (
-                  <span className="text-sm italic text-text-tertiary">{quickActionLabel}</span>
+                  <span
+                    role="button"
+                    aria-disabled="true"
+                    tabIndex={-1}
+                    className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-mx-lg border border-border-subtle bg-surface-alt px-3 py-1.5 text-sm font-bold text-text-tertiary"
+                  >
+                    {quickActionLabel}
+                  </span>
                 )}
               </div>
             )}

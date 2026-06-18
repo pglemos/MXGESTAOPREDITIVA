@@ -135,8 +135,8 @@ export function OperacionalLojaTab({ isReadOnly }: TabContext) {
                         <div className="space-y-mx-md">
                             {[
                                 { label: 'Diagnóstico detalhado', desc: 'Registro ampliado de eventos operacionais para suporte técnico', field: 'audit_mode' },
-                                { label: 'Lançamento Diário Estrito', desc: 'Bloquear cockpit sem registro matinal obrigatório', field: 'strict_checkin' },
-                                { label: 'Lançamento Manual Retroativo', desc: 'Autorizar gerência a retroagir dados (falha sistêmica)', field: 'allow_manual_retro' },
+                                { label: 'Fechamento Diário Estrito', desc: 'Bloquear cockpit sem Fechamento Diário obrigatório', field: 'strict_checkin' },
+                               { label: 'Fechamento Retroativo', desc: 'Autorizar gerência a retroagir dados (falha sistêmica)', field: 'allow_manual_retro' },
                             ].map(s => (
                                 <ToggleRow
                                     key={s.field}

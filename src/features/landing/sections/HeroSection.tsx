@@ -33,7 +33,7 @@ export function HeroSection({ heroVapourRef, consoleRef }: Props) {
               </span>
             </h1>
             <p className="hero-sub" data-reveal data-reveal-delay="3">
-              MX Performance é o <b>sistema operacional</b> que conecta lançamento diário, metas, ranking,
+              MX Performance é o <b>sistema operacional</b> que conecta Fechamento Diário, metas, ranking,
               funil, devolutivas, PDI, treinamentos, agenda e consultoria — em um único ambiente. Menos
               achismo. Menos planilha. <b>Mais rotina, dados e cobrança inteligente.</b>
             </p>

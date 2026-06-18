@@ -43,7 +43,7 @@ export default function MinhaRemuneracaoPage() {
           icon={<AlertTriangle size={28} />}
           title="Não foi possível carregar sua remuneração"
           description="Tente novamente em alguns minutos. Se o problema continuar, procure seu gerente, dono ou Admin MX."
-          action={<Button asChild><Link to="/home">Voltar para Meu Dia</Link></Button>}
+          action={<Button asChild><Link to="/terminal-mx">Voltar para Fechamento Diário</Link></Button>}
         />
       </PageShell>
     )
@@ -59,7 +59,7 @@ export default function MinhaRemuneracaoPage() {
           icon={<Wallet size={28} />}
           title="Remuneração pendente"
           description="O plano de remuneração do cargo Vendedor ainda não foi cadastrado para sua loja. Procure seu gerente, dono ou Admin MX."
-          action={<Button asChild><Link to="/home">Voltar para Meu Dia</Link></Button>}
+          action={<Button asChild><Link to="/terminal-mx">Voltar para Fechamento Diário</Link></Button>}
         />
       </PageShell>
     )
@@ -73,7 +73,7 @@ export default function MinhaRemuneracaoPage() {
           subtitle="Acompanhe como seu plano, suas vendas e sua meta formam a remuneração estimada do mês."
           breadcrumb={
             <nav aria-label="Breadcrumb" className="flex items-center gap-mx-xs text-xs font-bold uppercase tracking-widest text-text-tertiary">
-              <Link to="/home" className="text-brand-primary hover:underline">Meu Dia</Link>
+              <Link to="/terminal-mx" className="text-brand-primary hover:underline">Fechamento Diário</Link>
               <span aria-hidden="true">/</span>
               <span>Minha Remuneração</span>
             </nav>
@@ -82,7 +82,7 @@ export default function MinhaRemuneracaoPage() {
             <Button asChild variant="outline">
               <Link to="/home">
                 <ArrowLeft size={16} className="mr-2" />
-                Voltar para Meu Dia
+                Voltar para Fechamento Diário
               </Link>
             </Button>
           }

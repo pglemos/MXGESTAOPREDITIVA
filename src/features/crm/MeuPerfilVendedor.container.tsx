@@ -613,11 +613,11 @@ export function MeuPerfilVendedor() {
               <MetricBox label="Média mensal" value={String(metrics?.vendasMes || 0)} />
               <MetricBox label="Melhor mês" value={String(metrics?.vendasMes || 0)} />
             </div>
-            <div className="mt-mx-md flex items-center justify-between gap-mx-md">
+            <div className="mt-mx-md flex flex-col items-stretch gap-mx-sm sm:flex-row sm:items-center sm:justify-between sm:gap-mx-md">
               <Typography variant="caption" tone="muted">
                 Histórico preservado por CPF/e-mail para portabilidade futura.
               </Typography>
-              <Button type="button" variant="ghost" size="sm" onClick={() => navigate('/relatorios-vendedor')}>
+              <Button type="button" variant="ghost" size="sm" className="w-full sm:w-auto" onClick={() => navigate('/relatorios-vendedor')}>
                 Ver histórico completo
               </Button>
             </div>
@@ -631,11 +631,11 @@ export function MeuPerfilVendedor() {
               <MetricBox label="Categorias dominadas" value="SUV, Seminovo" />
               <MetricBox label="Score histórico" value={meuScore ? String(meuScore.value) : 'Não informado'} />
             </div>
-            <div className="mt-mx-md flex items-center justify-between gap-mx-md">
+            <div className="mt-mx-md flex flex-col items-stretch gap-mx-sm sm:flex-row sm:items-center sm:justify-between sm:gap-mx-md">
               <Typography variant="caption" tone="muted">
                 Currículo profissional será usado futuramente no Mercado de Trabalho, se permitido.
               </Typography>
-              <Button type="button" variant="outline" size="sm" onClick={printProfessionalProfile}>
+              <Button type="button" variant="outline" size="sm" className="w-full sm:w-auto" onClick={printProfessionalProfile}>
                 Gerar perfil profissional
               </Button>
             </div>

@@ -42,15 +42,17 @@ export default function OrganogramaPage() {
         }
       />
 
-      <TabNav tabs={TABS} activeTab={tab} onTabChange={setTab} />
+<TabNav tabs={TABS} activeTab={tab} onTabChange={setTab} />
 
-      {tab === 'carreira' ? (
-        <PlanoCarreira />
-      ) : !lojaSelecionada ? (
-        <EmptyState icon={<Network size={28} />} title={loading ? 'Carregando lojas…' : 'Selecione uma loja'} description="Escolha a loja para montar o organograma." />
-      ) : (
-        <OrganogramaVisual lojaId={lojaSelecionada} />
-      )}
-    </div>
+<section id={`${tab}-panel`} role="tabpanel" aria-labelledby={`${tab}-tab`}>
+{tab === 'carreira' ? (
+<PlanoCarreira />
+) : !lojaSelecionada ? (
+<EmptyState icon={<Network size={28} />} title={loading ? 'Carregando lojas…' : 'Selecione uma loja'} description="Escolha a loja para montar o organograma." />
+) : (
+<OrganogramaVisual lojaId={lojaSelecionada} />
+)}
+</section>
+</div>
   )
 }

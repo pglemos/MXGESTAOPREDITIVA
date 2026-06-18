@@ -651,8 +651,8 @@ function LinkedActionsSection({
         </Typography>
       </div>
       <Card className="overflow-hidden rounded-mx-lg border border-border-default bg-white p-0 shadow-none">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[980px] text-left text-sm">
+        <div className="max-w-full overflow-x-auto overscroll-x-contain">
+          <table className="w-full min-w-[820px] text-left text-sm lg:min-w-[980px]">
             <thead className="bg-surface-alt text-xs uppercase text-text-secondary">
               <tr>
                 {['Ação', 'Origem', 'Competência', 'Meta', 'Progresso', 'Prazo', 'Status', 'Ações'].map(header => (
@@ -892,8 +892,8 @@ function HistorySection({ feedbacks }: { feedbacks: FeedbackView[] }) {
         <Typography variant="h2" className="text-xl tracking-normal">Histórico de feedbacks</Typography>
       </div>
       <Card className="overflow-hidden rounded-mx-lg border border-border-default bg-white p-0 shadow-none">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1120px] text-left text-sm">
+        <div className="max-w-full overflow-x-auto overscroll-x-contain">
+          <table className="w-full min-w-[860px] text-left text-sm lg:min-w-[1120px]">
             <thead className="bg-surface-alt text-xs uppercase text-text-secondary">
               <tr>
                 {['Data', 'Tipo', 'Competência', 'Motivo / Caso', 'Ação vinculada', 'Responsável', 'Confirmado em', 'Meu comentário', 'Status'].map(header => (

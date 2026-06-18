@@ -20,7 +20,7 @@ export function ModulosSection() {
               </div>
               <div className="mli">
                 <div className="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="9" cy="7" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 21c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M14 21c0-2.5 1.6-4.7 4-5.6"/></svg></div>
-                <div><h6>Gestão de equipe</h6><p>Papéis (admin, MX, dono, gerente, vendedor), vigência, status ativo e presença no lançamento diário.</p></div>
+                <div><h6>Gestão de equipe</h6><p>Papéis (admin, MX, dono, gerente, vendedor), vigência, status ativo e presença no Fechamento Diário.</p></div>
               </div>
               <div className="mli">
                 <div className="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l5 3"/></svg></div>

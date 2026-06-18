@@ -24,6 +24,7 @@ import {
 import { cn, slugify } from '@/lib/utils'
 import { Typography } from './atoms/Typography'
 import { Avatar } from './atoms/Avatar'
+import SellerLayoutShell from './SellerSidebar'
 import MxLogo from '@/assets/mx-logo.png'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { ForcePasswordChange } from '@/features/auth/components/ForcePasswordChange'
@@ -101,10 +102,9 @@ const categoryDescriptions: Record<string, string> = {
   COMERCIAL: 'Home, equipe, agenda, funil, negociações, metas e relatórios.',
   PESSOAS: 'Feedbacks e desenvolvimento da equipe.',
   FERRAMENTAS: 'Universidade MX, biblioteca e consultor inteligente.',
-  'Meu Dia': 'Agenda, funil, meta, fechamento diário e performance pessoal.',
-  'MEU DIA': 'Meu dia, terminal, central, carteira, funil e relatórios.',
+  OPERAÇÃO: 'Fechamento Diário, Central de Execução, carteira, funil e relatórios.',
   'EVOLUÇÃO': 'Feedback, PDI, treinamento e ranking.',
-  CONTA: 'Meu perfil e configurações.',
+  CONTA: 'Meu Perfil e configurações.',
 }
 
 const navegacaoInternaMx: NavCategory[] = [
@@ -222,9 +222,8 @@ const navConfig: Record<string, NavCategory[]> = {
   vendedor: [
     {
       // Agrupado por domínio (espelha o padrão Gerente/Admin) para evitar stack plano de 13 itens.
-      category: 'MEU DIA', icon: <Home size={22} />,
+      category: 'OPERAÇÃO', icon: <CheckSquare size={22} />,
       items: [
-        { label: 'Meu Dia', path: '/home', icon: <Home size={16} /> },
         { label: 'Fechamento Diário', path: '/vendedor/terminal-mx', icon: <CheckSquare size={16} /> },
         { label: 'Central de Execução', path: '/central-execucao', icon: <CalendarCheck size={16} /> },
         { label: 'Carteira de Clientes', path: '/carteira-clientes', icon: <Users size={16} /> },
@@ -362,6 +361,26 @@ const location = useLocation()
     )
   }
 
+  if (role === 'vendedor') {
+    return (
+      <SellerLayoutShell
+        profileName={profile.name}
+        avatarUrl={profile.avatar_url}
+        onSignOut={signOut}
+        isSimulating={isSimulating}
+        simulationLabel={simulationRole ? rotulosPerfil[simulationRole] : 'MX'}
+        simulationBase={perfilBaseVisivel}
+        simulationStore={membership?.store?.name || 'Sandbox MX'}
+        onStopSimulation={() => {
+          stopSimulation()
+          navigate('/painel', { replace: true })
+        }}
+      >
+        <Outlet />
+      </SellerLayoutShell>
+    )
+  }
+
   const handleGlobalSearch = () => {
     setNavigationSearch('')
     if (categories[0]) setActiveCategory(categories[0].category)
@@ -386,20 +405,8 @@ const location = useLocation()
             setMobileMenuOpen(false)
             navigate(storeConsultorIaPath)
           },
-        }
-    : role === 'vendedor'
-      ? {
-          label: 'Consultor IA',
-          description: 'Mesma orientação consultiva da loja',
-          buttonLabel: 'Perguntar',
-          icon: <Bot size={18} aria-hidden="true" />,
-          onClick: () => {
-            setIsDrawerOpen(false)
-            setMobileMenuOpen(false)
-            navigate(storeConsultorIaPath)
-          },
-        }
-      : null
+}
+: null
 
   return (
     <div className="min-h-screen bg-surface-alt flex flex-col">
@@ -496,7 +503,7 @@ role="banner"
 
 <div
 className={cn(
-  'flex flex-1 relative gap-mx-sm p-mx-sm pb-mx-12 md:p-mx-sm',
+  'flex flex-1 relative gap-mx-sm p-mx-sm pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:p-mx-sm md:pb-mx-sm',
 )}
 >
 
@@ -570,7 +577,7 @@ className={cn(
         </aside>
 
         {/* Workspace Root */}
-        <main className="flex-1 bg-white border border-border-default rounded-mx-3xl relative shadow-mx-sm overflow-hidden" id="main-content" role="main" tabIndex={-1}>
+        <main className="min-w-0 flex-1 bg-white border border-border-default rounded-mx-3xl relative shadow-mx-sm overflow-hidden" id="main-content" role="main" tabIndex={-1}>
           <Outlet />
         </main>
 
@@ -601,7 +608,7 @@ className={cn(
                 </button>
               </div>
               <div className="border-b border-border-subtle p-mx-sm">
-                <label className="relative block">
+                <label className="relative block w-full max-w-full min-w-0">
                   <span className="sr-only">Buscar módulo</span>
                   <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" aria-hidden="true" />
                   <input
@@ -610,7 +617,7 @@ className={cn(
                     value={navigationSearch}
                     onChange={(event) => setNavigationSearch(event.target.value)}
                     placeholder="Buscar módulo"
-                    className="h-mx-11 w-full rounded-mx-lg border border-border-default bg-white pl-mx-xl pr-mx-sm text-sm font-bold text-text-primary outline-none transition-all placeholder:text-text-tertiary focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10"
+                    className="h-11 w-full max-w-full min-w-0 rounded-mx-lg border border-border-default bg-white pl-mx-xl pr-mx-sm text-sm font-bold text-text-primary outline-none transition-all placeholder:text-text-tertiary focus-visible:border-brand-primary focus-visible:ring-4 focus-visible:ring-brand-primary/10"
                   />
                 </label>
               </div>
@@ -706,7 +713,7 @@ className={cn(
               </div>
 
               <div className="space-y-mx-md">
-                <label className="relative block">
+                <label className="relative block w-full max-w-full min-w-0">
                   <span className="sr-only">Buscar módulo</span>
                   <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" aria-hidden="true" />
                   <input
@@ -715,7 +722,7 @@ className={cn(
                     value={navigationSearch}
                     onChange={(event) => setNavigationSearch(event.target.value)}
                     placeholder="Buscar módulo"
-                    className="h-mx-12 w-full rounded-mx-xl border border-border-default bg-surface-alt pl-mx-xl pr-mx-sm text-sm font-bold text-text-primary outline-none transition-all placeholder:text-text-tertiary focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10"
+                    className="h-12 w-full max-w-full min-w-0 rounded-mx-xl border border-border-default bg-surface-alt pl-mx-xl pr-mx-sm text-sm font-bold text-text-primary outline-none transition-all placeholder:text-text-tertiary focus-visible:border-brand-primary focus-visible:ring-4 focus-visible:ring-brand-primary/10"
                   />
                 </label>
                 {filteredCategories.map(cat => (
@@ -779,39 +786,27 @@ className={cn(
       </AnimatePresence>
 
       {/* Mobile Bar - Semantic Nav */}
-      <nav className="md:hidden fixed left-mx-sm right-mx-sm h-mx-16 bg-mx-black shadow-2xl rounded-mx-2xl z-50 flex items-center px-mx-sm py-mx-tiny border border-white/10 overflow-hidden" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.5rem)' }} aria-label="Barra de Navegação Rápida">
-        <div className="grid w-full grid-cols-5 items-center gap-mx-tiny relative z-10">
+          <nav className="md:hidden fixed left-mx-sm right-mx-sm h-mx-16 bg-mx-black shadow-2xl rounded-mx-2xl z-50 flex items-center px-1 py-mx-tiny border border-white/10 overflow-hidden min-[375px]:px-mx-sm" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.5rem)' }} aria-label="Barra de Navegação Rápida">
+          <div className="grid w-full grid-cols-5 items-center gap-0 min-[375px]:gap-mx-tiny relative z-10">
           <NavLink
-            to={role === 'vendedor' ? '/home' : isPerfilInternoMx(role) ? '/painel' : role === 'gerente' || role === 'dono' ? storeDashboardPath : '/lojas'}
+to={isPerfilInternoMx(role) ? '/painel' : role === 'gerente' || role === 'dono' ? storeDashboardPath : '/lojas'}
             aria-label="Início"
-            aria-current={location.pathname === (role === 'vendedor' ? '/home' : isPerfilInternoMx(role) ? '/painel' : role === 'gerente' || role === 'dono' ? storeDashboardPath : '/lojas') ? 'page' : undefined}
-            className="min-w-0 h-mx-12 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+aria-current={location.pathname === (isPerfilInternoMx(role) ? '/painel' : role === 'gerente' || role === 'dono' ? storeDashboardPath : '/lojas') ? 'page' : undefined}
+            className="min-w-0 h-11 min-[375px]:h-mx-12 flex flex-col items-center justify-center gap-0 min-[375px]:gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
           >
-            {role === 'vendedor' ? <Home size={20} /> : <LayoutDashboard size={20} />}
-            <span className="max-w-full truncate text-mx-micro font-black uppercase leading-none">Início</span>
+<LayoutDashboard size={20} />
+            <span className="max-w-full truncate text-[9px] min-[375px]:text-mx-micro font-black uppercase leading-none">Início</span>
           </NavLink>
           
-          {role === 'vendedor' && (
-            <NavLink
-              to="/vendedor/terminal-mx"
-              aria-label="Abrir Fechamento Diário"
-              aria-current={isCheckinRoute ? 'page' : undefined}
-              className="min-w-0 h-mx-12 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
-            >
-              <CheckSquare size={20} />
-              <span className="max-w-full truncate text-mx-micro font-semibold uppercase leading-none">Fechar</span>
-            </NavLink>
-          )}
-
-          {(role === 'gerente' || role === 'dono' || isPerfilInternoMx(role)) && (
+{(role === 'gerente' || role === 'dono' || isPerfilInternoMx(role)) && (
             <NavLink 
               to={role === 'dono' ? ownerSectionPath('plano-acao') : isPerfilInternoMx(role) ? '/lojas' : storeTeamPath}
               aria-label={role === 'dono' ? 'Abrir plano de ação' : 'Gerir Equipe'}
               aria-current={location.pathname === storeDashboardPath && new URLSearchParams(location.search).get('tab') === 'equipe' ? 'page' : undefined}
-              className="min-w-0 h-mx-12 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+              className="min-w-0 h-11 min-[375px]:h-mx-12 flex flex-col items-center justify-center gap-0 min-[375px]:gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
             >
               {role === 'dono' ? <ClipboardList size={20} /> : <Users size={20} />}
-              <span className="max-w-full truncate text-mx-micro font-black uppercase leading-none">{role === 'dono' ? 'Ações' : isPerfilInternoMx(role) ? 'Lojas' : 'Equipe'}</span>
+              <span className="max-w-full truncate text-[9px] min-[375px]:text-mx-micro font-black uppercase leading-none">{role === 'dono' ? 'Ações' : isPerfilInternoMx(role) ? 'Lojas' : 'Equipe'}</span>
             </NavLink>
           )}
 
@@ -819,30 +814,30 @@ className={cn(
             type="button" 
             aria-label="Abrir menu mobile" 
             onClick={() => setMobileMenuOpen(true)} 
-            className="min-w-0 h-mx-12 rounded-mx-xl bg-brand-primary text-white flex flex-col items-center justify-center gap-mx-tiny shadow-mx-lg transform -translate-y-1 active:scale-90 transition-all border-4 border-pure-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/40"
+           className="min-w-0 h-11 min-[375px]:h-mx-12 rounded-mx-xl bg-brand-primary text-white flex flex-col items-center justify-center gap-0 min-[375px]:gap-mx-tiny shadow-mx-lg transform -translate-y-1 active:scale-90 transition-all border-4 border-pure-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/40"
           >
             <Menu size={20} aria-hidden="true" />
-            <span className="max-w-full truncate text-mx-micro font-black uppercase leading-none">Menu</span>
+            <span className="max-w-full truncate text-[9px] min-[375px]:text-mx-micro font-black uppercase leading-none">Menu</span>
           </button>
 
             <NavLink
               to="/classificacao"
             aria-label="Ver ranking"
             aria-current={location.pathname === '/classificacao' ? 'page' : undefined}
-            className="min-w-0 h-mx-12 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+            className="min-w-0 h-11 min-[375px]:h-mx-12 flex flex-col items-center justify-center gap-0 min-[375px]:gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
           >
             <Trophy size={20} />
-            <span className="max-w-full truncate text-mx-micro font-black uppercase leading-none">Rank</span>
+            <span className="max-w-full truncate text-[9px] min-[375px]:text-mx-micro font-black uppercase leading-none">Rank</span>
           </NavLink>
 
           <NavLink 
             to="/perfil" 
             aria-label="Meu Perfil" 
             aria-current={location.pathname === '/perfil' ? 'page' : undefined}
-            className="min-w-0 h-mx-12 flex flex-col items-center justify-center gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
+            className="min-w-0 h-11 min-[375px]:h-mx-12 flex flex-col items-center justify-center gap-0 min-[375px]:gap-mx-tiny text-white/70 [&.active]:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded-mx-xl"
           >
             <User size={20} />
-            <span className="max-w-full truncate text-mx-micro font-black uppercase leading-none">Perfil</span>
+            <span className="max-w-full truncate text-[9px] min-[375px]:text-mx-micro font-black uppercase leading-none">Perfil</span>
           </NavLink>
         </div>
       </nav>

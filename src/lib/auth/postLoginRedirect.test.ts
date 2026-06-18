@@ -17,6 +17,10 @@ describe('resolvePostLoginRedirect', () => {
     expect(resolvePostLoginRedirect({})).toBe('/')
   })
 
+  it('sends vendedor to Fechamento Diário by default', () => {
+    expect(resolvePostLoginRedirect(null, 'vendedor')).toBe('/terminal-mx')
+  })
+
   it('rejects login loops and external redirect targets', () => {
     expect(resolvePostLoginRedirect({ from: { pathname: '/login' } })).toBe('/')
     expect(resolvePostLoginRedirect({ from: { pathname: 'https://evil.example' } })).toBe('/')

@@ -21,9 +21,9 @@ const ROLE_OPTIONS: Array<{
   {
     role: 'vendedor',
     title: 'Vendedor',
-    description: 'Home, lançamento diário, histórico, ranking, devolutivas, PDI, treinamentos e produtos.',
+    description: 'Fechamento Diário, histórico, ranking, devolutivas, PDI, treinamentos e produtos.',
     icon: UserRound,
-    startPath: '/home',
+    startPath: '/terminal-mx',
   },
   {
     role: 'gerente',

@@ -741,7 +741,7 @@ function StoreMorningReport() {
                                         ))}
                                     </div>
                                     <Button variant="danger" className="w-full h-mx-xl rounded-mx-xl shadow-mx-lg" onClick={() => {
-                                        const msg = encodeURIComponent(`MX PERFORMANCE — Lembrete de Lançamento Diário!\n\nPendente: ${metrics.pendingSellers.join(', ')}\n\nPreencha seu lançamento diário agora.`)
+                                        const msg = encodeURIComponent(`MX PERFORMANCE — Lembrete de Fechamento Diário!\n\nPendente: ${metrics.pendingSellers.join(', ')}\n\nPreencha seu Fechamento Diário agora.`)
                                         window.open(`https://wa.me/?text=${msg}`, '_blank')
                                     }}>
                                         <Typography variant="tiny" as="span" className="font-black uppercase tracking-widest">Notificar Time</Typography>

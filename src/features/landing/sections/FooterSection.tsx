@@ -16,7 +16,7 @@ export function FooterSection() {
               </div>
               <div>
                 <h6>Plataforma</h6>
-                <a href="#sistema">Terminal MX</a>
+                <a href="#sistema">Fechamento Diário</a>
                 <a href="#sistema">Painel da Loja</a>
                 <a href="#sistema">Ranking</a>
                 <a href="#sistema">Devolutivas</a>

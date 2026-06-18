@@ -734,7 +734,7 @@ function buildMarkdown(draft: Omit<PmrStrategicPlanDraft, 'markdown' | 'payload'
     ...PMR_RISK_CONTINGENCIES.map((risk) => `- ${risk.title}: ${risk.detail}`),
     '',
     `## 10. Acompanhamento e Controle`,
-    `O acompanhamento deve cruzar lançamento diário, fechamento mensal, DRE, metas, plano de ação e evidências das visitas para manter o PMR vivo no sistema.`,
+    `O acompanhamento deve cruzar Fechamento Diário, fechamento mensal, DRE, metas, plano de ação e evidências das visitas para manter o PMR vivo no sistema.`,
   ].join('\n')
 }
 

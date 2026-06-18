@@ -35,7 +35,7 @@ function BarRow({ label, value, max, valueLabel }: { label: string; value: numbe
       <div className="h-3 flex-1 overflow-hidden rounded-full bg-surface-alt">
         <div className="h-full rounded-full bg-brand-secondary" style={{ width: `${Math.max(2, pct)}%` }} />
       </div>
-      <div className="w-24 shrink-0 text-right"><Typography variant="p" className="font-semibold">{valueLabel ?? value}</Typography></div>
+      <div className="min-w-0 text-right sm:w-24 sm:shrink-0"><Typography variant="p" className="break-words font-semibold">{valueLabel ?? value}</Typography></div>
     </div>
   )
 }

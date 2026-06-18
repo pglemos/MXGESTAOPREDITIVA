@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils'
 export interface TabNavItem<T extends string = string> {
   key: T
   label: string
+  controls?: string
 }
 
 interface TabNavProps<T extends string = string> {
@@ -26,22 +27,30 @@ export function TabNav<T extends string = string>({
       )}
       role="tablist"
     >
-      {tabs.map(({ key, label }) => (
-        <button
-          key={key}
-          role="tab"
-          aria-selected={activeTab === key}
-          onClick={() => onTabChange(key)}
-          className={cn(
-            'px-mx-md py-mx-sm text-xs font-black uppercase tracking-mx-widest transition-all border-b-2 whitespace-nowrap',
-            activeTab === key
-              ? 'border-brand-primary text-brand-primary bg-brand-primary/5'
-              : 'border-transparent text-text-tertiary hover:text-text-primary hover:bg-surface-alt'
-          )}
-        >
-          {label}
-        </button>
-      ))}
+      {tabs.map(({ key, label, controls }) => {
+        const tabId = `${String(key)}-tab`
+        const panelId = controls ?? `${String(key)}-panel`
+
+        return (
+          <button
+            key={key}
+            id={tabId}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === key}
+            aria-controls={panelId}
+            onClick={() => onTabChange(key)}
+            className={cn(
+              'px-mx-md py-mx-sm text-xs font-black uppercase tracking-mx-widest transition-all border-b-2 whitespace-nowrap',
+              activeTab === key
+                ? 'border-brand-primary text-brand-primary bg-brand-primary/5'
+                : 'border-transparent text-text-tertiary hover:text-text-primary hover:bg-surface-alt'
+            )}
+          >
+            {label}
+          </button>
+        )
+      })}
     </nav>
   )
 }

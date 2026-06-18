@@ -880,8 +880,8 @@ const hasLoadError = Boolean(
   }
 
   return (
-  <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
-      <div className="flex flex-col gap-mx-lg pb-20">
+<main className="h-full w-full min-w-0 overflow-y-auto bg-surface-alt p-mx-md no-scrollbar sm:p-mx-lg">
+<div className="flex min-w-0 flex-col gap-mx-lg pb-20">
         <PageHeading
           title="Central de Execução"
           subtitle="Sua rotina diária. Organize seu dia e foque no que gera resultado."
@@ -910,7 +910,7 @@ const hasLoadError = Boolean(
         </div>
         )}
 
-      <section className="grid grid-cols-1 gap-mx-sm md:grid-cols-2 xl:grid-cols-[repeat(5,minmax(178px,1fr))_minmax(420px,1.8fr)]" aria-label="Indicadores do dia">
+<section className="grid min-w-0 grid-cols-1 gap-mx-sm md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-[repeat(5,minmax(158px,1fr))_minmax(320px,1.2fr)]" aria-label="Indicadores do dia">
           <MetricCard icon={<CalendarCheck size={24} />} label="Agendamentos Hoje" value={String(metrics.agendamentosHoje)} hint={metrics.agendamentosHoje > 0 ? '100% do dia' : 'Sem ações hoje'} tone="green" />
           <MetricCard icon={<CheckCircle2 size={24} />} label="Compareceram" value={String(metrics.compareceram)} hint={`${metrics.taxaComparecimento}% do dia`} tone="green" />
           <MetricCard icon={<XCircle size={24} />} label="Não Compareceram" value={String(metrics.naoCompareceram)} hint={`${metrics.agendamentosHoje ? Math.round((metrics.naoCompareceram / metrics.agendamentosHoje) * 100) : 0}% do dia`} tone="red" />

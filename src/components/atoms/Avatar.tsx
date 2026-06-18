@@ -66,26 +66,29 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
   ({ className, size, src, alt, fallback, status, ...props }, ref) => {
     const [imgError, setImgError] = React.useState(false)
 
-    const showFallback = !src || imgError
-    const initials = fallback ? getInitials(fallback) : '?'
+  const showFallback = !src || imgError
+  const initials = fallback ? getInitials(fallback) : '?'
+  const accessibleName = alt || fallback || 'Avatar'
 
-    return (
-      <div
-        ref={ref}
-        className={cn(avatarVariants({ size }), className)}
-        {...props}
-      >
-        {showFallback ? (
-          <span className="font-black uppercase text-brand-primary select-none" aria-label={alt || fallback}>
-            {initials}
-          </span>
-        ) : (
-          <img
-            src={src}
-            alt={alt || ''}
-            className="h-full w-full object-cover"
-            onError={() => setImgError(true)}
-          />
+  return (
+    <div
+      ref={ref}
+      role={showFallback ? 'img' : undefined}
+      aria-label={showFallback ? accessibleName : undefined}
+      className={cn(avatarVariants({ size }), className)}
+      {...props}
+    >
+      {showFallback ? (
+        <span className="font-black uppercase text-brand-primary select-none" aria-hidden="true">
+          {initials}
+        </span>
+      ) : (
+        <img
+          src={src}
+          alt={accessibleName}
+          className="h-full w-full object-cover"
+          onError={() => setImgError(true)}
+        />
         )}
         {status && (
           <span className={cn(statusDotVariants({ status, size }))} aria-label={status} />

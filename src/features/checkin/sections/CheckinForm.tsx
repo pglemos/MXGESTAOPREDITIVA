@@ -116,7 +116,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
   }
 
   return (
-<form onSubmit={handleSubmit} className="mt-mx-lg grid w-full gap-mx-md pb-16">
+<form onSubmit={handleSubmit} className="mt-mx-lg grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-mx-md pb-16">
       {(funnelError || inputError) && (
         <CheckinValidationBanner
           metricScope={metricScope}
@@ -126,8 +126,8 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
         />
       )}
 
-      <section className="grid gap-mx-md lg:grid-cols-[1fr_1.45fr_1fr]">
-        <MetricGroupCard title="1. LEADS RECEBIDOS HOJE" columns="grid-cols-2">
+      <section className="grid w-full max-w-full min-w-0 gap-mx-md lg:grid-cols-[1fr_1.45fr_1fr]">
+        <MetricGroupCard title="1. LEADS RECEBIDOS HOJE" columns="grid-cols-1 sm:grid-cols-2">
           <MetricCounterCard
             label="Canal Carteira"
             field="leads_cart"
@@ -146,7 +146,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
           />
         </MetricGroupCard>
 
-        <MetricGroupCard title="2. ATENDIMENTOS HOJE" columns="grid-cols-3">
+        <MetricGroupCard title="2. ATENDIMENTOS HOJE" columns="grid-cols-1 sm:grid-cols-3">
           <MetricCounterCard
             label="Porta"
             field="visitas_porta"
@@ -173,7 +173,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
           />
         </MetricGroupCard>
 
-        <MetricGroupCard title="3. AGENDAMENTO D+1" columns="grid-cols-2">
+      <MetricGroupCard title="3. AGENDAMENTO D+1" columns="grid-cols-1 sm:grid-cols-2">
           <MetricCounterCard
             label="Carteira"
             field="agd_cart"
@@ -333,7 +333,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
         />
       </section>
 
-      <section className="grid gap-mx-md xl:grid-cols-[1.2fr_1.2fr_0.8fr]">
+<section className="grid w-full max-w-full min-w-0 gap-mx-md xl:grid-cols-[1.2fr_1.2fr_0.8fr]">
         <Card className="rounded-mx-xl border border-border-default bg-white p-mx-sm shadow-mx-sm">
           <Typography variant="h2" className="text-base font-semibold">
             Resumo do Dia
@@ -348,7 +348,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
         </Card>
 
         <Card className="rounded-mx-xl border border-border-default bg-white p-mx-sm shadow-mx-sm">
-          <div className="flex items-center gap-mx-md">
+          <div className="flex flex-col items-start gap-mx-md sm:flex-row sm:items-center">
             <div
               className="grid h-24 w-24 shrink-0 place-items-center rounded-full"
               style={{
@@ -359,10 +359,10 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
                 <span className="text-2xl font-semibold tabular-nums">{disciplinePercent}%</span>
               </div>
             </div>
-            <div className="grid flex-1 gap-mx-md md:grid-cols-2">
+            <div className="grid w-full min-w-0 flex-1 gap-mx-md md:grid-cols-2">
               <div>
                 <Typography variant="h3" className="text-base font-semibold">
-                  Disciplina - Fechamento Diario
+                  Disciplina - Fechamento Diário
                 </Typography>
                 <Typography variant="tiny" tone="muted" className="normal-case tracking-normal">
                   Itens concluídos ({completedItems.length})
@@ -408,15 +408,15 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
         </Card>
       </section>
 
-      <div className="rounded-mx-xl border border-border-default bg-white p-mx-sm shadow-mx-sm">
-        <div className="grid gap-mx-md md:grid-cols-[0.45fr_1fr]">
-          <Button type="button" variant="outline" disabled={saving || (!canEditExisting && metricScope === 'daily')} className="h-mx-14">
+<div className="min-w-0 rounded-mx-xl border border-border-default bg-white p-mx-sm shadow-mx-sm">
+<div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-mx-md md:grid-cols-[0.45fr_1fr]">
+<Button type="button" variant="outline" disabled={saving || (!canEditExisting && metricScope === 'daily')} className="h-mx-14 w-full max-w-full">
             <Save size={18} /> Salvar rascunho
           </Button>
           <Button
             type="submit"
             disabled={saving || (!canEditExisting && metricScope === 'daily')}
-            className="h-mx-14 bg-brand-secondary font-semibold uppercase tracking-wide"
+ className="h-mx-14 w-full max-w-full whitespace-normal bg-brand-secondary text-center font-semibold uppercase tracking-wide"
           >
             {saving ? (
               <RefreshCw className="h-mx-lg w-mx-lg animate-spin" />
@@ -445,11 +445,11 @@ function MetricGroupCard({
   children: ReactNode
 }) {
   return (
-    <Card className="rounded-mx-xl border border-border-default bg-white p-mx-md shadow-mx-sm">
+      <Card className="min-w-0 rounded-mx-xl border border-border-default bg-white p-mx-md shadow-mx-sm">
       <Typography variant="h2" className="text-sm font-semibold uppercase tracking-normal">
         {title}
       </Typography>
-      <div className={`mt-mx-sm grid gap-mx-md ${columns}`}>{children}</div>
+      <div className={`mt-mx-sm grid min-w-0 gap-mx-sm sm:gap-mx-md ${columns}`}>{children}</div>
     </Card>
   )
 }
@@ -496,7 +496,7 @@ function MetricCounterCard({
 
   return (
     <div
-      className={`flex min-h-[126px] flex-col items-center justify-between rounded-mx-xl border bg-white p-mx-sm text-center shadow-mx-sm ${
+      className={`flex min-h-[126px] w-full max-w-full min-w-0 flex-col items-center justify-between rounded-mx-xl border bg-white p-mx-xs text-center shadow-mx-sm sm:p-mx-sm ${
         fieldErrors[field]
           ? 'border-status-error/50'
           : changedFields.has(field)

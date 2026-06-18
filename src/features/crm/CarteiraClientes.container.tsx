@@ -260,8 +260,8 @@ export function CarteiraClientes() {
   }
 
   return (
-  <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg text-text-primary no-scrollbar">
-      <div className="flex w-full flex-col gap-mx-xs">
+  <main className="h-full w-full min-w-0 overflow-y-auto bg-surface-alt p-mx-md text-text-primary no-scrollbar sm:p-mx-lg">
+    <div className="flex w-full min-w-0 flex-col gap-mx-xs">
         <PageHeading
           title="Carteira de Clientes"
           subtitle="Acompanhe sua carteira, siga a cadência e conduza cada cliente até a venda."
@@ -370,7 +370,7 @@ export function CarteiraClientes() {
                 </div>
               </div>
 
-              <div className="mt-mx-sm min-h-[405px] overflow-x-auto">
+              <div className="mt-mx-sm max-w-full min-h-[405px] overflow-x-auto overscroll-x-contain rounded-mx-md border border-border-subtle bg-white">
                 {error && <Typography tone="muted" className="text-status-error">{error}</Typography>}
                 {loading ? (
                   <Typography tone="muted">Carregando carteira...</Typography>
@@ -380,7 +380,7 @@ export function CarteiraClientes() {
                     description={carteiraClientes.length === 0 ? 'Adicione seu primeiro cliente para iniciar cadência e próxima ação.' : 'Ajuste a busca ou os filtros.'}
                   />
                 ) : (
-                  <table className="w-full min-w-[1580px] text-left text-xs">
+                <table className="w-full min-w-[1120px] text-left text-xs xl:min-w-[1380px] 2xl:min-w-[1500px]">
                     <thead>
                       <tr className="border-y border-border-subtle bg-surface-alt/40 text-[10px] uppercase tracking-normal text-text-muted">
                         <th scope="col" className="px-mx-sm py-mx-xs font-bold">Cliente</th>

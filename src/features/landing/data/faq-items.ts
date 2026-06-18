@@ -12,7 +12,7 @@ export const FAQ_ITEMS: readonly FaqItem[] = [
     ix: '01',
     question: 'Quanto tempo leva para a equipe entrar na rotina?',
     answer:
-      'A primeira semana já estabiliza o lançamento diário. Em 30 dias, ranking, devolutivas e diagnóstico do funil estão funcionando como ritual. A consultoria acompanha esse onboarding presencialmente ou online.',
+      'A primeira semana já estabiliza o Fechamento Diário. Em 30 dias, ranking, devolutivas e diagnóstico do funil estão funcionando como ritual. A consultoria acompanha esse onboarding presencialmente ou online.',
   },
   {
     ix: '02',
@@ -24,7 +24,7 @@ export const FAQ_ITEMS: readonly FaqItem[] = [
     ix: '03',
     question: 'Os vendedores precisam saber tecnologia?',
     answer:
-      'Não. O Terminal MX é desenhado para o lançamento ser feito em segundos, com janela operacional clara (até 09:30 lançar, até 09:45 editar). Quem usa WhatsApp, usa o Terminal.',
+      'Não. O Fechamento Diário é desenhado para ser feito em segundos, com janela operacional clara (até 09:30 lançar, até 09:45 editar). Quem usa WhatsApp, usa o fluxo de fechamento.',
   },
   {
     ix: '04',

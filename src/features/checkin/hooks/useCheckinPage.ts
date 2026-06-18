@@ -43,7 +43,7 @@ export const CHECKIN_MAX_INPUT_HELP = `O teto ${CHECKIN_MAX_INPUT_VALUE} evita e
 
 /**
  * useCheckinPage — concentra estado, validações, efeitos e handlers da página
- * de lançamento diário. Mantém o comportamento original do `Checkin.tsx`.
+ * de Fechamento Diário. Mantém o comportamento original do `Checkin.tsx`.
  */
 export function useCheckinPage() {
     const navigate = useNavigate()
@@ -277,8 +277,8 @@ export function useCheckinPage() {
             return
         }
         if (!canEditExisting && metricScope === 'daily') {
-            setInputError(`Lançamentos diários ficam bloqueados após ${CHECKIN_EDIT_LIMIT_LABEL}.`)
-            toast.error(`Lançamentos diários ficam bloqueados após ${CHECKIN_EDIT_LIMIT_LABEL}.`); return
+            setInputError(`Fechamentos diários ficam bloqueados após ${CHECKIN_EDIT_LIMIT_LABEL}.`)
+            toast.error(`Fechamentos diários ficam bloqueados após ${CHECKIN_EDIT_LIMIT_LABEL}.`); return
         }
     if (allZero && !form.zero_reason) {
       setFieldError('zero_reason', 'Selecione o motivo da produção zero.')
@@ -335,11 +335,11 @@ export function useCheckinPage() {
 
         setFieldErrors({})
         setSaveNotice({
-            title: totals.vnd_total > 0 ? `${totals.vnd_total} vendas consolidadas.` : 'Lançamento salvo.',
+            title: totals.vnd_total > 0 ? `${totals.vnd_total} vendas consolidadas.` : 'Fechamento salvo.',
             detail: 'Você pode revisar os números, abrir o histórico ou voltar para o início sem espera automática.',
         })
         if (totals.vnd_total > 0) setShowConfetti(true)
-        toast.success(totals.vnd_total > 0 ? `${totals.vnd_total} vendas consolidadas.` : 'Lançamento salvo.')
+        toast.success(totals.vnd_total > 0 ? `${totals.vnd_total} vendas consolidadas.` : 'Fechamento salvo.')
         timerRef.current = setTimeout(() => setShowConfetti(false), 1200)
     }
 

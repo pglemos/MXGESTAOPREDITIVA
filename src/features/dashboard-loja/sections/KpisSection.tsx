@@ -152,7 +152,7 @@ export function KpisSection({
 
       <Card className="p-mx-lg border-none shadow-mx-lg bg-white">
         <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny">
-          <GlossaryHint term="Saúde Disciplinar" definition="Percentual da equipe que realizou o lançamento diário obrigatório." />
+          <GlossaryHint term="Saúde Disciplinar" definition="Percentual da equipe que realizou o Fechamento Diário obrigatório." />
         </Typography>
         <Typography
           variant="h1"

@@ -184,7 +184,7 @@ function RoleRedirect() {
     const storeDashboardPath = membership?.store?.name ? `/lojas/${slugify(membership.store.name)}` : '/classificacao'
     return <Navigate to={storeDashboardPath} replace />
   }
-  if (role === 'vendedor') return <Navigate to="/home" replace />
+  if (role === 'vendedor') return <Navigate to="/terminal-mx" replace />
   return <Navigate to="/login" replace />
 }
 
@@ -193,6 +193,14 @@ function TeamAliasRedirect() {
   if (isPerfilInternoMx(role) || role === 'dono') return <Navigate to="/lojas" replace />
   if (role === 'gerente' && membership?.store?.name) {
     return <Navigate to={`/lojas/${slugify(membership.store.name)}?tab=equipe`} replace />
+  }
+  return <ForbiddenRoute />
+}
+
+function ConsultorIaAliasRedirect() {
+  const { role, membership } = useAuth()
+  if (role === 'vendedor' && membership?.store?.name) {
+    return <Navigate to={`/lojas/${slugify(membership.store.name)}/consultor-ia`} replace />
   }
   return <ForbiddenRoute />
 }
@@ -232,30 +240,45 @@ export default function App() {
 
             {/* Home universal — vendedor e gerente renderizam seu cockpit em /home.
                 Dono e admin redirecionam (dono escolhe loja em /lojas, admin vai pra /painel). */}
-            <Route path="home" element={<Suspense fallback={<Spinner />}>
+<Route path="meu-dia" element={<RedirectWithSearch to="/terminal-mx" />} />
+<Route path="home" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<VendedorHome />} gerente={<DashboardLoja />} dono={<RoleRedirect />} admin={<RoleRedirect />} />
             </Suspense>} />
             <Route path="minha-remuneracao" element={<Suspense fallback={<Spinner />}><MinhaRemuneracao /></Suspense>} />
-                        <Route path="lancamento-diario" element={<Suspense fallback={<Spinner />}>
-                            <RoleSwitch vendedor={<Checkin />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
-                        </Suspense>} />
-                        <Route path="vendedor/terminal-mx" element={<Suspense fallback={<Spinner />}>
-                            <RoleSwitch vendedor={<Checkin />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
-                        </Suspense>} />
-            <Route path="carteira-clientes" element={<Suspense fallback={<Spinner />}>
+                        <Route path="lancamento-diario" element={<RedirectWithSearch to="/terminal-mx" />} />
+                        <Route path="fechamento-diario" element={<RedirectWithSearch to="/terminal-mx" />} />
+<Route path="vendedor/terminal-mx" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<Checkin />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
+            </Suspense>} />
+<Route path="terminal-mx" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<Checkin />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
+            </Suspense>} />
+<Route path="carteira-clientes" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<CarteiraClientes />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
             </Suspense>} />
             <Route path="funil" element={<RedirectWithSearch to="/meu-funil" />} />
-            <Route path="meu-funil" element={<Suspense fallback={<Spinner />}>
+<Route path="meu-funil" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<FunilVendedor />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
             </Suspense>} />
-            <Route path="central-execucao" element={<Suspense fallback={<Spinner />}>
+<Route path="funil-comercial" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<FunilVendedor />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
+            </Suspense>} />
+<Route path="central-execucao" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<CentralExecucao />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
             </Suspense>} />
-            <Route path="relatorios-vendedor" element={<Suspense fallback={<Spinner />}>
+<Route path="central-de-execucao" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<CentralExecucao />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
+            </Suspense>} />
+<Route path="relatorios-vendedor" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<RelatoriosVendedor />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
             </Suspense>} />
-            <Route path="feedback" element={<RedirectWithSearch to="/devolutivas" />} />
+<Route path="relatorios" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<RelatoriosVendedor />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
+            </Suspense>} />
+<Route path="feedback" element={<RedirectWithSearch to="/devolutivas" />} />
+<Route path="feedbacks" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<VendedorFeedback />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
+            </Suspense>} />
             <Route path="vendedor/funil" element={<RedirectWithSearch to="/meu-funil" />} />
             <Route path="vendedor/meu-funil" element={<RedirectWithSearch to="/meu-funil" />} />
             <Route path="vendedor/feedback" element={<RedirectWithSearch to="/devolutivas" />} />
@@ -282,7 +305,7 @@ export default function App() {
             <Route path="ajuda" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<VendedorAjuda />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
             </Suspense>} />
-            <Route path="ranking" element={<Navigate to="/classificacao" replace />} />
+            <Route path="ranking" element={<Suspense fallback={<Spinner />}><Ranking /></Suspense>} />
             <Route path="classificacao" element={<Suspense fallback={<Spinner />}><Ranking /></Suspense>} />
             <Route path="treinamentos" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<VendedorTreinamentos />} gerente={<GerenteTreinamentos />} dono={<GerenteTreinamentos />} admin={<ConsultorTreinamentos />} />
@@ -301,6 +324,7 @@ export default function App() {
             <Route path="lojas/:storeSlug/consultor-ia" element={<Suspense fallback={<Spinner />}>
               <StoreConsultorIa />
             </Suspense>} />
+            <Route path="consultor-ia" element={<ConsultorIaAliasRedirect />} />
             <Route path="lojas/:storeSlug" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<ForbiddenRoute />} gerente={<DashboardLoja />} dono={<DashboardLoja />} admin={<DashboardLoja />} />
             </Suspense>} />
@@ -330,7 +354,9 @@ export default function App() {
             </Route>
 
             <Route path="produtos" element={<Suspense fallback={<Spinner />}><ProdutosDigitais /></Suspense>} />
-            <Route path="configuracoes" element={<Suspense fallback={<Spinner />}><Configuracoes /></Suspense>} />
+            <Route path="configuracoes" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<VendedorConfiguracoes />} gerente={<Configuracoes />} dono={<Configuracoes />} admin={<Configuracoes />} />
+            </Suspense>} />
             <Route path="configuracoes/remuneracao" element={<Suspense fallback={<Spinner />}><Configuracoes initialTab="remuneracao" /></Suspense>} />
             <Route path="configuracoes/operacional" element={<Suspense fallback={<Spinner />}><OperationalSettings /></Suspense>} />
             <Route path="configuracoes/consultoria-pmr" element={<Suspense fallback={<Spinner />}><ConsultoriaParametros /></Suspense>} />

@@ -174,8 +174,8 @@ export default function OperationalSettings() {
                         <div className="space-y-mx-10" role="group" aria-label="Lista de políticas operacionais">
                             {[
                                 { label: 'Diagnóstico detalhado', desc: 'Habilitar registro ampliado de eventos operacionais para suporte técnico', field: 'audit_mode' },
-                                { label: 'Lançamento Diário Estrito', desc: 'Bloquear acesso ao cockpit sem o registro matinal obrigatório', field: 'strict_checkin' },
-                                { label: 'Lançamento Manual', desc: 'Autorizar gerência a retroagir dados em caso de falha sistêmica', field: 'allow_manual_retro' }
+                                { label: 'Fechamento Diário Estrito', desc: 'Bloquear acesso ao cockpit sem o Fechamento Diário obrigatório', field: 'strict_checkin' },
+                           { label: 'Fechamento Retroativo', desc: 'Autorizar gerência a retroagir dados em caso de falha sistêmica', field: 'allow_manual_retro' }
                             ].map((s) => (
                                 <div key={s.field} className="flex items-center justify-between group p-mx-md rounded-mx-2xl hover:bg-surface-alt transition-all">
                                     <div className="space-y-mx-tiny">

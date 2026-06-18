@@ -277,13 +277,28 @@
 
 /* Mobile / PWA hardening — safe-area, tap highlight, scroll behavior */
 html, body {
-  -webkit-text-size-adjust: 100%;
-  -webkit-tap-highlight-color: transparent;
-  overscroll-behavior-y: none;
+-webkit-text-size-adjust: 100%;
+-webkit-tap-highlight-color: transparent;
+overscroll-behavior-y: none;
+}
+
+:root {
+  --mx-seller-bg-page: #021412;
+  --mx-seller-sidebar: #041F1D;
+  --mx-seller-surface: #062A25;
+  --mx-seller-surface-hover: #0A332D;
+  --mx-seller-primary: #16E889;
+  --mx-seller-primary-hover: #5CF3AE;
+  --mx-seller-bg-page-rgb: 2 20 18;
+  --mx-seller-sidebar-rgb: 4 31 29;
+  --mx-seller-primary-rgb: 22 232 137;
+  --mx-seller-text-primary-rgb: 244 255 249;
+  --mx-seller-text-primary: #F4FFF9;
+  --mx-seller-text-secondary: #8BA69E;
 }
 
 @supports (padding: max(0px)) {
-  body {
+body {
     padding-top: env(safe-area-inset-top);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);

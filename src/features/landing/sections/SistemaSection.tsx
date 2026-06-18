@@ -15,7 +15,7 @@ export function SistemaSection() {
               <article className="mod mod-terminal" data-span="8">
                 <div className="inner-pad">
                   <div className="mod-hd">
-                    <div className="mod-id"><b>01</b>· Terminal MX</div>
+                    <div className="mod-id"><b>01</b>· Fechamento Diário</div>
                     <div className="mod-icon">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3"/><path d="M13 15h4"/></svg>
                     </div>

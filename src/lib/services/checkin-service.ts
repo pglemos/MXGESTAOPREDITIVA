@@ -47,7 +47,7 @@ export async function storeCheckin(
     }
 
     if (existing) {
-        throw new Error(`Deduplication error: Lançamento Diário already exists for ${checkin.reference_date}`);
+        throw new Error(`Deduplication error: Fechamento Diário already exists for ${checkin.reference_date}`);
     }
 
     // 2. Perform Audit Log before transaction

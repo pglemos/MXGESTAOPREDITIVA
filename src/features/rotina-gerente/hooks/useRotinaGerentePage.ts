@@ -127,11 +127,11 @@ export function useRotinaGerentePage() {
         () => {
           setRoutineNotice({
             tone: 'info',
-            message: 'Novo lançamento diário recebido.',
+            message: 'Novo Fechamento Diário recebido.',
             detail: 'A performance da unidade foi atualizada em tempo real.',
             at: new Date(),
           })
-          toast.info('Novo Lançamento Diário recebido!', {
+          toast.info('Novo Fechamento Diário recebido!', {
             description: 'A performance da unidade foi atualizada em tempo real.',
           })
           handleRefresh()

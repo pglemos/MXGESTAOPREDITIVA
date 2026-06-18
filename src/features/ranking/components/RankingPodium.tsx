@@ -21,8 +21,8 @@ type Props = {
  */
 export function RankingPodium({ entries, onSelect }: Props) {
   return (
-    <div className="flex justify-center items-end gap-mx-sm sm:gap-mx-xl relative pt-4 min-h-mx-64">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg h-mx-64 bg-brand-primary/10 blur-mx-huge rounded-full pointer-events-none"></div>
+    <div className="flex justify-center items-end gap-mx-sm sm:gap-mx-xl relative pt-4 min-h-48 sm:min-h-56 md:min-h-mx-64">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-48 w-full max-w-xs rounded-full bg-brand-primary/10 blur-mx-huge pointer-events-none sm:h-56 sm:max-w-lg md:h-mx-64"></div>
 
       {entries.map((seller) => {
         const isFirst = seller.position === 1

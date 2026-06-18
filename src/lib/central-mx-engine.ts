@@ -140,7 +140,7 @@ export const CENTRAL_MX_PLANNING_INDICATORS: CentralMxIndicatorDefinition[] = [
   { code: 'lead_to_schedule_rate', label: 'Conversão Lead > Agendamento', department: 'comercial', unit: 'percent', dimension: 'processo', sortOrder: 40, targetDirection: 'higher' },
   { code: 'schedule_to_visit_rate', label: 'Conversão Agendamento > Visita', department: 'comercial', unit: 'percent', dimension: 'processo', sortOrder: 50, targetDirection: 'higher' },
   { code: 'visit_to_sale_rate', label: 'Conversão Visita > Venda', department: 'comercial', unit: 'percent', dimension: 'resultado', sortOrder: 60, targetDirection: 'higher' },
-  { code: 'commercial_pipeline_health', label: 'Saúde do Funil Comercial', department: 'comercial', unit: 'score', dimension: 'processo', sortOrder: 70, targetDirection: 'higher' },
+  { code: 'commercial_pipeline_health', label: 'Saúde do Funil de Vendas', department: 'comercial', unit: 'score', dimension: 'processo', sortOrder: 70, targetDirection: 'higher' },
   { code: 'seller_ranking_spread', label: 'Dispersão do Ranking', department: 'comercial', unit: 'score', dimension: 'resultado', sortOrder: 80, targetDirection: 'lower' },
 
   { code: 'leads_total', label: 'Leads Recebidos', department: 'marketing', unit: 'number', dimension: 'resultado', sortOrder: 110, targetDirection: 'higher' },
@@ -179,7 +179,7 @@ export const CENTRAL_MX_PLANNING_INDICATORS: CentralMxIndicatorDefinition[] = [
 
   { code: 'routine_discipline_rate', label: 'Disciplina de Rotina', department: 'operacional', unit: 'percent', dimension: 'disciplina', sortOrder: 510, targetDirection: 'higher' },
   { code: 'agenda_fulfillment_rate', label: 'Agenda Cumprida', department: 'operacional', unit: 'percent', dimension: 'disciplina', sortOrder: 520, targetDirection: 'higher' },
-  { code: 'daily_checkin_coverage', label: 'Cobertura de Lançamento Diário', department: 'operacional', unit: 'percent', dimension: 'disciplina', sortOrder: 530, targetDirection: 'higher' },
+  { code: 'daily_checkin_coverage', label: 'Cobertura de Fechamento Diário', department: 'operacional', unit: 'percent', dimension: 'disciplina', sortOrder: 530, targetDirection: 'higher' },
   { code: 'action_plan_on_time_rate', label: 'Plano de Ação no Prazo', department: 'operacional', unit: 'percent', dimension: 'processo', sortOrder: 540, targetDirection: 'higher' },
   { code: 'evidence_completion_rate', label: 'Evidências Registradas', department: 'operacional', unit: 'percent', dimension: 'disciplina', sortOrder: 550, targetDirection: 'higher' },
   { code: 'executive_agenda_adherence', label: 'Aderência à Agenda Executiva', department: 'operacional', unit: 'percent', dimension: 'disciplina', sortOrder: 560, targetDirection: 'higher' },

@@ -9,7 +9,7 @@ import { CheckinErrorBoundary } from './components/CheckinErrorBoundary'
 import { useCheckinPage } from './hooks/useCheckinPage'
 
 /**
- * Checkin.container — orquestra a tela de lançamento diário (UX-001 / ADR-0050).
+ * Checkin.container — orquestra a tela de Fechamento Diário (UX-001 / ADR-0050).
  * Mantém estados intermediários (loading, sem permissão) e compõe header/form.
  */
 export function Checkin() {
@@ -55,7 +55,7 @@ export function Checkin() {
     const dateStr = todayDisplay.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
 
     return (
-        <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
+<main className="h-full w-full min-w-0 overflow-y-auto bg-surface-alt p-mx-md no-scrollbar sm:p-mx-lg">
             {checkinLoadError && (
                 <div role="alert" className="rounded-mx-2xl border border-status-error/20 bg-status-error-surface px-mx-md py-mx-sm text-sm font-bold text-status-error">
                     {checkinLoadError}
