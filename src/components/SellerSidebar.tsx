@@ -28,26 +28,32 @@ import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { Avatar } from './atoms/Avatar'
 import MxLogo from '@/assets/mx-logo.png'
 
-type SellerNavItem = {
+export type SellerLayoutNavItem = {
   label: string
   path: string
-  icon: LucideIcon
+  icon: LucideIcon | React.ReactNode
   badge?: string
   subtitle?: string
   activePaths?: string[]
   special?: boolean
 }
 
-type SellerNavSection = {
+export type SellerLayoutNavSection = {
   label: string
-  items: SellerNavItem[]
+  items: SellerLayoutNavItem[]
 }
 
 type SellerLayoutShellProps = {
   children: React.ReactNode
   profileName?: string | null
+  profileRoleLabel?: string | null
   avatarUrl?: string | null
+  navSections?: SellerLayoutNavSection[]
   onSignOut: () => Promise<void> | void
+  profilePath?: string
+  settingsPath?: string
+  notificationsPath?: string
+  sidebarLabel?: string
   isSimulating?: boolean
   simulationLabel?: string
   simulationBase?: string
@@ -55,7 +61,7 @@ type SellerLayoutShellProps = {
   onStopSimulation?: () => void
 }
 
-const sellerSections: SellerNavSection[] = [
+const sellerSections: SellerLayoutNavSection[] = [
   {
     label: 'OPERAÇÃO',
     items: [
@@ -103,10 +109,41 @@ const sellerSections: SellerNavSection[] = [
   },
 ]
 
-function isNavItemActive(item: SellerNavItem, pathname: string) {
-  if (item.path === '/consultor-ia' && pathname.includes('/consultor-ia')) return true
+function isNavItemActive(item: SellerLayoutNavItem, location: { pathname: string; search: string }) {
+  if (item.path === '/consultor-ia' && location.pathname.includes('/consultor-ia')) return true
   const paths = item.activePaths ?? [item.path]
-  return paths.some((path) => pathname === path || pathname.startsWith(`${path}/`))
+  return paths.some((rawPath) => {
+    const [path, query = ''] = rawPath.split('?')
+    const pathMatches = location.pathname === path || (!query && location.pathname.startsWith(`${path}/`))
+    if (!pathMatches) return false
+    return query ? location.search === `?${query}` : true
+  })
+}
+
+function NavItemIcon({
+  icon,
+  size,
+  className,
+}: {
+  icon: SellerLayoutNavItem['icon']
+  size: number
+  className?: string
+}) {
+  if (typeof icon === 'function') {
+    const Icon = icon as LucideIcon
+    return <Icon size={size} strokeWidth={1.8} className={className} aria-hidden="true" />
+  }
+
+  if (React.isValidElement(icon)) {
+    return React.cloneElement(icon as React.ReactElement<Record<string, unknown>>, {
+      size,
+      strokeWidth: 1.8,
+      className: cn((icon.props as { className?: string }).className, className),
+      'aria-hidden': true,
+    })
+  }
+
+  return <span className={className} aria-hidden="true">{icon}</span>
 }
 
 function SellerBadge({ children }: { children: React.ReactNode }) {
@@ -130,8 +167,15 @@ function Tooltip({ label }: { label: string }) {
 
 export default function SellerLayoutShell({
   children,
+  profileName,
+  profileRoleLabel = 'Vendedor',
   avatarUrl,
+  navSections = sellerSections,
   onSignOut,
+  profilePath = '/perfil',
+  settingsPath = '/configuracoes',
+  notificationsPath = '/notificacoes',
+  sidebarLabel = 'Menu principal',
   isSimulating = false,
   simulationLabel = 'Vendedor',
   simulationBase = 'Admin MX',
@@ -148,7 +192,8 @@ export default function SellerLayoutShell({
 
   useFocusTrap(drawerRef, mobileOpen)
 
-  const displayName = 'Lucas Mendes'
+  const displayName = profileName?.trim() || 'Usuário MX'
+  const displayRole = profileRoleLabel?.trim() || 'Perfil autorizado'
 
   useEffect(() => {
     if (!mobileOpen && !userMenuOpen) return
@@ -190,9 +235,8 @@ export default function SellerLayoutShell({
     void onSignOut()
   }
 
-  const renderNavItem = (item: SellerNavItem, isCollapsed: boolean) => {
-    const Icon = item.icon
-    const active = isNavItemActive(item, location.pathname)
+  const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
+    const active = isNavItemActive(item, location)
 
     if (item.special) {
       return (
@@ -210,7 +254,7 @@ export default function SellerLayoutShell({
         >
           {active && <span className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-[var(--mx-seller-primary)]" aria-hidden="true" />}
           <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-[rgb(var(--mx-seller-primary-rgb)/0.10)] text-[var(--mx-seller-primary)]">
-            <Icon size={22} strokeWidth={1.8} aria-hidden="true" />
+            <NavItemIcon icon={item.icon} size={22} />
             {!isCollapsed && <Sparkles size={13} strokeWidth={1.8} className="absolute -right-1 -top-1 text-[var(--mx-seller-primary)]" aria-hidden="true" />}
           </span>
           {!isCollapsed && (
@@ -241,11 +285,10 @@ export default function SellerLayoutShell({
         )}
       >
         {active && <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-[var(--mx-seller-primary)]" aria-hidden="true" />}
-        <Icon
+        <NavItemIcon
+          icon={item.icon}
           size={21}
-          strokeWidth={1.8}
           className={cn('shrink-0 text-[rgb(var(--mx-seller-text-primary-rgb)/0.70)] transition-colors duration-200 group-hover:text-[var(--mx-seller-primary)]', active && 'text-[var(--mx-seller-primary)]')}
-          aria-hidden="true"
         />
         {!isCollapsed && <span className="min-w-0 flex-1 truncate">{item.label}</span>}
         {!isCollapsed && item.badge && <SellerBadge>{item.badge}</SellerBadge>}
@@ -261,13 +304,13 @@ export default function SellerLayoutShell({
         isCollapsed ? 'bottom-0 left-[calc(100%+12px)] w-56' : 'bottom-[calc(100%+10px)] left-0 right-0'
       )}
     >
-      <button type="button" onClick={() => goTo('/perfil')} className="flex h-10 w-full items-center rounded-xl px-3 text-left text-sm font-medium text-[rgb(var(--mx-seller-text-primary-rgb)/0.85)] transition-colors hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]">
+      <button type="button" onClick={() => goTo(profilePath)} className="flex h-10 w-full items-center rounded-xl px-3 text-left text-sm font-medium text-[rgb(var(--mx-seller-text-primary-rgb)/0.85)] transition-colors hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]">
         Meu Perfil
       </button>
-      <button type="button" onClick={() => goTo('/configuracoes')} className="flex h-10 w-full items-center rounded-xl px-3 text-left text-sm font-medium text-[rgb(var(--mx-seller-text-primary-rgb)/0.85)] transition-colors hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]">
+      <button type="button" onClick={() => goTo(settingsPath)} className="flex h-10 w-full items-center rounded-xl px-3 text-left text-sm font-medium text-[rgb(var(--mx-seller-text-primary-rgb)/0.85)] transition-colors hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]">
         Preferências
       </button>
-      <button type="button" onClick={() => goTo('/notificacoes')} className="flex h-10 w-full items-center rounded-xl px-3 text-left text-sm font-medium text-[rgb(var(--mx-seller-text-primary-rgb)/0.85)] transition-colors hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]">
+      <button type="button" onClick={() => goTo(notificationsPath)} className="flex h-10 w-full items-center rounded-xl px-3 text-left text-sm font-medium text-[rgb(var(--mx-seller-text-primary-rgb)/0.85)] transition-colors hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]">
         Notificações
       </button>
       <button type="button" onClick={signOut} className="flex h-10 w-full items-center rounded-xl px-3 text-left text-sm font-medium text-[rgb(var(--mx-seller-text-primary-rgb)/0.85)] transition-colors hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]">
@@ -299,7 +342,7 @@ export default function SellerLayoutShell({
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[15px] font-semibold text-white">{displayName}</span>
               <span className="mt-1 flex items-center gap-1.5 text-[12px] font-medium text-[var(--mx-seller-text-secondary)]">
-                Administrador
+                {displayRole}
                 <span aria-hidden="true">•</span>
                 <span className="inline-flex items-center gap-1 text-[var(--mx-seller-primary)]">
                   <span className="h-1.5 w-1.5 rounded-full bg-[var(--mx-seller-primary)]" aria-hidden="true" />
@@ -315,7 +358,11 @@ export default function SellerLayoutShell({
     </div>
   )
 
-  const renderSidebarContent = (isCollapsed: boolean, canCollapse = false) => (
+  const renderSidebarContent = (isCollapsed: boolean, canCollapse = false) => {
+    const bottomSections = navSections.filter((section) => ['INTELIGÊNCIA', 'SISTEMA'].includes(section.label))
+    const mainSections = navSections.filter((section) => !['INTELIGÊNCIA', 'SISTEMA'].includes(section.label))
+
+    return (
     <>
       <div className={cn('flex items-center gap-3', isCollapsed ? 'flex-col justify-center' : 'justify-between')}>
         <div className={cn('flex min-w-0 items-center gap-3', isCollapsed && 'justify-center')}>
@@ -342,8 +389,8 @@ export default function SellerLayoutShell({
         )}
       </div>
 
-<nav className="mt-3 flex-1 space-y-1.5 overflow-y-auto pr-1" aria-label="Menu principal do vendedor">
-{sellerSections.filter((section) => !['INTELIGÊNCIA', 'SISTEMA'].includes(section.label)).map((section, sectionIndex) => (
+<nav className="mt-3 flex-1 space-y-1.5 overflow-y-auto pr-1" aria-label={sidebarLabel}>
+{mainSections.map((section, sectionIndex) => (
 <section key={section.label} className={cn('space-y-1', sectionIndex > 0 && 'border-t border-white/[0.06] pt-1.5')} aria-label={section.label}>
 {!isCollapsed && <p className="px-3 text-[11px] font-semibold uppercase text-[rgba(244,255,249,0.45)]">{section.label}</p>}
 <div className="space-y-0.5">{section.items.map((item) => renderNavItem(item, isCollapsed))}</div>
@@ -351,9 +398,7 @@ export default function SellerLayoutShell({
 ))}
 </nav>
 
-{sellerSections
-.filter((section) => ['INTELIGÊNCIA', 'SISTEMA'].includes(section.label))
-.map((section) => (
+{bottomSections.map((section) => (
 <section key={section.label} className="mt-1.5 space-y-1 border-t border-white/[0.06] pt-1.5" aria-label={section.label}>
 {!isCollapsed && <p className="px-3 text-[11px] font-semibold uppercase text-[rgba(244,255,249,0.45)]">{section.label}</p>}
 <div className="space-y-0.5">{section.items.map((item) => renderNavItem(item, isCollapsed))}</div>
@@ -364,7 +409,8 @@ export default function SellerLayoutShell({
 {renderProfileCard(isCollapsed)}
 </div>
     </>
-  )
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[var(--mx-seller-bg-page)] font-display text-[var(--mx-seller-text-primary)]">
@@ -376,7 +422,7 @@ export default function SellerLayoutShell({
           <img src={MxLogo} alt="MX" className="h-9 w-9 object-contain" />
           <span className="text-sm font-bold text-white">MX PERFORMANCE</span>
         </div>
-        <button type="button" aria-label="Abrir notificações" onClick={() => navigate('/notificacoes')} className="flex h-10 w-10 items-center justify-center rounded-xl text-[var(--mx-seller-text-primary)] outline-none transition-colors hover:bg-[rgb(var(--mx-seller-primary-rgb)/0.08)] focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]">
+        <button type="button" aria-label="Abrir notificações" onClick={() => navigate(notificationsPath)} className="flex h-10 w-10 items-center justify-center rounded-xl text-[var(--mx-seller-text-primary)] outline-none transition-colors hover:bg-[rgb(var(--mx-seller-primary-rgb)/0.08)] focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]">
           <MessageCircle size={20} aria-hidden="true" />
         </button>
       </header>
@@ -386,7 +432,7 @@ export default function SellerLayoutShell({
           'fixed left-2 top-2 z-[80] hidden h-[calc(100vh-1rem)] flex-col rounded-[32px] border border-[rgb(var(--mx-seller-primary-rgb)/0.16)] bg-[var(--mx-seller-sidebar)] shadow-[0_24px_70px_rgba(0,0,0,0.34),0_0_28px_rgb(var(--mx-seller-primary-rgb)/0.08)] transition-[width,padding] duration-200 md:flex',
           collapsed ? 'w-[84px] px-[14px] py-5' : 'w-[312px] p-4'
         )}
-        aria-label="Sidebar principal do vendedor"
+        aria-label={sidebarLabel}
       >
         {renderSidebarContent(collapsed, true)}
       </aside>
@@ -404,7 +450,7 @@ export default function SellerLayoutShell({
             ref={drawerRef}
             role="dialog"
             aria-modal="true"
-            aria-label="Menu principal do vendedor"
+            aria-label={sidebarLabel}
             className="h-full w-[min(320px,calc(100vw-1.5rem))] rounded-r-[30px] border-r border-[rgb(var(--mx-seller-primary-rgb)/0.16)] bg-[var(--mx-seller-sidebar)] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.42)]"
             onClick={(event) => event.stopPropagation()}
             onKeyDown={(event) => event.stopPropagation()}

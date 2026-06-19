@@ -80,6 +80,7 @@ Esta story formaliza o primeiro corte executavel do EPIC-MX-03. Parte da impleme
 
 - `docs/stories/story-MX-03-20260527-shell-executivo-dono.md`
 - `src/components/Layout.tsx`
+- `src/components/SellerSidebar.tsx`
 - `src/features/dashboard-loja/DashboardLoja.container.tsx`
 - `src/features/dashboard-loja/sections/OwnerExecutiveCockpit.tsx`
 - `src/features/dashboard-loja/sections/PerformanceAlerts.tsx`
@@ -94,15 +95,18 @@ Esta story formaliza o primeiro corte executavel do EPIC-MX-03. Parte da impleme
 - @dev validou que `OwnerExecutiveCockpit` cobre home executiva, planejamento, resultados, plano de acao, alertas, benchmarking, agenda, visitas, departamentos, biblioteca e consultor via `ownerSection`.
 - @dev validou estados pendentes explicitos para estoque, DRE/margem, benchmark, agenda e fontes incompletas.
 - Browser audit autenticado ficou bloqueado no ambiente local: dev bypass nao possui loja ativa/vinculo via RLS para concluir simulacao de dono.
+- 2026-06-19: Novo sidebar visual aplicado ao perfil dono via `SellerLayoutShell`, mantendo `ownerSection` e badges/rotas filtradas por `canAccessPath`.
 
 ### Completion Notes
 
 - Gates de codigo passaram com a implementacao atual do cockpit executivo.
 - A story permanece `InProgress` ate browser audit autenticado real.
+- Incremento 2026-06-19 manteve o shell executivo existente e substituiu o container de navegacao pelo sidebar visual novo.
 
 ### Change Log
 
 - 2026-05-27: Validacao tecnica do shell executivo existente e registro de gates.
+- 2026-06-19: Sidebar visual novo promovido para dono; typecheck, lint, testes e build passaram.
 
 ### Change Log Update — 2026-05-28
 

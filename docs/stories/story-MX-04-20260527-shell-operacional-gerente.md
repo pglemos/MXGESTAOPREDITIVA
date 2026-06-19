@@ -78,6 +78,7 @@ Esta story formaliza o shell operacional do gerente. A revisao visual ja registr
 
 - `docs/stories/story-MX-04-20260527-shell-operacional-gerente.md`
 - `src/components/Layout.tsx`
+- `src/components/SellerSidebar.tsx`
 - `src/features/dashboard-loja/DashboardLoja.container.tsx`
 - `src/features/dashboard-loja/sections/ManagerOperationalCockpit.tsx`
 - `src/features/dashboard-loja/sections/PerformanceAlerts.tsx`
@@ -92,15 +93,18 @@ Esta story formaliza o shell operacional do gerente. A revisao visual ja registr
 - @dev validou que o cockpit gerencial cobre meta, realizado, projecao, ritmo diario, conversao, agendamentos, MX Score, equipe, funil, alertas, ranking, engajamento e agenda.
 - @dev validou que ranking, agenda e alertas possuem estados vazios ou pendentes.
 - Browser audit autenticado ficou bloqueado no ambiente local: dev bypass nao possui loja ativa/vinculo via RLS para concluir simulacao de gerente.
+- 2026-06-19: Novo sidebar visual aplicado ao perfil gerente via `SellerLayoutShell`, preservando a navegacao COMERCIAL/PESSOAS/FERRAMENTAS e rotas filtradas por `canAccessPath`.
 
 ### Completion Notes
 
 - Gates de codigo passaram com a implementacao atual do cockpit gerencial.
 - A story permanece `InProgress` ate browser audit autenticado real.
+- Incremento 2026-06-19 manteve o cockpit gerencial e substituiu o container de navegacao pelo sidebar visual novo.
 
 ### Change Log
 
 - 2026-05-27: Validacao tecnica do shell operacional do gerente e registro de gates.
+- 2026-06-19: Sidebar visual novo promovido para gerente; typecheck, lint, testes e build passaram.
 
 ### Change Log Update — 2026-05-28
 

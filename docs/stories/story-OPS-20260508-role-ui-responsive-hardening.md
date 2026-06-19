@@ -91,6 +91,8 @@ quality_gate_tools: ["npm run lint", "npm run typecheck", "npm test", "npm run b
 - Continuidade 2026-05-27 via `aiox-master`: DOCX completo conferido por extracao textual porque o ambiente nao tem LibreOffice/Poppler/python-docx para renderizacao visual.
 - Contrato de alertas ajustado para cumprir o documento: problema, impacto, recomendacao e acao rapida agora aparecem separados nas leituras de dono e gerente.
 - `npm run typecheck`: passou.
+- 2026-06-19: Novo `SellerLayoutShell` reaproveitado como sidebar global para gerente, dono e perfis internos MX, preservando a navegacao por papel em `Layout.tsx`.
+- 2026-06-19: `npm run typecheck`, `npm run lint`, `npm test` (600 pass) e `npm run build` passaram.
 
 ### File List
 
@@ -98,6 +100,7 @@ quality_gate_tools: ["npm run lint", "npm run typecheck", "npm test", "npm run b
 - `docs/prd/analise-modulos-dono-gerente-vendedor-2026-05-27.md`
 - `src/index.css`
 - `src/components/Layout.tsx`
+- `src/components/SellerSidebar.tsx`
 - `src/components/molecules/TabNavPill.tsx`
 - `src/pages/DashboardLoja.tsx`
 - `src/features/dashboard-loja/DashboardLoja.container.tsx`
