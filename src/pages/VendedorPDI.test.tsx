@@ -371,8 +371,23 @@ vinculoTipoMock = 'loja'
 
 renderPage()
 
-expect(screen.queryByRole('heading', { name: /autoavaliação/i })).not.toBeInTheDocument()
-expect(screen.queryByRole('button', { name: /salvar autoavaliação/i })).not.toBeInTheDocument()
+  expect(screen.queryByRole('heading', { name: /autoavaliação/i })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: /salvar autoavaliação/i })).not.toBeInTheDocument()
+})
+
+it('usa mock completo para vendedor de loja sem sessoes reais', () => {
+vinculoTipoMock = 'loja'
+pdisMock = []
+
+renderPage()
+
+expect(screen.queryByText(/você ainda não tem um PDI registrado/i)).not.toBeInTheDocument()
+expect(screen.getByText('Nota geral do PDI')).toBeInTheDocument()
+expect(screen.getByText('Ser o vendedor número 1 da loja')).toBeInTheDocument()
+expect(screen.getAllByText('Gestor + indicadores').length).toBeGreaterThan(0)
+expect(screen.getAllByText('Curto Prazo (1 ano)').length).toBeGreaterThan(0)
+expect(screen.getByText('Liderança Situacional na Prática')).toBeInTheDocument()
+expect(screen.getByText(/regra de pontuação aprovada/i)).toBeInTheDocument()
 })
 
 it('salva nova acao do PDI em vez de apenas fechar o modal', async () => {

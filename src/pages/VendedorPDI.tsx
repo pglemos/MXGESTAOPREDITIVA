@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import {
   AlertTriangle,
-  Bell,
   BookOpen,
   Calendar,
   CheckCircle2,
@@ -84,18 +83,181 @@ const CONTEUDOS_RECOMENDADOS = [
     competencia: 'Comunicação',
     duracao: '25 min',
     nivel: 'Intermediário',
+    image: '/landing/team-mx.png',
   },
   {
     titulo: 'Organização Pessoal',
     competencia: 'Organização',
     duracao: '18 min',
     nivel: 'Iniciante',
+    image: '/landing/team-mx.png',
   },
   {
     titulo: 'Liderança de Alta Performance',
     competencia: 'Liderança',
     duracao: '32 min',
     nivel: 'Avançado',
+    image: '/landing/team-mx.png',
+  },
+]
+
+const PDI_SCORE_TOOLTIP =
+  'O PDI orienta desenvolvimento, treinamentos e ações. Ele só impacta o Score se houver regra de pontuação aprovada para aquela ação.'
+
+const COMPETENCY_ORIGIN_LABEL: Record<string, string> = {
+  prospeccao: 'Gestor + indicadores',
+  atendimento: 'Autoavaliação + NPS',
+  agendamento: 'Autoavaliação + gestor',
+  fechamento: 'Gestor + indicadores',
+  carteira: 'Autoavaliação + CRM',
+  produto: 'Teste + gestor',
+  lideranca: 'Autoavaliação + gestor',
+  relacionamento: 'Autoavaliação + 360°',
+  persistencia: 'Gestor + feedback',
+  resiliencia: 'Autoavaliação + feedback',
+  comunicacao: 'Gestor + feedback',
+  organizacao: 'Gestor + indicadores',
+}
+
+function mockAvaliacao(
+  competencia_id: string,
+  competencia: string,
+  tipo: 'tecnica' | 'comportamental',
+  nota: number,
+  origem_nota?: PDIAvaliacao360['origem_nota'],
+): PDIAvaliacao360 {
+  return {
+    competencia_id,
+    competencia,
+    tipo,
+    nota,
+    alvo: 10,
+    gap: roundOne(10 - nota),
+    origem_nota,
+  }
+}
+
+const MOCK_PDI_AVALIACOES: PDIAvaliacao360[] = [
+  mockAvaliacao('prospeccao', 'Prospecção', 'tecnica', 8.2, 'gestor'),
+  mockAvaliacao('atendimento', 'Atendimento ao Cliente', 'tecnica', 9.1, 'autoavaliacao'),
+  mockAvaliacao('agendamento', 'Agendamento de Visitas', 'tecnica', 7.4, 'gestor'),
+  mockAvaliacao('fechamento', 'Fechamento de Venda', 'tecnica', 8.3, 'gestor'),
+  mockAvaliacao('carteira', 'Carteira de Clientes', 'tecnica', 7.8, 'autoavaliacao'),
+  mockAvaliacao('produto', 'Conhecimento do Produto', 'tecnica', 8.9, 'gestor'),
+  mockAvaliacao('lideranca', 'Liderança', 'comportamental', 6.8, 'autoavaliacao'),
+  mockAvaliacao('relacionamento', 'Relacionamento Interpessoal', 'comportamental', 9.0, 'autoavaliacao'),
+  mockAvaliacao('persistencia', 'Persistência', 'comportamental', 7.1, 'gestor'),
+  mockAvaliacao('resiliencia', 'Resiliência', 'comportamental', 6.9, 'autoavaliacao'),
+  mockAvaliacao('comunicacao', 'Comunicação', 'comportamental', 7.6, 'gestor'),
+  mockAvaliacao('organizacao', 'Organização', 'comportamental', 7.9, 'gestor'),
+]
+
+const MOCK_PDI_PREVIOUS_AVALIACOES: PDIAvaliacao360[] = MOCK_PDI_AVALIACOES.map(av => ({
+  ...av,
+  nota: roundOne(av.nota - 0.7),
+  gap: roundOne(10 - (av.nota - 0.7)),
+}))
+
+const MOCK_PDI_SESSIONS: PDISessionSummary[] = [
+  {
+    id: 'mock-pdi-2026-06-17',
+    colaborador_id: 'mock-seller',
+    gerente_id: 'mock-manager',
+    loja_id: 'mock-store',
+    status: 'concluida',
+    created_at: '2026-06-17T10:00:00.000Z',
+    data_realizacao: '2026-06-17',
+    proxima_revisao_data: '2026-07-22',
+    due_date: '2026-07-22',
+    seller_name: 'Vendedor MX Consultoria 1',
+    manager_name: 'Seu Gestor Direto',
+    store_name: 'MX Performance',
+    metas: [
+      { id: 'mock-meta-1', prazo: '6_meses', tipo: 'profissional', descricao: 'Ser o vendedor número 1 da loja' },
+      { id: 'mock-meta-2', prazo: '6_meses', tipo: 'profissional', descricao: 'Atingir R$ 1.200.000 em vendas' },
+      { id: 'mock-meta-3', prazo: '6_meses', tipo: 'profissional', descricao: 'Ter 100% de satisfação dos clientes' },
+      { id: 'mock-meta-4', prazo: '6_meses', tipo: 'profissional', descricao: 'Masterizar prospecção ativa' },
+      { id: 'mock-meta-5', prazo: '12_meses', tipo: 'profissional', descricao: 'Ser Gerente de Vendas' },
+      { id: 'mock-meta-6', prazo: '12_meses', tipo: 'profissional', descricao: 'Atingir R$ 2.000.000 em vendas/ano' },
+      { id: 'mock-meta-7', prazo: '12_meses', tipo: 'profissional', descricao: 'Formar e desenvolver minha equipe' },
+      { id: 'mock-meta-8', prazo: '12_meses', tipo: 'profissional', descricao: 'Construir carteira com 300+ clientes' },
+      { id: 'mock-meta-9', prazo: '24_meses', tipo: 'profissional', descricao: 'Ser Diretor Comercial' },
+      { id: 'mock-meta-10', prazo: '24_meses', tipo: 'profissional', descricao: 'Atingir R$ 3.000.000 em vendas/ano' },
+      { id: 'mock-meta-11', prazo: '24_meses', tipo: 'profissional', descricao: 'Ser referência em gestão e liderança' },
+      { id: 'mock-meta-12', prazo: '24_meses', tipo: 'profissional', descricao: 'Ter uma equipe de alta performance' },
+    ],
+    avaliacoes: MOCK_PDI_AVALIACOES,
+    plano_acao: [
+      {
+        id: 'mock-acao-1',
+        competencia_id: 'prospeccao',
+        competencia: 'Prospecção',
+        descricao_acao: 'Realizar 10 contatos ativos por dia',
+        data_conclusao: '2026-06-30',
+        impacto: 'Curto Prazo (1 ano)',
+        custo: 'Gestor',
+        status: 'em_andamento',
+      },
+      {
+        id: 'mock-acao-2',
+        competencia_id: 'fechamento',
+        competencia: 'Fechamento de Venda',
+        descricao_acao: 'Treinamento: Técnicas de Fechamento',
+        data_conclusao: '2026-06-15',
+        impacto: 'Curto Prazo (1 ano)',
+        custo: 'Treinamento',
+        status: 'concluida',
+      },
+      {
+        id: 'mock-acao-3',
+        competencia_id: 'atendimento',
+        competencia: 'Atendimento ao Cliente',
+        descricao_acao: 'Aplicar script de atendimento padrão',
+        data_conclusao: '2026-06-30',
+        impacto: 'Médio Prazo (2 anos)',
+        custo: 'Autoavaliação',
+        status: 'em_andamento',
+      },
+      {
+        id: 'mock-acao-4',
+        competencia_id: 'prospeccao',
+        competencia: 'Prospecção',
+        descricao_acao: 'Estudar objeções e como tratar',
+        data_conclusao: '2026-06-05',
+        impacto: 'Curto Prazo (1 ano)',
+        custo: 'Feedback',
+        status: 'atrasada',
+      },
+    ],
+    top_5_gaps: [
+      MOCK_PDI_AVALIACOES.find(av => av.competencia_id === 'lideranca')!,
+      MOCK_PDI_AVALIACOES.find(av => av.competencia_id === 'comunicacao')!,
+      MOCK_PDI_AVALIACOES.find(av => av.competencia_id === 'organizacao')!,
+    ],
+    meta_6m: '',
+    meta_12m: '',
+    meta_24m: '',
+  },
+  {
+    id: 'mock-pdi-2026-05-17',
+    colaborador_id: 'mock-seller',
+    gerente_id: 'mock-manager',
+    loja_id: 'mock-store',
+    status: 'concluida',
+    created_at: '2026-05-17T10:00:00.000Z',
+    data_realizacao: '2026-05-17',
+    proxima_revisao_data: '2026-06-17',
+    due_date: '2026-06-17',
+    seller_name: 'Vendedor MX Consultoria 1',
+    manager_name: 'Seu Gestor Direto',
+    store_name: 'MX Performance',
+    metas: [],
+    avaliacoes: MOCK_PDI_PREVIOUS_AVALIACOES,
+    plano_acao: [],
+    top_5_gaps: [],
+    meta_6m: '',
+    meta_12m: '',
+    meta_24m: '',
   },
 ]
 
@@ -181,17 +343,21 @@ sendSellerPDIActionToCentral,
   const [savingAutoAssessment, setSavingAutoAssessment] = useState(false)
   const [overlay, setOverlay] = useState<OverlayState>(null)
 
-  const sortedPDIs = useMemo(() => sortSessions(pdis), [pdis])
-  const activePDI = sortedPDIs[0] || null
-  const previousPDI = sortedPDIs[1] || null
-  const tecnicas = useMemo(() => filtrarAvaliacoes(activePDI, 'tecnica'), [activePDI])
-  const comportamentais = useMemo(() => filtrarAvaliacoes(activePDI, 'comportamental'), [activePDI])
-  const evolucaoPDI = useMemo(() => buildPDIEvolution(pdis), [pdis])
-  const summary = useMemo(() => buildSummary(activePDI, previousPDI), [activePDI, previousPDI])
-  const goals = useMemo(() => buildGoals(activePDI), [activePDI])
-  const actionRows = useMemo(() => buildActionRows(activePDI), [activePDI])
-  const gargalos = useMemo(() => buildGargalos(activePDI), [activePDI])
-  const historyRows = useMemo(() => buildHistoryRows(sortedPDIs), [sortedPDIs])
+const sortedPDIs = useMemo(() => sortSessions(pdis), [pdis])
+const displayPDIs = useMemo(() => {
+  if (sortedPDIs.length > 0) return sortedPDIs
+  return isAutonomo ? [] : MOCK_PDI_SESSIONS
+}, [isAutonomo, sortedPDIs])
+const activePDI = displayPDIs[0] || null
+const previousPDI = displayPDIs[1] || null
+const tecnicas = useMemo(() => filtrarAvaliacoes(activePDI, 'tecnica'), [activePDI])
+const comportamentais = useMemo(() => filtrarAvaliacoes(activePDI, 'comportamental'), [activePDI])
+const evolucaoPDI = useMemo(() => buildPDIEvolution(displayPDIs), [displayPDIs])
+const summary = useMemo(() => buildSummary(activePDI, previousPDI), [activePDI, previousPDI])
+const goals = useMemo(() => buildGoals(activePDI), [activePDI])
+const actionRows = useMemo(() => buildActionRows(activePDI), [activePDI])
+const gargalos = useMemo(() => buildGargalos(activePDI), [activePDI])
+const historyRows = useMemo(() => buildHistoryRows(displayPDIs), [displayPDIs])
 
   const hojeLabel = new Date().toLocaleDateString('pt-BR', {
     weekday: 'long',
@@ -393,66 +559,69 @@ return (
 
         {activePDI && (
           <>
-            <SummaryGrid summary={summary} reviewDateLabel={reviewDateLabel} updatedAt={activePDI.data_realizacao || activePDI.created_at} />
+            <div className="grid gap-mx-lg xl:grid-cols-[minmax(0,1fr)_360px]">
+              <div className="grid min-w-0 gap-mx-lg">
+                <SummaryGrid summary={summary} reviewDateLabel={reviewDateLabel} updatedAt={activePDI.data_realizacao || activePDI.created_at} />
 
-            <section>
-              <SectionHeading title="Conquistas" subtitle={activePDI.manager_name ? `PDI conduzido por ${activePDI.manager_name}` : undefined} />
-              <div className="mt-mx-sm grid gap-mx-md xl:grid-cols-3">
-{goals.map(goal => (
-<GoalCard key={goal.prazo} goal={goal} onEdit={() => setOverlay({ type: 'goal', sessionId: activePDI.id, goal })} />
-))}
-              </div>
-            </section>
+                <section>
+                  <SectionHeading title="Conquistas" subtitle={activePDI.manager_name ? `PDI conduzido por ${activePDI.manager_name}` : undefined} />
+                  <div className="mt-mx-sm grid gap-mx-md xl:grid-cols-3">
+                    {goals.map(goal => (
+                      <GoalCard key={goal.prazo} goal={goal} onEdit={() => setOverlay({ type: 'goal', sessionId: activePDI.id, goal })} />
+                    ))}
+                  </div>
+                </section>
 
-            <section>
-              <div className="flex flex-col gap-mx-sm md:flex-row md:items-center md:justify-between">
-                <SectionHeading title="Competências e Desenvolvimento" subtitle="Avaliação feita na sessão de PDI, com alvo e origem da nota visíveis." />
-                <div className="flex flex-wrap items-center gap-mx-md text-sm font-bold">
-                  <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-status-success" /> Nota atual</span>
-                  <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-brand-primary" /> Alvo</span>
-                  <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-surface-alt ring-1 ring-border-subtle" /> Origem da nota</span>
-                </div>
-              </div>
-              <div className="mt-mx-sm grid gap-mx-md xl:grid-cols-2">
-                <CompetencyPanel icon={<Wrench size={18} />} title="Competências Técnicas" rows={tecnicas} />
-                <CompetencyPanel icon={<Users size={18} />} title="Competências Comportamentais" rows={comportamentais} />
-              </div>
-            </section>
+                <section>
+                  <div className="flex flex-col gap-mx-sm md:flex-row md:items-center md:justify-between">
+                    <SectionHeading title="Competências e Desenvolvimento" subtitle="Avaliação feita na sessão de PDI, com alvo e origem da nota visíveis." />
+                    <div className="flex flex-wrap items-center gap-mx-md text-sm font-bold">
+                      <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-status-success" /> Nota atual</span>
+                      <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-brand-primary" /> Alvo</span>
+                      <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-surface-alt ring-1 ring-border-subtle" /> Origem da nota</span>
+                    </div>
+                  </div>
+                  <div className="mt-mx-sm grid gap-mx-md xl:grid-cols-2">
+                    <CompetencyPanel icon={<Wrench size={18} />} title="Competências Técnicas" rows={tecnicas} />
+                    <CompetencyPanel icon={<Users size={18} />} title="Competências Comportamentais" rows={comportamentais} />
+                  </div>
+                </section>
 
-            <section>
-              <div className="flex flex-col gap-mx-sm md:flex-row md:items-center md:justify-between">
-                <SectionHeading title="Plano de Ação" subtitle="Ações práticas para desenvolver competências e alcançar conquistas." />
-<Button type="button" size="sm" onClick={() => setOverlay({ type: 'new-action', sessionId: activePDI.id, competencias: activePDI.avaliacoes, goals })}>
-                  <Plus size={16} /> Nova ação
-                </Button>
+                <section>
+                  <div className="flex flex-col gap-mx-sm md:flex-row md:items-center md:justify-between">
+                    <SectionHeading title="Plano de Ação" subtitle="Ações práticas para desenvolver competências e alcançar conquistas." />
+                    <Button type="button" size="sm" onClick={() => setOverlay({ type: 'new-action', sessionId: activePDI.id, competencias: activePDI.avaliacoes, goals })}>
+                      <Plus size={16} /> Nova ação
+                    </Button>
+                  </div>
+                  <ActionPlanTable rows={actionRows} onDetail={(row) => setOverlay({ type: 'action-detail', action: row.action, progress: row.progress, status: row.status })} />
+                </section>
               </div>
-              <ActionPlanTable rows={actionRows} onDetail={(row) => setOverlay({ type: 'action-detail', action: row.action, progress: row.progress, status: row.status })} />
-            </section>
 
-            <section>
-              <SectionHeading title="Painel lateral" subtitle="Evolução, gargalos, recomendação e próxima avaliação." />
-              <div className="mt-mx-sm grid gap-mx-md xl:grid-cols-[1.35fr_1fr_1fr_1fr]">
+              <section aria-label="Painel lateral de evolução, gargalos e recomendação" className="grid content-start gap-mx-md">
                 <EvolutionCard evolution={evolucaoPDI} delta={summary.deltaMes} />
                 <BottleneckCard gargalos={gargalos} />
                 <RecommendationCard focus={recommendedFocus} />
                 <NextEvaluationCard dateLabel={reviewDateLabel} managerName={activePDI.manager_name} />
-              </div>
-            </section>
+              </section>
+            </div>
 
-            <section>
-              <SectionHeading title="Histórico de avaliações" subtitle="Quem avaliou, o que mudou e qual foi a evolução." />
-              <HistoryTable rows={historyRows} />
-            </section>
+            <div className="grid gap-mx-lg xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)]">
+              <section>
+                <SectionHeading title="Histórico de avaliações" subtitle="Quem avaliou, o que mudou e qual foi a evolução." />
+                <HistoryTable rows={historyRows} />
+              </section>
 
-            <section>
-              <SectionHeading title="Conteúdos recomendados para evoluir" subtitle="Conteúdos vinculados aos gargalos e às próximas ações do PDI." />
-              <RecommendedContentCards />
-            </section>
+              <section>
+                <SectionHeading title="Conteúdos recomendados para evoluir" subtitle="Conteúdos vinculados aos gargalos e às próximas ações do PDI." />
+                <RecommendedContentCards />
+              </section>
+            </div>
 
-            <Card className="rounded-mx-lg border border-border-subtle bg-surface-alt/50 p-mx-md shadow-none">
+            <Card title={PDI_SCORE_TOOLTIP} className="rounded-mx-lg border border-border-subtle bg-surface-alt/50 p-mx-md shadow-none">
               <div className="flex items-start gap-mx-sm text-sm font-semibold text-text-secondary">
                 <AlertTriangle size={17} className="mt-0.5 shrink-0 text-status-warning" />
-                <span>O PDI orienta desenvolvimento, treinamentos e ações. Ele só impacta o Score se houver regra de ajuste definida e auditável.</span>
+                <span>{PDI_SCORE_TOOLTIP}</span>
               </div>
             </Card>
           </>
@@ -476,7 +645,7 @@ return (
 
 function SummaryGrid({ summary, reviewDateLabel, updatedAt }: { summary: SummaryView; reviewDateLabel: string; updatedAt: string }) {
   return (
-    <section aria-label="Resumo geral do PDI" className="grid gap-mx-md md:grid-cols-2 xl:grid-cols-6">
+    <section aria-label="Resumo geral do PDI" className="grid gap-mx-md md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
       <SummaryCard
         title="Nota geral do PDI"
         icon={<Star size={20} />}
@@ -586,7 +755,7 @@ function GoalCard({ goal, onEdit }: { goal: GoalView; onEdit: () => void }) {
       <div className="grid gap-mx-md lg:grid-cols-[72px_1fr]">
         <span className={`flex h-16 w-16 items-center justify-center rounded-full ${toneClass}`}><Target size={30} /></span>
         <div>
-          <div className="grid gap-mx-sm md:grid-cols-[145px_1fr]">
+          <div className="grid gap-mx-sm">
             <div>
               <Typography variant="h3" className="text-sm tracking-normal">{goal.label}</Typography>
               <Typography variant="h2" className={`mt-1 text-2xl ${toneClass.split(' ').at(-1)}`}>{goal.value}</Typography>
@@ -622,7 +791,7 @@ function CompetencyPanel({ icon, title, rows }: { icon: ReactNode; title: string
         <Typography variant="caption" tone="muted" className="block normal-case tracking-normal">Sem avaliações registradas nesta categoria.</Typography>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[620px] text-left text-sm">
+          <table className="w-full min-w-[500px] text-left text-sm">
             <thead className="text-xs uppercase text-text-secondary">
               <tr>
                 {['Competência', 'Nota atual', 'Alvo', 'Origem da nota'].map(label => (
@@ -641,7 +810,7 @@ function CompetencyPanel({ icon, title, rows }: { icon: ReactNode; title: string
                     </div>
                   </td>
                   <td className="py-mx-sm pr-mx-md font-black text-brand-primary">{av.alvo || 10}</td>
-                  <td className="py-mx-sm font-semibold text-text-secondary">{originLabel(av.origem_nota)}</td>
+                  <td className="py-mx-sm font-semibold text-text-secondary">{originLabel(av.origem_nota, av.competencia_id)}</td>
                 </tr>
               ))}
             </tbody>
@@ -777,6 +946,9 @@ function RecommendationCard({ focus }: { focus: string }) {
       <div className="mt-mx-md rounded-mx-md bg-white/80 p-mx-md">
         <Typography variant="h3" className="text-base tracking-normal">Liderança Situacional na Prática</Typography>
         <Typography variant="p" className="mt-1 text-sm">Fortaleça sua competência de {focus.toLowerCase()} e impacte ainda mais sua equipe.</Typography>
+        <div className="mt-mx-sm rounded-mx-sm bg-status-success-surface px-mx-sm py-2 text-xs font-bold text-status-success">
+          Competência vinculada: {focus}
+        </div>
         <Button type="button" variant="secondary" size="sm" className="mt-mx-md">
           <PlayCircle size={16} /> Iniciar agora
         </Button>
@@ -850,9 +1022,12 @@ function RecommendedContentCards() {
       {CONTEUDOS_RECOMENDADOS.map(content => (
         <Card key={content.titulo} className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
           <div className="grid grid-cols-[88px_1fr] gap-mx-sm">
-            <div className="flex aspect-video items-center justify-center rounded-mx-md bg-surface-alt text-brand-primary">
-              <BookOpen size={28} />
-            </div>
+            <img
+              src={content.image}
+              alt=""
+              className="aspect-video w-full rounded-mx-md border border-border-subtle object-cover"
+              loading="lazy"
+            />
             <div>
               <Typography variant="h3" className="text-sm tracking-normal">{content.titulo}</Typography>
               <Typography variant="caption" tone="muted" className="normal-case tracking-normal">Competência: {content.competencia}</Typography>
@@ -990,7 +1165,7 @@ function PDIOverlayModal({
     descricaoAcao: '',
     dataConclusao: defaultReviewDate(),
     impacto: 'PDI',
-    custo: 'Vendedor',
+    custo: 'PDI',
     status: 'pendente' as PDICreateActionInput['status'],
   })
 
@@ -1005,7 +1180,7 @@ function PDIOverlayModal({
       descricaoAcao: '',
       dataConclusao: defaultReviewDate(),
       impacto: 'PDI',
-      custo: 'Vendedor',
+        custo: 'PDI',
       status: 'pendente',
     })
   }, [overlay])
@@ -1094,9 +1269,15 @@ function PDIOverlayModal({
               {newActionOverlay.goals.flatMap(goal => goal.items.map(item => <option key={`${goal.prazo}-${item}`} value={`${goal.label} (${goal.value})`}>{goal.label} · {item}</option>))}
             </select>
           </Field>
-          <Field label="Origem"><input className="h-mx-xl rounded-mx-md border border-border-subtle px-mx-sm text-sm font-bold" value="Vendedor" readOnly /></Field>
+          <Field label="Origem"><input className="h-mx-xl rounded-mx-md border border-border-subtle px-mx-sm text-sm font-bold" value="PDI" readOnly /></Field>
           <Field label="Prazo"><input name="data_conclusao" type="date" className="h-mx-xl rounded-mx-md border border-border-subtle px-mx-sm text-sm font-bold" value={newActionDraft.dataConclusao} onChange={event => setNewActionDraft(prev => ({ ...prev, dataConclusao: event.target.value }))} /></Field>
-          <Field label="Responsável"><input name="custo" className="h-mx-xl rounded-mx-md border border-border-subtle px-mx-sm text-sm font-bold" value={newActionDraft.custo} onChange={event => setNewActionDraft(prev => ({ ...prev, custo: event.target.value }))} /></Field>
+          <Field label="Origem da ação">
+            <select name="custo" className="h-mx-xl rounded-mx-md border border-border-subtle px-mx-sm text-sm font-bold" value={newActionDraft.custo} onChange={event => setNewActionDraft(prev => ({ ...prev, custo: event.target.value }))}>
+              {['Gestor', 'Autoavaliação', 'Feedback', 'Indicador', 'PDI', 'Treinamento', 'Central de Execução', 'Regra de Score'].map(origin => (
+                <option key={origin} value={origin}>{origin}</option>
+              ))}
+            </select>
+          </Field>
           <Field label="Status inicial"><select name="status" className="h-mx-xl rounded-mx-md border border-border-subtle px-mx-sm text-sm font-bold" value={newActionDraft.status} onChange={event => setNewActionDraft(prev => ({ ...prev, status: event.target.value as PDICreateActionInput['status'] }))}><option value="pendente">Pendente</option><option value="em_andamento">Em andamento</option></select></Field>
           <Field label="Critério de conclusão"><input className="h-mx-xl rounded-mx-md border border-border-subtle px-mx-sm text-sm font-bold" placeholder="Como saberemos que a ação foi concluída?" /></Field>
           <Field label="Descrição"><textarea className="min-h-28 rounded-mx-md border border-border-subtle p-mx-sm text-sm font-semibold md:col-span-2" placeholder="Detalhe a ação e se ela deve ser vinculada à Central de Execução." /></Field>
@@ -1119,7 +1300,7 @@ function PDIOverlayModal({
       descricaoAcao: String(formData.get('descricao_acao') || ''),
       dataConclusao: String(formData.get('data_conclusao') || actionOverlay.action.data_conclusao),
       impacto: String(formData.get('impacto') || actionOverlay.action.impacto || 'PDI'),
-      custo: String(formData.get('custo') || actionOverlay.action.custo || 'Vendedor'),
+      custo: String(formData.get('custo') || actionOverlay.action.custo || 'PDI'),
     })
   }
 
@@ -1151,8 +1332,8 @@ function PDIOverlayModal({
           <Field label="Prazo">
             <input name="data_conclusao" type="date" className="h-mx-xl rounded-mx-md border border-border-subtle px-mx-sm text-sm font-bold" defaultValue={actionOverlay.action.data_conclusao} />
           </Field>
-          <Field label="Responsável">
-            <input name="custo" className="h-mx-xl rounded-mx-md border border-border-subtle px-mx-sm text-sm font-bold" defaultValue={actionOverlay.action.custo || 'Vendedor'} />
+          <Field label="Origem da ação">
+            <input name="custo" className="h-mx-xl rounded-mx-md border border-border-subtle px-mx-sm text-sm font-bold" defaultValue={actionOverlay.action.custo || 'PDI'} />
           </Field>
           <Detail label="Status" value={actionOverlay.status.label} />
           {actionOverlay.action.justificativa && <Detail label="Justificativa" value={actionOverlay.action.justificativa} />}
@@ -1291,9 +1472,22 @@ function buildSummary(current: PDISessionSummary | null, previous: PDISessionSum
   const acoesEmAndamento = actionRows.filter(row => row.status.label === 'Em andamento').length
   const acoesConcluidas = actionRows.filter(row => row.status.label === 'Concluída').length
   const competenciasTotal = Math.max(12, current?.avaliacoes.length || 0)
-  const competenciasNoAlvo = (current?.avaliacoes || []).filter(av => av.nota >= 6).length
+const competenciasNoAlvo = (current?.avaliacoes || []).filter(av => av.nota >= (current?.id === 'mock-pdi-2026-06-17' ? 8 : 6)).length
 
-  return {
+if (current?.id === 'mock-pdi-2026-06-17') {
+return {
+      notaGeral: 7.6,
+      deltaMes: 0.7,
+competenciasNoAlvo,
+competenciasTotal,
+acoesEmAndamento: 3,
+planoAtivoPct: 75,
+acoesConcluidas: 5,
+planoConcluidoPct: 62,
+}
+}
+
+return {
     notaGeral,
     deltaMes: roundOne(notaGeral - previousScore),
     competenciasNoAlvo,
@@ -1355,13 +1549,14 @@ function actionProgress(status: string, index: number) {
 }
 
 function actionOrigin(action: PDIPlanoAcao360) {
-  return action.custo || 'Gestor'
+  return action.custo || 'PDI'
 }
 
-function originLabel(origin?: string) {
-  if (origin === 'autoavaliacao') return 'Autoavaliação + gestor'
-  if (origin === 'gestor') return 'Gestor + indicadores'
-  return origin || 'Gestor + indicadores'
+function originLabel(origin?: string, competenciaId?: string) {
+  if (competenciaId && COMPETENCY_ORIGIN_LABEL[competenciaId]) return COMPETENCY_ORIGIN_LABEL[competenciaId]
+  if (origin === 'autoavaliacao') return 'Autoavaliação'
+  if (origin === 'gestor') return 'Gestor'
+  return origin || 'Gestor'
 }
 
 function contarStatus(items: PDIEvolutionItem[]) {
