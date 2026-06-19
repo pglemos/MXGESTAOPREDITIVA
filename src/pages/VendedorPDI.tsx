@@ -559,20 +559,20 @@ return (
 
         {activePDI && (
           <>
-            <div className="grid gap-mx-lg xl:grid-cols-[minmax(0,1fr)_360px]">
+            <div className="grid gap-mx-lg xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_360px]">
               <div className="grid min-w-0 gap-mx-lg">
                 <SummaryGrid summary={summary} reviewDateLabel={reviewDateLabel} updatedAt={activePDI.data_realizacao || activePDI.created_at} />
 
-                <section>
+                <section className="min-w-0">
                   <SectionHeading title="Conquistas" subtitle={activePDI.manager_name ? `PDI conduzido por ${activePDI.manager_name}` : undefined} />
-                  <div className="mt-mx-sm grid gap-mx-md xl:grid-cols-3">
+                  <div className="mt-mx-sm grid gap-mx-md 2xl:grid-cols-3">
                     {goals.map(goal => (
                       <GoalCard key={goal.prazo} goal={goal} onEdit={() => setOverlay({ type: 'goal', sessionId: activePDI.id, goal })} />
                     ))}
                   </div>
                 </section>
 
-                <section>
+                <section className="min-w-0">
                   <div className="flex flex-col gap-mx-sm md:flex-row md:items-center md:justify-between">
                     <SectionHeading title="Competências e Desenvolvimento" subtitle="Avaliação feita na sessão de PDI, com alvo e origem da nota visíveis." />
                     <div className="flex flex-wrap items-center gap-mx-md text-sm font-bold">
@@ -581,13 +581,13 @@ return (
                       <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-surface-alt ring-1 ring-border-subtle" /> Origem da nota</span>
                     </div>
                   </div>
-                  <div className="mt-mx-sm grid gap-mx-md xl:grid-cols-2">
+                  <div className="mt-mx-sm grid gap-mx-md 2xl:grid-cols-2">
                     <CompetencyPanel icon={<Wrench size={18} />} title="Competências Técnicas" rows={tecnicas} />
                     <CompetencyPanel icon={<Users size={18} />} title="Competências Comportamentais" rows={comportamentais} />
                   </div>
                 </section>
 
-                <section>
+                <section className="min-w-0">
                   <div className="flex flex-col gap-mx-sm md:flex-row md:items-center md:justify-between">
                     <SectionHeading title="Plano de Ação" subtitle="Ações práticas para desenvolver competências e alcançar conquistas." />
                     <Button type="button" size="sm" onClick={() => setOverlay({ type: 'new-action', sessionId: activePDI.id, competencias: activePDI.avaliacoes, goals })}>
@@ -598,7 +598,7 @@ return (
                 </section>
               </div>
 
-              <section aria-label="Painel lateral de evolução, gargalos e recomendação" className="grid content-start gap-mx-md">
+              <section aria-label="Painel lateral de evolução, gargalos e recomendação" className="grid min-w-0 content-start gap-mx-md">
                 <EvolutionCard evolution={evolucaoPDI} delta={summary.deltaMes} />
                 <BottleneckCard gargalos={gargalos} />
                 <RecommendationCard focus={recommendedFocus} />
@@ -607,12 +607,12 @@ return (
             </div>
 
             <div className="grid gap-mx-lg xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)]">
-              <section>
+              <section className="min-w-0">
                 <SectionHeading title="Histórico de avaliações" subtitle="Quem avaliou, o que mudou e qual foi a evolução." />
                 <HistoryTable rows={historyRows} />
               </section>
 
-              <section>
+              <section className="min-w-0">
                 <SectionHeading title="Conteúdos recomendados para evoluir" subtitle="Conteúdos vinculados aos gargalos e às próximas ações do PDI." />
                 <RecommendedContentCards />
               </section>
@@ -645,7 +645,7 @@ return (
 
 function SummaryGrid({ summary, reviewDateLabel, updatedAt }: { summary: SummaryView; reviewDateLabel: string; updatedAt: string }) {
   return (
-    <section aria-label="Resumo geral do PDI" className="grid gap-mx-md md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+    <section aria-label="Resumo geral do PDI" className="grid gap-mx-md md:grid-cols-2 2xl:grid-cols-3 min-[2200px]:grid-cols-6">
       <SummaryCard
         title="Nota geral do PDI"
         icon={<Star size={20} />}
@@ -751,7 +751,7 @@ function GoalCard({ goal, onEdit }: { goal: GoalView; onEdit: () => void }) {
       : 'bg-brand-primary/10 text-brand-primary'
 
   return (
-    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
+    <Card className="min-w-0 rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
       <div className="grid gap-mx-md lg:grid-cols-[72px_1fr]">
         <span className={`flex h-16 w-16 items-center justify-center rounded-full ${toneClass}`}><Target size={30} /></span>
         <div>
@@ -781,7 +781,7 @@ function GoalCard({ goal, onEdit }: { goal: GoalView; onEdit: () => void }) {
 
 function CompetencyPanel({ icon, title, rows }: { icon: ReactNode; title: string; rows: PDIAvaliacao360[] }) {
   return (
-    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
+    <Card className="min-w-0 rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
       <div className="mb-mx-md flex items-center gap-mx-sm">
         <span className="flex h-9 w-9 items-center justify-center rounded-mx-md bg-status-success-surface text-status-success">{icon}</span>
         <Typography variant="h3" className="text-sm tracking-normal">{title}</Typography>
@@ -823,7 +823,7 @@ function CompetencyPanel({ icon, title, rows }: { icon: ReactNode; title: string
 
 function ActionPlanTable({ rows, onDetail }: { rows: ActionRow[]; onDetail: (row: ActionRow) => void }) {
   return (
-    <Card className="mt-mx-sm overflow-hidden rounded-mx-lg border border-border-subtle bg-white p-0 shadow-mx-sm">
+    <Card className="mt-mx-sm min-w-0 overflow-hidden rounded-mx-lg border border-border-subtle bg-white p-0 shadow-mx-sm">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[1120px] text-left text-sm">
           <thead className="bg-surface-alt text-xs uppercase text-text-secondary">
