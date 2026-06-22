@@ -304,7 +304,7 @@ export function CarteiraClientes() {
         <div className={cn('grid grid-cols-1 gap-mx-xs', selectedCliente && 'xl:grid-cols-[minmax(0,1fr)_440px] 2xl:grid-cols-[minmax(0,1fr)_610px] xl:items-start')}>
           <section className="min-w-0 space-y-mx-xs">
             <Card className="rounded-mx-xl border border-border-subtle bg-white p-mx-sm shadow-mx-sm">
-              <div className="grid grid-cols-1 gap-mx-xs md:grid-cols-2 2xl:grid-cols-[170px_170px_190px_170px_minmax(260px,1fr)_150px]">
+              <div className="grid grid-cols-1 gap-mx-xs md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-[170px_170px_190px_170px_minmax(260px,1fr)_150px]">
                 <FilterSelect label="Origem" value={canalFilter} onChange={value => setCanalFilter(value as CrmCanal | 'todos')}>
                   <option value="todos">Todos</option>
                   {CRM_CANAIS.map(canal => <option key={canal} value={canal}>{CRM_CANAL_LABEL[canal]}</option>)}
@@ -324,15 +324,15 @@ export function CarteiraClientes() {
                   <option value="todos">Todos</option>
                   {CRM_CLIENTE_STATUS.map(status => <option key={status} value={status}>{STATUS_CLIENTE_LABEL[status] || CRM_CLIENTE_STATUS_LABEL[status]}</option>)}
                 </FilterSelect>
-                <label className="block">
+                <label className="block min-w-0 xl:col-span-3 2xl:col-span-1">
                   <Typography variant="caption" tone="muted" className="mb-mx-xs block uppercase tracking-normal">Buscar</Typography>
                   <span className="relative block">
                     <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                     <Input value={search} onChange={event => setSearch(event.target.value)} placeholder="Buscar por nome, telefone ou veículo..." className="h-11 pl-9" />
                   </span>
                 </label>
-                <div className="flex items-end">
-                  <Button className="h-11 w-full" onClick={() => setModalOpen(true)}>
+                <div className="flex min-w-0 items-end xl:col-span-1">
+                  <Button className="h-11 w-full whitespace-nowrap px-2" onClick={() => setModalOpen(true)}>
                     <Plus size={16} /> Novo Cliente
                   </Button>
                 </div>
@@ -370,7 +370,7 @@ export function CarteiraClientes() {
                 </div>
               </div>
 
-              <div className="mt-mx-sm max-w-full min-h-[405px] overflow-x-auto overscroll-x-contain rounded-mx-md border border-border-subtle bg-white">
+              <div className="no-scrollbar mt-mx-sm max-w-full min-h-[405px] overflow-x-auto overscroll-x-contain rounded-mx-md border border-border-subtle bg-white">
                 {error && <Typography tone="muted" className="text-status-error">{error}</Typography>}
                 {loading ? (
                   <Typography tone="muted">Carregando carteira...</Typography>

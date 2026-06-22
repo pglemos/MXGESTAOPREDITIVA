@@ -25,13 +25,13 @@ export function PageHeading({ title, subtitle, actions, breadcrumb }: PageHeadin
           <Typography variant="h1" className="min-w-0 break-words text-3xl leading-tight md:text-[2rem] xl:text-4xl">{title}</Typography>
         </div>
         {subtitle && (
-          <Typography variant="caption" className="pl-mx-md font-black uppercase tracking-mx-wide text-text-label">
+          <Typography variant="caption" className="pl-mx-md text-[12px] font-black uppercase leading-tight tracking-normal text-text-label xl:whitespace-nowrap">
             {subtitle}
           </Typography>
         )}
       </div>
       {actions && (
-        <div className="flex w-full min-w-0 flex-col items-center gap-mx-sm sm:flex-row sm:flex-wrap lg:w-auto lg:max-w-[58%] lg:justify-end">
+        <div className="flex w-full min-w-0 flex-col items-center gap-mx-sm sm:flex-row sm:flex-wrap lg:w-auto lg:max-w-[70%] lg:shrink-0 lg:justify-end xl:flex-nowrap">
           {actions}
         </div>
       )}

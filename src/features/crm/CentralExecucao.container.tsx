@@ -124,10 +124,11 @@ type NewClientForm = {
 }
 
 type ScoreLine = {
-  label: string
-  value: string
-  done: boolean
-  tone?: 'green' | 'orange' | 'red' | 'muted'
+label: string
+compactLabel?: string
+value: string
+done: boolean
+tone?: 'green' | 'orange' | 'red' | 'muted'
 }
 
 const ORIGEM_FILTROS: OrigemFiltro[] = ['todos', 'Carteira', 'Cadência', 'Feedback', 'Manual', 'Agendamento', 'Rotina', 'Funil de Vendas']
@@ -350,13 +351,15 @@ function MetricCard({
   }[tone]
 
   return (
-    <Card className="h-full min-h-[126px] rounded-mx-lg border border-border-subtle bg-white p-mx-sm shadow-mx-sm">
-      <div className="grid h-full grid-cols-[40px_minmax(0,1fr)] items-center gap-mx-xs">
-        <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-full', toneClass)}>{icon}</span>
-        <div className="min-w-0">
-          <Typography variant="caption" className="max-w-full whitespace-normal text-[12px] font-bold leading-snug tracking-normal text-text-primary">{label}</Typography>
-          <Typography variant="h2" className="mt-1 text-2xl leading-none text-text-primary">{value}</Typography>
-          <Typography variant="caption" tone="muted" className="mt-mx-xs block text-xs font-bold leading-tight tracking-normal">{hint}</Typography>
+    <Card className="h-full min-h-[116px] rounded-mx-lg border border-border-subtle bg-white p-mx-xs shadow-mx-sm">
+      <div className="flex h-full min-w-0 flex-col justify-center gap-mx-xs">
+        <Typography variant="caption" className="block min-w-0 whitespace-normal text-center text-[11px] font-bold leading-snug tracking-normal text-text-primary">{label}</Typography>
+        <div className="flex min-w-0 items-center gap-mx-xs">
+          <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full [&_svg]:size-4', toneClass)}>{icon}</span>
+          <div className="min-w-0">
+            <Typography variant="h2" className="text-2xl leading-none text-text-primary">{value}</Typography>
+            <Typography variant="caption" tone="muted" className="mt-mx-xs block text-[11px] font-bold leading-tight tracking-normal">{hint}</Typography>
+          </div>
         </div>
       </div>
     </Card>
@@ -365,10 +368,10 @@ function MetricCard({
 
 function ScoreCard({ score, items }: { score: number; items: ScoreLine[] }) {
   return (
-    <Card className="h-full min-h-[126px] rounded-mx-lg border border-border-subtle bg-white p-mx-sm shadow-mx-sm">
-      <div className="grid h-full grid-cols-[78px_minmax(0,1fr)] items-center gap-mx-sm">
-        <div className="relative flex h-[78px] w-[78px] items-center justify-center rounded-full" style={{ background: `conic-gradient(var(--color-brand-primary) ${score * 3.6}deg, var(--color-border-subtle) 0deg)` }}>
-          <div className="flex h-[58px] w-[58px] flex-col items-center justify-center rounded-full bg-white">
+    <Card className="h-full min-h-[116px] rounded-mx-lg border border-border-subtle bg-white p-mx-xs shadow-mx-sm">
+      <div className="grid h-full grid-cols-[72px_minmax(0,1fr)] items-center gap-mx-xs">
+        <div className="relative flex h-[72px] w-[72px] items-center justify-center rounded-full" style={{ background: `conic-gradient(var(--color-brand-primary) ${score * 3.6}deg, var(--color-border-subtle) 0deg)` }}>
+          <div className="flex h-[54px] w-[54px] flex-col items-center justify-center rounded-full bg-white">
             <Typography variant="h2" className="text-2xl leading-none text-brand-primary">{score}%</Typography>
             <Typography variant="tiny" className="font-bold leading-none tracking-normal text-brand-primary">{score >= 70 ? 'Bom!' : 'Foco!'}</Typography>
           </div>
@@ -382,7 +385,7 @@ function ScoreCard({ score, items }: { score: number; items: ScoreLine[] }) {
             {items.slice(0, 4).map(item => (
               <div key={item.label} className="grid grid-cols-[12px_minmax(0,1fr)_auto] items-center gap-1.5 text-[11px]">
                 <span className={cn('flex h-3 w-3 items-center justify-center rounded-full text-white', item.done ? 'bg-status-success' : item.tone === 'orange' ? 'bg-status-warning' : item.tone === 'red' ? 'bg-status-error' : 'border border-border-strong bg-white')} />
-                <span className="truncate font-semibold text-text-secondary">{item.label}</span>
+                <span className="font-semibold leading-tight text-text-secondary">{item.compactLabel || item.label}</span>
                 <span className={cn('font-bold', item.done ? 'text-brand-primary' : item.tone === 'orange' ? 'text-status-warning' : item.tone === 'red' ? 'text-status-error' : 'text-text-tertiary')}>{item.value}</span>
               </div>
             ))}
@@ -705,13 +708,13 @@ return items.sort((a, b) => new Date(a.data_hora).getTime() - new Date(b.data_ho
     Math.round((scoreChecks.filter(Boolean).length / scoreChecks.length) * 100),
   )
   const scoreItems: ScoreLine[] = [
-    { label: 'Abriu Central de Execução', value: '100%', done: true, tone: 'green' },
-    { label: 'Atualizou status dos clientes', value: clientesAtualizadosHoje > 0 ? '100%' : '0%', done: clientesAtualizadosHoje > 0, tone: 'green' },
-    { label: 'Executou retornos', value: retornosExecutadosHoje > 0 ? '100%' : '0%', done: retornosExecutadosHoje > 0, tone: 'orange' },
-    { label: 'Reagendou sem resposta', value: semRespostaReagendados > 0 ? '100%' : '0%', done: semRespostaReagendados > 0, tone: 'orange' },
-    { label: 'Inseriu novos clientes', value: clientesCriadosHojeScore > 0 ? '100%' : '0%', done: clientesCriadosHojeScore > 0, tone: 'green' },
-    { label: 'Cumpriu feedback obrigatório', value: feedbackObrigatorioCumprido || acoesFeedback.length === 0 ? '100%' : '0%', done: feedbackObrigatorioCumprido || acoesFeedback.length === 0, tone: 'red' },
-    { label: 'Fez Fechamento Diário', value: todayCheckin ? '100%' : '0%', done: Boolean(todayCheckin), tone: 'muted' },
+    { label: 'Abriu Central de Execução', compactLabel: 'Abriu central', value: '100%', done: true, tone: 'green' },
+    { label: 'Atualizou status dos clientes', compactLabel: 'Atualizou status', value: clientesAtualizadosHoje > 0 ? '100%' : '0%', done: clientesAtualizadosHoje > 0, tone: 'green' },
+    { label: 'Executou retornos', compactLabel: 'Executou retornos', value: retornosExecutadosHoje > 0 ? '100%' : '0%', done: retornosExecutadosHoje > 0, tone: 'orange' },
+    { label: 'Reagendou sem resposta', compactLabel: 'Reagendou retorno', value: semRespostaReagendados > 0 ? '100%' : '0%', done: semRespostaReagendados > 0, tone: 'orange' },
+    { label: 'Inseriu novos clientes', compactLabel: 'Novos clientes', value: clientesCriadosHojeScore > 0 ? '100%' : '0%', done: clientesCriadosHojeScore > 0, tone: 'green' },
+    { label: 'Cumpriu feedback obrigatório', compactLabel: 'Feedback ok', value: feedbackObrigatorioCumprido || acoesFeedback.length === 0 ? '100%' : '0%', done: feedbackObrigatorioCumprido || acoesFeedback.length === 0, tone: 'red' },
+    { label: 'Fez Fechamento Diário', compactLabel: 'Fechamento feito', value: todayCheckin ? '100%' : '0%', done: Boolean(todayCheckin), tone: 'muted' },
   ]
 
   const pendencias = useMemo(() => {
@@ -887,14 +890,14 @@ const hasLoadError = Boolean(
           subtitle="Sua rotina diária. Organize seu dia e foque no que gera resultado."
           actions={(
             <>
-            <span className="inline-flex h-mx-11 min-w-0 max-w-full items-center gap-mx-xs whitespace-nowrap rounded-mx-md border border-border-subtle bg-white px-mx-sm text-xs font-bold text-text-primary shadow-mx-sm sm:text-sm">
-                <Calendar size={16} className="text-text-secondary" />
+            <span className="inline-flex h-10 shrink-0 items-center gap-mx-xs whitespace-nowrap rounded-mx-md border border-border-subtle bg-white px-2 text-[11px] font-bold text-text-primary shadow-mx-sm">
+<Calendar size={14} className="text-text-secondary" />
                 {getDateLabel(hoje)}
               </span>
-            <span className="inline-flex h-mx-11 items-center whitespace-nowrap rounded-mx-md border border-status-success/20 bg-status-success-surface px-mx-sm text-xs font-bold text-status-success">
+<span className="inline-flex h-10 shrink-0 items-center whitespace-nowrap rounded-mx-md border border-status-success/20 bg-status-success-surface px-2 text-[11px] font-bold text-status-success">
                 {statusDia}
               </span>
-            <Button variant="outline" onClick={() => toast.info('Central sincronizada com a rotina local.')} className="h-mx-11 whitespace-nowrap bg-white px-mx-sm text-xs sm:text-sm">
+<Button variant="outline" onClick={() => toast.info('Central sincronizada com a rotina local.')} className="h-10 shrink-0 whitespace-nowrap bg-white px-2 text-xs">
                 <RotateCcw size={16} /> Sincronizar Central
               </Button>
             </>
@@ -910,7 +913,7 @@ const hasLoadError = Boolean(
         </div>
         )}
 
-        <section className="grid min-w-0 grid-cols-1 gap-mx-sm md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-[repeat(5,minmax(132px,1fr))_minmax(260px,1.05fr)]" aria-label="Indicadores do dia">
+        <section className="grid min-w-0 grid-cols-1 gap-mx-sm md:grid-cols-2 xl:grid-cols-[repeat(5,minmax(112px,1fr))_minmax(220px,1.05fr)]" aria-label="Indicadores do dia">
           <MetricCard icon={<CalendarCheck size={24} />} label="Agendamentos Hoje" value={String(metrics.agendamentosHoje)} hint={metrics.agendamentosHoje > 0 ? '100% do dia' : 'Sem ações hoje'} tone="green" />
           <MetricCard icon={<CheckCircle2 size={24} />} label="Compareceram" value={String(metrics.compareceram)} hint={`${metrics.taxaComparecimento}% do dia`} tone="green" />
           <MetricCard icon={<XCircle size={24} />} label="Não Compareceram" value={String(metrics.naoCompareceram)} hint={`${metrics.agendamentosHoje ? Math.round((metrics.naoCompareceram / metrics.agendamentosHoje) * 100) : 0}% do dia`} tone="red" />
@@ -1059,7 +1062,7 @@ onExecutionActionDone={handleExecutionActionDone}
                   <div key={item.label} className="flex items-center justify-between gap-mx-sm">
                     <div className="flex min-w-0 items-center gap-mx-xs">
                       <span className={cn('flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold', item.tone === 'green' ? 'bg-status-success-surface text-status-success' : item.tone === 'orange' ? 'bg-status-warning-surface text-status-warning' : 'bg-status-error-surface text-status-error')}>{item.value}</span>
-                      <Typography variant="caption" className="truncate font-bold text-text-primary">{item.label}</Typography>
+                      <Typography variant="caption" className="font-bold leading-tight text-text-primary">{item.label}</Typography>
                     </div>
                   </div>
                 ))}
