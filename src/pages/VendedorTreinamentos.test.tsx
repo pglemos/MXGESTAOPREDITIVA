@@ -9,6 +9,9 @@ const markWatched = mock(async () => undefined)
 const rateTraining = mock(async () => ({ error: null }))
 const suggestContent = mock(async () => ({ error: null }))
 const refetchTrainings = mock(async () => undefined)
+const toastError = mock(() => {})
+const toastInfo = mock(() => {})
+const toastSuccess = mock(() => {})
 
 let developmentAssignments: unknown[] = []
 let developmentRecommendations: unknown[] = []
@@ -65,9 +68,9 @@ const trainingRows = [
 
 mock.module('sonner', () => ({
   toast: {
-    error: mock(() => {}),
-    info: mock(() => {}),
-    success: mock(() => {}),
+    error: toastError,
+    info: toastInfo,
+    success: toastSuccess,
   },
 }))
 
@@ -153,11 +156,57 @@ mock.module('@/features/universidade/sections/AulasAoVivoSection', () => ({
 }))
 
 mock.module('@/features/crm/hooks/useVendedorPerfil', () => ({
+  DIAS_SEMANA: [
+    { code: 'seg', label: 'Seg' },
+    { code: 'ter', label: 'Ter' },
+    { code: 'qua', label: 'Qua' },
+    { code: 'qui', label: 'Qui' },
+    { code: 'sex', label: 'Sex' },
+  ],
   MATURIDADE_VENDEDOR_LABEL: {
     N1: 'N1 — Iniciante',
     N2: 'N2 — Intermediário',
     N3: 'N3 — Performance',
     N4: 'N4 — Alta Performance',
+  },
+  MATURIDADE_TRACK_TYPE: {
+    N1: 'maturidade_n1',
+    N2: 'maturidade_n2',
+    N3: 'maturidade_n3',
+    N4: 'maturidade_n4',
+  },
+  VENDEDOR_EXPERIENCIA_DECLARADA: ['sem_experiencia', 'iniciante', 'intermediario', 'experiente', 'especialista'],
+  VENDEDOR_EXPERIENCIA_LABEL: {
+    sem_experiencia: 'Sem experiência',
+    iniciante: 'Iniciante',
+    intermediario: 'Intermediário',
+    experiente: 'Experiente',
+    especialista: 'Especialista',
+  },
+  VENDEDOR_VINCULO_TIPO: ['loja', 'autonomo'],
+  DEFAULT_PERFIL: {
+    hora_entrada: null,
+    hora_almoco_inicio: null,
+    hora_almoco_fim: null,
+    hora_saida: null,
+    dias_trabalho: ['seg', 'ter', 'qua', 'qui', 'sex'],
+    fechar_dia_notificacao_ativa: true,
+    fechar_dia_notificacao_hora: null,
+    objetivo_curto: null,
+    objetivo_medio: null,
+    objetivo_longo: null,
+    carreira_interesse: 'nao',
+    pretensao_min: null,
+    pretensao_max: null,
+    cargos_interesse: null,
+    cidades_interesse: null,
+    tempo_mercado_anos: null,
+    experiencia_declarada: null,
+    cargo_atual: null,
+    vinculo_tipo: null,
+    mix_canal_internet_pct: null,
+    mix_canal_carteira_pct: null,
+    mix_canal_porta_pct: null,
   },
   derivarNivelMaturidadeVendedor: () => 'N4',
   trackTypeParaMaturidade: () => 'maturidade_n4',
@@ -197,6 +246,9 @@ afterEach(() => {
   rateTraining.mockClear()
   suggestContent.mockClear()
   refetchTrainings.mockClear()
+  toastError.mockClear()
+  toastInfo.mockClear()
+  toastSuccess.mockClear()
 })
 
 describe('VendedorTreinamentos', () => {
@@ -520,5 +572,47 @@ describe('VendedorTreinamentos', () => {
     expect(within(dialog).getByText('Exemplo de situação real')).toBeInTheDocument()
     expect(within(dialog).getByText('Prioridade')).toBeInTheDocument()
     expect(within(dialog).getByText('Anexo opcional')).toBeInTheDocument()
+  })
+
+  it('abre a aba Provas ao clicar em Responder prova', () => {
+    renderPage()
+
+    fireEvent.click(screen.getAllByRole('button', { name: /responder prova/i })[0])
+
+    const tabs = screen.getByRole('tablist', { name: /abas de treinamentos/i })
+    expect(within(tabs).getByRole('tab', { name: 'Provas', selected: true })).toBeInTheDocument()
+  })
+
+  it('abre a aba Aulas ao Vivo ao confirmar presenca', () => {
+    renderPage()
+
+    fireEvent.click(screen.getByRole('button', { name: /confirmar presença/i }))
+
+    const tabs = screen.getByRole('tablist', { name: /abas de treinamentos/i })
+    expect(within(tabs).getByRole('tab', { name: 'Aulas ao Vivo', selected: true })).toBeInTheDocument()
+  })
+
+  it('abre link de calendario ao adicionar aula na agenda', () => {
+    const originalOpen = window.open
+    const open = mock(() => null)
+    Object.defineProperty(window, 'open', { value: open, writable: true })
+
+    try {
+      renderPage()
+
+      fireEvent.click(screen.getByRole('button', { name: /adicionar à agenda/i }))
+
+      expect(open).toHaveBeenCalled()
+    } finally {
+      Object.defineProperty(window, 'open', { value: originalOpen, writable: true })
+    }
+  })
+
+  it('emite feedback ao favoritar conteudo da biblioteca', () => {
+    renderPage('/vendedor/treinamentos?tab=biblioteca')
+
+    fireEvent.click(screen.getAllByRole('button', { name: /favoritar conteúdo/i })[0])
+
+    expect(toastSuccess.mock.calls.some(call => String(call[0]).includes('salvo nos favoritos'))).toBe(true)
   })
 })

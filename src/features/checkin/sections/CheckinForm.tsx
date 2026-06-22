@@ -73,6 +73,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
     updateNumberField,
     commitNumberField,
     handleSubmit,
+    handleSaveDraft,
     crmDerived,
     historicalCheckin,
   } = ctx
@@ -410,7 +411,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
 
 <div className="min-w-0 rounded-mx-xl border border-border-default bg-white p-mx-sm shadow-mx-sm">
 <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-mx-md md:grid-cols-[0.45fr_1fr]">
-<Button type="button" variant="outline" disabled={saving || (!canEditExisting && metricScope === 'daily')} className="h-mx-14 w-full max-w-full">
+          <Button type="button" variant="outline" disabled={saving || (!canEditExisting && metricScope === 'daily')} onClick={() => void handleSaveDraft()} className="h-mx-14 w-full max-w-full">
             <Save size={18} /> Salvar rascunho
           </Button>
           <Button

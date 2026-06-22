@@ -1,6 +1,6 @@
 import React from 'react'
 import { afterEach, describe, expect, it, mock } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
 type OportunidadeMock = {
@@ -202,8 +202,18 @@ describe('FunilVendedor', () => {
  expect(screen.getByText('Oportunidades')).toBeInTheDocument()
  expect(screen.getByText('Ganhos')).toBeInTheDocument()
  expect(screen.getByText('Canais')).toBeInTheDocument()
- expect(screen.getByText('Registrar snapshot')).toBeInTheDocument()
- })
+    expect(screen.getByText('Registrar snapshot')).toBeInTheDocument()
+  })
+
+  it('aciona o registro de snapshot pelo botao historico', async () => {
+    render(<MemoryRouter><FunilVendedor /></MemoryRouter>)
+
+    fireEvent.click(screen.getByRole('button', { name: /registrar snapshot/i }))
+
+    await waitFor(() => {
+      expect(refreshSnapshotMock).toHaveBeenCalled()
+    })
+  })
 
  it('exibe mensagem de erro com botao tentar novamente quando dados falham', () => {
  oportunidadesErrorMock = 'Falha ao carregar oportunidades'

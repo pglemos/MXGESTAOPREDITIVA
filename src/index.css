@@ -9,11 +9,11 @@
   /* Palette Core — MX Brand (Green Identity) */
   --color-mx-black: #0A0A0B;
   --color-pure-black: #000000;
-  --color-brand-primary: #22C55E;
+  --color-brand-primary: #15803d;
   --color-brand-secondary: #0D3B2E;
   
   /* Status Semantics */
-  --color-status-success: #10b981;
+  --color-status-success: #047857;
   --color-status-success-surface: rgba(16, 185, 129, 0.05);
   --color-status-warning: #f59e0b;
   --color-status-warning-surface: rgba(245, 158, 11, 0.05);
@@ -410,19 +410,15 @@ body {
 }
 
 @utility no-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-border-strong) transparent;
-  -ms-overflow-style: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   &::-webkit-scrollbar {
-    display: block;
-    width: 10px;
-    height: 10px;
+    display: none;
+    width: 0;
+    height: 0;
   }
   &::-webkit-scrollbar-thumb {
-    background: var(--color-border-strong);
-    background-clip: content-box;
-    border: 3px solid transparent;
-    border-radius: 9999px;
+    background: transparent;
   }
   &::-webkit-scrollbar-track {
     background: transparent;

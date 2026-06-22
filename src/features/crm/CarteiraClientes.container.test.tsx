@@ -193,4 +193,24 @@ describe('CarteiraClientes', () => {
     })
     expect(toastSuccess).toHaveBeenCalledWith('Tentativa registrada e próxima ação mantida no fluxo.')
   })
+
+  it('remove cliente apos confirmacao explicita', async () => {
+    const originalConfirm = globalThis.confirm
+    const confirmMock = mock(() => true)
+    Object.defineProperty(globalThis, 'confirm', { value: confirmMock, writable: true })
+
+    try {
+      render(<CarteiraClientes />)
+
+      fireEvent.click(screen.getByRole('button', { name: 'Remover' }))
+
+      expect(confirmMock).toHaveBeenCalledWith('Remover "Ana Souza" da sua carteira?')
+      await waitFor(() => {
+        expect(deleteCliente).toHaveBeenCalledWith('cliente-1')
+      })
+      expect(toastSuccess).toHaveBeenCalledWith('Cliente removido.')
+    } finally {
+      Object.defineProperty(globalThis, 'confirm', { value: originalConfirm, writable: true })
+    }
+  })
 })

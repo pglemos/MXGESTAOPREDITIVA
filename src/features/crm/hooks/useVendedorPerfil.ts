@@ -17,6 +17,7 @@ import {
   VENDEDOR_VINCULO_TIPO,
   type VendedorVinculoTipo,
 } from '@/features/crm/lib/vinculo-vendedor'
+import { isVendedorPerfilNotificationSchemaError } from '@/features/crm/lib/vendedor-perfil-schema'
 
 export type CarreiraInteresse = 'nao' | 'confidencial' | 'disponivel'
 
@@ -149,9 +150,18 @@ export function useVendedorPerfil() {
       mix_canal_carteira_pct: merged.mix_canal_carteira_pct ?? null,
       mix_canal_porta_pct: merged.mix_canal_porta_pct ?? null,
     }
-    const { error: upErr } = await supabase
+    const upsertPerfil = (nextPayload: Record<string, unknown>) => supabase
       .from('vendedor_perfil')
-      .upsert(payload, { onConflict: 'seller_user_id' })
+      .upsert(nextPayload, { onConflict: 'seller_user_id' })
+    let { error: upErr } = await upsertPerfil(payload)
+    if (isVendedorPerfilNotificationSchemaError(upErr)) {
+      const {
+        fechar_dia_notificacao_ativa: _fecharDiaNotificacaoAtiva,
+        fechar_dia_notificacao_hora: _fecharDiaNotificacaoHora,
+        ...legacyPayload
+      } = payload
+      ;({ error: upErr } = await upsertPerfil(legacyPayload))
+    }
     if (upErr) return { error: upErr.message }
     setPerfil({ ...merged, vinculo_tipo: mergedVinculoTipo }); setExists(true)
     return { error: null }

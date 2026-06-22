@@ -121,9 +121,45 @@ mock.module('@/features/crm/hooks/useAgendamentos', () => ({
 }))
 
 mock.module('@/hooks/checkins', () => ({
+  CHECKIN_DEADLINE_MINUTES: 570,
+  CHECKIN_EDIT_LIMIT_MINUTES: 585,
+  CHECKIN_DEADLINE_LABEL: '09:30',
+  CHECKIN_EDIT_LIMIT_LABEL: '09:45',
+  MX_TIMEZONE: 'America/Sao_Paulo',
+  CHECKIN_ZERO_REASONS: ['Sem movimento'],
+  CHECKIN_MAX_INPUT_VALUE: 999,
+  CHECKIN_SELECT: '*',
+  withCheckinTotals: (checkin: unknown) => checkin,
   calculateReferenceDate: () => '2026-06-16',
+  isCheckinLate: () => false,
+  canEditCurrentCheckin: () => true,
+  getCheckinEditLockedAt: () => '2026-06-16T12:45:00.000Z',
+  validateCheckinSubmissionDate: () => null,
+  useCheckinsList: () => ({
+    checkins: [],
+    loading: false,
+    error: null,
+    setError: mock(),
+    fetchCheckins: mock(async () => []),
+  }),
   useMyCheckins: () => ({
     checkins: [],
+  }),
+  useCheckinsByDateRange: () => ({
+    checkins: [],
+    loading: false,
+    error: null,
+    fetchCheckinsByDateRange: mock(async () => []),
+  }),
+  useCheckinsToday: () => ({
+    todayCheckin: null,
+    fetchTodayCheckin: mock(async () => null),
+  }),
+  useCheckinsByDate: () => ({
+    fetchCheckinByDate: mock(async () => null),
+  }),
+  useCheckinsSubmit: () => ({
+    saveCheckin: mock(async () => ({ error: null })),
   }),
 }))
 

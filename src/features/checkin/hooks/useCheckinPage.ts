@@ -40,6 +40,7 @@ export interface CheckinForm {
 export type NumericCheckinField = Exclude<keyof CheckinForm, 'note' | 'zero_reason'>
 
 export const CHECKIN_MAX_INPUT_HELP = `O teto ${CHECKIN_MAX_INPUT_VALUE} evita erro de digitação, importação duplicada ou lançamento fora da escala operacional.`
+export const CHECKIN_DRAFT_STORAGE_PREFIX = 'mx-checkin-draft'
 
 /**
  * useCheckinPage — concentra estado, validações, efeitos e handlers da página
@@ -264,8 +265,7 @@ export function useCheckinPage() {
         navigate('/home')
     }
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
+    const submitCheckin = async () => {
         if (saving) return
         if (Object.values(numberDrafts).some(value => value === '')) {
             const emptyFields = Object.entries(numberDrafts)
@@ -343,6 +343,44 @@ export function useCheckinPage() {
         timerRef.current = setTimeout(() => setShowConfetti(false), 1200)
     }
 
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        await submitCheckin()
+    }
+
+    const handleSaveDraft = async () => {
+        if (saving) return
+        if (typeof window === 'undefined') return
+
+        setSaving(true)
+        setInputError(null)
+
+        try {
+            const draftKey = [
+                CHECKIN_DRAFT_STORAGE_PREFIX,
+                customReferenceDate || referenceDate || 'sem-data',
+                metricScope,
+            ].join(':')
+
+            window.localStorage.setItem(draftKey, JSON.stringify({
+                form,
+                metricScope,
+                referenceDate: customReferenceDate || referenceDate,
+                savedAt: new Date().toISOString(),
+            }))
+
+            setSaveNotice({
+                title: 'Rascunho salvo.',
+                detail: 'O fechamento ainda não foi finalizado. Revise os números e finalize quando estiver pronto.',
+            })
+            toast.success('Rascunho salvo.')
+        } catch {
+            toast.error('Não foi possível salvar o rascunho neste navegador.')
+        } finally {
+            setSaving(false)
+        }
+    }
+
     const saveTechnicalAdjustment = async (nextForm: CheckinForm, detailNote: string) => {
         if (saving) return { error: 'Salvamento em andamento.' }
         setSaving(true)
@@ -411,6 +449,7 @@ export function useCheckinPage() {
         commitNumberField,
         handleExit,
         handleSubmit,
+        handleSaveDraft,
         saveTechnicalAdjustment,
     }
 }

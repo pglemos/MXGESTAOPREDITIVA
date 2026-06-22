@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import { derivarNivelMaturidadeVendedor, trackTypeParaMaturidade } from '@/features/crm/lib/maturidade'
+import { isVendedorPerfilNotificationSchemaError } from '@/features/crm/lib/vendedor-perfil-schema'
 
 describe('derivarNivelMaturidadeVendedor', () => {
   it('classifica vendedor sem experiencia como N1', () => {
@@ -27,5 +28,17 @@ describe('derivarNivelMaturidadeVendedor', () => {
       experiencia_declarada: 'iniciante',
       cargo_atual: 'Supervisor comercial',
     })).toBe('N3')
+  })
+})
+
+describe('useVendedorPerfil schema compatibility', () => {
+  it('detecta drift de schema dos campos de notificacao do fechamento', () => {
+    expect(isVendedorPerfilNotificationSchemaError({
+      message: "Could not find 'fechar_dia_notificacao_ativa' column of 'vendedor_perfil' in the schema cache",
+    })).toBe(true)
+    expect(isVendedorPerfilNotificationSchemaError({
+      message: "Could not find 'fechar_dia_notificacao_hora' column of 'vendedor_perfil' in the schema cache",
+    })).toBe(true)
+    expect(isVendedorPerfilNotificationSchemaError({ message: 'permission denied' })).toBe(false)
   })
 })

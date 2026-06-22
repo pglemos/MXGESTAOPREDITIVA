@@ -83,10 +83,29 @@ Esta story cria o catalogo de regras consultivas. A engine de execucao e a UI fi
 - `src/lib/mx-executive-foundation.test.ts`
 - `src/features/dashboard-loja/sections/PerformanceAlerts.tsx`
 - `src/features/dashboard-loja/sections/OwnerExecutiveCockpit.tsx`
+- `src/features/central-mx/hooks/useConsultorIa.ts`
+- `src/features/central-mx/hooks/useConsultorIa.test.ts`
+- `src/features/central-mx/sections/ConsultorIaChat.test.tsx`
 - `src/features/central-mx/sections/ConsultorIaStoreSection.tsx`
 - `src/features/central-mx/StoreConsultorIa.container.tsx`
+- `src/features/checkin/hooks/useCheckinPage.ts`
+- `src/features/checkin/sections/CheckinCrmSection.test.tsx`
+- `src/features/checkin/sections/CheckinForm.tsx`
+- `src/features/checkin/sections/CheckinForm.test.ts`
+- `src/features/crm/CarteiraClientes.container.tsx`
+- `src/features/crm/CarteiraClientes.container.test.tsx`
+- `src/features/crm/CentralExecucao.container.test.tsx`
+- `src/features/crm/FunilVendedor.container.test.tsx`
+- `src/features/crm/MeuPerfilVendedor.container.test.tsx`
+- `src/features/crm/hooks/useVendedorPerfil.ts`
+- `src/features/crm/hooks/useVendedorPerfil.test.ts`
+- `src/features/crm/lib/vendedor-perfil-schema.ts`
+- `src/features/notificacoes/sections/NotificacoesHeader.test.tsx`
+- `src/lib/seller-live-action-fixes-migration.test.ts`
+- `src/pages/VendedorTreinamentos.test.tsx`
 - `src/pages/StoreConsultorIa.tsx`
 - `src/components/Layout.tsx`
+- `supabase/migrations/20260619093000_seller_live_action_fixes.sql`
 - `src/App.tsx`
 - `src/lib/auth/routeAccess.ts`
 - `src/lib/auth/routeAccess.test.ts`
@@ -114,6 +133,13 @@ Esta story cria o catalogo de regras consultivas. A engine de execucao e a UI fi
 - 2026-05-29: Unificado o Consultor IA de dono, gerente e vendedor na rota `/lojas/:storeSlug/consultor-ia`, reutilizando o mesmo bloco visual e o mesmo `ConsultorIaChat` rules-based.
 - 2026-05-29: Atualizada navegação lateral/CTA para gerente e vendedor apontarem para a experiência consultiva por loja em vez de `/auditoria` ou WhatsApp.
 - 2026-05-29: Gates executados: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` e `bun test src/lib/auth/routeAccess.test.ts` passaram.
+- 2026-06-19: Corrigido `useConsultorIa` para consultar `consultor_solucoes.scope_type` com enum canônico `store`, evitando 400 `invalid input value for enum score_scope_type: "loja"`.
+- 2026-06-19: Corrigido botão `Salvar rascunho` do Fechamento Diário para fluxo de rascunho local, sem disparar o RPC de finalização.
+- 2026-06-19: Aplicada no Supabase remoto a migration `20260619093000_seller_live_action_fixes.sql`; o RPC `consultor_ia_sugerir_acao` passou a permitir vendedor vinculado à loja.
+- 2026-06-19: Validação live com login vendedor confirmou `Salvar rascunho`, `FINALIZAR FECHAMENTO`, `Gerar sugestões`, `Feito`, `Não feito`, `Salvar perfil`, `Salvar cliente`, `Marcar tudo`, `Registrar snapshot`, `Responder prova`, `Confirmar presença`, `Adicionar à agenda`, `Li e compreendi` e `Concluir ação`.
+- 2026-06-19: `Remover` validado no cliente de teste `Cliente Teste Codex 1781853212768`; após confirmação explícita, o clique em `OK` removeu o registro, a UI recarregada permaneceu com 2 clientes e o Supabase retornou contagem 0 por `id` e por `nome`.
+- 2026-06-19: Gates executados após ajustes live: pacote direcionado Bun do módulo vendedor, `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` e `git diff --check` passaram.
+- 2026-06-19: Rodada final após `Remover`: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`, `git diff --check`, `npm run validate:structure` e `npm run validate:agents` passaram; `validate:agents` manteve apenas warnings preexistentes de dependências AIOX ausentes.
 
 ### Completion Notes
 
@@ -121,9 +147,14 @@ Esta story cria o catalogo de regras consultivas. A engine de execucao e a UI fi
 - Catálogo persistente/configurável e explicabilidade formal foram adicionados.
 - Testes unitários cobrem determinismo, rastreabilidade e preservação do MX Score.
 - Dono, gerente e vendedor passam a acessar a mesma experiência do Consultor IA por loja em `/lojas/:storeSlug/consultor-ia`.
+- Validação do vendedor confirmou `consultor_solucoes?scope_type=eq.store`, `consultor_ia_sugerir_acao` e `submit_checkin` com status 200 e sem erro de console funcional.
+- Rotas e aliases do módulo vendedor foram validados com login `vendedor@mxgestaopreditiva.com.br`; ações finais com escrita foram clicadas no ambiente real quando não destrutivas.
+- A exclusão `Remover` foi concluída somente após confirmação humana imediata, conforme política de ação destrutiva em UI; o registro `Cliente Teste Codex 1781853212768` não aparece mais na carteira após reload.
 
 ### Change Log
 
 - 2026-05-27: Story atualizada de `Draft` para `InProgress` com evidência de regras existentes e pendências do catálogo persistente.
 - 2026-05-27: Story movida para `Ready for Review` após cobertura unitária dos contratos pendentes.
 - 2026-05-29: Correção de roteamento e navegação multi-perfil para o Consultor IA por loja.
+- 2026-06-19: Correção do mapeamento de escopo do Consultor IA para enum `score_scope_type` canônico.
+- 2026-06-19: Correção do CTA `Salvar rascunho`, liberação live do RPC `Gerar sugestões` para vendedor vinculado e validação real das ações do módulo vendedor.

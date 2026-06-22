@@ -14,14 +14,26 @@ mock.module('@/hooks/useAuth', () => ({
 }))
 
 mock.module('@/hooks/useNotifications', () => ({
-  useNotifications: () => ({
-    unreadCount: 0,
-  }),
+ useNotifications: () => ({
+ unreadCount: 0,
+ }),
 }))
 
+let mockScoreState: { score: any; loading: boolean } = {
+ score: {
+ value: 40,
+ band: 'critical',
+ dimDisciplina: 0,
+ dimResultado: 100,
+ dimProcesso: 0,
+ period: '2026-06',
+ },
+ loading: false,
+}
+
 mock.module('@/features/vendedor-home/hooks/useVendedorHomePage', () => ({
-  useVendedorHomePage: () => ({
-    remuneration: null,
+ useVendedorHomePage: () => ({
+ remuneration: null,
     remuneracaoEstimada: {
       disponivel: true,
       cargo: 'Vendedor',
@@ -48,11 +60,13 @@ mock.module('@/features/vendedor-home/hooks/useVendedorHomePage', () => ({
     treinamentos: [
       { id: 'training-1', title: 'História, valores e cultura da MX', watched: false, progress_percent: 60 },
       { id: 'training-2', title: 'Funil comercial e conversões', watched: false, progress_percent: 45 },
-    ],
-    checkins: [],
-    todayCheckin: null,
-    ranking: [],
-  }),
+ ],
+ checkins: [],
+ todayCheckin: null,
+ ranking: [],
+ metrics: { meta: 8, vendasMes: 5, projecao: 7, atingimento: 63, faltaX: 3 },
+ isLoading: false,
+ }),
 }))
 
 mock.module('@/features/crm/hooks/useMeuScore', () => ({
@@ -70,18 +84,11 @@ mock.module('@/features/crm/hooks/useMeuScore', () => ({
     excellent: 'Elite MX',
     elite: 'Elite MX',
   },
-  useMeuScore: () => ({
-    score: {
-      value: 40,
-      band: 'critical',
-      dimDisciplina: 0,
-      dimResultado: 100,
-      dimProcesso: 0,
-      period: '2026-06',
-    },
-    bandLabel: { critical: 'Crítico' },
-    nextBand: { critical: 'Atenção' },
-  }),
+ useMeuScore: () => ({
+ ...mockScoreState,
+ bandLabel: { critical: 'Crítico' },
+ nextBand: { critical: 'Atenção' },
+ }),
 }))
 
 mock.module('@/features/crm/hooks/useAgendamentos', () => ({
@@ -122,7 +129,18 @@ mock.module('@/features/crm/hooks/useOportunidades', () => ({
 const { VendedorHome, EstimatedSalaryCard } = await import('./VendedorHome.container')
 
 afterEach(() => {
-  cleanup()
+ mockScoreState = {
+ score: {
+ value: 40,
+ band: 'critical',
+ dimDisciplina: 0,
+ dimResultado: 100,
+ dimProcesso: 0,
+ period: '2026-06',
+ },
+ loading: false,
+ }
+ cleanup()
 })
 
 describe('VendedorHome', () => {
@@ -137,24 +155,40 @@ expect(screen.getByRole('heading', { name: /bom dia, vendedor!/i })).toBeInTheDo
     expect(screen.getByText(/crítico/i)).toBeInTheDocument()
     expect(screen.getByText(/400 \/ 1000 pts/i)).toBeInTheDocument()
     expect(screen.getAllByText(/nenhuma atividade executada ainda/i).length).toBeGreaterThan(0)
-    expect(screen.getAllByText(/comece pela central de execução/i).length).toBeGreaterThan(0)
-    expect(screen.getByText(/plano de ataque de hoje/i)).toBeInTheDocument()
-    expect(screen.getByText(/5 retornos de carteira/i)).toBeInTheDocument()
-    expect(screen.getByText(/3 novos agendamentos/i)).toBeInTheDocument()
-    expect(screen.getByText(/2 prospecções/i)).toBeInTheDocument()
+ expect(screen.getAllByText(/comece pela central de execução/i).length).toBeGreaterThan(0)
+ expect(screen.getByText(/plano de ataque de hoje/i)).toBeInTheDocument()
+ expect(screen.getByText(/criar novos agendamentos na central/i)).toBeInTheDocument()
+ expect(screen.getByText(/priorizar 3 vendas restantes para a meta/i)).toBeInTheDocument()
+ expect(screen.getByText(/atualizar status dos clientes movimentados/i)).toBeInTheDocument()
+ expect(screen.getByRole('link', { name: /abrir central de execução/i })).toBeInTheDocument()
     expect(screen.queryByText(/próxima melhor ação/i)).not.toBeInTheDocument()
 expect(screen.getByRole('link', { name: /^abrir fechamento diário$/i })).toBeInTheDocument()
     expect(screen.getByText(/história, valores e cultura da mx/i)).toBeInTheDocument()
     expect(screen.getAllByText(/nenhum feedback recebido ainda/i)).toHaveLength(1)
     expect(screen.getByText(/ação vinculada, prazo, status e confirmação de leitura/i)).toBeInTheDocument()
 
-    const topCards = screen.getByText(/minha meta/i).closest('section')
-    expect(topCards).not.toBeNull()
-    expect(within(topCards as HTMLElement).getByText(/comissão estimada/i)).toBeInTheDocument()
-    expect(within(topCards as HTMLElement).getByText(/agendamentos hoje/i)).toBeInTheDocument()
-    expect(within(topCards as HTMLElement).getByText(/atividades hoje/i)).toBeInTheDocument()
-    expect(within(topCards as HTMLElement).getByText(/meu score mx/i)).toBeInTheDocument()
-  })
+ const topCards = screen.getByText(/minha meta/i).closest('section')
+ expect(topCards).not.toBeNull()
+ expect(within(topCards as HTMLElement).getByText(/comissão estimada/i)).toBeInTheDocument()
+ expect(within(topCards as HTMLElement).getByText(/agendamentos hoje/i)).toBeInTheDocument()
+ expect(within(topCards as HTMLElement).getByText(/atividades hoje/i)).toBeInTheDocument()
+ expect(within(topCards as HTMLElement).getByText(/meu score mx/i)).toBeInTheDocument()
+ })
+
+ it('nao apresenta score critico falso quando nao ha calculo recente', () => {
+ mockScoreState = { score: null, loading: false }
+
+ render(
+ <MemoryRouter>
+ <VendedorHome />
+ </MemoryRouter>,
+ )
+
+ expect(screen.getByText(/indisponível/i)).toBeInTheDocument()
+ expect(screen.getByText(/sem cálculo recente/i)).toBeInTheDocument()
+ expect(screen.queryByText(/400 \/ 1000 pts/i)).not.toBeInTheDocument()
+ expect(screen.getAllByRole('link', { name: /abrir fechamento diário/i }).length).toBeGreaterThan(0)
+ })
 })
 
 describe('EstimatedSalaryCard', () => {

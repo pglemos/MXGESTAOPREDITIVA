@@ -14,6 +14,7 @@ const concluirAcaoFeedback = mock(async () => ({ error: null }))
 const concluirExecutionAction = mock(async () => ({ error: null }))
 const toastSuccess = mock(() => {})
 const toastError = mock(() => {})
+const toastInfo = mock(() => {})
 let feedbackActionsMock: unknown[] = []
 let executionActionsMock: unknown[] = []
 let cadenciaErrorMock: string | null = null
@@ -60,7 +61,7 @@ mock.module('sonner', () => ({
   toast: {
     error: toastError,
     success: toastSuccess,
-    info: mock(() => {}),
+    info: toastInfo,
   },
 }))
 
@@ -74,10 +75,45 @@ mock.module('@/hooks/useAuth', () => ({
 }))
 
 mock.module('@/hooks/checkins', () => ({
+  CHECKIN_DEADLINE_MINUTES: 570,
+  CHECKIN_EDIT_LIMIT_MINUTES: 585,
+  CHECKIN_DEADLINE_LABEL: '09:30',
+  CHECKIN_EDIT_LIMIT_LABEL: '09:45',
+  MX_TIMEZONE: 'America/Sao_Paulo',
+  CHECKIN_ZERO_REASONS: ['Sem movimento'],
+  CHECKIN_MAX_INPUT_VALUE: 999,
+  CHECKIN_SELECT: '*',
+  withCheckinTotals: (checkin: unknown) => checkin,
   calculateReferenceDate: () => today,
+  isCheckinLate: () => false,
+  canEditCurrentCheckin: () => true,
+  getCheckinEditLockedAt: () => `${today}T12:45:00.000Z`,
+  validateCheckinSubmissionDate: () => null,
+  useCheckinsList: () => ({
+    checkins: [],
+    loading: false,
+    error: null,
+    setError: mock(),
+    fetchCheckins: mock(async () => []),
+  }),
+  useMyCheckins: () => ({
+    checkins: [],
+  }),
+  useCheckinsByDateRange: () => ({
+    checkins: [],
+    loading: false,
+    error: null,
+    fetchCheckinsByDateRange: mock(async () => []),
+  }),
   useCheckinsToday: () => ({
     todayCheckin: null,
     fetchTodayCheckin,
+  }),
+  useCheckinsByDate: () => ({
+    fetchCheckinByDate: mock(async () => null),
+  }),
+  useCheckinsSubmit: () => ({
+    saveCheckin: mock(async () => ({ error: null })),
   }),
 }))
 
@@ -223,8 +259,9 @@ refetchExecutionActions.mockClear()
 registrarStatusCadencia.mockClear()
 concluirAcaoFeedback.mockClear()
 concluirExecutionAction.mockClear()
-  toastSuccess.mockClear()
-  toastError.mockClear()
+toastSuccess.mockClear()
+toastError.mockClear()
+toastInfo.mockClear()
 feedbackActionsMock = []
 executionActionsMock = []
 cadenciaErrorMock = null
@@ -272,6 +309,23 @@ describe('CentralExecucao', () => {
     expect(refetchCadencia).toHaveBeenCalled()
     expect(refetchClientes).toHaveBeenCalled()
     expect(toastSuccess).toHaveBeenCalledWith('Cadência atualizada.')
+  })
+
+  it('registra acao de cadencia como nao feita pela Central', async () => {
+    render(<MemoryRouter><CentralExecucao /></MemoryRouter>)
+
+    expect(await screen.findByText('Ana Souza')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: /Não feito/i }))
+
+    await waitFor(() => {
+      expect(registrarStatusCadencia).toHaveBeenCalledWith({
+        clienteId: '11111111-1111-4111-8111-111111111111',
+        status: 'nao_feito',
+      })
+    })
+    expect(refetchCadencia).toHaveBeenCalled()
+    expect(refetchClientes).toHaveBeenCalled()
+    expect(toastInfo).toHaveBeenCalledWith('Próxima tentativa sugerida: reagendar retorno para o próximo horário disponível.')
   })
 
   it('mostra acao de feedback como alerta e permite concluir pela Central', async () => {

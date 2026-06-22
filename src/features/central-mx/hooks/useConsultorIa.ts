@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
+import { scopeToDb, type ScopeDb } from '@/features/dashboard-loja/lib/scopeType'
 import { supabase } from '@/lib/supabase'
 
 /**
@@ -16,7 +17,7 @@ export type ConsultorIaPriority = 'critica' | 'alta' | 'media' | 'baixa'
 
 export type ConsultorIaSolucao = {
   id: string
-  scope_type: 'loja' | 'departamento' | 'vendedor' | 'consultor'
+  scope_type: ScopeDb
   scope_id: string | null
   rule_code: string
   problem: string
@@ -45,6 +46,8 @@ const EMPTY_COUNTS: Record<ConsultorIaPriority, number> = {
   baixa: 0,
 }
 
+export const CONSULTOR_IA_STORE_SCOPE_TYPE: ScopeDb = scopeToDb('loja')
+
 export function useConsultorIa(storeId: string | null | undefined): UseConsultorIaResult {
   const [solucoes, setSolucoes] = useState<ConsultorIaSolucao[]>([])
   const [loading, setLoading] = useState(false)
@@ -64,7 +67,7 @@ export function useConsultorIa(storeId: string | null | undefined): UseConsultor
         .select(
           'id, scope_type, scope_id, rule_code, problem, recommendation, rationale, priority, rule_version, metadata, created_at',
         )
-        .eq('scope_type', 'loja')
+        .eq('scope_type', CONSULTOR_IA_STORE_SCOPE_TYPE)
         .eq('scope_id', storeId)
         .order('created_at', { ascending: false })
         .limit(50)

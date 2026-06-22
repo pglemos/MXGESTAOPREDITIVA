@@ -143,7 +143,7 @@ export function CarteiraClientes() {
   const [naoRespondeuCliente, setNaoRespondeuCliente] = useState<Cliente | null>(null)
   const runtimeUserAgent = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : ''
   const isAutomatedTest = (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') || runtimeUserAgent.includes('happy-dom') || runtimeUserAgent.includes('jsdom')
-  const demoMode = clientes.length < 8 && !isAutomatedTest
+  const demoMode = clientes.length === 0 && !isAutomatedTest
   const carteiraClientes = demoMode ? DEMO_CLIENTES : clientes
   const carteiraOportunidades = demoMode ? DEMO_OPORTUNIDADES : oportunidades
 

@@ -333,22 +333,16 @@ export default function SellerLayoutShell({
           isCollapsed && 'h-14 justify-center rounded-[18px] px-0'
         )}
       >
-        <span className="relative shrink-0">
-          <Avatar src={avatarUrl || undefined} alt={`Avatar de ${displayName}`} fallback={displayName} size={isCollapsed ? 'md' : 'lg'} className="border-white/[0.08] bg-[var(--mx-seller-surface)]" />
-          <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-[var(--mx-seller-surface)] bg-[var(--mx-seller-primary)]" aria-hidden="true" />
-        </span>
+          <span className="relative shrink-0">
+            <Avatar src={avatarUrl || undefined} alt={`Avatar de ${displayName}`} fallback={displayName} size={isCollapsed ? 'md' : 'lg'} className="border-white/[0.08] bg-[var(--mx-seller-surface)]" />
+          </span>
         {!isCollapsed && (
           <>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[15px] font-semibold text-white">{displayName}</span>
-              <span className="mt-1 flex items-center gap-1.5 text-[12px] font-medium text-[var(--mx-seller-text-secondary)]">
-                {displayRole}
-                <span aria-hidden="true">•</span>
-                <span className="inline-flex items-center gap-1 text-[var(--mx-seller-primary)]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--mx-seller-primary)]" aria-hidden="true" />
-                  Online
-                </span>
-              </span>
+                  <span className="mt-1 block truncate text-[12px] font-medium text-[var(--mx-seller-text-secondary)]">
+                    {displayRole}
+                  </span>
             </span>
             <ChevronDown size={18} strokeWidth={1.8} className={cn('text-[rgb(var(--mx-seller-text-primary-rgb)/0.65)] transition-transform duration-200', userMenuOpen && 'rotate-180')} aria-hidden="true" />
           </>
@@ -359,8 +353,11 @@ export default function SellerLayoutShell({
   )
 
   const renderSidebarContent = (isCollapsed: boolean, canCollapse = false) => {
-    const bottomSections = navSections.filter((section) => ['INTELIGÊNCIA', 'SISTEMA'].includes(section.label))
-    const mainSections = navSections.filter((section) => !['INTELIGÊNCIA', 'SISTEMA'].includes(section.label))
+    const hiddenSections = new Set(['CONTA'])
+    const bottomSectionLabels = new Set(['INTELIGÊNCIA', 'FERRAMENTAS', 'SISTEMA'])
+    const visibleSections = navSections.filter((section) => !hiddenSections.has(section.label))
+    const bottomSections = visibleSections.filter((section) => bottomSectionLabels.has(section.label))
+    const mainSections = visibleSections.filter((section) => !bottomSectionLabels.has(section.label))
 
     return (
     <>
@@ -389,7 +386,7 @@ export default function SellerLayoutShell({
         )}
       </div>
 
-<nav className="mt-3 flex-1 space-y-1.5 overflow-y-auto pr-1" aria-label={sidebarLabel}>
+      <nav className="no-scrollbar mt-3 flex-1 space-y-1.5 overflow-y-auto pr-1" aria-label={sidebarLabel}>
 {mainSections.map((section, sectionIndex) => (
 <section key={section.label} className={cn('space-y-1', sectionIndex > 0 && 'border-t border-white/[0.06] pt-1.5')} aria-label={section.label}>
 {!isCollapsed && <p className="px-3 text-[11px] font-semibold uppercase text-[rgba(244,255,249,0.45)]">{section.label}</p>}

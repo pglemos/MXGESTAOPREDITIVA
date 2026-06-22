@@ -93,6 +93,8 @@ quality_gate_tools: ["npm run lint", "npm run typecheck", "npm test", "npm run b
 - `npm run typecheck`: passou.
 - 2026-06-19: Novo `SellerLayoutShell` reaproveitado como sidebar global para gerente, dono e perfis internos MX, preservando a navegacao por papel em `Layout.tsx`.
 - 2026-06-19: `npm run typecheck`, `npm run lint`, `npm test` (600 pass) e `npm run build` passaram.
+- 2026-06-22: Revisao UX da Home do vendedor corrigiu scrollbar visivel no sidebar, removeu status online falso, removeu fallbacks falsos de meta/comissao/score, ajustou empty states, contraste e grid dos cards superiores.
+- 2026-06-22: `npm run typecheck`, `bun test src/features/vendedor-home/VendedorHome.container.test.tsx`, `npm run lint`, `npm test` e `npm run build` passaram.
 
 ### File List
 
@@ -116,4 +118,5 @@ quality_gate_tools: ["npm run lint", "npm run typecheck", "npm test", "npm run b
 - `src/pages/RotinaGerente.tsx`
 - `src/pages/VendedorHome.tsx`
 - `src/features/vendedor-home/VendedorHome.container.tsx`
+- `src/features/vendedor-home/VendedorHome.container.test.tsx`
 - `src/features/vendedor-home/hooks/useVendedorHomePage.ts`

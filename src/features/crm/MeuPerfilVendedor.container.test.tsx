@@ -1,6 +1,6 @@
 import React from 'react'
 import { afterEach, describe, expect, it, mock } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
 const setPerfil = mock(() => {})
@@ -186,5 +186,18 @@ describe('MeuPerfilVendedor', () => {
     expect(screen.getByLabelText(/Sim, estou disponível para o mercado/i)).toBeEnabled()
     expect(screen.getByRole('button', { name: /configurar modelo/i })).toBeEnabled()
     expect(screen.getByDisplayValue('R$ 5.000 - R$ 7.000')).toBeInTheDocument()
+  })
+
+  it('salva oportunidades de carreira do vendedor autonomo', async () => {
+    vinculoTipoMock = 'autonomo'
+
+    render(<MemoryRouter><MeuPerfilVendedor /></MemoryRouter>)
+
+    const saveButtons = screen.getAllByRole('button', { name: /^salvar$/i })
+    fireEvent.click(saveButtons[saveButtons.length - 1])
+
+    await waitFor(() => {
+      expect(savePerfil).toHaveBeenCalledWith({})
+    })
   })
 })

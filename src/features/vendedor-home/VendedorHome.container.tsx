@@ -109,23 +109,27 @@ export function VendedorHome() {
   const { profile } = useAuth()
   const { unreadCount } = useNotifications()
   const home = useVendedorHomePage()
-  const { score, bandLabel, nextBand } = useMeuScore()
+  const { score, loading: scoreLoading, bandLabel, nextBand } = useMeuScore()
   const { agendamentos, metrics: agendaMetrics } = useAgendamentos()
   const { oportunidades } = useOportunidades()
 
   const firstName = resolveGreetingName(profile?.name)
-  const todayLabel = new Date().toLocaleDateString('pt-BR', {
+  const todayLabel = new Intl.DateTimeFormat('pt-BR', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
-  })
-
-  const meta = 8
-  const vendasMes = 5
-  const projecao = 7
-  const faltam = Math.max(meta - vendasMes, 0)
-  const atingimento = 63
+    timeZone: 'America/Sao_Paulo',
+  }).format(new Date())
+  const metrics = home.metrics
+  const hasMetrics = Boolean(metrics)
+  const meta = metrics?.meta ?? 0
+  const vendasMes = metrics?.vendasMes ?? 0
+  const projecao = metrics?.projecao ?? 0
+  const faltam = metrics?.faltaX ?? Math.max(meta - vendasMes, 0)
+  const atingimento = metrics?.atingimento ?? 0
   const disciplina = home.discipline?.percentage ?? 0
+  const isInitialLoading = home.isLoading && !hasMetrics
+  const agendamentosMeta = 8
 
   const agendaHoje = useMemo(
     () => agendamentos.filter((agendamento) => isToday(agendamento.data_hora)),
@@ -136,13 +140,28 @@ export function VendedorHome() {
     () => (home.devolutivas || []).filter((feedback) => !feedback.acknowledged).length,
     [home.devolutivas],
   )
+  const attackItems = [
+    agendaMetrics.agendamentosHoje === 0
+      ? 'Criar novos agendamentos na Central'
+      : `${agendaMetrics.agendamentosHoje} agendamento${agendaMetrics.agendamentosHoje === 1 ? '' : 's'} para executar hoje`,
+    faltam > 0
+      ? `Priorizar ${faltam} venda${faltam === 1 ? '' : 's'} restante${faltam === 1 ? '' : 's'} para a meta`
+      : 'Proteger carteira e manter qualidade pós-meta',
+    feedbacksPendentes > 0
+      ? `Responder ${feedbacksPendentes} feedback${feedbacksPendentes === 1 ? '' : 's'} obrigatório${feedbacksPendentes === 1 ? '' : 's'}`
+      : 'Atualizar status dos clientes movimentados',
+  ]
 
   const atividades = useMemo<ActivitySummary>(() => {
-    const negociacoes = oportunidades.filter((item) => item.etapa === 'negociacao' || item.etapa === 'fechamento').length
+    const oportunidadesHoje = oportunidades.filter((item) => {
+      const reference = item.updated_at || item.created_at
+      return reference ? isToday(reference) : false
+    })
+    const negociacoes = oportunidadesHoje.filter((item) => item.etapa === 'negociacao' || item.etapa === 'fechamento').length
     const visitas = agendaHoje.filter((item) => item.tipo === 'visita' || item.tipo === 'test_drive').length
     const retornos = agendaHoje.filter((item) => item.tipo === 'retorno').length
-    const prospeccoes = oportunidades.filter((item) => item.etapa === 'prospeccao').length
-    const indicacoes = oportunidades.filter((item) => item.canal === 'carteira' && item.etapa === 'qualificacao').length
+    const prospeccoes = oportunidadesHoje.filter((item) => item.etapa === 'prospeccao').length
+    const indicacoes = oportunidadesHoje.filter((item) => item.canal === 'carteira' && item.etapa === 'qualificacao').length
 
     return {
       negociacoes,
@@ -194,24 +213,22 @@ export function VendedorHome() {
 
   const ultimoFeedback = (home.devolutivas?.[0] || null) as FeedbackCardData | null
   const treinamentosTop = ((home.treinamentos || []) as TrainingCardData[]).slice(0, 2)
-  const agendamentosMeta = Math.max(agendaMetrics.agendamentosHoje, 8)
-
   return (
-    <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
+    <div className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
       <div className="flex flex-col gap-mx-lg pb-20">
         <PageHeading
           title={`${getGreeting()}, ${firstName}! 👋`}
         subtitle="Organize sua rotina, execute as ações certas e registre o Fechamento Diário."
           actions={(
-            <span className="inline-flex h-12 items-center gap-mx-sm rounded-mx-md border border-border-subtle bg-white px-mx-md text-sm font-semibold capitalize shadow-mx-xs">
+            <span className="inline-flex h-12 items-center gap-mx-sm rounded-mx-md border border-border-subtle bg-white px-mx-md text-sm font-semibold normal-case shadow-mx-xs">
               {todayLabel}
               <CalendarDays size={16} className="text-text-tertiary" />
             </span>
           )}
         />
 
-        <section className="grid gap-mx-md md:grid-cols-2 xl:grid-cols-5">
-          <GoalCard meta={meta} vendidos={vendasMes} projecao={projecao} faltam={faltam} atingimento={atingimento} />
+        <section className="grid gap-mx-md md:grid-cols-2 xl:grid-cols-3 min-[1800px]:grid-cols-5">
+          <GoalCard meta={meta} vendidos={vendasMes} projecao={projecao} faltam={faltam} atingimento={atingimento} hasMetrics={!isInitialLoading} attackItems={attackItems} />
           <CommissionCard estimativa={home.remuneracaoEstimada} />
           <AppointmentsCard
             total={agendaMetrics.agendamentosHoje}
@@ -220,7 +237,7 @@ export function VendedorHome() {
             metaDiaria={agendamentosMeta}
           />
           <ActivitiesCard atividades={atividades} />
-          <ScoreCard score={score} bandLabel={bandLabel} nextBand={nextBand} />
+          <ScoreCard score={score} loading={scoreLoading} bandLabel={bandLabel} nextBand={nextBand} />
         </section>
 
         <section className="grid gap-mx-lg xl:grid-cols-[minmax(0,1.45fr)_minmax(300px,0.95fr)_minmax(360px,1.1fr)]">
@@ -242,7 +259,7 @@ export function VendedorHome() {
           <FeedbackPanel feedback={ultimoFeedback} />
         </section>
       </div>
-    </main>
+    </div>
   )
 }
 
@@ -274,38 +291,58 @@ function GoalCard({
   vendidos,
   projecao,
   faltam,
-  atingimento,
+ atingimento,
+ hasMetrics,
+ attackItems,
 }: {
-  meta: number
-  vendidos: number
-  projecao: number
-  faltam: number
-  atingimento: number
+ meta: number
+ vendidos: number
+ projecao: number
+ faltam: number
+ atingimento: number
+ hasMetrics: boolean
+ attackItems: string[]
 }) {
-  const attackItems = ['5 retornos de carteira', '3 novos agendamentos', '2 prospecções'] as const
+ const metaLabel = hasMetrics && meta > 0 ? String(meta) : '—'
+ const vendidosLabel = hasMetrics ? String(vendidos) : '—'
+ const projecaoLabel = hasMetrics ? String(projecao) : '—'
+ const paceLabel = !hasMetrics
+  ? 'Aguardando dados'
+  : faltam <= 0
+   ? 'Meta batida'
+   : `${faltam} venda${faltam === 1 ? '' : 's'} restante${faltam === 1 ? '' : 's'}`
 
   return (
     <DashboardCard>
       <CardTitle icon={<Target size={20} />} title="Minha meta (mês)" />
-      <div className="mt-mx-sm grid grid-cols-[1fr_1fr_auto] items-center gap-mx-sm">
-        <MiniMetric label="Meta" value={meta > 0 ? String(meta) : '—'} hint="vendas" />
-        <MiniMetric label="Realizado" value={String(vendidos)} hint="vendas" />
-        <ProgressRing value={atingimento} label="da meta" />
-      </div>
-      <MiniBar value={atingimento} className="mt-mx-sm" />
       <div className="mt-mx-sm grid grid-cols-2 gap-mx-sm">
-        <MiniMetric label="Projeção" value={String(projecao)} hint="vendas" />
+        <MiniMetric label="Meta" value={metaLabel} hint="vendas" />
+        <MiniMetric label="Realizado" value={vendidosLabel} hint="vendas" />
+      </div>
+      <div className="mt-mx-sm flex items-center gap-mx-md">
+        <ProgressRing value={hasMetrics ? atingimento : 0} label="da meta" />
+        <div className="min-w-0 flex-1">
+          <MiniBar value={hasMetrics ? atingimento : 0} label="Atingimento da meta mensal" />
+          <Typography variant="caption" tone="muted" className="mt-mx-xs block normal-case tracking-normal">
+            {hasMetrics ? `${Math.round(atingimento)}% de atingimento` : 'Carregando meta mensal'}
+          </Typography>
+        </div>
+      </div>
+      <div className="mt-mx-sm grid grid-cols-2 gap-mx-sm">
+        <MiniMetric label="Projeção" value={projecaoLabel} hint="vendas" />
         <div>
           <Typography variant="tiny" tone="muted" className="block font-semibold normal-case tracking-normal">
             Ritmo necessário
           </Typography>
           <Typography variant="p" className="text-sm font-semibold text-text-primary">
-            1 venda cada 3 dias
+            {paceLabel}
           </Typography>
         </div>
       </div>
       <Typography variant="p" className="mt-mx-sm text-sm font-semibold text-text-primary">
-        {meta === 0
+        {!hasMetrics
+          ? 'Carregando indicadores do mês.'
+          : meta === 0
           ? 'Meta mensal não cadastrada.'
           : faltam === 0
             ? 'Meta do mês batida!'
@@ -326,26 +363,33 @@ function GoalCard({
 }
 
 function CommissionCard({ estimativa }: { estimativa?: RemuneracaoEstimadaResultado | null }) {
-  const available = Boolean(estimativa?.disponivel)
-  const value = BRL(available && estimativa?.total ? estimativa.total : 4800)
-  const meta = 68500
-  const realizado = 38200
-  const percent = 56
+ const available = Boolean(estimativa?.disponivel)
+ const value = available ? BRL(estimativa?.total ?? 0) : '—'
+ const meta = estimativa?.meta ?? 0
+ const vendasConsideradas = estimativa?.vendasConsideradas ?? 0
+ const percent = estimativa?.atingimentoPercentual ?? 0
 
-  return (
-    <DashboardCard>
+ return (
+ <DashboardCard>
       <CardTitle icon={<DollarSign size={20} />} title="Comissão estimada" />
       <Typography variant="h1" className="mt-mx-md text-3xl">
         {value}
       </Typography>
       <Typography variant="caption" tone="muted" className="normal-case tracking-normal">
-        valor estimado
+        {available ? 'valor estimado' : 'plano de remuneração não cadastrado'}
       </Typography>
       <div className="mt-mx-md space-y-mx-xs text-sm">
-        <InlineStat label="Meta da loja" value={BRL(meta)} />
-        <InlineStat label="Realizado" value={`${BRL(realizado)} (${percent}%)`} success />
+        <InlineStat label="Meta individual" value={meta > 0 ? `${meta} vendas` : '—'} />
+        <InlineStat label="Vendas consideradas" value={String(vendasConsideradas)} />
+        <InlineStat label="Atingimento" value={meta > 0 ? `${percent}%` : '—'} success={available && percent >= 100} />
       </div>
-      <MiniSparkline className="mt-mx-md" />
+      <div className="mt-mx-md rounded-mx-md bg-surface-alt p-mx-sm">
+        <Typography variant="caption" tone="muted" className="normal-case tracking-normal">
+          {available
+            ? 'Estimativa calculada com base nas regras cadastradas para a loja.'
+            : 'Cadastre o plano para exibir comissão real nesta área.'}
+        </Typography>
+      </div>
       <Link to="/minha-remuneracao" className="mt-mx-md inline-flex items-center gap-mx-xs text-xs font-semibold text-brand-primary">
         Ver regra de comissão
         <ChevronRight size={14} />
@@ -400,53 +444,111 @@ function ActivitiesCard({ atividades }: { atividades: ActivitySummary }) {
     ['Feedback obrigatório', atividades.feedbacksObrigatorios, <ListChecks size={15} />],
   ]
 
-  return (
-    <DashboardCard>
-      <CardTitle icon={<ListChecks size={20} />} title="Atividades hoje" />
-      {atividades.total === 0 && (
-        <div className="mt-mx-sm rounded-mx-md bg-surface-alt px-mx-sm py-mx-xs text-xs font-semibold text-text-secondary">
-          <span className="block">Nenhuma atividade executada ainda.</span>
-          <span className="block">Comece pela Central de Execução.</span>
-        </div>
-      )}
-      <div className="mt-mx-md space-y-mx-xs">
-        {rows.map(([label, value, icon]) => (
-          <div key={label} className="flex items-center justify-between gap-mx-sm text-sm">
-            <span className="flex items-center gap-mx-xs text-text-secondary">
-              <span className="text-brand-primary">{icon}</span>
-              {label}
-            </span>
-            <strong className="font-semibold text-text-primary">{value}</strong>
-          </div>
-        ))}
-      </div>
-      <div className="mt-mx-md flex items-center justify-between border-t border-border-subtle pt-mx-sm text-sm font-semibold">
-        <span>Total de atividades</span>
-        <span>{atividades.total}</span>
-      </div>
-    </DashboardCard>
-  )
+ return (
+ <DashboardCard>
+ <CardTitle icon={<ListChecks size={20} />} title="Atividades hoje" />
+ {atividades.total === 0 ? (
+ <div className="mt-mx-md rounded-mx-md bg-surface-alt p-mx-sm">
+ <Typography variant="p" className="font-semibold text-text-primary">
+ Nenhuma atividade executada ainda.
+ </Typography>
+ <Typography variant="caption" tone="muted" className="mt-mx-xs block normal-case tracking-normal">
+ Comece pela Central de Execução para registrar a primeira ação do dia.
+ </Typography>
+ <Link to="/central-execucao" className="mt-mx-sm inline-flex h-9 items-center justify-center rounded-mx-md bg-brand-primary px-mx-sm text-xs font-semibold text-white">
+ Abrir Central de Execução
+ </Link>
+ </div>
+ ) : (
+ <>
+ <div className="mt-mx-md space-y-mx-xs">
+ {rows.map(([label, value, icon]) => (
+ <div key={label} className="flex items-center justify-between gap-mx-sm text-sm">
+ <span className="flex items-center gap-mx-xs text-text-secondary">
+ <span className="text-brand-primary">{icon}</span>
+ {label}
+ </span>
+ <strong className="font-semibold text-text-primary">{value}</strong>
+ </div>
+ ))}
+ </div>
+ <div className="mt-mx-md flex items-center justify-between border-t border-border-subtle pt-mx-sm text-sm font-semibold">
+ <span>Total de atividades</span>
+ <span>{atividades.total}</span>
+ </div>
+ </>
+ )}
+ </DashboardCard>
+ )
 }
 
 function ScoreCard({
-  score,
-  bandLabel,
-  nextBand,
+ score,
+ loading,
+ bandLabel,
+ nextBand,
 }: {
-  score: MeuScore
-  bandLabel: Record<string, string>
-  nextBand: Record<string, string>
+ score: MeuScore
+ loading: boolean
+ bandLabel: Record<string, string>
+ nextBand: Record<string, string>
 }) {
-  const value = score?.value ?? 40
-  const points = score ? Math.round(value * 10) : 400
-  const currentBand = score ? bandLabel[score.band] || score.band : 'Crítico'
-  const nextBandLabel = score ? nextBand[score.band] || '—' : 'Atenção'
-  const scoreParts = [
-    ['Disciplina', score?.dimDisciplina ?? 0],
-    ['Vendas', score?.dimResultado ?? 100],
-    ['Execução', score?.dimProcesso ?? 0],
-    ['Treino', score ? value : 40],
-  ] as const
+ if (loading) {
+  return (
+   <DashboardCard>
+    <CardTitle icon={<Award size={20} />} title="Meu Score MX" />
+    <div className="mt-mx-md rounded-mx-md bg-surface-alt p-mx-sm">
+     <Typography variant="p" className="font-semibold text-text-primary">
+      Calculando score...
+     </Typography>
+     <Typography variant="caption" tone="muted" className="mt-mx-xs block normal-case tracking-normal">
+      Buscando a classificação mais recente.
+     </Typography>
+    </div>
+   </DashboardCard>
+  )
+ }
+
+ if (!score) {
+  return (
+   <DashboardCard>
+    <CardTitle icon={<Award size={20} />} title="Meu Score MX" />
+    <div className="mt-mx-md flex items-center gap-mx-md">
+     <span className="grid h-16 w-16 shrink-0 place-items-center rounded-mx-lg bg-surface-alt text-text-tertiary ring-1 ring-border-subtle">
+      <Shield size={34} />
+     </span>
+     <div className="min-w-0">
+      <Typography variant="caption" tone="muted" className="normal-case tracking-normal">
+       Banda atual
+      </Typography>
+      <Typography variant="h3" className="truncate">
+       Indisponível
+      </Typography>
+      <Typography variant="p" className="font-semibold text-text-secondary">
+       Sem cálculo recente
+      </Typography>
+     </div>
+    </div>
+    <Typography variant="caption" tone="muted" className="mt-mx-md block normal-case tracking-normal">
+     Registre sua rotina para atualizar o Score MX.
+    </Typography>
+    <Link to="/vendedor/terminal-mx" className="mt-mx-md inline-flex items-center gap-mx-xs text-xs font-semibold text-brand-primary">
+     Abrir Fechamento Diário
+     <ChevronRight size={14} />
+    </Link>
+   </DashboardCard>
+  )
+ }
+
+ const value = score.value
+ const points = Math.round(value * 10)
+ const currentBand = bandLabel[score.band] || score.band
+ const nextBandLabel = nextBand[score.band] || '—'
+ const scoreParts: Array<[string, number | null]> = [
+ ['Disciplina', score.dimDisciplina],
+ ['Vendas', score.dimResultado],
+ ['Execução', score.dimProcesso],
+ ].filter((item): item is [string, number] => item[1] != null)
 
   return (
     <DashboardCard>
@@ -467,7 +569,7 @@ function ScoreCard({
           </Typography>
         </div>
       </div>
-      <MiniBar value={value} className="mt-mx-md" />
+ <MiniBar value={value} className="mt-mx-md" label="Score MX atual" />
       <Typography variant="caption" tone="muted" className="mt-mx-sm block normal-case tracking-normal">
         Próxima banda: {nextBandLabel}
       </Typography>
@@ -477,12 +579,12 @@ function ScoreCard({
             <Typography variant="tiny" tone="muted" className="block normal-case tracking-normal">
               {label}
             </Typography>
-            <strong className="text-sm text-text-primary">{Math.round(Number(itemValue) || 0)} pts</strong>
+<strong className="text-sm text-text-primary">{Math.round(Number(itemValue) || 0)} / 100</strong>
           </div>
         ))}
       </div>
       <Link to="/classificacao" className="mt-mx-md inline-flex items-center gap-mx-xs text-xs font-semibold text-brand-primary">
-        Ver composição do score
+ Ver ranking MX
         <ChevronRight size={14} />
       </Link>
     </DashboardCard>
@@ -849,11 +951,11 @@ function HeaderIcon({ to, label, count, icon }: { to: string; label: string; cou
 }
 
 function DashboardCard({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return (
-    <Card className={`rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm ${className}`}>
-      {children}
-    </Card>
-  )
+ return (
+ <Card className={`rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm overflow-visible ${className}`}>
+ {children}
+ </Card>
+ )
 }
 
 function CardTitle({ icon, title }: { icon: ReactNode; title: string }) {
@@ -933,13 +1035,20 @@ function MiniMetric({ label, value, hint, className = '' }: { label: string; val
   )
 }
 
-function MiniBar({ value, className = '' }: { value: number; className?: string }) {
-  const normalized = Math.max(0, Math.min(100, value))
-  return (
-    <div className={`h-2 rounded-full bg-surface-alt ${className}`}>
-      <div className="h-2 rounded-full bg-brand-primary" style={{ width: `${normalized}%` }} />
-    </div>
-  )
+function MiniBar({ value, className = '', label = 'Progresso' }: { value: number; className?: string; label?: string }) {
+ const normalized = Math.max(0, Math.min(100, value))
+ return (
+ <div
+ role="progressbar"
+ aria-label={label}
+ aria-valuemin={0}
+ aria-valuemax={100}
+ aria-valuenow={Math.round(normalized)}
+ className={`h-2 rounded-full bg-surface-alt ${className}`}
+ >
+ <div className="h-2 rounded-full bg-brand-primary" style={{ width: `${normalized}%` }} />
+ </div>
+ )
 }
 
 function MiniSparkline({ className = '' }: { className?: string }) {
@@ -960,11 +1069,16 @@ function MiniSparkline({ className = '' }: { className?: string }) {
 
 function ProgressRing({ value, label, large = false }: { value: number; label: string; large?: boolean }) {
   const normalized = Math.max(0, Math.min(100, Math.round(value)))
-  return (
-    <div
-      className={`${large ? 'h-28 w-28' : 'h-24 w-24'} grid shrink-0 place-items-center rounded-full`}
-      style={{ background: `conic-gradient(var(--color-brand-primary) ${normalized * 3.6}deg, var(--color-border-subtle) 0deg)` }}
-    >
+ return (
+ <div
+ role="progressbar"
+ aria-label={label}
+ aria-valuemin={0}
+ aria-valuemax={100}
+ aria-valuenow={normalized}
+ className={`${large ? 'h-28 w-28' : 'h-24 w-24'} grid shrink-0 place-items-center rounded-full`}
+ style={{ background: `conic-gradient(var(--color-brand-primary) ${normalized * 3.6}deg, var(--color-border-subtle) 0deg)` }}
+ >
       <div className={`${large ? 'h-20 w-20' : 'h-16 w-16'} grid place-items-center rounded-full bg-white text-center`}>
         <span className="text-xl font-semibold leading-none">{normalized}%</span>
         <span className="px-1 text-[10px] font-semibold leading-tight text-text-secondary">{label}</span>
