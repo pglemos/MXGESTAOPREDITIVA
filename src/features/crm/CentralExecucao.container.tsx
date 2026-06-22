@@ -350,13 +350,13 @@ function MetricCard({
   }[tone]
 
   return (
-  <Card className="h-full min-h-[144px] rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
-      <div className="grid h-full grid-cols-[48px_minmax(0,1fr)] items-center gap-mx-sm">
-        <span className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-full', toneClass)}>{icon}</span>
+    <Card className="h-full min-h-[126px] rounded-mx-lg border border-border-subtle bg-white p-mx-sm shadow-mx-sm">
+      <div className="grid h-full grid-cols-[40px_minmax(0,1fr)] items-center gap-mx-xs">
+        <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-full', toneClass)}>{icon}</span>
         <div className="min-w-0">
-          <Typography variant="caption" className="max-w-full whitespace-normal text-[13px] font-bold leading-snug tracking-normal text-text-primary">{label}</Typography>
-          <Typography variant="h2" className="mt-1 text-3xl leading-none text-text-primary">{value}</Typography>
-          <Typography variant="caption" tone="muted" className="mt-mx-xs block text-sm font-bold leading-tight tracking-normal">{hint}</Typography>
+          <Typography variant="caption" className="max-w-full whitespace-normal text-[12px] font-bold leading-snug tracking-normal text-text-primary">{label}</Typography>
+          <Typography variant="h2" className="mt-1 text-2xl leading-none text-text-primary">{value}</Typography>
+          <Typography variant="caption" tone="muted" className="mt-mx-xs block text-xs font-bold leading-tight tracking-normal">{hint}</Typography>
         </div>
       </div>
     </Card>
@@ -365,23 +365,23 @@ function MetricCard({
 
 function ScoreCard({ score, items }: { score: number; items: ScoreLine[] }) {
   return (
-  <Card className="h-full min-h-[144px] rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
-      <div className="grid h-full grid-cols-[110px_1fr] items-center gap-mx-md">
-        <div className="relative flex h-[104px] w-[104px] items-center justify-center rounded-full" style={{ background: `conic-gradient(var(--color-brand-primary) ${score * 3.6}deg, var(--color-border-subtle) 0deg)` }}>
-          <div className="flex h-[78px] w-[78px] flex-col items-center justify-center rounded-full bg-white">
-            <Typography variant="h2" className="text-3xl leading-none text-brand-primary">{score}%</Typography>
+    <Card className="h-full min-h-[126px] rounded-mx-lg border border-border-subtle bg-white p-mx-sm shadow-mx-sm">
+      <div className="grid h-full grid-cols-[78px_minmax(0,1fr)] items-center gap-mx-sm">
+        <div className="relative flex h-[78px] w-[78px] items-center justify-center rounded-full" style={{ background: `conic-gradient(var(--color-brand-primary) ${score * 3.6}deg, var(--color-border-subtle) 0deg)` }}>
+          <div className="flex h-[58px] w-[58px] flex-col items-center justify-center rounded-full bg-white">
+            <Typography variant="h2" className="text-2xl leading-none text-brand-primary">{score}%</Typography>
             <Typography variant="tiny" className="font-bold leading-none tracking-normal text-brand-primary">{score >= 70 ? 'Bom!' : 'Foco!'}</Typography>
           </div>
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-mx-tiny">
             <Typography variant="caption" className="font-bold tracking-normal text-text-primary">Score da Rotina</Typography>
-            <Info size={12} className="text-text-tertiary" />
+            <Info size={12} className="shrink-0 text-text-tertiary" />
           </div>
           <div className="mt-2 space-y-1.5">
             {items.slice(0, 4).map(item => (
-              <div key={item.label} className="grid grid-cols-[14px_1fr_auto] items-center gap-2 text-[12px]">
-                <span className={cn('flex h-3.5 w-3.5 items-center justify-center rounded-full text-white', item.done ? 'bg-status-success' : item.tone === 'orange' ? 'bg-status-warning' : item.tone === 'red' ? 'bg-status-error' : 'border border-border-strong bg-white')} />
+              <div key={item.label} className="grid grid-cols-[12px_minmax(0,1fr)_auto] items-center gap-1.5 text-[11px]">
+                <span className={cn('flex h-3 w-3 items-center justify-center rounded-full text-white', item.done ? 'bg-status-success' : item.tone === 'orange' ? 'bg-status-warning' : item.tone === 'red' ? 'bg-status-error' : 'border border-border-strong bg-white')} />
                 <span className="truncate font-semibold text-text-secondary">{item.label}</span>
                 <span className={cn('font-bold', item.done ? 'text-brand-primary' : item.tone === 'orange' ? 'text-status-warning' : item.tone === 'red' ? 'text-status-error' : 'text-text-tertiary')}>{item.value}</span>
               </div>
@@ -395,7 +395,7 @@ function ScoreCard({ score, items }: { score: number; items: ScoreLine[] }) {
 
 function RoutineTimeline({ slots }: { slots: DailyRoutineAutoSlot[] }) {
   return (
-    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
+    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
       <div className="flex items-start justify-between gap-mx-sm">
         <div>
           <Typography variant="h3" className="text-base tracking-normal">Rotina do Dia</Typography>
@@ -887,14 +887,14 @@ const hasLoadError = Boolean(
           subtitle="Sua rotina diária. Organize seu dia e foque no que gera resultado."
           actions={(
             <>
-              <span className="inline-flex h-mx-11 items-center gap-mx-xs rounded-mx-md border border-border-subtle bg-white px-mx-sm text-sm font-bold text-text-primary shadow-mx-sm">
+            <span className="inline-flex h-mx-11 min-w-0 max-w-full items-center gap-mx-xs whitespace-nowrap rounded-mx-md border border-border-subtle bg-white px-mx-sm text-xs font-bold text-text-primary shadow-mx-sm sm:text-sm">
                 <Calendar size={16} className="text-text-secondary" />
                 {getDateLabel(hoje)}
               </span>
-              <span className="inline-flex h-mx-11 items-center rounded-mx-md border border-status-success/20 bg-status-success-surface px-mx-sm text-xs font-bold text-status-success">
+            <span className="inline-flex h-mx-11 items-center whitespace-nowrap rounded-mx-md border border-status-success/20 bg-status-success-surface px-mx-sm text-xs font-bold text-status-success">
                 {statusDia}
               </span>
-              <Button variant="outline" onClick={() => toast.info('Central sincronizada com a rotina local.')} className="h-mx-11 bg-white">
+            <Button variant="outline" onClick={() => toast.info('Central sincronizada com a rotina local.')} className="h-mx-11 whitespace-nowrap bg-white px-mx-sm text-xs sm:text-sm">
                 <RotateCcw size={16} /> Sincronizar Central
               </Button>
             </>
@@ -910,7 +910,7 @@ const hasLoadError = Boolean(
         </div>
         )}
 
-<section className="grid min-w-0 grid-cols-1 gap-mx-sm md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-[repeat(5,minmax(158px,1fr))_minmax(320px,1.2fr)]" aria-label="Indicadores do dia">
+        <section className="grid min-w-0 grid-cols-1 gap-mx-sm md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-[repeat(5,minmax(132px,1fr))_minmax(260px,1.05fr)]" aria-label="Indicadores do dia">
           <MetricCard icon={<CalendarCheck size={24} />} label="Agendamentos Hoje" value={String(metrics.agendamentosHoje)} hint={metrics.agendamentosHoje > 0 ? '100% do dia' : 'Sem ações hoje'} tone="green" />
           <MetricCard icon={<CheckCircle2 size={24} />} label="Compareceram" value={String(metrics.compareceram)} hint={`${metrics.taxaComparecimento}% do dia`} tone="green" />
           <MetricCard icon={<XCircle size={24} />} label="Não Compareceram" value={String(metrics.naoCompareceram)} hint={`${metrics.agendamentosHoje ? Math.round((metrics.naoCompareceram / metrics.agendamentosHoje) * 100) : 0}% do dia`} tone="red" />
@@ -919,7 +919,7 @@ const hasLoadError = Boolean(
           <ScoreCard score={score} items={scoreItems} />
         </section>
 
-      <div className="grid grid-cols-1 gap-mx-sm xl:grid-cols-[minmax(0,1fr)_344px]">
+        <div className="grid grid-cols-1 gap-mx-sm xl:grid-cols-[minmax(0,1fr)_316px]">
           <div className="min-w-0 space-y-mx-md">
       <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
         <div className="flex flex-wrap items-center gap-mx-xs">

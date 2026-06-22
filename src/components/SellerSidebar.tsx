@@ -148,7 +148,7 @@ function NavItemIcon({
 
 function SellerBadge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full border border-[rgb(var(--mx-seller-primary-rgb)/0.22)] bg-[rgb(var(--mx-seller-primary-rgb)/0.12)] px-2 text-[11px] font-semibold leading-none text-[var(--mx-seller-primary)]">
+    <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full border border-[rgb(var(--mx-seller-primary-rgb)/0.22)] bg-[rgb(var(--mx-seller-primary-rgb)/0.12)] px-1.5 text-[10px] font-semibold leading-none text-[var(--mx-seller-primary)]">
       {children}
     </span>
   )
@@ -247,23 +247,23 @@ export default function SellerLayoutShell({
           aria-current={active ? 'page' : undefined}
           onClick={closeMobile}
           className={cn(
-          'group relative flex min-h-[66px] items-center gap-3 rounded-[16px] border border-[rgb(var(--mx-seller-primary-rgb)/0.18)] bg-[rgba(255,255,255,0.035)] px-4 py-2 text-left outline-none transition-all duration-200 hover:bg-[rgb(var(--mx-seller-primary-rgb)/0.08)] focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]',
+          'group relative flex min-h-[58px] items-center gap-2.5 rounded-[14px] border border-[rgb(var(--mx-seller-primary-rgb)/0.18)] bg-[rgba(255,255,255,0.035)] px-3 py-2 text-left outline-none transition-all duration-200 hover:bg-[rgb(var(--mx-seller-primary-rgb)/0.08)] focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]',
             active && 'bg-[linear-gradient(90deg,rgb(var(--mx-seller-primary-rgb)/0.16),rgb(var(--mx-seller-primary-rgb)/0.07))] shadow-[0_0_18px_rgb(var(--mx-seller-primary-rgb)/0.08)]',
             isCollapsed && 'min-h-12 justify-center rounded-[14px] px-0 py-0'
           )}
         >
           {active && <span className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-[var(--mx-seller-primary)]" aria-hidden="true" />}
-          <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-[rgb(var(--mx-seller-primary-rgb)/0.10)] text-[var(--mx-seller-primary)]">
-            <NavItemIcon icon={item.icon} size={22} />
+          <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-[13px] bg-[rgb(var(--mx-seller-primary-rgb)/0.10)] text-[var(--mx-seller-primary)]">
+            <NavItemIcon icon={item.icon} size={19} />
             {!isCollapsed && <Sparkles size={13} strokeWidth={1.8} className="absolute -right-1 -top-1 text-[var(--mx-seller-primary)]" aria-hidden="true" />}
           </span>
           {!isCollapsed && (
             <span className="min-w-0 flex-1">
               <span className="flex min-w-0 items-center gap-2">
-                <span className="truncate text-[15px] font-semibold text-white">{item.label}</span>
+                <span className="truncate text-[14px] font-semibold text-white">{item.label}</span>
                 {item.badge && <SellerBadge>{item.badge}</SellerBadge>}
               </span>
-              <span className="mt-1 block text-[10px] font-medium leading-tight text-[var(--mx-seller-text-secondary)]">{item.subtitle}</span>
+              <span className="mt-0.5 block truncate text-[10px] font-medium leading-tight text-[var(--mx-seller-text-secondary)]">{item.subtitle}</span>
             </span>
           )}
           {isCollapsed && <Tooltip label={item.label} />}
@@ -279,7 +279,7 @@ export default function SellerLayoutShell({
         aria-current={active ? 'page' : undefined}
         onClick={closeMobile}
         className={cn(
-          'group relative flex h-10 items-center gap-3 rounded-[14px] px-4 text-[15px] font-medium text-[rgb(var(--mx-seller-text-primary-rgb)/0.90)] outline-none transition-all duration-200 hover:bg-[rgb(var(--mx-seller-primary-rgb)/0.08)] hover:text-white focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]',
+          'group relative flex h-9 items-center gap-2.5 rounded-[12px] px-3 text-[14px] font-medium text-[rgb(var(--mx-seller-text-primary-rgb)/0.90)] outline-none transition-all duration-200 hover:bg-[rgb(var(--mx-seller-primary-rgb)/0.08)] hover:text-white focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]',
           active && 'border border-[rgb(var(--mx-seller-primary-rgb)/0.18)] bg-[linear-gradient(90deg,rgb(var(--mx-seller-primary-rgb)/0.18),rgb(var(--mx-seller-primary-rgb)/0.08))] text-white shadow-[0_0_18px_rgb(var(--mx-seller-primary-rgb)/0.08)]',
           isCollapsed && 'justify-center px-0'
         )}
@@ -287,7 +287,7 @@ export default function SellerLayoutShell({
         {active && <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-[var(--mx-seller-primary)]" aria-hidden="true" />}
         <NavItemIcon
           icon={item.icon}
-          size={21}
+          size={19}
           className={cn('shrink-0 text-[rgb(var(--mx-seller-text-primary-rgb)/0.70)] transition-colors duration-200 group-hover:text-[var(--mx-seller-primary)]', active && 'text-[var(--mx-seller-primary)]')}
         />
         {!isCollapsed && <span className="min-w-0 flex-1 truncate">{item.label}</span>}
@@ -329,18 +329,18 @@ export default function SellerLayoutShell({
         aria-label={`Abrir menu de usuário de ${displayName}`}
         onClick={() => setUserMenuOpen((open) => !open)}
         className={cn(
-          'group flex h-[62px] w-full items-center gap-3 rounded-[22px] border border-white/[0.06] bg-white/[0.035] px-3 text-left outline-none transition-all duration-200 hover:bg-white/[0.055] focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]',
+        'group flex min-h-[64px] w-full items-center gap-2.5 rounded-[18px] border border-white/[0.06] bg-white/[0.035] px-2.5 py-2 text-left outline-none transition-all duration-200 hover:bg-white/[0.055] focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]',
           isCollapsed && 'h-14 justify-center rounded-[18px] px-0'
         )}
       >
           <span className="relative shrink-0">
-            <Avatar src={avatarUrl || undefined} alt={`Avatar de ${displayName}`} fallback={displayName} size={isCollapsed ? 'md' : 'lg'} className="border-white/[0.08] bg-[var(--mx-seller-surface)]" />
+        <Avatar src={avatarUrl || undefined} alt={`Avatar de ${displayName}`} fallback={displayName} size="md" className="border-white/[0.08] bg-[var(--mx-seller-surface)]" />
           </span>
         {!isCollapsed && (
           <>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-[15px] font-semibold text-white">{displayName}</span>
-                  <span className="mt-1 block truncate text-[12px] font-medium text-[var(--mx-seller-text-secondary)]">
+            <span className="min-w-0 flex-1 overflow-hidden">
+              <span className="block whitespace-normal break-words text-[12px] font-semibold leading-tight text-white" title={displayName}>{displayName}</span>
+              <span className="mt-0.5 block truncate text-[11px] font-medium leading-tight text-[var(--mx-seller-text-secondary)]" title={displayRole}>
                     {displayRole}
                   </span>
             </span>
@@ -361,13 +361,13 @@ export default function SellerLayoutShell({
 
     return (
     <>
-      <div className={cn('flex items-center gap-3', isCollapsed ? 'flex-col justify-center' : 'justify-between')}>
-        <div className={cn('flex min-w-0 items-center gap-3', isCollapsed && 'justify-center')}>
-          <img src={MxLogo} alt="MX" className={cn('h-10 w-10 shrink-0 object-contain', isCollapsed && 'h-10 w-10')} />
-          {!isCollapsed && (
-            <div className="min-w-0">
-              <p className="truncate text-[14px] font-bold leading-tight text-[var(--mx-seller-text-primary)]">MX PERFORMANCE</p>
-              <p className="mt-1 truncate text-[13px] font-medium leading-tight text-[var(--mx-seller-text-secondary)]">Gestão Preditiva</p>
+        <div className={cn('flex items-center gap-2.5', isCollapsed ? 'flex-col justify-center' : 'justify-between')}>
+          <div className={cn('flex min-w-0 items-center gap-2.5', isCollapsed && 'justify-center')}>
+            <img src={MxLogo} alt="MX" className={cn('h-9 w-9 shrink-0 object-contain', isCollapsed && 'h-9 w-9')} />
+            {!isCollapsed && (
+              <div className="min-w-0">
+                <p className="truncate text-[13px] font-bold leading-tight text-[var(--mx-seller-text-primary)]">MX PERFORMANCE</p>
+                <p className="mt-0.5 truncate text-[12px] font-medium leading-tight text-[var(--mx-seller-text-secondary)]">Gestão Preditiva</p>
             </div>
           )}
         </div>
@@ -386,7 +386,7 @@ export default function SellerLayoutShell({
         )}
       </div>
 
-      <nav className="no-scrollbar mt-3 flex-1 space-y-1.5 overflow-y-auto pr-1" aria-label={sidebarLabel}>
+      <nav className="no-scrollbar mt-2.5 flex-1 space-y-1 overflow-y-auto pr-0.5" aria-label={sidebarLabel}>
 {mainSections.map((section, sectionIndex) => (
 <section key={section.label} className={cn('space-y-1', sectionIndex > 0 && 'border-t border-white/[0.06] pt-1.5')} aria-label={section.label}>
 {!isCollapsed && <p className="px-3 text-[11px] font-semibold uppercase text-[rgba(244,255,249,0.45)]">{section.label}</p>}
@@ -410,7 +410,7 @@ export default function SellerLayoutShell({
   }
 
   return (
-    <div className="min-h-screen bg-[var(--mx-seller-bg-page)] font-display text-[var(--mx-seller-text-primary)]">
+    <div className="mx-app-scrollbarless min-h-screen bg-[var(--mx-seller-bg-page)] font-display text-[var(--mx-seller-text-primary)]">
       <header className="fixed left-3 right-3 top-3 z-[90] flex h-14 items-center justify-between rounded-2xl border border-[rgb(var(--mx-seller-primary-rgb)/0.14)] bg-[rgb(var(--mx-seller-sidebar-rgb)/0.95)] px-3 shadow-[0_18px_38px_rgba(0,0,0,0.28)] backdrop-blur md:hidden">
         <button type="button" aria-label="Abrir menu principal" onClick={() => setMobileOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-xl text-[var(--mx-seller-text-primary)] outline-none transition-colors hover:bg-[rgb(var(--mx-seller-primary-rgb)/0.08)] focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]">
           <Menu size={22} aria-hidden="true" />
@@ -426,8 +426,8 @@ export default function SellerLayoutShell({
 
       <aside
         className={cn(
-          'fixed left-2 top-2 z-[80] hidden h-[calc(100vh-1rem)] flex-col rounded-[32px] border border-[rgb(var(--mx-seller-primary-rgb)/0.16)] bg-[var(--mx-seller-sidebar)] shadow-[0_24px_70px_rgba(0,0,0,0.34),0_0_28px_rgb(var(--mx-seller-primary-rgb)/0.08)] transition-[width,padding] duration-200 md:flex',
-          collapsed ? 'w-[84px] px-[14px] py-5' : 'w-[312px] p-4'
+          'fixed left-2 top-2 z-[80] hidden h-[calc(100vh-1rem)] flex-col rounded-[26px] border border-[rgb(var(--mx-seller-primary-rgb)/0.16)] bg-[var(--mx-seller-sidebar)] shadow-[0_24px_70px_rgba(0,0,0,0.34),0_0_28px_rgb(var(--mx-seller-primary-rgb)/0.08)] transition-[width,padding] duration-200 md:flex',
+          collapsed ? 'w-[78px] px-3 py-4' : 'w-[276px] p-3 lg:w-[284px] xl:w-[292px]'
         )}
         aria-label={sidebarLabel}
       >
@@ -467,8 +467,8 @@ export default function SellerLayoutShell({
         role="main"
         tabIndex={-1}
         className={cn(
-          'min-h-screen p-3 pt-[76px] outline-none transition-[padding] duration-200 md:p-4',
-          collapsed ? 'md:pl-[112px]' : 'md:pl-[336px]'
+          'min-h-screen p-3 pt-[76px] outline-none transition-[padding] duration-200 md:p-3 lg:p-4',
+          collapsed ? 'md:pl-[96px] lg:pl-[104px]' : 'md:pl-[292px] lg:pl-[304px] xl:pl-[312px]'
         )}
       >
         {isSimulating && (
@@ -484,7 +484,7 @@ export default function SellerLayoutShell({
             )}
           </section>
         )}
-        <section className="min-h-[calc(100vh-100px)] overflow-hidden rounded-[28px] border border-white/[0.08] bg-white text-slate-950 shadow-[0_24px_70px_rgba(0,0,0,0.22)] md:min-h-[calc(100vh-2rem)]">
+        <section className="min-h-[calc(100vh-100px)] min-w-0 overflow-hidden rounded-[24px] border border-white/[0.08] bg-white text-slate-950 shadow-[0_24px_70px_rgba(0,0,0,0.22)] md:min-h-[calc(100vh-2rem)]">
           {children}
         </section>
       </main>
