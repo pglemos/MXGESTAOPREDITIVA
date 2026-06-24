@@ -568,7 +568,7 @@ function SummaryCard({
   tone?: 'brand' | 'info' | 'success' | 'warning'
 }) {
   const toneClass = {
-    brand: 'bg-accent-purple-soft text-accent-purple',
+    brand: 'bg-accent-blue-soft text-accent-blue',
     info: 'bg-status-info-surface text-status-info',
     success: 'bg-status-success-surface text-status-success',
     warning: 'bg-status-warning-surface text-status-warning',
@@ -1295,7 +1295,7 @@ function LibraryTrackCard({
   return (
     <Card className="rounded-mx-lg border border-border-default bg-white p-mx-lg shadow-none">
       <div className="flex items-start gap-mx-sm">
-        <span className="grid h-mx-10 w-mx-10 shrink-0 place-items-center rounded-full bg-accent-purple-soft text-accent-purple">
+        <span className="grid h-mx-10 w-mx-10 shrink-0 place-items-center rounded-full bg-accent-blue-soft text-accent-blue">
           <ShieldCheck size={20} />
         </span>
         <div>
@@ -1346,7 +1346,7 @@ function LibrarySuggestionsCard({ recommendations }: { recommendations: Recommen
   return (
     <Card className="rounded-mx-lg border border-border-default bg-white p-mx-lg shadow-none">
       <div className="flex items-center gap-mx-xs">
-        <Star size={18} className="text-accent-purple" />
+        <Star size={18} className="text-accent-blue" />
         <Typography variant="h3" className="uppercase">Sugestões para você</Typography>
       </div>
 
@@ -1794,8 +1794,8 @@ function TrackModuleCard({
               </table>
             </div>
           ) : (
-            <div className="rounded-mx-md border border-accent-purple/20 bg-accent-purple-soft p-mx-md">
-              <Typography variant="p" className="font-semibold text-accent-purple">Conteúdos em preparação</Typography>
+            <div className="rounded-mx-md border border-accent-blue/20 bg-accent-blue-soft p-mx-md">
+              <Typography variant="p" className="font-semibold text-accent-blue">Conteúdos em preparação</Typography>
               <Typography variant="p" tone="muted" className="mt-1">A curadoria MX vai liberar este módulo quando os conteúdos estiverem prontos.</Typography>
             </div>
           )}
@@ -1955,7 +1955,7 @@ function TrackStatusBadge({ status }: { status: string }) {
   if (status === 'Concluído') return <Badge variant="success">{status}</Badge>
   if (status === 'Em andamento') return <Badge variant="info" className="bg-status-info-surface text-status-info">{status}</Badge>
   if (status === 'Pendente') return <Badge variant="warning" className="bg-status-warning-surface text-status-warning">{status}</Badge>
-  if (status === 'Conteúdos em preparação') return <Badge variant="outline" className="border-accent-purple/20 bg-accent-purple-soft text-accent-purple">{status}</Badge>
+  if (status === 'Conteúdos em preparação') return <Badge variant="outline" className="border-accent-blue/20 bg-accent-blue-soft text-accent-blue">{status}</Badge>
   return <Badge variant="outline">{status}</Badge>
 }
 
@@ -1986,7 +1986,7 @@ function TrackSidebar({
     <aside className="space-y-mx-md xl:sticky xl:top-mx-lg xl:self-start" aria-label="Detalhes da Trilha obrigatória">
       <Card className="rounded-mx-lg border border-border-default bg-white p-mx-lg shadow-none">
         <div className="flex items-start gap-mx-sm">
-          <span className="grid h-mx-11 w-mx-11 shrink-0 place-items-center rounded-full bg-accent-purple-soft text-accent-purple">
+          <span className="grid h-mx-11 w-mx-11 shrink-0 place-items-center rounded-full bg-accent-blue-soft text-accent-blue">
             <ShieldCheck size={22} />
           </span>
           <div>
@@ -2048,9 +2048,9 @@ function TrackSidebar({
         )}
       </Card>
 
-      <Card className="rounded-mx-lg border border-accent-purple/20 bg-white p-mx-lg shadow-none">
+      <Card className="rounded-mx-lg border border-accent-blue/20 bg-white p-mx-lg shadow-none">
         <div className="flex items-start gap-mx-sm">
-          <span className="grid h-mx-11 w-mx-11 shrink-0 place-items-center rounded-full bg-accent-purple-soft text-accent-purple">
+          <span className="grid h-mx-11 w-mx-11 shrink-0 place-items-center rounded-full bg-accent-blue-soft text-accent-blue">
             <Medal size={22} />
           </span>
           <div>
@@ -2126,7 +2126,7 @@ function TrackUnlocksBlock({ requiredTrackLabel }: { requiredTrackLabel: string 
 }
 
 function TrackUnlockCard({ icon, title, description, tone }: { icon: ReactNode; title: string; description: string; tone: 'success' | 'brand' | 'warning' }) {
-  const toneClass = tone === 'success' ? 'bg-status-success-surface text-status-success' : tone === 'brand' ? 'bg-accent-purple-soft text-accent-purple' : 'bg-status-warning-surface text-status-warning'
+  const toneClass = tone === 'success' ? 'bg-status-success-surface text-status-success' : tone === 'brand' ? 'bg-accent-blue-soft text-accent-blue' : 'bg-status-warning-surface text-status-warning'
 
   return (
     <div className="flex items-start gap-mx-md rounded-mx-md border border-border-default p-mx-md">
@@ -2366,7 +2366,7 @@ function formatLiveHour(date: Date) {
 }
 
 function AulaMetricCard({ icon, label, value, hint, tone }: { icon: ReactNode; label: string; value: string; hint: string; tone: 'brand' | 'success' | 'warning' }) {
-  const toneClass = tone === 'success' ? 'bg-status-success-surface text-status-success' : tone === 'warning' ? 'bg-status-warning-surface text-status-warning' : 'bg-accent-purple-soft text-accent-purple'
+  const toneClass = tone === 'success' ? 'bg-status-success-surface text-status-success' : tone === 'warning' ? 'bg-status-warning-surface text-status-warning' : 'bg-accent-blue-soft text-accent-blue'
 
   return (
     <Card className="rounded-mx-lg border border-border-default bg-white p-mx-md shadow-none">
@@ -2807,7 +2807,7 @@ function ProofMetricCard({ icon, label, value, hint, tone }: { icon: ReactNode; 
       ? 'bg-status-warning-surface text-status-warning'
       : tone === 'danger'
         ? 'bg-status-error-surface text-status-error'
-        : 'bg-accent-purple-soft text-accent-purple'
+        : 'bg-accent-blue-soft text-accent-blue'
 
   return (
     <Card className="rounded-mx-lg border border-border-default bg-white p-mx-md shadow-none">

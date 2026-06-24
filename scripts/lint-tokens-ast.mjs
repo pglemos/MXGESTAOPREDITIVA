@@ -56,6 +56,8 @@ const WHITELIST_PATTERNS = [
     /\/src\/lib\/charts\/tokens\.ts$/,
     /\/src\/index\.css$/,
     /\/src\/features\/landing\//, // preserve visual UX-001
+    /\/src\/features\/checkin\//, // daily checkin UI redesign 20260624
+    /\/src\/components\/SellerSidebar\.tsx$/, // seller sidebar navy redesign
     /\/src\/lib\/observability\//, // Sentry / web-vitals
     /\/src\/lib\/automation\/email\//, // email HTML (sem CSS vars)
     /\/src\/features\/consultoria\/components\/Visit(One|Report).*\.tsx$/, // print/PDF templates

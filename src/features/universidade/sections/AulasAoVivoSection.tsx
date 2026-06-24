@@ -234,10 +234,10 @@ export function AulasAoVivoSection() {
         </aside>
       </div>
 
-      <Card className="rounded-mx-lg border border-accent-purple/20 bg-accent-purple-soft p-mx-lg shadow-none">
+      <Card className="rounded-mx-lg border border-accent-blue/20 bg-accent-blue-soft p-mx-lg shadow-none">
         <div className="flex flex-col gap-mx-md md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-mx-md">
-            <Award size={34} className="text-accent-purple" />
+            <Award size={34} className="text-accent-blue" />
             <div>
               <Typography variant="h3">Presença que gera resultado!</Typography>
               <Typography variant="p" tone="muted">Participe, aprenda e aplique. Cada aula é uma oportunidade de evoluir e se destacar.</Typography>

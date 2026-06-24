@@ -20,7 +20,9 @@ import {
   Check,
   X,
   AlertCircle,
+  Info,
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Badge } from '@/components/atoms/Badge'
@@ -427,47 +429,47 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
       </section>
 
       {/* Symmetric dashboard blocks */}
-      <section className="grid w-full max-w-full min-w-0 gap-mx-md xl:grid-cols-2">
-        <Card className="rounded-mx-xl border border-border-default bg-white p-mx-sm shadow-mx-sm">
-          <Typography variant="h2" className="text-base font-extrabold text-text-primary uppercase tracking-normal">
+      <section className="grid w-full max-w-full min-w-0 gap-5 xl:grid-cols-2">
+        <div className="rounded-[18px] border border-[#e5eaf2] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+          <h2 className="text-[22px] font-extrabold tracking-tight text-[#111827]">
             RESUMO DO DIA ANTERIOR
-          </Typography>
-          <div className="mt-mx-sm grid grid-cols-2 gap-mx-xs sm:grid-cols-3 2xl:grid-cols-5">
+          </h2>
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 2xl:grid-cols-5">
             <ResumoItem label="Leads Recebidos" value={String(display.leads)} icon={Users} />
             <ResumoItem label="Atendimentos" value={String(display.visitas)} icon={Globe} tone="info" />
             <ResumoItem label="Agendamentos D+1" value={String(display.agd)} icon={Users} />
             <ResumoItem label="Vendas Realizadas" value={String(realSalesCount)} icon={DollarSign} tone="warning" />
             <ResumoItem label="FATURAMENTO" value={BRL(realFaturamento)} icon={CheckCircle2} />
           </div>
-        </Card>
+        </div>
 
-        <Card className="rounded-mx-xl border border-border-default bg-white p-mx-sm shadow-mx-sm flex flex-col justify-center">
-          <div className="flex flex-col items-start gap-mx-md sm:flex-row sm:items-center">
+        <div className="rounded-[18px] border border-[#e5eaf2] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] flex flex-col justify-center">
+          <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
             {/* Elegant donut chart */}
             <div
               className="grid h-20 w-20 shrink-0 place-items-center rounded-full sm:h-24 sm:w-24 shadow-sm"
               style={{
-                background: `conic-gradient(var(--color-brand-primary) ${disciplinePercent * 3.6}deg, var(--color-border-subtle) 0deg)`,
+                background: `conic-gradient(#16a34a ${disciplinePercent * 3.6}deg, #eef2f7 0deg)`,
               }}
             >
               <div className="grid h-14 w-14 place-items-center rounded-full bg-white sm:h-16 sm:w-16">
-                <span className="text-lg font-black tabular-nums text-brand-primary sm:text-xl">{disciplinePercent}%</span>
+                <span className="text-lg font-black tabular-nums text-[#111827] sm:text-xl">{disciplinePercent}%</span>
               </div>
             </div>
-            <div className="grid w-full min-w-0 flex-1 gap-mx-md md:grid-cols-2">
+            <div className="grid w-full min-w-0 flex-1 gap-4 md:grid-cols-2">
               <div>
-                <Typography variant="h3" className="text-sm font-extrabold text-text-primary uppercase tracking-normal">
+                <h3 className="text-sm font-extrabold text-[#111827] uppercase tracking-normal">
                   Disciplina – Fechamento Diário
-                </Typography>
+                </h3>
                 {disciplineMessage && (
-                  <p className="text-[11px] font-semibold text-text-secondary mt-1 leading-normal">
+                  <p className="text-[11px] font-semibold text-[#475569] mt-1 leading-normal">
                     {disciplineMessage}
                   </p>
                 )}
                 <ul className="mt-2 space-y-1">
                   {completedItems.map(item => (
-                    <li key={item} className="flex items-center gap-1.5 text-[10px] font-bold text-text-secondary">
-                      <CheckCircle2 size={13} className="text-status-success" /> {item}
+                    <li key={item} className="flex items-center gap-1.5 text-[10px] font-bold text-[#475569]">
+                      <CheckCircle2 size={13} className="text-[#16a34a]" /> {item}
                     </li>
                   ))}
                 </ul>
@@ -475,51 +477,48 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
               <div>
                 {pendingItems.length > 0 && (
                   <>
-                    <Typography variant="tiny" tone="muted" className="normal-case tracking-normal font-bold">
+                    <span className="block text-[10px] font-bold uppercase tracking-wider text-[#94a3b8]">
                       Pendências ({pendingItems.length})
-                    </Typography>
+                    </span>
                     <ul className="mt-1 space-y-1">
                       {pendingItems.map(item => (
-                        <li key={item} className="flex items-center gap-1.5 text-[10px] font-bold text-text-secondary">
-                          <span className="h-2 w-2 rounded-full bg-status-warning" /> {item}
+                        <li key={item} className="flex items-center gap-1.5 text-[10px] font-bold text-[#475569]">
+                          <span className="h-2 w-2 rounded-full bg-[#f59e0b]" /> {item}
                         </li>
                       ))}
                     </ul>
                   </>
                 )}
-                <Button
+                <button
                   type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="mt-3 text-brand-primary hover:underline text-xs p-0 font-extrabold flex items-center gap-1 focus:outline-none"
+                  className="mt-3 text-[#2563eb] hover:text-[#1d4ed8] hover:underline text-xs p-0 font-bold flex items-center gap-1 focus:outline-none bg-transparent border-none cursor-pointer"
                   onClick={() => setDisciplineModalOpen(true)}
                 >
                   Saiba mais
-                </Button>
+                </button>
               </div>
             </div>
           </div>
-        </Card>
+        </div>
       </section>
 
-      {/* Premium Discipline Rules Modal (7 Sections) */}
       {disciplineModalOpen && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-mx-black/40 backdrop-blur-xs p-mx-md" role="dialog" aria-modal="true" aria-label="Detalhes da disciplina">
-          <div className="w-full max-w-2xl rounded-2xl border border-border-default bg-white shadow-mx-2xl overflow-hidden flex flex-col max-h-[85vh] transition-all animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/35 p-4 backdrop-blur-[3px]">
+          <div className="w-full max-w-[620px] overflow-hidden rounded-[18px] border border-[#e5eaf2] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] flex flex-col max-h-[90vh] transition-all animate-in fade-in zoom-in-95 duration-200">
             {/* Fixed Header */}
-            <header className="px-6 py-4 border-b border-border-default flex items-center justify-between bg-slate-50">
+            <header className="px-6 py-5 border-b border-[#eef2f7] flex items-center justify-between bg-[#f8fafc]">
               <div>
-                <h2 className="text-base font-black text-brand-primary uppercase tracking-normal">
-                  Entenda sua pontuação de Disciplina
+                <h2 className="text-lg font-extrabold text-[#111827] uppercase tracking-tight">
+                  ENTENDA SUA PONTUAÇÃO DE DISCIPLINA
                 </h2>
-                <p className="text-xs font-semibold text-text-tertiary mt-0.5">
+                <p className="text-xs font-semibold text-[#64748b] mt-1">
                   A pontuação do Fechamento Diário mede o quanto você manteve sua rotina comercial organizada no dia.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setDisciplineModalOpen(false)}
-                className="p-1 rounded-full text-text-tertiary hover:bg-slate-200 transition-colors"
+                className="grid h-8 w-8 place-items-center rounded-lg text-[#64748b] hover:bg-[#f1f5f9] transition-colors"
                 aria-label="Fechar"
               >
                 <X size={18} />
@@ -527,11 +526,11 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
             </header>
 
             {/* Scrollable Content */}
-            <div className="p-6 overflow-y-auto space-y-6 text-xs leading-relaxed text-text-secondary">
+            <div className="p-6 overflow-y-auto space-y-6 text-xs leading-relaxed text-[#475569]">
               
               {/* SECTION 1: Fechamento básico — 70% */}
               <div className="space-y-2">
-                <h3 className="font-extrabold text-brand-primary flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+                <h3 className="font-extrabold text-[#2563eb] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
                   <Check size={14} className="stroke-[3]" /> 1. Fechamento básico — 70%
                 </h3>
                 <p>
@@ -546,21 +545,21 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
                 <p>
                   Ou seja: se você preencher apenas os números e finalizar o fechamento, sua disciplina será de 70%.
                 </p>
-                <div className="bg-blue-50 text-blue-700 font-bold p-2.5 rounded-lg border border-blue-100 flex items-center gap-2">
-                  <InfoTooltip text="Cálculo básico da sua rotina operacional diária." />
+                <div className="bg-[#eff6ff] text-[#2563eb] font-bold p-2.5 rounded-lg border border-[#bfdbfe] flex items-center gap-2">
+                  <Info size={14} />
                   <span>Preencheu os números do dia = 70%</span>
                 </div>
               </div>
 
               {/* SECTION 2: Cadastro dos agendamentos — até +30% */}
               <div className="space-y-2">
-                <h3 className="font-extrabold text-brand-primary flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+                <h3 className="font-extrabold text-[#2563eb] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
                   <Award size={14} className="stroke-[2.5]" /> 2. Cadastro dos agendamentos — até +30%
                 </h3>
                 <p>
                   Os outros 30% são conquistados quando você detalha, no campo “Cadastrar Novo Cliente”, os agendamentos que informou no card “Agendamento D+1”.
                 </p>
-                <p className="font-semibold text-text-primary">
+                <p className="font-semibold text-[#111827]">
                   Exemplo:
                 </p>
                 <p>
@@ -580,15 +579,15 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
                 <p>
                   Se cadastrar corretamente os 2 clientes, sua pontuação será 100%. Se cadastrar apenas 1 dos 2 clientes, sua pontuação será 85%.
                 </p>
-                <div className="bg-emerald-50 text-emerald-700 font-bold p-2.5 rounded-lg border border-emerald-100 flex items-center gap-2">
-                  <CheckCircle2 size={14} className="text-emerald-600" />
+                <div className="bg-[#ecfdf5] text-[#16a34a] font-bold p-2.5 rounded-lg border border-[#bbf7d0] flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-[#16a34a]" />
                   <span>Detalhou todos os agendamentos D+1 corretamente = 100%</span>
                 </div>
               </div>
 
               {/* SECTION 3: Quando um cadastro conta como agendamento? */}
               <div className="space-y-2">
-                <h3 className="font-extrabold text-brand-primary flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+                <h3 className="font-extrabold text-[#2563eb] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
                   <HelpCircle size={14} /> 3. Quando um cadastro conta como agendamento?
                 </h3>
                 <p>
@@ -599,21 +598,21 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
                   <li>O campo “Venda Realizada” deve estar como “Em Negociação”;</li>
                   <li>A data do agendamento deve ser para o dia seguinte ao fechamento, ou seja, D+1.</li>
                 </ul>
-                <p className="font-semibold text-text-primary">
+                <p className="font-semibold text-[#111827]">
                   Exemplo:
                 </p>
                 <p>
                   Se o fechamento é do dia 22/05, o agendamento deve estar marcado para 23/05.
                 </p>
-                <div className="bg-amber-50 text-amber-700 font-bold p-2.5 rounded-lg border border-amber-100 flex items-center gap-2">
-                  <AlertCircle size={14} className="text-amber-600" />
+                <div className="bg-[#fffbeb] text-[#d97706] font-bold p-2.5 rounded-lg border border-[#fed7aa] flex items-center gap-2">
+                  <AlertCircle size={14} className="text-[#d97706]" />
                   <span>Para contar como agendamento, a venda deve estar como Em Negociação.</span>
                 </div>
               </div>
 
               {/* SECTION 4: Atenção à data do agendamento */}
               <div className="space-y-2">
-                <h3 className="font-extrabold text-brand-primary flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+                <h3 className="font-extrabold text-[#2563eb] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
                   <Clock size={14} /> 4. Atenção à data do agendamento
                 </h3>
                 <p>
@@ -622,7 +621,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
                 <p>
                   Se a data cadastrada for diferente de D+1, o sistema considera apenas 50% daquele cadastro para a pontuação extra.
                 </p>
-                <p className="font-semibold text-text-primary">
+                <p className="font-semibold text-[#111827]">
                   Exemplo:
                 </p>
                 <p>
@@ -635,19 +634,19 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
                 <p>
                   Neste caso, sua pontuação será ajustada e ficará em 95%.
                 </p>
-                <div className="bg-amber-50 text-amber-700 font-bold p-2.5 rounded-lg border border-amber-100 flex items-center gap-2">
-                  <AlertTriangle size={14} className="text-amber-600" />
+                <div className="bg-[#fffbeb] text-[#d97706] font-bold p-2.5 rounded-lg border border-[#fed7aa] flex items-center gap-2">
+                  <AlertTriangle size={14} className="text-[#d97706]" />
                   <span>Agendamento com data diferente de D+1 vale apenas 50% na pontuação extra.</span>
                 </div>
               </div>
 
               {/* SECTION 5: Venda não é agendamento */}
               <div className="space-y-2">
-                <h3 className="font-extrabold text-brand-primary flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+                <h3 className="font-extrabold text-[#2563eb] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
                   <DollarSign size={14} /> 5. Venda não é agendamento
                 </h3>
                 <p>
-                  Se no cadastro do cliente você marcar: <strong className="text-text-primary">“Venda Realizada = Sim”</strong>
+                  Se no cadastro do cliente você marcar: <strong className="text-[#111827]">“Venda Realizada = Sim”</strong>
                 </p>
                 <p>
                   O sistema entende que foi uma venda. Esse registro vai contar para:
@@ -658,17 +657,17 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
                   <li>Funil de vendas.</li>
                 </ul>
                 <p>
-                  Mas ele não conta como agendamento D+1. Para contar como agendamento, o campo deve estar como: <strong className="text-text-primary">“Venda Realizada = Em Negociação”</strong>.
+                  Mas ele não conta como agendamento D+1. Para contar como agendamento, o campo deve estar como: <strong className="text-[#111827]">“Venda Realizada = Em Negociação”</strong>.
                 </p>
-                <div className="bg-blue-50 text-blue-700 font-bold p-2.5 rounded-lg border border-blue-100 flex items-center gap-2">
-                  <InfoTooltip text="Vendas e agendamentos são fluxos separados no funil." />
+                <div className="bg-[#eff6ff] text-[#2563eb] font-bold p-2.5 rounded-lg border border-[#bfdbfe] flex items-center gap-2">
+                  <Info size={14} />
                   <span>Venda Realizada = Sim conta como venda, não como agendamento.</span>
                 </div>
               </div>
 
               {/* SECTION 6: Prazo para fechar o dia anterior */}
               <div className="space-y-2">
-                <h3 className="font-extrabold text-brand-primary flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+                <h3 className="font-extrabold text-[#2563eb] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
                   <Clock size={14} /> 6. Prazo para fechar o dia anterior
                 </h3>
                 <p>
@@ -677,78 +676,79 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
                 <p>
                   Depois desse horário, o fechamento fica bloqueado. Caso precise ajustar, solicite liberação ao seu superior.
                 </p>
-                <div className="bg-slate-100 text-slate-700 font-bold p-2.5 rounded-lg border border-slate-200 flex items-center gap-2">
+                <div className="bg-[#f8fafc] text-[#475569] font-bold p-2.5 rounded-lg border border-[#e5eaf2] flex items-center gap-2">
                   <LockKeyhole size={14} />
                   <span>Após 09h30, somente o superior poderá liberar o fechamento.</span>
                 </div>
               </div>
 
               {/* SECTION 7: Resumo rápido */}
-              <div className="space-y-2 bg-slate-50 p-4 rounded-xl border border-border-default">
-                <h3 className="font-extrabold text-brand-primary uppercase tracking-wider text-[10px]">
+              <div className="space-y-2 bg-[#f8fafc] p-4 rounded-xl border border-[#e5eaf2]">
+                <h3 className="font-extrabold text-[#2563eb] uppercase tracking-wider text-[10px]">
                   7. Resumo rápido
                 </h3>
-                <ul className="space-y-1.5 font-semibold text-text-primary">
-                  <li className="flex items-center gap-1.5"><Check size={12} className="text-emerald-600 stroke-[3]" /> Preencheu os números do dia: 70%</li>
-                  <li className="flex items-center gap-1.5"><Check size={12} className="text-emerald-600 stroke-[3]" /> Detalhou todos os agendamentos D+1 corretamente: 100%</li>
-                  <li className="flex items-center gap-1.5"><Check size={12} className="text-emerald-600 stroke-[3]" /> Detalhou apenas parte dos agendamentos: pontuação proporcional</li>
-                  <li className="flex items-center gap-1.5"><Check size={12} className="text-emerald-600 stroke-[3]" /> Cadastrou com data diferente de D+1: aquele cadastro vale apenas 50%</li>
-                  <li className="flex items-center gap-1.5"><Check size={12} className="text-emerald-600 stroke-[3]" /> Cliente vendido conta como venda, não como agendamento</li>
-                  <li className="flex items-center gap-1.5"><Check size={12} className="text-emerald-600 stroke-[3]" /> Fechamento do dia anterior fica liberado até 09h30 do dia seguinte</li>
+                <ul className="space-y-1.5 font-semibold text-[#111827]">
+                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#16a34a] stroke-[3]" /> Preencheu os números do dia: 70%</li>
+                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#16a34a] stroke-[3]" /> Detalhou todos os agendamentos D+1 corretamente: 100%</li>
+                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#16a34a] stroke-[3]" /> Detalhou apenas parte dos agendamentos: pontuação proporcional</li>
+                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#16a34a] stroke-[3]" /> Cadastrou com data diferente de D+1: aquele cadastro vale apenas 50%</li>
+                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#16a34a] stroke-[3]" /> Cliente vendido conta como venda, não como agendamento</li>
+                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#16a34a] stroke-[3]" /> Fechamento do dia anterior fica liberado até 09h30 do dia seguinte</li>
                 </ul>
-                <p className="italic font-bold text-brand-primary mt-3">
+                <p className="italic font-bold text-[#2563eb] mt-3">
                   “Essa regra existe para manter seu funil atualizado e ajudar você, sua liderança e a loja a acompanharem melhor as oportunidades reais de venda.”
                 </p>
               </div>
             </div>
 
             {/* Fixed Footer */}
-            <footer className="px-6 py-3 border-t border-border-default flex justify-end bg-slate-50">
-              <Button
+            <footer className="px-6 py-4 border-t border-[#eef2f7] flex justify-end bg-[#f8fafc]">
+              <button
                 type="button"
                 onClick={() => setDisciplineModalOpen(false)}
-                className="h-9 px-6 font-bold bg-brand-primary text-white hover:bg-brand-primary/90 rounded-lg shadow-xs"
+                className="h-10 px-6 font-bold bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl shadow-sm transition-colors"
               >
                 Entendi
-              </Button>
+              </button>
             </footer>
           </div>
         </div>
       )}
 
       {/* Save / Finalize buttons */}
-      <div className="min-w-0 rounded-mx-xl border border-border-default bg-white p-mx-sm shadow-mx-sm">
-        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-mx-md md:grid-cols-[0.45fr_1fr]">
-          <Button
+      <div className="min-w-0 rounded-[18px] border border-[#e5eaf2] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] mt-5">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5 md:grid-cols-[0.45fr_1fr]">
+          <button
             type="button"
-            variant="outline"
             disabled={saving || (isPastDeadline && !fechamentoLiberado) || (!canEditExisting && metricScope === 'daily')}
             onClick={() => void handleSaveDraft()}
-            className="h-mx-14 w-full max-w-full font-bold border-border-default hover:bg-slate-50"
+            className="h-12 rounded-xl border border-[#e5eaf2] bg-white text-sm font-bold text-[#64748b] hover:bg-[#f8fafc] transition-colors disabled:opacity-50"
           >
-            <Save size={18} /> Salvar rascunho
-          </Button>
-          <Button
+            Salvar rascunho
+          </button>
+          <button
             type="submit"
             disabled={saving || (isPastDeadline && !fechamentoLiberado) || (!canEditExisting && metricScope === 'daily')}
-            className={`h-mx-14 w-full max-w-full whitespace-normal text-center font-black uppercase tracking-wide rounded-xl shadow-md transition-all text-white ${
-              isPastDeadline && !fechamentoLiberado
-                ? 'bg-status-error hover:bg-status-error/90'
-                : 'bg-status-success hover:bg-status-success/90'
-            }`}
+            className={cn(
+              "h-12 rounded-xl text-sm font-extrabold uppercase tracking-[0.08em] text-white shadow-[0_10px_22px_rgba(37,99,235,0.20)] transition-all",
+              saving || (isPastDeadline && !fechamentoLiberado) || (!canEditExisting && metricScope === 'daily')
+                ? "bg-[#94a3b8] cursor-not-allowed"
+                : "bg-[#2563eb] hover:bg-[#1d4ed8]"
+            )}
           >
             {saving ? (
-              <RefreshCw className="h-mx-lg w-mx-lg animate-spin" />
+              <RefreshCw className="h-5 w-5 animate-spin mx-auto" />
             ) : (
-              <>
-                <LockKeyhole size={18} className="inline-block mr-1" /> Finalizar fechamento do dia
-              </>
+              <span className="flex items-center justify-center gap-2">
+                <LockKeyhole size={16} />
+                Finalizar fechamento do dia
+              </span>
             )}
-          </Button>
+          </button>
         </div>
-        <Typography variant="p" tone="muted" className="mt-mx-sm flex items-center justify-center gap-mx-xs text-xs font-semibold">
+        <p className="mt-4 flex items-center justify-center gap-2 text-xs font-semibold text-[#94a3b8]">
           <LockKeyhole size={14} /> Após finalizar, as informações serão enviadas para sua liderança e não poderão mais ser editadas.
-        </Typography>
+        </p>
       </div>
     </form>
   )
@@ -769,23 +769,23 @@ function MetricGroupCard({
   const label = labelParts.join('. ') || title
   const stepTone =
     step === '1'
-      ? 'bg-status-success text-white'
+      ? 'bg-[#16a34a]'
       : step === '2'
-        ? 'bg-status-warning text-white'
-        : 'bg-status-info text-white'
+        ? 'bg-[#f59e0b]'
+        : 'bg-[#2563eb]'
 
   return (
-    <Card className="min-w-0 overflow-visible rounded-mx-lg border border-border-default bg-white p-0 shadow-mx-xs">
-      <header className="flex items-center gap-mx-xs border-b border-border-subtle px-mx-sm py-mx-xs rounded-t-mx-lg">
-        <span className={`grid h-4 w-4 shrink-0 place-items-center rounded-full text-[10px] font-bold ${stepTone}`}>
+    <Card className="min-w-0 overflow-hidden rounded-[16px] border border-[#e5eaf2] bg-white p-0 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+      <header className="flex h-12 items-center gap-2 border-b border-[#eef2f7] px-5">
+        <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] font-bold text-white ${stepTone}`}>
           {step}
         </span>
-        <Typography variant="h2" className="!text-xs !leading-tight font-extrabold uppercase tracking-mx-wider text-text-secondary">
+        <h2 className="text-[13px] font-extrabold uppercase tracking-[0.08em] text-[#334155]">
           {label}
-        </Typography>
+        </h2>
         {tooltipText && <InfoTooltip text={tooltipText} />}
       </header>
-      <div className={`grid min-w-0 divide-y divide-border-subtle p-mx-sm sm:divide-y-0 sm:divide-x ${columns}`}>{children}</div>
+      <div className={`grid min-w-0 divide-y divide-[#eef2f7] p-5 sm:divide-y-0 sm:divide-x ${columns}`}>{children}</div>
     </Card>
   )
 }
@@ -823,12 +823,12 @@ function MetricCounterCard({
 }) {
   const displayValue = readValue(field)
   const inputValue = numberDrafts[field] ?? String(displayValue)
-  const toneClass =
+  const iconToneClass =
     tone === 'success'
-      ? 'bg-status-success text-white'
+      ? 'bg-[#16a34a] text-white'
       : tone === 'info'
-        ? 'bg-status-info text-white'
-        : 'bg-status-warning text-white'
+        ? 'bg-[#2563eb] text-white'
+        : 'bg-[#f59e0b] text-white'
 
   const setNext = (next: number) => {
     if (disabled) return
@@ -866,68 +866,77 @@ function MetricCounterCard({
 
   return (
     <div
-      className={`flex min-h-[105px] w-full max-w-full min-w-0 flex-col items-center justify-center gap-1.5 bg-white px-mx-xs py-1.5 text-center ${
-        fieldErrors[field]
-          ? 'ring-2 ring-status-error/20'
-          : changedFields.has(field)
-            ? 'ring-2 ring-brand-primary/10'
-            : ''
-      }`}
+      className={cn(
+        "flex min-h-[128px] flex-col items-center justify-center gap-2 px-5 py-4 text-center bg-white relative",
+        fieldErrors[field] && "ring-2 ring-[#ef4444]/20 rounded-xl"
+      )}
     >
-      <div className="min-h-4 flex items-center justify-center">
-        <Typography variant="caption" tone="muted" className="text-[10px] font-bold normal-case tracking-normal">
+      <div className="flex items-center gap-1">
+        <span className="text-[12px] font-semibold text-[#94a3b8]">
           {label}
-        </Typography>
+        </span>
         {crmBadge && (
-          <Badge variant="outline" className="ml-mx-xs rounded-mx-full px-2 py-0 text-[9px] bg-brand-primary/5 text-brand-primary border-brand-primary/10">
+          <span className="inline-flex items-center justify-center rounded-full bg-[#2563eb]/10 px-1.5 py-0.5 text-[9px] font-bold text-[#2563eb] border border-[#2563eb]/20">
             CRM
-          </Badge>
+          </span>
         )}
       </div>
-      <span className={`grid h-8 w-8 place-items-center rounded-full ${toneClass} shadow-inner`}>
-        <Icon size={14} />
+
+      <span className={cn("grid h-11 w-11 place-items-center rounded-full shadow-sm", iconToneClass)}>
+        <Icon size={19} />
       </span>
 
-      {/* Grouped control [-] [ 12 ] [+] */}
-      <div className="flex items-center gap-1 overflow-hidden rounded-lg border border-border-default p-0.5 bg-slate-50 shadow-inner focus-within:ring-2 focus-within:ring-brand-primary/20 focus-within:border-brand-primary/40 transition-all mt-1">
+      <input
+        type="text"
+        inputMode="numeric"
+        name={String(field)}
+        aria-label={label}
+        disabled={disabled}
+        value={inputValue}
+        onFocus={event => event.target.select()}
+        onKeyDown={handleKeyDown}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        onWheel={handleWheel}
+        className="
+          h-10 w-full bg-transparent text-center
+          text-[30px] font-extrabold leading-none text-[#111827]
+          outline-none tabular-nums
+          [appearance:textfield]
+          [&::-webkit-inner-spin-button]:appearance-none
+          [&::-webkit-outer-spin-button]:appearance-none
+          focus:ring-2 focus:ring-[#2563eb]/10 focus:border-[#2563eb]/20 rounded-lg
+        "
+      />
+
+      <div className="grid h-8 w-[132px] grid-cols-[38px_1fr_38px] overflow-hidden rounded-lg border border-[#e5eaf2] bg-white shadow-sm focus-within:ring-2 focus-within:ring-[#2563eb]/20 focus-within:border-[#2563eb]/40 transition-all mt-1">
         <button
           type="button"
           aria-label={`Diminuir ${label}`}
           disabled={disabled || (Number(form[field]) <= 0 && displayValue <= 0)}
           onClick={() => setNext(displayValue - 1)}
-          className="grid h-6 w-9 place-items-center rounded bg-white text-text-primary border border-border-subtle shadow-xs hover:bg-status-error-surface disabled:opacity-40 transition-colors"
+          className="grid h-full w-full place-items-center bg-[#f8fafc] text-[#475569] hover:bg-[#ef4444]/10 hover:text-[#ef4444] disabled:opacity-40 border-r border-[#e5eaf2] transition-colors"
         >
           <Minus size={13} />
         </button>
 
-        <input
-          type="text"
-          inputMode="numeric"
-          name={String(field)}
-          aria-label={label}
-          disabled={disabled}
-          value={inputValue}
-          onFocus={event => event.target.select()}
-          onKeyDown={handleKeyDown}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          onWheel={handleWheel}
-          className="h-6 w-12 bg-white text-center text-sm font-bold text-text-primary border border-border-subtle rounded shadow-xs focus:border-brand-primary focus:ring-1 focus:ring-brand-primary/20 outline-none transition-all"
-        />
+        <span className="grid place-items-center text-[11px] font-bold text-[#94a3b8] bg-[#f8fafc]">
+          un.
+        </span>
 
         <button
           type="button"
           aria-label={`Aumentar ${label}`}
           disabled={disabled || displayValue >= CHECKIN_MAX_INPUT_VALUE}
           onClick={() => setNext(displayValue + 1)}
-          className="grid h-6 w-9 place-items-center rounded bg-white text-text-primary border border-border-subtle shadow-xs hover:bg-status-success-surface disabled:opacity-40 transition-colors"
+          className="grid h-full w-full place-items-center bg-[#f8fafc] text-[#475569] hover:bg-[#16a34a]/10 hover:text-[#16a34a] disabled:opacity-40 border-l border-[#e5eaf2] transition-colors"
         >
           <Plus size={13} />
         </button>
       </div>
 
       {fieldErrors[field] && (
-        <Typography variant="tiny" tone="error" className="font-semibold">
+        <Typography variant="tiny" tone="error" className="font-semibold mt-1">
           {fieldErrors[field]}
         </Typography>
       )}
@@ -948,19 +957,21 @@ function ResumoItem({
 }) {
   const iconClass =
     tone === 'success'
-      ? 'bg-status-success-surface text-status-success'
+      ? 'bg-[#ecfdf5] text-[#16a34a] border border-[#bbf7d0]'
       : tone === 'info'
-        ? 'bg-status-info-surface text-status-info'
-        : 'bg-status-warning-surface text-status-warning'
+        ? 'bg-[#eff6ff] text-[#2563eb] border border-[#bfdbfe]'
+        : 'bg-[#fffbeb] text-[#f59e0b] border border-[#fef3c7]'
 
   return (
-    <div className="grid min-h-[98px] place-items-center rounded-mx-lg border border-border-subtle bg-white p-mx-xs text-center shadow-xs">
-      <Typography variant="caption" tone="muted" className="text-[10px] normal-case tracking-normal font-bold">
+    <div className="grid min-h-[88px] place-items-center rounded-xl border border-[#eef2f7] bg-white p-3 text-center shadow-sm">
+      <span className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-wider">
         {label}
-      </Typography>
-      <span className={`max-w-full font-black text-status-success tabular-nums ${value.length > 7 ? 'text-sm' : 'text-base'}`}>{value}</span>
-      <span className={`grid h-8 w-8 place-items-center rounded-full ${iconClass}`}>
-        <Icon size={14} />
+      </span>
+      <span className={`max-w-full font-extrabold text-[#111827] tabular-nums ${value.length > 7 ? 'text-xs' : 'text-[17px]'}`}>
+        {value}
+      </span>
+      <span className={cn("grid h-7 w-7 place-items-center rounded-full", iconClass)}>
+        <Icon size={13} />
       </span>
     </div>
   )

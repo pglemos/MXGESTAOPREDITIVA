@@ -26,6 +26,7 @@ interface CheckinHeaderProps {
 export function CheckinHeader({
   dateStr,
   metricScope,
+  setMetricScope,
   isLate,
   historicalCheckin,
   canEditExisting,
@@ -109,72 +110,101 @@ export function CheckinHeader({
   }, [checkins, userId])
 
   return (
-    <header className="shrink-0 border-b border-border-default pb-mx-sm">
-      <div className="flex min-w-0 flex-col gap-mx-xs lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex min-w-0 flex-wrap items-center gap-mx-xs">
-          <Typography variant="h1" className="min-w-0 break-words !text-xl !font-extrabold !leading-none uppercase tracking-normal text-text-primary">
-            Fechamento Diário
-          </Typography>
-          <div className="inline-flex max-w-full items-center gap-mx-xs rounded-mx-full border border-border-default bg-white px-mx-sm py-1 text-[11px] font-semibold text-text-secondary shadow-mx-xs">
-            <CalendarDays size={13} className="shrink-0 text-brand-primary" />
-            <span className="truncate">{dateStr}</span>
+    <header className="shrink-0 pb-2 space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-4">
+          <h1 className="text-[26px] font-extrabold tracking-tight text-[#111827]">
+            FECHAMENTO DIÁRIO
+          </h1>
+
+          <div className="inline-flex h-9 items-center gap-2 rounded-full border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#475569] shadow-sm">
+            <CalendarDays size={14} className="text-[#2563eb]" />
+            <span>{dateStr}</span>
           </div>
         </div>
 
-        <div className="flex min-w-0 flex-wrap items-center gap-mx-xs lg:justify-end">
-          <div className="grid h-8 place-items-center whitespace-nowrap rounded-mx-full border border-brand-primary/15 bg-brand-primary px-mx-sm text-[11px] font-semibold uppercase text-white shadow-mx-xs">
-            {metricScope === 'adjustment' ? 'Correções até 09:45' : `Até ${CHECKIN_DEADLINE_LABEL}`}
-          </div>
+        <div className="flex items-center gap-3">
+          <span className="inline-flex h-10 items-center rounded-xl bg-[#2563eb] px-5 text-sm font-bold text-white shadow-sm">
+            {metricScope === 'adjustment' ? 'Correções até 09:45' : `ATÉ ${CHECKIN_DEADLINE_LABEL}`}
+          </span>
+
           <div className="relative">
             <button
               type="button"
-              className="flex h-8 min-w-0 items-center gap-mx-xs rounded-mx-full border border-brand-primary/20 bg-status-success-surface px-mx-sm text-[11px] font-semibold uppercase text-brand-primary"
+              className="inline-flex h-10 items-center gap-2 rounded-xl border border-[#bfdbfe] bg-[#eff6ff] px-5 text-sm font-bold text-[#2563eb] hover:bg-[#eff6ff]/80 transition-colors"
               aria-expanded={infoOpen}
               aria-controls="checkin-status-info"
               onClick={() => setInfoOpen(current => !current)}
             >
-              {statusText}
-              <Info size={13} />
+              <span className="truncate uppercase">{statusText}</span>
+              <Info size={14} className="shrink-0" />
             </button>
             {infoOpen && (
               <div
                 id="checkin-status-info"
                 role="status"
-                className="absolute right-0 top-10 z-20 w-64 rounded-mx-lg border border-border-default bg-white p-mx-sm text-xs font-medium normal-case leading-relaxed text-text-secondary shadow-mx-lg"
+                className="absolute right-0 top-12 z-20 w-64 rounded-xl border border-[#e5eaf2] bg-white p-4 text-xs font-medium normal-case leading-relaxed text-[#475569] shadow-[0_8px_24px_rgba(15,23,42,0.08)]"
               >
                 Status do prazo de edição. Finalize até o horário limite ou solicite liberação ao gerente quando o prazo estiver bloqueado.
               </div>
             )}
           </div>
+
           <button
             type="button"
             onClick={() => setHistoryOpen(true)}
-            className="flex h-8 items-center gap-mx-xs whitespace-nowrap rounded-mx-full border border-border-default bg-white px-mx-sm text-[11px] font-semibold text-text-secondary shadow-mx-xs transition-colors hover:text-brand-primary"
+            className="inline-flex h-10 items-center gap-2 rounded-xl border border-[#e5eaf2] bg-white px-5 text-sm font-bold text-[#334155] shadow-sm hover:bg-[#f8fafc] transition-colors"
           >
-            <History size={13} />
+            <History size={14} />
             Histórico
           </button>
         </div>
       </div>
 
+      {/* Tabs / Abas Fechamento Diário / Ajuste Técnico */}
+      <div className="inline-flex h-12 items-center rounded-xl border border-[#e5eaf2] bg-white p-1 shadow-sm">
+        <button
+          type="button"
+          onClick={() => setMetricScope('daily')}
+          className={`h-10 rounded-lg px-6 text-sm font-bold transition-all ${
+            metricScope === 'daily'
+              ? 'text-[#111827] border-b-2 border-[#2563eb]'
+              : 'text-[#94a3b8] hover:text-[#475569]'
+          }`}
+        >
+          FECHAMENTO DIÁRIO
+        </button>
+        <button
+          type="button"
+          onClick={() => setMetricScope('adjustment')}
+          className={`h-10 rounded-lg px-6 text-sm font-bold transition-all ${
+            metricScope === 'adjustment'
+              ? 'text-[#111827] border-b-2 border-[#2563eb]'
+              : 'text-[#94a3b8] hover:text-[#475569]'
+          }`}
+        >
+          AJUSTE TÉCNICO
+        </button>
+      </div>
+
       {/* Histórico de Fechamentos Modal */}
       {historyOpen && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-mx-black/40 backdrop-blur-xs p-mx-md" role="dialog" aria-modal="true" aria-label="Histórico de Fechamentos">
-          <div className="w-full max-w-2xl rounded-2xl border border-border-default bg-white shadow-mx-2xl overflow-hidden flex flex-col max-h-[80vh] transition-all animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/35 backdrop-blur-[3px] p-4" role="dialog" aria-modal="true" aria-label="Histórico de Fechamentos">
+          <div className="w-full max-w-2xl rounded-2xl border border-[#e5eaf2] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] overflow-hidden flex flex-col max-h-[80vh] transition-all animate-in fade-in zoom-in-95 duration-200">
             {/* Header */}
-            <header className="px-6 py-4 border-b border-border-default flex items-center justify-between bg-slate-50">
+            <header className="px-6 py-5 border-b border-[#eef2f7] flex items-center justify-between bg-[#f8fafc]">
               <div>
-                <h2 className="text-base font-black text-brand-primary uppercase tracking-normal">
+                <h2 className="text-lg font-extrabold text-[#111827] uppercase tracking-tight">
                   Histórico de Fechamentos
                 </h2>
-                <p className="text-xs font-semibold text-text-tertiary mt-0.5">
+                <p className="text-xs font-semibold text-[#64748b] mt-1">
                   Visualize ou regularize seus fechamentos operacionais dos últimos 7 dias.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setHistoryOpen(false)}
-                className="p-1 rounded-full text-text-tertiary hover:bg-slate-200 transition-colors"
+                className="grid h-8 w-8 place-items-center rounded-lg text-[#64748b] hover:bg-[#f1f5f9] transition-colors"
                 aria-label="Fechar"
               >
                 <X size={18} />
@@ -185,7 +215,7 @@ export function CheckinHeader({
             <div className="p-6 overflow-y-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-border-default text-[10px] font-black uppercase text-text-tertiary bg-slate-50">
+                  <tr className="border-b border-[#e5eaf2] text-[10px] font-black uppercase text-[#94a3b8] bg-[#f8fafc]">
                     <th className="py-2.5 px-3">Data</th>
                     <th className="py-2.5 px-3">Status</th>
                     <th className="py-2.5 px-3">Vendas</th>
@@ -196,26 +226,26 @@ export function CheckinHeader({
                 </thead>
                 <tbody>
                   {historyRows.map(row => (
-                    <tr key={row.date} className="border-b border-border-subtle hover:bg-slate-50/50 transition-colors">
-                      <td className="py-3 px-3 font-extrabold text-text-primary">
+                    <tr key={row.date} className="border-b border-[#eef2f7] hover:bg-slate-50/50 transition-colors">
+                      <td className="py-3 px-3 font-extrabold text-[#111827]">
                         {row.date.split('-').reverse().join('/')}
                       </td>
                       <td className="py-3 px-3">
                         <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
                           row.finalized
-                            ? 'bg-green-50 text-green-700 border border-green-200'
-                            : 'bg-red-50 text-red-700 border border-red-200'
+                            ? 'bg-[#ecfdf5] text-[#16a34a] border border-[#bbf7d0]'
+                            : 'bg-[#fef2f2] text-[#ef4444] border border-[#fecaca]'
                         }`}>
                           {row.status}
                         </span>
                       </td>
-                      <td className="py-3 px-3 font-bold text-text-secondary">
+                      <td className="py-3 px-3 font-bold text-[#475569]">
                         {row.sales}
                       </td>
-                      <td className="py-3 px-3 font-bold text-text-secondary">
+                      <td className="py-3 px-3 font-bold text-[#475569]">
                         {row.score}
                       </td>
-                      <td className="py-3 px-3 font-medium text-text-tertiary">
+                      <td className="py-3 px-3 font-medium text-[#94a3b8]">
                         {row.time}
                       </td>
                       <td className="py-3 px-3 text-right">
@@ -226,7 +256,7 @@ export function CheckinHeader({
                               setCustomReferenceDate(row.date)
                               setHistoryOpen(false)
                             }}
-                            className="inline-flex h-7 items-center justify-center rounded-lg bg-brand-primary px-3 text-[10px] font-bold text-white hover:bg-brand-primary/90 transition-colors shadow-sm"
+                            className="inline-flex h-7 items-center justify-center rounded-lg bg-[#2563eb] px-3 text-[10px] font-bold text-white hover:bg-[#1d4ed8] transition-colors shadow-sm"
                           >
                             Regularizar
                           </button>
@@ -237,7 +267,7 @@ export function CheckinHeader({
                               setCustomReferenceDate(row.date)
                               setHistoryOpen(false)
                             }}
-                            className="inline-flex h-7 items-center justify-center rounded-lg border border-border-default bg-white px-3 text-[10px] font-bold text-text-secondary hover:bg-slate-50 transition-colors shadow-xs"
+                            className="inline-flex h-7 items-center justify-center rounded-lg border border-[#e5eaf2] bg-white px-3 text-[10px] font-bold text-[#475569] hover:bg-slate-50 transition-colors shadow-sm"
                           >
                             Visualizar
                           </button>
@@ -250,11 +280,11 @@ export function CheckinHeader({
             </div>
 
             {/* Footer */}
-            <footer className="px-6 py-3 border-t border-border-default flex justify-end bg-slate-50">
+            <footer className="px-6 py-4 border-t border-[#eef2f7] flex justify-end bg-[#f8fafc]">
               <Button
                 type="button"
                 onClick={() => setHistoryOpen(false)}
-                className="h-8 px-4 text-xs font-bold bg-brand-primary text-white hover:bg-brand-primary/90 rounded-lg shadow-xs"
+                className="h-10 px-5 text-xs font-bold bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl shadow-sm transition-colors"
               >
                 Fechar
               </Button>

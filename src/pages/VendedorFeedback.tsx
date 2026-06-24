@@ -96,7 +96,7 @@ const KPI_CARDS = [
   { icon: <ThumbsUp size={22} />, label: 'Positivos', value: '12', detail: '67% do total', tone: 'green' as const, action: 'Ver detalhes' },
   { icon: <TrendingUp size={22} />, label: 'Desenvolvimento', value: '6', detail: '33% do total', tone: 'orange' as const, action: 'Ver detalhes' },
   { icon: <AlertCircle size={22} />, label: 'Pendentes', value: '3', detail: 'aguardando confirmação', tone: 'red' as const, action: 'Ver pendentes' },
-  { icon: <ClipboardCheck size={22} />, label: 'Ações obrigatórias', value: '2', detail: 'vinculadas à rotina', tone: 'purple' as const, action: 'Ver ações' },
+  { icon: <ClipboardCheck size={22} />, label: 'Ações obrigatórias', value: '2', detail: 'vinculadas à rotina', tone: 'blue' as const, action: 'Ver ações' },
   { icon: <CheckCircle2 size={22} />, label: 'Engajamento com feedback', value: '95%', detail: 'feedback confirmado', tone: 'green' as const, action: 'Entenda o cálculo' },
 ]
 
@@ -606,7 +606,7 @@ function MetricCard({ icon, label, value, detail, tone, action }: {
   label: string
   value: string
   detail: string
-  tone: 'blue' | 'green' | 'orange' | 'red' | 'purple'
+  tone: 'blue' | 'green' | 'orange' | 'red'
   action: string
 }) {
   const toneClass = {
@@ -614,7 +614,6 @@ function MetricCard({ icon, label, value, detail, tone, action }: {
     green: 'bg-status-success-surface text-status-success',
     orange: 'bg-status-warning-surface text-status-warning',
     red: 'bg-status-error-surface text-status-error',
-    purple: 'bg-accent-purple-soft text-accent-purple',
   }[tone]
   return (
     <Card className="rounded-mx-lg border border-border-default bg-white p-mx-md shadow-none">

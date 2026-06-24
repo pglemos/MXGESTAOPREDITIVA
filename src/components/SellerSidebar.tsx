@@ -247,23 +247,23 @@ export default function SellerLayoutShell({
           aria-current={active ? 'page' : undefined}
           onClick={closeMobile}
           className={cn(
-          'group relative flex min-h-[52px] items-center gap-2 rounded-[13px] border border-[rgb(var(--mx-seller-primary-rgb)/0.18)] bg-[rgba(255,255,255,0.035)] px-2.5 py-2 text-left outline-none transition-all duration-200 hover:bg-[rgb(var(--mx-seller-primary-rgb)/0.08)] focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]',
-            active && 'bg-[linear-gradient(90deg,rgb(var(--mx-seller-primary-rgb)/0.16),rgb(var(--mx-seller-primary-rgb)/0.07))] shadow-[0_0_18px_rgb(var(--mx-seller-primary-rgb)/0.08)]',
+            'group relative flex min-h-[52px] items-center gap-2 rounded-[13px] border border-blue-500/20 bg-white/5 px-2.5 py-2 text-left outline-none transition-all duration-200 hover:bg-blue-500/10 focus-visible:ring-2 focus-visible:ring-blue-500/45',
+            active && 'bg-blue-600/15 border-blue-500/30 shadow-[0_0_18px_rgba(37,99,235,0.12)]',
             isCollapsed && 'min-h-12 justify-center rounded-[14px] px-0 py-0'
           )}
         >
-          {active && <span className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-[var(--mx-seller-primary)]" aria-hidden="true" />}
-          <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-[12px] bg-[rgb(var(--mx-seller-primary-rgb)/0.10)] text-[var(--mx-seller-primary)]">
+          {active && <span className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-blue-600" aria-hidden="true" />}
+          <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-[12px] bg-blue-600/10 text-blue-500">
             <NavItemIcon icon={item.icon} size={18} />
-            {!isCollapsed && <Sparkles size={13} strokeWidth={1.8} className="absolute -right-1 -top-1 text-[var(--mx-seller-primary)]" aria-hidden="true" />}
+            {!isCollapsed && <Sparkles size={13} strokeWidth={1.8} className="absolute -right-1 -top-1 text-blue-500" aria-hidden="true" />}
           </span>
           {!isCollapsed && (
             <span className="min-w-0 flex-1">
               <span className="flex min-w-0 items-center gap-2">
-                <span className="truncate text-[13px] font-semibold text-white">{item.label}</span>
+                <span className="truncate text-[13px] font-semibold text-[#dbeafe]">{item.label}</span>
                 {item.badge && <SellerBadge>{item.badge}</SellerBadge>}
               </span>
-              <span className="mt-0.5 block truncate text-[10px] font-medium leading-tight text-[var(--mx-seller-text-secondary)]">{item.subtitle}</span>
+              <span className="mt-0.5 block truncate text-[10px] font-medium leading-tight text-[#8ea4c4]">{item.subtitle}</span>
             </span>
           )}
           {isCollapsed && <Tooltip label={item.label} />}
@@ -279,16 +279,16 @@ export default function SellerLayoutShell({
         aria-current={active ? 'page' : undefined}
         onClick={closeMobile}
         className={cn(
-          'group relative flex h-8 items-center gap-2 rounded-[11px] px-2.5 text-[13px] font-medium text-[rgb(var(--mx-seller-text-primary-rgb)/0.90)] outline-none transition-all duration-200 hover:bg-[rgb(var(--mx-seller-primary-rgb)/0.08)] hover:text-white focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]',
-          active && 'border border-[rgb(var(--mx-seller-primary-rgb)/0.18)] bg-[linear-gradient(90deg,rgb(var(--mx-seller-primary-rgb)/0.18),rgb(var(--mx-seller-primary-rgb)/0.08))] text-white shadow-[0_0_18px_rgb(var(--mx-seller-primary-rgb)/0.08)]',
+          'group relative flex h-8 items-center gap-2 rounded-[11px] px-2.5 text-[13px] font-medium text-[#8ea4c4] outline-none transition-all duration-200 hover:bg-white/5 hover:text-white focus-visible:ring-2 focus-visible:ring-blue-500/45',
+          active && 'border border-blue-500/20 bg-blue-600/15 text-white shadow-[0_0_18px_rgba(37,99,235,0.12)]',
           isCollapsed && 'justify-center px-0'
         )}
       >
-        {active && <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-[var(--mx-seller-primary)]" aria-hidden="true" />}
+        {active && <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-blue-600" aria-hidden="true" />}
         <NavItemIcon
           icon={item.icon}
           size={18}
-          className={cn('shrink-0 text-[rgb(var(--mx-seller-text-primary-rgb)/0.70)] transition-colors duration-200 group-hover:text-[var(--mx-seller-primary)]', active && 'text-[var(--mx-seller-primary)]')}
+          className={cn('shrink-0 text-[#8ea4c4] transition-colors duration-200 group-hover:text-blue-500', active && 'text-blue-500')}
         />
         {!isCollapsed && <span className="min-w-0 flex-1 truncate">{item.label}</span>}
         {!isCollapsed && item.badge && <SellerBadge>{item.badge}</SellerBadge>}
@@ -300,20 +300,20 @@ export default function SellerLayoutShell({
   const renderUserMenu = (isCollapsed: boolean) => (
     <div
       className={cn(
-        'absolute z-[130] rounded-2xl border border-white/[0.08] bg-[var(--mx-seller-surface)] p-2 shadow-[0_20px_44px_rgba(0,0,0,0.34)]',
+        'absolute z-[130] rounded-2xl border border-white/[0.08] bg-[#031225] p-2 shadow-[0_20px_44px_rgba(0,0,0,0.34)]',
         isCollapsed ? 'bottom-0 left-[calc(100%+12px)] w-56' : 'bottom-[calc(100%+10px)] left-0 right-0'
       )}
     >
-      <button type="button" onClick={() => goTo(profilePath)} className="flex h-10 w-full items-center rounded-xl px-3 text-left text-sm font-medium text-[rgb(var(--mx-seller-text-primary-rgb)/0.85)] transition-colors hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]">
+      <button type="button" onClick={() => goTo(profilePath)} className="flex h-10 w-full items-center rounded-xl px-3 text-left text-sm font-medium text-[#dbeafe] transition-colors hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/45">
         Meu Perfil
       </button>
-      <button type="button" onClick={() => goTo(settingsPath)} className="flex h-10 w-full items-center rounded-xl px-3 text-left text-sm font-medium text-[rgb(var(--mx-seller-text-primary-rgb)/0.85)] transition-colors hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]">
+      <button type="button" onClick={() => goTo(settingsPath)} className="flex h-10 w-full items-center rounded-xl px-3 text-left text-sm font-medium text-[#dbeafe] transition-colors hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/45">
         Preferências
       </button>
-      <button type="button" onClick={() => goTo(notificationsPath)} className="flex h-10 w-full items-center rounded-xl px-3 text-left text-sm font-medium text-[rgb(var(--mx-seller-text-primary-rgb)/0.85)] transition-colors hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]">
+      <button type="button" onClick={() => goTo(notificationsPath)} className="flex h-10 w-full items-center rounded-xl px-3 text-left text-sm font-medium text-[#dbeafe] transition-colors hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/45">
         Notificações
       </button>
-      <button type="button" onClick={signOut} className="flex h-10 w-full items-center rounded-xl px-3 text-left text-sm font-medium text-[rgb(var(--mx-seller-text-primary-rgb)/0.85)] transition-colors hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]">
+      <button type="button" onClick={signOut} className="flex h-10 w-full items-center rounded-xl px-3 text-left text-sm font-medium text-[#dbeafe] transition-colors hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/45">
         Sair
       </button>
     </div>
@@ -329,22 +329,22 @@ export default function SellerLayoutShell({
         aria-label={`Abrir menu de usuário de ${displayName}`}
         onClick={() => setUserMenuOpen((open) => !open)}
         className={cn(
-        'group flex min-h-[56px] w-full items-center gap-2 rounded-[16px] border border-white/[0.06] bg-white/[0.035] px-2 py-1.5 text-left outline-none transition-all duration-200 hover:bg-white/[0.055] focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]',
+          'group flex min-h-[56px] w-full items-center gap-2 rounded-[16px] border border-white/[0.06] bg-white/[0.035] px-2 py-1.5 text-left outline-none transition-all duration-200 hover:bg-white/[0.055] focus-visible:ring-2 focus-visible:ring-blue-500/45',
           isCollapsed && 'h-14 justify-center rounded-[18px] px-0'
         )}
       >
-          <span className="relative shrink-0">
-        <Avatar src={avatarUrl || undefined} alt={`Avatar de ${displayName}`} fallback={displayName} size="md" className="border-white/[0.08] bg-[var(--mx-seller-surface)]" />
-          </span>
+        <span className="relative shrink-0">
+          <Avatar src={avatarUrl || undefined} alt={`Avatar de ${displayName}`} fallback={displayName} size="md" className="border-white/[0.08] bg-[#031225]" />
+        </span>
         {!isCollapsed && (
           <>
             <span className="min-w-0 flex-1 overflow-hidden">
               <span className="block whitespace-normal break-words text-[11px] font-semibold leading-tight text-white" title={displayName}>{displayName}</span>
-              <span className="mt-0.5 block truncate text-[11px] font-medium leading-tight text-[var(--mx-seller-text-secondary)]" title={displayRole}>
-                    {displayRole}
-                  </span>
+              <span className="mt-0.5 block truncate text-[11px] font-medium leading-tight text-[#8ea4c4]" title={displayRole}>
+                {displayRole}
+              </span>
             </span>
-            <ChevronDown size={18} strokeWidth={1.8} className={cn('text-[rgb(var(--mx-seller-text-primary-rgb)/0.65)] transition-transform duration-200', userMenuOpen && 'rotate-180')} aria-hidden="true" />
+            <ChevronDown size={18} strokeWidth={1.8} className={cn('text-[#8ea4c4] transition-transform duration-200', userMenuOpen && 'rotate-180')} aria-hidden="true" />
           </>
         )}
         {isCollapsed && <Tooltip label={displayName} />}
@@ -360,73 +360,73 @@ export default function SellerLayoutShell({
     const mainSections = visibleSections.filter((section) => !bottomSectionLabels.has(section.label))
 
     return (
-    <>
+      <>
         <div className={cn('flex items-center gap-2', isCollapsed ? 'flex-col justify-center' : 'justify-between')}>
           <div className={cn('flex min-w-0 items-center gap-2', isCollapsed && 'justify-center')}>
             <img src={MxLogo} alt="MX" className={cn('h-8 w-8 shrink-0 object-contain', isCollapsed && 'h-8 w-8')} />
             {!isCollapsed && (
               <div className="min-w-0">
-                <p className="truncate text-[12px] font-bold leading-tight text-[var(--mx-seller-text-primary)]">MX PERFORMANCE</p>
-                <p className="mt-0.5 truncate text-[11px] font-medium leading-tight text-[var(--mx-seller-text-secondary)]">Gestão Preditiva</p>
-            </div>
+                <p className="truncate text-[12px] font-bold leading-tight text-white">MX PERFORMANCE</p>
+                <p className="mt-0.5 truncate text-[11px] font-medium leading-tight text-[#8ea4c4]">Gestão Preditiva</p>
+              </div>
+            )}
+          </div>
+          {canCollapse && (
+            <button
+              type="button"
+              aria-label={isCollapsed ? 'Expandir sidebar' : 'Recolher sidebar'}
+              onClick={() => setCollapsed((value) => !value)}
+              className={cn(
+                'flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] border border-white/[0.06] bg-white/[0.03] text-[#8ea4c4] outline-none transition-all duration-200 hover:bg-blue-500/10 hover:text-white focus-visible:ring-2 focus-visible:ring-blue-500/45',
+                isCollapsed && 'h-9 w-9'
+              )}
+            >
+              {isCollapsed ? <PanelLeftOpen size={18} aria-hidden="true" /> : <PanelLeftClose size={18} aria-hidden="true" />}
+            </button>
           )}
         </div>
-        {canCollapse && (
-          <button
-            type="button"
-            aria-label={isCollapsed ? 'Expandir sidebar' : 'Recolher sidebar'}
-            onClick={() => setCollapsed((value) => !value)}
-            className={cn(
-              'flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] border border-white/[0.06] bg-white/[0.03] text-[rgb(var(--mx-seller-text-primary-rgb)/0.75)] outline-none transition-all duration-200 hover:bg-[rgb(var(--mx-seller-primary-rgb)/0.08)] hover:text-white focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]',
-              isCollapsed && 'h-9 w-9'
-            )}
-          >
-            {isCollapsed ? <PanelLeftOpen size={18} aria-hidden="true" /> : <PanelLeftClose size={18} aria-hidden="true" />}
-          </button>
-        )}
-      </div>
 
-      <nav className="no-scrollbar mt-2 flex-1 space-y-1 overflow-y-auto pr-0.5" aria-label={sidebarLabel}>
-{mainSections.map((section, sectionIndex) => (
-<section key={section.label} className={cn('space-y-1', sectionIndex > 0 && 'border-t border-white/[0.06] pt-1.5')} aria-label={section.label}>
-            {!isCollapsed && <p className="px-2.5 text-[10px] font-semibold uppercase text-[rgba(244,255,249,0.45)]">{section.label}</p>}
-<div className="space-y-0.5">{section.items.map((item) => renderNavItem(item, isCollapsed))}</div>
-</section>
-))}
-</nav>
+        <nav className="no-scrollbar mt-2 flex-1 space-y-1 overflow-y-auto pr-0.5" aria-label={sidebarLabel}>
+          {mainSections.map((section, sectionIndex) => (
+            <section key={section.label} className={cn('space-y-1', sectionIndex > 0 && 'border-t border-white/[0.06] pt-1.5')} aria-label={section.label}>
+              {!isCollapsed && <p className="px-2.5 text-[10px] font-semibold uppercase text-[#8ea4c4]/50">{section.label}</p>}
+              <div className="space-y-0.5">{section.items.map((item) => renderNavItem(item, isCollapsed))}</div>
+            </section>
+          ))}
+        </nav>
 
-{bottomSections.map((section) => (
-<section key={section.label} className="mt-1.5 space-y-1 border-t border-white/[0.06] pt-1.5" aria-label={section.label}>
-          {!isCollapsed && <p className="px-2.5 text-[10px] font-semibold uppercase text-[rgba(244,255,249,0.45)]">{section.label}</p>}
-<div className="space-y-0.5">{section.items.map((item) => renderNavItem(item, isCollapsed))}</div>
-</section>
-))}
+        {bottomSections.map((section) => (
+          <section key={section.label} className="mt-1.5 space-y-1 border-t border-white/[0.06] pt-1.5" aria-label={section.label}>
+            {!isCollapsed && <p className="px-2.5 text-[10px] font-semibold uppercase text-[#8ea4c4]/50">{section.label}</p>}
+            <div className="space-y-0.5">{section.items.map((item) => renderNavItem(item, isCollapsed))}</div>
+          </section>
+        ))}
 
-<div className="mt-1.5">
-{renderProfileCard(isCollapsed)}
-</div>
-    </>
+        <div className="mt-1.5">
+          {renderProfileCard(isCollapsed)}
+        </div>
+      </>
     )
   }
 
   return (
-    <div className="mx-app-scrollbarless min-h-screen bg-[var(--mx-seller-bg-page)] font-display text-[var(--mx-seller-text-primary)]">
-      <header className="fixed left-3 right-3 top-3 z-[90] flex h-14 items-center justify-between rounded-2xl border border-[rgb(var(--mx-seller-primary-rgb)/0.14)] bg-[rgb(var(--mx-seller-sidebar-rgb)/0.95)] px-3 shadow-[0_18px_38px_rgba(0,0,0,0.28)] backdrop-blur md:hidden">
-        <button type="button" aria-label="Abrir menu principal" onClick={() => setMobileOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-xl text-[var(--mx-seller-text-primary)] outline-none transition-colors hover:bg-[rgb(var(--mx-seller-primary-rgb)/0.08)] focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]">
+    <div className="mx-app-scrollbarless min-h-screen bg-[#f7f9fc] font-display text-[#111827]">
+      <header className="fixed left-3 right-3 top-3 z-[90] flex h-14 items-center justify-between rounded-2xl border border-blue-500/20 bg-[#061a33]/95 px-3 shadow-[0_18px_38px_rgba(0,0,0,0.28)] backdrop-blur md:hidden">
+        <button type="button" aria-label="Abrir menu principal" onClick={() => setMobileOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-xl text-white outline-none transition-colors hover:bg-blue-500/10 focus-visible:ring-2 focus-visible:ring-blue-500/45">
           <Menu size={22} aria-hidden="true" />
         </button>
         <div className="flex items-center gap-2">
           <img src={MxLogo} alt="MX" className="h-9 w-9 object-contain" />
           <span className="text-sm font-bold text-white">MX PERFORMANCE</span>
         </div>
-        <button type="button" aria-label="Abrir notificações" onClick={() => navigate(notificationsPath)} className="flex h-10 w-10 items-center justify-center rounded-xl text-[var(--mx-seller-text-primary)] outline-none transition-colors hover:bg-[rgb(var(--mx-seller-primary-rgb)/0.08)] focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]">
+        <button type="button" aria-label="Abrir notificações" onClick={() => navigate(notificationsPath)} className="flex h-10 w-10 items-center justify-center rounded-xl text-white outline-none transition-colors hover:bg-blue-500/10 focus-visible:ring-2 focus-visible:ring-blue-500/45">
           <MessageCircle size={20} aria-hidden="true" />
         </button>
       </header>
 
       <aside
         className={cn(
-          'fixed left-2 top-2 z-[80] hidden h-[calc(100vh-1rem)] flex-col rounded-[24px] border border-[rgb(var(--mx-seller-primary-rgb)/0.16)] bg-[var(--mx-seller-sidebar)] shadow-[0_24px_70px_rgba(0,0,0,0.34),0_0_28px_rgb(var(--mx-seller-primary-rgb)/0.08)] transition-[width,padding] duration-200 md:flex',
+          'fixed left-2 top-2 z-[80] hidden h-[calc(100vh-1rem)] flex-col rounded-[24px] border border-white/[0.08] bg-[#061a33] shadow-[0_24px_70px_rgba(0,0,0,0.34),0_0_28px_rgba(37,99,235,0.08)] transition-[width,padding] duration-200 md:flex',
           collapsed ? 'w-[72px] px-2.5 py-3' : 'w-[236px] p-2.5'
         )}
         aria-label={sidebarLabel}
@@ -436,7 +436,7 @@ export default function SellerLayoutShell({
 
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-[100] bg-[rgb(var(--mx-seller-bg-page-rgb)/0.80)] backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-sm md:hidden"
           role="presentation"
           onClick={() => setMobileOpen(false)}
           onKeyDown={(event) => {
@@ -448,12 +448,12 @@ export default function SellerLayoutShell({
             role="dialog"
             aria-modal="true"
             aria-label={sidebarLabel}
-            className="h-full w-[min(320px,calc(100vw-1.5rem))] rounded-r-[30px] border-r border-[rgb(var(--mx-seller-primary-rgb)/0.16)] bg-[var(--mx-seller-sidebar)] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.42)]"
+            className="h-full w-[min(320px,calc(100vw-1.5rem))] rounded-r-[30px] border-r border-white/[0.08] bg-[#061a33] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.42)]"
             onClick={(event) => event.stopPropagation()}
             onKeyDown={(event) => event.stopPropagation()}
           >
             <div className="mb-3 flex justify-end">
-              <button type="button" aria-label="Fechar menu principal" onClick={() => setMobileOpen(false)} className="flex h-10 w-10 items-center justify-center rounded-xl text-[rgb(var(--mx-seller-text-primary-rgb)/0.75)] outline-none transition-colors hover:bg-[rgb(var(--mx-seller-primary-rgb)/0.08)] hover:text-white focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]">
+              <button type="button" aria-label="Fechar menu principal" onClick={() => setMobileOpen(false)} className="flex h-10 w-10 items-center justify-center rounded-xl text-[#8ea4c4] outline-none transition-colors hover:bg-blue-500/10 hover:text-white focus-visible:ring-2 focus-visible:ring-blue-500/45">
                 <X size={22} aria-hidden="true" />
               </button>
             </div>
@@ -472,21 +472,21 @@ export default function SellerLayoutShell({
         )}
       >
         {isSimulating && (
-          <section className="mb-3 flex flex-col gap-3 rounded-2xl border border-[rgb(var(--mx-seller-primary-rgb)/0.14)] bg-[var(--mx-seller-sidebar)] p-4 text-[var(--mx-seller-text-primary)] md:flex-row md:items-center md:justify-between" aria-label="Simulação ativa">
+          <section className="mb-3 flex flex-col gap-3 rounded-2xl border border-blue-500/20 bg-[#061a33] p-4 text-[#dbeafe] md:flex-row md:items-center md:justify-between" aria-label="Simulação ativa">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-white">Simulação {simulationLabel} ativa</p>
-              <p className="mt-1 truncate text-xs font-medium text-[var(--mx-seller-text-secondary)]">Base: {simulationBase} • Loja: {simulationStore}</p>
+              <p className="mt-1 truncate text-xs font-medium text-[#8ea4c4]">Base: {simulationBase} • Loja: {simulationStore}</p>
             </div>
             {onStopSimulation && (
-              <button type="button" onClick={onStopSimulation} className="h-10 rounded-xl bg-[var(--mx-seller-primary)] px-4 text-sm font-semibold text-[var(--mx-seller-bg-page)] outline-none transition-colors hover:bg-[var(--mx-seller-primary-hover)] focus-visible:ring-2 focus-visible:ring-[rgb(var(--mx-seller-primary-rgb)/0.45)]">
+              <button type="button" onClick={onStopSimulation} className="h-10 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white outline-none transition-colors hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500/45">
                 Voltar Admin MX
               </button>
             )}
           </section>
         )}
-      <section className="min-h-[calc(100vh-100px)] w-full min-w-0 overflow-hidden rounded-[24px] border border-white/[0.08] bg-white text-slate-950 shadow-[0_24px_70px_rgba(0,0,0,0.22)] md:min-h-[calc(100vh-2rem)]">
-        {children}
-      </section>
+        <section className="min-h-[calc(100vh-100px)] w-full min-w-0 overflow-hidden rounded-[24px] border border-[#e5eaf2] bg-[#f7f9fc] text-slate-950 shadow-[0_24px_70px_rgba(15,23,42,0.04)] md:min-h-[calc(100vh-2rem)]">
+          {children}
+        </section>
       </main>
     </div>
   )

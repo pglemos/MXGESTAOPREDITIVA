@@ -41,7 +41,7 @@ import { buildPDIEvolution } from '@/lib/pdi-evolution'
 import type { PDIEvolutionItem, PDIEvolutionResult, PDIEvolutionStatus } from '@/lib/pdi-evolution'
 import { buildPDISelfAssessmentPayload } from '@/lib/pdi-self-assessment'
 
-type GoalTone = 'green' | 'orange' | 'purple'
+type GoalTone = 'green' | 'orange' | 'blue'
 
 const PRAZO_META: Array<{
   prazo: string
@@ -69,7 +69,7 @@ const PRAZO_META: Array<{
   },
   {
     prazo: '24_meses',
-    tone: 'purple',
+    tone: 'blue',
     label: 'Longo Prazo',
     value: '3 ANOS',
     subtitle: 'Onde quero chegar nos próximos 3 anos.',
@@ -695,7 +695,7 @@ function SummaryGrid({ summary, reviewDateLabel, updatedAt }: { summary: Summary
         value={reviewDateLabel}
         subtitle="Com seu gestor direto"
         detail="Em 35 dias"
-        tone="purple"
+        tone="blue"
       />
     </section>
   )
@@ -718,13 +718,11 @@ function SummaryCard({
   detail?: string
   footer?: string
   progress?: number
-  tone: 'green' | 'blue' | 'purple'
+  tone: 'green' | 'blue'
 }) {
   const toneClass = tone === 'green'
     ? 'bg-status-success-surface text-status-success'
-    : tone === 'blue'
-      ? 'bg-status-info-surface text-status-info'
-      : 'bg-brand-primary/10 text-brand-primary'
+    : 'bg-status-info-surface text-status-info'
 
   return (
     <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
@@ -748,7 +746,7 @@ function GoalCard({ goal, onEdit }: { goal: GoalView; onEdit: () => void }) {
     ? 'bg-status-success-surface text-status-success'
     : goal.tone === 'orange'
       ? 'bg-status-warning-surface text-status-warning'
-      : 'bg-brand-primary/10 text-brand-primary'
+      : 'bg-status-info-surface text-status-info'
 
   return (
     <Card className="min-w-0 rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
