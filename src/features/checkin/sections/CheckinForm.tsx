@@ -174,6 +174,9 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
     if (finalizadoAposPrazo) {
       return 'Fechamento realizado fora do prazo. Penalização de 10% aplicada.'
     }
+    if (disciplinePercent < 70) {
+      return 'Preencha os números do fechamento para iniciar a pontuação.'
+    }
     if (disciplinePercent === 70) {
       return 'Você informou apenas as quantidades. Cadastre os agendamentos D+1 para ganhar até +30%.'
     }
@@ -466,49 +469,60 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
           const pontosExtras = totalAgendamentosD1 > 0
             ? Math.round((creditosValidos / totalAgendamentosD1) * 30)
             : 30
-          const maxPontosExtras = 30
-          const cred = creditosValidos
-          const total = totalAgendamentosD1
-          // Arc colors: orange when < 100%, green when 100%
-          const arcColor = disciplinePercent >= 100 ? '#16a34a' : '#f59e0b'
+          // Arc: red below base (70%), orange while incomplete, green at 100%
+          const arcColor =
+            disciplinePercent >= 100 ? '#16a34a' : disciplinePercent < 70 ? '#ef4444' : '#f59e0b'
+          const trackColor = '#f1f5f9'
           const arcDeg = Math.round(disciplinePercent * 3.6)
           return (
-            <div className="rounded-[18px] border border-[#e5eaf2] bg-white px-6 py-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-              <p className="text-[11px] font-extrabold uppercase tracking-widest text-[#94a3b8] mb-3">DISCIPLINA – FECHAMENTO DIÁRIO</p>
-              <p className="text-[12px] font-semibold text-[#64748b] mb-4">
-                Agendamentos D+1 detalhados: <span className="font-extrabold text-[#111827]">{cred} de {total > 0 ? total : totalAgendamentosD1 === 0 ? 0 : total}</span>
-              </p>
-              <div className="flex items-center gap-5">
-                {/* Circular arc score */}
+            <div className="rounded-[18px] border border-[#e5eaf2] bg-white px-6 py-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] flex items-center gap-5">
+              {/* Thick donut ring — matches reference proportions */}
+              <div
+                className="relative shrink-0 rounded-full"
+                style={{
+                  width: 96,
+                  height: 96,
+                  background: `conic-gradient(${arcColor} ${arcDeg}deg, ${trackColor} 0deg)`,
+                }}
+              >
+                {/* Inner white circle (ring thickness = 11px) */}
                 <div
-                  className="relative shrink-0 h-[76px] w-[76px] rounded-full"
-                  style={{
-                    background: `conic-gradient(${arcColor} ${arcDeg}deg, #eef2f7 0deg)`,
-                  }}
+                  className="absolute rounded-full bg-white flex flex-col items-center justify-center"
+                  style={{ inset: 11 }}
                 >
-                  <div className="absolute inset-[8px] rounded-full bg-white flex flex-col items-center justify-center">
-                    <span className="text-[15px] font-black leading-none tabular-nums text-[#111827]">{disciplinePercent}%</span>
-                    <span className="text-[8px] font-extrabold uppercase tracking-wider text-[#94a3b8] mt-0.5">SCORE</span>
-                  </div>
+                  <span className="text-[19px] font-black leading-none tabular-nums text-[#111827]">
+                    {disciplinePercent}%
+                  </span>
+                  <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#94a3b8] mt-0.5">
+                    SCORE
+                  </span>
                 </div>
+              </div>
 
-                {/* Text column */}
-                <div className="flex flex-1 min-w-0 flex-col gap-2">
-                  {disciplineMessage && (
-                    <p className="text-[12px] font-semibold text-[#475569] leading-snug">{disciplineMessage}</p>
-                  )}
-                  <p className="text-[11px] font-semibold" style={{ color: '#2563eb', textDecoration: 'underline', textDecorationColor: '#bfdbfe' }}>
-                    70% base + {pontosExtras}% detalhamento ({cred}/{maxPontosExtras} pontos extras)
+              {/* Text column */}
+              <div className="flex flex-1 min-w-0 flex-col gap-2">
+                <p className="text-[11px] font-extrabold uppercase tracking-widest text-[#94a3b8]">
+                  DISCIPLINA – FECHAMENTO DIÁRIO
+                </p>
+
+                {disciplineMessage && (
+                  <p className="text-[12px] font-medium text-[#475569] leading-snug">
+                    {disciplineMessage}
                   </p>
-                  <button
-                    type="button"
-                    className="flex items-center gap-1.5 text-[12px] font-bold text-[#2563eb] hover:text-[#1d4ed8] transition-colors w-fit p-0 bg-transparent border-none cursor-pointer"
-                    onClick={() => setDisciplineModalOpen(true)}
-                  >
-                    Saiba mais
-                    <InfoTooltip text="" />
-                  </button>
-                </div>
+                )}
+
+                <p className="text-[11px] font-medium text-[#94a3b8]">
+                  70% base + {pontosExtras}% detalhamento
+                </p>
+
+                <button
+                  type="button"
+                  className="flex items-center gap-1 text-[12px] font-semibold text-[#2563eb] hover:text-[#1d4ed8] transition-colors w-fit p-0 bg-transparent border-none cursor-pointer"
+                  onClick={() => setDisciplineModalOpen(true)}
+                >
+                  Saiba mais
+                  <Info size={13} className="shrink-0 text-[#94a3b8]" />
+                </button>
               </div>
             </div>
           )
