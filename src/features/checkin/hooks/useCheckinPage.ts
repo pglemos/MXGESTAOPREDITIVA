@@ -41,6 +41,7 @@ export interface CheckinForm {
 
 export interface ClienteRow {
     id: string
+    clienteDbId?: string
     fechamentoId: string
     vendedorId: string
     dataCompetenciaFechamento: string

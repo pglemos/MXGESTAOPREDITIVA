@@ -80,7 +80,7 @@ const formatCurrencyLive = (raw: string): string => {
 }
 
 export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
-  const { clientes, createCliente, updateCliente, deleteCliente } = useClientes()
+  const { clientes, createCliente, updateCliente } = useClientes()
   const { createOportunidade, updateEtapa, deleteOportunidade } = useOportunidades()
   
   // Fallback mock context if ctx is undefined (e.g. in unit tests)
@@ -98,6 +98,8 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [editingClientId, setEditingClientId] = useState<string | null>(null)
+  // Real Supabase clientes.id for the row being edited — never the same as the local row id
+  const [editingClienteDbId, setEditingClienteDbId] = useState<string | null>(null)
   
   // Form States
   const [nome, setNome] = useState('')
@@ -178,6 +180,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
   // Edit action
   const handleEdit = (row: ClienteRow) => {
     setEditingClientId(row.id)
+    setEditingClienteDbId(row.clienteDbId ?? null)
     setNome(row.nomeCliente)
     setTelefone(row.telefone)
     setCanal(row.canal.toLowerCase() as CrmCanal)
@@ -195,22 +198,22 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
     setDrawerOpen(true)
   }
 
-  // Delete action
+  // Delete action — removes this venda/agendamento row from today's fechamento only.
+  // Never deletes the shared `clientes` CRM record: other rows (other days, other
+  // agendamentos) may still reference the same client, and row.id is a local-only
+  // id, not the Supabase clientes.id (sending it to deleteCliente threw "invalid
+  // input syntax for type uuid").
   const handleDelete = async (row: ClienteRow) => {
     if (window.confirm('Deseja excluir este cliente?')) {
-      try {
-        await deleteCliente(row.id)
-        deleteLocalCliente(row.id)
-        toast.success('Cliente removido com sucesso.')
-      } catch (e) {
-        toast.error('Erro ao excluir cliente.')
-      }
+      deleteLocalCliente(row.id)
+      toast.success('Cliente removido com sucesso.')
     }
   }
 
   // Open modal for new client
   const handleOpenNew = () => {
     setEditingClientId(null)
+    setEditingClienteDbId(null)
     setNome('')
     setTelefone('')
     setCanal('')
@@ -313,9 +316,9 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
         potencial_negocio: parsedValor || 0,
       }
 
-      // Save in Supabase
-      const { error: clientError, id: dbClientId } = (editingClientId || existingCliente?.id)
-        ? { ...(await updateCliente(editingClientId || existingCliente.id, clientePayload)), id: editingClientId || existingCliente.id }
+      // Save in Supabase — always use the real clientes.id (editingClienteDbId), never the local row id
+      const { error: clientError, id: dbClientId } = (editingClienteDbId || existingCliente?.id)
+        ? { ...(await updateCliente(editingClienteDbId || existingCliente.id, clientePayload)), id: editingClienteDbId || existingCliente.id }
         : await createCliente(clientePayload)
 
       if (clientError) {
@@ -324,7 +327,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
         return
       }
 
-      const activeClientId = dbClientId || editingClientId || 'local-client-' + Date.now()
+      const activeClientId = dbClientId || editingClienteDbId || existingCliente?.id || 'local-client-' + Date.now()
       const dateOnly = dataFechamento.split('T')[0]
 
       // Create opportunity in DB
@@ -361,6 +364,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
       const finalId = editingClientId || 'cli-row-' + Math.random().toString(36).substring(2, 9)
       const mappedRow: ClienteRow = {
         id: finalId,
+        clienteDbId: dbClientId || editingClienteDbId || existingCliente?.id || undefined,
         fechamentoId: 'fechamento-' + selectedDate,
         vendedorId: supabaseUser?.id || 'vendedor',
         dataCompetenciaFechamento: selectedDate,
@@ -390,6 +394,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
       toast.success(editingClientId ? 'Cliente atualizado com sucesso.' : successMsg)
       setDrawerOpen(false)
       setEditingClientId(null)
+      setEditingClienteDbId(null)
     } catch (e) {
       toast.error('Erro ao cadastrar cliente.')
     } finally {
