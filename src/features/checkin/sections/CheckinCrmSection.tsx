@@ -267,10 +267,6 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
         toast.error('Informe o veículo de interesse.')
         return
       }
-      if (!tipoVeiculo) {
-        toast.error('Informe o tipo de veículo.')
-        return
-      }
       if (!dataFechamento) {
         toast.error('Informe a data do agendamento.')
         return
