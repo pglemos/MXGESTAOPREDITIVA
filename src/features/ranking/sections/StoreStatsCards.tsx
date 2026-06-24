@@ -32,9 +32,10 @@ export function StoreStatsCards({
     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-mx-sm shrink-0">
       {stats.map((stat, i) => (
         <Card key={i} className="p-mx-md flex flex-col justify-between bg-white border-none shadow-mx-sm relative overflow-hidden group hover:shadow-mx-md transition-all">
-          <div className="flex justify-between items-start mb-2">
-            <Typography variant="caption" tone="muted" className="uppercase tracking-widest font-black text-mx-nano">{stat.label}</Typography>
+          <div className="flex justify-between items-start gap-mx-xs mb-2">
+            <Typography variant="caption" tone="muted" className="uppercase tracking-wide font-black text-mx-nano leading-tight break-words min-w-0">{stat.label}</Typography>
             <stat.icon size={16} className={cn(
+              "shrink-0",
               stat.tone === 'brand' ? 'text-brand-primary' :
                 stat.tone === 'warning' ? 'text-status-warning' :
                   'text-status-info'

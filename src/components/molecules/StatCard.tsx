@@ -40,10 +40,10 @@ export function StatCard({ icon, label, value, detail, tone = 'brand', action }:
           {action}
         </div>
       )}
-      <Typography variant="caption" tone="muted" className="mt-mx-md block uppercase tracking-wide">
+      <Typography variant="caption" tone="muted" className="mt-mx-md block uppercase tracking-wide leading-tight break-words">
         {label}
       </Typography>
-      <Typography variant="h2" className="mt-mx-xs">
+      <Typography variant="h2" className="mt-mx-xs tabular-nums leading-tight">
         {value}
       </Typography>
       {detail && (

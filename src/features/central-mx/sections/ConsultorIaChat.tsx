@@ -192,7 +192,7 @@ function ConsultorIaBalloon({
           <Badge variant="outline" className="font-black uppercase tracking-widest">
             {PRIORITY_LABEL[solucao.priority]}
           </Badge>
-          <Badge variant="outline" className="font-black uppercase tracking-widest">
+          <Badge variant="outline" className="max-w-full whitespace-normal break-all font-black uppercase tracking-wide">
             {solucao.rule_code}
           </Badge>
         </div>

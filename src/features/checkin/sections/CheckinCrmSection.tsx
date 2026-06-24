@@ -272,7 +272,7 @@ export function CheckinCrmSection() {
         </header>
 
         <div className="overflow-x-auto rounded-mx-lg border border-border-default">
-          <table className="w-full table-fixed text-left text-[13px]">
+          <table className="w-full min-w-[760px] table-fixed text-left text-[13px]">
             <colgroup>
               <col className="w-[14%]" />
               <col className="w-[15%]" />
