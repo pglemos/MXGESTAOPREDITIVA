@@ -60,3 +60,28 @@ O plano operacional `v1.3` congela a regra: o vendedor envia hoje, mas a produca
 - `src/hooks/useCheckins.test.ts`
 - `src/pages/Checkin.tsx`
 - `src/types/database.ts`
+
+## Refactoring & Refinement (2026-06-24)
+Refatoração completa do Fechamento Diário (Terminal MX) para atender às novas regras de negócio e melhorias de UI/UX, incluindo a trava temporal e liberação por gestor.
+
+### Novos Critérios de Aceite Implementados
+- [x] **Excelente Hierarquia Visual**: Seções divididas em cards independentes com sombras suaves, cores semânticas e ícones.
+- [x] **Contadores (Steppers)**: Botões de incremento sutilmente posicionados abaixo do contador de alta legibilidade, removendo a redundância.
+- [x] **Tabela Limpa e Sticky**: Tags em pills de status na tabela, primeira coluna (Nome do Cliente) fixa (`position: sticky`) com sombra lateral, e expansão de linha inline.
+- [x] **Modal de Cadastro Dividido**: Form dividido em duas seções ("1. Dados do Cliente", "2. Detalhes da Negociação") para menor carga cognitiva.
+- [x] **Segmented Controls**: Substituição de select tradicional por botões de seleção direta no modal para Canal, Compareceu, Carro Avaliado, Financiamento e Venda Realizada.
+- [x] **Fidelidade de Dados & Máscara**: Telefone com máscara dinâmica em tempo real no input e no banco.
+- [x] **Motivo de Perda**: Adicionado "Não compareceu" à lista de opções.
+- [x] **Como Funciona a Disciplina**: Modal completo e premium explicativo das regras matemáticas em formato amigável ao vendedor.
+- [x] **Cálculo de Score (70/30)**: 70% básico + 30% detalhamento D+1 proporcional aos canais Carteira e Internet.
+- [x] **Trava Temporal de Fechamento**: Bloqueio operacional após 09h30, exibindo o botão para "Avisar gerente no WhatsApp" com link seguro de liberação.
+- [x] **Cockpit do Gerente**: Rota segura `/liberacao-fechamento` para autenticação e aprovação de fechamento atrasado com aplicação de penalidade de 10% no score final.
+- [x] **Histórico**: Inclusão do contador de vendas e status em badge colorido para fechamento pendente/finalizado.
+
+### Novos Arquivos Adicionados ao Fluxo
+- `src/features/checkin/hooks/useCheckinPage.ts` (Regras de score, timezone de Brasília, geração de solicitação e persistência)
+- `src/features/checkin/sections/CheckinCrmSection.tsx` (Table sticky, modal de cadastro com segmented controls, hidden selects para compatibilidade e máscaras)
+- `src/features/checkin/sections/CheckinForm.tsx` (Contadores stepper, card tooltips, modal premium e informativos)
+- `src/features/checkin/sections/CheckinHeader.tsx` (Drawer de Histórico de Fechamento com vendas e regularizações)
+- `src/pages/LiberacaoFechamento.tsx` (Cockpit seguro de liberação para perfis de gerente, supervisor, administrador e dono)
+- `src/App.tsx` (Nova rota associada)

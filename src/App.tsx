@@ -21,6 +21,7 @@ const StorePreRegistration = lazy(() => import('@/pages/StorePreRegistration'))
 const VendedorHome = lazy(() => import('@/pages/VendedorHome'))
 const VendedorPDI = lazy(() => import('@/pages/VendedorPDI'))
 const Checkin = lazy(() => import('@/pages/Checkin'))
+const LiberacaoFechamento = lazy(() => import('@/pages/LiberacaoFechamento'))
 const Ranking = lazy(() => import('@/pages/Ranking'))
 const VendedorFeedback = lazy(() => import('@/pages/VendedorFeedback'))
 const VendedorTreinamentos = lazy(() => import('@/pages/VendedorTreinamentos'))
@@ -253,6 +254,7 @@ export default function App() {
 <Route path="terminal-mx" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<Checkin />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
             </Suspense>} />
+            <Route path="liberacao-fechamento" element={<Suspense fallback={<Spinner />}><LiberacaoFechamento /></Suspense>} />
 <Route path="carteira-clientes" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<CarteiraClientes />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
             </Suspense>} />

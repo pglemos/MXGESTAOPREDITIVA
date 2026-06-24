@@ -82,6 +82,8 @@ export function Checkin() {
                     canEditExisting={canEditExisting}
                     deadlineMessage={deadlineMessage}
                     handleExit={handleExit}
+                    checkins={ctx.checkins}
+                    userId={ctx.supabaseUser?.id}
                 />
             </CheckinErrorBoundary>
 

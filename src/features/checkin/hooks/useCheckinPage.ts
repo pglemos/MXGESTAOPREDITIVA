@@ -17,6 +17,8 @@ import { requestToastConfirmation } from '@/lib/ui/confirmAction'
 import { useFeedbackActions } from '@/features/crm/hooks/useFeedbackActions'
 import { resolveFeedbackActionCloseLock } from '../lib/feedback-action-lock'
 import { useCrmDerivedTotals } from './useCrmDerivedTotals'
+import { useAuth } from '@/hooks/useAuth'
+import { addDaysDateOnly } from '../lib/crm-derived-totals'
 
 export interface CheckinForm {
     leads: number
@@ -37,17 +39,110 @@ export interface CheckinForm {
     zero_reason: string
 }
 
+export interface ClienteRow {
+    id: string
+    fechamentoId: string
+    vendedorId: string
+    dataCompetenciaFechamento: string
+    nomeCliente: string
+    telefone: string
+    veiculoInteresse: string
+    valorNegociado: number | null
+    dataAgendamento: string
+    canal: 'Carteira' | 'Internet' | 'Showroom'
+    compareceu: 'Sim' | 'Não' | null
+    carroAvaliado: 'Sim' | 'Não'
+    sinal: number
+    financiamento: 'Aprovado' | 'Recusado' | 'Não se aplica'
+    vendaRealizada: 'Sim' | 'Não' | 'Em Negociação'
+    dataNovoAgendamento?: string
+    motivoPerda?: string
+    observacoes?: string
+    tipoRegistroCalculado: string
+}
+
 export type NumericCheckinField = Exclude<keyof CheckinForm, 'note' | 'zero_reason'>
 
 export const CHECKIN_MAX_INPUT_HELP = `O teto ${CHECKIN_MAX_INPUT_VALUE} evita erro de digitação, importação duplicada ou lançamento fora da escala operacional.`
 export const CHECKIN_DRAFT_STORAGE_PREFIX = 'mx-checkin-draft'
 
-/**
- * useCheckinPage — concentra estado, validações, efeitos e handlers da página
- * de Fechamento Diário. Mantém o comportamento original do `Checkin.tsx`.
- */
+// Timezone Helpers
+export function getSPTime() {
+    const spString = new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' })
+    return new Date(spString)
+}
+
+export function getSPDateOnly(date: Date = new Date()): string {
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Sao_Paulo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    })
+    return formatter.format(date)
+}
+
+export function getSPHoursMinutes(date: Date = new Date()): { hours: number; minutes: number } {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Sao_Paulo',
+        hour: 'numeric',
+        minute: 'numeric',
+        hourCycle: 'h23'
+    })
+    const parts = formatter.formatToParts(date)
+    const byType = new Map(parts.map(p => [p.type, p.value]))
+    const hours = Number(byType.get('hour') || 0)
+    const minutes = Number(byType.get('minute') || 0)
+    return { hours, minutes }
+}
+
+export function parseDateOnly(val: string | null | undefined): string {
+    if (!val) return ''
+    const match = val.match(/^(\d{4})[-/](\d{2})[-/](\d{2})/)
+    if (match) return `${match[1]}-${match[2]}-${match[3]}`
+    return val.slice(0, 10)
+}
+
+export function calcularTipoRegistro(
+    vendaRealizada: string,
+    canal: string,
+    dataAgendamento: string,
+    dataCompetencia: string
+): { tipo: string; contaParaDisciplina: boolean } {
+    if (vendaRealizada === 'Sim') {
+        return { tipo: 'Venda', contaParaDisciplina: false }
+    }
+    if (vendaRealizada === 'Não') {
+        return { tipo: 'Perda', contaParaDisciplina: false }
+    }
+    
+    // Venda realizada = Em Negociação
+    const dataD1 = addDaysDateOnly(dataCompetencia, 1)
+    const dateAgd = parseDateOnly(dataAgendamento)
+    const dateComp = parseDateOnly(dataCompetencia)
+    const dateD1Str = parseDateOnly(dataD1)
+    
+    const canalLower = canal.toLowerCase()
+    const isCorrectCanal = canalLower === 'carteira' || canalLower === 'internet'
+    
+    if (dateAgd === dateD1Str && isCorrectCanal) {
+        return { tipo: 'Agendamento D+1', contaParaDisciplina: true }
+    }
+    
+    if (dateAgd === dateComp) {
+        return { tipo: 'Agendamento do Dia', contaParaDisciplina: false }
+    }
+    
+    if (dateAgd > dateD1Str) {
+        return { tipo: 'Agendamento Futuro', contaParaDisciplina: false }
+    }
+    
+    return { tipo: 'Em Negociação fora do D+1', contaParaDisciplina: false }
+}
+
 export function useCheckinPage() {
     const navigate = useNavigate()
+    const { supabaseUser, profile } = useAuth()
     const [saving, setSaving] = useState(false)
     const [showConfetti, setShowConfetti] = useState(false)
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -67,7 +162,7 @@ export function useCheckinPage() {
         note: '', zero_reason: '',
     })
 
-    const { todayCheckin, saveCheckin, loading: hookLoading, referenceDate, fetchCheckinByDate, error: checkinLoadError } = useCheckins()
+    const { checkins, todayCheckin, saveCheckin, loading: hookLoading, referenceDate, fetchCheckinByDate, error: checkinLoadError } = useCheckins()
     const {
         acoes: feedbackActions,
         loading: feedbackActionsLoading,
@@ -75,25 +170,85 @@ export function useCheckinPage() {
     } = useFeedbackActions()
     const [historicalCheckin, setHistoricalCheckin] = useState<DailyCheckin | null>(null)
     const [loadingHistory, setLoadingHistory] = useState(false)
+    
+    // SP Time-based default reference date
+    const spTimeInitial = useMemo(() => getSPHoursMinutes(), [])
+    const todaySPInitial = useMemo(() => getSPDateOnly(), [])
+    const isAfter12h01Initial = spTimeInitial.hours > 12 || (spTimeInitial.hours === 12 && spTimeInitial.minutes >= 1)
+    
     const [customReferenceDate, setCustomReferenceDate] = useState('')
     const crmDerived = useCrmDerivedTotals(customReferenceDate)
 
     useEffect(() => {
-        if (referenceDate) setCustomReferenceDate(referenceDate)
+        if (referenceDate) {
+            const spTime = getSPHoursMinutes()
+            const todaySP = getSPDateOnly()
+            const isAfter12h01 = spTime.hours > 12 || (spTime.hours === 12 && spTime.minutes >= 1)
+            const defaultDate = isAfter12h01 ? todaySP : referenceDate
+            setCustomReferenceDate(defaultDate)
+        }
     }, [referenceDate])
 
+    // Clients/Opportunities Reactive List
+    const [clientesList, setClientesList] = useState<ClienteRow[]>([])
+
+    const selectedDate = customReferenceDate || referenceDate
+
     useEffect(() => {
-        if (!customReferenceDate || !referenceDate) return
-        if (customReferenceDate === referenceDate && metricScope === 'daily') {
+        if (!supabaseUser?.id || !selectedDate) return
+        const key = `mx-checkin-clientes:${supabaseUser.id}:${selectedDate}`
+        const cached = localStorage.getItem(key)
+        if (cached) {
+            try {
+                setClientesList(JSON.parse(cached))
+            } catch (e) {
+                console.error(e)
+            }
+        } else {
+            setClientesList([])
+        }
+    }, [supabaseUser?.id, selectedDate])
+
+    const saveLocalCliente = (row: ClienteRow) => {
+        setClientesList(prev => {
+            const existingIdx = prev.findIndex(c => c.id === row.id)
+            let next = [...prev]
+            if (existingIdx >= 0) {
+                next[existingIdx] = row
+            } else {
+                next.push(row)
+            }
+            if (supabaseUser?.id && selectedDate) {
+                const key = `mx-checkin-clientes:${supabaseUser.id}:${selectedDate}`
+                localStorage.setItem(key, JSON.stringify(next))
+            }
+            return next
+        })
+    }
+
+    const deleteLocalCliente = (id: string) => {
+        setClientesList(prev => {
+            const next = prev.filter(c => c.id !== id)
+            if (supabaseUser?.id && selectedDate) {
+                const key = `mx-checkin-clientes:${supabaseUser.id}:${selectedDate}`
+                localStorage.setItem(key, JSON.stringify(next))
+            }
+            return next
+        })
+    }
+
+    useEffect(() => {
+        if (!selectedDate || !referenceDate) return
+        if (selectedDate === referenceDate && metricScope === 'daily') {
             setHistoricalCheckin(todayCheckin)
         } else {
             setLoadingHistory(true)
-            fetchCheckinByDate(customReferenceDate, metricScope)
+            fetchCheckinByDate(selectedDate, metricScope)
                 .then(res => setHistoricalCheckin(res))
                 .catch(() => toast.error('Não foi possível carregar o lançamento selecionado.'))
                 .finally(() => setLoadingHistory(false))
         }
-    }, [customReferenceDate, metricScope, todayCheckin, referenceDate, fetchCheckinByDate])
+    }, [selectedDate, metricScope, todayCheckin, referenceDate, fetchCheckinByDate])
 
     useEffect(() => {
         if (changedFields.size > 0) return
@@ -118,7 +273,6 @@ export function useCheckinPage() {
                 zero_reason: historicalCheckin.zero_reason || '',
             })
         } else {
-            // No existing checkin — auto-populate from CRM data (seller can override)
             setForm({
                 leads: crmDerived.leads,
                 leads_cart: crmDerived.leads_cart,
@@ -155,20 +309,153 @@ export function useCheckinPage() {
         }
     }, [changedFields, saving])
 
-    const isLate = isCheckinLate(currentTime)
-    const canEditExisting = canEditCurrentCheckin(currentTime)
+    const spTime = getSPHoursMinutes(currentTime)
+    const todaySP = getSPDateOnly(currentTime)
+    const yesterdaySP = addDaysDateOnly(todaySP, -1)
+
+    // Deadline check (Brasília time)
+    const isPastDeadline = useMemo(() => {
+        if (selectedDate >= todaySP) return false // today's closing is always unlocked
+        if (selectedDate === yesterdaySP) {
+            return spTime.hours > 9 || (spTime.hours === 9 && spTime.minutes > 30)
+        }
+        return true // older than yesterday is always past deadline
+    }, [selectedDate, todaySP, yesterdaySP, spTime])
+
+    const approvedKey = `mx-fechamento-liberados:${supabaseUser?.id}:${selectedDate}`
+    const fechamentoLiberado = useMemo(() => {
+        return localStorage.getItem(approvedKey) === 'true'
+    }, [approvedKey])
+
+    const penaltyKey = `mx-fechamento-penalizado:${supabaseUser?.id}:${selectedDate}`
+    const finalizadoAposPrazo = useMemo(() => {
+        return localStorage.getItem(penaltyKey) === 'true' || (isPastDeadline && fechamentoLiberado)
+    }, [penaltyKey, isPastDeadline, fechamentoLiberado])
+
+    // WhatsApp Request
+    const avisarGerenteWhatsapp = () => {
+        if (!supabaseUser?.id) return
+        const solicitacaoId = crypto.randomUUID()
+        const solicitacao = {
+            id: solicitacaoId,
+            vendedorId: supabaseUser.id,
+            vendedorNome: profile?.name || 'Vendedor',
+            gerenteId: 'gerente-id',
+            gerenteNome: 'Gerente Comercial',
+            dataFechamento: selectedDate,
+            dataHoraSolicitacao: new Date().toISOString(),
+            statusSolicitacao: 'Pendente',
+            tipoSolicitacao: 'Liberação de Fechamento Diário',
+        }
+        
+        const listKey = 'mx-fechamento-solicitacoes'
+        const currentList = JSON.parse(localStorage.getItem(listKey) || '[]')
+        currentList.push(solicitacao)
+        localStorage.setItem(listKey, JSON.stringify(currentList))
+
+        const linkSeguro = `${window.location.origin}/liberacao-fechamento?id=${solicitacaoId}`
+        const msg = `Olá, preciso de liberação para realizar meu Fechamento Diário com atraso.
+
+Vendedor: ${profile?.name || 'Vendedor'}
+Data do fechamento: ${selectedDate.split('-').reverse().join('/')}
+Horário da solicitação: ${new Date().toLocaleTimeString('pt-BR')}
+Motivo: Fechamento não realizado até 09h30.
+
+Por favor, acesse o sistema para liberar:
+${linkSeguro}`
+
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank')
+        toast.success('Solicitação enviada ao gerente.')
+    }
+
+    // Dynamic Discipline and Summary Calculations
+    const agd_cart = Number(form.agd_cart ?? 0)
+    const agd_net = Number(form.agd_net ?? 0)
+    const totalAgendamentosD1 = agd_cart + agd_net
+
+    const validosCarteira = useMemo(() => {
+        return clientesList.filter(c =>
+            c.canal === 'Carteira' &&
+            c.vendaRealizada === 'Em Negociação' &&
+            c.tipoRegistroCalculado === 'Agendamento D+1'
+        ).length
+    }, [clientesList])
+
+    const validosInternet = useMemo(() => {
+        return clientesList.filter(c =>
+            c.canal === 'Internet' &&
+            c.vendaRealizada === 'Em Negociação' &&
+            c.tipoRegistroCalculado === 'Agendamento D+1'
+        ).length
+    }, [clientesList])
+
+    const creditosCarteira = Math.min(validosCarteira, agd_cart)
+    const creditosInternet = Math.min(validosInternet, agd_net)
+    const creditosValidos = creditosCarteira + creditosInternet
+
+    const percentualDetalhamento = useMemo(() => {
+        if (totalAgendamentosD1 === 0) return 1.0
+        return creditosValidos / totalAgendamentosD1
+    }, [creditosValidos, totalAgendamentosD1])
+
+    const pontosExtrasDisciplina = percentualDetalhamento * 30
+    const rawDiscipline = 70 + pontosExtrasDisciplina
+    const disciplinePercent = useMemo(() => {
+        let score = Math.round(rawDiscipline)
+        if (finalizadoAposPrazo) {
+            score = Math.max(0, score - 10)
+        }
+        return Math.min(100, score)
+    }, [rawDiscipline, finalizadoAposPrazo])
+
+    const completedItems = useMemo(() => {
+        const items = []
+        const hasFormFill = form.leads > 0 || totals.agd_total > 0 || form.visitas > 0 || totals.vnd_total > 0 || form.zero_reason !== ''
+        if (hasFormFill) {
+            items.push('Preenchimento básico (70%)')
+        }
+        if (totalAgendamentosD1 > 0) {
+            items.push(`Detalhamento D+1: ${creditosValidos} de ${totalAgendamentosD1} (${Math.round(pontosExtrasDisciplina)}%)`)
+        } else {
+            items.push('Detalhamento D+1 (Sem agendamentos no dia)')
+        }
+        return items
+    }, [form, totals, totalAgendamentosD1, creditosValidos, pontosExtrasDisciplina])
+
+    const pendingItems = useMemo(() => {
+        const items = []
+        if (totalAgendamentosD1 > creditosValidos) {
+            items.push(`Cadastrar agendamentos D+1 (${totalAgendamentosD1 - creditosValidos} pendentes)`)
+        }
+        if (finalizadoAposPrazo) {
+            items.push('Atraso no fechamento (-10% de penalidade)')
+        }
+        return items
+    }, [totalAgendamentosD1, creditosValidos, finalizadoAposPrazo])
+
+    const temAgendamentoDataDiferente = useMemo(() => {
+        return clientesList.some(c =>
+            c.vendaRealizada === 'Em Negociação' &&
+            (c.canal === 'Carteira' || c.canal === 'Internet') &&
+            c.tipoRegistroCalculado !== 'Agendamento D+1'
+        )
+    }, [clientesList])
+
+    const realSalesCount = useMemo(() => {
+        return clientesList.filter(c => c.vendaRealizada === 'Sim').length
+    }, [clientesList])
+
+    const realFaturamento = useMemo(() => {
+        return clientesList.filter(c => c.vendaRealizada === 'Sim').reduce((acc, c) => acc + (c.valorNegociado || 0), 0)
+    }, [clientesList])
 
     const minutesUntilEditLock = useMemo(() => {
-        const parts = new Intl.DateTimeFormat('en-CA', {
-            timeZone: MX_TIMEZONE,
-            hour: '2-digit',
-            minute: '2-digit',
-            hourCycle: 'h23',
-        }).formatToParts(currentTime)
-        const byType = new Map(parts.map(part => [part.type, part.value]))
-        const currentMinutes = Number(byType.get('hour')) * 60 + Number(byType.get('minute'))
+        const currentMinutes = spTime.hours * 60 + spTime.minutes
         return CHECKIN_EDIT_LIMIT_MINUTES - currentMinutes
-    }, [currentTime])
+    }, [spTime])
+
+    const isLate = isCheckinLate(currentTime)
+    const canEditExisting = canEditCurrentCheckin(currentTime)
 
     const deadlineMessage = useMemo(() => {
         if (minutesUntilEditLock < 0) return `Bloqueado desde ${CHECKIN_EDIT_LIMIT_LABEL}.`
@@ -242,13 +529,15 @@ export function useCheckinPage() {
     }
 
     const commitNumberField = (field: keyof CheckinForm) => {
+        const isDraftEmpty = numberDrafts[field] === ''
         setNumberDrafts(prev => {
-            if (prev[field] !== '') return prev
             const next = { ...prev }
             delete next[field]
             return next
         })
-        if (numberDrafts[field] === '') updateField(field, 0)
+        if (isDraftEmpty) {
+            updateField(field, 0)
+        }
     }
 
     const handleExit = () => {
@@ -276,26 +565,27 @@ export function useCheckinPage() {
             toast.error('Preencha os campos numéricos vazios antes de salvar.')
             return
         }
-        if (!canEditExisting && metricScope === 'daily') {
-            setInputError(`Fechamentos diários ficam bloqueados após ${CHECKIN_EDIT_LIMIT_LABEL}.`)
-            toast.error(`Fechamentos diários ficam bloqueados após ${CHECKIN_EDIT_LIMIT_LABEL}.`); return
+        if (isPastDeadline && !fechamentoLiberado && metricScope === 'daily') {
+            setInputError(`Prazo encerrado às 09h30. Solicite liberação ao seu gerente para finalizar este fechamento.`)
+            toast.error(`Prazo encerrado às 09h30. Solicite liberação ao seu gerente para finalizar este fechamento.`)
+            return
         }
-    if (allZero && !form.zero_reason) {
-      setFieldError('zero_reason', 'Selecione o motivo da produção zero.')
-      setInputError('Justificativa obrigatória para produção zero.')
-      toast.error('Justificativa obrigatória para produção zero.')
-      return
-    }
-    if (allZero && !form.note.trim()) {
-      setFieldError('note', 'Descreva a observação da produção zero.')
-      setInputError('Observação obrigatória para produção zero.')
-      toast.error('Observação obrigatória para produção zero.')
-      return
-    }
-    if (allZero && form.zero_reason === 'Outro' && form.note.trim().length < 8) {
-      setFieldError('note', 'Descreva o motivo “Outro” com pelo menos 8 caracteres.')
-      setInputError('Descreva o motivo com pelo menos 8 caracteres quando selecionar Outro.')
-      toast.error('Descreva o motivo quando selecionar Outro.')
+        if (allZero && !form.zero_reason) {
+            setFieldError('zero_reason', 'Selecione o motivo da produção zero.')
+            setInputError('Justificativa obrigatória para produção zero.')
+            toast.error('Justificativa obrigatória para produção zero.')
+            return
+        }
+        if (allZero && !form.note.trim()) {
+            setFieldError('note', 'Descreva a observação da produção zero.')
+            setInputError('Observação obrigatória para produção zero.')
+            toast.error('Observação obrigatória para produção zero.')
+            return
+        }
+        if (allZero && form.zero_reason === 'Outro' && form.note.trim().length < 8) {
+            setFieldError('note', 'Descreva o motivo “Outro” com pelo menos 8 caracteres.')
+            setInputError('Descreva o motivo com pelo menos 8 caracteres quando selecionar Outro.')
+            toast.error('Descreva o motivo quando selecionar Outro.')
             return
         }
         if (funnelError) { setInputError(funnelError); toast.error(funnelError); return }
@@ -318,8 +608,24 @@ export function useCheckinPage() {
         }
 
         setSaving(true)
-        const { error } = await saveCheckin(form, metricScope, customReferenceDate)
+        
+        // Save the checkin to Supabase
+        const { error } = await saveCheckin(form, metricScope, selectedDate)
         if (error) { setSaving(false); toast.error(error); return }
+        
+        // Save final score and late penalty status to localStorage so the history reflects it correctly
+        if (supabaseUser?.id) {
+            const scoreKey = `mx-checkin-score:${supabaseUser.id}:${selectedDate}`
+            localStorage.setItem(scoreKey, String(disciplinePercent))
+            
+            const stateKey = `mx-checkin-finalizado:${supabaseUser.id}:${selectedDate}`
+            localStorage.setItem(stateKey, 'true')
+            
+            if (isPastDeadline && fechamentoLiberado) {
+                localStorage.setItem(penaltyKey, 'true')
+            }
+        }
+
         if (feedbackActionLock.actionIdsToJustify.length > 0) {
             const { error: feedbackActionError } = await justificarAcoesFeedback(
                 feedbackActionLock.actionIdsToJustify,
@@ -332,15 +638,16 @@ export function useCheckinPage() {
             }
         }
         setChangedFields(new Set())
-
         setFieldErrors({})
+        
         setSaveNotice({
-            title: totals.vnd_total > 0 ? `${totals.vnd_total} vendas consolidadas.` : 'Fechamento salvo.',
+            title: realSalesCount > 0 ? `${realSalesCount} vendas consolidadas.` : 'Fechamento finalizado com sucesso.',
             detail: 'Você pode revisar os números, abrir o histórico ou voltar para o início sem espera automática.',
         })
-        if (totals.vnd_total > 0) setShowConfetti(true)
-        toast.success(totals.vnd_total > 0 ? `${totals.vnd_total} vendas consolidadas.` : 'Fechamento salvo.')
+        if (realSalesCount > 0) setShowConfetti(true)
+        toast.success(realSalesCount > 0 ? `${realSalesCount} vendas consolidadas.` : 'Fechamento finalizado com sucesso.')
         timerRef.current = setTimeout(() => setShowConfetti(false), 1200)
+        setSaving(false)
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -358,14 +665,14 @@ export function useCheckinPage() {
         try {
             const draftKey = [
                 CHECKIN_DRAFT_STORAGE_PREFIX,
-                customReferenceDate || referenceDate || 'sem-data',
+                selectedDate || 'sem-data',
                 metricScope,
             ].join(':')
 
             window.localStorage.setItem(draftKey, JSON.stringify({
                 form,
                 metricScope,
-                referenceDate: customReferenceDate || referenceDate,
+                referenceDate: selectedDate,
                 savedAt: new Date().toISOString(),
             }))
 
@@ -391,7 +698,7 @@ export function useCheckinPage() {
             visitas: nextForm.visitas_porta + nextForm.visitas_cart + nextForm.visitas_net,
             note: detailNote.trim() || nextForm.note,
         }
-        const { error } = await saveCheckin(normalizedForm, 'adjustment', customReferenceDate)
+        const { error } = await saveCheckin(normalizedForm, 'adjustment', selectedDate)
         setSaving(false)
         if (error) {
             setInputError(error)
@@ -410,9 +717,7 @@ export function useCheckinPage() {
     }
 
     return {
-        // navigation
         navigate,
-        // raw state
         form,
         saving,
         showConfetti,
@@ -426,13 +731,10 @@ export function useCheckinPage() {
         historicalCheckin,
         loadingHistory,
         customReferenceDate,
-        // checkins hook
         hookLoading,
         referenceDate,
         checkinLoadError,
-        // CRM auto-derived totals
         crmDerived,
-        // derived
         totals,
         isLate,
         canEditExisting,
@@ -441,7 +743,6 @@ export function useCheckinPage() {
         allZero,
         funnelError,
         mandatoryFeedbackActionsCount,
-        // setters / handlers
         setMetricScope,
         setCustomReferenceDate,
         updateField,
@@ -451,6 +752,29 @@ export function useCheckinPage() {
         handleSubmit,
         handleSaveDraft,
         saveTechnicalAdjustment,
+        // Added properties
+        selectedDate,
+        clientesList,
+        saveLocalCliente,
+        deleteLocalCliente,
+        fechamentoLiberado,
+        finalizadoAposPrazo,
+        isPastDeadline,
+        avisarGerenteWhatsapp,
+        spHours: spTime.hours,
+        spMinutes: spTime.minutes,
+        todaySP,
+        yesterdaySP,
+        supabaseUser,
+        disciplinePercent,
+        completedItems,
+        pendingItems,
+        temAgendamentoDataDiferente,
+        realSalesCount,
+        realFaturamento,
+        totalAgendamentosD1,
+        creditosValidos,
+        checkins,
     }
 }
 

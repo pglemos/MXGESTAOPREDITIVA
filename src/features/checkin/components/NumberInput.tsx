@@ -43,6 +43,38 @@ export function NumberInput({
     commitNumberField,
     crmBadge = false,
 }: NumberInputProps) {
+    const displayValue = form[field] as number
+    const inputValue = numberDrafts[field] ?? String(displayValue)
+
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        let val = event.target.value.replace(/\D/g, '')
+        if (val !== '') {
+            let num = Number(val)
+            if (num > CHECKIN_MAX_INPUT_VALUE) {
+                num = CHECKIN_MAX_INPUT_VALUE
+                val = String(CHECKIN_MAX_INPUT_VALUE)
+            }
+            updateNumberField(field, val)
+        } else {
+            updateNumberField(field, '')
+        }
+    }
+
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Enter') {
+            event.preventDefault()
+            event.currentTarget.blur()
+        }
+    }
+
+    const handleBlur = () => {
+        commitNumberField(field)
+    }
+
+    const handleWheel = (event: React.WheelEvent<HTMLInputElement>) => {
+        event.currentTarget.blur()
+    }
+
     return (
         <Card className={cn(
             'flex min-h-mx-24 flex-col justify-between gap-mx-sm rounded-mx-2xl border bg-white p-mx-md shadow-mx-sm transition-all hover:shadow-mx-md',
@@ -73,17 +105,18 @@ export function NumberInput({
             </div>
             <div className="flex items-end justify-between gap-mx-sm">
                 <input
-                    type="number"
+                    type="text"
                     inputMode="numeric"
-                    min={0}
-                    max={CHECKIN_MAX_INPUT_VALUE}
                     name={String(field)}
                     aria-label={label}
                     aria-invalid={Boolean(fieldErrors[field])}
                     aria-describedby={fieldErrors[field] ? `checkin-error-${field}` : `checkin-limit-${field}`}
-                    value={numberDrafts[field] ?? String(form[field] as number)}
-                    onChange={(event) => updateNumberField(field, event.target.value)}
-                    onBlur={() => commitNumberField(field)}
+                    value={inputValue}
+                    onFocus={(event) => event.target.select()}
+                    onKeyDown={handleKeyDown}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    onWheel={handleWheel}
                     className="min-w-0 w-mx-24 bg-transparent text-3xl tabular-nums leading-none font-semibold text-text-primary outline-none focus:ring-2 focus:ring-brand-primary/20 rounded-mx-md sm:text-4xl"
                 />
                 <div className="flex items-center gap-mx-xs shrink-0">
