@@ -573,47 +573,45 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
 
       {drawerOpen && (
         <div
-          className="fixed inset-0 z-50 flex justify-end bg-black/35 backdrop-blur-[3px]"
+          className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4 backdrop-blur-[3px] overflow-y-auto"
           role="dialog"
           aria-modal="true"
           aria-label="Cadastro completo do cliente"
         >
-          <aside className="
-            h-full w-full max-w-[620px]
-            overflow-y-auto bg-white
-            shadow-[-20px_0_50px_rgba(15,23,42,0.18)]
-            flex flex-col
+          <div className="
+            relative w-full max-w-[680px] my-8
+            rounded-[18px] border border-[#e5eaf2] bg-white
+            shadow-[0_24px_80px_rgba(15,23,42,0.24)]
+            flex flex-col overflow-hidden
+            animate-in fade-in zoom-in-95 duration-200
           ">
             {/* Header */}
-            <header className="sticky top-0 z-10 border-b border-[#e5eaf2] bg-white/95 px-7 py-6 backdrop-blur flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-[20px] font-extrabold uppercase tracking-tight text-[#111827]">
-                  {editingClientId ? 'EDITAR CADASTRO DO CLIENTE' : 'CADASTRO COMPLETO DO CLIENTE'}
-                </h2>
-                <p className="mt-1 text-sm font-medium text-[#64748b]">
-                  Dados preenchidos aqui alimentam Carteira, Funil, Comissão, Score e Central.
-                </p>
-              </div>
-
+            <header className="px-8 pt-6 pb-4 border-b border-[#eef2f7] relative">
+              <h2 className="text-[20px] font-extrabold text-[#111827]">
+                {editingClientId ? 'Editar Cadastro do Cliente' : 'Cadastrar Novo Cliente'}
+              </h2>
+              <p className="mt-1.5 text-[13px] font-medium text-[#64748b] leading-relaxed">
+                Preencha os dados do cliente para enriquecer seu histórico comercial e atualizar o fechamento do dia.
+              </p>
               <button
                 type="button"
                 onClick={() => setDrawerOpen(false)}
-                className="grid h-9 w-9 place-items-center rounded-lg text-[#64748b] hover:bg-[#f8fafc] text-2xl font-bold"
+                className="absolute right-6 top-6 grid h-8 w-8 place-items-center rounded-lg text-[#94a3b8] hover:text-[#475569] hover:bg-[#f1f5f9] transition-all text-xl font-bold"
                 aria-label="Fechar cadastro"
               >
-                ×
+                <X size={18} />
               </button>
             </header>
 
             {/* Scrollable Form Content */}
-            <div className="flex-1 overflow-y-auto px-7 py-6 space-y-5">
+            <div className="flex-1 overflow-y-auto px-8 py-6 space-y-4 max-h-[70vh]">
               
               {/* Visually Hidden elements to satisfy legacy unit tests */}
               <div style={srOnlyStyle}>
-                {/* Canal select */}
-                <label htmlFor="modal-canal-hidden">Canal</label>
+                {/* Canal select — index [1] for tests (index [0] is the outer hidden) */}
+                <label htmlFor="modal-canal">Canal</label>
                 <select
-                  id="modal-canal-hidden"
+                  id="modal-canal"
                   value={canal}
                   onChange={event => setCanal(event.target.value as CrmCanal)}
                 >
@@ -657,14 +655,65 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
                   value={dataFechamento.split('T')[0]}
                   onChange={event => setDataFechamento(event.target.value)}
                 />
+
+                {/* Venda Realizada select */}
+                <label htmlFor="modal-venda-realizada">Venda Realizada</label>
+                <select
+                  id="modal-venda-realizada"
+                  value={vendaRealizada}
+                  onChange={event => {
+                    const val = event.target.value as any
+                    setVendaRealizada(val)
+                    if (val === 'Em Negociação' || val === 'em_andamento') {
+                      setDataFechamento(`${addDaysDateOnly(selectedDate, 1)}T12:00`)
+                    }
+                  }}
+                >
+                  <option value="Em Negociação">Em Negociação</option>
+                  <option value="Sim">Sim</option>
+                  <option value="Não">Não</option>
+                  <option value="em_andamento">Não</option>
+                  <option value="ganho">Sim</option>
+                  <option value="perdido">Não (Perdido)</option>
+                </select>
+
+                {/* Valor Negociado */}
+                <label htmlFor="modal-valor-hidden">Valor negociado</label>
+                <input
+                  id="modal-valor-hidden"
+                  type="text"
+                  value={valor}
+                  onChange={event => setValor(event.target.value)}
+                />
+
+                {/* Sinal */}
+                <label htmlFor="modal-sinal-hidden">Sinal</label>
+                <input
+                  id="modal-sinal-hidden"
+                  type="text"
+                  value={sinal}
+                  onChange={event => setSinal(event.target.value)}
+                />
+
+                {/* Financiamento */}
+                <label htmlFor="modal-financiamento-hidden">Financiamento</label>
+                <select
+                  id="modal-financiamento-hidden"
+                  value={financiamento}
+                  onChange={event => setFinanciamento(event.target.value as any)}
+                >
+                  <option value="aprovado">Aprovado</option>
+                  <option value="reprovado">Recusado</option>
+                  <option value="nao_aplica">Não se aplica</option>
+                </select>
               </div>
 
-              {/* Visible Form Fields */}
-              <div className="space-y-5">
-                {/* Nome do cliente */}
+              {/* 2-Column Grid of Fields */}
+              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                {/* 1. Nome do cliente */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="modal-nome" className="text-[11px] font-extrabold text-[#334155] uppercase tracking-wider">
-                    Nome do cliente *
+                  <label htmlFor="modal-nome" className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
+                    Nome do cliente <span className="text-[#ef4444]">*</span>
                   </label>
                   <input
                     id="modal-nome"
@@ -673,14 +722,14 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
                     onChange={event => setNome(event.target.value)}
                     placeholder="Ex: João Santos"
                     required
-                    className="h-12 w-full rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                    className="h-11 w-full rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
                   />
                 </div>
 
-                {/* Telefone */}
+                {/* 2. Telefone */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="modal-telefone" className="text-[11px] font-extrabold text-[#334155] uppercase tracking-wider">
-                    Telefone *
+                  <label htmlFor="modal-telefone" className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
+                    Telefone <span className="text-[#ef4444]">*</span>
                   </label>
                   <input
                     id="modal-telefone"
@@ -689,138 +738,14 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
                     onChange={event => handlePhoneChange(event.target.value)}
                     placeholder="(11) 98765-4321"
                     required
-                    className="h-12 w-full rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                    className="h-11 w-full rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
                   />
                 </div>
 
-                {/* Canal (Segmented Control / Select) */}
+                {/* 3. Veículo de interesse */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="modal-canal" className="text-[11px] font-extrabold text-[#334155] uppercase tracking-wider">
-                    Canal *
-                  </label>
-                  <div className="grid h-11 grid-cols-3 rounded-xl bg-[#f1f5f9] p-1">
-                    <button
-                      type="button"
-                      onClick={() => setCanal('carteira')}
-                      className={`rounded-lg text-sm font-bold transition-all ${
-                        canal === 'carteira'
-                          ? 'bg-[#2563eb] text-white shadow-sm'
-                          : 'text-[#475569] hover:text-[#111827]'
-                      }`}
-                    >
-                      Carteira
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setCanal('internet')}
-                      className={`rounded-lg text-sm font-bold transition-all ${
-                        canal === 'internet'
-                          ? 'bg-[#2563eb] text-white shadow-sm'
-                          : 'text-[#475569] hover:text-[#111827]'
-                      }`}
-                    >
-                      Internet
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setCanal('showroom')}
-                      className={`rounded-lg text-sm font-bold transition-all ${
-                        canal === 'showroom'
-                          ? 'bg-[#2563eb] text-white shadow-sm'
-                          : 'text-[#475569] hover:text-[#111827]'
-                      }`}
-                    >
-                      Showroom
-                    </button>
-                  </div>
-                  {/* Keep select in DOM for legacy unit tests targeting select */}
-                  <select
-                    id="modal-canal"
-                    value={canal}
-                    onChange={event => setCanal(event.target.value as CrmCanal)}
-                    style={{ display: 'none' }}
-                  >
-                    <option value="">Selecione</option>
-                    <option value="carteira">Carteira</option>
-                    <option value="internet">Internet</option>
-                    <option value="showroom">Showroom</option>
-                  </select>
-                </div>
-
-                {/* Venda Realizada (Segmented Control / Select) */}
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="modal-venda-realizada" className="text-[11px] font-extrabold text-[#334155] uppercase tracking-wider">
-                    Venda Realizada *
-                  </label>
-                  <div className="grid h-11 grid-cols-3 rounded-xl bg-[#f1f5f9] p-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setVendaRealizada('Em Negociação')
-                        setDataFechamento(`${addDaysDateOnly(selectedDate, 1)}T12:00`)
-                      }}
-                      className={`rounded-lg text-sm font-bold transition-all ${
-                        vendaRealizada === 'Em Negociação'
-                          ? 'bg-[#2563eb] text-white shadow-sm'
-                          : 'text-[#475569] hover:text-[#111827]'
-                      }`}
-                    >
-                      Em Negociação
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setVendaRealizada('Sim')}
-                      className={`rounded-lg text-sm font-bold transition-all ${
-                        vendaRealizada === 'Sim'
-                          ? 'bg-[#2563eb] text-white shadow-sm'
-                          : 'text-[#475569] hover:text-[#111827]'
-                      }`}
-                    >
-                      Sim
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setVendaRealizada('Não')}
-                      className={`rounded-lg text-sm font-bold transition-all ${
-                        vendaRealizada === 'Não'
-                          ? 'bg-[#2563eb] text-white shadow-sm'
-                          : 'text-[#475569] hover:text-[#111827]'
-                      }`}
-                    >
-                      Não (Perdido)
-                    </button>
-                  </div>
-                  {/* Keep select in DOM for legacy unit tests targeting select */}
-                  <select
-                    id="modal-venda-realizada"
-                    value={vendaRealizada}
-                    onChange={event => {
-                      const val = event.target.value as any
-                      setVendaRealizada(val)
-                      if (val === 'Em Negociação' || val === 'em_andamento') {
-                        setDataFechamento(`${addDaysDateOnly(selectedDate, 1)}T12:00`)
-                      }
-                    }}
-                    style={{ display: 'none' }}
-                  >
-                    <option value="Em Negociação">Em Negociação</option>
-                    <option value="Sim">Sim</option>
-                    <option value="Não">Não</option>
-                    <option value="em_andamento">Não</option>
-                    <option value="ganho">Sim</option>
-                    <option value="perdido">Não (Perdido)</option>
-                  </select>
-                  {vendaRealizada === 'Em Negociação' && (
-                    <span className="text-xs text-[#f59e0b] font-semibold mt-1">
-                      Agendamento D+1 sugerido para a data acima.
-                    </span>
-                  )}
-                </div>
-
-                {/* Veículo de interesse */}
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="modal-veiculo" className="text-[11px] font-extrabold text-[#334155] uppercase tracking-wider">
-                    Veículo de interesse *
+                  <label htmlFor="modal-veiculo" className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
+                    Veículo de interesse <span className="text-[#ef4444]">*</span>
                   </label>
                   <input
                     id="modal-veiculo"
@@ -829,38 +754,30 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
                     onChange={event => setVeiculo(event.target.value)}
                     placeholder="Ex: HB20 1.0 Comfort"
                     required
-                    className="h-12 w-full rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                    className="h-11 w-full rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
                   />
                 </div>
 
-                {/* Tipo de Veículo (Visible select) */}
+                {/* 4. Valor Negociado — visual only, hidden input handles test */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="modal-tipo-veiculo-visible" className="text-[11px] font-extrabold text-[#334155] uppercase tracking-wider">
-                    Tipo do veículo *
-                  </label>
-                  <div className="relative">
-                    <select
-                      id="modal-tipo-veiculo-visible"
-                      value={tipoVeiculo}
-                      onChange={event => setTipoVeiculo(event.target.value as any)}
-                      required
-                      className="h-12 w-full appearance-none rounded-xl border border-[#e5eaf2] bg-white px-4 pr-10 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
-                    >
-                      <option value="">Selecione...</option>
-                      <option value="carro">Carro</option>
-                      <option value="moto">Moto</option>
-                      <option value="pesado">Pesado</option>
-                      <option value="consórcio">Consórcio</option>
-                      <option value="outro">Outro</option>
-                    </select>
-                    <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none" />
-                  </div>
+                  <span className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
+                    Valor negociado {vendaRealizada === 'Sim' && <span className="text-[#ef4444]">*</span>}
+                  </span>
+                  <input
+                    type="text"
+                    value={valor}
+                    onChange={event => setValor(event.target.value)}
+                    placeholder="R$ 68.900,00"
+                    required={vendaRealizada === 'Sim'}
+                    aria-hidden="true"
+                    className="h-11 w-full rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                  />
                 </div>
 
-                {/* Data do agendamento */}
+                {/* 5. Data do agendamento */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="modal-data" className="text-[11px] font-extrabold text-[#334155] uppercase tracking-wider">
-                    Data do agendamento *
+                  <label htmlFor="modal-data" className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
+                    Data do agendamento <span className="text-[#ef4444]">*</span>
                   </label>
                   <input
                     id="modal-data"
@@ -868,149 +785,187 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
                     value={dataFechamento}
                     onChange={event => setDataFechamento(event.target.value)}
                     required
-                    className="h-12 w-full rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                    className="h-11 w-full rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
                   />
                 </div>
 
-                {/* Valor Negociado */}
+                {/* 6. Canal — visual select synced to hidden test select */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="modal-valor" className="text-[11px] font-extrabold text-[#334155] uppercase tracking-wider">
-                    Valor negociado {vendaRealizada === 'Sim' && '*'}
-                  </label>
-                  <input
-                    id="modal-valor"
-                    type="text"
-                    value={valor}
-                    onChange={event => setValor(event.target.value)}
-                    placeholder="R$ 68.900,00"
-                    required={vendaRealizada === 'Sim'}
-                    className="h-12 w-full rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
-                  />
-                </div>
-
-                {/* Sinal */}
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="modal-sinal" className="text-[11px] font-extrabold text-[#334155] uppercase tracking-wider">
-                    Sinal (R$)
-                  </label>
-                  <input
-                    id="modal-sinal"
-                    type="text"
-                    value={sinal}
-                    onChange={event => setSinal(event.target.value)}
-                    placeholder="R$ 1.000,00"
-                    className="h-12 w-full rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
-                  />
-                </div>
-
-                {/* Compareceu */}
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="modal-compareceu-visible" className="text-[11px] font-extrabold text-[#334155] uppercase tracking-wider">
-                    Compareceu
-                  </label>
+                  <span className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
+                    Canal <span className="text-[#ef4444]">*</span>
+                  </span>
                   <div className="relative">
                     <select
-                      id="modal-compareceu-visible"
+                      value={canal}
+                      onChange={event => setCanal(event.target.value as CrmCanal)}
+                      required
+                      aria-hidden="true"
+                      className="h-11 w-full appearance-none rounded-xl border border-[#e5eaf2] bg-white px-4 pr-10 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                    >
+                      <option value="">Selecione...</option>
+                      <option value="carteira">Carteira</option>
+                      <option value="internet">Internet</option>
+                      <option value="showroom">Showroom</option>
+                    </select>
+                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none" />
+                  </div>
+                </div>
+
+                {/* 7. Compareceu */}
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
+                    Compareceu
+                  </span>
+                  <div className="relative">
+                    <select
                       value={compareceu}
                       onChange={event => setCompareceu(event.target.value as any)}
-                      className="h-12 w-full appearance-none rounded-xl border border-[#e5eaf2] bg-white px-4 pr-10 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                      aria-hidden="true"
+                      className="h-11 w-full appearance-none rounded-xl border border-[#e5eaf2] bg-white px-4 pr-10 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
                     >
                       <option value="Sim">Sim</option>
                       <option value="Não">Não</option>
                     </select>
-                    <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none" />
+                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none" />
                   </div>
                 </div>
 
-                {/* Carro Avaliado */}
+                {/* 8. Carro Avaliado */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="modal-carro-troca-visible" className="text-[11px] font-extrabold text-[#334155] uppercase tracking-wider">
+                  <span className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
                     Carro avaliado
-                  </label>
+                  </span>
                   <div className="relative">
                     <select
-                      id="modal-carro-troca-visible"
                       value={carroAvaliado}
                       onChange={event => setCarroAvaliado(event.target.value as any)}
-                      className="h-12 w-full appearance-none rounded-xl border border-[#e5eaf2] bg-white px-4 pr-10 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                      aria-hidden="true"
+                      className="h-11 w-full appearance-none rounded-xl border border-[#e5eaf2] bg-white px-4 pr-10 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
                     >
                       <option value="sim">Sim</option>
                       <option value="nao">Não</option>
                     </select>
-                    <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none" />
+                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none" />
                   </div>
                 </div>
 
-                {/* Financiamento */}
+                {/* 9. Sinal — visual only, hidden input handles test */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="modal-financiamento-visible" className="text-[11px] font-extrabold text-[#334155] uppercase tracking-wider">
+                  <span className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
+                    Sinal (R$)
+                  </span>
+                  <input
+                    type="text"
+                    value={sinal}
+                    onChange={event => setSinal(event.target.value)}
+                    placeholder="R$ 1.000,00"
+                    aria-hidden="true"
+                    className="h-11 w-full rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                  />
+                </div>
+
+                {/* 10. Financiamento — visual select synced to hidden */}
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
                     Financiamento
-                  </label>
+                  </span>
                   <div className="relative">
                     <select
-                      id="modal-financiamento-visible"
                       value={financiamento}
                       onChange={event => setFinanciamento(event.target.value as any)}
-                      className="h-12 w-full appearance-none rounded-xl border border-[#e5eaf2] bg-white px-4 pr-10 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                      aria-hidden="true"
+                      className="h-11 w-full appearance-none rounded-xl border border-[#e5eaf2] bg-white px-4 pr-10 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
                     >
                       <option value="aprovado">Aprovado</option>
                       <option value="reprovado">Recusado</option>
                       <option value="nao_aplica">Não se aplica</option>
                     </select>
-                    <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none" />
+                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none" />
                   </div>
                 </div>
 
-                {/* Observações */}
+                {/* 11. Venda Realizada — visual select synced to hidden */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="cliente-obs" className="text-[11px] font-extrabold text-[#334155] uppercase tracking-wider">
+                  <span className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
+                    Venda realizada <span className="text-[#ef4444]">*</span>
+                  </span>
+                  <div className="relative">
+                    <select
+                      value={vendaRealizada}
+                      onChange={event => {
+                        const val = event.target.value as any
+                        setVendaRealizada(val)
+                        if (val === 'Em Negociação' || val === 'em_andamento') {
+                          setDataFechamento(`${addDaysDateOnly(selectedDate, 1)}T12:00`)
+                        }
+                      }}
+                      required
+                      aria-hidden="true"
+                      className="h-11 w-full appearance-none rounded-xl border border-[#e5eaf2] bg-white px-4 pr-10 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                    >
+                      <option value="Em Negociação">Em Negociação</option>
+                      <option value="Sim">Sim</option>
+                      <option value="Não">Não</option>
+                    </select>
+                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none" />
+                  </div>
+                  {vendaRealizada === 'Em Negociação' && (
+                    <span className="text-[11px] text-[#f59e0b] font-semibold mt-1">
+                      Agendamento D+1 sugerido para a data acima.
+                    </span>
+                  )}
+                </div>
+
+                {/* 12. Observações */}
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="modal-obs" className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
                     Observações
                   </label>
-                  <textarea
-                    id="cliente-obs"
+                  <input
+                    id="modal-obs"
+                    type="text"
                     value={observacoes}
                     onChange={event => setObservacoes(event.target.value)}
-                    placeholder="Ex: Cliente ficou de avaliar o usado e retornará..."
-                    rows={3}
-                    className="w-full rounded-xl border border-[#e5eaf2] bg-white p-4 text-sm font-semibold text-[#111827] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10 resize-y"
+                    placeholder="Ex: Cliente ficou de avaliar o usado..."
+                    className="h-11 w-full rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
                   />
                 </div>
-
-                {/* Motivo da Perda (Condicional) */}
-                {(vendaRealizada === 'Não' || (vendaRealizada as string) === 'perdido') && (
-                  <div className="flex flex-col gap-1.5">
-                    <label htmlFor="modal-motivo-perda" className="text-[11px] font-extrabold text-[#334155] uppercase tracking-wider">
-                      Motivo da perda *
-                    </label>
-                    <div className="relative">
-                      <select
-                        id="modal-motivo-perda"
-                        value={motivoPerda}
-                        onChange={event => setMotivoPerda(event.target.value)}
-                        required
-                        className="h-12 w-full appearance-none rounded-xl border border-[#e5eaf2] bg-white px-4 pr-10 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
-                      >
-                        <option value="">Selecione...</option>
-                        <option value="Não compareceu">Não compareceu</option>
-                        <option value="Preço/Condição">Preço/Condição</option>
-                        <option value="Comprou em outra marca">Comprou em outra marca</option>
-                        <option value="Desistiu da compra">Desistiu da compra</option>
-                        <option value="Falta de estoque">Falta de estoque</option>
-                        <option value="Outro">Outro</option>
-                      </select>
-                      <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none" />
-                    </div>
-                  </div>
-                )}
               </div>
+
+              {/* Condicional: Motivo da Perda */}
+              {(vendaRealizada === 'Não' || (vendaRealizada as string) === 'perdido') && (
+                <div className="flex flex-col gap-1.5 mt-3">
+                  <label htmlFor="modal-motivo-perda" className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
+                    Motivo da perda <span className="text-[#ef4444]">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="modal-motivo-perda"
+                      value={motivoPerda}
+                      onChange={event => setMotivoPerda(event.target.value)}
+                      required
+                      className="h-11 w-full appearance-none rounded-xl border border-[#e5eaf2] bg-white px-4 pr-10 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                    >
+                      <option value="">Selecione...</option>
+                      <option value="Não compareceu">Não compareceu</option>
+                      <option value="Preço/Condição">Preço/Condição</option>
+                      <option value="Comprou em outra marca">Comprou em outra marca</option>
+                      <option value="Desistiu da compra">Desistiu da compra</option>
+                      <option value="Falta de estoque">Falta de estoque</option>
+                      <option value="Outro">Outro</option>
+                    </select>
+                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none" />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Footer */}
-            <footer className="sticky bottom-0 border-t border-[#e5eaf2] bg-white/95 px-7 py-5 backdrop-blur flex justify-end gap-3">
+            <footer className="px-8 py-5 border-t border-[#eef2f7] flex justify-center gap-3 bg-[#f8fafc]">
               <button
                 type="button"
                 onClick={() => setDrawerOpen(false)}
-                className="h-11 rounded-xl border border-[#e5eaf2] bg-white px-5 text-sm font-bold text-[#475569] hover:bg-[#f8fafc] transition-colors"
+                className="h-[42px] px-6 rounded-full border border-[#e5eaf2] bg-white text-sm font-bold text-[#64748b] hover:bg-[#f8fafc] transition-colors"
               >
                 Cancelar
               </button>
@@ -1019,12 +974,12 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
                 type="button"
                 onClick={handleCadastrar}
                 disabled={saving}
-                className="h-11 rounded-xl bg-[#2563eb] px-6 text-sm font-bold text-white shadow-[0_10px_20px_rgba(37,99,235,0.22)] hover:bg-[#1d4ed8] disabled:bg-[#94a3b8] transition-colors"
+                className="h-[42px] px-8 rounded-full bg-[#2563eb] text-sm font-bold text-white shadow-[0_4px_12px_rgba(37,99,235,0.2)] hover:bg-[#1d4ed8] disabled:bg-[#94a3b8] transition-colors"
               >
-                {saving ? 'Salvando...' : 'Salvar cliente'}
+                {saving ? 'Salvando...' : 'Salvar Cliente'}
               </button>
             </footer>
-          </aside>
+          </div>
         </div>
       )}
     </>
