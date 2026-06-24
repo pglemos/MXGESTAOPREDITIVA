@@ -116,7 +116,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
   }
 
   return (
-<form onSubmit={handleSubmit} className="mt-mx-lg grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-mx-md pb-16">
+    <form onSubmit={handleSubmit} className="mt-mx-xs grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-mx-sm pb-16">
       {(funnelError || inputError) && (
         <CheckinValidationBanner
           metricScope={metricScope}
@@ -126,7 +126,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
         />
       )}
 
-      <section className="grid w-full max-w-full min-w-0 gap-mx-md lg:grid-cols-[1fr_1.45fr_1fr]">
+      <section className="grid w-full max-w-full min-w-0 gap-mx-sm lg:grid-cols-[1.05fr_1.35fr_1.05fr]">
         <MetricGroupCard title="1. LEADS RECEBIDOS HOJE" columns="grid-cols-1 sm:grid-cols-2">
           <MetricCounterCard
             label="Canal Carteira"
@@ -302,7 +302,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
           <Typography variant="h2" className="text-base font-semibold">
             Resumo do Dia Anterior
           </Typography>
-          <div className="mt-mx-sm grid grid-cols-5 gap-mx-xs">
+          <div className="mt-mx-sm grid grid-cols-2 gap-mx-xs sm:grid-cols-3 2xl:grid-cols-5">
             <ResumoItem label="Leads Recebidos" value={String(display.leads)} icon={Users} />
             <ResumoItem label="Atendimentos" value={String(display.visitas)} icon={Globe} tone="info" />
             <ResumoItem label="Agendamentos D+1" value={String(display.agd)} icon={Users} />
@@ -314,13 +314,13 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
         <Card className="rounded-mx-xl border border-border-default bg-white p-mx-sm shadow-mx-sm">
           <div className="flex flex-col items-start gap-mx-md sm:flex-row sm:items-center">
             <div
-              className="grid h-24 w-24 shrink-0 place-items-center rounded-full"
+              className="grid h-20 w-20 shrink-0 place-items-center rounded-full sm:h-24 sm:w-24"
               style={{
                 background: `conic-gradient(var(--color-brand-primary) ${disciplinePercent * 3.6}deg, var(--color-border-subtle) 0deg)`,
               }}
             >
-              <div className="grid h-16 w-16 place-items-center rounded-full bg-white">
-                <span className="text-2xl font-semibold tabular-nums">{disciplinePercent}%</span>
+              <div className="grid h-14 w-14 place-items-center rounded-full bg-white sm:h-16 sm:w-16">
+                <span className="text-xl font-semibold tabular-nums sm:text-2xl">{disciplinePercent}%</span>
               </div>
             </div>
             <div className="grid w-full min-w-0 flex-1 gap-mx-md md:grid-cols-2">
@@ -414,12 +414,26 @@ function MetricGroupCard({
   columns: string
   children: ReactNode
 }) {
+  const [step, ...labelParts] = title.split('. ')
+  const label = labelParts.join('. ') || title
+  const stepTone =
+    step === '1'
+      ? 'bg-status-success text-white'
+      : step === '2'
+        ? 'bg-status-warning text-white'
+        : 'bg-status-info text-white'
+
   return (
-      <Card className="min-w-0 rounded-mx-xl border border-border-default bg-white p-mx-md shadow-mx-sm">
-      <Typography variant="h2" className="text-sm font-semibold uppercase tracking-normal">
-        {title}
-      </Typography>
-      <div className={`mt-mx-sm grid min-w-0 gap-mx-sm sm:gap-mx-md ${columns}`}>{children}</div>
+    <Card className="min-w-0 overflow-hidden rounded-mx-lg border border-border-default bg-white p-0 shadow-mx-xs">
+      <header className="flex items-center gap-mx-xs border-b border-border-subtle px-mx-sm py-mx-xs">
+        <span className={`grid h-4 w-4 shrink-0 place-items-center rounded-full text-[10px] font-bold ${stepTone}`}>
+          {step}
+        </span>
+        <Typography variant="h2" className="!text-xs !leading-tight font-semibold uppercase tracking-mx-wider text-text-secondary">
+          {label}
+        </Typography>
+      </header>
+      <div className={`grid min-w-0 divide-y divide-border-subtle p-mx-sm sm:divide-y-0 sm:divide-x ${columns}`}>{children}</div>
     </Card>
   )
 }
@@ -466,16 +480,16 @@ function MetricCounterCard({
 
   return (
     <div
-      className={`flex min-h-[126px] w-full max-w-full min-w-0 flex-col items-center justify-between rounded-mx-xl border bg-white p-mx-xs text-center shadow-mx-sm sm:p-mx-sm ${
+      className={`flex min-h-[98px] w-full max-w-full min-w-0 flex-col items-center justify-center gap-1 bg-white px-mx-xs py-1 text-center ${
         fieldErrors[field]
-          ? 'border-status-error/50'
+          ? 'ring-2 ring-status-error/20'
           : changedFields.has(field)
-            ? 'border-brand-primary/40 ring-2 ring-brand-primary/10'
-            : 'border-border-default'
+            ? 'ring-2 ring-brand-primary/10'
+            : ''
       }`}
     >
-      <div className="min-h-5">
-        <Typography variant="caption" tone="muted" className="text-[11px] font-semibold normal-case tracking-normal">
+      <div className="min-h-4">
+        <Typography variant="caption" tone="muted" className="text-[10px] font-semibold normal-case tracking-normal">
           {label}
         </Typography>
         {crmBadge && (
@@ -484,8 +498,8 @@ function MetricCounterCard({
           </Badge>
         )}
       </div>
-      <span className={`grid h-mx-xl w-mx-xl place-items-center rounded-full ${toneClass}`}>
-        <Icon size={20} />
+      <span className={`grid h-9 w-9 place-items-center rounded-full ${toneClass}`}>
+        <Icon size={16} />
       </span>
       <input
         type="number"
@@ -498,9 +512,9 @@ function MetricCounterCard({
         value={inputValue}
         onChange={event => updateNumberField(field, event.target.value)}
         onBlur={() => commitNumberField(field)}
-        className="h-7 w-full bg-transparent text-center text-2xl font-semibold leading-none text-text-primary outline-none tabular-nums"
+        className="h-7 w-full bg-transparent text-center text-3xl font-semibold leading-none text-text-primary outline-none tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
       />
-      <div className="grid h-7 w-full grid-cols-[34px_1fr_34px] overflow-hidden rounded-mx-md border border-border-default">
+      <div className="grid h-8 w-full max-w-[8.5rem] grid-cols-[34px_1fr_34px] overflow-hidden rounded-mx-full border border-border-default">
         <button
           type="button"
           aria-label={`Diminuir ${label}`}
@@ -510,7 +524,7 @@ function MetricCounterCard({
         >
           <Minus size={16} />
         </button>
-        <span className="grid place-items-center border-x border-border-default text-sm font-semibold tabular-nums text-text-primary">
+        <span className="grid place-items-center border-x border-border-default text-xs font-semibold leading-none tabular-nums text-text-primary">
           {displayValue}
         </span>
         <button

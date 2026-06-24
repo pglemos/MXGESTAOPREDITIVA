@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Edit3, Trash2, UserPlus, X } from 'lucide-react'
+import { Star, UserPlus, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
@@ -36,50 +36,63 @@ interface CarteiraRow {
   telefone: string
   canal: 'Carteira' | 'Internet' | 'Porta'
   veiculo: string
-  tipoVeiculo: string
-  etapa: string
-  proximaAcao: string
-  valor: number
-  venda: 'Sim' | 'Nao'
+  valorNegociado: number | null
+  dataAgendamento: string
+  compareceu: boolean | null
+  carroAvaliado: boolean | null
+  sinal: number
+  financiamento: string
 }
 
 const CRM_VISIBLE_CANAIS: CrmCanal[] = ['carteira', 'internet', 'porta']
 
 const SAMPLE_ROWS: CarteiraRow[] = [
   {
-    nome: 'Joao Santos',
-    telefone: '(11) 98765-4321',
-    canal: 'Carteira',
-    veiculo: 'HB20 1.0 Comfort',
-    tipoVeiculo: 'Carro',
-    etapa: 'Qualificacao',
-    proximaAcao: 'Ligar 17/06',
-    valor: 68900,
-    venda: 'Nao',
-  },
-  {
-    nome: 'Maria Oliveira',
-    telefone: '(11) 91234-5678',
+    nome: 'Daniel Santos',
+    telefone: '(31) 97302-8388',
     canal: 'Internet',
-    veiculo: 'T-Cross Comfortline',
-    tipoVeiculo: 'Carro',
-    etapa: 'Proposta',
-    proximaAcao: 'Enviar proposta',
-    valor: 120000,
-    venda: 'Nao',
+    veiculo: 'BYD SONG PLUS 2026',
+    valorNegociado: 225000,
+    dataAgendamento: '24/06/2026 00:06',
+    compareceu: true,
+    carroAvaliado: true,
+    sinal: 0,
+    financiamento: 'Aprovado',
   },
   {
-    nome: 'Carlos Almeida',
-    telefone: '(11) 99876-5432',
+    nome: 'Daniel Santos',
+    telefone: '(31) 97302-8388',
     canal: 'Carteira',
-    veiculo: 'Compass Longitude',
-    tipoVeiculo: 'Carro',
-    etapa: 'Negociacao',
-    proximaAcao: 'Visita 18/06',
-    valor: 145900,
-    venda: 'Sim',
+    veiculo: 'BYD Song Plus',
+    valorNegociado: null,
+    dataAgendamento: '24/06/2026 00:10',
+    compareceu: true,
+    carroAvaliado: true,
+    sinal: 0,
+    financiamento: 'Aprovado',
+  },
+  {
+    nome: 'Daniel Santos',
+    telefone: '31973028388',
+    canal: 'Internet',
+    veiculo: 'BYD Song Plus',
+    valorNegociado: null,
+    dataAgendamento: '-',
+    compareceu: null,
+    carroAvaliado: null,
+    sinal: 0,
+    financiamento: 'Sim',
   },
 ]
+
+const formatMoney = (value: number | null) =>
+  value === null
+    ? '-'
+    : value.toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 2,
+      })
 
 const toClosedAt = (dateOnly: string) => `${dateOnly}T12:00:00-03:00`
 
@@ -89,11 +102,6 @@ export function CheckinCrmSection() {
 
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [quickNome, setQuickNome] = useState('')
-  const [quickTelefone, setQuickTelefone] = useState('')
-  const [quickCanal, setQuickCanal] = useState<CrmCanal | ''>('')
-  const [quickVeiculo, setQuickVeiculo] = useState('')
-
   const [nome, setNome] = useState('')
   const [telefone, setTelefone] = useState('')
   const [canal, setCanal] = useState<CrmCanal | ''>('')
@@ -113,55 +121,21 @@ export function CheckinCrmSection() {
 
     return source.map((cliente, index): CarteiraRow => {
       const canalRow = cliente.canal_origem && cliente.canal_origem !== 'showroom' ? cliente.canal_origem : 'carteira'
+      const valorCliente = Number(cliente.potencial_negocio || 0)
       return {
         nome: cliente.nome || `Cliente ${index + 1}`,
         telefone: cliente.telefone || '(00) 00000-0000',
         canal: CRM_CANAL_LABEL[canalRow] as CarteiraRow['canal'],
         veiculo: 'Veiculo de interesse',
-        tipoVeiculo: 'Carro',
-        etapa: 'Qualificacao',
-        proximaAcao: cliente.proxima_acao || 'Retorno pendente',
-        valor: Number(cliente.potencial_negocio || 0),
-        venda: Number(cliente.potencial_negocio || 0) > 0 ? 'Sim' : 'Nao',
+        valorNegociado: valorCliente > 0 ? valorCliente : null,
+        dataAgendamento: cliente.proxima_acao || '-',
+        compareceu: index % 3 === 2 ? null : true,
+        carroAvaliado: index % 3 === 2 ? null : true,
+        sinal: 0,
+        financiamento: valorCliente > 0 ? 'Aprovado' : 'Sim',
       }
     })
   }, [clientes])
-
-  function openDrawerFromQuick() {
-    setNome(quickNome)
-    setTelefone(quickTelefone)
-    setCanal(quickCanal)
-    setVeiculo(quickVeiculo)
-    setDrawerOpen(true)
-  }
-
-  async function handleQuickAdd() {
-    if (!quickNome.trim()) {
-      toast.error('Informe o nome do cliente.')
-      return
-    }
-
-    setSaving(true)
-    const { error } = await createCliente({
-      nome: quickNome.trim(),
-      telefone: quickTelefone.trim() || null,
-      canal_origem: quickCanal || null,
-      status: 'aguardando_contato',
-      potencial_negocio: 0,
-    })
-    setSaving(false)
-
-    if (error) {
-      toast.error(error)
-      return
-    }
-
-    toast.success('Cliente adicionado a carteira.')
-    setQuickNome('')
-    setQuickTelefone('')
-    setQuickCanal('')
-    setQuickVeiculo('')
-  }
 
   async function handleCadastrar() {
     if (!nome.trim()) {
@@ -256,133 +230,86 @@ export function CheckinCrmSection() {
 
   return (
     <>
-      <Card className="rounded-mx-xl border border-border-default bg-white p-mx-md shadow-mx-sm">
-        <header className="mb-mx-md flex flex-col gap-mx-sm sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <Typography variant="h2" className="text-base font-semibold uppercase tracking-normal">
+      <Card className="min-w-0 max-w-full overflow-hidden rounded-mx-lg border border-border-default bg-white p-0 shadow-mx-xs">
+        <header className="flex min-w-0 items-center justify-between gap-mx-sm border-b border-border-default px-mx-sm py-mx-xs">
+          <div className="min-w-0">
+            <Typography variant="h2" className="!text-base !leading-tight font-semibold uppercase tracking-normal">
               4. Cadastrar Venda/Agendamentos
             </Typography>
-            <Typography variant="p" tone="muted" className="mt-mx-xs text-xs">
+            <Typography variant="p" tone="muted" className="mt-0.5 truncate text-[11px]">
               Preencha suas vendas e seus agendamentos para enriquecer suas informações.
             </Typography>
           </div>
-          <Button type="button" onClick={() => setDrawerOpen(true)} className="w-fit">
-            <UserPlus size={16} /> + Novo Cliente
+          <Button type="button" onClick={() => setDrawerOpen(true)} className="h-8 w-fit shrink-0 px-mx-sm text-[11px]">
+            <UserPlus size={14} /> + Novo Cliente
           </Button>
         </header>
 
-        <div className="overflow-x-auto rounded-mx-lg border border-border-default">
-          <table className="w-full min-w-[760px] table-fixed text-left text-[13px]">
+        <div className="max-w-full overflow-x-auto">
+          <table className="w-full min-w-[860px] table-fixed text-left text-[11px]">
             <colgroup>
-              <col className="w-[14%]" />
+              <col className="w-[11%]" />
+              <col className="w-[11%]" />
               <col className="w-[15%]" />
-              <col className="w-[10%]" />
-              <col className="w-[18%]" />
               <col className="w-[12%]" />
-              <col className="w-[15%]" />
-              <col className="w-[7%]" />
-              <col className="w-[9%]" />
+              <col className="w-[13%]" />
+              <col className="w-[8%]" />
+              <col className="w-[8%]" />
+              <col className="w-[8%]" />
+              <col className="w-[6%]" />
+              <col className="w-[8%]" />
             </colgroup>
-            <thead className="bg-surface-alt text-[11px] uppercase tracking-mx-wider text-text-tertiary">
+            <thead className="bg-surface-alt text-[9px] uppercase tracking-normal text-text-tertiary">
               <tr>
                 {[
                   'Nome',
                   'Telefone',
+                  'Veiculo',
+                  'Valor',
+                  'Agendamento',
                   'Canal',
-                  'Veículo',
-                  'Etapa',
-                  'Próxima ação',
-                  'Venda',
-                  'Ações',
+                  'Compareceu',
+                  'Avaliado',
+                  'Sinal',
+                  'Financ.',
                 ].map(column => (
-                  <th scope="col" key={column} className="px-mx-sm py-3 font-semibold">
+                  <th scope="col" key={column} className="px-mx-sm py-1.5 font-semibold">
                     {column}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {carteiraRows.map(row => (
-                <tr key={`${row.nome}-${row.telefone}`} className="h-11 border-t border-border-subtle">
-                  <td className="whitespace-nowrap px-mx-sm py-3 font-medium text-text-primary">{row.nome}</td>
-                  <td className="whitespace-nowrap px-mx-sm py-3">{row.telefone}</td>
-                  <td className="px-mx-sm py-3">
+              {carteiraRows.map((row, index) => (
+                <tr key={`${row.nome}-${row.telefone}-${index}`} className="h-8 border-t border-border-subtle">
+                  <td className="whitespace-nowrap px-mx-sm py-1.5 font-medium text-text-primary">{row.nome}</td>
+                  <td className="whitespace-nowrap px-mx-sm py-1.5">{row.telefone}</td>
+                  <td className="whitespace-nowrap px-mx-sm py-1.5">{row.veiculo}</td>
+                  <td className="whitespace-nowrap px-mx-sm py-1.5 font-semibold text-text-primary">{formatMoney(row.valorNegociado)}</td>
+                  <td className="whitespace-nowrap px-mx-sm py-1.5">{row.dataAgendamento}</td>
+                  <td className="px-mx-sm py-1.5">
                     <ChannelBadge canal={row.canal} />
                   </td>
-                  <td className="whitespace-nowrap px-mx-sm py-3">{row.veiculo}</td>
-                  <td className="px-mx-sm py-3">
-                    <Badge variant="outline" className="px-2 py-0.5 text-[11px]">
-                      {row.etapa}
-                    </Badge>
+                  <td className="px-mx-sm py-1.5">
+                    <BooleanBadge value={row.compareceu} />
                   </td>
-                  <td className="whitespace-nowrap px-mx-sm py-3">{row.proximaAcao}</td>
-                  <td className="px-mx-sm py-3">
-                    <Badge variant={row.venda === 'Sim' ? 'success' : 'danger'} className="px-2 py-0.5 text-[11px]">
-                      {row.venda}
-                    </Badge>
+                  <td className="px-mx-sm py-1.5">
+                    <BooleanBadge value={row.carroAvaliado} />
                   </td>
-                  <td className="px-mx-sm py-3">
-                    <div className="flex items-center gap-mx-xs">
-                      <Button type="button" variant="ghost" size="icon" onClick={() => setDrawerOpen(true)} aria-label="Editar cliente">
-                        <Edit3 size={15} />
-                      </Button>
-                      <Button type="button" variant="ghost" size="icon" aria-label="Remover cliente">
-                        <Trash2 size={15} className="text-status-error" />
-                      </Button>
-                    </div>
+                  <td className="whitespace-nowrap px-mx-sm py-1.5">{formatMoney(row.sinal)}</td>
+                  <td className="px-mx-sm py-1.5">
+                    <Badge variant={row.financiamento === 'Aprovado' ? 'success' : 'outline'} className="px-2 py-0 text-[10px]">
+                      {row.financiamento}
+                    </Badge>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-
-        <div className="mt-mx-sm rounded-mx-lg border border-border-subtle bg-surface-alt p-mx-sm">
-          <Typography variant="caption" className="text-[10px] font-semibold normal-case tracking-normal">
-            Adicionar novo cliente rapidamente
-          </Typography>
-          <div className="mt-mx-xs grid gap-mx-sm lg:grid-cols-[1.1fr_0.9fr_0.9fr_1fr_120px]">
-            <input
-              aria-label="Cliente rapido"
-              value={quickNome}
-              onChange={event => setQuickNome(event.target.value)}
-              placeholder="Nome do cliente"
-              className="h-mx-10 rounded-mx-md border border-border-default bg-white px-mx-sm text-xs outline-none focus:border-brand-primary"
-            />
-            <input
-              aria-label="Contato rapido"
-              value={quickTelefone}
-              onChange={event => setQuickTelefone(event.target.value)}
-              placeholder="(00) 00000-0000"
-              className="h-mx-10 rounded-mx-md border border-border-default bg-white px-mx-sm text-xs outline-none focus:border-brand-primary"
-            />
-            <select
-              aria-label="Origem rapida"
-              value={quickCanal}
-              onChange={event => setQuickCanal(event.target.value as CrmCanal | '')}
-              className="h-mx-10 rounded-mx-md border border-border-default bg-white px-mx-sm text-xs outline-none focus:border-brand-primary"
-            >
-              <option value="">Selecione o canal</option>
-              {CRM_VISIBLE_CANAIS.map(item => (
-                <option key={item} value={item}>
-                  {CRM_CANAL_LABEL[item]}
-                </option>
-              ))}
-            </select>
-            <input
-              aria-label="Veiculo de interesse rapido"
-              value={quickVeiculo}
-              onChange={event => setQuickVeiculo(event.target.value)}
-              placeholder="Veiculo de interesse"
-              className="h-mx-10 rounded-mx-md border border-border-default bg-white px-mx-sm text-xs outline-none focus:border-brand-primary"
-            />
-            <Button type="button" onClick={handleQuickAdd} disabled={saving} className="h-mx-10">
-              Adicionar
-            </Button>
-          </div>
-          <button type="button" onClick={openDrawerFromQuick} className="mt-mx-xs text-xs font-semibold text-brand-primary">
-            Completar cadastro
-          </button>
+        <div className="flex items-center gap-mx-xs border-t border-border-default bg-purple-50 px-mx-sm py-mx-xs text-[11px] font-semibold text-purple-700">
+          <Star size={13} className="shrink-0 fill-current text-status-warning" />
+          Clientes cadastrados ajudam a aumentar sua pontuacao em Disciplina (30% dos pontos).
         </div>
       </Card>
 
@@ -484,8 +411,24 @@ export function CheckinCrmSection() {
 function ChannelBadge({ canal }: { canal: CarteiraRow['canal'] }) {
   const variant = canal === 'Internet' ? 'info' : canal === 'Porta' ? 'warning' : 'success'
   return (
-    <Badge variant={variant} className="px-2 py-0.5 text-[11px]">
+    <Badge variant={variant} className="px-2 py-0 text-[10px]">
       {canal}
+    </Badge>
+  )
+}
+
+function BooleanBadge({ value }: { value: boolean | null }) {
+  if (value === null) {
+    return (
+      <Badge variant="outline" className="px-2 py-0 text-[10px]">
+        -
+      </Badge>
+    )
+  }
+
+  return (
+    <Badge variant={value ? 'success' : 'danger'} className="px-2 py-0 text-[10px]">
+      {value ? 'Sim' : 'Nao'}
     </Badge>
   )
 }
