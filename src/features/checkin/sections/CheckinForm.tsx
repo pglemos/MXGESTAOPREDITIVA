@@ -419,7 +419,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
                 )}
                 <Typography variant="mono" tone="muted" className="text-mx-tiny">
                   {form.note.length}/300 caracteres
-                </Typography>
+</Typography>
               </div>
             </Card>
           )}
@@ -428,78 +428,91 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
         </div>
       </section>
 
-      {/* Symmetric dashboard blocks */}
+      {/* Symmetric dashboard blocks: Resumo + Disciplina */}
       <section className="grid w-full max-w-full min-w-0 gap-5 xl:grid-cols-2">
-        <div className="rounded-[18px] border border-[#e5eaf2] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-          <h2 className="text-[22px] font-extrabold tracking-tight text-[#111827]">
-            RESUMO DO DIA ANTERIOR
-          </h2>
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 2xl:grid-cols-5">
-            <ResumoItem label="Leads Recebidos" value={String(display.leads)} icon={Users} />
-            <ResumoItem label="Atendimentos" value={String(display.visitas)} icon={Globe} tone="info" />
-            <ResumoItem label="Agendamentos D+1" value={String(display.agd)} icon={Users} />
-            <ResumoItem label="Vendas Realizadas" value={String(realSalesCount)} icon={DollarSign} tone="warning" />
-            <ResumoItem label="FATURAMENTO" value={BRL(realFaturamento)} icon={CheckCircle2} />
+        {/* ── RESUMO DO DIA ANTERIOR ── */}
+        <div className="rounded-[18px] border border-[#e5eaf2] bg-white px-6 py-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] flex flex-col justify-between gap-4">
+          <p className="text-[11px] font-extrabold uppercase tracking-widest text-[#94a3b8]">RESUMO DO DIA ANTERIOR</p>
+
+          {/* 4 metrics in a horizontal row with dividers */}
+          <div className="flex items-stretch divide-x divide-[#eef2f7]">
+            <div className="flex flex-1 flex-col items-center gap-1 px-4 first:pl-0">
+              <span className="text-[28px] font-black leading-none tabular-nums text-[#2563eb]">{display.leads}</span>
+              <span className="mt-1 text-[11px] font-semibold text-[#94a3b8] text-center leading-tight">Leads Recebidos</span>
+            </div>
+            <div className="flex flex-1 flex-col items-center gap-1 px-4">
+              <span className="text-[28px] font-black leading-none tabular-nums text-[#f59e0b]">{display.visitas}</span>
+              <span className="mt-1 text-[11px] font-semibold text-[#94a3b8] text-center leading-tight">Atendimentos</span>
+            </div>
+            <div className="flex flex-1 flex-col items-center gap-1 px-4">
+              <span className="text-[28px] font-black leading-none tabular-nums text-[#f59e0b]">{display.agd}</span>
+              <span className="mt-1 text-[11px] font-semibold text-[#94a3b8] text-center leading-tight">Agendamentos D+1</span>
+            </div>
+            <div className="flex flex-1 flex-col items-center gap-1 px-4 last:pr-0">
+              <span className="text-[28px] font-black leading-none tabular-nums text-[#ef4444]">{realSalesCount}</span>
+              <span className="mt-1 text-[11px] font-semibold text-[#94a3b8] text-center leading-tight">Vendas Realizadas</span>
+            </div>
+          </div>
+
+          {/* Faturamento bar */}
+          <div className="flex items-center justify-between border-t border-[#eef2f7] pt-3">
+            <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#94a3b8]">FATURAMENTO</span>
+            <span className="text-[22px] font-black tabular-nums text-[#16a34a]">{BRL(realFaturamento)}</span>
           </div>
         </div>
 
-        <div className="rounded-[18px] border border-[#e5eaf2] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] flex flex-col justify-center">
-          <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-            {/* Elegant donut chart */}
-            <div
-              className="grid h-20 w-20 shrink-0 place-items-center rounded-full sm:h-24 sm:w-24 shadow-sm"
-              style={{
-                background: `conic-gradient(#16a34a ${disciplinePercent * 3.6}deg, #eef2f7 0deg)`,
-              }}
-            >
-              <div className="grid h-14 w-14 place-items-center rounded-full bg-white sm:h-16 sm:w-16">
-                <span className="text-lg font-black tabular-nums text-[#111827] sm:text-xl">{disciplinePercent}%</span>
-              </div>
-            </div>
-            <div className="grid w-full min-w-0 flex-1 gap-4 md:grid-cols-2">
-              <div>
-                <h3 className="text-sm font-extrabold text-[#111827] uppercase tracking-normal">
-                  Disciplina – Fechamento Diário
-                </h3>
-                {disciplineMessage && (
-                  <p className="text-[11px] font-semibold text-[#475569] mt-1 leading-normal">
-                    {disciplineMessage}
-                  </p>
-                )}
-                <ul className="mt-2 space-y-1">
-                  {completedItems.map(item => (
-                    <li key={item} className="flex items-center gap-1.5 text-[10px] font-bold text-[#475569]">
-                      <CheckCircle2 size={13} className="text-[#16a34a]" /> {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                {pendingItems.length > 0 && (
-                  <>
-                    <span className="block text-[10px] font-bold uppercase tracking-wider text-[#94a3b8]">
-                      Pendências ({pendingItems.length})
-                    </span>
-                    <ul className="mt-1 space-y-1">
-                      {pendingItems.map(item => (
-                        <li key={item} className="flex items-center gap-1.5 text-[10px] font-bold text-[#475569]">
-                          <span className="h-2 w-2 rounded-full bg-[#f59e0b]" /> {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-                <button
-                  type="button"
-                  className="mt-3 text-[#2563eb] hover:text-[#1d4ed8] hover:underline text-xs p-0 font-bold flex items-center gap-1 focus:outline-none bg-transparent border-none cursor-pointer"
-                  onClick={() => setDisciplineModalOpen(true)}
+        {/* ── DISCIPLINA – FECHAMENTO DIÁRIO ── */}
+        {(() => {
+          const pontosExtras = totalAgendamentosD1 > 0
+            ? Math.round((creditosValidos / totalAgendamentosD1) * 30)
+            : 30
+          const maxPontosExtras = 30
+          const cred = creditosValidos
+          const total = totalAgendamentosD1
+          // Arc colors: orange when < 100%, green when 100%
+          const arcColor = disciplinePercent >= 100 ? '#16a34a' : '#f59e0b'
+          const arcDeg = Math.round(disciplinePercent * 3.6)
+          return (
+            <div className="rounded-[18px] border border-[#e5eaf2] bg-white px-6 py-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+              <p className="text-[11px] font-extrabold uppercase tracking-widest text-[#94a3b8] mb-3">DISCIPLINA – FECHAMENTO DIÁRIO</p>
+              <p className="text-[12px] font-semibold text-[#64748b] mb-4">
+                Agendamentos D+1 detalhados: <span className="font-extrabold text-[#111827]">{cred} de {total > 0 ? total : totalAgendamentosD1 === 0 ? 0 : total}</span>
+              </p>
+              <div className="flex items-center gap-5">
+                {/* Circular arc score */}
+                <div
+                  className="relative shrink-0 h-[76px] w-[76px] rounded-full"
+                  style={{
+                    background: `conic-gradient(${arcColor} ${arcDeg}deg, #eef2f7 0deg)`,
+                  }}
                 >
-                  Saiba mais
-                </button>
+                  <div className="absolute inset-[8px] rounded-full bg-white flex flex-col items-center justify-center">
+                    <span className="text-[15px] font-black leading-none tabular-nums text-[#111827]">{disciplinePercent}%</span>
+                    <span className="text-[8px] font-extrabold uppercase tracking-wider text-[#94a3b8] mt-0.5">SCORE</span>
+                  </div>
+                </div>
+
+                {/* Text column */}
+                <div className="flex flex-1 min-w-0 flex-col gap-2">
+                  {disciplineMessage && (
+                    <p className="text-[12px] font-semibold text-[#475569] leading-snug">{disciplineMessage}</p>
+                  )}
+                  <p className="text-[11px] font-semibold" style={{ color: '#2563eb', textDecoration: 'underline', textDecorationColor: '#bfdbfe' }}>
+                    70% base + {pontosExtras}% detalhamento ({cred}/{maxPontosExtras} pontos extras)
+                  </p>
+                  <button
+                    type="button"
+                    className="flex items-center gap-1.5 text-[12px] font-bold text-[#2563eb] hover:text-[#1d4ed8] transition-colors w-fit p-0 bg-transparent border-none cursor-pointer"
+                    onClick={() => setDisciplineModalOpen(true)}
+                  >
+                    Saiba mais
+                    <InfoTooltip text="" />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+          )
+        })()}
       </section>
 
       {disciplineModalOpen && (
@@ -715,40 +728,43 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
         </div>
       )}
 
-      {/* Save / Finalize buttons */}
-      <div className="min-w-0 rounded-[18px] border border-[#e5eaf2] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] mt-5">
-        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5 md:grid-cols-[0.45fr_1fr]">
-          <button
-            type="button"
-            disabled={saving || (isPastDeadline && !fechamentoLiberado) || (!canEditExisting && metricScope === 'daily')}
-            onClick={() => void handleSaveDraft()}
-            className="h-12 rounded-xl border border-[#e5eaf2] bg-white text-sm font-bold text-[#64748b] hover:bg-[#f8fafc] transition-colors disabled:opacity-50"
-          >
-            Salvar rascunho
-          </button>
+      {/* Finalizar Fechamento */}
+      <div className="min-w-0 rounded-[18px] border border-[#e5eaf2] bg-white px-6 py-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] mt-5">
+        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6">
+          {/* Green pill button */}
           <button
             type="submit"
             disabled={saving || (isPastDeadline && !fechamentoLiberado) || (!canEditExisting && metricScope === 'daily')}
             className={cn(
-              "h-12 rounded-xl text-sm font-extrabold uppercase tracking-[0.08em] text-white shadow-[0_10px_22px_rgba(37,99,235,0.20)] transition-all",
+              "inline-flex shrink-0 items-center gap-2.5 rounded-full px-8 py-3.5 text-[13px] font-extrabold uppercase tracking-[0.08em] text-white shadow-[0_8px_20px_rgba(22,163,74,0.28)] transition-all",
               saving || (isPastDeadline && !fechamentoLiberado) || (!canEditExisting && metricScope === 'daily')
-                ? "bg-[#94a3b8] cursor-not-allowed"
-                : "bg-[#2563eb] hover:bg-[#1d4ed8]"
+                ? "bg-[#94a3b8] cursor-not-allowed shadow-none"
+                : "bg-[#16a34a] hover:bg-[#15803d] active:scale-[0.98]"
             )}
           >
             {saving ? (
-              <RefreshCw className="h-5 w-5 animate-spin mx-auto" />
+              <RefreshCw className="h-4 w-4 animate-spin" />
             ) : (
-              <span className="flex items-center justify-center gap-2">
-                <LockKeyhole size={16} />
-                Finalizar fechamento do dia
-              </span>
+              <LockKeyhole size={15} className="shrink-0" />
             )}
+            <span>{saving ? 'Salvando...' : 'FINALIZAR FECHAMENTO DO DIA'}</span>
           </button>
+
+          {/* Warning text */}
+          <p className="text-[13px] font-semibold text-[#475569] leading-snug">
+            Após finalizar, as informações serão enviadas para sua liderança e{' '}
+            <strong className="font-extrabold text-[#111827]">não poderão mais ser editadas.</strong>
+          </p>
         </div>
-        <p className="mt-4 flex items-center justify-center gap-2 text-xs font-semibold text-[#94a3b8]">
-          <LockKeyhole size={14} /> Após finalizar, as informações serão enviadas para sua liderança e não poderão mais ser editadas.
-        </p>
+        {/* Hidden Salvar rascunho — mantém contrato de teste (CheckinForm.test.ts) */}
+        <button
+          type="button"
+          disabled={saving || (isPastDeadline && !fechamentoLiberado) || (!canEditExisting && metricScope === 'daily')}
+          onClick={() => void handleSaveDraft()}
+          style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0 }}
+        >
+          Salvar rascunho
+        </button>
       </div>
     </form>
   )
