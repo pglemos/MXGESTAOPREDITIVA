@@ -120,6 +120,35 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
     })
   }
 
+  // Inline edit drafts for the expanded row (Data novo agendamento / Motivo da perda / Observações)
+  type InlineDraft = { dataNovoAgendamento: string; motivoPerda: string; observacoes: string }
+  const [inlineDrafts, setInlineDrafts] = useState<Record<string, InlineDraft>>({})
+
+  const getInlineDraft = (row: ClienteRow): InlineDraft =>
+    inlineDrafts[row.id] ?? {
+      dataNovoAgendamento: row.dataNovoAgendamento || '',
+      motivoPerda: row.motivoPerda || '',
+      observacoes: row.observacoes || '',
+    }
+
+  const updateInlineDraft = (row: ClienteRow, patch: Partial<InlineDraft>) => {
+    setInlineDrafts(prev => ({
+      ...prev,
+      [row.id]: { ...getInlineDraft(row), ...patch },
+    }))
+  }
+
+  const handleSaveInline = (row: ClienteRow) => {
+    const draft = getInlineDraft(row)
+    saveLocalCliente({ ...row, ...draft })
+    setInlineDrafts(prev => {
+      const next = { ...prev }
+      delete next[row.id]
+      return next
+    })
+    toast.success('Agendamento atualizado.')
+  }
+
   // Real-time Phone Mask
   const handlePhoneChange = (val: string) => {
     const digits = val.replace(/\D/g, '')
@@ -526,38 +555,76 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
                           </div>
                         </td>
                       </tr>
-                      {isExpanded && (
-                        <tr className="bg-[#f8fafc]/40 border-t border-[#eef2f7]" onClick={e => e.stopPropagation()}>
-                          <td colSpan={12} className="px-6 py-4 text-xs leading-relaxed text-[#475569]">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white/65 p-4 rounded-xl border border-[#e5eaf2] shadow-sm">
-                              <div>
-                                <span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#94a3b8]">
-                                  Data do novo agendamento
-                                </span>
-                                <span className="font-semibold text-[#111827]">
-                                  {row.dataNovoAgendamento ? row.dataNovoAgendamento.split('-').reverse().join('/') : '—'}
-                                </span>
+                      {isExpanded && (() => {
+                        const draft = getInlineDraft(row)
+                        return (
+                          <tr className="bg-[#f8fafc]/40 border-t border-[#eef2f7]" onClick={e => e.stopPropagation()}>
+                            <td colSpan={12} className="px-6 py-4 text-xs leading-relaxed text-[#475569]">
+                              <div className="flex flex-wrap items-end gap-4 bg-white/65 p-4 rounded-xl border border-[#e5eaf2] shadow-sm">
+                                <div className="flex flex-col gap-1.5 min-w-[200px]">
+                                  <label
+                                    htmlFor={`inline-data-${row.id}`}
+                                    className="text-[10px] font-extrabold uppercase tracking-wider text-[#94a3b8]"
+                                  >
+                                    Data do novo agendamento
+                                  </label>
+                                  <input
+                                    id={`inline-data-${row.id}`}
+                                    type="datetime-local"
+                                    value={draft.dataNovoAgendamento}
+                                    onChange={event => updateInlineDraft(row, { dataNovoAgendamento: event.target.value })}
+                                    className="h-10 rounded-lg border border-[#e5eaf2] bg-white px-3 text-[13px] font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                                  />
+                                </div>
+                                <div className="flex flex-col gap-1.5 min-w-[200px]">
+                                  <label
+                                    htmlFor={`inline-motivo-${row.id}`}
+                                    className="text-[10px] font-extrabold uppercase tracking-wider text-[#94a3b8]"
+                                  >
+                                    Motivo da perda
+                                  </label>
+                                  <div className="relative">
+                                    <select
+                                      id={`inline-motivo-${row.id}`}
+                                      value={draft.motivoPerda}
+                                      onChange={event => updateInlineDraft(row, { motivoPerda: event.target.value })}
+                                      className="h-10 w-full appearance-none rounded-lg border border-[#e5eaf2] bg-white px-3 pr-9 text-[13px] font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                                    >
+                                      <option value="">Não selecionado</option>
+                                      <option value="Não compareceu">Não compareceu</option>
+                                      <option value="Preço/Condição">Preço/Condição</option>
+                                      <option value="Comprou em outra marca">Comprou em outra marca</option>
+                                      <option value="Desistiu da compra">Desistiu da compra</option>
+                                      <option value="Falta de estoque">Falta de estoque</option>
+                                      <option value="Outro">Outro</option>
+                                    </select>
+                                    <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none" />
+                                  </div>
+                                </div>
+                                <div className="flex flex-1 flex-col gap-1.5 min-w-[220px]">
+                                  <label
+                                    htmlFor={`inline-obs-${row.id}`}
+                                    className="text-[10px] font-extrabold uppercase tracking-wider text-[#94a3b8]"
+                                  >
+                                    Observações
+                                  </label>
+                                  <input
+                                    id={`inline-obs-${row.id}`}
+                                    type="text"
+                                    value={draft.observacoes}
+                                    onChange={event => updateInlineDraft(row, { observacoes: event.target.value })}
+                                    placeholder="Ex: Cliente ficou de avaliar o usado e retornar."
+                                    className="h-10 w-full rounded-lg border border-[#e5eaf2] bg-white px-3 text-[13px] font-semibold text-[#111827] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                                  />
+                                </div>
+                                <Button type="button" onClick={() => handleSaveInline(row)} className="h-10 shrink-0">
+                                  Salvar
+                                </Button>
                               </div>
-                              <div>
-                                <span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#94a3b8]">
-                                  Motivo da perda
-                                </span>
-                                <span className="font-semibold text-[#ef4444]">
-                                  {row.motivoPerda || '—'}
-                                </span>
-                              </div>
-                              <div>
-                                <span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#94a3b8]">
-                                  Observações
-                                </span>
-                                <p className="font-medium text-[#111827] italic">
-                                  "{row.observacoes || 'Sem observações'}"
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
+                            </td>
+                          </tr>
+                        )
+                      })()}
                     </React.Fragment>
                   )
                 })
