@@ -354,23 +354,23 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
   return (
     <div className="mt-6 grid w-full gap-6 pb-16">
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
-        <Card className="rounded-[18px] border border-[#e5eaf2] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+        <Card className="rounded-[18px] border border-[#dfe7f0] border-l-4 border-l-[#2563eb] bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
           <div className="flex items-center gap-4">
-            <div className="grid h-12 w-12 place-items-center rounded-full bg-[#eff6ff] text-[#2563eb]">
-              <Clock3 size={24} />
+            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-[#061a33] text-[#2563eb]">
+              <Clock3 size={26} />
             </div>
             <div>
-              <Typography variant="h2" className="text-lg font-extrabold text-[#111827]">
+              <Typography variant="h2" className="text-xl font-black text-[#111827]">
                 CORREÇÕES DISPONÍVEIS ATÉ 09:45
               </Typography>
-              <Typography variant="p" className="mt-1 text-sm font-medium text-[#64748b]">
+              <Typography variant="p" className="mt-1 text-sm font-semibold text-[#64748b]">
                 Ajuste apenas informações já registradas no fechamento diário.
               </Typography>
             </div>
           </div>
         </Card>
 
-        <Card className="rounded-[18px] border border-[#e5eaf2] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+        <Card className="rounded-[18px] border border-[#dfe7f0] bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
           <div className="flex items-center gap-3">
             <div className="grid h-10 w-10 place-items-center rounded-full bg-[#ecfdf5] text-[#16a34a]">
               <Clock3 size={20} />
@@ -387,7 +387,7 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
         <div className="space-y-6">
-          <Card className="rounded-[18px] border border-[#e5eaf2] bg-white p-6 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+          <Card className="rounded-[18px] border border-[#dfe7f0] bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
             <Typography variant="h2" className="text-sm font-extrabold uppercase tracking-wider text-[#334155] border-b border-[#eef2f7] pb-3">
               1. Itens para ajuste
             </Typography>
@@ -411,7 +411,7 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
             </div>
           </Card>
 
-          <Card className="rounded-[18px] border border-[#e5eaf2] bg-white p-6 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+          <Card className="rounded-[18px] border border-[#dfe7f0] bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
             <div className="mb-4 flex items-center justify-between border-b border-[#eef2f7] pb-3">
               <Typography variant="h2" className="text-sm font-extrabold uppercase tracking-wider text-[#334155]">
                 2. Detalhamento dos ajustes
@@ -529,7 +529,7 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
             )}
           </Card>
 
-          <Card className="rounded-[18px] border border-[#e5eaf2] bg-white p-6 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+          <Card className="rounded-[18px] border border-[#dfe7f0] bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
             <Typography variant="h2" className="mb-4 text-sm font-extrabold uppercase tracking-wider text-[#334155] border-b border-[#eef2f7] pb-3">
               3. Histórico de ajustes
             </Typography>
@@ -589,7 +589,7 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
         </aside>
       </section>
 
-      <div className="rounded-[18px] border border-[#e5eaf2] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+      <div className="rounded-[18px] border border-[#dfe7f0] bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
         <div className="grid gap-4 md:grid-cols-[0.45fr_1fr]">
           <button
             type="button"
@@ -705,7 +705,7 @@ function AdjustmentSummaryCard({
 
 function RulesCard() {
   return (
-    <Card className="rounded-[18px] border border-[#e5eaf2] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+    <Card className="rounded-[18px] border border-[#dfe7f0] bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
       <header className="mb-4 flex items-center gap-3 border-b border-[#eef2f7] pb-3">
         <div className="grid h-10 w-10 place-items-center rounded-full bg-[#eff6ff] text-[#2563eb]">
           <ShieldCheck size={20} />
@@ -750,7 +750,7 @@ function ImpactCard({
   afterRevenue: number
 }) {
   return (
-    <Card className="rounded-[18px] border border-[#e5eaf2] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+    <Card className="rounded-[18px] border border-[#dfe7f0] bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
       <header className="mb-4 flex items-center gap-3 border-b border-[#eef2f7] pb-3">
         <div className="grid h-10 w-10 place-items-center rounded-full bg-[#eff6ff] text-[#2563eb]">
           <TrendingUp size={20} />

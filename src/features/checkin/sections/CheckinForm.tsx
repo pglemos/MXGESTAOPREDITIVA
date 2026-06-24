@@ -330,16 +330,16 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
           <AnimatePresence>
             {productionZeroActive && (
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }}>
-                <Card className="space-y-mx-sm rounded-mx-xl border border-status-warning bg-status-warning-surface p-mx-md shadow-mx-sm">
-                  <header className="flex items-center gap-mx-sm">
-                    <div className="grid h-mx-xl w-mx-xl place-items-center rounded-mx-md bg-mx-black text-status-warning">
-                      <AlertTriangle size={22} strokeWidth={2} />
+                <Card className="space-y-3 rounded-[16px] border border-[#fcd34d] bg-[#fffbeb] px-5 py-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+                  <header className="flex items-center gap-3">
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-[#061a33] text-[#f59e0b]">
+                      <AlertTriangle size={19} strokeWidth={2} />
                     </div>
                     <div>
-                      <Typography variant="h2" className="text-lg font-semibold">
+                      <Typography variant="h2" className="text-[15px] font-bold text-[#92400e]">
                         Produção Zero
                       </Typography>
-                      <Typography variant="caption" tone="muted" className="mt-1 font-semibold">
+                      <Typography variant="caption" className="mt-0.5 font-semibold text-[#92400e]/70">
                         Justificativa obrigatória MX
                       </Typography>
                     </div>
@@ -355,7 +355,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
                     disabled={isPastDeadline && !fechamentoLiberado}
                     aria-invalid={Boolean(fieldErrors.zero_reason)}
                     aria-describedby={fieldErrors.zero_reason ? 'checkin-error-zero-reason' : undefined}
-                    className="h-mx-12 w-full rounded-mx-lg border border-status-warning/30 bg-white px-mx-md text-sm font-semibold uppercase tracking-wide text-text-primary outline-none focus:border-status-warning"
+                    className="h-11 w-full rounded-xl border border-[#fcd34d] bg-white px-4 text-sm font-semibold uppercase tracking-wide text-[#92400e] outline-none focus:border-[#f59e0b]"
                   >
                     <option value="">Selecione o motivo...</option>
                     {CHECKIN_ZERO_REASONS.map(reason => (
@@ -393,8 +393,8 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
           )}
 
           {(productionZeroActive || mandatoryFeedbackActionsCount > 0) && (
-            <Card className="space-y-mx-xs rounded-mx-xl border border-border-default bg-white p-mx-sm shadow-mx-sm">
-              <label htmlFor="checkin-note" className="block text-sm font-semibold text-text-primary">
+            <Card className="space-y-2 rounded-[16px] border border-[#e5eaf2] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+              <label htmlFor="checkin-note" className="block text-sm font-bold text-[#111827]">
                 Observações Operacionais {productionZeroActive || mandatoryFeedbackActionsCount > 0 ? '(Obrigatório)' : '(Opcional)'}
               </label>
               <Typography variant="p" tone="muted" className="text-xs">
@@ -410,7 +410,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
                 aria-invalid={Boolean(fieldErrors.note)}
                 aria-describedby={fieldErrors.note ? 'checkin-error-note' : undefined}
                 placeholder="Digite suas observações..."
-                className="h-16 w-full resize-none rounded-mx-lg border border-border-default bg-white p-mx-sm text-sm text-text-primary outline-none transition-all placeholder:text-text-tertiary/60 focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5"
+                className="min-h-[76px] w-full resize-none rounded-xl border border-[#e5eaf2] bg-white p-3 text-sm text-[#111827] outline-none transition-all placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
               />
               <div className="flex items-center justify-between">
                 {fieldErrors.note ? (
@@ -434,8 +434,8 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
       {/* Symmetric dashboard blocks: Resumo + Disciplina */}
       <section className="grid w-full max-w-full min-w-0 gap-5 xl:grid-cols-2">
         {/* ── RESUMO DO DIA ANTERIOR ── */}
-        <div className="rounded-[18px] border border-[#e5eaf2] bg-white px-6 py-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] flex flex-col justify-between gap-4">
-          <p className="text-[11px] font-extrabold uppercase tracking-widest text-[#94a3b8]">RESUMO DO DIA ANTERIOR</p>
+        <div className="rounded-[18px] border border-[#dfe7f0] bg-white px-6 py-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] flex flex-col justify-between gap-4">
+          <p className="text-[12px] font-extrabold uppercase tracking-widest text-[#334155]">RESUMO DO DIA ANTERIOR</p>
 
           {/* 4 metrics in a horizontal row with dividers */}
           <div className="flex items-stretch divide-x divide-[#eef2f7]">
@@ -475,7 +475,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
           const trackColor = '#f1f5f9'
           const arcDeg = Math.round(disciplinePercent * 3.6)
           return (
-            <div className="rounded-[18px] border border-[#e5eaf2] bg-white px-6 py-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] flex items-center gap-5">
+            <div className="rounded-[18px] border border-[#dfe7f0] bg-white px-6 py-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] flex items-center gap-5">
               {/* Thick donut ring — matches reference proportions */}
               <div
                 className="relative shrink-0 rounded-full"
@@ -490,10 +490,10 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
                   className="absolute rounded-full bg-white flex flex-col items-center justify-center"
                   style={{ inset: 11 }}
                 >
-                  <span className="text-[19px] font-black leading-none tabular-nums text-[#111827]">
+                  <span className="text-[23px] font-black leading-none tabular-nums text-[#111827]">
                     {disciplinePercent}%
                   </span>
-                  <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#94a3b8] mt-0.5">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#94a3b8] mt-1">
                     SCORE
                   </span>
                 </div>
@@ -743,7 +743,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
       )}
 
       {/* Finalizar Fechamento */}
-      <div className="min-w-0 rounded-[18px] border border-[#e5eaf2] bg-white px-6 py-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] mt-5">
+      <div className="min-w-0 rounded-[18px] border border-[#dfe7f0] bg-white px-6 py-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] mt-5">
         <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6">
           {/* Green pill button */}
           <button
@@ -805,7 +805,7 @@ function MetricGroupCard({
         : 'bg-[#2563eb]'
 
   return (
-    <Card className="min-w-0 overflow-visible rounded-[16px] border border-[#e5eaf2] bg-white p-0 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+    <Card className="min-w-0 overflow-visible rounded-[16px] border border-[#dfe7f0] bg-white p-0 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
       <header className="flex h-12 items-center gap-2 border-b border-[#eef2f7] px-5">
         <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] font-bold text-white ${stepTone}`}>
           {step}
@@ -902,7 +902,7 @@ function MetricCounterCard({
       )}
     >
       <div className="flex items-center gap-1">
-        <span className="text-[12px] font-semibold text-[#94a3b8]">
+        <span className="text-[13px] font-bold text-[#475569]">
           {label}
         </span>
         {crmBadge && (
@@ -951,8 +951,8 @@ function MetricCounterCard({
           <Minus size={13} />
         </button>
 
-        <span className="grid place-items-center text-[11px] font-bold text-[#94a3b8] bg-[#f8fafc]">
-          un.
+        <span className="grid place-items-center text-[14px] font-extrabold tabular-nums text-[#111827] bg-[#f8fafc]">
+          {displayValue}
         </span>
 
         <button

@@ -1,5 +1,5 @@
 import React, { useMemo, useState, type CSSProperties } from 'react'
-import { Star, UserPlus, X, Edit, Trash2, ChevronDown, ChevronUp, AlertCircle, HelpCircle } from 'lucide-react'
+import { Star, UserPlus, X, Edit, Trash2, ChevronDown, ChevronUp, AlertCircle, HelpCircle, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
@@ -417,7 +417,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
         />
       </div>
 
-      <Card className="min-w-0 overflow-hidden rounded-[18px] border border-[#e5eaf2] bg-white shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+      <Card className="min-w-0 overflow-hidden rounded-[18px] border border-[#dfe7f0] bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
         <header className="flex min-w-0 items-center justify-between gap-4 border-b border-[#eef2f7] px-5 py-4">
           <div className="min-w-0 flex items-center gap-2">
             <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold bg-[#1e3a8a] text-white">
@@ -489,8 +489,14 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
             <tbody>
               {clientesList.length === 0 ? (
                 <tr>
-                  <td colSpan={12} className="px-5 py-8 text-center text-[#64748b] font-semibold bg-white">
-                    Nenhum cliente cadastrado para este fechamento. Clique em "+ Novo Cliente" acima.
+                  <td colSpan={12} className="bg-white px-5 py-0">
+                    <div className="flex min-h-[96px] flex-col items-center justify-center gap-1.5 py-6">
+                      <span className="grid h-9 w-9 place-items-center rounded-full bg-[#f1f5f9] text-[#94a3b8]">
+                        <Users size={16} />
+                      </span>
+                      <p className="text-[13px] font-bold text-[#475569]">Nenhum cliente cadastrado ainda</p>
+                      <p className="text-[12px] font-medium text-[#94a3b8]">Clique em "+ Novo Cliente" para registrar a primeira venda ou agendamento.</p>
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -617,7 +623,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
                                     className="h-10 w-full rounded-lg border border-[#e5eaf2] bg-white px-3 text-[13px] font-semibold text-[#111827] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
                                   />
                                 </div>
-                                <Button type="button" onClick={() => handleSaveInline(row)} className="h-10 shrink-0">
+                                <Button type="button" onClick={() => handleSaveInline(row)} className="h-10 shrink-0 bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow-none">
                                   Salvar
                                 </Button>
                               </div>
