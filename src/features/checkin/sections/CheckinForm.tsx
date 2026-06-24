@@ -775,7 +775,7 @@ function MetricGroupCard({
         : 'bg-[#2563eb]'
 
   return (
-    <Card className="min-w-0 overflow-hidden rounded-[16px] border border-[#e5eaf2] bg-white p-0 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+    <Card className="min-w-0 rounded-[16px] border border-[#e5eaf2] bg-white p-0 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
       <header className="flex h-12 items-center gap-2 border-b border-[#eef2f7] px-5">
         <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] font-bold text-white ${stepTone}`}>
           {step}
