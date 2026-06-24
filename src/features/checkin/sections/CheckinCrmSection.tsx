@@ -260,10 +260,10 @@ export function CheckinCrmSection() {
         <header className="mb-mx-md flex flex-col gap-mx-sm sm:flex-row sm:items-start sm:justify-between">
           <div>
             <Typography variant="h2" className="text-base font-semibold uppercase tracking-normal">
-              5. Enriquecer Carteira <span className="text-status-success">(Opcional)</span>
+              4. Cadastrar Venda/Agendamentos
             </Typography>
             <Typography variant="p" tone="muted" className="mt-mx-xs text-xs">
-              Enriqueça sua carteira com novos clientes e mantenha seu funil sempre ativo.
+              Preencha suas vendas e seus agendamentos para enriquecer suas informações.
             </Typography>
           </div>
           <Button type="button" onClick={() => setDrawerOpen(true)} className="w-fit">

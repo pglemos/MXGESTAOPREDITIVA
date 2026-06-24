@@ -23,7 +23,6 @@ import { Typography } from '@/components/atoms/Typography'
 import { CHECKIN_MAX_INPUT_VALUE, CHECKIN_ZERO_REASONS } from '@/hooks/useCheckins'
 import { CheckinValidationBanner } from './CheckinValidationBanner'
 import { CheckinSuccessSection } from './CheckinSuccessSection'
-import { CheckinSidebar } from './CheckinSidebar'
 import { CheckinCrmSection } from './CheckinCrmSection'
 import type { CheckinPageContext, NumericCheckinField } from '../hooks/useCheckinPage'
 
@@ -76,6 +75,8 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
     handleSaveDraft,
     crmDerived,
     historicalCheckin,
+    isLate,
+    deadlineMessage,
   } = ctx
 
   const useReferenceValues = allZero && changedFields.size === 0 && !historicalCheckin
@@ -99,11 +100,9 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
   ].filter(Boolean) as string[]
   const pendingItems = [
     display.leads === 0 ? 'Enriquecer carteira' : null,
-    !form.note.trim() ? 'Observações operacionais' : null,
     mandatoryFeedbackActionsCount > 0 ? 'Feedback obrigatório' : null,
   ].filter(Boolean) as string[]
   const disciplinePercent = useReferenceValues ? 70 : Math.round((completedItems.length / 4) * 100)
-  const sidebarFeedbackCount = useReferenceValues ? 2 : mandatoryFeedbackActionsCount
 
   const counterProps = {
     form,
@@ -194,39 +193,8 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
         </MetricGroupCard>
       </section>
 
-      <section className="grid gap-mx-md xl:grid-cols-[minmax(0,1fr)_330px]">
+      <section className="grid w-full min-w-0 gap-mx-md">
         <div className="space-y-mx-md">
-          <Card className="rounded-mx-xl border border-border-default bg-white p-mx-sm shadow-mx-sm">
-            <Typography variant="h2" className="text-sm font-semibold uppercase tracking-normal">
-              4. Vendas Realizadas
-            </Typography>
-            <div className="mt-mx-sm grid gap-mx-sm lg:grid-cols-[1fr_1fr_1fr_180px]">
-              <MetricCounterCard label="Porta" field="vnd_porta" icon={Store} tone="warning" {...counterProps} />
-              <MetricCounterCard label="Carteira" field="vnd_cart" icon={Users} tone="success" {...counterProps} />
-              <MetricCounterCard label="Internet" field="vnd_net" icon={Globe} tone="info" {...counterProps} />
-              <div className="flex min-h-[116px] flex-col items-center justify-center rounded-mx-xl bg-white px-mx-sm text-center">
-                <Typography variant="caption" tone="muted" className="uppercase tracking-mx-wider">
-                  Sell-out total
-                </Typography>
-                <span className="mt-mx-xs text-4xl font-semibold leading-none text-status-success tabular-nums">
-                  {display.vendas}
-                </span>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="rounded-mx-lg border border-status-info/30 bg-white px-mx-md py-mx-xs shadow-none">
-            <div className="flex items-center gap-mx-sm">
-              <AlertTriangle size={18} className="shrink-0 text-status-info" />
-              <Typography variant="caption" className="font-semibold uppercase tracking-mx-wider">
-                Regra de produção zero
-              </Typography>
-              <Typography variant="p" tone="muted" className="text-sm">
-                Se leads, visitas, agendamentos e vendas ficarem zerados, o motivo passa a ser obrigatório.
-              </Typography>
-            </div>
-          </Card>
-
           <AnimatePresence>
             {productionZeroActive && (
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }}>
@@ -291,6 +259,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
             </Card>
           )}
 
+            {(productionZeroActive || mandatoryFeedbackActionsCount > 0) && (
             <Card className="space-y-mx-xs rounded-mx-xl border border-border-default bg-white p-mx-sm shadow-mx-sm">
             <label htmlFor="checkin-note" className="block text-sm font-semibold text-text-primary">
                     Observações Operacionais {productionZeroActive || mandatoryFeedbackActionsCount > 0 ? '(Obrigatório)' : '(Opcional)'}
@@ -322,22 +291,16 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
               </Typography>
             </div>
           </Card>
+          )}
 
           <CheckinSuccessSection saveNotice={saveNotice} onHome={() => navigate('/home')} />
         </div>
-
-        <CheckinSidebar
-          totalsVnd={display.vendas}
-          tomorrowActions={useReferenceValues ? 7 : totalsAgd}
-          pendingReturns={useReferenceValues ? 3 : undefined}
-          mandatoryFeedbackActionsCount={sidebarFeedbackCount}
-        />
       </section>
 
-<section className="grid w-full max-w-full min-w-0 gap-mx-md xl:grid-cols-[1.2fr_1.2fr_0.8fr]">
+<section className="grid w-full max-w-full min-w-0 gap-mx-md xl:grid-cols-2">
         <Card className="rounded-mx-xl border border-border-default bg-white p-mx-sm shadow-mx-sm">
           <Typography variant="h2" className="text-base font-semibold">
-            Resumo do Dia
+            Resumo do Dia Anterior
           </Typography>
           <div className="mt-mx-sm grid grid-cols-5 gap-mx-xs">
             <ResumoItem label="Leads Recebidos" value={String(display.leads)} icon={Users} />
@@ -394,22 +357,28 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
             </div>
           </div>
         </Card>
-
-        <Card className="rounded-mx-xl border border-border-default bg-white p-mx-sm text-center shadow-mx-sm">
-          <MessageSquare size={24} className="mx-auto text-status-warning" />
-          <Typography variant="h3" className="mt-mx-sm text-base font-semibold">
-            Dica do Dia
-          </Typography>
-          <Typography variant="p" tone="muted" className="mt-mx-sm text-sm italic">
-            "O sucesso e a soma de pequenos esforcos repetidos dia apos dia."
-          </Typography>
-          <Typography variant="p" tone="muted" className="mt-mx-sm text-xs">
-            Mantenha o ritmo e a disciplina. Voce esta no caminho certo!
-          </Typography>
-        </Card>
       </section>
 
-<div className="min-w-0 rounded-mx-xl border border-border-default bg-white p-mx-sm shadow-mx-sm">
+{isLate && (
+        <div className="rounded-mx-xl border border-status-error/30 bg-status-error-surface p-mx-md shadow-mx-sm">
+          <div className="flex items-start gap-mx-sm">
+            <AlertTriangle size={18} className="mt-0.5 shrink-0 text-status-error" />
+            <Typography variant="p" className="text-sm font-semibold text-status-error">
+              {deadlineMessage || 'Prazo encerrado. Solicite liberação ao seu gerente para finalizar este fechamento.'}
+            </Typography>
+          </div>
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent('Preciso de liberação para finalizar meu Fechamento Diário (prazo encerrado).')}`}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-mx-sm inline-flex h-mx-11 items-center justify-center gap-mx-xs rounded-mx-lg bg-status-success px-mx-md text-sm font-semibold text-white transition-colors hover:opacity-90"
+          >
+            <MessageSquare size={16} /> Avisar gerente no WhatsApp
+          </a>
+        </div>
+      )}
+
+      <div className="min-w-0 rounded-mx-xl border border-border-default bg-white p-mx-sm shadow-mx-sm">
 <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-mx-md md:grid-cols-[0.45fr_1fr]">
           <Button type="button" variant="outline" disabled={saving || (!canEditExisting && metricScope === 'daily')} onClick={() => void handleSaveDraft()} className="h-mx-14 w-full max-w-full">
             <Save size={18} /> Salvar rascunho
