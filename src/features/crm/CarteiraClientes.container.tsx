@@ -301,10 +301,10 @@ export function CarteiraClientes() {
           </Card>
         </section>
 
-        <div className={cn('grid grid-cols-1 gap-mx-xs', selectedCliente && 'xl:grid-cols-[minmax(0,1fr)_440px] 2xl:grid-cols-[minmax(0,1fr)_610px] xl:items-start')}>
+        <div className={cn('grid grid-cols-1 gap-mx-xs', selectedCliente && 'xl:grid-cols-[minmax(0,1fr)_440px] xl:items-start')}>
           <section className="min-w-0 space-y-mx-xs">
             <Card className="rounded-mx-xl border border-border-subtle bg-white p-mx-sm shadow-mx-sm">
-              <div className="grid grid-cols-1 gap-mx-xs md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-[170px_170px_190px_170px_minmax(260px,1fr)_150px]">
+              <div className="grid grid-cols-1 gap-mx-xs md:grid-cols-2 xl:grid-cols-4">
                 <FilterSelect label="Origem" value={canalFilter} onChange={value => setCanalFilter(value as CrmCanal | 'todos')}>
                   <option value="todos">Todos</option>
                   {CRM_CANAIS.map(canal => <option key={canal} value={canal}>{CRM_CANAL_LABEL[canal]}</option>)}
@@ -324,7 +324,7 @@ export function CarteiraClientes() {
                   <option value="todos">Todos</option>
                   {CRM_CLIENTE_STATUS.map(status => <option key={status} value={status}>{STATUS_CLIENTE_LABEL[status] || CRM_CLIENTE_STATUS_LABEL[status]}</option>)}
                 </FilterSelect>
-                <label className="block min-w-0 xl:col-span-3 2xl:col-span-1">
+                <label className="block min-w-0 xl:col-span-3">
                   <Typography variant="caption" tone="muted" className="mb-mx-xs block uppercase tracking-normal">Buscar</Typography>
                   <span className="relative block">
                     <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
@@ -380,7 +380,7 @@ export function CarteiraClientes() {
                     description={carteiraClientes.length === 0 ? 'Adicione seu primeiro cliente para iniciar cadência e próxima ação.' : 'Ajuste a busca ou os filtros.'}
                   />
                 ) : (
-                <table className="w-full min-w-[1120px] text-left text-xs xl:min-w-[1380px] 2xl:min-w-[1500px]">
+                <table className="w-full min-w-[1120px] text-left text-xs xl:min-w-[1380px]">
                     <thead>
                       <tr className="border-y border-border-subtle bg-surface-alt/40 text-[10px] uppercase tracking-normal text-text-muted">
                         <th scope="col" className="px-mx-sm py-mx-xs font-bold">Cliente</th>
@@ -800,14 +800,14 @@ function FluxoClientePanel({
             </Button>
           </div>
         </div>
-        <div className="rounded-mx-lg border border-border-subtle bg-surface-alt p-mx-sm 2xl:col-span-2">
+<div className="rounded-mx-lg border border-border-subtle bg-surface-alt p-mx-sm">
           <div className="flex items-center justify-between gap-mx-sm">
             <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-normal">Script sugerido</Typography>
             <Button variant="ghost" size="icon" aria-label="Copiar script" onClick={copiarScript}><Copy size={14} /></Button>
           </div>
           <Typography variant="p" className="mt-mx-tiny text-sm italic text-text-secondary">"{script}"</Typography>
         </div>
-        <div className="grid grid-cols-1 gap-mx-sm 2xl:col-span-2 2xl:grid-cols-2">
+<div className="grid grid-cols-1 gap-mx-sm">
           <div className="rounded-mx-lg border border-border-subtle bg-white p-mx-sm">
             <div className="flex items-center justify-between gap-mx-sm">
               <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-normal">Histórico de interações</Typography>
