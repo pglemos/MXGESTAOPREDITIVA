@@ -899,13 +899,14 @@ function MetricCounterCard({
         onBlur={handleBlur}
         onWheel={handleWheel}
         className="
-          h-10 w-full bg-transparent text-center
-          text-[30px] font-extrabold leading-none text-[#111827]
-          outline-none tabular-nums
+          h-11 w-24 rounded-xl border border-[#e5eaf2] bg-[#f8fafc] text-center
+          text-[26px] font-extrabold leading-none text-[#111827]
+          outline-none tabular-nums cursor-text transition-all
           [appearance:textfield]
           [&::-webkit-inner-spin-button]:appearance-none
           [&::-webkit-outer-spin-button]:appearance-none
-          focus:ring-2 focus:ring-[#2563eb]/10 focus:border-[#2563eb]/20 rounded-lg
+          hover:border-[#2563eb]/30 hover:bg-[#f1f5f9]
+          focus:border-[#2563eb] focus:bg-white focus:ring-4 focus:ring-[#2563eb]/10
         "
       />
 
