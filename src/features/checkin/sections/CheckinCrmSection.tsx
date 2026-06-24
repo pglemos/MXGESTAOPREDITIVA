@@ -69,6 +69,16 @@ const parseCurrencyToNumber = (val: string): number => {
   return Number(clean) || 0
 }
 
+// Real-time BRL mask: user types only digits, last 2 are cents
+const formatCurrencyLive = (raw: string): string => {
+  const digits = raw.replace(/\D/g, '')
+  if (!digits) return ''
+  return (Number(digits) / 100).toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  })
+}
+
 export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
   const { clientes, createCliente, updateCliente, deleteCliente } = useClientes()
   const { createOportunidade, updateEtapa, deleteOportunidade } = useOportunidades()
@@ -173,8 +183,8 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
     setCanal(row.canal.toLowerCase() as CrmCanal)
     setVeiculo(row.veiculoInteresse)
     setTipoVeiculo('carro') // default or mapped from DB
-    setValor(row.valorNegociado ? String(row.valorNegociado) : '')
-    setSinal(row.sinal ? String(row.sinal) : '')
+    setValor(row.valorNegociado ? formatMoney(row.valorNegociado) : '')
+    setSinal(row.sinal ? formatMoney(row.sinal) : '')
     setFinanciamento(row.financiamento === 'Aprovado' ? 'aprovado' : row.financiamento === 'Recusado' ? 'reprovado' : 'nao_aplica')
     setCarroAvaliado(row.carroAvaliado === 'Sim' ? 'sim' : 'nao')
     setCompareceu(row.compareceu || 'Sim')
@@ -834,8 +844,9 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
                   </span>
                   <input
                     type="text"
+                    inputMode="numeric"
                     value={valor}
-                    onChange={event => setValor(event.target.value)}
+                    onChange={event => setValor(formatCurrencyLive(event.target.value))}
                     placeholder="R$ 68.900,00"
                     required={vendaRealizada === 'Sim'}
                     aria-hidden="true"
@@ -925,8 +936,9 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
                   </span>
                   <input
                     type="text"
+                    inputMode="numeric"
                     value={sinal}
-                    onChange={event => setSinal(event.target.value)}
+                    onChange={event => setSinal(formatCurrencyLive(event.target.value))}
                     placeholder="R$ 1.000,00"
                     aria-hidden="true"
                     className="h-11 w-full rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
