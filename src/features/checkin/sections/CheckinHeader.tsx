@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { CalendarDays, History, Info } from 'lucide-react'
 
 import { Typography } from '@/components/atoms/Typography'
@@ -25,6 +26,7 @@ export function CheckinHeader({
   canEditExisting,
   deadlineMessage,
 }: CheckinHeaderProps) {
+  const [infoOpen, setInfoOpen] = useState(false)
   const statusText =
     metricScope === 'adjustment'
       ? 'NO PRAZO. EDIÇÃO BLOQUEIA EM 09:45.'
@@ -53,9 +55,26 @@ export function CheckinHeader({
           <div className="grid h-8 place-items-center whitespace-nowrap rounded-mx-full border border-brand-primary/15 bg-brand-primary px-mx-sm text-[11px] font-semibold uppercase text-white shadow-mx-xs">
             {metricScope === 'adjustment' ? 'Correções até 09:45' : `Até ${CHECKIN_DEADLINE_LABEL}`}
           </div>
-          <div className="flex h-8 min-w-0 items-center gap-mx-xs rounded-mx-full border border-brand-primary/20 bg-status-success-surface px-mx-sm text-[11px] font-semibold uppercase text-brand-primary">
-            {statusText}
-            <Info size={13} />
+          <div className="relative">
+            <button
+              type="button"
+              className="flex h-8 min-w-0 items-center gap-mx-xs rounded-mx-full border border-brand-primary/20 bg-status-success-surface px-mx-sm text-[11px] font-semibold uppercase text-brand-primary"
+              aria-expanded={infoOpen}
+              aria-controls="checkin-status-info"
+              onClick={() => setInfoOpen(current => !current)}
+            >
+              {statusText}
+              <Info size={13} />
+            </button>
+            {infoOpen && (
+              <div
+                id="checkin-status-info"
+                role="status"
+                className="absolute right-0 top-10 z-20 w-64 rounded-mx-lg border border-border-default bg-white p-mx-sm text-xs font-medium normal-case leading-relaxed text-text-secondary shadow-mx-lg"
+              >
+                Status do prazo de edição. Finalize até o horário limite ou solicite liberação ao gerente quando o prazo estiver bloqueado.
+              </div>
+            )}
           </div>
           <button
             type="button"

@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react'
+import { useState } from 'react'
 import {
   AlertTriangle,
   CalendarClock,
@@ -53,6 +54,7 @@ const BRL = (value: number) =>
   value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
 
 export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
+  const [disciplineModalOpen, setDisciplineModalOpen] = useState(false)
   const {
     form,
     saving,
@@ -350,7 +352,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
                     </li>
                   ))}
                 </ul>
-                <Button type="button" variant="ghost" size="sm" className="mt-mx-sm">
+                <Button type="button" variant="ghost" size="sm" className="mt-mx-sm" onClick={() => setDisciplineModalOpen(true)}>
                   Ver disciplina completa
                 </Button>
               </div>
@@ -375,6 +377,46 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
           >
             <MessageSquare size={16} /> Avisar gerente no WhatsApp
           </a>
+        </div>
+      )}
+
+      {disciplineModalOpen && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-mx-black/35 p-mx-md" role="dialog" aria-modal="true" aria-label="Detalhes da disciplina">
+          <div className="w-full max-w-md rounded-mx-xl border border-border-default bg-white p-mx-lg shadow-mx-2xl">
+            <Typography variant="h2" className="text-lg font-semibold">
+              Disciplina do Fechamento
+            </Typography>
+            <div className="mt-mx-md h-3 overflow-hidden rounded-mx-full bg-border-subtle">
+              <div className="h-full rounded-mx-full bg-status-warning" style={{ width: `${disciplinePercent}%` }} />
+            </div>
+            <div className="mt-mx-sm text-sm font-semibold text-text-primary">{disciplinePercent}% concluído</div>
+            <ul className="mt-mx-md space-y-mx-sm text-sm text-text-secondary">
+              <li className="flex items-center gap-mx-xs">
+                <CheckCircle2 size={16} className="text-status-success" /> Preenchimento das quantidades (70%)
+              </li>
+              <li className="flex items-center gap-mx-xs">
+                <span className="h-4 w-4 rounded-mx-full border border-border-strong" /> Detalhamento dos agendamentos no sistema (0/30%)
+              </li>
+            </ul>
+            <div className="mt-mx-lg grid gap-mx-sm sm:grid-cols-2">
+              <Button type="button" variant="outline" onClick={() => setDisciplineModalOpen(false)}>
+                Fechar
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  setDisciplineModalOpen(false)
+                  requestAnimationFrame(() => {
+                    const target = document.getElementById('checkin-new-client-button')
+                    target?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                    target?.focus()
+                  })
+                }}
+              >
+                Detalhar Agendamentos Agora
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 

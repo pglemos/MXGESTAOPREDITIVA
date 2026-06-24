@@ -7,7 +7,7 @@ import { Select } from '@/components/atoms/Select'
 import { FormField } from '@/components/molecules/FormField'
 import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
-import { useClientes } from '@/features/crm/hooks/useClientes'
+import { useClientes, type ClienteInput } from '@/features/crm/hooks/useClientes'
 import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
 import {
   CRM_CANAL_LABEL,
@@ -24,6 +24,7 @@ import {
 type NegociacaoStatus = 'em_andamento' | 'ganho' | 'perdido'
 
 interface ClienteLike {
+  id?: string
   nome?: string
   telefone?: string | null
   canal_origem?: CrmCanal | null
@@ -94,10 +95,19 @@ const formatMoney = (value: number | null) =>
         minimumFractionDigits: 2,
       })
 
+const phoneDigits = (value?: string | null) => (value || '').replace(/\D/g, '')
+
+const formatPhone = (value?: string | null) => {
+  const digits = phoneDigits(value)
+  if (digits.length === 11) return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
+  if (digits.length === 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`
+  return value?.trim() || '(00) 00000-0000'
+}
+
 const toClosedAt = (dateOnly: string) => `${dateOnly}T12:00:00-03:00`
 
 export function CheckinCrmSection() {
-  const { clientes, createCliente } = useClientes()
+  const { clientes, createCliente, updateCliente } = useClientes()
   const { createOportunidade } = useOportunidades()
 
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -124,7 +134,7 @@ export function CheckinCrmSection() {
       const valorCliente = Number(cliente.potencial_negocio || 0)
       return {
         nome: cliente.nome || `Cliente ${index + 1}`,
-        telefone: cliente.telefone || '(00) 00000-0000',
+        telefone: formatPhone(cliente.telefone),
         canal: CRM_CANAL_LABEL[canalRow] as CarteiraRow['canal'],
         veiculo: 'Veiculo de interesse',
         valorNegociado: valorCliente > 0 ? valorCliente : null,
@@ -174,13 +184,20 @@ export function CheckinCrmSection() {
     }
 
     setSaving(true)
-    const { error, id } = await createCliente({
+    const normalizedTelefone = phoneDigits(telefone)
+    const existingCliente = normalizedTelefone
+      ? (clientes as ClienteLike[]).find(cliente => phoneDigits(cliente.telefone) === normalizedTelefone)
+      : null
+    const clientePayload: ClienteInput = {
       nome: nome.trim(),
       telefone: telefone.trim() || null,
       canal_origem: canal || null,
       status: criaOportunidade ? 'oportunidade' : 'aguardando_contato',
       potencial_negocio: Number(valor) || 0,
-    })
+    }
+    const { error, id } = existingCliente?.id
+      ? { ...(await updateCliente(existingCliente.id, clientePayload)), id: existingCliente.id }
+      : await createCliente(clientePayload)
 
     if (error) {
       setSaving(false)
@@ -212,7 +229,7 @@ export function CheckinCrmSection() {
     }
 
     setSaving(false)
-    toast.success('Cliente cadastrado na carteira.')
+      toast.success(existingCliente ? 'Cliente atualizado na carteira.' : 'Cliente cadastrado na carteira.')
     setDrawerOpen(false)
     setNome('')
     setTelefone('')
@@ -240,13 +257,13 @@ export function CheckinCrmSection() {
               Preencha suas vendas e seus agendamentos para enriquecer suas informações.
             </Typography>
           </div>
-          <Button type="button" onClick={() => setDrawerOpen(true)} className="h-8 w-fit shrink-0 px-mx-sm text-[11px]">
+          <Button id="checkin-new-client-button" type="button" onClick={() => setDrawerOpen(true)} className="h-8 w-fit shrink-0 px-mx-sm text-[11px]">
             <UserPlus size={14} /> + Novo Cliente
           </Button>
         </header>
 
-        <div className="max-w-full overflow-x-auto">
-          <table className="w-full min-w-[860px] table-fixed text-left text-[11px]">
+          <div className="max-w-full overflow-x-auto">
+            <table className="w-full min-w-[860px] table-fixed text-left text-[11px]">
             <colgroup>
               <col className="w-[11%]" />
               <col className="w-[11%]" />
@@ -273,7 +290,13 @@ export function CheckinCrmSection() {
                   'Sinal',
                   'Financ.',
                 ].map(column => (
-                  <th scope="col" key={column} className="px-mx-sm py-1.5 font-semibold">
+                  <th
+                    scope="col"
+                    key={column}
+                    className={`px-mx-sm py-1.5 font-semibold ${
+                      column === 'Nome' ? 'sticky left-0 z-10 bg-surface-alt shadow-[6px_0_10px_-10px_rgba(15,23,42,0.55)]' : ''
+                    }`}
+                  >
                     {column}
                   </th>
                 ))}
@@ -282,8 +305,10 @@ export function CheckinCrmSection() {
             <tbody>
               {carteiraRows.map((row, index) => (
                 <tr key={`${row.nome}-${row.telefone}-${index}`} className="h-8 border-t border-border-subtle">
-                  <td className="whitespace-nowrap px-mx-sm py-1.5 font-medium text-text-primary">{row.nome}</td>
-                  <td className="whitespace-nowrap px-mx-sm py-1.5">{row.telefone}</td>
+                  <td className="sticky left-0 z-10 whitespace-nowrap bg-white px-mx-sm py-1.5 font-medium text-text-primary shadow-[6px_0_10px_-10px_rgba(15,23,42,0.55)]">
+                    {row.nome}
+                  </td>
+                  <td className="whitespace-nowrap px-mx-sm py-1.5">{formatPhone(row.telefone)}</td>
                   <td className="whitespace-nowrap px-mx-sm py-1.5">{row.veiculo}</td>
                   <td className="whitespace-nowrap px-mx-sm py-1.5 font-semibold text-text-primary">{formatMoney(row.valorNegociado)}</td>
                   <td className="whitespace-nowrap px-mx-sm py-1.5">{row.dataAgendamento}</td>
@@ -350,9 +375,9 @@ export function CheckinCrmSection() {
                   </option>
                 ))}
               </select>
-              <FormField label="Nome do cliente" value={nome} onChange={event => setNome(event.target.value)} placeholder="Nome" />
-              <FormField label="Telefone" value={telefone} onChange={event => setTelefone(event.target.value)} placeholder="(00) 00000-0000" />
-              <Select label="Canal" value={canal} onChange={event => setCanal(event.target.value as CrmCanal | '')}>
+                <FormField label="Nome do cliente" value={nome} onChange={event => setNome(event.target.value)} placeholder="Nome" required />
+                <FormField label="Telefone" value={telefone} onChange={event => setTelefone(event.target.value)} placeholder="(00) 00000-0000" required />
+                <Select label="Canal" value={canal} onChange={event => setCanal(event.target.value as CrmCanal | '')} required>
                 <option value="">Selecione</option>
                 {CRM_VISIBLE_CANAIS.map(item => (
                   <option key={item} value={item}>
@@ -369,7 +394,14 @@ export function CheckinCrmSection() {
                   </option>
                 ))}
               </Select>
-              <FormField label="Valor negociado" type="number" value={valor} onChange={event => setValor(event.target.value)} placeholder="0" />
+                <FormField
+                  label="Valor negociado"
+                  type="number"
+                  value={valor}
+                  onChange={event => setValor(event.target.value)}
+                  placeholder="0"
+                  required={negociacaoStatus === 'ganho'}
+                />
               <FormField label="Sinal" type="number" value={sinal} onChange={event => setSinal(event.target.value)} placeholder="0" />
               <Select label="Financiamento" value={financiamento} onChange={event => setFinanciamento(event.target.value as CrmFinanciamento)}>
                 {CRM_FINANCIAMENTO.map(item => (
@@ -387,10 +419,10 @@ export function CheckinCrmSection() {
                 <option value="ganho">Sim</option>
                 <option value="perdido">Perdido</option>
               </Select>
-              <FormField label="Data venda/perda" type="date" value={dataFechamento} onChange={event => setDataFechamento(event.target.value)} />
-              {negociacaoStatus === 'perdido' && (
-                <FormField label="Motivo da perda" value={motivoPerda} onChange={event => setMotivoPerda(event.target.value)} placeholder="Motivo" />
-              )}
+                <FormField label="Data venda/perda" type="date" value={dataFechamento} onChange={event => setDataFechamento(event.target.value)} required={negociacaoStatus !== 'em_andamento'} />
+                {negociacaoStatus === 'perdido' && (
+                  <FormField label="Motivo da perda" value={motivoPerda} onChange={event => setMotivoPerda(event.target.value)} placeholder="Motivo" required />
+                )}
             </div>
 
             <div className="mt-mx-lg flex justify-end gap-mx-sm">
