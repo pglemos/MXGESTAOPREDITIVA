@@ -85,3 +85,13 @@ Refatoração completa do Fechamento Diário (Terminal MX) para atender às nova
 - `src/features/checkin/sections/CheckinHeader.tsx` (Drawer de Histórico de Fechamento com vendas e regularizações)
 - `src/pages/LiberacaoFechamento.tsx` (Cockpit seguro de liberação para perfis de gerente, supervisor, administrador e dono)
 - `src/App.tsx` (Nova rota associada)
+
+### Refinamentos e Melhorias Solicitadas (2026-06-25)
+Novas melhorias de UI/UX e simplificações funcionais aplicadas de acordo com as observações do vendedor:
+- [x] **Renomeação de Agendamento D+1**: Renomeado visualmente para **Agendamento para Amanhã** (ou *Agend. p/ Amanhã*) em todos os informativos, cards, modais e tooltips da tela.
+- [x] **Sinalização Dinâmica de Ontem**: O indicador de data exibe a palavra **"Ontem"** quando a referência operacional ativa for o dia anterior, melhorando o senso temporal.
+- [x] **Aviso de Fechamento Pendente Interativo**: Banner de aviso sobre fechamento anterior pendente agora conta com um botão/link direto ("Clique aqui para regularizar no Histórico") para abrir o modal de Histórico.
+- [x] **Barra de Progresso por Pilar**: Inclusão de uma barra de progresso premium, dividida em 4 segmentos que representam os pilares (**Leads, Atendimentos, Agend. Amanhã, Vendas**), que acendem de acordo com o preenchimento diário (filled vs empty).
+- [x] **Remoção da Aba Ajuste Técnico**: Simplificação do cabeçalho removendo a aba separada de Ajuste Técnico e botões redundantes de prazo/status.
+- [x] **Regularização Retroativa Integrada**: Ao clicar em "Regularizar" (para dias pendentes) ou "Corrigir" (para dias finalizados) no Histórico, um formulário simplificado abre diretamente no modal ("mesma mini tela"). Ele permite preencher os dados dos 4 pilares, escolher o motivo e registrar a justificativa operacional, enviando para aprovação do gestor. Caso o dia seja pendente e não possua fechamento ativo, o sistema cria automaticamente um rascunho placeholder antes de inserir a solicitação.
+

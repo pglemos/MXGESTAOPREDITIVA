@@ -1,10 +1,10 @@
+import { useState } from 'react'
 import { motion } from 'motion/react'
 import { RefreshCw, ShieldCheck, Sparkles } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { Typography } from '@/components/atoms/Typography'
 import { CheckinHeader } from './sections/CheckinHeader'
 import { CheckinForm } from './sections/CheckinForm'
-import { CheckinAdjustmentTab } from './sections/CheckinAdjustmentTab'
 import { CheckinErrorBoundary } from './components/CheckinErrorBoundary'
 import { useCheckinPage } from './hooks/useCheckinPage'
 
@@ -21,16 +21,14 @@ export function Checkin() {
         checkinLoadError,
         showConfetti,
         totals,
-        isLate,
-        historicalCheckin,
-        canEditExisting,
-        metricScope,
-        setMetricScope,
-        customReferenceDate,
         setCustomReferenceDate,
-        deadlineMessage,
         handleExit,
+        selectedDate,
     } = ctx
+
+    // Modal de Histórico de Fechamentos — controlado aqui para que o aviso de
+    // pendência (no formulário) e o cabeçalho possam abri-lo.
+    const [historyOpen, setHistoryOpen] = useState(false)
 
     if (hookLoading) {
         return (
@@ -51,8 +49,23 @@ export function Checkin() {
         )
     }
 
-    const todayDisplay = new Date(referenceDate + 'T12:00:00')
-    const dateStr = todayDisplay.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
+    const activeDate = selectedDate || referenceDate
+    const todayDisplay = new Date(activeDate + 'T12:00:00')
+    const dateLabel = todayDisplay.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
+    // Regra MX: a referência operacional é sempre o dia anterior. Quando o vendedor
+    // está no lançamento do dia anterior (referência oficial), sinalizamos "Ontem".
+    const isYesterday = activeDate === referenceDate
+    const dateStr = isYesterday ? `Ontem · ${dateLabel}` : dateLabel
+
+    // Progresso por pilar do lançamento diário — cada pilar acende quando recebe
+    // ao menos um lançamento (preenchido vs vazio).
+    const f = ctx.form
+    const pillars = [
+        { key: 'leads', label: 'Leads', filled: (f.leads_cart || 0) + (f.leads_net || 0) > 0 },
+        { key: 'atendimentos', label: 'Atendimentos', filled: (f.visitas_porta || 0) + (f.visitas_cart || 0) + (f.visitas_net || 0) > 0 },
+        { key: 'agendamentos', label: 'Agend. Amanhã', filled: (f.agd_cart || 0) + (f.agd_net || 0) > 0 },
+        { key: 'vendas', label: 'Vendas', filled: (ctx.realSalesCount || 0) > 0 },
+    ]
 
   return (
     <main className="h-full w-full min-w-0 overflow-y-auto bg-surface-alt p-mx-sm no-scrollbar sm:p-mx-md 2xl:p-mx-lg">
@@ -73,26 +86,24 @@ export function Checkin() {
             <CheckinErrorBoundary section="header">
                 <CheckinHeader
                     dateStr={dateStr}
-                    metricScope={metricScope}
-                    setMetricScope={setMetricScope}
-                    customReferenceDate={customReferenceDate}
+                    pillars={pillars}
                     setCustomReferenceDate={setCustomReferenceDate}
-                    isLate={isLate}
-                    historicalCheckin={historicalCheckin}
-                    canEditExisting={canEditExisting}
-                    deadlineMessage={deadlineMessage}
                     handleExit={handleExit}
+                    historyOpen={historyOpen}
+                    setHistoryOpen={setHistoryOpen}
                     checkins={ctx.checkins}
                     userId={ctx.supabaseUser?.id}
+                    saveCheckin={ctx.saveCheckin}
                 />
             </CheckinErrorBoundary>
 
             <CheckinErrorBoundary section="form">
-                {metricScope === 'daily' ? (
-                    <CheckinForm ctx={ctx} totalsAgd={totals.agd_total} totalsVnd={totals.vnd_total} />
-                ) : (
-                    <CheckinAdjustmentTab ctx={ctx} />
-                )}
+                <CheckinForm
+                    ctx={ctx}
+                    totalsAgd={totals.agd_total}
+                    totalsVnd={totals.vnd_total}
+                    onOpenHistory={() => setHistoryOpen(true)}
+                />
             </CheckinErrorBoundary>
         </main>
     )

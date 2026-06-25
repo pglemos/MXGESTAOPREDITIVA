@@ -15,8 +15,6 @@ import {
   Users,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { Badge } from '@/components/atoms/Badge'
-import { Button } from '@/components/atoms/Button'
 import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
 import { cn } from '@/lib/utils'
@@ -227,9 +225,22 @@ function sumRows(rows: AdjustmentRow[], field: AdjustmentField, key: 'currentVal
 }
 
 function deltaClass(delta: number) {
-  if (delta > 0) return 'text-status-success'
-  if (delta < 0) return 'text-status-error'
-  return 'text-text-tertiary'
+  if (delta > 0) return 'text-[#16a34a]'
+  if (delta < 0) return 'text-[#ef4444]'
+  return 'text-[#94a3b8]'
+}
+
+function StatusPill({ tone, children }: { tone: 'success' | 'warning' | 'info'; children: string }) {
+  const toneClass: Record<typeof tone, string> = {
+    success: 'border-[#bbf7d0] bg-[#ecfdf5] text-[#16a34a]',
+    warning: 'border-[#fde68a] bg-[#fffbeb] text-[#b45309]',
+    info: 'border-[#bfdbfe] bg-[#eff6ff] text-[#2563eb]',
+  }
+  return (
+    <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-bold ${toneClass[tone]}`}>
+      {children}
+    </span>
+  )
 }
 
 export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
@@ -356,7 +367,7 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
         <Card className="rounded-[18px] border border-[#dfe7f0] border-l-4 border-l-[#2563eb] bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
           <div className="flex items-center gap-4">
-            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-[#061a33] text-[#2563eb]">
+            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-[#eff6ff] text-[#2563eb]">
               <Clock3 size={26} />
             </div>
             <div>
@@ -420,14 +431,14 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
             <div className="overflow-x-auto rounded-xl border border-[#e5eaf2]">
               <table className="w-full table-fixed text-left text-[13px]">
                 <colgroup>
-                  <col className="w-[14%]" />
-                  <col className="w-[12%]" />
+                  <col className="w-[15%]" />
+                  <col className="w-[11%]" />
                   <col className="w-[10%]" />
-                  <col className="w-[12%]" />
-                  <col className="w-[20%]" />
-                  <col className="w-[20%]" />
+                  <col className="w-[11%]" />
+                  <col className="w-[22%]" />
+                  <col className="w-[22%]" />
                   <col className="w-[9%]" />
-                  <col className="w-[5%]" />
+                  <col className="w-[6%]" />
                 </colgroup>
                 <thead className="bg-[#f8fafc] text-[11px] uppercase tracking-wider text-[#475569] border-b border-[#e5eaf2]">
                   <tr>
@@ -518,7 +529,7 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
               type="button"
               onClick={addRow}
               disabled={!canEditExisting}
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#e5eaf2] bg-white px-4 text-xs font-bold text-[#475569] hover:bg-[#f8fafc] transition-all mt-4"
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#e5eaf2] bg-white px-4 text-xs font-bold text-[#475569] transition-all hover:border-[#bfdbfe] hover:bg-[#eff6ff] hover:text-[#2563eb] mt-4"
             >
               <Plus size={14} /> Adicionar ajuste
             </button>
@@ -646,57 +657,51 @@ function AdjustmentSummaryCard({
   return (
     <div
       className={cn(
-        'flex min-h-[188px] flex-col items-center justify-between rounded-xl border p-4 text-center shadow-sm transition-all',
+        'flex flex-col gap-3 rounded-xl border p-4 shadow-[0_6px_18px_rgba(15,23,42,0.035)] transition-all',
         changed ? 'border-[#16a34a] bg-[#ecfdf5]/30 ring-2 ring-[#16a34a]/10' : 'border-[#e5eaf2] bg-white',
       )}
     >
-      <div className="flex min-h-8 items-start justify-center">
-        {changed ? (
-          <Badge variant="success" className="px-2 py-0.5 text-[11px] bg-[#ecfdf5] text-[#16a34a] border border-[#bbf7d0]">
-            Alterado
-          </Badge>
-        ) : (
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full ${iconClass}`}>
+            <Icon size={16} />
+          </span>
           <Typography variant="h3" className="text-xs font-extrabold uppercase text-[#475569] tracking-wider">
             {field}
           </Typography>
-        )}
+        </div>
+        {changed && <StatusPill tone="success">Alterado</StatusPill>}
       </div>
-      {changed && (
-        <Typography variant="h3" className="text-xs font-extrabold uppercase text-[#475569] tracking-wider">
-          {field}
-        </Typography>
-      )}
-      <span className={`grid h-10 w-10 place-items-center rounded-full ${iconClass}`}>
-        <Icon size={18} />
-      </span>
-      <div>
-        <Typography variant="caption" className="text-[10px] font-extrabold uppercase text-[#94a3b8] tracking-wider normal-case">
-          Valor registrado
-        </Typography>
-        <div className="text-xl font-bold text-[#111827] tabular-nums">{before}</div>
-      </div>
-      <div className="flex flex-col gap-1 w-full">
-        <Typography variant="caption" className="text-[10px] font-extrabold uppercase text-[#94a3b8] tracking-wider normal-case">
-          Novo valor
-        </Typography>
-        <div className="grid h-9 w-full grid-cols-[34px_1fr_34px] overflow-hidden rounded-lg border border-[#e5eaf2] bg-white">
-          <button
-            type="button"
-            disabled={disabled}
-            onClick={onMinus}
-            className="grid place-items-center bg-white text-sm font-bold text-[#475569] hover:bg-[#fef2f2] hover:text-[#ef4444] disabled:opacity-40 border-r border-[#e5eaf2] transition-colors"
-          >
-            -
-          </button>
-          <span className="grid place-items-center text-sm font-bold text-[#111827] tabular-nums">{after}</span>
-          <button
-            type="button"
-            disabled={disabled}
-            onClick={onPlus}
-            className="grid place-items-center bg-white text-sm font-bold text-[#475569] hover:bg-[#ecfdf5] hover:text-[#16a34a] disabled:opacity-40 border-l border-[#e5eaf2] transition-colors"
-          >
-            +
-          </button>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="rounded-lg bg-[#f8fafc] px-3 py-2">
+          <Typography variant="caption" className="text-[9px] font-extrabold uppercase text-[#94a3b8] tracking-wider normal-case">
+            Atual
+          </Typography>
+          <div className="text-lg font-bold text-[#111827] tabular-nums">{before}</div>
+        </div>
+        <div className="rounded-lg bg-[#f8fafc] px-3 py-2">
+          <Typography variant="caption" className="text-[9px] font-extrabold uppercase text-[#94a3b8] tracking-wider normal-case">
+            Novo
+          </Typography>
+          <div className="grid h-7 grid-cols-[20px_1fr_20px] items-center">
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={onMinus}
+              className="grid place-items-center text-sm font-bold text-[#475569] hover:text-[#ef4444] disabled:opacity-40 transition-colors"
+            >
+              -
+            </button>
+            <span className="text-center text-lg font-bold text-[#111827] tabular-nums">{after}</span>
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={onPlus}
+              className="grid place-items-center text-sm font-bold text-[#475569] hover:text-[#16a34a] disabled:opacity-40 transition-colors"
+            >
+              +
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -727,7 +732,9 @@ function RulesCard() {
 function RuleItem({ icon: Icon, title, text }: { icon: LucideIcon; title: string; text: string }) {
   return (
     <div className="flex gap-3">
-      <Icon size={16} className="mt-0.5 shrink-0 text-[#64748b]" />
+      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-[#f8fafc] text-[#2563eb]">
+        <Icon size={14} />
+      </span>
       <div>
         <Typography variant="p" className="text-xs font-bold text-[#334155]">
           {title}
@@ -802,20 +809,12 @@ function ImpactCard({
 }
 
 function StatusBadge({ status }: { status: AdjustmentStatus }) {
-  const variant = status === 'Pendente' ? 'warning' : status === 'Aprovado' ? 'success' : 'info'
-  return (
-    <Badge variant={variant} className="px-2.5 py-0.5 text-[11px] font-bold">
-      {status}
-    </Badge>
-  )
+  const tone = status === 'Pendente' ? 'warning' : status === 'Aprovado' ? 'success' : 'info'
+  return <StatusPill tone={tone}>{status}</StatusPill>
 }
 
 function ChannelBadge({ channel }: { channel: AdjustmentChannel }) {
   const label = channel.replace('Canal ', '')
-  const variant = channel === 'Canal Internet' ? 'info' : channel === 'Porta' ? 'warning' : 'success'
-  return (
-    <Badge variant={variant} className="px-2.5 py-0.5 text-[11px] font-bold">
-      {label}
-    </Badge>
-  )
+  const tone = channel === 'Canal Internet' ? 'info' : channel === 'Porta' ? 'warning' : 'success'
+  return <StatusPill tone={tone}>{label}</StatusPill>
 }

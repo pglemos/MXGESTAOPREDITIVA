@@ -39,6 +39,7 @@ interface CheckinFormProps {
   ctx: CheckinPageContext
   totalsAgd: number
   totalsVnd: number
+  onOpenHistory?: () => void
 }
 
 const REFERENCE_VALUES: Record<NumericCheckinField, number> = {
@@ -88,7 +89,7 @@ export function InfoTooltip({ text }: { text: string }) {
   )
 }
 
-export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
+export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: CheckinFormProps) {
   const [disciplineModalOpen, setDisciplineModalOpen] = useState(false)
   const {
     form,
@@ -178,16 +179,16 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
       return 'Preencha os números do fechamento para iniciar a pontuação.'
     }
     if (disciplinePercent === 70) {
-      return 'Você informou apenas as quantidades. Cadastre os agendamentos D+1 para ganhar até +30%.'
+      return 'Você informou apenas as quantidades. Cadastre os agendamentos para amanhã para ganhar até +30%.'
     }
     if (disciplinePercent > 70 && disciplinePercent < 100) {
       if (temAgendamentoDataDiferente) {
-        return 'Existe agendamento com data diferente de D+1. A pontuação foi ajustada.'
+        return 'Existe agendamento com data diferente de amanhã. A pontuação foi ajustada.'
       }
-      return 'Você cadastrou parte dos agendamentos D+1. Complete os cadastros para alcançar 100%.'
+      return 'Você cadastrou parte dos agendamentos para amanhã. Complete os cadastros para alcançar 100%.'
     }
     if (disciplinePercent === 100) {
-      return 'Fechamento completo. Todos os agendamentos D+1 foram detalhados corretamente.'
+      return 'Fechamento completo. Todos os agendamentos para amanhã foram detalhados corretamente.'
     }
     return ''
   }, [disciplinePercent, finalizadoAposPrazo, temAgendamentoDataDiferente])
@@ -196,9 +197,18 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
     <form onSubmit={handleSubmit} className="mt-mx-xs grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-mx-sm pb-16">
       {/* Yesterday Pending Banner */}
       {yesterdayPending && (
-        <div className="rounded-lg border border-status-warning/20 bg-status-warning-surface px-4 py-2.5 text-xs font-bold text-status-warning flex items-center gap-2 shadow-sm animate-pulse">
-          <AlertTriangle size={14} className="shrink-0" />
-          <span>Existe um fechamento anterior pendente. Acesse o Histórico de Fechamentos para regularizar.</span>
+        <div className="rounded-lg border border-status-warning/20 bg-status-warning-surface px-4 py-2.5 text-xs font-bold text-status-warning flex items-center justify-between gap-2 shadow-sm">
+          <div className="flex items-center gap-2">
+            <AlertTriangle size={14} className="shrink-0" />
+            <span>Existe um fechamento anterior pendente.</span>
+          </div>
+          <button
+            type="button"
+            onClick={onOpenHistory}
+            className="underline hover:text-status-warning/80 transition-colors cursor-pointer shrink-0 ml-2 font-black"
+          >
+            Clique aqui para regularizar no Histórico
+          </button>
         </div>
       )}
 
@@ -267,9 +277,9 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
         </MetricGroupCard>
 
         <MetricGroupCard
-          title="3. AGENDAMENTO D+1"
+          title="3. AGENDAMENTO PARA AMANHÃ"
           columns="grid-cols-1 sm:grid-cols-2"
-          tooltipText="Informe quantos clientes ficaram com visitas/negociações agendados para o dia seguinte, separados por Carteira e Internet."
+          tooltipText="Informe quantos clientes ficaram com visitas/negociações agendados para amanhã, separados por Carteira e Internet."
         >
           <MetricCounterCard
             label="Carteira"
@@ -449,7 +459,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
             </div>
             <div className="flex flex-1 flex-col items-center gap-1 px-4">
               <span className="text-[28px] font-black leading-none tabular-nums text-[#f59e0b]">{display.agd}</span>
-              <span className="mt-1 text-[11px] font-semibold text-[#94a3b8] text-center leading-tight">Agendamentos D+1</span>
+              <span className="mt-1 text-[11px] font-semibold text-[#94a3b8] text-center leading-tight">Agend. p/ Amanhã</span>
             </div>
             <div className="flex flex-1 flex-col items-center gap-1 px-4 last:pr-0">
               <span className="text-[28px] font-black leading-none tabular-nums text-[#ef4444]">{realSalesCount}</span>
@@ -566,7 +576,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
                 <ul className="list-disc pl-4 space-y-0.5">
                   <li>Leads recebidos;</li>
                   <li>Atendimentos realizados;</li>
-                  <li>Agendamentos D+1;</li>
+                  <li>Agendamentos para amanhã;</li>
                   <li>E finaliza o fechamento do dia.</li>
                 </ul>
                 <p>
@@ -584,20 +594,20 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
                   <Award size={14} className="stroke-[2.5]" /> 2. Cadastro dos agendamentos — até +30%
                 </h3>
                 <p>
-                  Os outros 30% são conquistados quando você detalha, no campo “Cadastrar Novo Cliente”, os agendamentos que informou no card “Agendamento D+1”.
+                  Os outros 30% são conquistados quando você detalha, no campo “Cadastrar Novo Cliente”, os agendamentos que informou no card “Agendamento para Amanhã”.
                 </p>
                 <p className="font-semibold text-[#111827]">
                   Exemplo:
                 </p>
                 <p>
-                  Se você informou no card “Agendamento D+1”:
+                  Se você informou no card “Agendamento para Amanhã”:
                 </p>
                 <ul className="list-disc pl-4 space-y-0.5">
                   <li>Carteira: 1 agendamento</li>
                   <li>Internet: 1 agendamento</li>
                 </ul>
                 <p>
-                  Total: 2 agendamentos D+1. Então você precisa cadastrar 2 clientes no card “Cadastrar Novo Cliente”, sendo:
+                  Total: 2 agendamentos para amanhã. Então você precisa cadastrar 2 clientes no card “Cadastrar Novo Cliente”, sendo:
                 </p>
                 <ul className="list-disc pl-4 space-y-0.5">
                   <li>1 cliente do canal Carteira;</li>
@@ -608,7 +618,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
                 </p>
                 <div className="bg-[#ecfdf5] text-[#16a34a] font-bold p-2.5 rounded-lg border border-[#bbf7d0] flex items-center gap-2">
                   <CheckCircle2 size={14} className="text-[#16a34a]" />
-                  <span>Detalhou todos os agendamentos D+1 corretamente = 100%</span>
+                  <span>Detalhou todos os agendamentos para amanhã corretamente = 100%</span>
                 </div>
               </div>
 
@@ -623,7 +633,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
                 <ul className="list-disc pl-4 space-y-0.5">
                   <li>O canal deve ser Carteira ou Internet;</li>
                   <li>O campo “Venda Realizada” deve estar como “Em Negociação”;</li>
-                  <li>A data do agendamento deve ser para o dia seguinte ao fechamento, ou seja, D+1.</li>
+                  <li>A data do agendamento deve ser para o dia seguinte ao fechamento, ou seja, para amanhã.</li>
                 </ul>
                 <p className="font-semibold text-[#111827]">
                   Exemplo:
@@ -643,19 +653,19 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
                   <Clock size={14} /> 4. Atenção à data do agendamento
                 </h3>
                 <p>
-                  Todo agendamento informado no card “Agendamento D+1” deve ser cadastrado com data para o dia seguinte.
+                  Todo agendamento informado no card “Agendamento para Amanhã” deve ser cadastrado com data para o dia seguinte.
                 </p>
                 <p>
-                  Se a data cadastrada for diferente de D+1, o sistema considera apenas 50% daquele cadastro para a pontuação extra.
+                  Se a data cadastrada for diferente de amanhã, o sistema considera apenas 50% daquele cadastro para a pontuação extra.
                 </p>
                 <p className="font-semibold text-[#111827]">
                   Exemplo:
                 </p>
                 <p>
-                  Você informou 3 agendamentos D+1. Depois cadastrou:
+                  Você informou 3 agendamentos para amanhã. Depois cadastrou:
                 </p>
                 <ul className="list-disc pl-4 space-y-0.5">
-                  <li>2 clientes com data correta para D+1;</li>
+                  <li>2 clientes com data correta para amanhã;</li>
                   <li>1 cliente com data diferente.</li>
                 </ul>
                 <p>
@@ -663,7 +673,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
                 </p>
                 <div className="bg-[#fffbeb] text-[#d97706] font-bold p-2.5 rounded-lg border border-[#fed7aa] flex items-center gap-2">
                   <AlertTriangle size={14} className="text-[#d97706]" />
-                  <span>Agendamento com data diferente de D+1 vale apenas 50% na pontuação extra.</span>
+                  <span>Agendamento com data diferente de amanhã vale apenas 50% na pontuação extra.</span>
                 </div>
               </div>
 
@@ -684,7 +694,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
                   <li>Funil de vendas.</li>
                 </ul>
                 <p>
-                  Mas ele não conta como agendamento D+1. Para contar como agendamento, o campo deve estar como: <strong className="text-[#111827]">“Venda Realizada = Em Negociação”</strong>.
+                  Mas ele não conta como agendamento para amanhã. Para contar como agendamento, o campo deve estar como: <strong className="text-[#111827]">“Venda Realizada = Em Negociação”</strong>.
                 </p>
                 <div className="bg-[#eff6ff] text-[#2563eb] font-bold p-2.5 rounded-lg border border-[#bfdbfe] flex items-center gap-2">
                   <Info size={14} />
@@ -716,9 +726,9 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd }: CheckinFormProps) {
                 </h3>
                 <ul className="space-y-1.5 font-semibold text-[#111827]">
                   <li className="flex items-center gap-1.5"><Check size={12} className="text-[#16a34a] stroke-[3]" /> Preencheu os números do dia: 70%</li>
-                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#16a34a] stroke-[3]" /> Detalhou todos os agendamentos D+1 corretamente: 100%</li>
+                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#16a34a] stroke-[3]" /> Detalhou todos os agendamentos para amanhã corretamente: 100%</li>
                   <li className="flex items-center gap-1.5"><Check size={12} className="text-[#16a34a] stroke-[3]" /> Detalhou apenas parte dos agendamentos: pontuação proporcional</li>
-                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#16a34a] stroke-[3]" /> Cadastrou com data diferente de D+1: aquele cadastro vale apenas 50%</li>
+                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#16a34a] stroke-[3]" /> Cadastrou com data diferente de amanhã: aquele cadastro vale apenas 50%</li>
                   <li className="flex items-center gap-1.5"><Check size={12} className="text-[#16a34a] stroke-[3]" /> Cliente vendido conta como venda, não como agendamento</li>
                   <li className="flex items-center gap-1.5"><Check size={12} className="text-[#16a34a] stroke-[3]" /> Fechamento do dia anterior fica liberado até 09h30 do dia seguinte</li>
                 </ul>

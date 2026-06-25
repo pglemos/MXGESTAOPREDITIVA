@@ -152,7 +152,13 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
 
   const handleSaveInline = (row: ClienteRow) => {
     const draft = getInlineDraft(row)
-    saveLocalCliente({ ...row, ...draft })
+    // "Data do novo agendamento" reschedules this row — it must become the
+    // displayed dataAgendamento, otherwise the table keeps showing the stale
+    // date and reopening the edit modal won't reflect the change either.
+    const dataAgendamento = draft.dataNovoAgendamento
+      ? draft.dataNovoAgendamento.split('T')[0]
+      : row.dataAgendamento
+    saveLocalCliente({ ...row, ...draft, dataAgendamento })
     setInlineDrafts(prev => {
       const next = { ...prev }
       delete next[row.id]
@@ -997,7 +1003,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
                   </div>
                   {vendaRealizada === 'Em Negociação' && (
                     <span className="text-[11px] text-[#f59e0b] font-semibold mt-1">
-                      Agendamento D+1 sugerido para a data acima.
+                      Agendamento para amanhã sugerido para a data acima.
                     </span>
                   )}
                 </div>

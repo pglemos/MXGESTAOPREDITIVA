@@ -172,21 +172,14 @@ export function useCheckinPage() {
     const [historicalCheckin, setHistoricalCheckin] = useState<DailyCheckin | null>(null)
     const [loadingHistory, setLoadingHistory] = useState(false)
     
-    // SP Time-based default reference date
-    const spTimeInitial = useMemo(() => getSPHoursMinutes(), [])
-    const todaySPInitial = useMemo(() => getSPDateOnly(), [])
-    const isAfter12h01Initial = spTimeInitial.hours > 12 || (spTimeInitial.hours === 12 && spTimeInitial.minutes >= 1)
-    
     const [customReferenceDate, setCustomReferenceDate] = useState('')
     const crmDerived = useCrmDerivedTotals(customReferenceDate)
 
     useEffect(() => {
+        // Regra MX: a produção declarada se refere sempre ao dia anterior,
+        // independente do horário em que o vendedor abre a tela à tarde.
         if (referenceDate) {
-            const spTime = getSPHoursMinutes()
-            const todaySP = getSPDateOnly()
-            const isAfter12h01 = spTime.hours > 12 || (spTime.hours === 12 && spTime.minutes >= 1)
-            const defaultDate = isAfter12h01 ? todaySP : referenceDate
-            setCustomReferenceDate(defaultDate)
+            setCustomReferenceDate(referenceDate)
         }
     }, [referenceDate])
 
@@ -416,9 +409,9 @@ ${linkSeguro}`
             items.push('Preenchimento básico (70%)')
         }
         if (totalAgendamentosD1 > 0) {
-            items.push(`Detalhamento D+1: ${creditosValidos} de ${totalAgendamentosD1} (${Math.round(pontosExtrasDisciplina)}%)`)
+            items.push(`Detalhamento p/ Amanhã: ${creditosValidos} de ${totalAgendamentosD1} (${Math.round(pontosExtrasDisciplina)}%)`)
         } else {
-            items.push('Detalhamento D+1 (Sem agendamentos no dia)')
+            items.push('Detalhamento p/ Amanhã (Sem agendamentos no dia)')
         }
         return items
     }, [form, totals, totalAgendamentosD1, creditosValidos, pontosExtrasDisciplina])
@@ -426,7 +419,7 @@ ${linkSeguro}`
     const pendingItems = useMemo(() => {
         const items = []
         if (totalAgendamentosD1 > creditosValidos) {
-            items.push(`Cadastrar agendamentos D+1 (${totalAgendamentosD1 - creditosValidos} pendentes)`)
+            items.push(`Cadastrar agendamentos p/ amanhã (${totalAgendamentosD1 - creditosValidos} pendentes)`)
         }
         if (finalizadoAposPrazo) {
             items.push('Atraso no fechamento (-10% de penalidade)')
@@ -776,6 +769,7 @@ ${linkSeguro}`
         totalAgendamentosD1,
         creditosValidos,
         checkins,
+        saveCheckin,
     }
 }
 
