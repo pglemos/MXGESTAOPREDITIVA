@@ -461,9 +461,10 @@ export function CheckinHeader({
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="text-[10px] font-bold text-[#94a3b8] uppercase">Carteira</label>
-                          <input
-                            type="number"
+                            <label htmlFor="adjustment-leads-cart" className="text-[10px] font-bold text-[#94a3b8] uppercase">Carteira</label>
+                            <input
+                              id="adjustment-leads-cart"
+                              type="number"
                             min="0"
                             value={formValues.leads_cart}
                             onChange={(e) => handleFieldChange('leads_cart', Number(e.target.value))}
@@ -471,9 +472,10 @@ export function CheckinHeader({
                           />
                         </div>
                         <div>
-                          <label className="text-[10px] font-bold text-[#94a3b8] uppercase">Internet</label>
-                          <input
-                            type="number"
+                            <label htmlFor="adjustment-leads-net" className="text-[10px] font-bold text-[#94a3b8] uppercase">Internet</label>
+                            <input
+                              id="adjustment-leads-net"
+                              type="number"
                             min="0"
                             value={formValues.leads_net}
                             onChange={(e) => handleFieldChange('leads_net', Number(e.target.value))}
@@ -491,9 +493,10 @@ export function CheckinHeader({
                       </div>
                       <div className="grid grid-cols-3 gap-1.5">
                         <div>
-                          <label className="text-[9px] font-bold text-[#94a3b8] uppercase">Porta</label>
-                          <input
-                            type="number"
+                            <label htmlFor="adjustment-visitas-porta" className="text-[9px] font-bold text-[#94a3b8] uppercase">Porta</label>
+                            <input
+                              id="adjustment-visitas-porta"
+                              type="number"
                             min="0"
                             value={formValues.visitas_porta}
                             onChange={(e) => handleFieldChange('visitas_porta', Number(e.target.value))}
@@ -501,9 +504,10 @@ export function CheckinHeader({
                           />
                         </div>
                         <div>
-                          <label className="text-[9px] font-bold text-[#94a3b8] uppercase">Carteira</label>
-                          <input
-                            type="number"
+                            <label htmlFor="adjustment-visitas-cart" className="text-[9px] font-bold text-[#94a3b8] uppercase">Carteira</label>
+                            <input
+                              id="adjustment-visitas-cart"
+                              type="number"
                             min="0"
                             value={formValues.visitas_cart}
                             onChange={(e) => handleFieldChange('visitas_cart', Number(e.target.value))}
@@ -511,9 +515,10 @@ export function CheckinHeader({
                           />
                         </div>
                         <div>
-                          <label className="text-[9px] font-bold text-[#94a3b8] uppercase">Internet</label>
-                          <input
-                            type="number"
+                            <label htmlFor="adjustment-visitas-net" className="text-[9px] font-bold text-[#94a3b8] uppercase">Internet</label>
+                            <input
+                              id="adjustment-visitas-net"
+                              type="number"
                             min="0"
                             value={formValues.visitas_net}
                             onChange={(e) => handleFieldChange('visitas_net', Number(e.target.value))}
@@ -531,9 +536,10 @@ export function CheckinHeader({
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="text-[10px] font-bold text-[#94a3b8] uppercase">Carteira</label>
-                          <input
-                            type="number"
+                            <label htmlFor="adjustment-agd-cart" className="text-[10px] font-bold text-[#94a3b8] uppercase">Carteira</label>
+                            <input
+                              id="adjustment-agd-cart"
+                              type="number"
                             min="0"
                             value={formValues.agd_cart}
                             onChange={(e) => handleFieldChange('agd_cart', Number(e.target.value))}
@@ -541,9 +547,10 @@ export function CheckinHeader({
                           />
                         </div>
                         <div>
-                          <label className="text-[10px] font-bold text-[#94a3b8] uppercase">Internet</label>
-                          <input
-                            type="number"
+                            <label htmlFor="adjustment-agd-net" className="text-[10px] font-bold text-[#94a3b8] uppercase">Internet</label>
+                            <input
+                              id="adjustment-agd-net"
+                              type="number"
                             min="0"
                             value={formValues.agd_net}
                             onChange={(e) => handleFieldChange('agd_net', Number(e.target.value))}
@@ -561,32 +568,35 @@ export function CheckinHeader({
                       </div>
                       <div className="grid grid-cols-3 gap-1.5">
                         <div>
-                          <label className="text-[9px] font-bold text-[#94a3b8] uppercase">Porta</label>
-                          <input
-                            type="number"
-                            min="0"
-                            value={formValues.visitas_porta}
-                            onChange={(e) => handleFieldChange('visitas_porta', Number(e.target.value))}
+                            <label htmlFor="adjustment-vnd-porta" className="text-[9px] font-bold text-[#94a3b8] uppercase">Porta</label>
+                            <input
+                              id="adjustment-vnd-porta"
+                              type="number"
+                              min="0"
+                              value={formValues.vnd_porta}
+                              onChange={(e) => handleFieldChange('vnd_porta', Number(e.target.value))}
                             className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#2563eb]"
                           />
                         </div>
                         <div>
-                          <label className="text-[9px] font-bold text-[#94a3b8] uppercase">Carteira</label>
-                          <input
-                            type="number"
-                            min="0"
-                            value={formValues.visitas_cart}
-                            onChange={(e) => handleFieldChange('visitas_cart', Number(e.target.value))}
+                            <label htmlFor="adjustment-vnd-cart" className="text-[9px] font-bold text-[#94a3b8] uppercase">Carteira</label>
+                            <input
+                              id="adjustment-vnd-cart"
+                              type="number"
+                              min="0"
+                              value={formValues.vnd_cart}
+                              onChange={(e) => handleFieldChange('vnd_cart', Number(e.target.value))}
                             className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#2563eb]"
                           />
                         </div>
                         <div>
-                          <label className="text-[9px] font-bold text-[#94a3b8] uppercase">Internet</label>
-                          <input
-                            type="number"
-                            min="0"
-                            value={formValues.visitas_net}
-                            onChange={(e) => handleFieldChange('visitas_net', Number(e.target.value))}
+                            <label htmlFor="adjustment-vnd-net" className="text-[9px] font-bold text-[#94a3b8] uppercase">Internet</label>
+                            <input
+                              id="adjustment-vnd-net"
+                              type="number"
+                              min="0"
+                              value={formValues.vnd_net}
+                              onChange={(e) => handleFieldChange('vnd_net', Number(e.target.value))}
                             className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#2563eb]"
                           />
                         </div>
@@ -598,10 +608,11 @@ export function CheckinHeader({
                   {/* Justification and Notes */}
                   <div className="border border-[#e5eaf2] rounded-xl p-4 bg-slate-50/50 space-y-4">
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-extrabold text-[#475569] uppercase tracking-wider">
+                      <label htmlFor="adjustment-reason" className="text-[10px] font-extrabold text-[#475569] uppercase tracking-wider">
                         Motivo do Ajuste
                       </label>
                       <select
+                        id="adjustment-reason"
                         value={formValues.reason}
                         onChange={(e) => setFormValues(prev => ({ ...prev, reason: e.target.value }))}
                         className="h-10 w-full rounded-xl border border-[#e5eaf2] bg-white px-3 text-xs font-semibold text-[#111827] outline-none focus:border-[#2563eb]"
@@ -616,10 +627,11 @@ export function CheckinHeader({
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-extrabold text-[#475569] uppercase tracking-wider">
+                      <label htmlFor="adjustment-note" className="text-[10px] font-extrabold text-[#475569] uppercase tracking-wider">
                         Observações Operacionais (Justificativa)
                       </label>
                       <textarea
+                        id="adjustment-note"
                         value={formValues.note}
                         onChange={(e) => setFormValues(prev => ({ ...prev, note: e.target.value }))}
                         placeholder="Descreva detalhadamente o motivo deste ajuste retroativo..."
