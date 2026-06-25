@@ -58,6 +58,23 @@ const formatPhone = (value?: string | null) => {
   return value?.trim() || '(00) 00000-0000'
 }
 
+const formatAgendamentoDateTime = (dateStr: string | null | undefined): string => {
+  if (!dateStr) return '—'
+  if (dateStr.includes('T')) {
+    const [datePart, timePart] = dateStr.split('T')
+    const formattedDate = datePart.split('-').reverse().join('/')
+    const formattedTime = timePart.substring(0, 5)
+    return `${formattedDate} às ${formattedTime}`
+  }
+  if (dateStr.includes(' ')) {
+    const [datePart, timePart] = dateStr.split(' ')
+    const formattedDate = datePart.split('-').reverse().join('/')
+    const formattedTime = timePart.substring(0, 5)
+    return `${formattedDate} às ${formattedTime}`
+  }
+  return dateStr.split('-').reverse().join('/')
+}
+
 const toClosedAt = (dateOnly: string) => `${dateOnly.split('T')[0]}T12:00:00-03:00`
 
 const parseCurrencyToNumber = (val: string): number => {
@@ -136,12 +153,17 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
   type InlineDraft = { dataNovoAgendamento: string; motivoPerda: string; observacoes: string }
   const [inlineDrafts, setInlineDrafts] = useState<Record<string, InlineDraft>>({})
 
-  const getInlineDraft = (row: ClienteRow): InlineDraft =>
-    inlineDrafts[row.id] ?? {
-      dataNovoAgendamento: row.dataNovoAgendamento || '',
-      motivoPerda: row.motivoPerda || '',
-      observacoes: row.observacoes || '',
+  const getInlineDraft = (row: ClienteRow): InlineDraft => {
+    let rawNovo = inlineDrafts[row.id]?.dataNovoAgendamento ?? row.dataNovoAgendamento ?? row.dataAgendamento ?? ''
+    if (rawNovo && !rawNovo.includes('T')) {
+      rawNovo = `${rawNovo}T12:00`
     }
+    return {
+      dataNovoAgendamento: rawNovo,
+      motivoPerda: inlineDrafts[row.id]?.motivoPerda ?? row.motivoPerda ?? '',
+      observacoes: inlineDrafts[row.id]?.observacoes ?? row.observacoes ?? '',
+    }
+  }
 
   const updateInlineDraft = (row: ClienteRow, patch: Partial<InlineDraft>) => {
     setInlineDrafts(prev => ({
@@ -155,9 +177,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
     // "Data do novo agendamento" reschedules this row — it must become the
     // displayed dataAgendamento, otherwise the table keeps showing the stale
     // date and reopening the edit modal won't reflect the change either.
-    const dataAgendamento = draft.dataNovoAgendamento
-      ? draft.dataNovoAgendamento.split('T')[0]
-      : row.dataAgendamento
+    const dataAgendamento = draft.dataNovoAgendamento || row.dataAgendamento
     saveLocalCliente({ ...row, ...draft, dataAgendamento })
     setInlineDrafts(prev => {
       const next = { ...prev }
@@ -378,14 +398,14 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
         telefone: formatPhone(telefone),
         veiculoInteresse: veiculo.trim(),
         valorNegociado: parsedValor || null,
-        dataAgendamento: dateOnly,
+        dataAgendamento: dataFechamento,
         canal: canal === 'carteira' ? 'Carteira' : canal === 'internet' ? 'Internet' : 'Showroom',
         compareceu,
         carroAvaliado: carroAvaliado === 'sim' ? 'Sim' : 'Não',
         sinal: parsedSinal || 0,
         financiamento: financiamento === 'aprovado' ? 'Aprovado' : financiamento === 'reprovado' ? 'Recusado' : 'Não se aplica',
         vendaRealizada: normalizedVendaRealizada,
-        dataNovoAgendamento: dateOnly,
+        dataNovoAgendamento: dataFechamento,
         motivoPerda: normalizedVendaRealizada === 'Não' ? motivoPerda : undefined,
         observacoes: observacoes.trim() || undefined,
         tipoRegistroCalculado: tipo,
@@ -539,7 +559,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
                           {formatMoney(row.valorNegociado)}
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-[#475569]">
-                          {row.dataAgendamento ? row.dataAgendamento.split('-').reverse().join('/') : '—'}
+                          {formatAgendamentoDateTime(row.dataAgendamento)}
                         </td>
                         <td className="px-4 py-3">
                           <ChannelBadge canal={row.canal} />
@@ -1123,9 +1143,12 @@ function FinanciamentoBadge({ value }: { value: ClienteRow['financiamento'] }) {
 function VendaBadge({ value }: { value: ClienteRow['vendaRealizada'] }) {
   if (value === 'Em Negociação' || (value as string) === 'em_negociacao') {
     return (
-      <span className="inline-flex items-center rounded-md border border-[#fef08a] bg-[#fef9c3] px-2 py-0 text-[10px] font-bold text-[#a16207] shadow-sm">
+      <Badge
+        variant="outline"
+        className="border-[#fde68a] bg-[#fef3c7] text-[#b45309] px-2 py-0 text-[10px] font-semibold shadow-mx-sm"
+      >
         Em Negociação
-      </span>
+      </Badge>
     )
   }
   const variant = value === 'Sim' || (value as string) === 'ganho' ? 'success' : 'danger'
