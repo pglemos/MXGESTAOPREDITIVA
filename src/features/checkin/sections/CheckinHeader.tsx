@@ -292,17 +292,17 @@ export function CheckinHeader({
   }
 
   return (
-    <header className="sticky top-0 z-30 shrink-0 bg-surface-alt pb-4 pt-2 border-b border-border-default/40 shadow-[0_4px_12px_rgba(15,23,42,0.03)] space-y-4">
+    <header className="sticky top-0 z-40 -mx-mx-sm shrink-0 space-y-3 border-b border-border-default/60 bg-surface-alt px-mx-sm pb-3 pt-2 shadow-[0_10px_24px_rgba(15,23,42,0.08)] sm:-mx-mx-md sm:px-mx-md 2xl:-mx-mx-lg 2xl:px-mx-lg">
       {/* Top Header Row */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-4">
-          <h1 className="text-[26px] font-extrabold tracking-tight text-[#111827]">
+      <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:gap-4">
+          <h1 className="min-w-0 truncate text-[20px] font-extrabold tracking-tight text-[#111827] sm:text-[26px]">
             FECHAMENTO DIÁRIO
           </h1>
 
-          <div className="inline-flex h-9 items-center gap-2 rounded-full border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#475569] shadow-sm">
+          <div className="inline-flex h-8 max-w-full items-center gap-2 rounded-full border border-[#e5eaf2] bg-white px-3 text-xs font-semibold text-[#475569] shadow-sm sm:h-9 sm:px-4 sm:text-sm">
             <CalendarDays size={14} className="text-[#2563eb]" />
-            <span>{dateStr}</span>
+            <span className="truncate">{dateStr}</span>
           </div>
         </div>
 
@@ -313,7 +313,7 @@ export function CheckinHeader({
               setActiveView('list')
               setHistoryOpen(true)
             }}
-            className="inline-flex h-10 items-center gap-2 rounded-xl border border-[#e5eaf2] bg-white px-5 text-sm font-bold text-[#334155] shadow-sm hover:bg-[#f8fafc] transition-colors"
+            className="inline-flex h-9 items-center gap-2 rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-bold text-[#334155] shadow-sm transition-colors hover:bg-[#f8fafc] sm:h-10 sm:px-5"
           >
             <History size={14} />
             Histórico

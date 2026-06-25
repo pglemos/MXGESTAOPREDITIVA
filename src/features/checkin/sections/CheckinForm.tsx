@@ -133,20 +133,17 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
     totalAgendamentosD1,
     creditosValidos,
     customReferenceDate,
+    effectiveForm,
+    effectiveTotals,
   } = ctx
 
   const selectedDate = customReferenceDate || ctx.referenceDate
 
   const useReferenceValues = allZero && changedFields.size === 0 && !historicalCheckin
   const readValue = (field: NumericCheckinField) =>
-    useReferenceValues ? REFERENCE_VALUES[field] : Number(form[field] ?? 0)
+    useReferenceValues ? REFERENCE_VALUES[field] : Number(effectiveForm[field] ?? form[field] ?? 0)
 
-  const display = {
-    leads: readValue('leads_cart') + readValue('leads_net'),
-    visitas: readValue('visitas_porta') + readValue('visitas_cart') + readValue('visitas_net'),
-    agd: readValue('agd_cart') + readValue('agd_net'),
-    vendas: readValue('vnd_porta') + readValue('vnd_cart') + readValue('vnd_net'),
-  }
+  const display = effectiveTotals
   const productionZeroActive = display.leads === 0 && display.visitas === 0 && display.agd === 0 && display.vendas === 0
 
   const showCrmBadge = !historicalCheckin && crmDerived.hasCrmData
@@ -172,6 +169,9 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
 
   // Visual messages for discipline card
   const disciplineMessage = useMemo(() => {
+    if (isPastDeadline && !fechamentoLiberado) {
+      return 'Dados preenchidos. Para finalizar este fechamento, solicite a liberação do gerente.'
+    }
     if (finalizadoAposPrazo) {
       return 'Fechamento realizado fora do prazo. Penalização de 10% aplicada.'
     }
@@ -191,7 +191,9 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
       return 'Fechamento completo. Todos os agendamentos para amanhã foram detalhados corretamente.'
     }
     return ''
-  }, [disciplinePercent, finalizadoAposPrazo, temAgendamentoDataDiferente])
+  }, [disciplinePercent, fechamentoLiberado, finalizadoAposPrazo, isPastDeadline, temAgendamentoDataDiferente])
+
+  const submitBlockedByDeadline = isPastDeadline && !fechamentoLiberado
 
   return (
     <form onSubmit={handleSubmit} className="mt-mx-xs grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-mx-sm pb-16">
@@ -223,9 +225,9 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
 
       <section className="grid w-full max-w-full min-w-0 gap-mx-sm lg:grid-cols-[1.05fr_1.35fr_1.05fr]">
         <MetricGroupCard
-          title="1. LEADS RECEBIDOS HOJE"
+          title="1. LEADS RECEBIDOS DO DIA"
           columns="grid-cols-1 sm:grid-cols-2"
-          tooltipText="Informe quantos novos interessados chegaram hoje pelos canais Carteira e Internet. Não inclua clientes de showroom."
+          tooltipText="Informe quantos novos interessados chegaram no dia de referência pelos canais Carteira e Internet. Não inclua clientes de showroom."
         >
           <MetricCounterCard
             label="Canal Carteira"
@@ -246,9 +248,9 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
         </MetricGroupCard>
 
         <MetricGroupCard
-          title="2. ATENDIMENTOS HOJE"
+          title="2. ATENDIMENTOS DO DIA"
           columns="grid-cols-1 sm:grid-cols-3"
-          tooltipText="Informe quantos clientes você atendeu hoje, separados por Showroom, Carteira e Internet."
+          tooltipText="Informe quantos clientes você atendeu no dia de referência, separados por Showroom, Carteira e Internet."
         >
           <MetricCounterCard
             label="Porta"
@@ -756,24 +758,24 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
           </div>
         )}
 
-        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6">
+        <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:gap-6">
           {/* Green pill button */}
           <button
             type="submit"
-            disabled={saving || (isPastDeadline && !fechamentoLiberado) || (!canEditExisting && metricScope === 'daily')}
-            className={cn(
-              "inline-flex shrink-0 items-center gap-2.5 rounded-full px-8 py-3.5 text-[13px] font-extrabold uppercase tracking-[0.08em] text-white shadow-[0_8px_20px_rgba(22,163,74,0.28)] transition-all",
-              saving || (isPastDeadline && !fechamentoLiberado) || (!canEditExisting && metricScope === 'daily')
-                ? "bg-[#94a3b8] cursor-not-allowed shadow-none"
-                : "bg-[#16a34a] hover:bg-[#15803d] active:scale-[0.98]"
-            )}
+          disabled={saving || submitBlockedByDeadline || (!canEditExisting && metricScope === 'daily')}
+          className={cn(
+            "inline-flex w-full shrink-0 items-center justify-center gap-2.5 rounded-full px-6 py-3.5 text-center text-[12px] font-extrabold uppercase tracking-[0.06em] text-white shadow-[0_8px_20px_rgba(22,163,74,0.28)] transition-all sm:w-auto sm:px-8 sm:text-[13px] sm:tracking-[0.08em]",
+            saving || submitBlockedByDeadline || (!canEditExisting && metricScope === 'daily')
+              ? "bg-[#94a3b8] cursor-not-allowed shadow-none"
+              : "bg-[#16a34a] hover:bg-[#15803d] active:scale-[0.98]"
+          )}
           >
             {saving ? (
               <RefreshCw className="h-4 w-4 animate-spin" />
             ) : (
               <LockKeyhole size={15} className="shrink-0" />
             )}
-            <span>{saving ? 'Salvando...' : 'FINALIZAR FECHAMENTO DO DIA'}</span>
+            <span>{saving ? 'Salvando...' : submitBlockedByDeadline ? 'AGUARDANDO LIBERAÇÃO DO GERENTE' : 'FINALIZAR FECHAMENTO DO DIA'}</span>
           </button>
 
           {/* Warning text */}
@@ -817,17 +819,17 @@ function MetricGroupCard({
         : 'bg-[#2563eb]'
 
   return (
-    <Card className="min-w-0 overflow-visible rounded-[16px] border border-[#dfe7f0] bg-white p-0 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-      <header className="flex h-12 items-center gap-2 border-b border-[#eef2f7] px-5">
+    <Card className="min-w-0 overflow-hidden rounded-[16px] border border-[#dfe7f0] bg-white p-0 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+      <header className="flex min-h-12 items-start gap-2 border-b border-[#eef2f7] px-4 py-3 sm:items-center sm:px-5">
         <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] font-bold text-white ${stepTone}`}>
           {step}
         </span>
-        <h2 className="text-[13px] font-extrabold uppercase tracking-[0.08em] text-[#334155]">
+        <h2 className="min-w-0 text-[12px] font-extrabold uppercase leading-snug tracking-[0.06em] text-[#334155] sm:text-[13px] sm:tracking-[0.08em]">
           {label}
         </h2>
         {tooltipText && <InfoTooltip text={tooltipText} />}
       </header>
-      <div className={`grid min-w-0 divide-y divide-[#eef2f7] p-5 sm:divide-y-0 sm:divide-x ${columns}`}>{children}</div>
+      <div className={`grid min-w-0 divide-y divide-[#eef2f7] p-3 sm:divide-y-0 sm:divide-x sm:p-5 ${columns}`}>{children}</div>
     </Card>
   )
 }
@@ -909,7 +911,7 @@ function MetricCounterCard({
   return (
     <div
       className={cn(
-        "flex min-h-[128px] flex-col items-center justify-center gap-2 px-5 py-4 text-center bg-white relative",
+    "relative flex min-h-[124px] min-w-0 flex-col items-center justify-center gap-2 bg-white px-3 py-4 text-center sm:px-5",
         fieldErrors[field] && "ring-2 ring-[#ef4444]/20 rounded-xl"
       )}
     >
@@ -952,7 +954,7 @@ function MetricCounterCard({
         "
       />
 
-      <div className="grid h-8 w-[132px] grid-cols-[38px_1fr_38px] overflow-hidden rounded-lg border border-[#e5eaf2] bg-white shadow-sm focus-within:ring-2 focus-within:ring-[#2563eb]/20 focus-within:border-[#2563eb]/40 transition-all mt-1">
+      <div className="mt-1 grid h-8 w-full max-w-[132px] grid-cols-[38px_minmax(0,1fr)_38px] overflow-hidden rounded-lg border border-[#e5eaf2] bg-white shadow-sm transition-all focus-within:border-[#2563eb]/40 focus-within:ring-2 focus-within:ring-[#2563eb]/20">
         <button
           type="button"
           aria-label={`Diminuir ${label}`}

@@ -455,16 +455,16 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
       </div>
 
       <Card className="min-w-0 overflow-hidden rounded-[18px] border border-[#dfe7f0] bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-        <header className="flex min-w-0 items-center justify-between gap-4 border-b border-[#eef2f7] px-5 py-4">
-          <div className="min-w-0 flex items-center gap-2">
+<header className="flex min-w-0 flex-col items-stretch justify-between gap-3 border-b border-[#eef2f7] px-4 py-4 sm:flex-row sm:items-center sm:px-5">
+ <div className="flex min-w-0 items-start gap-2 sm:items-center">
             <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold bg-[#1e3a8a] text-white">
               4
             </span>
-            <div>
-              <Typography variant="h2" className="!text-[17px] !leading-tight font-extrabold uppercase tracking-tight text-[#111827]">
+ <div className="min-w-0">
+ <Typography variant="h2" className="!text-[16px] !leading-tight font-extrabold uppercase tracking-tight text-[#111827] sm:!text-[17px]">
                 CADASTRAR VENDA/AGENDAMENTOS
               </Typography>
-              <Typography variant="p" className="mt-1 text-sm font-medium text-[#64748b] truncate">
+ <Typography variant="p" className="mt-1 text-sm font-medium leading-snug text-[#64748b]">
                 Preencha suas vendas e seus agendamentos para enriquecer suas informações.
               </Typography>
             </div>
@@ -473,14 +473,68 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
             id="checkin-new-client-button"
             type="button"
             onClick={handleOpenNew}
-            className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#2563eb] px-5 text-sm font-bold text-white shadow-[0_10px_20px_rgba(37,99,235,0.22)] transition hover:bg-[#1d4ed8]"
+className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#2563eb] px-5 text-sm font-bold text-white shadow-[0_10px_20px_rgba(37,99,235,0.22)] transition hover:bg-[#1d4ed8] sm:w-auto"
           >
             <UserPlus size={16} /> + Novo Cliente
           </button>
         </header>
 
-        <div className="max-w-full overflow-x-auto">
-          <table className="w-full min-w-[960px] table-fixed text-left text-[13px]">
+<div className="md:hidden">
+{clientesList.length === 0 ? (
+<div className="flex min-h-[140px] flex-col items-center justify-center gap-2 px-5 py-8 text-center">
+<span className="grid h-10 w-10 place-items-center rounded-full bg-[#f1f5f9] text-[#94a3b8]">
+<Users size={17} />
+</span>
+<p className="text-[13px] font-bold text-[#475569]">Nenhum cliente cadastrado ainda</p>
+<p className="text-[12px] font-medium text-[#94a3b8]">Toque em "+ Novo Cliente" para registrar venda ou agendamento.</p>
+</div>
+) : (
+<div className="divide-y divide-[#eef2f7]">
+{clientesList.map((row: ClienteRow) => (
+<article key={row.id} className="space-y-3 bg-white px-4 py-4">
+<div className="flex items-start justify-between gap-3">
+<div className="min-w-0">
+<p className="truncate text-[15px] font-extrabold text-[#2563eb]">{row.nomeCliente}</p>
+<p className="mt-0.5 truncate text-[12px] font-semibold text-[#64748b]">{formatPhone(row.telefone)} · {row.veiculoInteresse}</p>
+</div>
+<div className="flex shrink-0 items-center gap-1.5">
+<button type="button" onClick={() => handleEdit(row)} className="grid h-8 w-8 place-items-center rounded-lg bg-slate-100 text-slate-700 transition-colors hover:bg-[#eff6ff] hover:text-[#2563eb]" aria-label={`Editar ${row.nomeCliente}`}>
+<Edit size={14} />
+</button>
+<button type="button" onClick={() => handleDelete(row)} className="grid h-8 w-8 place-items-center rounded-lg bg-slate-100 text-slate-500 transition-colors hover:bg-[#fef2f2] hover:text-[#ef4444]" aria-label={`Excluir ${row.nomeCliente}`}>
+<Trash2 size={14} />
+</button>
+</div>
+</div>
+<div className="grid grid-cols-2 gap-2 text-[12px]">
+<div className="rounded-xl bg-[#f8fafc] p-3">
+<span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#94a3b8]">Valor</span>
+<strong className="mt-1 block text-[#111827]">{formatMoney(row.valorNegociado)}</strong>
+</div>
+<div className="rounded-xl bg-[#f8fafc] p-3">
+<span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#94a3b8]">Sinal</span>
+<strong className="mt-1 block text-[#475569]">{formatMoney(row.sinal)}</strong>
+</div>
+<div className="col-span-2 rounded-xl bg-[#f8fafc] p-3">
+<span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#94a3b8]">Agendamento</span>
+<strong className="mt-1 block truncate text-[#475569]">{formatAgendamentoDateTime(row.dataAgendamento)}</strong>
+</div>
+</div>
+<div className="flex flex-wrap gap-2">
+<ChannelBadge canal={row.canal} />
+<CompareceuBadge value={row.compareceu} />
+<BooleanBadge value={row.carroAvaliado} />
+<FinanciamentoBadge value={row.financiamento} />
+<VendaBadge value={row.vendaRealizada} />
+</div>
+</article>
+))}
+</div>
+)}
+</div>
+
+<div className="hidden max-w-full overflow-x-auto md:block">
+ <table className="w-full min-w-[1120px] table-fixed text-left text-[13px]">
             <colgroup>
               <col className="w-[12%]" />
               <col className="w-[11%]" />
@@ -500,7 +554,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
                 {[
                   'Nome',
                   'Telefone',
-                  'Veiculo',
+'Veículo',
                   'Valor',
                   'Agendamento',
                   'Canal',

@@ -363,9 +363,50 @@ ${linkSeguro}`
     }
 
     // Dynamic Discipline and Summary Calculations
-    const agd_cart = Number(form.agd_cart ?? 0)
-    const agd_net = Number(form.agd_net ?? 0)
-    const totalAgendamentosD1 = agd_cart + agd_net
+    const crmDailyCounters = useMemo(() => {
+        const dataD1 = addDaysDateOnly(selectedDate, 1)
+        const isD1Negotiation = (cliente: ClienteRow) =>
+            cliente.vendaRealizada === 'Em Negociação'
+            && cliente.tipoRegistroCalculado === 'Agendamento D+1'
+            && parseDateOnly(cliente.dataAgendamento) === dataD1
+
+        return {
+            agd_cart: clientesList.filter(cliente => cliente.canal === 'Carteira' && isD1Negotiation(cliente)).length,
+            agd_net: clientesList.filter(cliente => cliente.canal === 'Internet' && isD1Negotiation(cliente)).length,
+            visitas_porta: clientesList.filter(cliente => cliente.canal === 'Showroom' && cliente.compareceu === 'Sim').length,
+            visitas_cart: clientesList.filter(cliente => cliente.canal === 'Carteira' && cliente.compareceu === 'Sim').length,
+            visitas_net: clientesList.filter(cliente => cliente.canal === 'Internet' && cliente.compareceu === 'Sim').length,
+            vnd_porta: clientesList.filter(cliente => cliente.canal === 'Showroom' && cliente.vendaRealizada === 'Sim').length,
+            vnd_cart: clientesList.filter(cliente => cliente.canal === 'Carteira' && cliente.vendaRealizada === 'Sim').length,
+            vnd_net: clientesList.filter(cliente => cliente.canal === 'Internet' && cliente.vendaRealizada === 'Sim').length,
+        }
+    }, [clientesList, selectedDate])
+
+    const effectiveForm = useMemo<CheckinForm>(() => {
+        const next: CheckinForm = {
+            ...form,
+            agd_cart: Math.max(Number(form.agd_cart ?? 0), crmDailyCounters.agd_cart),
+            agd_net: Math.max(Number(form.agd_net ?? 0), crmDailyCounters.agd_net),
+            visitas_porta: Math.max(Number(form.visitas_porta ?? 0), crmDailyCounters.visitas_porta),
+            visitas_cart: Math.max(Number(form.visitas_cart ?? 0), crmDailyCounters.visitas_cart),
+            visitas_net: Math.max(Number(form.visitas_net ?? 0), crmDailyCounters.visitas_net),
+            vnd_porta: Math.max(Number(form.vnd_porta ?? 0), crmDailyCounters.vnd_porta),
+            vnd_cart: Math.max(Number(form.vnd_cart ?? 0), crmDailyCounters.vnd_cart),
+            vnd_net: Math.max(Number(form.vnd_net ?? 0), crmDailyCounters.vnd_net),
+        }
+        next.leads = Number(next.leads_cart) + Number(next.leads_net)
+        next.visitas = Number(next.visitas_porta) + Number(next.visitas_cart) + Number(next.visitas_net)
+        return next
+    }, [crmDailyCounters, form])
+
+    const effectiveTotals = useMemo(() => ({
+        leads: Number(effectiveForm.leads_cart) + Number(effectiveForm.leads_net),
+        visitas: Number(effectiveForm.visitas_porta) + Number(effectiveForm.visitas_cart) + Number(effectiveForm.visitas_net),
+        agd: Number(effectiveForm.agd_cart) + Number(effectiveForm.agd_net),
+        vendas: Number(effectiveForm.vnd_porta) + Number(effectiveForm.vnd_cart) + Number(effectiveForm.vnd_net),
+    }), [effectiveForm])
+
+    const totalAgendamentosD1 = Number(effectiveForm.agd_cart ?? 0) + Number(effectiveForm.agd_net ?? 0)
 
     const validosCarteira = useMemo(() => {
         return clientesList.filter(c =>
@@ -383,8 +424,8 @@ ${linkSeguro}`
         ).length
     }, [clientesList])
 
-    const creditosCarteira = Math.min(validosCarteira, agd_cart)
-    const creditosInternet = Math.min(validosInternet, agd_net)
+    const creditosCarteira = Math.min(validosCarteira, Number(effectiveForm.agd_cart ?? 0))
+    const creditosInternet = Math.min(validosInternet, Number(effectiveForm.agd_net ?? 0))
     const creditosValidos = creditosCarteira + creditosInternet
 
     const percentualDetalhamento = useMemo(() => {
@@ -404,7 +445,7 @@ ${linkSeguro}`
 
     const completedItems = useMemo(() => {
         const items = []
-        const hasFormFill = form.leads > 0 || totals.agd_total > 0 || form.visitas > 0 || totals.vnd_total > 0 || form.zero_reason !== ''
+        const hasFormFill = effectiveTotals.leads > 0 || effectiveTotals.agd > 0 || effectiveTotals.visitas > 0 || effectiveTotals.vendas > 0 || form.zero_reason !== ''
         if (hasFormFill) {
             items.push('Preenchimento básico (70%)')
         }
@@ -414,7 +455,7 @@ ${linkSeguro}`
             items.push('Detalhamento p/ Amanhã (Sem agendamentos no dia)')
         }
         return items
-    }, [form, totals, totalAgendamentosD1, creditosValidos, pontosExtrasDisciplina])
+    }, [effectiveTotals, form.zero_reason, totalAgendamentosD1, creditosValidos, pontosExtrasDisciplina])
 
     const pendingItems = useMemo(() => {
         const items = []
@@ -460,8 +501,8 @@ ${linkSeguro}`
     }, [isLate, minutesUntilEditLock])
 
     const allZero = useMemo(
-        () => form.leads === 0 && totals.agd_total === 0 && form.visitas === 0 && totals.vnd_total === 0,
-        [form.leads, form.visitas, totals],
+        () => effectiveTotals.leads === 0 && effectiveTotals.agd === 0 && effectiveTotals.visitas === 0 && effectiveTotals.vendas === 0,
+        [effectiveTotals],
     )
     const funnelError = useMemo(() => {
         try { return validarFunil(form) } catch { return 'Erro de validação' }
@@ -604,7 +645,7 @@ ${linkSeguro}`
         setSaving(true)
         
         // Save the checkin to Supabase
-        const { error } = await saveCheckin(form, metricScope, selectedDate)
+        const { error } = await saveCheckin(effectiveForm, metricScope, selectedDate)
         if (error) { setSaving(false); toast.error(error); return }
         
         // Save final score and late penalty status to localStorage so the history reflects it correctly
@@ -720,9 +761,12 @@ ${linkSeguro}`
         inputError,
         fieldErrors,
         numberDrafts,
-        saveNotice,
-        currentTime,
-        historicalCheckin,
+ saveNotice,
+ currentTime,
+ effectiveForm,
+ effectiveTotals,
+ crmDailyCounters,
+ historicalCheckin,
         loadingHistory,
         customReferenceDate,
         hookLoading,

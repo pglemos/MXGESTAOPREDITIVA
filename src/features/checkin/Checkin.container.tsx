@@ -80,7 +80,7 @@ export function Checkin() {
 
     // Progresso por pilar do lançamento diário — cada pilar acende quando recebe
     // ao menos um lançamento (preenchido vs vazio).
-    const f = ctx.form
+    const f = ctx.effectiveForm
     const pillars = [
         { key: 'leads', label: 'Leads', filled: (f.leads_cart || 0) + (f.leads_net || 0) > 0 },
         { key: 'atendimentos', label: 'Atendimentos', filled: (f.visitas_porta || 0) + (f.visitas_cart || 0) + (f.visitas_net || 0) > 0 },
@@ -89,7 +89,7 @@ export function Checkin() {
     ]
 
   return (
-    <main className="h-full w-full min-w-0 overflow-y-auto overscroll-contain bg-surface-alt p-mx-sm no-scrollbar sm:p-mx-md 2xl:p-mx-lg">
+    <main className="h-full w-full min-w-0 overflow-y-auto overscroll-contain bg-surface-alt px-mx-sm pb-mx-sm pt-0 no-scrollbar sm:px-mx-md sm:pb-mx-md 2xl:px-mx-lg 2xl:pb-mx-lg">
             {checkinLoadError && (
                 <div role="alert" className="rounded-mx-2xl border border-status-error/20 bg-status-error-surface px-mx-md py-mx-sm text-sm font-bold text-status-error">
                     {checkinLoadError}
