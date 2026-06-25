@@ -292,7 +292,7 @@ export function CheckinHeader({
   }
 
   return (
-    <header className="sticky top-0 z-30 shrink-0 bg-surface-alt -mx-mx-sm px-mx-sm pt-mx-sm -mt-mx-sm pb-4 sm:-mx-mx-md sm:px-mx-md sm:pt-mx-md sm:-mt-mx-md 2xl:-mx-mx-lg 2xl:px-mx-lg 2xl:pt-mx-lg 2xl:-mt-mx-lg border-b border-border-default/40 shadow-[0_4px_12px_rgba(15,23,42,0.03)] space-y-4">
+    <header className="sticky top-0 z-30 shrink-0 bg-surface-alt pb-4 pt-2 border-b border-border-default/40 shadow-[0_4px_12px_rgba(15,23,42,0.03)] space-y-4">
       {/* Top Header Row */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-4">
