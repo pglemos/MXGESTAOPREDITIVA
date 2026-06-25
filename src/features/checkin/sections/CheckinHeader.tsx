@@ -438,6 +438,11 @@ export function CheckinHeader({
                           <div>
                             <span className="font-extrabold text-[#111827] text-sm">{formattedDate}</span>
                             <span className="text-[#94a3b8] text-xs font-bold ml-2 uppercase tracking-wide">{weekdayFormatted}</span>
+                            {row.finalized && row.time && row.time !== '—' && (
+                              <span className="text-[#64748b] text-xs font-bold ml-2">
+                                · {row.time}
+                              </span>
+                            )}
                           </div>
                         </div>
 

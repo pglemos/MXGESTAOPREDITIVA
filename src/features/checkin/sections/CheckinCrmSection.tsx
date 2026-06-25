@@ -1121,7 +1121,14 @@ function FinanciamentoBadge({ value }: { value: ClienteRow['financiamento'] }) {
 }
 
 function VendaBadge({ value }: { value: ClienteRow['vendaRealizada'] }) {
-  const variant = value === 'Sim' ? 'success' : value === 'Não' ? 'danger' : 'warning'
+  if (value === 'Em Negociação' || (value as string) === 'em_negociacao') {
+    return (
+      <span className="inline-flex items-center rounded-md border border-[#fef08a] bg-[#fef9c3] px-2 py-0 text-[10px] font-bold text-[#a16207] shadow-sm">
+        Em Negociação
+      </span>
+    )
+  }
+  const variant = value === 'Sim' || (value as string) === 'ganho' ? 'success' : 'danger'
   return (
     <Badge variant={variant} className="px-2 py-0 text-[10px]">
       {value}
