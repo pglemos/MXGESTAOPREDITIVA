@@ -484,7 +484,7 @@ export default function SellerLayoutShell({
             )}
           </section>
         )}
-        <section className="min-h-[calc(100vh-100px)] w-full min-w-0 overflow-hidden rounded-[24px] border border-[#e5eaf2] bg-[#f7f9fc] text-slate-950 shadow-[0_24px_70px_rgba(15,23,42,0.04)] md:min-h-[calc(100vh-2rem)]">
+        <section className="h-[calc(100vh-100px)] w-full min-w-0 overflow-hidden rounded-[24px] border border-[#e5eaf2] bg-[#f7f9fc] text-slate-950 shadow-[0_24px_70px_rgba(15,23,42,0.04)] md:h-[calc(100vh-2rem)]">
           {children}
         </section>
       </main>
