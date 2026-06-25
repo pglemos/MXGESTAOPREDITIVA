@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { RefreshCw, ShieldCheck, Sparkles } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
@@ -29,6 +29,27 @@ export function Checkin() {
     // Modal de Histórico de Fechamentos — controlado aqui para que o aviso de
     // pendência (no formulário) e o cabeçalho possam abri-lo.
     const [historyOpen, setHistoryOpen] = useState(false)
+
+    useEffect(() => {
+        const previousHtmlOverflow = document.documentElement.style.overflow
+        const previousBodyOverflow = document.body.style.overflow
+        const keepDocumentScrollPinned = () => {
+            if (window.scrollX !== 0 || window.scrollY !== 0) {
+                window.scrollTo({ top: 0, left: 0 })
+            }
+        }
+
+        window.scrollTo({ top: 0, left: 0 })
+        document.documentElement.style.overflow = 'hidden'
+        document.body.style.overflow = 'hidden'
+        window.addEventListener('scroll', keepDocumentScrollPinned, { passive: true })
+
+        return () => {
+            window.removeEventListener('scroll', keepDocumentScrollPinned)
+            document.documentElement.style.overflow = previousHtmlOverflow
+            document.body.style.overflow = previousBodyOverflow
+        }
+    }, [])
 
     if (hookLoading) {
         return (
@@ -68,7 +89,7 @@ export function Checkin() {
     ]
 
   return (
-    <main className="h-full w-full min-w-0 overflow-y-auto bg-surface-alt p-mx-sm no-scrollbar sm:p-mx-md 2xl:p-mx-lg">
+    <main className="h-full w-full min-w-0 overflow-y-auto overscroll-contain bg-surface-alt p-mx-sm no-scrollbar sm:p-mx-md 2xl:p-mx-lg">
             {checkinLoadError && (
                 <div role="alert" className="rounded-mx-2xl border border-status-error/20 bg-status-error-surface px-mx-md py-mx-sm text-sm font-bold text-status-error">
                     {checkinLoadError}

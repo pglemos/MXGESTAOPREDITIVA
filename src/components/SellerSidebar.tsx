@@ -410,7 +410,7 @@ export default function SellerLayoutShell({
   }
 
   return (
-    <div className="mx-app-scrollbarless min-h-screen bg-[#f7f9fc] font-display text-[#111827]">
+    <div className="mx-app-scrollbarless h-screen overflow-hidden bg-[#f7f9fc] font-display text-[#111827]">
       <header className="fixed left-3 right-3 top-3 z-[90] flex h-14 items-center justify-between rounded-2xl border border-blue-500/20 bg-[#061a33]/95 px-3 shadow-[0_18px_38px_rgba(0,0,0,0.28)] backdrop-blur md:hidden">
         <button type="button" aria-label="Abrir menu principal" onClick={() => setMobileOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-xl text-white outline-none transition-colors hover:bg-blue-500/10 focus-visible:ring-2 focus-visible:ring-blue-500/45">
           <Menu size={22} aria-hidden="true" />
@@ -467,7 +467,7 @@ export default function SellerLayoutShell({
         role="main"
         tabIndex={-1}
         className={cn(
-          'min-h-screen p-3 pt-[76px] outline-none transition-[padding] duration-200 md:p-2',
+          'h-screen overflow-hidden p-3 pt-[76px] outline-none transition-[padding] duration-200 md:p-2',
           collapsed ? 'md:pl-[88px]' : 'md:pl-[252px]'
         )}
       >
