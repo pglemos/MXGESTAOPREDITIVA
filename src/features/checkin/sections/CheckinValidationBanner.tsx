@@ -19,8 +19,8 @@ interface CheckinValidationBannerProps {
 export function CheckinValidationBanner({
     metricScope,
     minutesUntilEditLock,
-    funnelError,
     inputError,
+    ..._props
 }: CheckinValidationBannerProps) {
     return (
         <>
@@ -43,19 +43,7 @@ export function CheckinValidationBanner({
                 </Card>
             )}
 
-            <AnimatePresence>
-                {funnelError && (
-                    <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}>
-                        <Card className="p-mx-lg bg-status-error-surface border-2 border-status-error/20 flex flex-col sm:flex-row sm:items-center gap-mx-lg shadow-mx-xl">
-                            <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-status-error text-white flex items-center justify-center shadow-mx-lg transform -rotate-3 shrink-0"><AlertTriangle size={32} strokeWidth={2} /></div>
-                            <div className="space-y-mx-tiny">
-                                <Typography variant="h3" tone="error" className="text-xl leading-none">INCONSISTÊNCIA OPERACIONAL</Typography>
-                                <Typography variant="p" tone="error" className="font-bold leading-relaxed">{funnelError}</Typography>
-                            </div>
-                        </Card>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+
 
             <AnimatePresence>
                 {inputError && (

@@ -41,15 +41,14 @@ const ADJUSTMENT_REASONS = [
 
 export function CheckinHeader({
   dateStr,
-  pillars,
   setCustomReferenceDate,
   historyOpen,
   setHistoryOpen,
   checkins = [],
   userId = 'vendedor',
   saveCheckin,
+  ..._props
 }: CheckinHeaderProps) {
-  const filledCount = pillars.filter(p => p.filled).length
   const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
 
   const [activeView, setActiveView] = useState<'list' | 'form'>('list')
@@ -322,59 +321,6 @@ export function CheckinHeader({
         </div>
       </div>
 
-      {/* Progress Bar and Pillar Badges */}
-      <div className="w-full bg-white rounded-2xl border border-[#e5eaf2] p-5 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <span className="text-xs font-black uppercase tracking-widest text-[#94a3b8]">Progresso do Lançamento</span>
-            <h2 className="text-sm font-bold text-[#111827] mt-0.5">
-              {filledCount === 4 
-                ? 'Todos os pilares preenchidos!' 
-                : `${filledCount} de 4 pilares preenchidos`}
-            </h2>
-          </div>
-          <span className="text-2xl font-black text-[#2563eb] tabular-nums">
-            {Math.round((filledCount / 4) * 100)}%
-          </span>
-        </div>
-
-        {/* Progress bar container */}
-        <div className="h-3 w-full bg-[#f1f5f9] rounded-full overflow-hidden flex gap-0.5">
-          {pillars.map((p) => (
-            <div
-              key={p.key}
-              className={`h-full flex-1 transition-all duration-500 ${
-                p.filled 
-                  ? 'bg-gradient-to-r from-[#2563eb] to-[#3b82f6] shadow-[0_0_8px_rgba(37,99,235,0.3)]' 
-                  : 'bg-[#e2e8f0]'
-              }`}
-            />
-          ))}
-        </div>
-
-        {/* Pillars status badges */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-1">
-          {pillars.map((p) => (
-            <div
-              key={p.key}
-              className={`flex items-center gap-2.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all duration-300 ${
-                p.filled
-                  ? 'bg-[#ecfdf5] border-[#bbf7d0] text-[#16a34a] shadow-sm'
-                  : 'bg-white border-[#e5eaf2] text-[#94a3b8]'
-              }`}
-            >
-              <div
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  p.filled 
-                    ? 'bg-[#16a34a] animate-pulse' 
-                    : 'bg-[#cbd5e1]'
-                }`}
-              />
-              <span>{p.label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* Histórico de Fechamentos Modal */}
       {historyOpen && (

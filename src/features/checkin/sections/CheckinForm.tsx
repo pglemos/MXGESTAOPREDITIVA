@@ -300,40 +300,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
         </MetricGroupCard>
       </section>
 
-      {/* Late Close Warning Banner */}
-      {isPastDeadline && (
-        <div className={`rounded-xl border p-4 shadow-sm ${
-          fechamentoLiberado
-            ? 'border-status-success/30 bg-status-success-surface'
-            : 'border-status-error/30 bg-status-error-surface'
-        }`}>
-          <div className="flex items-start gap-2">
-            {fechamentoLiberado ? (
-              <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-status-success" />
-            ) : (
-              <AlertTriangle size={18} className="mt-0.5 shrink-0 text-status-error" />
-            )}
-            <div className="flex-1">
-              <Typography variant="p" className={`text-sm font-bold ${
-                fechamentoLiberado ? 'text-status-success' : 'text-status-error'
-              }`}>
-                {fechamentoLiberado
-                  ? 'Fechamento liberado pelo gerente. Ao finalizar, será aplicada penalização de 10% por atraso.'
-                  : 'Prazo encerrado às 09h30. Solicite liberação ao seu gerente para finalizar este fechamento.'}
-              </Typography>
-            </div>
-          </div>
-          {!fechamentoLiberado && (
-            <button
-              type="button"
-              onClick={() => avisarGerenteWhatsapp()}
-              className="mt-3 inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-status-success px-4 text-xs font-bold text-white transition-colors hover:opacity-90 shadow-sm"
-            >
-              <MessageSquare size={14} /> Avisar gerente no WhatsApp
-            </button>
-          )}
-        </div>
-      )}
+
 
       <section className="grid w-full min-w-0 gap-mx-md">
         <div className="space-y-mx-md">
@@ -753,7 +720,42 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
       )}
 
       {/* Finalizar Fechamento */}
-      <div className="min-w-0 rounded-[18px] border border-[#dfe7f0] bg-white px-6 py-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] mt-5">
+      <div className="min-w-0 rounded-[18px] border border-[#dfe7f0] bg-white px-6 py-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] mt-5 space-y-4">
+        {/* Late Close Warning Banner */}
+        {isPastDeadline && (
+          <div className={`rounded-xl border p-4 shadow-sm ${
+            fechamentoLiberado
+              ? 'border-status-success/30 bg-status-success-surface'
+              : 'border-status-error/30 bg-status-error-surface'
+          }`}>
+            <div className="flex items-start gap-2">
+              {fechamentoLiberado ? (
+                <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-status-success" />
+              ) : (
+                <AlertTriangle size={18} className="mt-0.5 shrink-0 text-status-error" />
+              )}
+              <div className="flex-1">
+                <Typography variant="p" className={`text-sm font-bold ${
+                  fechamentoLiberado ? 'text-status-success' : 'text-status-error'
+                }`}>
+                  {fechamentoLiberado
+                    ? 'Fechamento liberado pelo gerente. Ao finalizar, será aplicada penalização de 10% por atraso.'
+                    : 'Prazo encerrado às 09h30. Solicite liberação ao seu gerente para finalizar este fechamento.'}
+                </Typography>
+              </div>
+            </div>
+            {!fechamentoLiberado && (
+              <button
+                type="button"
+                onClick={() => avisarGerenteWhatsapp()}
+                className="mt-3 inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-status-success px-4 text-xs font-bold text-white transition-colors hover:opacity-90 shadow-sm"
+              >
+                <MessageSquare size={14} /> Avisar gerente no WhatsApp
+              </button>
+            )}
+          </div>
+        )}
+
         <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6">
           {/* Green pill button */}
           <button
