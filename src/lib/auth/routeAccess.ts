@@ -75,6 +75,7 @@ export const ROUTE_ACCESS_RULES = [
   { pattern: '/produtos', roles: PRODUCT_ROLES, capability: 'view_products' },
   { pattern: '/configuracoes/remuneracao', roles: INTERNAL_AND_LEADERS },
 { pattern: '/configuracoes', roles: USER_ROLES },
+  { pattern: '/liberacao-fechamento', roles: INTERNAL_AND_LEADERS },
 ] as const satisfies readonly RouteRule[]
 
 function normalizePath(pathname: string) {
