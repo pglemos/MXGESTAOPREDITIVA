@@ -583,19 +583,19 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
 </div>
 
 <div className="hidden max-w-full overflow-x-auto md:block">
- <table className="w-full min-w-[1120px] table-fixed text-left text-[13px]">
+  <table className="w-full min-w-[1280px] table-fixed text-left text-[13px]">
             <colgroup>
               <col className="w-[12%]" />
               <col className="w-[10%]" />
               <col className="w-[10%]" />
               <col className="w-[8%]" />
-              <col className="w-[15%]" />
-              <col className="w-[7%]" />
-              <col className="w-[7%]" />
+              <col className="w-[14%]" />
+              <col className="w-[8%]" />
+              <col className="w-[9%]" />
+              <col className="w-[8%]" />
               <col className="w-[7%]" />
               <col className="w-[8%]" />
               <col className="w-[8%]" />
-              <col className="w-[10%]" />
               <col className="w-[8%]" />
             </colgroup>
             <thead className="bg-[#f8fafc] text-[11px] uppercase tracking-normal text-[#475569] border-b border-[#e5eaf2]">
@@ -617,9 +617,10 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                   <th
                     scope="col"
                     key={column}
-                    className={`px-4 py-3.5 font-extrabold ${
+                    className={`px-4 py-3.5 font-extrabold whitespace-nowrap truncate ${
                       column === 'Nome' ? 'sticky left-0 aggression-z z-10 bg-[#f8fafc] shadow-[6px_0_10px_-10px_rgba(15,23,42,0.15)]' : ''
                     }`}
+                    title={column}
                   >
                     {column}
                   </th>
