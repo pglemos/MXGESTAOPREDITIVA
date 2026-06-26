@@ -22,6 +22,7 @@ export type ClienteInput = {
   proxima_acao_em?: string | null
   potencial_negocio?: number
   observacoes?: string | null
+  created_at?: string | null
 }
 
 export function buildClientePayload(
@@ -45,6 +46,7 @@ export function buildClientePayload(
     potencial_negocio: input.potencial_negocio ?? 0,
     observacoes: input.observacoes?.trim() || null,
     ultima_interacao: toDateOnlyBR(now),
+    ...(input.created_at ? { created_at: input.created_at } : {}),
   }
 }
 

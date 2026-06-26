@@ -379,12 +379,16 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
         ? 'Não'
         : 'Em Negociação'
 
+      // Construct date of competence timestamp override (noon of selectedDate in Sao Paulo time)
+      const createdAtOverride = `${selectedDate}T12:00:00-03:00`
+
       const clientePayload: ClienteInput = {
         nome: nome.trim(),
         telefone: formatPhone(telefone) || null,
         canal_origem: canal || null,
         status: criaOportunidade ? 'oportunidade' : 'aguardando_contato',
         potencial_negocio: parsedValor || 0,
+        ...((!editingClienteDbId && !existingCliente?.id) ? { created_at: createdAtOverride } : {}),
       }
 
       // Save in Supabase — always use the real clientes.id (editingClienteDbId), never the local row id
@@ -416,6 +420,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
         carro_avaliado: carroAvaliado === 'sim',
         motivo_perda: normalizedVendaRealizada === 'Não' ? motivoPerda.trim() : null,
         closed_at: normalizedVendaRealizada !== 'Em Negociação' ? toClosedAt(dateOnly) : null,
+        ...(!editingClientId ? { created_at: createdAtOverride } : {}),
       }
 
       const { error: oportError, id: newOportunidadeId } = editingClientId
@@ -581,24 +586,24 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
  <table className="w-full min-w-[1120px] table-fixed text-left text-[13px]">
             <colgroup>
               <col className="w-[12%]" />
-              <col className="w-[11%]" />
-              <col className="w-[12%]" />
               <col className="w-[10%]" />
-              <col className="w-[11%]" />
+              <col className="w-[10%]" />
               <col className="w-[8%]" />
-              <col className="w-[8%]" />
-              <col className="w-[8%]" />
+              <col className="w-[15%]" />
               <col className="w-[7%]" />
-              <col className="w-[9%]" />
-              <col className="w-[9%]" />
-              <col className="w-[9%]" />
+              <col className="w-[7%]" />
+              <col className="w-[7%]" />
+              <col className="w-[8%]" />
+              <col className="w-[8%]" />
+              <col className="w-[10%]" />
+              <col className="w-[8%]" />
             </colgroup>
             <thead className="bg-[#f8fafc] text-[11px] uppercase tracking-normal text-[#475569] border-b border-[#e5eaf2]">
               <tr>
                 {[
                   'Nome',
                   'Telefone',
-'Veículo',
+                  'Veículo',
                   'Valor',
                   'Agendamento',
                   'Canal',
@@ -648,15 +653,15 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                         <td className="sticky left-0 z-10 whitespace-nowrap bg-inherit px-4 py-3 font-bold text-[#2563eb] shadow-[6px_0_10px_-10px_rgba(15,23,42,0.15)]">
                           <div className="flex items-center gap-1.5">
                             {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                            <span className="truncate">{row.nomeCliente}</span>
+                            <span className="truncate" title={row.nomeCliente}>{row.nomeCliente}</span>
                           </div>
                         </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-[#475569]">{formatPhone(row.telefone)}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-[#475569] truncate">{row.veiculoInteresse}</td>
-                        <td className="whitespace-nowrap px-4 py-3 font-bold text-[#111827]">
+                        <td className="whitespace-nowrap px-4 py-3 text-[#475569] truncate" title={formatPhone(row.telefone)}>{formatPhone(row.telefone)}</td>
+                        <td className="whitespace-nowrap px-4 py-3 text-[#475569] truncate" title={row.veiculoInteresse}>{row.veiculoInteresse}</td>
+                        <td className="whitespace-nowrap px-4 py-3 font-bold text-[#111827] truncate" title={formatMoney(row.valorNegociado)}>
                           {formatMoney(row.valorNegociado)}
                         </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-[#475569]">
+                        <td className="whitespace-nowrap px-4 py-3 text-[#475569] truncate" title={formatAgendamentoDateTime(row.dataAgendamento)}>
                           {formatAgendamentoDateTime(row.dataAgendamento)}
                         </td>
                         <td className="px-4 py-3">
@@ -668,7 +673,7 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                         <td className="px-4 py-3">
                           <BooleanBadge value={row.carroAvaliado} />
                         </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-[#475569]">{formatMoney(row.sinal)}</td>
+                        <td className="whitespace-nowrap px-4 py-3 text-[#475569] truncate" title={formatMoney(row.sinal)}>{formatMoney(row.sinal)}</td>
                         <td className="px-4 py-3">
                           <FinanciamentoBadge value={row.financiamento} />
                         </td>

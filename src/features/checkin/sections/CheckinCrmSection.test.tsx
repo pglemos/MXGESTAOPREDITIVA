@@ -203,6 +203,7 @@ describe('CheckinCrmSection', () => {
       canal_origem: 'internet',
       status: 'oportunidade',
       potencial_negocio: 19500,
+      created_at: '2026-06-16T12:00:00-03:00',
     })
     expect(createOportunidade.mock.calls[0]?.[0]).toEqual({
       cliente_id: '22222222-2222-4222-8222-222222222222',
@@ -216,6 +217,7 @@ describe('CheckinCrmSection', () => {
       carro_avaliado: true,
       motivo_perda: null,
       closed_at: '2026-06-15T12:00:00-03:00',
+      created_at: '2026-06-16T12:00:00-03:00',
     })
     expect(toastError).not.toHaveBeenCalled()
     expect(toastSuccess).toHaveBeenCalledWith('Cliente cadastrado na carteira.')
