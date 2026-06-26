@@ -6,6 +6,8 @@ import {
   deriveDailyRoutineSlots,
   isProductionZero,
   resolveCloseDayReminderSchedule,
+  resolveCurrentRoutineSlotKey,
+  resolveRoutineOffsets,
   resolveRoutineTimesFromWorkday,
 } from './daily-routine'
 
@@ -158,5 +160,45 @@ describe('daily routine helpers', () => {
       workEndTime: '18:00',
       slotCount: 3,
     })).toEqual(['08:00', '08:15', '08:55'])
+  })
+})
+
+describe('Central de Execução — Rotina do Dia (âncoras fixas, spec §5.2)', () => {
+  test('exemplo da jornada padrão 08:00-18:00 do spec', () => {
+    expect(resolveRoutineOffsets({ workStartTime: '08:00', lunchEndTime: '13:00', workEndTime: '18:00' })).toEqual({
+      mentalidade: '08:00',
+      organizacao: '08:15',
+      novos_leads: '08:45',
+      prospeccao: '11:00',
+      atendimento: '13:00',
+      lista_quente: '16:00',
+      fechamento: '17:00',
+    })
+  })
+
+  test('Teste de Aceite 8: jornada 10h-20h recalcula automaticamente', () => {
+    const schedule = resolveRoutineOffsets({ workStartTime: '10:00', lunchEndTime: '13:00', workEndTime: '20:00' })
+    expect(schedule.mentalidade).toBe('10:00')
+    expect(schedule.organizacao).toBe('10:15')
+    expect(schedule.novos_leads).toBe('10:45')
+    expect(schedule.prospeccao).toBe('13:00')
+    expect(schedule.lista_quente).toBe('18:00')
+    expect(schedule.fechamento).toBe('19:00')
+  })
+
+  test('usa padrão 08:00/13:00/18:00 quando o vendedor não cadastrou horário', () => {
+    expect(resolveRoutineOffsets({})).toEqual(resolveRoutineOffsets({
+      workStartTime: '08:00',
+      lunchEndTime: '13:00',
+      workEndTime: '18:00',
+    }))
+  })
+
+  test('resolveCurrentRoutineSlotKey escolhe a última etapa já iniciada', () => {
+    const schedule = resolveRoutineOffsets({ workStartTime: '08:00', lunchEndTime: '13:00', workEndTime: '18:00' })
+    expect(resolveCurrentRoutineSlotKey(schedule, 7 * 60)).toBe('mentalidade') // antes do expediente
+    expect(resolveCurrentRoutineSlotKey(schedule, 8 * 60 + 30)).toBe('organizacao')
+    expect(resolveCurrentRoutineSlotKey(schedule, 14 * 60)).toBe('atendimento')
+    expect(resolveCurrentRoutineSlotKey(schedule, 23 * 60)).toBe('fechamento')
   })
 })

@@ -1495,6 +1495,32 @@ export type Database = {
         }
         Relationships: []
       }
+      central_execucao_aberturas: {
+        Row: {
+          created_at: string
+          data: string
+          seller_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data: string
+          seller_user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          seller_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "central_execucao_aberturas_seller_user_id_fkey"
+            columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checkin_audit_logs: {
         Row: {
           change_type: string
@@ -6930,6 +6956,51 @@ export type Database = {
           },
         ]
       }
+      prospecting_schedule: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          dia_semana: number
+          exemplo: Json | null
+          id: string
+          instrucoes: Json
+          objetivo: string | null
+          periodicidade: string | null
+          publico: string | null
+          quantidade: number | null
+          semana_mes: number | null
+          tipo_acao: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          dia_semana: number
+          exemplo?: Json | null
+          id?: string
+          instrucoes?: Json
+          objetivo?: string | null
+          periodicidade?: string | null
+          publico?: string | null
+          quantidade?: number | null
+          semana_mes?: number | null
+          tipo_acao: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          dia_semana?: number
+          exemplo?: Json | null
+          id?: string
+          instrucoes?: Json
+          objetivo?: string | null
+          periodicidade?: string | null
+          publico?: string | null
+          quantidade?: number | null
+          semana_mes?: number | null
+          tipo_acao?: string
+        }
+        Relationships: []
+      }
       push_notifications_log: {
         Row: {
           body: string | null
@@ -7757,6 +7828,51 @@ export type Database = {
         }
         Relationships: []
       }
+      routine_activity_templates: {
+        Row: {
+          atalhos: Json
+          ativo: boolean
+          created_at: string
+          duracao_minutos: number | null
+          id: string
+          instrucoes: Json
+          meta_sugerida: string | null
+          nome: string
+          objetivo: string
+          ordem: number
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          atalhos?: Json
+          ativo?: boolean
+          created_at?: string
+          duracao_minutos?: number | null
+          id?: string
+          instrucoes?: Json
+          meta_sugerida?: string | null
+          nome: string
+          objetivo: string
+          ordem: number
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          atalhos?: Json
+          ativo?: boolean
+          created_at?: string
+          duracao_minutos?: number | null
+          id?: string
+          instrucoes?: Json
+          meta_sugerida?: string | null
+          nome?: string
+          objetivo?: string
+          ordem?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       rpc_error_log: {
         Row: {
           caller_id: string | null
@@ -8200,6 +8316,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      story_ideas: {
+        Row: {
+          ativo: boolean
+          chamada_para_acao: string | null
+          created_at: string
+          dia_semana: number
+          id: string
+          passos: Json
+          titulo: string
+        }
+        Insert: {
+          ativo?: boolean
+          chamada_para_acao?: string | null
+          created_at?: string
+          dia_semana: number
+          id?: string
+          passos?: Json
+          titulo: string
+        }
+        Update: {
+          ativo?: boolean
+          chamada_para_acao?: string | null
+          created_at?: string
+          dia_semana?: number
+          id?: string
+          passos?: Json
+          titulo?: string
+        }
+        Relationships: []
       }
       subpastas_drive_consultoria: {
         Row: {

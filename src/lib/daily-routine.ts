@@ -251,3 +251,57 @@ export function deriveDailyRoutineSlots(input: {
     ...stateFor(definition.key),
   }))
 }
+
+// ---------------------------------------------------------------------------
+// Central de Execução — aba "Rotina do Dia" (spec §5.2): âncoras fixas em
+// relação a entrada/almoço/saída, em vez da distribuição uniforme acima
+// (usada só pela Central de Execução antiga). Funções aditivas — não alteram
+// o comportamento de deriveDailyRoutineSlots/resolveRoutineTimesFromWorkday.
+export type RoutineOffsetSchedule = Record<DailyRoutineAutoSlotKey, string>
+
+export const ROUTINE_OFFSET_SLOT_ORDER: DailyRoutineAutoSlotKey[] = [
+  'mentalidade',
+  'organizacao',
+  'novos_leads',
+  'prospeccao',
+  'atendimento',
+  'lista_quente',
+  'fechamento',
+]
+
+const DEFAULT_WORK_START_TIME = '08:00'
+const DEFAULT_LUNCH_END_TIME = '13:00'
+const DEFAULT_WORK_END_TIME = '18:00'
+
+export function resolveRoutineOffsets(input: {
+  workStartTime?: string | null
+  lunchEndTime?: string | null
+  workEndTime?: string | null
+}): RoutineOffsetSchedule {
+  const start = parseTimeToMinutes(input.workStartTime) ?? parseTimeToMinutes(DEFAULT_WORK_START_TIME)!
+  const lunchEnd = parseTimeToMinutes(input.lunchEndTime) ?? parseTimeToMinutes(DEFAULT_LUNCH_END_TIME)!
+  const end = parseTimeToMinutes(input.workEndTime) ?? parseTimeToMinutes(DEFAULT_WORK_END_TIME)!
+
+  return {
+    mentalidade: formatMinutesAsTime(start),
+    organizacao: formatMinutesAsTime(start + 15),
+    novos_leads: formatMinutesAsTime(start + 45),
+    prospeccao: formatMinutesAsTime(start + 180),
+    atendimento: formatMinutesAsTime(lunchEnd),
+    lista_quente: formatMinutesAsTime(end - 120),
+    fechamento: formatMinutesAsTime(end - 60),
+  }
+}
+
+/** Última etapa cujo horário já passou (ou a primeira, se ainda não começou o dia). */
+export function resolveCurrentRoutineSlotKey(
+  schedule: RoutineOffsetSchedule,
+  nowMinutes: number,
+): DailyRoutineAutoSlotKey {
+  let current = ROUTINE_OFFSET_SLOT_ORDER[0]
+  for (const key of ROUTINE_OFFSET_SLOT_ORDER) {
+    const slotMinutes = parseTimeToMinutes(schedule[key])
+    if (slotMinutes !== null && slotMinutes <= nowMinutes) current = key
+  }
+  return current
+}

@@ -1,26 +1,19 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import {
   AlarmClock,
-  Bell,
   Calendar,
   CalendarCheck,
-  Check,
   CheckCircle2,
-  ChevronDown,
-  CircleDollarSign,
   Clock,
+  ChevronRight,
+  CircleDollarSign,
   Info,
   MessageCircle,
   MoreHorizontal,
-  Plus,
   RotateCcw,
-  SquareUserRound,
-  Store,
   Target,
-  UserPlus,
-  XCircle,
 } from 'lucide-react'
 
 import { Button } from '@/components/atoms/Button'
@@ -30,165 +23,66 @@ import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
 import { FormField } from '@/components/molecules/FormField'
 import { PageHeading } from '@/components/molecules/PageHeading'
+import { TabNav } from '@/components/molecules/TabNav'
 import { Modal } from '@/components/organisms/Modal'
 import { calculateReferenceDate, useCheckinsToday } from '@/hooks/checkins'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 import {
-  CRM_AGENDAMENTO_STATUS,
-  CRM_AGENDAMENTO_STATUS_LABEL,
-  CRM_AGENDAMENTO_TIPO,
-  CRM_CANAIS,
-  CRM_CANAL_LABEL,
   toDateOnlyBR,
+  CRM_AGENDAMENTO_STATUS_LABEL,
   type CrmAgendamentoStatus,
+  type CrmAgendamentoTipo,
   type CrmCanal,
-  type CrmClienteStatus,
+  type CrmFinanciamento,
+  type CrmTipoVeiculo,
 } from '@/lib/schemas/crm.schema'
-import { deriveDailyRoutineSlots, resolveCloseDayReminderSchedule, type DailyRoutineAutoSlot } from '@/lib/daily-routine'
-import { useAgendamentos, type AgendamentoComCliente, type AgendamentoInput } from '@/features/crm/hooks/useAgendamentos'
-import { useAtendimentos } from '@/features/crm/hooks/useAtendimentos'
-import { useCadenciaAgenda, type CadenciaAgendaItem } from '@/features/crm/hooks/useCadenciaAgenda'
-import { useClientes, type ClienteInput } from '@/features/crm/hooks/useClientes'
-import { useExecutionActions, type ExecutionActionRow } from '@/features/crm/hooks/useExecutionActions'
-import { useFeedbackActions } from '@/features/crm/hooks/useFeedbackActions'
+import { timestampMatchesDateOnly } from '@/features/checkin/lib/clientes-list-from-crm'
+import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
+import { useClientes } from '@/features/crm/hooks/useClientes'
+import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
 import { useVendedorPerfil } from '@/features/crm/hooks/useVendedorPerfil'
-import { montarDataHoraAcaoCadencia, type CadenciaResultadoAcao } from '@/features/crm/lib/cadencia'
-import { mapFeedbackActionToAgendaItem, type FeedbackActionRow } from '@/features/gerente-feedback/lib/feedback-actions'
+import { useScoreRotina, type ScoreRotinaItem } from '@/features/crm/hooks/useScoreRotina'
+import {
+  TIPO_ACAO_LABEL,
+  useRoutinePlaybook,
+  type ProspectingScheduleRow,
+  type RoutineAtalho,
+  type RoutineSlot,
+} from '@/features/crm/hooks/useRoutinePlaybook'
+import { deriveAgendaHojeFromCrm, type AgendaHojeItem } from '@/features/crm/lib/agenda-hoje'
 
-const TIPO_LABEL: Record<string, string> = {
-  visita: 'Visita',
-  retorno: 'Retorno',
-  test_drive: 'Test drive',
-  entrega: 'Entrega',
-  negociacao: 'Negociação',
-  feedback: 'Feedback do gestor',
+const CENTRAL_TABS = [
+  { key: 'hoje' as const, label: 'Hoje' },
+  { key: 'rotina' as const, label: 'Rotina do Dia' },
+]
+type CentralTab = (typeof CENTRAL_TABS)[number]['key']
+
+const MOTIVOS_PERDA = [
+  'Cliente parou de responder',
+  'Avaliação do usado não agradou',
+  'Parcela acima da expectativa',
+  'Comprou na concorrência',
+  'Irá comprar em outro momento',
+  'Não gostou do carro',
+  'Outros',
+]
+
+const CANAL_TONE: Record<string, string> = {
+  Carteira: 'bg-status-success-surface text-status-success border-status-success/20',
+  Internet: 'bg-status-info-surface text-status-info border-status-info/20',
+  Showroom: 'bg-status-warning-surface text-status-warning border-status-warning/20',
 }
 
-const FUNIL_LABEL: Record<string, string> = {
-  prospeccao: 'Prospecção',
-  lead: 'Lead',
-  qualificacao: 'Qualificação',
-  apresentacao: 'Apresentação',
-  negociacao: 'Negociação',
-  proposta: 'Proposta enviada',
-  fechamento: 'Fechamento',
-  ganho: 'Ganho',
-  perdido: 'Perdido',
-}
-
-const STATUS_CLIENTE_LABEL: Record<CrmClienteStatus, string> = {
-  aguardando_contato: 'Aguardando contato',
-  oportunidade: 'Oportunidade',
-  ativo: 'Ativo',
-  pos_venda: 'Pós-venda',
-  inativo: 'Inativo',
-}
-
-type FiltroData = 'todos' | 'hoje' | 'atrasados' | 'proximos7'
-type CanalFiltro = 'todos' | CrmCanal
-type OrigemFiltro = 'todos' | 'Carteira' | 'Cadência' | 'Feedback' | 'PDI' | 'Manual' | 'Agendamento' | 'Rotina' | 'Funil de Vendas'
-type PrioridadeFiltro = 'todos' | PrioridadeAcao
-type StatusFiltro = 'todos' | 'Pendente' | 'Confirmado' | 'Feito' | 'Não respondeu' | 'Aguardando' | 'Reagendado' | 'Concluído' | 'Não feito'
-type AgendaCentralStatus = CrmAgendamentoStatus | 'cadencia' | 'feedback_pendente' | 'execution_pendente' | 'reagendado'
-type OrigemAcao = 'agendamento' | 'cadencia' | 'feedback' | 'execution'
-type PrioridadeAcao = 'Urgente' | 'Alta' | 'Média' | 'Baixa'
-
-type AgendaCentralItem = {
-  id: string
-  origem: OrigemAcao
-  data_hora: string
-  canal: CrmCanal | null
-  status: AgendaCentralStatus
-  statusLabel: string
-  proxima_acao: string | null
-  cliente: { nome: string; telefone: string | null } | null
-  oportunidade: { veiculo_interesse: string | null; valor_negociado?: number | null } | null
-  tipo: string | null
-  etapa: string | null
-  agendamento?: AgendamentoComCliente
-  cadencia?: CadenciaAgendaItem
-  executionAction?: ExecutionActionRow
-  feedbackAction?: FeedbackActionRow
-  alertTone?: 'error' | 'warning' | 'info'
-}
-
-type NewClientForm = {
-  nome: string
-  telefone: string
-  canal: CrmCanal | ''
-  veiculo: string
-  etapa: CrmClienteStatus
-  proxima_acao: string
-  data_hora: string
-}
-
-type ScoreLine = {
-label: string
-compactLabel?: string
-value: string
-done: boolean
-tone?: 'green' | 'orange' | 'red' | 'muted'
-}
-
-const ORIGEM_FILTROS: OrigemFiltro[] = ['todos', 'Carteira', 'Cadência', 'Feedback', 'Manual', 'Agendamento', 'Rotina', 'Funil de Vendas']
-const PRIORIDADE_FILTROS: PrioridadeFiltro[] = ['todos', 'Urgente', 'Alta', 'Média', 'Baixa']
-const STATUS_FILTROS: StatusFiltro[] = ['todos', 'Pendente', 'Confirmado', 'Feito', 'Não respondeu', 'Aguardando', 'Reagendado', 'Concluído', 'Não feito']
-
-const EMPTY_AGENDAMENTO: AgendamentoInput = {
-  cliente_id: '',
-  data_hora: '',
-  canal: null,
-  tipo: 'visita',
-  status: 'aguardando',
-  proxima_acao: '',
-}
-
-const EMPTY_CLIENTE: NewClientForm = {
-  nome: '',
-  telefone: '',
-  canal: 'carteira',
-  veiculo: '',
-  etapa: 'aguardando_contato',
-  proxima_acao: 'Enviar mensagem 1 de primeiro contato',
-  data_hora: '',
-}
-
-const canalTone: Record<string, string> = {
-  carteira: 'bg-status-success-surface text-status-success border-status-success/20',
-  internet: 'bg-status-info-surface text-status-info border-status-info/20',
-  showroom: 'bg-status-warning-surface text-status-warning border-status-warning/20',
-  porta: 'bg-surface-alt text-text-secondary border-border-subtle',
-}
-
-const origemTone: Record<string, string> = {
-  Cadência: 'bg-status-info-surface text-status-info border-status-info/20',
-  Feedback: 'bg-brand-primary/10 text-brand-primary border-brand-primary/20',
-  PDI: 'bg-status-warning-surface text-status-warning border-status-warning/20',
-  Manual: 'bg-surface-alt text-text-secondary border-border-subtle',
-  Agendamento: 'bg-brand-primary/10 text-brand-primary border-brand-primary/20',
-}
-
-const prioridadeTone: Record<PrioridadeAcao, string> = {
-  Urgente: 'bg-status-error-surface text-status-error border-status-error/20',
-  Alta: 'bg-status-error-surface text-status-error border-status-error/20',
-  Média: 'bg-status-warning-surface text-status-warning border-status-warning/20',
-  Baixa: 'bg-surface-alt text-text-secondary border-border-subtle',
-}
-
-const statusTone: Record<string, string> = {
-  cadencia: 'bg-status-info-surface text-status-info border-status-info/20',
-  feedback_pendente: 'bg-status-error-surface text-status-error border-status-error/20',
-  execution_pendente: 'bg-status-warning-surface text-status-warning border-status-warning/20',
+const STATUS_TONE: Record<CrmAgendamentoStatus, string> = {
   confirmado: 'bg-status-success-surface text-status-success border-status-success/20',
   aguardando: 'bg-status-info-surface text-status-info border-status-info/20',
   compareceu: 'bg-status-success-surface text-status-success border-status-success/20',
   nao_compareceu: 'bg-status-error-surface text-status-error border-status-error/20',
-  reagendado: 'bg-status-warning-surface text-status-warning border-status-warning/20',
 }
 
-function isSameDay(d: Date, ref: Date) {
-  return d.getFullYear() === ref.getFullYear() && d.getMonth() === ref.getMonth() && d.getDate() === ref.getDate()
+function Pill({ children, className }: { children: React.ReactNode; className: string }) {
+  return <span className={cn('inline-flex shrink-0 rounded-mx-sm border px-2.5 py-1 text-xs font-bold', className)}>{children}</span>
 }
 
 function onlyDigits(value: string | null | undefined) {
@@ -199,135 +93,15 @@ function fmtHora(iso: string) {
   return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 }
 
+function fmtMoeda(value: number | null) {
+  if (!value) return '—'
+  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
+}
+
 function getDateLabel(date: Date) {
   const dateLabel = date.toLocaleDateString('pt-BR')
   const weekday = date.toLocaleDateString('pt-BR', { weekday: 'long' })
   return `${dateLabel} (${weekday.charAt(0).toUpperCase()}${weekday.slice(1)})`
-}
-
-function getActionTime(action: string | null | undefined) {
-  if (!action) return null
-  return action.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/)?.[0] || null
-}
-
-function humanizeKey(value: string | null | undefined) {
-  if (!value) return 'Não definido'
-  return FUNIL_LABEL[value] || value.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
-}
-
-function mapAgendamentoToAgendaItem(item: AgendamentoComCliente): AgendaCentralItem {
-  return {
-    id: item.id,
-    origem: 'agendamento',
-    data_hora: item.data_hora,
-    canal: item.canal,
-    status: item.status,
-    statusLabel: CRM_AGENDAMENTO_STATUS_LABEL[item.status],
-    proxima_acao: item.proxima_acao,
-    cliente: item.cliente ? { nome: item.cliente.nome, telefone: item.cliente.telefone } : null,
-    oportunidade: item.oportunidade || null,
-    tipo: item.tipo,
-    etapa: item.tipo === 'negociacao' ? 'negociacao' : item.tipo === 'retorno' ? 'retorno' : 'visita',
-    agendamento: item,
-  }
-}
-
-function mapCadenciaToAgendaItem(item: CadenciaAgendaItem): AgendaCentralItem {
-  return {
-    id: `cadencia-${item.cadencia_estado_id}`,
-    origem: 'cadencia',
-    data_hora: montarDataHoraAcaoCadencia(item.proxima_acao_em, item.proxima_acao, item.canal),
-    canal: item.canal,
-    status: 'cadencia',
-    statusLabel: item.last_result === 'aguardando' ? 'Aguardando' : 'Pendente',
-    proxima_acao: item.proxima_acao,
-    cliente: { nome: item.cliente_nome, telefone: item.cliente_telefone },
-    oportunidade: null,
-    tipo: null,
-    etapa: item.etapa_atual,
-    cadencia: item,
-  }
-}
-
-function mapExecutionActionToAgendaItem(action: ExecutionActionRow): AgendaCentralItem {
-  return {
-    id: `execution-${action.id}`,
-    origem: 'execution',
-    data_hora: action.due_at,
-    canal: null,
-    status: 'execution_pendente',
-    statusLabel: action.source_type === 'pdi' ? 'PDI' : 'Pendente',
-    proxima_acao: action.title,
-    cliente: { nome: executionSourceLabel(action), telefone: null },
-    oportunidade: null,
-    tipo: action.source_type,
-    etapa: null,
-    executionAction: action,
-    alertTone: action.alert_tone,
-  }
-}
-
-function executionSourceLabel(action: ExecutionActionRow) {
-  if (action.source_type === 'pdi') return 'Plano de Desenvolvimento'
-  if (action.source_type === 'funil') return 'Funil de Vendas'
-  if (action.source_type === 'feedback') return 'Feedback'
-  return 'Central de Execução'
-}
-
-function getOrigemLabel(item: AgendaCentralItem) {
-  if (item.origem === 'cadencia') return 'Cadência'
-  if (item.origem === 'feedback') return 'Feedback'
-  if (item.origem === 'execution' && item.executionAction?.source_type === 'pdi') return 'PDI'
-  if (item.origem === 'execution') return 'Manual'
-  if (item.tipo === 'retorno' || item.tipo === 'visita' || item.tipo === 'test_drive') return 'Agendamento'
-  return 'Manual'
-}
-
-function getOrigemFilterLabel(item: AgendaCentralItem): OrigemFiltro {
-  if (item.canal === 'carteira') return 'Carteira'
-  if (item.origem === 'cadencia') return 'Cadência'
-  if (item.origem === 'feedback') return 'Feedback'
-  if (item.origem === 'execution' && item.executionAction?.source_type === 'pdi') return 'PDI'
-  if (item.tipo === 'negociacao') return 'Funil de Vendas'
-  return getOrigemLabel(item) as OrigemFiltro
-}
-
-function getStatusFilterLabel(item: AgendaCentralItem): StatusFiltro {
-  if (item.status === 'cadencia' || item.status === 'feedback_pendente' || item.status === 'execution_pendente') return 'Pendente'
-  if (item.status === 'confirmado') return 'Confirmado'
-  if (item.status === 'compareceu') return 'Feito'
-  if (item.status === 'nao_compareceu') return 'Não respondeu'
-  if (item.status === 'aguardando') return 'Aguardando'
-  if (item.status === 'reagendado') return 'Reagendado'
-  if (item.feedbackAction?.status === 'concluida') return 'Concluído'
-  if (item.cadencia?.last_result === 'nao_feito') return 'Não feito'
-  return 'Pendente'
-}
-
-function getCadenciaLabel(item: AgendaCentralItem) {
-  if (item.origem === 'cadencia' && item.cadencia) {
-    return `${humanizeKey(item.cadencia.etapa_atual)} · ${item.cadencia.passo_atual_key.replace(/_/g, ' ')}`
-  }
-  if (item.origem === 'feedback') return 'Ação do gestor'
-  return item.tipo ? TIPO_LABEL[item.tipo] || 'Manual' : 'Manual'
-}
-
-function getPriority(item: AgendaCentralItem, now = new Date()): PrioridadeAcao {
-  const action = (item.proxima_acao || '').toLowerCase()
-  const isLate = new Date(item.data_hora).getTime() < now.getTime() && !isSameDay(new Date(item.data_hora), now)
-  if (isLate || item.alertTone === 'error' || action.includes('urgente')) return 'Urgente'
-  if (item.origem === 'feedback' || item.tipo === 'negociacao' || item.etapa === 'negociacao') return 'Alta'
-  if (item.origem === 'cadencia' || item.status === 'confirmado') return 'Média'
-  return 'Baixa'
-}
-
-function Pill({ children, className }: { children: React.ReactNode; className: string }) {
-  return <span className={cn('inline-flex rounded-mx-sm border px-2.5 py-1 text-xs font-bold', className)}>{children}</span>
-}
-
-function isSchemaCacheLoadError(error: unknown): boolean {
-  const message = String(error || '').toLowerCase()
-  return message.includes('schema cache') || message.includes('could not find table') || message.includes('could not find function')
 }
 
 function MetricCard({
@@ -366,7 +140,7 @@ function MetricCard({
   )
 }
 
-function ScoreCard({ score, items }: { score: number; items: ScoreLine[] }) {
+function ScoreCard({ score, items }: { score: number; items: ScoreRotinaItem[] }) {
   return (
     <Card className="h-full min-h-[116px] rounded-mx-lg border border-border-subtle bg-white p-mx-xs shadow-mx-sm">
       <div className="grid h-full grid-cols-[72px_minmax(0,1fr)] items-center gap-mx-xs">
@@ -382,11 +156,11 @@ function ScoreCard({ score, items }: { score: number; items: ScoreLine[] }) {
             <Info size={12} className="shrink-0 text-text-tertiary" />
           </div>
           <div className="mt-2 space-y-1.5">
-            {items.slice(0, 4).map(item => (
+            {items.map(item => (
               <div key={item.label} className="grid grid-cols-[12px_minmax(0,1fr)_auto] items-center gap-1.5 text-[11px]">
-                <span className={cn('flex h-3 w-3 items-center justify-center rounded-full text-white', item.done ? 'bg-status-success' : item.tone === 'orange' ? 'bg-status-warning' : item.tone === 'red' ? 'bg-status-error' : 'border border-border-strong bg-white')} />
+                <span className={cn('flex h-3 w-3 items-center justify-center rounded-full text-white', item.done ? 'bg-status-success' : 'border border-border-strong bg-white')} />
                 <span className="font-semibold leading-tight text-text-secondary">{item.compactLabel || item.label}</span>
-                <span className={cn('font-bold', item.done ? 'text-brand-primary' : item.tone === 'orange' ? 'text-status-warning' : item.tone === 'red' ? 'text-status-error' : 'text-text-tertiary')}>{item.value}</span>
+                <span className={cn('font-bold', item.done ? 'text-brand-primary' : 'text-text-tertiary')}>{item.value}</span>
               </div>
             ))}
           </div>
@@ -396,819 +170,471 @@ function ScoreCard({ score, items }: { score: number; items: ScoreLine[] }) {
   )
 }
 
-function RoutineTimeline({ slots }: { slots: DailyRoutineAutoSlot[] }) {
+function AtalhoButton({ atalho, onTabChange, onInfo }: { atalho: RoutineAtalho; onTabChange: (tab: CentralTab) => void; onInfo: (label: string) => void }) {
+  if (atalho.type === 'tab') {
+    return (
+      <Button variant="outline" size="sm" className="h-mx-9 bg-white text-xs" onClick={() => onTabChange(atalho.target as CentralTab)}>
+        {atalho.label}
+      </Button>
+    )
+  }
+  if (atalho.type === 'route' && atalho.target) {
+    return (
+      <Button asChild variant="outline" size="sm" className="h-mx-9 bg-white text-xs">
+        <Link to={atalho.target}>{atalho.label}</Link>
+      </Button>
+    )
+  }
   return (
-    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
-      <div className="flex items-start justify-between gap-mx-sm">
-        <div>
-          <Typography variant="h3" className="text-base tracking-normal">Rotina do Dia</Typography>
-          <Typography variant="caption" tone="muted" className="tracking-normal">Siga sua rotina e ganhe disciplina.</Typography>
-        </div>
-        <MoreHorizontal size={18} className="text-text-tertiary" />
-      </div>
-      <div className="mt-mx-md space-y-mx-sm">
-        {slots.map((slot, index) => (
-          <div key={slot.key} className="relative grid grid-cols-[28px_46px_1fr] gap-mx-sm">
-            {index < slots.length - 1 && <span className="absolute left-[13px] top-7 h-[calc(100%+6px)] w-px bg-border-subtle" />}
-            <span className={cn('relative z-10 mt-0.5 flex h-7 w-7 items-center justify-center rounded-full border bg-white', slot.state === 'done' ? 'border-status-success bg-status-success text-white' : 'border-border-strong text-text-tertiary')}>
-              {slot.state === 'done' ? <Check size={12} /> : null}
-            </span>
-            <Typography variant="caption" className="pt-1.5 text-sm font-bold text-text-primary">{slot.time}</Typography>
-            <div className="min-w-0">
-              <Typography variant="p" className="text-sm font-bold leading-tight text-text-primary">{slot.title}</Typography>
-              <Typography variant="caption" tone="muted" className="normal-case leading-snug tracking-normal">{slot.progress}</Typography>
-            </div>
-          </div>
-        ))}
-      </div>
-    </Card>
-  )
-}
-
-function IconAction({
-  label,
-  children,
-  onClick,
-  disabled,
-  className,
-}: {
-  label: string
-  children: React.ReactNode
-  onClick: () => void
-  disabled?: boolean
-  className?: string
-}) {
-  return (
-  <Button variant="outline" size="icon" aria-label={label} title={label} disabled={disabled} onClick={onClick} className={cn('h-7 w-7 rounded-mx-sm bg-white sm:h-7 sm:w-7 [&_svg]:size-3.5', className)}>
-      {children}
+    <Button variant="ghost" size="sm" className="h-mx-9 text-xs text-text-tertiary" onClick={() => onInfo(atalho.label)}>
+      {atalho.label}
     </Button>
-  )
-}
-
-function AgendaRow({
-  item,
-  statusSaving,
-  onWhatsApp,
-  onAgendamentoStatus,
-onCadenciaStatus,
-onFeedbackActionDone,
-onExecutionActionDone,
-onReagendar,
-  onNotDone,
-  onMore,
-}: {
-  item: AgendaCentralItem
-  statusSaving: boolean
-  onWhatsApp: () => void
-  onAgendamentoStatus: (item: AgendaCentralItem, status: CrmAgendamentoStatus) => void
-onCadenciaStatus: (item: AgendaCentralItem, status: CadenciaResultadoAcao) => void
-onFeedbackActionDone: (item: AgendaCentralItem) => void
-onExecutionActionDone: (item: AgendaCentralItem) => void
-onReagendar: () => void
-  onNotDone: (item: AgendaCentralItem) => void
-  onMore: () => void
-}) {
-  const actionTime = getActionTime(item.proxima_acao)
-  const vehicle = item.oportunidade?.veiculo_interesse || (item.tipo ? TIPO_LABEL[item.tipo] : null) || 'Oportunidade'
-  const value = item.oportunidade?.valor_negociado
-    ? item.oportunidade.valor_negociado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
-: item.origem === 'feedback'
-? 'Ação obrigatória'
- : item.origem === 'execution'
- ? 'Ação rastreável'
-: item.origem === 'cadencia'
-? 'Ação sugerida'
-        : 'Valor a definir'
-  const priority = getPriority(item)
-  const origem = getOrigemLabel(item)
-
-function handleDone() {
-if (item.origem === 'feedback') return onFeedbackActionDone(item)
-if (item.origem === 'execution') return onExecutionActionDone(item)
-if (item.origem === 'cadencia') return onCadenciaStatus(item, 'feito')
-return onAgendamentoStatus(item, 'compareceu')
-}
-
-  function handleNoAnswer() {
-    if (item.origem === 'cadencia') return onCadenciaStatus(item, 'nao_feito')
-    if (item.origem === 'agendamento') return onAgendamentoStatus(item, 'nao_compareceu')
-    return onMore()
-  }
-
-  function handleWaiting() {
-    if (item.origem === 'cadencia') return onCadenciaStatus(item, 'aguardando')
-    if (item.origem === 'agendamento') return onAgendamentoStatus(item, 'aguardando')
-    return onMore()
-  }
-
-  return (
-    <tr className="border-t border-border-subtle align-middle hover:bg-surface-alt/60">
-<td className="whitespace-nowrap px-mx-sm py-mx-md">
-        <div className="flex items-center gap-mx-xs">
-          <Typography variant="p" className={cn('w-12 font-bold text-brand-primary', priority === 'Urgente' && 'text-status-error')}>{fmtHora(item.data_hora)}</Typography>
-          <Bell size={14} className={cn('text-text-tertiary', priority === 'Urgente' && 'text-status-error')} />
-        </div>
-      </td>
-<td className="min-w-[124px] px-mx-sm py-mx-md">
-        <Typography variant="p" className="font-bold leading-tight text-text-primary">{item.cliente?.nome || 'Cliente sem vínculo'}</Typography>
-        <Typography variant="caption" tone="muted">{item.cliente?.telefone || 'Telefone não cadastrado'}</Typography>
-      </td>
-<td className="min-w-[132px] px-mx-sm py-mx-md">
-        <Typography variant="p" className="font-bold leading-tight text-text-primary">{vehicle}</Typography>
-        <Typography variant="caption" tone="muted">{value}</Typography>
-      </td>
-<td className="px-mx-sm py-mx-md">
-        <Pill className={canalTone[item.canal || 'porta'] || canalTone.porta}>{item.canal ? CRM_CANAL_LABEL[item.canal] : 'Carteira'}</Pill>
-      </td>
-<td className="px-mx-sm py-mx-md">
-        <Pill className={origemTone[origem] || origemTone.Manual}>{origem}</Pill>
-      </td>
-<td className="px-mx-sm py-mx-md">
-        <Typography variant="caption" className="font-bold text-text-secondary">{humanizeKey(item.etapa)}</Typography>
-      </td>
-<td className="px-mx-sm py-mx-md">
-        <Pill className={statusTone[item.status] || statusTone.aguardando}>{item.statusLabel}</Pill>
-      </td>
-<td className="min-w-[104px] px-mx-sm py-mx-md">
-        <Typography variant="caption" className="font-bold text-text-primary">{getCadenciaLabel(item)}</Typography>
-      </td>
-<td className="min-w-[122px] px-mx-sm py-mx-md">
-        <Typography variant="p" className="font-bold leading-tight text-text-primary">{item.proxima_acao || 'Definir próxima ação'}</Typography>
-        {actionTime && <Typography variant="caption" tone="muted" className="font-bold">{actionTime}</Typography>}
-      </td>
-<td className="px-mx-sm py-mx-md">
-        <Pill className={prioridadeTone[priority]}>{priority}</Pill>
-      </td>
-  <td className="min-w-[76px] px-mx-sm py-mx-md">
-        <div className="flex items-center justify-end gap-1">
-          {item.origem !== 'feedback' && (
-            <IconAction label="WhatsApp" onClick={onWhatsApp} className="border-status-success/30 text-status-success hover:bg-status-success-surface">
-              <MessageCircle size={14} />
-            </IconAction>
-          )}
-          <Button variant="ghost" size="icon" aria-label="Mais ações" title="Mais ações" onClick={onMore} className="h-7 w-7 rounded-mx-sm border border-border-subtle bg-white sm:h-7 sm:w-7 [&_svg]:size-3.5">
-            <MoreHorizontal size={15} />
-          </Button>
-        </div>
-        <div className="sr-only">
-          <IconAction label="Feito" disabled={statusSaving} onClick={handleDone} className="border-status-success/30 text-status-success hover:bg-status-success-surface">
-            <Check size={14} />
-          </IconAction>
-          <IconAction label="Não respondeu" disabled={statusSaving} onClick={handleNoAnswer} className="border-status-error/30 text-status-error hover:bg-status-error-surface">
-            <XCircle size={14} />
-          </IconAction>
-          <IconAction label="Aguardando" disabled={statusSaving} onClick={handleWaiting} className="border-status-warning/30 text-status-warning hover:bg-status-warning-surface">
-            <Clock size={14} />
-          </IconAction>
-          <IconAction label="Reagendar" onClick={onReagendar} className="border-brand-primary/30 text-brand-primary hover:bg-brand-primary/10">
-            <RotateCcw size={14} />
-          </IconAction>
-          <IconAction label="Não feito" disabled={statusSaving} onClick={() => onNotDone(item)} className="border-status-error/30 text-status-error hover:bg-status-error-surface">
-            <AlarmClock size={14} />
-          </IconAction>
-        </div>
-      </td>
-    </tr>
   )
 }
 
 export function CentralExecucao() {
   const { profile, activeStoreId, storeId } = useAuth()
   const effectiveStoreId = activeStoreId || storeId || null
-  const {
-    agendamentos,
-    metrics,
-    loading,
-    error,
-    createAgendamento,
-    updateAgendamento,
-    updateStatus,
-  } = useAgendamentos()
-const { acoes: acoesCadencia, loading: cadenciaLoading, error: cadenciaError, refetch: refetchCadencia } = useCadenciaAgenda()
-const { acoes: acoesFeedback, loading: feedbackActionsLoading, error: feedbackActionsError, refetch: refetchFeedbackActions, concluirAcaoFeedback } = useFeedbackActions()
-const { acoes: acoesExecucao, loading: executionActionsLoading, error: executionActionsError, refetch: refetchExecutionActions, concluirExecutionAction } = useExecutionActions()
-  const { porCanal: atendimentosPorCanal } = useAtendimentos()
-  const { clientes, createCliente, registrarStatusCadencia, refetch: refetchClientes } = useClientes()
-  const { perfil } = useVendedorPerfil()
   const referenceDate = calculateReferenceDate()
-  const { todayCheckin, fetchTodayCheckin } = useCheckinsToday(profile, effectiveStoreId, referenceDate)
+  const { todayCheckin } = useCheckinsToday(profile, effectiveStoreId, referenceDate)
 
-  const [filtro, setFiltro] = useState<FiltroData>('todos')
-  const [canalFiltro, setCanalFiltro] = useState<CanalFiltro>('todos')
-  const [origemFiltro, setOrigemFiltro] = useState<OrigemFiltro>('todos')
-  const [prioridadeFiltro, setPrioridadeFiltro] = useState<PrioridadeFiltro>('todos')
-  const [statusFiltro, setStatusFiltro] = useState<StatusFiltro>('todos')
-  const [agendaModalOpen, setAgendaModalOpen] = useState(false)
-  const [clienteModalOpen, setClienteModalOpen] = useState(false)
-  const [form, setForm] = useState<AgendamentoInput>(EMPTY_AGENDAMENTO)
-  const [clienteForm, setClienteForm] = useState<NewClientForm>(EMPTY_CLIENTE)
-  const [editingId, setEditingId] = useState<string | null>(null)
+  const { oportunidades, updateOportunidade } = useOportunidades()
+  const { agendamentos, updateAgendamento } = useAgendamentos()
+  const { clientes } = useClientes()
+  const { perfil } = useVendedorPerfil()
+
+  const [tab, setTab] = useState<CentralTab>('hoje')
+  const [reagendarItem, setReagendarItem] = useState<AgendaHojeItem | null>(null)
+  const [reagendarValor, setReagendarValor] = useState('')
+  const [vendaItem, setVendaItem] = useState<AgendaHojeItem | null>(null)
+  const [vendaForm, setVendaForm] = useState({ valorNegociado: '', financiamento: 'nao_aplica' as CrmFinanciamento, carroAvaliado: false, sinal: '' })
+  const [perdaItem, setPerdaItem] = useState<AgendaHojeItem | null>(null)
+  const [perdaMotivo, setPerdaMotivo] = useState('')
+  const [maisAcoesItem, setMaisAcoesItem] = useState<AgendaHojeItem | null>(null)
+  const [verComoFazerOpen, setVerComoFazerOpen] = useState(false)
   const [saving, setSaving] = useState(false)
-const [cadenciaSavingId, setCadenciaSavingId] = useState<string | null>(null)
-const [feedbackSavingId, setFeedbackSavingId] = useState<string | null>(null)
-const [executionSavingId, setExecutionSavingId] = useState<string | null>(null)
-const [agendamentoSavingId, setAgendamentoSavingId] = useState<string | null>(null)
 
   const hoje = useMemo(() => new Date(), [])
   const hojeStr = useMemo(() => toDateOnlyBR(), [])
-  const closeDayReminder = resolveCloseDayReminderSchedule({
-    enabled: perfil.fechar_dia_notificacao_ativa,
-    reminderTime: perfil.fechar_dia_notificacao_hora,
+
+  const agendaHojeItems = useMemo(
+    () => deriveAgendaHojeFromCrm(oportunidades, agendamentos, hojeStr, hoje),
+    [oportunidades, agendamentos, hojeStr, hoje],
+  )
+
+  const clientesCriadosHoje = useMemo(
+    () => clientes.filter(c => timestampMatchesDateOnly(c.created_at, hojeStr)).length,
+    [clientes, hojeStr],
+  )
+
+  const { score, items: scoreItems } = useScoreRotina({ clientesCriadosHoje, fechamentoFeito: Boolean(todayCheckin) })
+
+  const agendamentosHojeTodos = useMemo(
+    () => agendamentos.filter(a => timestampMatchesDateOnly(a.data_hora, hojeStr)),
+    [agendamentos, hojeStr],
+  )
+  const compareceramHoje = agendamentosHojeTodos.filter(a => a.status === 'compareceu').length
+  const vendasRealizadasHoje = useMemo(
+    () => oportunidades.filter(o => o.etapa === 'ganho' && timestampMatchesDateOnly(o.closed_at, hojeStr)).length,
+    [oportunidades, hojeStr],
+  )
+
+  const { slots, currentSlot, prospeccaoHoje, storyIdeaHoje, conflitoCliente } = useRoutinePlaybook({
+    workStartTime: perfil.hora_entrada,
+    lunchEndTime: perfil.hora_almoco_fim,
     workEndTime: perfil.hora_saida,
-    workDays: perfil.dias_trabalho,
+    agendaHojeItems,
   })
 
-  useEffect(() => {
-    fetchTodayCheckin()
-  }, [fetchTodayCheckin])
-
-  useEffect(() => {
-    if (error) console.error('Erro ao carregar agendamentos da Central de Execução:', error)
-    if (cadenciaError) console.error('Erro ao carregar ações de cadência:', cadenciaError)
-if (feedbackActionsError) console.error('Erro ao carregar ações de feedback:', feedbackActionsError)
-if (executionActionsError) console.error('Erro ao carregar ações da Central:', executionActionsError)
-}, [error, cadenciaError, feedbackActionsError, executionActionsError])
-
-  const agendaItens = useMemo(() => {
-    const feedbackItens: AgendaCentralItem[] = acoesFeedback.flatMap((acao) => {
-      const item = mapFeedbackActionToAgendaItem(acao, hoje)
-      return item ? [item as AgendaCentralItem] : []
-    })
-const items: AgendaCentralItem[] = [
-...agendamentos.map(mapAgendamentoToAgendaItem),
-...acoesCadencia.map(mapCadenciaToAgendaItem),
-...acoesExecucao.map(mapExecutionActionToAgendaItem),
-...feedbackItens,
-]
-return items.sort((a, b) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime())
-}, [acoesCadencia, acoesExecucao, acoesFeedback, agendamentos, hoje])
-
-  const filtrados = useMemo(() => {
-    const em7 = new Date()
-    em7.setDate(em7.getDate() + 7)
-    return agendaItens.filter(item => {
-      const data = new Date(item.data_hora)
-      const matchDate =
-        filtro === 'todos'
-        || (filtro === 'hoje' && isSameDay(data, hoje))
-        || (filtro === 'atrasados' && data < hoje && !isSameDay(data, hoje))
-        || (filtro === 'proximos7' && data >= hoje && data <= em7)
-      const matchCanal = canalFiltro === 'todos' || item.canal === canalFiltro
-      const matchOrigem = origemFiltro === 'todos' || getOrigemFilterLabel(item) === origemFiltro
-      const matchPrioridade = prioridadeFiltro === 'todos' || getPriority(item) === prioridadeFiltro
-      const matchStatus = statusFiltro === 'todos' || getStatusFilterLabel(item) === statusFiltro
-      return matchDate && matchCanal && matchOrigem && matchPrioridade && matchStatus
-    })
-  }, [agendaItens, canalFiltro, filtro, hoje, origemFiltro, prioridadeFiltro, statusFiltro])
-
-  const rotinaSlots = useMemo(() => {
-    const clientesCriadosHoje = clientes.filter(c => c.created_at && toDateOnlyBR(new Date(c.created_at)) === hojeStr).length
-    const clientesAtualizadosHoje = clientes.filter(c => c.updated_at && toDateOnlyBR(new Date(c.updated_at)) === hojeStr).length
-    const agendamentosCriadosHoje = agendamentos.filter(a => a.created_at && toDateOnlyBR(new Date(a.created_at)) === hojeStr).length
-    const acoesListaQuenteHoje = agendaItens.filter((item) => {
-      if (!isSameDay(new Date(item.data_hora), hoje)) return false
-      const action = (item.proxima_acao || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-      return item.tipo === 'negociacao' || item.etapa === 'negociacao' || action.includes('proposta') || action.includes('negoci')
-    }).length
-    return deriveDailyRoutineSlots({
-      workStartTime: perfil.hora_entrada,
-      workEndTime: perfil.hora_saida,
-      atendimentosHoje: atendimentosPorCanal.total,
-      minimumAtendimentos: 5,
-      clientesCriadosHoje,
-      clientesAtualizadosHoje,
-      agendamentosCriadosHoje,
-      acoesListaQuenteHoje,
-      fechamentoDiarioFeito: Boolean(todayCheckin),
-    })
-  }, [agendamentos, agendaItens, atendimentosPorCanal.total, clientes, hoje, hojeStr, perfil.hora_entrada, perfil.hora_saida, todayCheckin])
-
-  const clientesAtualizadosHoje = useMemo(
-    () => clientes.filter(cliente => cliente.updated_at && toDateOnlyBR(new Date(cliente.updated_at)) === hojeStr).length,
-    [clientes, hojeStr],
-  )
-  const clientesCriadosHojeScore = useMemo(
-    () => clientes.filter(cliente => cliente.created_at && toDateOnlyBR(new Date(cliente.created_at)) === hojeStr).length,
-    [clientes, hojeStr],
-  )
-  const retornosExecutadosHoje = metrics.compareceram + metrics.naoCompareceram
-  const semRespostaReagendados = agendaItens.filter(item => item.status === 'reagendado' || item.cadencia?.last_result === 'nao_feito').length
-  const feedbackObrigatorioCumprido = acoesFeedback.length > 0 && acoesFeedback.every(acao => acao.status !== 'pendente')
-  const scoreChecks = [
-    true,
-    clientesAtualizadosHoje > 0,
-    retornosExecutadosHoje > 0,
-    semRespostaReagendados > 0,
-    clientesCriadosHojeScore > 0,
-    feedbackObrigatorioCumprido || acoesFeedback.length === 0,
-    Boolean(todayCheckin),
-  ]
-  const score = Math.min(
-    100,
-    Math.round((scoreChecks.filter(Boolean).length / scoreChecks.length) * 100),
-  )
-  const scoreItems: ScoreLine[] = [
-    { label: 'Abriu Central de Execução', compactLabel: 'Abriu central', value: '100%', done: true, tone: 'green' },
-    { label: 'Atualizou status dos clientes', compactLabel: 'Atualizou status', value: clientesAtualizadosHoje > 0 ? '100%' : '0%', done: clientesAtualizadosHoje > 0, tone: 'green' },
-    { label: 'Executou retornos', compactLabel: 'Executou retornos', value: retornosExecutadosHoje > 0 ? '100%' : '0%', done: retornosExecutadosHoje > 0, tone: 'orange' },
-    { label: 'Reagendou sem resposta', compactLabel: 'Reagendou retorno', value: semRespostaReagendados > 0 ? '100%' : '0%', done: semRespostaReagendados > 0, tone: 'orange' },
-    { label: 'Inseriu novos clientes', compactLabel: 'Novos clientes', value: clientesCriadosHojeScore > 0 ? '100%' : '0%', done: clientesCriadosHojeScore > 0, tone: 'green' },
-    { label: 'Cumpriu feedback obrigatório', compactLabel: 'Feedback ok', value: feedbackObrigatorioCumprido || acoesFeedback.length === 0 ? '100%' : '0%', done: feedbackObrigatorioCumprido || acoesFeedback.length === 0, tone: 'red' },
-    { label: 'Fez Fechamento Diário', compactLabel: 'Fechamento feito', value: todayCheckin ? '100%' : '0%', done: Boolean(todayCheckin), tone: 'muted' },
-  ]
-
-  const pendencias = useMemo(() => {
-    const clientesSemStatusAtualizado = clientes.filter(cliente => !cliente.updated_at || toDateOnlyBR(new Date(cliente.updated_at)) !== hojeStr).length
-    const feedbackObrigatorio = acoesFeedback.filter(acao => acao.obrigatoria_fechamento && acao.status === 'pendente').length
-    const acaoSemProximaEtapa = agendaItens.filter(item => !item.proxima_acao).length
-    return [
-      { label: 'clientes sem status atualizado', value: clientesSemStatusAtualizado, tone: 'green' },
-      { label: 'feedback obrigatório pendente', value: feedbackObrigatorio, tone: 'red' },
-      { label: 'ação sem próxima etapa', value: acaoSemProximaEtapa, tone: 'red' },
-      { label: 'registro diário pendente', value: todayCheckin ? 0 : 1, tone: 'orange' },
-    ]
-  }, [acoesFeedback, agendaItens, clientes, hojeStr, todayCheckin])
-
-  const statusDia = useMemo(() => todayCheckin ? 'Fechamento concluído' : 'Dia em andamento', [todayCheckin])
-
-  const feedbackObrigatorioPendente = acoesFeedback.find(acao => acao.obrigatoria_fechamento && acao.status === 'pendente')
-    || acoesFeedback.find(acao => acao.status === 'pendente')
-const hasLoadError = Boolean(
-  error
-  || (cadenciaError && !isSchemaCacheLoadError(cadenciaError))
-  || (feedbackActionsError && !isSchemaCacheLoadError(feedbackActionsError))
-  || (executionActionsError && !isSchemaCacheLoadError(executionActionsError))
-)
-
-  function openCreateModal() {
-    setEditingId(null)
-    setForm(EMPTY_AGENDAMENTO)
-    setAgendaModalOpen(true)
+  function openReagendar(item: AgendaHojeItem) {
+    setReagendarItem(item)
+    setReagendarValor(new Date(item.horario).toISOString().slice(0, 16))
   }
 
-  function openEditModal(item: AgendamentoComCliente) {
-    setEditingId(item.id)
-    setForm({
-      cliente_id: item.cliente_id || '',
-      oportunidade_id: item.oportunidade_id || null,
-      data_hora: item.data_hora ? new Date(item.data_hora).toISOString().slice(0, 16) : '',
-      canal: item.canal || null,
-      tipo: item.tipo,
-      status: item.status,
-      proxima_acao: item.proxima_acao || '',
-      observacoes: item.observacoes || '',
-    })
-    setAgendaModalOpen(true)
-  }
-
-  async function handleSubmitAgendamento() {
-    if (!form.data_hora) {
-      toast.error('Informe data e hora.')
-      return
-    }
+  async function confirmReagendar() {
+    if (!reagendarItem || !reagendarValor) return
     setSaving(true)
-    const { error: saveError } = editingId ? await updateAgendamento(editingId, form) : await createAgendamento(form)
+    const ag = reagendarItem.agendamento
+    const { error } = await updateAgendamento(ag.id, {
+      cliente_id: ag.cliente_id,
+      oportunidade_id: ag.oportunidade_id,
+      data_hora: reagendarValor,
+      canal: ag.canal as CrmCanal | null,
+      tipo: ag.tipo as CrmAgendamentoTipo,
+      status: ag.status as CrmAgendamentoStatus,
+      proxima_acao: ag.proxima_acao,
+      observacoes: ag.observacoes,
+    })
     setSaving(false)
-    if (saveError) {
-      toast.error(saveError)
-      return
+    if (error) { toast.error(error); return }
+    setReagendarItem(null)
+    const novaData = toDateOnlyBR(new Date(reagendarValor))
+    if (novaData !== hojeStr) {
+      toast.success('Cliente reagendado. Ele continuará disponível na Carteira de Clientes.')
+    } else {
+      toast.success('Agendamento atualizado.')
     }
-    toast.success(editingId ? 'Agendamento atualizado.' : 'Agendamento criado.')
-    setForm(EMPTY_AGENDAMENTO)
-    setEditingId(null)
-    setAgendaModalOpen(false)
   }
 
-  async function handleSubmitCliente() {
-    if (!clienteForm.nome.trim() || !clienteForm.data_hora) {
-      toast.error('Informe nome e data da próxima ação.')
-      return
-    }
-    const payload: ClienteInput = {
-      nome: clienteForm.nome,
-      telefone: clienteForm.telefone || null,
-      canal_origem: clienteForm.canal || null,
-      status: clienteForm.etapa,
-      proxima_acao: clienteForm.proxima_acao,
-      proxima_acao_em: clienteForm.data_hora ? toDateOnlyBR(new Date(clienteForm.data_hora)) : null,
-      observacoes: clienteForm.veiculo ? `Veículo de interesse: ${clienteForm.veiculo}` : null,
-    }
+  function openVenda(item: AgendaHojeItem) {
+    setVendaItem(item)
+    setVendaForm({
+      valorNegociado: item.oportunidade.valor_negociado ? String(item.oportunidade.valor_negociado) : '',
+      financiamento: (item.oportunidade.financiamento as CrmFinanciamento) || 'nao_aplica',
+      carroAvaliado: item.oportunidade.carro_avaliado,
+      sinal: item.oportunidade.sinal ? String(item.oportunidade.sinal) : '',
+    })
+  }
+
+  async function confirmVenda() {
+    if (!vendaItem) return
+    const valor = Number(vendaForm.valorNegociado.replace(/\D/g, '')) || 0
+    if (valor <= 0) { toast.error('Informe o valor negociado.'); return }
     setSaving(true)
-    const { error: clienteError, id } = await createCliente(payload)
-    if (!clienteError && id) {
-      await createAgendamento({
-        cliente_id: id,
-        data_hora: clienteForm.data_hora,
-        canal: clienteForm.canal || null,
-        tipo: 'retorno',
-        status: 'aguardando',
-        proxima_acao: clienteForm.proxima_acao,
-        observacoes: clienteForm.veiculo ? `Veículo de interesse: ${clienteForm.veiculo}` : null,
-      })
-    }
+    const op = vendaItem.oportunidade
+    const { error } = await updateOportunidade(op.id, {
+      cliente_id: op.cliente_id,
+      veiculo_interesse: op.veiculo_interesse,
+      tipo_veiculo: op.tipo_veiculo as CrmTipoVeiculo | null,
+      valor_negociado: valor,
+      etapa: 'ganho',
+      canal: op.canal as CrmCanal | null,
+      sinal: Number(vendaForm.sinal.replace(/\D/g, '')) || 0,
+      financiamento: vendaForm.financiamento,
+      carro_avaliado: vendaForm.carroAvaliado,
+      closed_at: new Date().toISOString(),
+    })
     setSaving(false)
-    if (clienteError) {
-      toast.error(clienteError)
-      return
-    }
-    toast.success('Cliente criado e ação adicionada à Central.')
-    setClienteForm(EMPTY_CLIENTE)
-    setClienteModalOpen(false)
-    await Promise.all([refetchClientes(), refetchCadencia()])
+    if (error) { toast.error(error); return }
+    setVendaItem(null)
+    toast.success('Venda registrada com sucesso.')
   }
 
-  async function handleAgendamentoStatus(item: AgendaCentralItem, status: CrmAgendamentoStatus) {
-    if (!item.agendamento) return
-    setAgendamentoSavingId(item.id)
-    const { error: statusError } = await updateStatus(item.agendamento.id, status)
-    setAgendamentoSavingId(null)
-    if (statusError) {
-      toast.error(statusError)
-      return
-    }
-    toast.success(status === 'nao_compareceu' ? 'Cliente sem resposta. Sugira uma nova tentativa para não perder o retorno.' : 'Status da ação atualizado.')
+  function openPerda(item: AgendaHojeItem) {
+    setPerdaItem(item)
+    setPerdaMotivo(item.oportunidade.motivo_perda || '')
   }
 
-  async function handleCadenciaStatus(item: AgendaCentralItem, status: CadenciaResultadoAcao) {
-    if (!item.cadencia) return
-    setCadenciaSavingId(item.id)
-    const { error: statusError } = await registrarStatusCadencia({ clienteId: item.cadencia.cliente_id, status })
-    setCadenciaSavingId(null)
-    if (statusError) {
-      toast.error(statusError)
-      return
-    }
-    await Promise.all([refetchCadencia(), refetchClientes()])
-    if (status === 'nao_feito') {
-      toast.info('Próxima tentativa sugerida: reagendar retorno para o próximo horário disponível.')
-      return
-    }
-    toast.success('Cadência atualizada.')
+  async function confirmPerda() {
+    if (!perdaItem) return
+    if (!perdaMotivo) { toast.error('Selecione o motivo da perda.'); return }
+    setSaving(true)
+    const op = perdaItem.oportunidade
+    const { error } = await updateOportunidade(op.id, {
+      cliente_id: op.cliente_id,
+      veiculo_interesse: op.veiculo_interesse,
+      tipo_veiculo: op.tipo_veiculo as CrmTipoVeiculo | null,
+      valor_negociado: op.valor_negociado,
+      etapa: 'perdido',
+      canal: op.canal as CrmCanal | null,
+      sinal: op.sinal,
+      financiamento: op.financiamento as CrmFinanciamento,
+      carro_avaliado: op.carro_avaliado,
+      motivo_perda: perdaMotivo,
+      closed_at: new Date().toISOString(),
+    })
+    setSaving(false)
+    if (error) { toast.error(error); return }
+    setPerdaItem(null)
+    toast.success('Perda registrada.')
   }
 
-  async function handleFeedbackActionDone(item: AgendaCentralItem) {
-    if (!item.feedbackAction) return
-    setFeedbackSavingId(item.id)
-    const { error: actionError } = await concluirAcaoFeedback(item.feedbackAction.id)
-    setFeedbackSavingId(null)
-    if (actionError) {
-      toast.error(actionError)
-      return
-    }
-    await refetchFeedbackActions()
-    toast.success('Ação do feedback concluída.')
-  }
-
-  async function handleExecutionActionDone(item: AgendaCentralItem) {
-    if (!item.executionAction) return
-    setExecutionSavingId(item.id)
-    const { error: actionError } = await concluirExecutionAction(item.executionAction.id)
-    setExecutionSavingId(null)
-    if (actionError) {
-      toast.error(actionError)
-      return
-    }
-    await refetchExecutionActions()
-    toast.success('Ação da Central concluída.')
-  }
-
-  function openWhatsApp(item: AgendaCentralItem) {
-    const tel = onlyDigits(item.cliente?.telefone)
-    if (!tel) {
-      toast.error('Cliente sem telefone cadastrado.')
-      return
-    }
+  function openWhatsApp(item: AgendaHojeItem) {
+    const tel = onlyDigits(item.clienteTelefone)
+    if (!tel) { toast.error('Cliente sem telefone cadastrado.'); return }
     const num = tel.length <= 11 ? `55${tel}` : tel
     window.open(`https://wa.me/${num}`, '_blank', 'noopener')
   }
 
   return (
-<main className="h-full w-full min-w-0 overflow-y-auto bg-surface-alt p-mx-md no-scrollbar sm:p-mx-lg">
-<div className="flex min-w-0 flex-col gap-mx-lg pb-20">
+    <main className="h-full w-full min-w-0 overflow-y-auto bg-surface-alt p-mx-md no-scrollbar sm:p-mx-lg">
+      <div className="flex min-w-0 flex-col gap-mx-lg pb-20">
         <PageHeading
           title="Central de Execução"
-          subtitle="Sua rotina diária. Organize seu dia e foque no que gera resultado."
+          subtitle="Organize seu dia e foque no que gera resultado."
           actions={(
-            <>
             <span className="inline-flex h-10 shrink-0 items-center gap-mx-xs whitespace-nowrap rounded-mx-md border border-border-subtle bg-white px-2 text-[11px] font-bold text-text-primary shadow-mx-sm">
-<Calendar size={14} className="text-text-secondary" />
-                {getDateLabel(hoje)}
-              </span>
-<span className="inline-flex h-10 shrink-0 items-center whitespace-nowrap rounded-mx-md border border-status-success/20 bg-status-success-surface px-2 text-[11px] font-bold text-status-success">
-                {statusDia}
-              </span>
-<Button variant="outline" onClick={() => toast.info('Central sincronizada com a rotina local.')} className="h-10 shrink-0 whitespace-nowrap bg-white px-2 text-xs">
-                <RotateCcw size={16} /> Sincronizar Central
-              </Button>
-            </>
+              <Calendar size={14} className="text-text-secondary" />
+              {getDateLabel(hoje)}
+            </span>
           )}
         />
 
-        {hasLoadError && (
-        <div className="flex flex-wrap items-center justify-between gap-mx-sm rounded-mx-lg border border-status-error/20 bg-status-error-surface/35 px-mx-lg py-mx-sm shadow-mx-xs">
-          <Typography className="text-sm font-semibold text-status-error">Ações de cadência não carregadas. Tentaremos novamente automaticamente.</Typography>
-          <Button variant="outline" size="sm" onClick={() => { void refetchCadencia(); void refetchFeedbackActions(); void refetchExecutionActions() }} className="h-mx-9 border-status-error/20 bg-white text-status-error shadow-mx-xs">
-            Recarregar
-          </Button>
-        </div>
-        )}
+        <TabNav tabs={CENTRAL_TABS} activeTab={tab} onTabChange={setTab} />
 
-        <section className="grid min-w-0 grid-cols-1 gap-mx-sm md:grid-cols-2 xl:grid-cols-[repeat(5,minmax(112px,1fr))_minmax(220px,1.05fr)]" aria-label="Indicadores do dia">
-          <MetricCard icon={<CalendarCheck size={24} />} label="Agendamentos Hoje" value={String(metrics.agendamentosHoje)} hint={metrics.agendamentosHoje > 0 ? '100% do dia' : 'Sem ações hoje'} tone="green" />
-          <MetricCard icon={<CheckCircle2 size={24} />} label="Compareceram" value={String(metrics.compareceram)} hint={`${metrics.taxaComparecimento}% do dia`} tone="green" />
-          <MetricCard icon={<XCircle size={24} />} label="Não Compareceram" value={String(metrics.naoCompareceram)} hint={`${metrics.agendamentosHoje ? Math.round((metrics.naoCompareceram / metrics.agendamentosHoje) * 100) : 0}% do dia`} tone="red" />
-          <MetricCard icon={<Clock size={24} />} label="Em Negociação" value={String(metrics.emNegociacao)} hint={`${metrics.agendamentosHoje ? Math.round((metrics.emNegociacao / metrics.agendamentosHoje) * 100) : 0}% do dia`} tone="orange" />
-          <MetricCard icon={<CircleDollarSign size={24} />} label="Vendas Realizadas" value={String(metrics.vendasRealizadas)} hint={`${metrics.agendamentosHoje ? Math.round((metrics.vendasRealizadas / metrics.agendamentosHoje) * 100) : 0}% do dia`} tone="green" />
-          <ScoreCard score={score} items={scoreItems} />
-        </section>
-
-        <div className="grid grid-cols-1 gap-mx-sm xl:grid-cols-[minmax(0,1fr)_316px]">
-          <div className="min-w-0 space-y-mx-md">
-      <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
-        <div className="flex flex-wrap items-center gap-mx-xs">
-                <FilterButton active={filtro === 'todos'} onClick={() => setFiltro('todos')}>Todos</FilterButton>
-                <FilterButton active={filtro === 'hoje'} onClick={() => setFiltro('hoje')}><Calendar size={15} /> Hoje</FilterButton>
-                <FilterButton active={filtro === 'atrasados'} onClick={() => setFiltro('atrasados')}><AlarmClock size={15} /> Atrasados</FilterButton>
-          <FilterButton active={filtro === 'proximos7'} onClick={() => setFiltro('proximos7')}><CalendarCheck size={15} /> Próx. 7 dias</FilterButton>
-                <FilterSelectButton active={canalFiltro === 'todos'} onClick={() => setCanalFiltro('todos')}>Todos os Canais</FilterSelectButton>
-                <FilterDropdown label="Origem da ação" value={origemFiltro} values={ORIGEM_FILTROS} onChange={value => setOrigemFiltro(value as OrigemFiltro)} />
-                <FilterDropdown label="Prioridade" value={prioridadeFiltro} values={PRIORIDADE_FILTROS} onChange={value => setPrioridadeFiltro(value as PrioridadeFiltro)} />
-                <FilterDropdown label="Status da ação" value={statusFiltro} values={STATUS_FILTROS} onChange={value => setStatusFiltro(value as StatusFiltro)} />
-              </div>
-        <div className="mt-mx-md flex flex-wrap items-center justify-between gap-mx-md">
-          <div className="flex flex-wrap items-center gap-mx-sm">
-            {CRM_CANAIS.filter(canal => canal !== 'porta').map(canal => (
-              <FilterButton key={canal} active={canalFiltro === canal} onClick={() => setCanalFiltro(canalFiltro === canal ? 'todos' : canal)}>
-                {canal === 'carteira' ? <SquareUserRound size={15} /> : canal === 'internet' ? <CalendarCheck size={15} /> : <Store size={15} />}
-                {CRM_CANAL_LABEL[canal]}
-              </FilterButton>
-            ))}
-          </div>
-          <div className="flex flex-wrap items-center gap-mx-sm">
-            <Button variant="outline" size="sm" onClick={openCreateModal} className="h-mx-10 border-brand-primary/30 bg-white text-brand-primary">
-              <Plus size={15} /> Registrar ação
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setClienteModalOpen(true)} className="h-mx-10 border-brand-primary/30 bg-white text-brand-primary">
-              <UserPlus size={15} /> Novo Cliente
-            </Button>
-            <Button size="sm" onClick={openCreateModal} className="h-mx-10">
-              <CalendarCheck size={15} /> Novo Agendamento
-            </Button>
-          </div>
-        </div>
-            </Card>
-
-      <Card className="overflow-hidden rounded-mx-lg border border-border-subtle bg-white p-0 shadow-mx-md">
-        <div className="border-b border-border-subtle px-mx-lg py-mx-md">
-          <Typography variant="h3" className="tracking-normal text-text-primary">Ações Comerciais de Hoje</Typography>
-          <Typography variant="caption" tone="muted">Clientes, retornos e rotinas que precisam ser executados hoje.</Typography>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1128px] table-fixed text-left text-sm">
-            <colgroup>
-              <col className="w-[62px]" />
-              <col className="w-[128px]" />
-              <col className="w-[132px]" />
-              <col className="w-[78px]" />
-              <col className="w-[84px]" />
-              <col className="w-[96px]" />
-              <col className="w-[102px]" />
-              <col className="w-[106px]" />
-              <col className="w-[122px]" />
-              <col className="w-[84px]" />
-              <col className="w-[134px]" />
-            </colgroup>
-            <thead className="bg-surface-alt/70 text-text-secondary">
-              <tr>
-                <th scope="col" className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Horário</th>
-                <th scope="col" className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Cliente / Contato</th>
-                <th scope="col" className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Veículo de Interesse</th>
-                <th scope="col" className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Canal</th>
-                <th scope="col" className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Origem</th>
-                <th scope="col" className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Etapa do Funil</th>
-                <th scope="col" className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Status da Ação</th>
-                <th scope="col" className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Cadência / Tentativa</th>
-                <th scope="col" className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Próxima Ação</th>
-                <th scope="col" className="px-mx-sm py-mx-sm text-[13px] font-bold leading-tight">Prioridade</th>
-                <th scope="col" className="px-mx-sm py-mx-sm text-right text-[13px] font-bold leading-tight">Ações</th>
-              </tr>
-            </thead>
-                  <tbody>
-{loading || cadenciaLoading || feedbackActionsLoading || executionActionsLoading ? (
-                      <tr><td colSpan={11} className="p-mx-lg"><Typography tone="muted">Carregando ações comerciais...</Typography></td></tr>
-                    ) : filtrados.length === 0 ? (
-                      <tr>
-                        <td colSpan={11} className="p-mx-xl">
-                          <EmptyState
-                            title="Nenhuma ação encontrada para este filtro."
-                            description="Verifique retornos vencidos, crie prospecção ativa, atualize a carteira, peça indicações ou crie um novo agendamento."
-                          />
-                        </td>
-                      </tr>
-                    ) : (
-                      filtrados.map(item => (
-                        <AgendaRow
-                          key={item.id}
-                          item={item}
-                          onWhatsApp={() => openWhatsApp(item)}
-statusSaving={cadenciaSavingId === item.id || feedbackSavingId === item.id || executionSavingId === item.id || agendamentoSavingId === item.id}
-                          onAgendamentoStatus={handleAgendamentoStatus}
-onCadenciaStatus={handleCadenciaStatus}
-onFeedbackActionDone={handleFeedbackActionDone}
-onExecutionActionDone={handleExecutionActionDone}
-                          onReagendar={() => item.agendamento ? openEditModal(item.agendamento) : toast.info('Sugestão: reagende a próxima tentativa no próximo horário disponível.')}
-                          onNotDone={() => item.cadencia ? handleCadenciaStatus(item, 'nao_feito') : item.agendamento ? handleAgendamentoStatus(item, 'nao_compareceu') : toast.info('Ação marcada para revisão na Central.')}
-                          onMore={() => toast.info('Abra a Carteira para ver o histórico completo do cliente.')}
-                        />
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          </div>
-
-        <aside className="flex flex-col gap-mx-md">
-          <RoutineTimeline slots={rotinaSlots} />
-
-          <Card className="rounded-mx-lg border border-status-error/25 bg-status-error-surface/35 p-mx-lg shadow-mx-sm">
-            <div className="flex items-center justify-between gap-mx-sm">
-              <Typography variant="h3" className="text-base tracking-normal text-status-error">Feedback Obrigatório</Typography>
-              {feedbackObrigatorioPendente && <Pill className="border-status-error/20 bg-white text-status-error">Pendente</Pill>}
+        {tab === 'hoje' ? (
+          <div className="flex min-w-0 flex-col gap-mx-md">
+            <div>
+              <Typography variant="h3" className="tracking-normal text-text-primary">Agenda do Dia</Typography>
+              <Typography variant="caption" tone="muted">Clientes e negociações que precisam da sua atenção hoje.</Typography>
             </div>
-            {feedbackObrigatorioPendente ? (
-              <div className="mt-mx-md space-y-mx-sm">
-                <Typography variant="p" className="text-sm font-bold text-text-primary">{feedbackObrigatorioPendente.action_text}</Typography>
-                <Typography variant="caption" tone="muted">Progresso</Typography>
-                <div className="h-1.5 rounded-full bg-white">
-                  <span className="block h-full w-1/3 rounded-full bg-status-error" />
-                </div>
-                <div className="flex justify-end gap-mx-xs pt-mx-xs">
-                  <Button variant="outline" size="sm" className="bg-white">Ver ação</Button>
-                  <Button variant="ghost" size="sm" className="bg-white">Justificar</Button>
-                </div>
-              </div>
-            ) : (
-              <div className="mt-mx-md rounded-mx-md border border-status-error/10 bg-white/70 px-mx-md py-mx-sm">
-                <Typography variant="caption" tone="muted" className="block leading-relaxed">Nenhuma ação obrigatória no momento.</Typography>
-              </div>
-            )}
-          </Card>
 
-          <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
-            <Typography variant="h3" className="text-base tracking-normal">Pendências para Fechamento</Typography>
-            <div className="mt-mx-md space-y-mx-sm">
-                {pendencias.map(item => (
-                  <div key={item.label} className="flex items-center justify-between gap-mx-sm">
-                    <div className="flex min-w-0 items-center gap-mx-xs">
-                      <span className={cn('flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold', item.tone === 'green' ? 'bg-status-success-surface text-status-success' : item.tone === 'orange' ? 'bg-status-warning-surface text-status-warning' : 'bg-status-error-surface text-status-error')}>{item.value}</span>
-                      <Typography variant="caption" className="font-bold leading-tight text-text-primary">{item.label}</Typography>
+            <section className="grid min-w-0 grid-cols-2 gap-mx-sm md:grid-cols-3 xl:grid-cols-[repeat(4,minmax(112px,1fr))_minmax(220px,1.05fr)]" aria-label="Indicadores do dia">
+              <MetricCard icon={<CalendarCheck size={24} />} label="Agendados Hoje" value={String(agendamentosHojeTodos.length)} hint="Compromissos do dia" tone="blue" />
+              <MetricCard icon={<CheckCircle2 size={24} />} label="Compareceram" value={String(compareceramHoje)} hint="Atendimentos feitos" tone="green" />
+              <MetricCard icon={<Clock size={24} />} label="Em Negociação" value={String(agendaHojeItems.length)} hint="Aguardando você hoje" tone="orange" />
+              <MetricCard icon={<CircleDollarSign size={24} />} label="Vendas Realizadas Hoje" value={String(vendasRealizadasHoje)} hint="Fechadas hoje" tone="green" />
+              <ScoreCard score={score} items={scoreItems} />
+            </section>
+
+            {agendaHojeItems.length === 0 ? (
+              <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-xl shadow-mx-sm">
+                <EmptyState
+                  title="Nenhum cliente agendado para hoje."
+                  description="Use este momento para avançar na sua Rotina do Dia ou trabalhar sua Carteira de Clientes."
+                  action={(
+                    <div className="flex flex-wrap justify-center gap-mx-sm">
+                      <Button variant="outline" onClick={() => setTab('rotina')}>Ver Rotina do Dia</Button>
+                      <Button asChild><Link to="/carteira-clientes">Abrir Carteira de Clientes</Link></Button>
                     </div>
-                  </div>
-                ))}
-              </div>
-            <Button asChild variant="outline" className="mt-mx-md w-full border-brand-primary/30 text-brand-primary">
-              <Link to="/vendedor/terminal-mx">Ir para Fechamento Diário</Link>
-            </Button>
-          </Card>
-
-          <Card className="rounded-mx-lg border border-brand-primary/10 bg-brand-primary/5 p-mx-lg shadow-mx-sm">
-            <div className="flex items-start gap-mx-sm">
-              <Target size={18} className="mt-1 text-brand-primary" />
-                <div>
-                  <Typography variant="h3" className="text-base text-brand-primary">Dica do Dia</Typography>
-                  <Typography variant="p" className="mt-mx-xs text-sm font-semibold text-brand-primary">Foque nas negociações mais próximas do fechamento. Vender é prioridade.</Typography>
-                  {closeDayReminder.time && (
-                    <Typography variant="caption" tone="muted" className="mt-mx-xs block">Lembrete Fechar o dia: {closeDayReminder.time}</Typography>
                   )}
+                />
+              </Card>
+            ) : (
+              <>
+                <Card className="hidden overflow-hidden rounded-mx-lg border border-border-subtle bg-white p-0 shadow-mx-md md:block">
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[980px] table-fixed text-left text-sm">
+                      <thead className="bg-surface-alt/70 text-text-secondary">
+                        <tr>
+                          <th className="px-mx-sm py-mx-sm text-[13px] font-bold">Horário</th>
+                          <th className="px-mx-sm py-mx-sm text-[13px] font-bold">Cliente / Contato</th>
+                          <th className="px-mx-sm py-mx-sm text-[13px] font-bold">Veículo de Interesse</th>
+                          <th className="px-mx-sm py-mx-sm text-[13px] font-bold">Canal</th>
+                          <th className="px-mx-sm py-mx-sm text-[13px] font-bold">Status</th>
+                          <th className="px-mx-sm py-mx-sm text-[13px] font-bold">Próxima Ação</th>
+                          <th className="px-mx-sm py-mx-sm text-right text-[13px] font-bold">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {agendaHojeItems.map(item => (
+                          <tr key={item.id} className={cn('border-t border-border-subtle align-middle hover:bg-surface-alt/60', item.atrasadoNaoTratado && 'bg-status-error-surface/20')}>
+                            <td className="px-mx-sm py-mx-md">
+                              <Typography variant="p" className={cn('font-bold', item.atrasadoNaoTratado ? 'text-status-error' : 'text-brand-primary')}>{fmtHora(item.horario)}</Typography>
+                            </td>
+                            <td className="px-mx-sm py-mx-md">
+                              <Typography variant="p" className="font-bold leading-tight text-text-primary">{item.clienteNome || 'Cliente sem nome'}</Typography>
+                              <Typography variant="caption" tone="muted">{item.clienteTelefone || 'Telefone não cadastrado'}</Typography>
+                            </td>
+                            <td className="px-mx-sm py-mx-md">
+                              <Typography variant="p" className="font-bold leading-tight text-text-primary">{item.veiculoInteresse || '—'}</Typography>
+                              <Typography variant="caption" tone="muted">{fmtMoeda(item.valorNegociado)}</Typography>
+                            </td>
+                            <td className="px-mx-sm py-mx-md"><Pill className={CANAL_TONE[item.canal]}>{item.canal}</Pill></td>
+                            <td className="px-mx-sm py-mx-md"><Pill className={STATUS_TONE[item.agendamento.status as CrmAgendamentoStatus] || STATUS_TONE.aguardando}>{CRM_AGENDAMENTO_STATUS_LABEL[item.agendamento.status as CrmAgendamentoStatus] || item.agendamento.status}</Pill></td>
+                            <td className="px-mx-sm py-mx-md"><Typography variant="caption" className="font-bold text-text-secondary">{item.proximaAcao || 'Definir próxima ação'}</Typography></td>
+                            <td className="px-mx-sm py-mx-md">
+                              <div className="flex items-center justify-end gap-1">
+                                <Button variant="outline" size="icon" aria-label="WhatsApp" title="WhatsApp" onClick={() => openWhatsApp(item)} className="h-7 w-7 rounded-mx-sm border-status-success/30 bg-white text-status-success [&_svg]:size-3.5"><MessageCircle size={14} /></Button>
+                                <Button variant="outline" size="icon" aria-label="Reagendar" title="Reagendar" onClick={() => openReagendar(item)} className="h-7 w-7 rounded-mx-sm border-brand-primary/30 bg-white text-brand-primary [&_svg]:size-3.5"><RotateCcw size={14} /></Button>
+                                <Button variant="ghost" size="icon" aria-label="Mais ações" title="Mais ações" onClick={() => setMaisAcoesItem(item)} className="h-7 w-7 rounded-mx-sm border border-border-subtle bg-white [&_svg]:size-3.5"><MoreHorizontal size={15} /></Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+
+                <div className="flex flex-col gap-mx-sm md:hidden">
+                  {agendaHojeItems.map(item => (
+                    <Card key={item.id} className={cn('rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm', item.atrasadoNaoTratado && 'border-status-error/30 bg-status-error-surface/20')}>
+                      <div className="flex items-start justify-between gap-mx-sm">
+                        <div className="min-w-0">
+                          <Typography variant="p" className={cn('font-bold', item.atrasadoNaoTratado ? 'text-status-error' : 'text-brand-primary')}>{fmtHora(item.horario)}</Typography>
+                          <Typography variant="p" className="font-bold leading-tight text-text-primary">{item.clienteNome || 'Cliente sem nome'}</Typography>
+                          <Typography variant="caption" tone="muted">{item.clienteTelefone || 'Telefone não cadastrado'}</Typography>
+                          <Typography variant="caption" className="mt-mx-xs block text-text-secondary">{item.veiculoInteresse || '—'} · {item.canal}</Typography>
+                        </div>
+                        <Pill className={STATUS_TONE[item.agendamento.status as CrmAgendamentoStatus] || STATUS_TONE.aguardando}>{CRM_AGENDAMENTO_STATUS_LABEL[item.agendamento.status as CrmAgendamentoStatus] || item.agendamento.status}</Pill>
+                      </div>
+                      <Typography variant="caption" className="mt-mx-sm block font-bold text-text-secondary">{item.proximaAcao || 'Definir próxima ação'}</Typography>
+                      <div className="mt-mx-sm flex items-center gap-mx-xs">
+                        <Button variant="outline" size="sm" onClick={() => openWhatsApp(item)} className="h-9 flex-1 border-status-success/30 bg-white text-status-success"><MessageCircle size={14} /> WhatsApp</Button>
+                        <Button variant="outline" size="sm" onClick={() => openReagendar(item)} className="h-9 flex-1 border-brand-primary/30 bg-white text-brand-primary"><RotateCcw size={14} /> Reagendar</Button>
+                        <Button variant="ghost" size="icon" aria-label="Mais ações" onClick={() => setMaisAcoesItem(item)} className="h-9 w-9 border border-border-subtle bg-white"><MoreHorizontal size={16} /></Button>
+                      </div>
+                    </Card>
+                  ))}
                 </div>
-              </div>
-            </Card>
-          </aside>
-        </div>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="grid min-w-0 grid-cols-1 gap-mx-md xl:grid-cols-[minmax(0,1fr)_300px]">
+            <div className="min-w-0 space-y-mx-md">
+              {conflitoCliente && (
+                <Card className="rounded-mx-lg border border-status-warning/25 bg-status-warning-surface/35 p-mx-md shadow-mx-sm">
+                  <Typography variant="p" className="text-sm font-bold text-status-warning">Você possui um cliente agendado neste horário. Priorize o atendimento e retome sua rotina depois.</Typography>
+                </Card>
+              )}
+
+              {currentSlot?.template ? (
+                <Card className="rounded-mx-lg border border-brand-primary/20 bg-white p-mx-lg shadow-mx-md">
+                  <div className="flex items-center justify-between gap-mx-sm">
+                    <Pill className="border-brand-primary/20 bg-brand-primary/10 text-brand-primary">Agora · {currentSlot.time}</Pill>
+                    {currentSlot.template.duracao_minutos && <Typography variant="caption" tone="muted">{currentSlot.template.duracao_minutos} min sugeridos</Typography>}
+                  </div>
+                  <Typography variant="h2" className="mt-mx-sm text-xl text-text-primary">{currentSlot.template.nome}</Typography>
+                  <Typography variant="p" tone="muted" className="mt-mx-tiny">{currentSlot.template.objetivo}</Typography>
+
+                  {currentSlot.template.instrucoes.length > 0 && (
+                    <ul className="mt-mx-md space-y-mx-xs">
+                      {currentSlot.template.instrucoes.map((instrucao, index) => (
+                        <li key={index} className="flex items-start gap-mx-xs text-sm text-text-secondary">
+                          <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-primary" />
+                          {instrucao}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {currentSlot.key === 'prospeccao' && (
+                    <div className="mt-mx-md space-y-mx-sm">
+                      {prospeccaoHoje.length === 0 ? (
+                        <Typography variant="caption" tone="muted">Nenhuma ação de prospecção configurada para hoje.</Typography>
+                      ) : prospeccaoHoje.map((acao: ProspectingScheduleRow) => (
+                        <div key={acao.id} className="rounded-mx-md border border-border-subtle bg-surface-alt/60 p-mx-sm">
+                          <Typography variant="p" className="font-bold text-text-primary">{TIPO_ACAO_LABEL[acao.tipo_acao] || acao.tipo_acao}</Typography>
+                          <Typography variant="caption" tone="muted">{acao.objetivo}</Typography>
+                          {acao.quantidade && <Typography variant="caption" className="mt-mx-tiny block font-bold text-text-secondary">Meta: {acao.quantidade} {acao.periodicidade} · Público: {acao.publico}</Typography>}
+                        </div>
+                      ))}
+                      {storyIdeaHoje && (
+                        <Button variant="outline" size="sm" className="bg-white" onClick={() => setVerComoFazerOpen(true)}>
+                          <ChevronRight size={14} /> Ver como fazer
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
+                  {currentSlot.template.meta_sugerida && (
+                    <div className="mt-mx-md rounded-mx-md border border-brand-primary/15 bg-brand-primary/5 px-mx-md py-mx-sm">
+                      <Typography variant="caption" className="font-bold text-brand-primary">{currentSlot.template.meta_sugerida}</Typography>
+                    </div>
+                  )}
+
+                  {currentSlot.template.atalhos.length > 0 && (
+                    <div className="mt-mx-md flex flex-wrap gap-mx-xs">
+                      {currentSlot.template.atalhos.map(atalho => (
+                        <AtalhoButton key={atalho.label} atalho={atalho} onTabChange={setTab} onInfo={(label) => toast.info(label)} />
+                      ))}
+                    </div>
+                  )}
+                </Card>
+              ) : (
+                <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
+                  <Typography tone="muted">Carregando rotina do dia...</Typography>
+                </Card>
+              )}
+            </div>
+
+            <aside className="flex flex-col gap-mx-sm">
+              <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-mx-widest">Linha do tempo</Typography>
+              {slots.map((slot: RoutineSlot) => (
+                <div key={slot.key} className={cn('flex items-center gap-mx-sm rounded-mx-md border px-mx-sm py-mx-xs', slot.isCurrent ? 'border-brand-primary/30 bg-brand-primary/5' : 'border-border-subtle bg-white')}>
+                  <Typography variant="caption" className={cn('w-12 font-bold', slot.isCurrent ? 'text-brand-primary' : 'text-text-secondary')}>{slot.time}</Typography>
+                  <Typography variant="caption" className="font-semibold text-text-primary">{slot.template?.nome || slot.key}</Typography>
+                </div>
+              ))}
+            </aside>
+          </div>
+        )}
       </div>
 
       <Modal
-        open={agendaModalOpen}
-        onClose={() => { setAgendaModalOpen(false); setEditingId(null); setForm(EMPTY_AGENDAMENTO) }}
-        title={editingId ? 'Editar agendamento' : 'Novo agendamento'}
-        description={editingId ? 'Atualize os dados do compromisso.' : 'Organize uma ação comercial com cliente, horário e prioridade.'}
+        open={Boolean(reagendarItem)}
+        onClose={() => setReagendarItem(null)}
+        title="Reagendar"
+        description="Escolha a nova data e horário do agendamento."
         footer={(
           <div className="flex justify-end gap-mx-sm">
-            <Button variant="ghost" onClick={() => { setAgendaModalOpen(false); setEditingId(null); setForm(EMPTY_AGENDAMENTO) }}>Cancelar</Button>
-            <Button onClick={handleSubmitAgendamento} disabled={saving}>{saving ? 'Salvando...' : editingId ? 'Salvar alterações' : 'Salvar agendamento'}</Button>
+            <Button variant="ghost" onClick={() => setReagendarItem(null)}>Cancelar</Button>
+            <Button onClick={confirmReagendar} disabled={saving}>{saving ? 'Salvando...' : 'Confirmar'}</Button>
+          </div>
+        )}
+      >
+        <FormField type="datetime-local" label="Nova data e hora *" value={reagendarValor} onChange={event => setReagendarValor(event.target.value)} />
+      </Modal>
+
+      <Modal
+        open={Boolean(vendaItem)}
+        onClose={() => setVendaItem(null)}
+        title="Registrar Venda"
+        description="Confirme os dados da venda para atualizar o funil e o faturamento."
+        footer={(
+          <div className="flex justify-end gap-mx-sm">
+            <Button variant="ghost" onClick={() => setVendaItem(null)}>Cancelar</Button>
+            <Button onClick={confirmVenda} disabled={saving}>{saving ? 'Salvando...' : 'Confirmar venda'}</Button>
           </div>
         )}
       >
         <div className="grid grid-cols-1 gap-mx-md sm:grid-cols-2">
-          <Select label="Cliente" value={form.cliente_id || ''} onChange={event => setForm(current => ({ ...current, cliente_id: event.target.value || null }))}>
-            <option value="">Sem cliente vinculado</option>
-            {clientes.map(cliente => <option key={cliente.id} value={cliente.id}>{cliente.nome}{cliente.empresa ? ` · ${cliente.empresa}` : ''}</option>)}
+          <FormField label="Valor negociado *" value={vendaForm.valorNegociado} onChange={event => setVendaForm(current => ({ ...current, valorNegociado: event.target.value }))} placeholder="R$ 0,00" />
+          <FormField label="Sinal (R$)" value={vendaForm.sinal} onChange={event => setVendaForm(current => ({ ...current, sinal: event.target.value }))} placeholder="R$ 0,00" />
+          <Select label="Financiamento" value={vendaForm.financiamento} onChange={event => setVendaForm(current => ({ ...current, financiamento: event.target.value as CrmFinanciamento }))}>
+            <option value="aprovado">Aprovado</option>
+            <option value="reprovado">Recusado</option>
+            <option value="nao_aplica">Não se aplica</option>
           </Select>
-          <FormField type="datetime-local" label="Data e hora *" value={form.data_hora} onChange={event => setForm(current => ({ ...current, data_hora: event.target.value }))} />
-          <Select label="Tipo de ação" value={form.tipo} onChange={event => setForm(current => ({ ...current, tipo: event.target.value as AgendamentoInput['tipo'] }))}>
-            {CRM_AGENDAMENTO_TIPO.map(tipo => <option key={tipo} value={tipo}>{TIPO_LABEL[tipo]}</option>)}
+          <Select label="Carro avaliado" value={vendaForm.carroAvaliado ? 'sim' : 'nao'} onChange={event => setVendaForm(current => ({ ...current, carroAvaliado: event.target.value === 'sim' }))}>
+            <option value="nao">Não</option>
+            <option value="sim">Sim</option>
           </Select>
-          <Select label="Canal" value={form.canal || ''} onChange={event => setForm(current => ({ ...current, canal: (event.target.value || null) as AgendamentoInput['canal'] }))}>
-            <option value="">Selecione</option>
-            {CRM_CANAIS.map(canal => <option key={canal} value={canal}>{CRM_CANAL_LABEL[canal]}</option>)}
-          </Select>
-          <Select label="Status" value={form.status} onChange={event => setForm(current => ({ ...current, status: event.target.value as CrmAgendamentoStatus }))}>
-            {CRM_AGENDAMENTO_STATUS.map(status => <option key={status} value={status}>{CRM_AGENDAMENTO_STATUS_LABEL[status]}</option>)}
-          </Select>
-          <FormField label="Próxima ação" value={form.proxima_acao || ''} onChange={event => setForm(current => ({ ...current, proxima_acao: event.target.value }))} placeholder="Ex: Apresentar proposta às 13:45" />
         </div>
       </Modal>
 
       <Modal
-        open={clienteModalOpen}
-        onClose={() => { setClienteModalOpen(false); setClienteForm(EMPTY_CLIENTE) }}
-        title="Novo Cliente"
-        description="Cadastro rápido para gerar a próxima ação na Central. O cadastro completo permanece na Carteira."
+        open={Boolean(perdaItem)}
+        onClose={() => setPerdaItem(null)}
+        title="Registrar Perda"
+        description="Selecione o motivo para manter o histórico atualizado."
         footer={(
           <div className="flex justify-end gap-mx-sm">
-            <Button variant="ghost" onClick={() => { setClienteModalOpen(false); setClienteForm(EMPTY_CLIENTE) }}>Cancelar</Button>
-            <Button onClick={handleSubmitCliente} disabled={saving}>{saving ? 'Salvando...' : 'Salvar cliente'}</Button>
+            <Button variant="ghost" onClick={() => setPerdaItem(null)}>Cancelar</Button>
+            <Button onClick={confirmPerda} disabled={saving}>{saving ? 'Salvando...' : 'Confirmar perda'}</Button>
           </div>
         )}
       >
-        <div className="grid grid-cols-1 gap-mx-md sm:grid-cols-2">
-          <FormField label="Nome *" value={clienteForm.nome} onChange={event => setClienteForm(current => ({ ...current, nome: event.target.value }))} />
-          <FormField label="Telefone" value={clienteForm.telefone} onChange={event => setClienteForm(current => ({ ...current, telefone: event.target.value }))} />
-          <Select label="Canal" value={clienteForm.canal} onChange={event => setClienteForm(current => ({ ...current, canal: event.target.value as CrmCanal }))}>
-            {CRM_CANAIS.filter(canal => canal !== 'porta').map(canal => <option key={canal} value={canal}>{CRM_CANAL_LABEL[canal]}</option>)}
-          </Select>
-          <FormField label="Veículo de Interesse" value={clienteForm.veiculo} onChange={event => setClienteForm(current => ({ ...current, veiculo: event.target.value }))} placeholder="Ex: Compass Longitude" />
-          <Select label="Etapa inicial do funil" value={clienteForm.etapa} onChange={event => setClienteForm(current => ({ ...current, etapa: event.target.value as CrmClienteStatus }))}>
-            {Object.entries(STATUS_CLIENTE_LABEL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-          </Select>
-            <FormField type="datetime-local" label="Data/hora próxima ação *" value={clienteForm.data_hora} onChange={event => setClienteForm(current => ({ ...current, data_hora: event.target.value }))} />
-          <div className="sm:col-span-2">
-            <FormField label="Próxima ação" value={clienteForm.proxima_acao} onChange={event => setClienteForm(current => ({ ...current, proxima_acao: event.target.value }))} />
-          </div>
+        <Select label="Motivo da perda *" value={perdaMotivo} onChange={event => setPerdaMotivo(event.target.value)}>
+          <option value="">Selecione</option>
+          {MOTIVOS_PERDA.map(motivo => <option key={motivo} value={motivo}>{motivo}</option>)}
+        </Select>
+      </Modal>
+
+      <Modal
+        open={Boolean(maisAcoesItem)}
+        onClose={() => setMaisAcoesItem(null)}
+        title={maisAcoesItem?.clienteNome || 'Mais ações'}
+        description="Escolha a próxima ação para este cliente."
+      >
+        <div className="flex flex-col gap-mx-xs">
+          <Button variant="outline" className="justify-start bg-white" onClick={() => { if (maisAcoesItem) openVenda(maisAcoesItem); setMaisAcoesItem(null) }}><CircleDollarSign size={16} /> Registrar Venda</Button>
+          <Button variant="outline" className="justify-start bg-white" onClick={() => { if (maisAcoesItem) openPerda(maisAcoesItem); setMaisAcoesItem(null) }}><AlarmClock size={16} /> Registrar Perda</Button>
+          <Button asChild variant="outline" className="justify-start bg-white"><Link to="/carteira-clientes" onClick={() => setMaisAcoesItem(null)}><Target size={16} /> Abrir na Carteira de Clientes</Link></Button>
         </div>
       </Modal>
-    </main>
-  )
-}
 
-function FilterButton({ active, children, onClick }: { active: boolean; children: React.ReactNode; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-          'inline-flex h-mx-10 items-center justify-center gap-mx-xs rounded-mx-md border px-mx-sm text-[13px] font-bold transition-colors',
-        active ? 'border-brand-primary bg-brand-primary text-white shadow-mx-sm' : 'border-border-subtle bg-white text-text-secondary hover:border-brand-primary/30 hover:text-text-primary',
-      )}
-    >
-      {children}
-    </button>
-  )
-}
-
-function FilterSelectButton({ active, children, onClick }: { active: boolean; children: React.ReactNode; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-'inline-flex h-mx-10 w-[170px] items-center justify-center gap-mx-xs whitespace-nowrap rounded-mx-md border px-mx-sm text-[13px] font-bold transition-colors',
-        active ? 'border-brand-primary/30 bg-brand-primary/10 text-brand-primary' : 'border-border-subtle bg-white text-text-secondary hover:border-brand-primary/30',
-      )}
-    >
-      {children}
-      <ChevronDown size={15} />
-    </button>
-  )
-}
-
-function FilterDropdown({
-  label,
-  value,
-  values,
-  onChange,
-}: {
-  label: string
-  value: string
-  values: readonly string[]
-  onChange: (value: string) => void
-}) {
-  return (
-<label className="inline-flex h-mx-10 w-[164px] items-center justify-center gap-mx-xs whitespace-nowrap rounded-mx-md border border-border-subtle bg-white px-mx-sm text-[13px] font-bold text-text-secondary transition-colors hover:border-brand-primary/30 hover:text-text-primary">
-      <span className="sr-only">{label}</span>
-      <select
-        aria-label={label}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-className="min-w-0 flex-1 appearance-none bg-transparent pr-mx-xs text-[13px] font-bold outline-none"
+      <Modal
+        open={verComoFazerOpen}
+        onClose={() => setVerComoFazerOpen(false)}
+        title={storyIdeaHoje?.titulo || 'Ver como fazer'}
+        description="Roteiro sugerido para hoje."
       >
-        {values.map((option) => (
-          <option key={option} value={option}>{option === 'todos' ? label : option}</option>
-        ))}
-      </select>
-      <ChevronDown size={15} />
-    </label>
+        <ol className="space-y-mx-xs">
+          {(storyIdeaHoje?.passos || []).map((passo, index) => (
+            <li key={index} className="flex items-start gap-mx-xs text-sm text-text-secondary">
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-primary/10 text-[11px] font-bold text-brand-primary">{index + 1}</span>
+              {passo}
+            </li>
+          ))}
+        </ol>
+        {storyIdeaHoje?.chamada_para_acao && (
+          <Typography variant="caption" className="mt-mx-md block font-bold text-brand-primary">Chamada para ação: {storyIdeaHoje.chamada_para_acao}</Typography>
+        )}
+      </Modal>
+    </main>
   )
 }
 

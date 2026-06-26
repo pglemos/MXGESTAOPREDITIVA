@@ -34,33 +34,33 @@ export interface AgendamentoForClienteRow {
   observacoes: string | null
 }
 
-const CANAL_LABEL: Record<string, ClienteRow['canal']> = {
+export const CANAL_LABEL: Record<string, ClienteRow['canal']> = {
   carteira: 'Carteira',
   internet: 'Internet',
   showroom: 'Showroom',
   porta: 'Showroom',
 }
 
-const FINANCIAMENTO_LABEL: Record<string, ClienteRow['financiamento']> = {
+export const FINANCIAMENTO_LABEL: Record<string, ClienteRow['financiamento']> = {
   aprovado: 'Aprovado',
   reprovado: 'Recusado',
   nao_aplica: 'Não se aplica',
 }
 
-function timestampMatchesDateOnly(value: string | null | undefined, dateOnly: string) {
+export function timestampMatchesDateOnly(value: string | null | undefined, dateOnly: string) {
   if (!value) return false
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return false
   return toDateOnlyBR(date) === dateOnly
 }
 
-function vendaRealizadaFromEtapa(etapa: string): ClienteRow['vendaRealizada'] {
+export function vendaRealizadaFromEtapa(etapa: string): ClienteRow['vendaRealizada'] {
   if (etapa === 'ganho') return 'Sim'
   if (etapa === 'perdido') return 'Não'
   return 'Em Negociação'
 }
 
-function compareceuFromStatus(status: string | undefined): ClienteRow['compareceu'] {
+export function compareceuFromStatus(status: string | undefined): ClienteRow['compareceu'] {
   if (status === 'compareceu') return 'Sim'
   if (status === 'nao_compareceu') return 'Não'
   return null
