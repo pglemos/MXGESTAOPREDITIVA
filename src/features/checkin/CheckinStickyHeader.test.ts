@@ -28,7 +28,8 @@ describe('Checkin sticky header layout contract', () => {
     expect(checkinHookSource).toContain('crmDailyCounters')
     expect(checkinHookSource).toContain('effectiveForm')
     expect(checkinHookSource).toContain('effectiveTotals')
-    expect(checkinHookSource).toContain('saveCheckin(effectiveForm')
+    expect(checkinHookSource).toContain('...effectiveForm')
+    expect(checkinHookSource).toContain('saveCheckin(checkinPayload')
     expect(checkinFormSource).toContain('const display = effectiveTotals')
   })
 

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { CalendarDays, History, X, ArrowLeft, Send, Users, Globe, CalendarClock, DollarSign } from 'lucide-react'
 import { Button } from '@/components/atoms/Button'
 import { supabase } from '@/lib/supabase'
@@ -6,6 +6,7 @@ import { useCheckinAuditor } from '@/hooks/useCheckinAuditor'
 import { toast } from 'sonner'
 import type { DailyCheckin } from '@/types/database'
 import { addDaysDateOnly } from '../lib/crm-derived-totals'
+import { isRegularizacaoBloqueada } from '../lib/regularizacao-lock'
 
 interface PillarProgress {
   key: string
@@ -53,6 +54,10 @@ export function CheckinHeader({
 
   const [activeView, setActiveView] = useState<'list' | 'form'>('list')
   const [selectedRow, setSelectedRow] = useState<any | null>(null)
+  // Trava de regularização (Especificação Funcional §22 / EV-1.9): um
+  // "Pendente de Fechamento" só fica editável depois que o gerente liberar
+  // — mesma fonte (`fechamento_liberacoes`) que o fluxo principal usa.
+  const [liberacaoStatus, setLiberacaoStatus] = useState<'none' | 'pendente' | 'liberado'>('none')
   const [formValues, setFormValues] = useState({
     leads_cart: 0,
     leads_net: 0,
@@ -97,8 +102,13 @@ export function CheckinHeader({
           salesCount = (checkin.vnd_porta_prev_day || 0) + (checkin.vnd_cart_prev_day || 0) + (checkin.vnd_net_prev_day || 0)
         }
 
-        // Read discipline score
-        const score = localStorage.getItem(`mx-checkin-score:${userId}:${date}`) || '70'
+        // Disciplina (EV-1.5): valor oficial persistido pelo servidor em
+        // lancamentos_diarios.pontuacao_disciplina_final. Fallback para
+        // localStorage só para lançamentos antigos (pré EV-1.5) que não têm
+        // o campo preenchido.
+        const score = checkin.pontuacao_disciplina_final != null
+          ? String(Math.round(checkin.pontuacao_disciplina_final))
+          : localStorage.getItem(`mx-checkin-score:${userId}:${date}`) || '70'
 
         // Formatted time
         const formattedTime = new Date(checkin.submitted_at).toLocaleTimeString('pt-BR', {
@@ -180,6 +190,36 @@ export function CheckinHeader({
     setActiveView('form')
   }
 
+  // Busca a liberação real (EV-1.6) para o dia selecionado — só importa
+  // quando o item é "Pendente de Fechamento" (row.finalized === false);
+  // um dia já finalizado não precisa de liberação para ser corrigido.
+  useEffect(() => {
+    if (!selectedRow || selectedRow.finalized) {
+      setLiberacaoStatus('none')
+      return
+    }
+    let cancelled = false
+    supabase
+      .from('fechamento_liberacoes')
+      .select('status')
+      .eq('vendedor_id', userId)
+      .eq('data_fechamento', selectedRow.date)
+      .order('data_hora_solicitacao', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return
+        setLiberacaoStatus(data?.status === 'liberado' ? 'liberado' : data?.status === 'pendente' ? 'pendente' : 'none')
+      })
+    return () => { cancelled = true }
+  }, [selectedRow, userId])
+
+  const regularizacaoBloqueada = isRegularizacaoBloqueada({
+    rowSelected: Boolean(selectedRow),
+    rowFinalized: Boolean(selectedRow?.finalized),
+    liberacaoStatus,
+  })
+
   const handleFieldChange = (field: string, val: number) => {
     setFormValues(prev => ({
       ...prev,
@@ -189,6 +229,10 @@ export function CheckinHeader({
 
   const handleSubmitCorrection = async () => {
     if (!selectedRow) return
+    if (regularizacaoBloqueada) {
+      toast.error('Solicite a liberação do gerente antes de regularizar este fechamento.')
+      return
+    }
     if (!formValues.reason) {
       toast.error('Por favor, selecione o motivo da alteração.')
       return
@@ -451,6 +495,17 @@ export function CheckinHeader({
               ) : (
                 /* --- FORM VIEW (CORRECTION / LATE CLOSING FORM) --- */
                 <div className="space-y-5">
+                  {!selectedRow?.finalized && (
+                    regularizacaoBloqueada ? (
+                      <div className="rounded-xl border border-status-error/30 bg-status-error-surface p-4 text-sm font-bold text-status-error">
+                        Prazo encerrado às 09h30. Solicite liberação ao seu gerente para finalizar este fechamento. Os campos abaixo ficam bloqueados até a liberação.
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-status-success/30 bg-status-success-surface p-4 text-sm font-bold text-status-success">
+                        Fechamento liberado pelo gerente. Ao enviar, será aplicada penalização de 10% por atraso.
+                      </div>
+                    )
+                  )}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     
                     {/* Leads Pillar */}
@@ -466,9 +521,10 @@ export function CheckinHeader({
                               id="adjustment-leads-cart"
                               type="number"
                             min="0"
+                            disabled={regularizacaoBloqueada}
                             value={formValues.leads_cart}
                             onChange={(e) => handleFieldChange('leads_cart', Number(e.target.value))}
-                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-3 text-center text-xs font-bold outline-none focus:border-[#2563eb]"
+                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-3 text-center text-xs font-bold outline-none focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
                           />
                         </div>
                         <div>
@@ -477,9 +533,10 @@ export function CheckinHeader({
                               id="adjustment-leads-net"
                               type="number"
                             min="0"
+                            disabled={regularizacaoBloqueada}
                             value={formValues.leads_net}
                             onChange={(e) => handleFieldChange('leads_net', Number(e.target.value))}
-                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-3 text-center text-xs font-bold outline-none focus:border-[#2563eb]"
+                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-3 text-center text-xs font-bold outline-none focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
                           />
                         </div>
                       </div>
@@ -498,9 +555,10 @@ export function CheckinHeader({
                               id="adjustment-visitas-porta"
                               type="number"
                             min="0"
+                            disabled={regularizacaoBloqueada}
                             value={formValues.visitas_porta}
                             onChange={(e) => handleFieldChange('visitas_porta', Number(e.target.value))}
-                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#2563eb]"
+                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
                           />
                         </div>
                         <div>
@@ -509,9 +567,10 @@ export function CheckinHeader({
                               id="adjustment-visitas-cart"
                               type="number"
                             min="0"
+                            disabled={regularizacaoBloqueada}
                             value={formValues.visitas_cart}
                             onChange={(e) => handleFieldChange('visitas_cart', Number(e.target.value))}
-                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#2563eb]"
+                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
                           />
                         </div>
                         <div>
@@ -520,9 +579,10 @@ export function CheckinHeader({
                               id="adjustment-visitas-net"
                               type="number"
                             min="0"
+                            disabled={regularizacaoBloqueada}
                             value={formValues.visitas_net}
                             onChange={(e) => handleFieldChange('visitas_net', Number(e.target.value))}
-                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#2563eb]"
+                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
                           />
                         </div>
                       </div>
@@ -541,9 +601,10 @@ export function CheckinHeader({
                               id="adjustment-agd-cart"
                               type="number"
                             min="0"
+                            disabled={regularizacaoBloqueada}
                             value={formValues.agd_cart}
                             onChange={(e) => handleFieldChange('agd_cart', Number(e.target.value))}
-                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-3 text-center text-xs font-bold outline-none focus:border-[#2563eb]"
+                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-3 text-center text-xs font-bold outline-none focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
                           />
                         </div>
                         <div>
@@ -552,9 +613,10 @@ export function CheckinHeader({
                               id="adjustment-agd-net"
                               type="number"
                             min="0"
+                            disabled={regularizacaoBloqueada}
                             value={formValues.agd_net}
                             onChange={(e) => handleFieldChange('agd_net', Number(e.target.value))}
-                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-3 text-center text-xs font-bold outline-none focus:border-[#2563eb]"
+                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-3 text-center text-xs font-bold outline-none focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
                           />
                         </div>
                       </div>
@@ -573,9 +635,10 @@ export function CheckinHeader({
                               id="adjustment-vnd-porta"
                               type="number"
                               min="0"
+                            disabled={regularizacaoBloqueada}
                               value={formValues.vnd_porta}
                               onChange={(e) => handleFieldChange('vnd_porta', Number(e.target.value))}
-                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#2563eb]"
+                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
                           />
                         </div>
                         <div>
@@ -584,9 +647,10 @@ export function CheckinHeader({
                               id="adjustment-vnd-cart"
                               type="number"
                               min="0"
+                            disabled={regularizacaoBloqueada}
                               value={formValues.vnd_cart}
                               onChange={(e) => handleFieldChange('vnd_cart', Number(e.target.value))}
-                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#2563eb]"
+                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
                           />
                         </div>
                         <div>
@@ -595,9 +659,10 @@ export function CheckinHeader({
                               id="adjustment-vnd-net"
                               type="number"
                               min="0"
+                            disabled={regularizacaoBloqueada}
                               value={formValues.vnd_net}
                               onChange={(e) => handleFieldChange('vnd_net', Number(e.target.value))}
-                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#2563eb]"
+                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
                           />
                         </div>
                       </div>
@@ -614,8 +679,9 @@ export function CheckinHeader({
                       <select
                         id="adjustment-reason"
                         value={formValues.reason}
+                        disabled={regularizacaoBloqueada}
                         onChange={(e) => setFormValues(prev => ({ ...prev, reason: e.target.value }))}
-                        className="h-10 w-full rounded-xl border border-[#e5eaf2] bg-white px-3 text-xs font-semibold text-[#111827] outline-none focus:border-[#2563eb]"
+                        className="h-10 w-full rounded-xl border border-[#e5eaf2] bg-white px-3 text-xs font-semibold text-[#111827] outline-none focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
                       >
                         <option value="">Selecione o motivo...</option>
                         {ADJUSTMENT_REASONS.map(reason => (
@@ -633,9 +699,10 @@ export function CheckinHeader({
                       <textarea
                         id="adjustment-note"
                         value={formValues.note}
+                        disabled={regularizacaoBloqueada}
                         onChange={(e) => setFormValues(prev => ({ ...prev, note: e.target.value }))}
                         placeholder="Descreva detalhadamente o motivo deste ajuste retroativo..."
-                        className="min-h-[80px] w-full resize-none rounded-xl border border-[#e5eaf2] bg-white p-3 text-xs text-[#111827] outline-none placeholder:text-[#94a3b8] focus:border-[#2563eb]"
+                        className="min-h-[80px] w-full resize-none rounded-xl border border-[#e5eaf2] bg-white p-3 text-xs text-[#111827] outline-none placeholder:text-[#94a3b8] focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
                         maxLength={250}
                       />
                       <span className="text-[10px] text-right text-[#94a3b8] font-mono">
@@ -672,11 +739,15 @@ export function CheckinHeader({
                   </Button>
                   <Button
                     type="button"
-                    disabled={auditorLoading}
+                    disabled={auditorLoading || regularizacaoBloqueada}
                     onClick={handleSubmitCorrection}
-                    className="h-10 px-5 text-xs font-bold bg-[#16a34a] hover:bg-[#15803d] text-white rounded-xl shadow-sm transition-colors flex items-center gap-1.5"
+                    className={`h-10 px-5 text-xs font-bold text-white rounded-xl shadow-sm transition-colors flex items-center gap-1.5 ${
+                      regularizacaoBloqueada
+                        ? 'bg-status-error cursor-not-allowed opacity-80'
+                        : 'bg-[#16a34a] hover:bg-[#15803d]'
+                    }`}
                   >
-                    <Send size={14} /> {selectedRow?.finalized ? 'Enviar Correção' : 'Enviar p/ Aprovação'}
+                    <Send size={14} /> {regularizacaoBloqueada ? 'Aguardando liberação do gerente' : selectedRow?.finalized ? 'Enviar Correção' : 'Enviar p/ Aprovação'}
                   </Button>
                 </>
               )}

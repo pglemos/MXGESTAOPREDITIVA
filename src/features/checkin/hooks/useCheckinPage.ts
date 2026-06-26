@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import {
@@ -19,6 +19,12 @@ import { resolveFeedbackActionCloseLock } from '../lib/feedback-action-lock'
 import { useCrmDerivedTotals } from './useCrmDerivedTotals'
 import { useAuth } from '@/hooks/useAuth'
 import { addDaysDateOnly } from '../lib/crm-derived-totals'
+import { calcularDisciplina } from '../lib/disciplina'
+import { calcularLockStage } from '../lib/lock-stage'
+import { deriveClientesListFromCrm } from '../lib/clientes-list-from-crm'
+import { supabase } from '@/lib/supabase'
+import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
+import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
 
 export interface CheckinForm {
     leads: number
@@ -183,53 +189,21 @@ export function useCheckinPage() {
         }
     }, [referenceDate])
 
-    // Clients/Opportunities Reactive List
-    const [clientesList, setClientesList] = useState<ClienteRow[]>([])
-
+    // Clients/Opportunities Reactive List — fonte única é o CRM real
+    // (oportunidades + agendamentos), não mais localStorage (EV-1.7).
     const selectedDate = customReferenceDate || referenceDate
 
-    useEffect(() => {
-        if (!supabaseUser?.id || !selectedDate) return
-        const key = `mx-checkin-clientes:${supabaseUser.id}:${selectedDate}`
-        const cached = localStorage.getItem(key)
-        if (cached) {
-            try {
-                setClientesList(JSON.parse(cached))
-            } catch (e) {
-                console.error(e)
-            }
-        } else {
-            setClientesList([])
-        }
-    }, [supabaseUser?.id, selectedDate])
+    const { oportunidades, refetch: refetchOportunidades } = useOportunidades()
+    const { agendamentos, refetch: refetchAgendamentos } = useAgendamentos()
 
-    const saveLocalCliente = (row: ClienteRow) => {
-        setClientesList(prev => {
-            const existingIdx = prev.findIndex(c => c.id === row.id)
-            let next = [...prev]
-            if (existingIdx >= 0) {
-                next[existingIdx] = row
-            } else {
-                next.push(row)
-            }
-            if (supabaseUser?.id && selectedDate) {
-                const key = `mx-checkin-clientes:${supabaseUser.id}:${selectedDate}`
-                localStorage.setItem(key, JSON.stringify(next))
-            }
-            return next
-        })
-    }
+    const clientesList = useMemo(
+        () => deriveClientesListFromCrm(oportunidades, agendamentos, selectedDate),
+        [oportunidades, agendamentos, selectedDate],
+    )
 
-    const deleteLocalCliente = (id: string) => {
-        setClientesList(prev => {
-            const next = prev.filter(c => c.id !== id)
-            if (supabaseUser?.id && selectedDate) {
-                const key = `mx-checkin-clientes:${supabaseUser.id}:${selectedDate}`
-                localStorage.setItem(key, JSON.stringify(next))
-            }
-            return next
-        })
-    }
+    const refetchClientesList = useCallback(async () => {
+        await Promise.all([refetchOportunidades(), refetchAgendamentos()])
+    }, [refetchOportunidades, refetchAgendamentos])
 
     useEffect(() => {
         if (!selectedDate || !referenceDate) return
@@ -316,38 +290,77 @@ export function useCheckinPage() {
         return true // older than yesterday is always past deadline
     }, [selectedDate, todaySP, yesterdaySP, spTime])
 
-    const approvedKey = `mx-fechamento-liberados:${supabaseUser?.id}:${selectedDate}`
-    const fechamentoLiberado = useMemo(() => {
-        return localStorage.getItem(approvedKey) === 'true'
-    }, [approvedKey])
+    // Janela em 3 estágios (Especificação Funcional, §3.1-3.3): 'on_time' até
+    // 09h30; 'blocked' 09h31-12h00 (bloqueio destacado + avisar gerente);
+    // 'discreet' após 12h01 (mesmo ainda bloqueado para finalizar sem
+    // liberação, a tela para de insistir — só o aviso discreto permanece).
+    const lockStage = useMemo(
+        () => calcularLockStage({
+            isPastDeadline,
+            selectedDate,
+            yesterdaySP,
+            spHours: spTime.hours,
+            spMinutes: spTime.minutes,
+        }),
+        [isPastDeadline, selectedDate, yesterdaySP, spTime],
+    )
 
-    const penaltyKey = `mx-fechamento-penalizado:${supabaseUser?.id}:${selectedDate}`
+    // Liberação real (EV-1.6): fonte é fechamento_liberacoes (server),
+    // não mais localStorage. Um lançamento já salvo também carrega o flag
+    // (gravado pelo submit_checkin a partir da mesma tabela).
+    const [liberacaoStatus, setLiberacaoStatus] = useState<'none' | 'pendente' | 'liberado'>('none')
+
+    useEffect(() => {
+        if (!supabaseUser?.id || !selectedDate) { setLiberacaoStatus('none'); return }
+        let cancelled = false
+        supabase
+            .from('fechamento_liberacoes')
+            .select('status')
+            .eq('vendedor_id', supabaseUser.id)
+            .eq('data_fechamento', selectedDate)
+            .order('data_hora_solicitacao', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+            .then(({ data }) => {
+                if (cancelled) return
+                setLiberacaoStatus(data?.status === 'liberado' ? 'liberado' : data?.status === 'pendente' ? 'pendente' : 'none')
+            })
+        return () => { cancelled = true }
+    }, [supabaseUser?.id, selectedDate])
+
+    const fechamentoLiberado = liberacaoStatus === 'liberado' || Boolean(historicalCheckin?.fechamento_liberado)
+
     const finalizadoAposPrazo = useMemo(() => {
-        return localStorage.getItem(penaltyKey) === 'true' || (isPastDeadline && fechamentoLiberado)
-    }, [penaltyKey, isPastDeadline, fechamentoLiberado])
+        return Boolean(historicalCheckin?.finalizado_apos_prazo) || (isPastDeadline && fechamentoLiberado)
+    }, [historicalCheckin, isPastDeadline, fechamentoLiberado])
 
-    // WhatsApp Request
-    const avisarGerenteWhatsapp = () => {
+    // WhatsApp Request — resolve o gerente real da loja (loja vem de
+    // vendedores_loja; vendedor não tem loja_id direto) e usa o telefone real.
+    const avisarGerenteWhatsapp = async () => {
         if (!supabaseUser?.id) return
-        const solicitacaoId = crypto.randomUUID()
-        const solicitacao = {
-            id: solicitacaoId,
-            vendedorId: supabaseUser.id,
-            vendedorNome: profile?.name || 'Vendedor',
-            gerenteId: 'gerente-id',
-            gerenteNome: 'Gerente Comercial',
-            dataFechamento: selectedDate,
-            dataHoraSolicitacao: new Date().toISOString(),
-            statusSolicitacao: 'Pendente',
-            tipoSolicitacao: 'Liberação de Fechamento Diário',
-        }
-        
-        const listKey = 'mx-fechamento-solicitacoes'
-        const currentList = JSON.parse(localStorage.getItem(listKey) || '[]')
-        currentList.push(solicitacao)
-        localStorage.setItem(listKey, JSON.stringify(currentList))
 
-        const linkSeguro = `${window.location.origin}/liberacao-fechamento?id=${solicitacaoId}`
+        const { data: solicitacao, error: solicitarError } = await supabase.rpc('solicitar_liberacao_fechamento', {
+            p_data_fechamento: selectedDate,
+        })
+        const result = solicitacao as { ok?: boolean; error?: string; data?: { token: string; store_id: string } } | null
+        if (solicitarError || !result?.ok || !result.data) {
+            toast.error(result?.error || solicitarError?.message || 'Não foi possível criar a solicitação de liberação.')
+            return
+        }
+        setLiberacaoStatus('pendente')
+
+        const { data: gerentes } = await supabase
+            .from('vinculos_loja')
+            .select('user_id, usuarios:user_id(name, phone)')
+            .eq('store_id', result.data.store_id)
+            .eq('role', 'gerente')
+            .eq('is_active', true)
+            .limit(1)
+
+        const gerente = (gerentes?.[0] as unknown as { usuarios?: { name?: string; phone?: string } } | undefined)?.usuarios
+        const telefoneDigits = (gerente?.phone || '').replace(/\D/g, '')
+
+        const linkSeguro = `${window.location.origin}/liberacao-fechamento?token=${result.data.token}`
         const msg = `Olá, preciso de liberação para realizar meu Fechamento Diário com atraso.
 
 Vendedor: ${profile?.name || 'Vendedor'}
@@ -358,8 +371,13 @@ Motivo: Fechamento não realizado até 09h30.
 Por favor, acesse o sistema para liberar:
 ${linkSeguro}`
 
-        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank')
-        toast.success('Solicitação enviada ao gerente.')
+        const waUrl = telefoneDigits
+            ? `https://wa.me/55${telefoneDigits}?text=${encodeURIComponent(msg)}`
+            : `https://wa.me/?text=${encodeURIComponent(msg)}`
+        window.open(waUrl, '_blank')
+        toast.success(
+            telefoneDigits ? `Solicitação enviada — abrindo WhatsApp de ${gerente?.name || 'gerente'}.` : 'Solicitação criada. Nenhum gerente com telefone cadastrado foi encontrado — selecione o contato manualmente no WhatsApp.',
+        )
     }
 
     // Dynamic Discipline and Summary Calculations
@@ -428,20 +446,13 @@ ${linkSeguro}`
     const creditosInternet = Math.min(validosInternet, Number(effectiveForm.agd_net ?? 0))
     const creditosValidos = creditosCarteira + creditosInternet
 
-    const percentualDetalhamento = useMemo(() => {
-        if (totalAgendamentosD1 === 0) return 1.0
-        return creditosValidos / totalAgendamentosD1
-    }, [creditosValidos, totalAgendamentosD1])
-
-    const pontosExtrasDisciplina = percentualDetalhamento * 30
-    const rawDiscipline = 70 + pontosExtrasDisciplina
-    const disciplinePercent = useMemo(() => {
-        let score = Math.round(rawDiscipline)
-        if (finalizadoAposPrazo) {
-            score = Math.max(0, score - 10)
-        }
-        return Math.min(100, score)
-    }, [rawDiscipline, finalizadoAposPrazo])
+    const disciplina = useMemo(
+        () => calcularDisciplina({ totalAgendamentosD1, creditosValidos, finalizadoAposPrazo }),
+        [totalAgendamentosD1, creditosValidos, finalizadoAposPrazo],
+    )
+    const pontosExtrasDisciplina = disciplina.pontosExtras
+    const rawDiscipline = disciplina.pontuacaoDisciplinaBase
+    const disciplinePercent = disciplina.pontuacaoDisciplinaFinal
 
     const completedItems = useMemo(() => {
         const items = []
@@ -643,23 +654,20 @@ ${linkSeguro}`
         }
 
         setSaving(true)
-        
-        // Save the checkin to Supabase
-        const { error } = await saveCheckin(effectiveForm, metricScope, selectedDate)
-        if (error) { setSaving(false); toast.error(error); return }
-        
-        // Save final score and late penalty status to localStorage so the history reflects it correctly
-        if (supabaseUser?.id) {
-            const scoreKey = `mx-checkin-score:${supabaseUser.id}:${selectedDate}`
-            localStorage.setItem(scoreKey, String(disciplinePercent))
-            
-            const stateKey = `mx-checkin-finalizado:${supabaseUser.id}:${selectedDate}`
-            localStorage.setItem(stateKey, 'true')
-            
-            if (isPastDeadline && fechamentoLiberado) {
-                localStorage.setItem(penaltyKey, 'true')
-            }
+
+        // Save the checkin to Supabase — disciplina base (antes da penalidade) e o
+        // flag de liberação vão no payload; o servidor deriva a penalidade e o
+        // valor final a partir do seu próprio relógio (não confia no client).
+        const checkinPayload = {
+            ...effectiveForm,
+            pontuacao_disciplina_base: rawDiscipline,
+            fechamento_liberado: fechamentoLiberado,
         }
+        const { error } = await saveCheckin(checkinPayload, metricScope, selectedDate)
+        if (error) { setSaving(false); toast.error(error); return }
+
+        // Score/penalidade/liberação agora são persistidos pelo servidor
+        // (lancamentos_diarios, EV-1.5/EV-1.6) — nada para gravar em localStorage.
 
         if (feedbackActionLock.actionIdsToJustify.length > 0) {
             const { error: feedbackActionError } = await justificarAcoesFeedback(
@@ -788,16 +796,17 @@ ${linkSeguro}`
         commitNumberField,
         handleExit,
         handleSubmit,
+        submitCheckin,
         handleSaveDraft,
         saveTechnicalAdjustment,
         // Added properties
         selectedDate,
         clientesList,
-        saveLocalCliente,
-        deleteLocalCliente,
+        refetchClientesList,
         fechamentoLiberado,
         finalizadoAposPrazo,
         isPastDeadline,
+        lockStage,
         avisarGerenteWhatsapp,
         spHours: spTime.hours,
         spMinutes: spTime.minutes,

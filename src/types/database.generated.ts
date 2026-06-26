@@ -3493,6 +3493,76 @@ export type Database = {
           },
         ]
       }
+      fechamento_liberacoes: {
+        Row: {
+          created_at: string
+          data_fechamento: string
+          data_hora_liberacao: string | null
+          data_hora_solicitacao: string
+          id: string
+          liberado_por_id: string | null
+          liberado_por_nome: string | null
+          motivo_liberacao: string | null
+          status: string
+          store_id: string
+          token_expira_em: string
+          token_hash: string
+          vendedor_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_fechamento: string
+          data_hora_liberacao?: string | null
+          data_hora_solicitacao?: string
+          id?: string
+          liberado_por_id?: string | null
+          liberado_por_nome?: string | null
+          motivo_liberacao?: string | null
+          status?: string
+          store_id: string
+          token_expira_em: string
+          token_hash: string
+          vendedor_id: string
+        }
+        Update: {
+          created_at?: string
+          data_fechamento?: string
+          data_hora_liberacao?: string | null
+          data_hora_solicitacao?: string
+          id?: string
+          liberado_por_id?: string | null
+          liberado_por_nome?: string | null
+          motivo_liberacao?: string | null
+          status?: string
+          store_id?: string
+          token_expira_em?: string
+          token_hash?: string
+          vendedor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fechamento_liberacoes_liberado_por_id_fkey"
+            columns: ["liberado_por_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fechamento_liberacoes_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fechamento_liberacoes_vendedor_id_fkey"
+            columns: ["vendedor_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feedback_action_catalog: {
         Row: {
           action_key: string
@@ -4235,13 +4305,22 @@ export type Database = {
           agd_net_today: number
           created_at: string | null
           created_by: string | null
+          data_hora_liberacao: string | null
           date: string
           edit_locked_at: string | null
+          fechamento_liberado: boolean
+          finalizado_apos_prazo: boolean
           id: string
           leads: number
           leads_prev_day: number
+          liberado_por_id: string | null
+          liberado_por_nome: string | null
           metric_scope: Database["public"]["Enums"]["checkin_scope"]
           note: string | null
+          penalizacao_atraso_aplicada: boolean
+          percentual_penalizacao_atraso: number
+          pontuacao_disciplina_base: number | null
+          pontuacao_disciplina_final: number | null
           reference_date: string
           seller_user_id: string
           store_id: string
@@ -4269,13 +4348,22 @@ export type Database = {
           agd_net_today?: number
           created_at?: string | null
           created_by?: string | null
+          data_hora_liberacao?: string | null
           date?: string
           edit_locked_at?: string | null
+          fechamento_liberado?: boolean
+          finalizado_apos_prazo?: boolean
           id?: string
           leads?: number
           leads_prev_day?: number
+          liberado_por_id?: string | null
+          liberado_por_nome?: string | null
           metric_scope?: Database["public"]["Enums"]["checkin_scope"]
           note?: string | null
+          penalizacao_atraso_aplicada?: boolean
+          percentual_penalizacao_atraso?: number
+          pontuacao_disciplina_base?: number | null
+          pontuacao_disciplina_final?: number | null
           reference_date?: string
           seller_user_id: string
           store_id: string
@@ -4303,13 +4391,22 @@ export type Database = {
           agd_net_today?: number
           created_at?: string | null
           created_by?: string | null
+          data_hora_liberacao?: string | null
           date?: string
           edit_locked_at?: string | null
+          fechamento_liberado?: boolean
+          finalizado_apos_prazo?: boolean
           id?: string
           leads?: number
           leads_prev_day?: number
+          liberado_por_id?: string | null
+          liberado_por_nome?: string | null
           metric_scope?: Database["public"]["Enums"]["checkin_scope"]
           note?: string | null
+          penalizacao_atraso_aplicada?: boolean
+          percentual_penalizacao_atraso?: number
+          pontuacao_disciplina_base?: number | null
+          pontuacao_disciplina_final?: number | null
           reference_date?: string
           seller_user_id?: string
           store_id?: string
@@ -4353,6 +4450,13 @@ export type Database = {
           {
             foreignKeyName: "daily_checkins_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_diarios_liberado_por_id_fkey"
+            columns: ["liberado_por_id"]
             isOneToOne: false
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
@@ -8850,6 +8954,8 @@ export type Database = {
           experiencia_declarada:
             | Database["public"]["Enums"]["vendedor_experiencia_declarada"]
             | null
+          fechar_dia_notificacao_ativa: boolean
+          fechar_dia_notificacao_hora: string | null
           hora_almoco_fim: string | null
           hora_almoco_inicio: string | null
           hora_entrada: string | null
@@ -8880,6 +8986,8 @@ export type Database = {
           experiencia_declarada?:
             | Database["public"]["Enums"]["vendedor_experiencia_declarada"]
             | null
+          fechar_dia_notificacao_ativa?: boolean
+          fechar_dia_notificacao_hora?: string | null
           hora_almoco_fim?: string | null
           hora_almoco_inicio?: string | null
           hora_entrada?: string | null
@@ -8910,6 +9018,8 @@ export type Database = {
           experiencia_declarada?:
             | Database["public"]["Enums"]["vendedor_experiencia_declarada"]
             | null
+          fechar_dia_notificacao_ativa?: boolean
+          fechar_dia_notificacao_hora?: string | null
           hora_almoco_fim?: string | null
           hora_almoco_inicio?: string | null
           hora_entrada?: string | null
@@ -9401,6 +9511,7 @@ export type Database = {
       checkin_validation_kit: {
         Args: {
           p_caller_id: string
+          p_liberado?: boolean
           p_now?: string
           p_reference_date: string
           p_scope?: string
@@ -9550,6 +9661,10 @@ export type Database = {
       }
       consolidar_dashboard_departamento: {
         Args: { p_code: string; p_loja_id: string; p_period?: string }
+        Returns: Json
+      }
+      consultar_liberacao_por_token: {
+        Args: { p_token: string }
         Returns: Json
       }
       consulting_client_module_enabled: {
@@ -9710,13 +9825,22 @@ export type Database = {
           agd_net_today: number
           created_at: string | null
           created_by: string | null
+          data_hora_liberacao: string | null
           date: string
           edit_locked_at: string | null
+          fechamento_liberado: boolean
+          finalizado_apos_prazo: boolean
           id: string
           leads: number
           leads_prev_day: number
+          liberado_por_id: string | null
+          liberado_por_nome: string | null
           metric_scope: Database["public"]["Enums"]["checkin_scope"]
           note: string | null
+          penalizacao_atraso_aplicada: boolean
+          percentual_penalizacao_atraso: number
+          pontuacao_disciplina_base: number | null
+          pontuacao_disciplina_final: number | null
           reference_date: string
           seller_user_id: string
           store_id: string
@@ -9758,13 +9882,22 @@ export type Database = {
           agd_net_today: number
           created_at: string | null
           created_by: string | null
+          data_hora_liberacao: string | null
           date: string
           edit_locked_at: string | null
+          fechamento_liberado: boolean
+          finalizado_apos_prazo: boolean
           id: string
           leads: number
           leads_prev_day: number
+          liberado_por_id: string | null
+          liberado_por_nome: string | null
           metric_scope: Database["public"]["Enums"]["checkin_scope"]
           note: string | null
+          penalizacao_atraso_aplicada: boolean
+          percentual_penalizacao_atraso: number
+          pontuacao_disciplina_base: number | null
+          pontuacao_disciplina_final: number | null
           reference_date: string
           seller_user_id: string
           store_id: string
@@ -9807,13 +9940,22 @@ export type Database = {
           agd_net_today: number
           created_at: string | null
           created_by: string | null
+          data_hora_liberacao: string | null
           date: string
           edit_locked_at: string | null
+          fechamento_liberado: boolean
+          finalizado_apos_prazo: boolean
           id: string
           leads: number
           leads_prev_day: number
+          liberado_por_id: string | null
+          liberado_por_nome: string | null
           metric_scope: Database["public"]["Enums"]["checkin_scope"]
           note: string | null
+          penalizacao_atraso_aplicada: boolean
+          percentual_penalizacao_atraso: number
+          pontuacao_disciplina_base: number | null
+          pontuacao_disciplina_final: number | null
           reference_date: string
           seller_user_id: string
           store_id: string
@@ -9850,13 +9992,22 @@ export type Database = {
           agd_net_today: number
           created_at: string | null
           created_by: string | null
+          data_hora_liberacao: string | null
           date: string
           edit_locked_at: string | null
+          fechamento_liberado: boolean
+          finalizado_apos_prazo: boolean
           id: string
           leads: number
           leads_prev_day: number
+          liberado_por_id: string | null
+          liberado_por_nome: string | null
           metric_scope: Database["public"]["Enums"]["checkin_scope"]
           note: string | null
+          penalizacao_atraso_aplicada: boolean
+          percentual_penalizacao_atraso: number
+          pontuacao_disciplina_base: number | null
+          pontuacao_disciplina_final: number | null
           reference_date: string
           seller_user_id: string
           store_id: string
@@ -9893,13 +10044,22 @@ export type Database = {
           agd_net_today: number
           created_at: string | null
           created_by: string | null
+          data_hora_liberacao: string | null
           date: string
           edit_locked_at: string | null
+          fechamento_liberado: boolean
+          finalizado_apos_prazo: boolean
           id: string
           leads: number
           leads_prev_day: number
+          liberado_por_id: string | null
+          liberado_por_nome: string | null
           metric_scope: Database["public"]["Enums"]["checkin_scope"]
           note: string | null
+          penalizacao_atraso_aplicada: boolean
+          percentual_penalizacao_atraso: number
+          pontuacao_disciplina_base: number | null
+          pontuacao_disciplina_final: number | null
           reference_date: string
           seller_user_id: string
           store_id: string
@@ -9969,6 +10129,10 @@ export type Database = {
       is_manager_of: { Args: { p_store_id: string }; Returns: boolean }
       is_member_of: { Args: { p_store_id: string }; Returns: boolean }
       is_owner_of: { Args: { p_store_id: string }; Returns: boolean }
+      liberar_fechamento_por_token: {
+        Args: { p_motivo?: string; p_token: string }
+        Returns: Json
+      }
       listar_acoes_cadencia_vendedor: {
         Args: { p_data_fim?: string; p_data_inicio?: string }
         Returns: {
@@ -10153,6 +10317,10 @@ export type Database = {
           p_type?: string
         }
         Returns: string
+      }
+      solicitar_liberacao_fechamento: {
+        Args: { p_data_fechamento: string }
+        Returns: Json
       }
       submeter_prova_aula: {
         Args: { p_aula_id: string; p_respostas: number[] }

@@ -85,16 +85,34 @@ export function useOportunidades() {
     setLoading(false)
   }, [supabaseUser])
 
-  const createOportunidade = useCallback(async (input: OportunidadeInput): Promise<{ error: string | null }> => {
+  const createOportunidade = useCallback(async (input: OportunidadeInput): Promise<{ error: string | null; id?: string }> => {
     if (!supabaseUser) return { error: 'Sessão inválida.' }
     if (!effectiveStoreId) return { error: 'Loja não identificada para o vendedor.' }
     if (!input.cliente_id) return { error: 'Selecione o cliente da oportunidade.' }
     const payload = buildOportunidadePayload(input, { loja_id: effectiveStoreId, seller_user_id: supabaseUser.id })
-    const { error: insertError } = await supabase.from('oportunidades').insert(payload)
+    const { data, error: insertError } = await supabase.from('oportunidades').insert(payload).select('id').single()
     if (insertError) return { error: insertError.message }
+    await fetchOportunidades()
+    return { error: null, id: data?.id }
+  }, [supabaseUser, effectiveStoreId, fetchOportunidades])
+
+  const updateOportunidade = useCallback(async (id: string, input: OportunidadeInput): Promise<{ error: string | null }> => {
+    if (!supabaseUser) return { error: 'Sessão inválida.' }
+    if (!effectiveStoreId) return { error: 'Loja não identificada para o vendedor.' }
+    const payload = buildOportunidadePayload(input, { loja_id: effectiveStoreId, seller_user_id: supabaseUser.id })
+    const { error: updateError } = await supabase.from('oportunidades').update(payload).eq('id', id)
+    if (updateError) return { error: updateError.message }
     await fetchOportunidades()
     return { error: null }
   }, [supabaseUser, effectiveStoreId, fetchOportunidades])
+
+  const updateMotivoPerda = useCallback(async (id: string, motivoPerda: string | null): Promise<{ error: string | null }> => {
+    if (!supabaseUser) return { error: 'Sessão inválida.' }
+    const { error: updateError } = await supabase.from('oportunidades').update({ motivo_perda: motivoPerda?.trim() || null }).eq('id', id)
+    if (updateError) return { error: updateError.message }
+    await fetchOportunidades()
+    return { error: null }
+  }, [supabaseUser, fetchOportunidades])
 
   const updateEtapa = useCallback(async (id: string, etapa: CrmEtapaFunil, motivoPerda?: string): Promise<{ error: string | null }> => {
     if (!supabaseUser) return { error: 'Sessão inválida.' }
@@ -151,5 +169,5 @@ export function useOportunidades() {
     }
   }, [oportunidades])
 
-  return { oportunidades, funil, loading, error, refetch: fetchOportunidades, createOportunidade, updateEtapa, deleteOportunidade }
+  return { oportunidades, funil, loading, error, refetch: fetchOportunidades, createOportunidade, updateOportunidade, updateMotivoPerda, updateEtapa, deleteOportunidade }
 }

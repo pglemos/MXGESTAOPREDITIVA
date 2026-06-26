@@ -34,6 +34,7 @@ import { CheckinValidationBanner } from './CheckinValidationBanner'
 import { CheckinSuccessSection } from './CheckinSuccessSection'
 import { CheckinCrmSection } from './CheckinCrmSection'
 import type { CheckinPageContext, NumericCheckinField } from '../hooks/useCheckinPage'
+import { shouldConfirmBeforeFinalizar } from '../lib/confirm-finalize'
 
 interface CheckinFormProps {
   ctx: CheckinPageContext
@@ -91,6 +92,7 @@ export function InfoTooltip({ text }: { text: string }) {
 
 export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: CheckinFormProps) {
   const [disciplineModalOpen, setDisciplineModalOpen] = useState(false)
+  const [confirmFinalizeModalOpen, setConfirmFinalizeModalOpen] = useState(false)
   const {
     form,
     saving,
@@ -110,6 +112,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
     updateNumberField,
     commitNumberField,
     handleSubmit,
+    submitCheckin,
     handleSaveDraft,
     crmDerived,
     historicalCheckin,
@@ -120,10 +123,8 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
     fechamentoLiberado,
     finalizadoAposPrazo,
     isPastDeadline,
+    lockStage,
     avisarGerenteWhatsapp,
-    todaySP,
-    yesterdaySP,
-    supabaseUser,
     disciplinePercent,
     completedItems,
     pendingItems,
@@ -148,12 +149,10 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
 
   const showCrmBadge = !historicalCheckin && crmDerived.hasCrmData
 
-  // Check if yesterday is pending closure
-  const yesterdayPending = useMemo(() => {
-    if (!supabaseUser?.id || selectedDate !== todaySP) return false
-    const isFinalized = localStorage.getItem(`mx-checkin-finalizado:${supabaseUser.id}:${yesterdaySP}`) === 'true'
-    return !isFinalized
-  }, [supabaseUser, selectedDate, todaySP, yesterdaySP])
+  // Após 12h01 sem liberação (Especificação Funcional, §3.3): para de
+  // insistir com o bloqueio destacado — só o aviso discreto permanece,
+  // direcionando para o Histórico.
+  const showDiscreetPendingBanner = lockStage === 'discreet' && !fechamentoLiberado
 
   const counterProps = {
     form,
@@ -193,12 +192,38 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
     return ''
   }, [disciplinePercent, fechamentoLiberado, finalizadoAposPrazo, isPastDeadline, temAgendamentoDataDiferente])
 
+  // Spec §20: se o vendedor informou Agendamentos D+1 e não detalhou todos,
+  // abre modal de confirmação em vez de finalizar direto. D+1 zerado ou
+  // 100% detalhado segue o fluxo normal sem interrupção.
+  const onFormSubmit = (e: React.FormEvent) => {
+    if (shouldConfirmBeforeFinalizar({ totalAgendamentosD1, creditosValidos })) {
+      e.preventDefault()
+      setConfirmFinalizeModalOpen(true)
+      return
+    }
+    handleSubmit(e)
+  }
+
+  const handleVoltarECadastrar = () => {
+    setConfirmFinalizeModalOpen(false)
+    document.getElementById('cadastrar-venda-agendamentos')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const handleFinalizarMesmoAssim = () => {
+    setConfirmFinalizeModalOpen(false)
+    void submitCheckin()
+  }
+
   const submitBlockedByDeadline = isPastDeadline && !fechamentoLiberado
+  // 09h45 é o lock de edição "normal"; quando há liberação, esse lock não
+  // se aplica mais — senão a liberação nunca teria efeito real (mesmo bug
+  // que existia no backend, corrigido em checkin_validation_kit/EV-1.6).
+  const editLockedWithoutLiberacao = !canEditExisting && metricScope === 'daily' && !fechamentoLiberado
 
   return (
-    <form onSubmit={handleSubmit} className="mt-mx-xs grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-mx-sm pb-16">
-      {/* Yesterday Pending Banner */}
-      {yesterdayPending && (
+    <form onSubmit={onFormSubmit} className="mt-mx-xs grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-mx-sm pb-16">
+      {/* Aviso discreto (após 12h01, sem liberação — Especificação Funcional §3.3) */}
+      {showDiscreetPendingBanner && (
         <div className="rounded-lg border border-status-warning/20 bg-status-warning-surface px-4 py-2.5 text-xs font-bold text-status-warning flex items-center justify-between gap-2 shadow-sm">
           <div className="flex items-center gap-2">
             <AlertTriangle size={14} className="shrink-0" />
@@ -721,10 +746,52 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
         </div>
       )}
 
+      {confirmFinalizeModalOpen && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/35 p-4 backdrop-blur-[3px]">
+          <div className="w-full max-w-[460px] overflow-hidden rounded-[18px] border border-[#e5eaf2] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] flex flex-col transition-all animate-in fade-in zoom-in-95 duration-200">
+            <header className="px-6 py-5 border-b border-[#eef2f7] bg-[#f8fafc]">
+              <h2 className="text-lg font-extrabold text-[#111827] uppercase tracking-tight">
+                Deseja finalizar mesmo assim?
+              </h2>
+            </header>
+            <div className="p-6 space-y-4 text-sm leading-relaxed text-[#475569]">
+              <p>
+                Você informou <strong className="text-[#111827]">{totalAgendamentosD1}</strong> Agendamentos D+1, mas detalhou{' '}
+                <strong className="text-[#111827]">{creditosValidos}</strong>. O fechamento poderá ser finalizado normalmente, porém sua pontuação de disciplina será calculada apenas com os agendamentos detalhados.
+              </p>
+              <ul className="space-y-1.5 font-semibold text-[#111827] bg-[#f8fafc] rounded-xl border border-[#e5eaf2] p-4">
+                <li>Agendamentos D+1 informados: {totalAgendamentosD1}</li>
+                <li>Agendamentos D+1 detalhados: {creditosValidos}</li>
+                <li>Pontuação estimada de disciplina: {disciplinePercent}%</li>
+              </ul>
+            </div>
+            <footer className="px-6 py-4 border-t border-[#eef2f7] flex flex-col-reverse gap-2 sm:flex-row sm:justify-end bg-[#f8fafc]">
+              <button
+                type="button"
+                onClick={handleVoltarECadastrar}
+                className="h-10 px-6 font-bold text-[#475569] hover:bg-[#f1f5f9] rounded-xl transition-colors"
+              >
+                Voltar e cadastrar
+              </button>
+              <button
+                type="button"
+                onClick={handleFinalizarMesmoAssim}
+                className="h-10 px-6 font-bold bg-[#16a34a] hover:bg-[#15803d] text-white rounded-xl shadow-sm transition-colors"
+              >
+                Finalizar mesmo assim
+              </button>
+            </footer>
+          </div>
+        </div>
+      )}
+
       {/* Finalizar Fechamento */}
       <div className="min-w-0 rounded-[18px] border border-[#dfe7f0] bg-white px-6 py-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] mt-5 space-y-4">
-        {/* Late Close Warning Banner */}
-        {isPastDeadline && (
+        {/* Late Close Warning Banner — só no estágio "blocked" (09h31-12h00).
+            Após 12h01 (lockStage 'discreet') a tela para de insistir; ver
+            showDiscreetPendingBanner acima. Liberado mostra sempre, pra
+            confirmar a penalidade antes de finalizar. */}
+        {(lockStage === 'blocked' || fechamentoLiberado) && isPastDeadline && (
           <div className={`rounded-xl border p-4 shadow-sm ${
             fechamentoLiberado
               ? 'border-status-success/30 bg-status-success-surface'
@@ -762,10 +829,10 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
           {/* Green pill button */}
           <button
             type="submit"
-          disabled={saving || submitBlockedByDeadline || (!canEditExisting && metricScope === 'daily')}
+          disabled={saving || submitBlockedByDeadline || editLockedWithoutLiberacao}
           className={cn(
             "inline-flex w-full shrink-0 items-center justify-center gap-2.5 rounded-full px-6 py-3.5 text-center text-[12px] font-extrabold uppercase tracking-[0.06em] text-white shadow-[0_8px_20px_rgba(22,163,74,0.28)] transition-all sm:w-auto sm:px-8 sm:text-[13px] sm:tracking-[0.08em]",
-            saving || submitBlockedByDeadline || (!canEditExisting && metricScope === 'daily')
+            saving || submitBlockedByDeadline || editLockedWithoutLiberacao
               ? "bg-[#94a3b8] cursor-not-allowed shadow-none"
               : "bg-[#16a34a] hover:bg-[#15803d] active:scale-[0.98]"
           )}
@@ -787,7 +854,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
         {/* Hidden Salvar rascunho — mantém contrato de teste (CheckinForm.test.ts) */}
         <button
           type="button"
-          disabled={saving || (isPastDeadline && !fechamentoLiberado) || (!canEditExisting && metricScope === 'daily')}
+          disabled={saving || (isPastDeadline && !fechamentoLiberado) || editLockedWithoutLiberacao}
           onClick={() => void handleSaveDraft()}
           style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0 }}
         >

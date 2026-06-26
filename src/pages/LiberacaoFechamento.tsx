@@ -3,85 +3,72 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ShieldCheck, Calendar, Clock, User, CheckCircle2, AlertTriangle, ArrowLeft } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/atoms/Button'
 import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
 
-interface Solicitacao {
+interface SolicitacaoDetalhe {
   id: string
   vendedorId: string
   vendedorNome: string
-  gerenteId: string
-  gerenteNome: string
   dataFechamento: string
   dataHoraSolicitacao: string
-  statusSolicitacao: 'Pendente' | 'Liberado'
-  tipoSolicitacao: string
+  status: 'pendente' | 'liberado'
 }
 
 export function LiberacaoFechamento() {
   const { profile, role } = useAuth()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const solicitacaoId = searchParams.get('id')
+  const token = searchParams.get('token') ?? searchParams.get('id') // ?id= = link antigo (pré EV-1.6)
 
-  const [solicitacao, setSolicitacao] = useState<Solicitacao | null>(null)
+  const [solicitacao, setSolicitacao] = useState<SolicitacaoDetalhe | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [liberando, setLiberando] = useState(false)
   const [motivo, setMotivo] = useState('')
-  const [loading, setLoading] = useState(false)
 
   const allowedRoles = ['gerente', 'supervisor', 'administrador', 'dono', 'administrador_geral', 'administrador_mx']
   const hasPermission = allowedRoles.includes(role || '')
 
   useEffect(() => {
-    if (!solicitacaoId) return
-    const list = JSON.parse(localStorage.getItem('mx-fechamento-solicitacoes') || '[]')
-    const found = list.find((s: Solicitacao) => s.id === solicitacaoId)
-    if (found) {
-      setSolicitacao(found)
-    }
-  }, [solicitacaoId])
+    if (!token || !hasPermission) { setLoading(false); return }
+    let cancelled = false
+    supabase
+      .rpc('consultar_liberacao_por_token', { p_token: token })
+      .then(({ data, error }) => {
+        if (cancelled) return
+        const result = data as { ok?: boolean; error?: string; data?: SolicitacaoDetalhe } | null
+        if (error || !result?.ok || !result.data) {
+          setLoadError(result?.error || error?.message || 'Solicitação não encontrada ou link inválido.')
+        } else {
+          setSolicitacao(result.data)
+        }
+        setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [token, hasPermission])
 
   const handleLiberar = async () => {
-    if (!solicitacao || !profile) return
-    setLoading(true)
-
+    if (!token || !profile) return
+    setLiberando(true)
     try {
-      // 1. Update request status in localStorage
-      const list = JSON.parse(localStorage.getItem('mx-fechamento-solicitacoes') || '[]')
-      const updatedList = list.map((s: Solicitacao) => {
-        if (s.id === solicitacao.id) {
-          return { ...s, statusSolicitacao: 'Liberado' as const }
-        }
-        return s
+      const { data, error } = await supabase.rpc('liberar_fechamento_por_token', {
+        p_token: token,
+        p_motivo: motivo.trim() || null,
       })
-      localStorage.setItem('mx-fechamento-solicitacoes', JSON.stringify(updatedList))
-
-      // 2. Grant late closing permission in localStorage
-      const approvedKey = `mx-fechamento-liberados:${solicitacao.vendedorId}:${solicitacao.dataFechamento}`
-      localStorage.setItem(approvedKey, 'true')
-
-      // 3. Register log
-      const log = {
-        id: crypto.randomUUID(),
-        solicitacaoId: solicitacao.id,
-        liberadoPorId: profile.id,
-        liberadoPorNome: profile.name || 'Gerente',
-        vendedorId: solicitacao.vendedorId,
-        vendedorNome: solicitacao.vendedorNome,
-        dataFechamento: solicitacao.dataFechamento,
-        dataHoraLiberacao: new Date().toISOString(),
-        motivoLiberacao: motivo.trim() || 'Liberação padrão pelo gestor.',
+      const result = data as { ok?: boolean; error?: string } | null
+      if (error || !result?.ok) {
+        toast.error(result?.error || error?.message || 'Erro ao liberar fechamento.')
+        return
       }
-      const logs = JSON.parse(localStorage.getItem('mx-fechamento-liberacao-logs') || '[]')
-      logs.push(log)
-      localStorage.setItem('mx-fechamento-liberacao-logs', JSON.stringify(logs))
-
-      setSolicitacao(prev => prev ? { ...prev, statusSolicitacao: 'Liberado' } : null)
+      setSolicitacao(prev => prev ? { ...prev, status: 'liberado' } : null)
       toast.success('Fechamento liberado com sucesso.')
-    } catch (e) {
-      toast.error('Erro ao liberar fechamento.')
+    } catch {
+      toast.error('Erro inesperado ao liberar fechamento.')
     } finally {
-      setLoading(false)
+      setLiberando(false)
     }
   }
 
@@ -102,7 +89,7 @@ export function LiberacaoFechamento() {
     )
   }
 
-  if (!solicitacao) {
+  if (!loading && (!solicitacao || loadError)) {
     return (
       <main className="h-screen w-screen flex flex-col items-center justify-center text-center p-6 bg-slate-50">
         <AlertTriangle size={64} className="text-amber-500/20 mb-6" />
@@ -110,11 +97,19 @@ export function LiberacaoFechamento() {
           Solicitação Não Encontrada
         </Typography>
         <Typography variant="p" tone="muted" className="max-w-md mx-auto text-xs font-semibold leading-relaxed">
-          O link de liberação é inválido ou a solicitação expirou. Confirme o link enviado pelo vendedor.
+          {loadError || 'O link de liberação é inválido ou a solicitação expirou. Confirme o link enviado pelo vendedor.'}
         </Typography>
         <Button onClick={() => navigate('/home')} className="mt-6 bg-brand-primary text-white font-bold">
           Voltar para Início
         </Button>
+      </main>
+    )
+  }
+
+  if (loading || !solicitacao) {
+    return (
+      <main className="h-screen w-screen flex items-center justify-center bg-slate-50">
+        <Typography variant="p" tone="muted" className="text-xs font-semibold">Carregando solicitação...</Typography>
       </main>
     )
   }
@@ -160,17 +155,17 @@ export function LiberacaoFechamento() {
               <CheckCircle2 size={15} className="text-brand-primary" />
               <span className="font-bold text-text-primary">Status:</span>
               <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-                solicitacao.statusSolicitacao === 'Liberado'
+                solicitacao.status === 'liberado'
                   ? 'bg-green-50 text-green-700 border border-green-200'
                   : 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse'
               }`}>
-                {solicitacao.statusSolicitacao.toUpperCase()}
+                {solicitacao.status.toUpperCase()}
               </span>
             </div>
           </div>
 
           {/* Action Input */}
-          {solicitacao.statusSolicitacao === 'Pendente' ? (
+          {solicitacao.status === 'pendente' ? (
             <div className="flex flex-col gap-2">
               <label htmlFor="motivo-liberacao" className="font-bold text-text-primary">
                 Motivo da Liberação (Opcional)
@@ -204,13 +199,13 @@ export function LiberacaoFechamento() {
           >
             <ArrowLeft size={13} /> Cockpit
           </Button>
-          {solicitacao.statusSolicitacao === 'Pendente' && (
+          {solicitacao.status === 'pendente' && (
             <Button
               onClick={handleLiberar}
-              disabled={loading}
+              disabled={liberando}
               className="h-9 px-6 text-xs font-bold bg-brand-primary text-white hover:bg-brand-primary/90 rounded-lg shadow-md"
             >
-              {loading ? 'Processando...' : 'Liberar Fechamento'}
+              {liberando ? 'Processando...' : 'Liberar Fechamento'}
             </Button>
           )}
         </footer>

@@ -182,6 +182,17 @@ export interface DailyCheckin {
     edit_locked_at?: string | null
     created_by?: string | null
     updated_at: string
+
+    // Disciplina do Fechamento (EV-1.5) — persistida pelo servidor
+    pontuacao_disciplina_base?: number | null
+    pontuacao_disciplina_final?: number | null
+    finalizado_apos_prazo?: boolean
+    penalizacao_atraso_aplicada?: boolean
+    percentual_penalizacao_atraso?: number
+    fechamento_liberado?: boolean
+    liberado_por_id?: string | null
+    liberado_por_nome?: string | null
+    data_hora_liberacao?: string | null
 }
 
 /** Feedback Estruturado Semanal */
@@ -332,6 +343,9 @@ export interface CheckinFormData {
     note?: string
     zero_reason?: string
     reference_date?: string
+    // Disciplina do Fechamento (EV-1.5) — calculada no client, validada/derivada no servidor
+    pontuacao_disciplina_base?: number
+    fechamento_liberado?: boolean
 }
 
 export interface Membership {

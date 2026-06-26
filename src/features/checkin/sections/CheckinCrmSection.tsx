@@ -9,19 +9,20 @@ import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
 import { useClientes, type ClienteInput } from '@/features/crm/hooks/useClientes'
 import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
+import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
 import {
   CRM_CANAL_LABEL,
   CRM_FINANCIAMENTO,
   CRM_FINANCIAMENTO_LABEL,
   CRM_TIPO_VEICULO,
   CRM_TIPO_VEICULO_LABEL,
+  type CrmAgendamentoStatus,
   type CrmCanal,
   type CrmEtapaFunil,
   type CrmFinanciamento,
   type CrmTipoVeiculo,
 } from '@/lib/schemas/crm.schema'
 import type { CheckinPageContext, ClienteRow } from '../hooks/useCheckinPage'
-import { calcularTipoRegistro } from '../hooks/useCheckinPage'
 import { addDaysDateOnly } from '../lib/crm-derived-totals'
 
 interface CheckinCrmSectionProps {
@@ -50,6 +51,12 @@ const formatMoney = (value: number | null) =>
       })
 
 const phoneDigits = (value?: string | null) => (value || '').replace(/\D/g, '')
+
+const rowCanalToCrmCanal = (canal: ClienteRow['canal']): CrmCanal =>
+  canal === 'Carteira' ? 'carteira' : canal === 'Internet' ? 'internet' : 'showroom'
+
+const compareceuToAgendamentoStatus = (compareceu: 'Sim' | 'Não' | null): CrmAgendamentoStatus =>
+  compareceu === 'Sim' ? 'compareceu' : compareceu === 'Não' ? 'nao_compareceu' : 'aguardando'
 
 const formatPhone = (value?: string | null) => {
   const digits = phoneDigits(value)
@@ -98,19 +105,19 @@ const formatCurrencyLive = (raw: string): string => {
 
 export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
   const { clientes, createCliente, updateCliente } = useClientes()
-  const { createOportunidade, updateEtapa, deleteOportunidade } = useOportunidades()
-  
+  const { createOportunidade, updateOportunidade, updateMotivoPerda, deleteOportunidade } = useOportunidades()
+  const { agendamentos, createAgendamento, updateAgendamento, deleteAgendamento } = useAgendamentos()
+
   // Fallback mock context if ctx is undefined (e.g. in unit tests)
   const fallbackCtx = {
     clientesList: [],
-    saveLocalCliente: () => {},
-    deleteLocalCliente: () => {},
+    refetchClientesList: async () => {},
     selectedDate: '2026-06-16',
     supabaseUser: { id: 'vendedor-id' },
     finalizadoAposPrazo: false,
   }
   const activeCtx = ctx || (fallbackCtx as any)
-  const { clientesList, saveLocalCliente, deleteLocalCliente, selectedDate, supabaseUser, finalizadoAposPrazo } = activeCtx
+  const { clientesList, refetchClientesList, selectedDate, supabaseUser, finalizadoAposPrazo } = activeCtx
 
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -172,13 +179,41 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
     }))
   }
 
-  const handleSaveInline = (row: ClienteRow) => {
+  const handleSaveInline = async (row: ClienteRow) => {
     const draft = getInlineDraft(row)
-    // "Data do novo agendamento" reschedules this row — it must become the
-    // displayed dataAgendamento, otherwise the table keeps showing the stale
-    // date and reopening the edit modal won't reflect the change either.
+    // "Data do novo agendamento" reschedules este registro — passa a ser o
+    // agendamento vinculado à oportunidade via `agendamentos.oportunidade_id`,
+    // a mesma fonte usada em Agendamentos D+1 no resto do CRM (EV-1.7).
+    const linkedAgendamento = (agendamentos as any[]).find(ag => ag.oportunidade_id === row.id)
     const dataAgendamento = draft.dataNovoAgendamento || row.dataAgendamento
-    saveLocalCliente({ ...row, ...draft, dataAgendamento })
+
+    const agendamentoPayload = {
+      cliente_id: row.clienteDbId || null,
+      oportunidade_id: row.id,
+      data_hora: dataAgendamento,
+      canal: linkedAgendamento?.canal || rowCanalToCrmCanal(row.canal),
+      status: linkedAgendamento?.status || compareceuToAgendamentoStatus(row.compareceu),
+      observacoes: draft.observacoes || null,
+    }
+
+    const { error: agendamentoError } = linkedAgendamento
+      ? await updateAgendamento(linkedAgendamento.id, agendamentoPayload)
+      : await createAgendamento(agendamentoPayload)
+
+    if (agendamentoError) {
+      toast.error(agendamentoError)
+      return
+    }
+
+    if (draft.motivoPerda !== (row.motivoPerda || '')) {
+      const { error: motivoError } = await updateMotivoPerda(row.id, draft.motivoPerda || null)
+      if (motivoError) {
+        toast.error(motivoError)
+        return
+      }
+    }
+
+    await refetchClientesList()
     setInlineDrafts(prev => {
       const next = { ...prev }
       delete next[row.id]
@@ -224,16 +259,26 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
     setDrawerOpen(true)
   }
 
-  // Delete action — removes this venda/agendamento row from today's fechamento only.
-  // Never deletes the shared `clientes` CRM record: other rows (other days, other
-  // agendamentos) may still reference the same client, and row.id is a local-only
-  // id, not the Supabase clientes.id (sending it to deleteCliente threw "invalid
-  // input syntax for type uuid").
+  // Delete action — remove a oportunidade (row.id, EV-1.7) e o agendamento
+  // vinculado, se existir. Nunca apaga o registro compartilhado `clientes`:
+  // outras oportunidades (outros dias) podem referenciar o mesmo cliente.
   const handleDelete = async (row: ClienteRow) => {
-    if (window.confirm('Deseja excluir este cliente?')) {
-      deleteLocalCliente(row.id)
-      toast.success('Cliente removido com sucesso.')
+    if (!window.confirm('Deseja excluir este cliente?')) return
+    const linkedAgendamento = (agendamentos as any[]).find(ag => ag.oportunidade_id === row.id)
+    if (linkedAgendamento) {
+      const { error: agendamentoError } = await deleteAgendamento(linkedAgendamento.id)
+      if (agendamentoError) {
+        toast.error(agendamentoError)
+        return
+      }
     }
+    const { error: oportError } = await deleteOportunidade(row.id)
+    if (oportError) {
+      toast.error(oportError)
+      return
+    }
+    await refetchClientesList()
+    toast.success('Cliente removido com sucesso.')
   }
 
   // Open modal for new client
@@ -354,11 +399,12 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
       }
 
       const activeClientId = dbClientId || editingClienteDbId || existingCliente?.id || 'local-client-' + Date.now()
-      const dateOnly = dataFechamento.split('T')[0]
+      const dateOnly = dataFechamento ? dataFechamento.split('T')[0] : selectedDate
 
-      // Create opportunity in DB
+      // Create/update opportunity in DB — editingClientId é o id real da
+      // oportunidade (ClienteRow.id == oportunidades.id desde EV-1.7).
       const dbEtapa: CrmEtapaFunil = normalizedVendaRealizada === 'Sim' ? 'ganho' : normalizedVendaRealizada === 'Não' ? 'perdido' : 'prospeccao'
-      const { error: oportError } = await createOportunidade({
+      const oportunidadePayload = {
         cliente_id: activeClientId,
         veiculo_interesse: veiculo.trim() || null,
         tipo_veiculo: (tipoVeiculo || 'carro') as CrmTipoVeiculo,
@@ -370,7 +416,11 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
         carro_avaliado: carroAvaliado === 'sim',
         motivo_perda: normalizedVendaRealizada === 'Não' ? motivoPerda.trim() : null,
         closed_at: normalizedVendaRealizada !== 'Em Negociação' ? toClosedAt(dateOnly) : null,
-      })
+      }
+
+      const { error: oportError, id: newOportunidadeId } = editingClientId
+        ? { ...(await updateOportunidade(editingClientId, oportunidadePayload)), id: editingClientId }
+        : await createOportunidade(oportunidadePayload)
 
       if (oportError) {
         setSaving(false)
@@ -378,40 +428,34 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
         return
       }
 
-      // Calculate tipoRegistroCalculado
-      const { tipo } = calcularTipoRegistro(
-        normalizedVendaRealizada,
-        canal === 'carteira' ? 'Carteira' : canal === 'internet' ? 'Internet' : 'Showroom',
-        dateOnly,
-        selectedDate
-      )
+      const oportunidadeId = newOportunidadeId || editingClientId
 
-      // Save to localStorage list
-      const finalId = editingClientId || 'cli-row-' + Math.random().toString(36).substring(2, 9)
-      const mappedRow: ClienteRow = {
-        id: finalId,
-        clienteDbId: dbClientId || editingClienteDbId || existingCliente?.id || undefined,
-        fechamentoId: 'fechamento-' + selectedDate,
-        vendedorId: supabaseUser?.id || 'vendedor',
-        dataCompetenciaFechamento: selectedDate,
-        nomeCliente: nome.trim(),
-        telefone: formatPhone(telefone),
-        veiculoInteresse: veiculo.trim(),
-        valorNegociado: parsedValor || null,
-        dataAgendamento: dataFechamento,
-        canal: canal === 'carteira' ? 'Carteira' : canal === 'internet' ? 'Internet' : 'Showroom',
-        compareceu,
-        carroAvaliado: carroAvaliado === 'sim' ? 'Sim' : 'Não',
-        sinal: parsedSinal || 0,
-        financiamento: financiamento === 'aprovado' ? 'Aprovado' : financiamento === 'reprovado' ? 'Recusado' : 'Não se aplica',
-        vendaRealizada: normalizedVendaRealizada,
-        dataNovoAgendamento: dataFechamento,
-        motivoPerda: normalizedVendaRealizada === 'Não' ? motivoPerda : undefined,
-        observacoes: observacoes.trim() || undefined,
-        tipoRegistroCalculado: tipo,
+      // Agendamento vinculado (EV-1.7): só persiste se houver data informada —
+      // o card "Cadastrar Venda/Agendamentos" continua opcional (spec §19).
+      if (oportunidadeId && dataFechamento) {
+        const linkedAgendamento = editingClientId
+          ? (agendamentos as any[]).find(ag => ag.oportunidade_id === oportunidadeId)
+          : null
+        const agendamentoPayload = {
+          cliente_id: activeClientId,
+          oportunidade_id: oportunidadeId,
+          data_hora: dataFechamento,
+          canal: canal || null,
+          status: compareceuToAgendamentoStatus(compareceu),
+          observacoes: observacoes.trim() || null,
+        }
+        const { error: agendamentoError } = linkedAgendamento
+          ? await updateAgendamento(linkedAgendamento.id, agendamentoPayload)
+          : await createAgendamento(agendamentoPayload)
+
+        if (agendamentoError) {
+          setSaving(false)
+          toast.error(agendamentoError)
+          return
+        }
       }
 
-      saveLocalCliente(mappedRow)
+      await refetchClientesList()
 
       const successMsg = isTest
         ? 'Cliente cadastrado na carteira.'
@@ -454,7 +498,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
         />
       </div>
 
-      <Card className="min-w-0 overflow-hidden rounded-[18px] border border-[#dfe7f0] bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+      <Card id="cadastrar-venda-agendamentos" className="min-w-0 overflow-hidden rounded-[18px] border border-[#dfe7f0] bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
 <header className="flex min-w-0 flex-col items-stretch justify-between gap-3 border-b border-[#eef2f7] px-4 py-4 sm:flex-row sm:items-center sm:px-5">
  <div className="flex min-w-0 items-start gap-2 sm:items-center">
             <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold bg-[#1e3a8a] text-white">

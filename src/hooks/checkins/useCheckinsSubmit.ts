@@ -39,9 +39,10 @@ export function useCheckinsSubmit(args: UseCheckinsSubmitArgs) {
         if (dateError) return { error: dateError }
 
         const isDaily = scope === 'daily' && finalDate === referenceDate
+        const liberado = Boolean(formData.fechamento_liberado)
 
-        if (isDaily && !canEditCurrentCheckin()) {
-            return { error: `Fechamentos diários ficam disponíveis somente até ${CHECKIN_EDIT_LIMIT_LABEL}.` }
+        if (isDaily && !liberado && !canEditCurrentCheckin()) {
+            return { error: `Fechamentos diários ficam disponíveis somente até ${CHECKIN_EDIT_LIMIT_LABEL}. Solicite liberação ao seu gerente.` }
         }
 
         const normalizeText = (str?: string | null) => {
@@ -70,6 +71,8 @@ export function useCheckinsSubmit(args: UseCheckinsSubmitArgs) {
             visit_prev_day: formData.visit_prev_day ?? formData.visitas,
             zero_reason: normalizeText(formData.zero_reason),
             note: normalizeText(formData.note),
+            pontuacao_disciplina_base: formData.pontuacao_disciplina_base ?? null,
+            fechamento_liberado: formData.fechamento_liberado ?? false,
         }
 
         const { data, error } = await supabase.rpc('submit_checkin', { p_payload: payload })
