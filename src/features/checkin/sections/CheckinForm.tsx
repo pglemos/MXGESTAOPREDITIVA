@@ -248,7 +248,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
         />
       )}
 
-      <section className="grid w-full max-w-full min-w-0 gap-mx-sm lg:grid-cols-[1.05fr_1.35fr_1.05fr]">
+      <section className="grid w-full max-w-full min-w-0 gap-mx-sm lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1.35fr)_minmax(0,1.05fr)]">
         <MetricGroupCard
           title="1. LEADS RECEBIDOS DO DIA"
           columns="grid-cols-1 sm:grid-cols-2"
@@ -329,7 +329,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
 
 
 
-      <section className="grid w-full min-w-0 gap-mx-md">
+      <section className="grid w-full min-w-0 grid-cols-1 gap-mx-md">
         <div className="space-y-mx-md">
           <AnimatePresence>
             {productionZeroActive && (
