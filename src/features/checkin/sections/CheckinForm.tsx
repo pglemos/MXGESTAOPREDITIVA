@@ -978,7 +978,7 @@ function MetricCounterCard({
   return (
     <div
       className={cn(
-    "relative flex min-h-[124px] min-w-0 flex-col items-center justify-center gap-2 bg-white px-3 py-4 text-center sm:px-5",
+    "relative flex min-h-[124px] min-w-0 flex-col items-center justify-center gap-2 bg-white px-2 py-4 text-center sm:px-3",
         fieldErrors[field] && "ring-2 ring-[#ef4444]/20 rounded-xl"
       )}
     >
@@ -1010,7 +1010,7 @@ function MetricCounterCard({
         onBlur={handleBlur}
         onWheel={handleWheel}
         className="
-          h-11 w-24 rounded-xl border border-[#e5eaf2] bg-[#f8fafc] text-center
+          h-11 w-20 rounded-xl border border-[#e5eaf2] bg-[#f8fafc] text-center
           text-[26px] font-extrabold leading-none text-[#111827]
           outline-none tabular-nums cursor-text transition-all
           [appearance:textfield]
@@ -1021,7 +1021,7 @@ function MetricCounterCard({
         "
       />
 
-      <div className="mt-1 grid h-8 w-full max-w-[132px] grid-cols-[38px_minmax(0,1fr)_38px] overflow-hidden rounded-lg border border-[#e5eaf2] bg-white shadow-sm transition-all focus-within:border-[#2563eb]/40 focus-within:ring-2 focus-within:ring-[#2563eb]/20">
+      <div className="mt-1 grid h-8 w-full max-w-[120px] grid-cols-[28px_minmax(0,1fr)_28px] overflow-hidden rounded-lg border border-[#e5eaf2] bg-white shadow-sm transition-all focus-within:border-[#2563eb]/40 focus-within:ring-2 focus-within:ring-[#2563eb]/20">
         <button
           type="button"
           aria-label={`Diminuir ${label}`}
