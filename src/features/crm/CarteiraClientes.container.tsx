@@ -260,23 +260,25 @@ export function CarteiraClientes() {
   }
 
   return (
-  <main className="h-full w-full min-w-0 overflow-y-auto bg-surface-alt p-mx-md text-text-primary no-scrollbar sm:p-mx-lg">
+  <main className="h-full w-full min-w-0 overflow-y-auto bg-surface-alt px-mx-sm pb-mx-sm pt-0 text-text-primary no-scrollbar sm:px-mx-md sm:pb-mx-md 2xl:px-mx-lg 2xl:pb-mx-lg">
     <div className="flex w-full min-w-0 flex-col gap-mx-xs">
-        <PageHeading
-          title="Carteira de Clientes"
-          subtitle="Acompanhe sua carteira, siga a cadência e conduza cada cliente até a venda."
-          actions={(
-            <>
-              <span className="inline-flex h-10 items-center gap-mx-xs rounded-mx-md border border-border-subtle bg-white px-mx-sm text-sm font-bold">
-                <CalendarDays size={16} />
-                {new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', weekday: 'short' }).format(new Date())}
-              </span>
-              <Button variant="outline" onClick={() => setStatusFilter('todos')}>
-                <Filter size={16} /> Filtros
-              </Button>
-            </>
-          )}
-        />
+        <header className="relative z-40 -mx-mx-sm shrink-0 border-b border-border-default/60 bg-surface-alt px-mx-sm pb-3 pt-2 shadow-[0_10px_24px_rgba(15,23,42,0.08)] sm:-mx-mx-md sm:px-mx-md md:sticky md:top-0 md:pt-3 2xl:-mx-mx-lg 2xl:px-mx-lg">
+          <PageHeading
+            title="Carteira de Clientes"
+            subtitle="Acompanhe sua carteira, siga a cadência e conduza cada cliente até a venda."
+            actions={(
+              <>
+                <span className="inline-flex h-10 items-center gap-mx-xs rounded-mx-md border border-border-subtle bg-white px-mx-sm text-sm font-bold">
+                  <CalendarDays size={16} />
+                  {new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', weekday: 'short' }).format(new Date())}
+                </span>
+                <Button variant="outline" onClick={() => setStatusFilter('todos')}>
+                  <Filter size={16} /> Filtros
+                </Button>
+              </>
+            )}
+          />
+        </header>
 
         <section className="grid grid-cols-2 gap-mx-xs md:grid-cols-3 xl:grid-cols-[repeat(5,minmax(0,1fr))_1.45fr]" aria-label="Indicadores da carteira">
           <MetricCard icon={<Users size={22} />} label="Total de Clientes" value={String(totalClientes)} hint="100% do total" accent="green" />

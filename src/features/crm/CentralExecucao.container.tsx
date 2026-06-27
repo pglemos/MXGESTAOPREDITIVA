@@ -347,18 +347,20 @@ export function CentralExecucao() {
   }
 
   return (
-    <main className="h-full w-full min-w-0 overflow-y-auto bg-surface-alt p-mx-md no-scrollbar sm:p-mx-lg">
+    <main className="h-full w-full min-w-0 overflow-y-auto bg-surface-alt px-mx-sm pb-mx-sm pt-0 no-scrollbar sm:px-mx-md sm:pb-mx-md 2xl:px-mx-lg 2xl:pb-mx-lg">
       <div className="flex min-w-0 flex-col gap-mx-lg pb-20">
-        <PageHeading
-          title="Central de Execução"
-          subtitle="Organize seu dia e foque no que gera resultado."
-          actions={(
-            <span className="inline-flex h-10 shrink-0 items-center gap-mx-xs whitespace-nowrap rounded-mx-md border border-border-subtle bg-white px-2 text-[11px] font-bold text-text-primary shadow-mx-sm">
-              <Calendar size={14} className="text-text-secondary" />
-              {getDateLabel(hoje)}
-            </span>
-          )}
-        />
+        <header className="relative z-40 -mx-mx-sm shrink-0 border-b border-border-default/60 bg-surface-alt px-mx-sm pb-3 pt-2 shadow-[0_10px_24px_rgba(15,23,42,0.08)] sm:-mx-mx-md sm:px-mx-md md:sticky md:top-0 md:pt-3 2xl:-mx-mx-lg 2xl:px-mx-lg">
+          <PageHeading
+            title="Central de Execução"
+            subtitle="Organize seu dia e foque no que gera resultado."
+            actions={(
+              <span className="inline-flex h-10 shrink-0 items-center gap-mx-xs whitespace-nowrap rounded-mx-md border border-border-subtle bg-white px-2 text-[11px] font-bold text-text-primary shadow-mx-sm">
+                <Calendar size={14} className="text-text-secondary" />
+                {getDateLabel(hoje)}
+              </span>
+            )}
+          />
+        </header>
 
         <TabNav tabs={CENTRAL_TABS} activeTab={tab} onTabChange={setTab} />
 
