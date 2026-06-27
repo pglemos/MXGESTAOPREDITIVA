@@ -21,7 +21,8 @@ describe('Checkin sticky header layout contract', () => {
 
   test('prevents the seller shell from scrolling the whole document', () => {
     expect(sellerShellSource).toContain('mx-app-scrollbarless h-screen overflow-hidden')
-    expect(sellerShellSource).toContain('h-screen overflow-hidden p-3 pt-[76px]')
+    expect(sellerShellSource).toContain('h-screen overflow-hidden px-0 pb-[88px] pt-[82px]')
+    expect(sellerShellSource).toContain('md:p-2')
   })
 
   test('uses CRM-derived effective totals instead of showing zero summary values', () => {

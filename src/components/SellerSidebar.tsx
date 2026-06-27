@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   BarChart3,
+  Bell,
   Brain,
   CalendarCheck,
   ChevronDown,
@@ -129,7 +130,7 @@ function NavItemIcon({
   size: number
   className?: string
 }) {
-  if (typeof icon === 'function') {
+  if (typeof icon === 'function' || (typeof icon === 'object' && icon !== null && 'render' in icon)) {
     const Icon = icon as LucideIcon
     return <Icon size={size} strokeWidth={1.8} className={className} aria-hidden="true" />
   }
@@ -229,13 +230,23 @@ export default function SellerLayoutShell({
     navigate(path)
   }
 
-  const signOut = () => {
-    setUserMenuOpen(false)
-    setMobileOpen(false)
-    void onSignOut()
-  }
+const signOut = () => {
+setUserMenuOpen(false)
+setMobileOpen(false)
+void onSignOut()
+}
 
-  const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
+const mobileNavItems: SellerLayoutNavItem[] = [
+{ label: 'Dashboard', path: '/home', icon: Home, activePaths: ['/home', '/meu-dia'] },
+{ label: 'Fechamento', path: '/terminal-mx', icon: CalendarCheck, activePaths: ['/terminal-mx', '/vendedor/terminal-mx', '/lancamento-diario', '/fechamento-diario'] },
+{ label: 'Execução', path: '/central-de-execucao', icon: Layers, activePaths: ['/central-de-execucao', '/central-execucao'] },
+{ label: 'Funil', path: '/funil-comercial', icon: Funnel, activePaths: ['/funil-comercial', '/meu-funil'] },
+{ label: 'Perfil', path: profilePath, icon: User, activePaths: [profilePath, '/meu-perfil-vendedor', '/vendedor/perfil'] },
+]
+
+const mobileTitle = isNavItemActive(mobileNavItems[1], location) ? 'Fechamento Diário' : 'MX Performance'
+
+const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
     const active = isNavItemActive(item, location)
 
     if (item.special) {
@@ -411,18 +422,32 @@ export default function SellerLayoutShell({
 
   return (
     <div className="mx-app-scrollbarless h-screen overflow-hidden bg-[#f7f9fc] font-display text-[#111827]">
-      <header className="fixed left-3 right-3 top-3 z-[90] flex h-14 items-center justify-between rounded-2xl border border-blue-500/20 bg-[#061a33]/95 px-3 shadow-[0_18px_38px_rgba(0,0,0,0.28)] backdrop-blur md:hidden">
-        <button type="button" aria-label="Abrir menu principal" onClick={() => setMobileOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-xl text-white outline-none transition-colors hover:bg-blue-500/10 focus-visible:ring-2 focus-visible:ring-blue-500/45">
-          <Menu size={22} aria-hidden="true" />
-        </button>
-        <div className="flex items-center gap-2">
-          <img src={MxLogo} alt="MX" className="h-9 w-9 object-contain" />
-          <span className="text-sm font-bold text-white">MX PERFORMANCE</span>
-        </div>
-        <button type="button" aria-label="Abrir notificações" onClick={() => navigate(notificationsPath)} className="flex h-10 w-10 items-center justify-center rounded-xl text-white outline-none transition-colors hover:bg-blue-500/10 focus-visible:ring-2 focus-visible:ring-blue-500/45">
-          <MessageCircle size={20} aria-hidden="true" />
-        </button>
-      </header>
+<header className="fixed left-0 right-0 top-0 z-[90] flex h-[82px] items-center justify-between border-b border-[#e5eaf2] bg-white px-5 shadow-[0_8px_26px_rgba(15,23,42,0.05)] md:hidden">
+<button type="button" aria-label="Abrir menu principal" onClick={() => setMobileOpen(true)} className="flex min-w-0 items-center gap-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500/45">
+<img src={MxLogo} alt="MX" className="h-10 w-10 shrink-0 object-contain" />
+<span className="hidden min-w-0 leading-tight min-[430px]:block">
+<span className="block text-[17px] font-black tracking-tight text-[#111827]">MX</span>
+<span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#334155]">Performance</span>
+</span>
+</button>
+<div className="pointer-events-none absolute left-1/2 top-1/2 max-w-[48vw] -translate-x-1/2 -translate-y-1/2 truncate text-center text-[17px] font-black tracking-tight text-[#111827] min-[430px]:max-w-[42vw] min-[430px]:text-[18px]">
+{mobileTitle}
+</div>
+<div className="flex items-center gap-3">
+<button type="button" aria-label="Abrir notificações" onClick={() => navigate(notificationsPath)} className="relative flex h-10 w-10 items-center justify-center rounded-full text-[#64748b] outline-none transition-colors hover:bg-[#f1f5f9] focus-visible:ring-2 focus-visible:ring-blue-500/45">
+<Bell size={22} aria-hidden="true" />
+<span className="absolute right-1 top-0 grid h-5 min-w-5 place-items-center rounded-full bg-[#ef4444] px-1 text-[10px] font-black leading-none text-white">3</span>
+</button>
+<button type="button" aria-label={`Abrir perfil de ${displayName}`} onClick={() => goTo(profilePath)} className="grid h-10 w-10 place-items-center rounded-full bg-[#0b63f6] text-[13px] font-black uppercase text-white shadow-[0_10px_24px_rgba(37,99,235,0.22)] outline-none focus-visible:ring-2 focus-visible:ring-blue-500/45">
+{displayName
+.split(/\s+/)
+.filter(Boolean)
+.slice(0, 2)
+.map((part) => part[0])
+.join('') || 'MX'}
+</button>
+</div>
+</header>
 
       <aside
         className={cn(
@@ -466,10 +491,10 @@ export default function SellerLayoutShell({
         id="main-content"
         role="main"
         tabIndex={-1}
-        className={cn(
-          'h-screen overflow-hidden p-3 pt-[76px] outline-none transition-[padding] duration-200 md:p-2',
-          collapsed ? 'md:pl-[88px]' : 'md:pl-[252px]'
-        )}
+className={cn(
+'h-screen overflow-hidden px-0 pb-[88px] pt-[82px] outline-none transition-[padding] duration-200 md:p-2',
+collapsed ? 'md:pl-[88px]' : 'md:pl-[252px]'
+)}
       >
         {isSimulating && (
           <section className="mb-3 flex flex-col gap-3 rounded-2xl border border-blue-500/20 bg-[#061a33] p-4 text-[#dbeafe] md:flex-row md:items-center md:justify-between" aria-label="Simulação ativa">
@@ -484,10 +509,30 @@ export default function SellerLayoutShell({
             )}
           </section>
         )}
-        <section className="h-[calc(100vh-100px)] w-full min-w-0 overflow-hidden rounded-[24px] border border-[#e5eaf2] bg-[#f7f9fc] text-slate-950 shadow-[0_24px_70px_rgba(15,23,42,0.04)] md:h-[calc(100vh-2rem)]">
-          {children}
-        </section>
-      </main>
-    </div>
+<section className="h-full w-full min-w-0 overflow-hidden rounded-none border-0 bg-[#f7f9fc] text-slate-950 shadow-none md:h-[calc(100vh-2rem)] md:rounded-[24px] md:border md:border-[#e5eaf2] md:shadow-[0_24px_70px_rgba(15,23,42,0.04)]">
+{children}
+</section>
+</main>
+<nav className="fixed bottom-0 left-0 right-0 z-[90] flex h-[82px] items-start justify-around border-t border-[#e5eaf2] bg-white px-2 pt-3 shadow-[0_-12px_30px_rgba(15,23,42,0.08)] md:hidden" aria-label="Navegação principal mobile">
+{mobileNavItems.map((item) => {
+const active = isNavItemActive(item, location)
+return (
+<NavLink
+key={item.path}
+to={item.path}
+aria-label={item.label}
+aria-current={active ? 'page' : undefined}
+className={cn(
+'flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-1 text-[11px] font-semibold text-[#94a3b8] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue-500/45',
+active && 'text-[#0b63f6]'
+)}
+>
+<NavItemIcon icon={item.icon} size={25} className={cn('shrink-0', active ? 'text-[#0b63f6]' : 'text-[#94a3b8]')} />
+<span className="max-w-full truncate">{item.label}</span>
+</NavLink>
+)
+})}
+</nav>
+</div>
   )
 }

@@ -13,7 +13,7 @@ test.describe('Checkin Page - Visual Regression', () => {
   });
 
   test('form with data entered', async ({ page }) => {
-    const inputs = page.locator('input[type="number"], input[type="text"]');
+    const inputs = page.locator('input[type="number"]:not([disabled]), input[type="text"]:not([disabled])').filter({ visible: true });
     const count = await inputs.count();
     for (let i = 0; i < Math.min(count, 3); i++) {
       await inputs.nth(i).fill('10');

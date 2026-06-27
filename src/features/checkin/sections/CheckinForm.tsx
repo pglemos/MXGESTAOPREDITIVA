@@ -154,17 +154,28 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
   // direcionando para o Histórico.
   const showDiscreetPendingBanner = lockStage === 'discreet' && !fechamentoLiberado
 
-  const counterProps = {
-    form,
-    fieldErrors,
-    numberDrafts,
+const counterProps = {
+form,
+fieldErrors,
+numberDrafts,
     changedFields,
     updateField,
     updateNumberField,
     commitNumberField,
     readValue,
-    disabled: isPastDeadline && !fechamentoLiberado,
-  }
+disabled: isPastDeadline && !fechamentoLiberado,
+}
+
+const mobileInternetRows: Array<{ label: string; field: NumericCheckinField }> = [
+{ label: 'Leads recebidos', field: 'leads_net' },
+{ label: 'Atendimentos realizados', field: 'visitas_net' },
+{ label: 'Agendamentos D+1', field: 'agd_net' },
+]
+
+const setMobileCounter = (field: NumericCheckinField, next: number) => {
+if (isPastDeadline && !fechamentoLiberado) return
+updateField(field, Math.max(0, Math.min(CHECKIN_MAX_INPUT_VALUE, next)))
+}
 
   // Visual messages for discipline card
   const disciplineMessage = useMemo(() => {
@@ -221,7 +232,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
   const editLockedWithoutLiberacao = !canEditExisting && metricScope === 'daily' && !fechamentoLiberado
 
   return (
-    <form onSubmit={onFormSubmit} className="mt-mx-xs grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-mx-sm pb-16">
+    <form onSubmit={onFormSubmit} className="mt-mx-xs grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-mx-sm pb-28 md:pb-16">
       {/* Aviso discreto (após 12h01, sem liberação — Especificação Funcional §3.3) */}
       {showDiscreetPendingBanner && (
         <div className="rounded-lg border border-status-warning/20 bg-status-warning-surface px-4 py-2.5 text-xs font-bold text-status-warning flex items-center justify-between gap-2 shadow-sm">
@@ -248,8 +259,80 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
         />
       )}
 
-      <section className="grid w-full max-w-full min-w-0 gap-mx-sm lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1.35fr)_minmax(0,1.05fr)]">
-        <MetricGroupCard
+<section className="md:hidden">
+<div className="rounded-[16px] border border-[#0b63f6]/45 bg-white p-4 shadow-[0_12px_32px_rgba(37,99,235,0.12)]">
+<header className="flex items-start justify-between gap-4 border-b border-[#e5eaf2] pb-4">
+<div className="flex items-center gap-3">
+<span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-[#0b63f6] text-white shadow-[0_12px_28px_rgba(37,99,235,0.24)]">
+<Globe size={28} aria-hidden="true" />
+</span>
+<div>
+<h2 className="text-[20px] font-black tracking-tight text-[#111827]">Internet</h2>
+<p className="mt-1 text-[15px] font-semibold text-[#64748b]">Leads digitais</p>
+</div>
+</div>
+<div className="hidden max-w-[220px] rounded-[14px] bg-[#eff6ff] p-3 text-[12px] font-bold leading-relaxed text-[#334155] min-[420px]:block">
+<span className="mb-1 inline-flex items-center gap-1 text-[#0b63f6]">
+<Info size={15} aria-hidden="true" />
+Info
+</span>
+<p>Informe os leads digitais recebidos e o andamento dos atendimentos.</p>
+</div>
+</header>
+
+<div className="space-y-3 py-4">
+{mobileInternetRows.map(({ label, field }) => {
+const value = readValue(field)
+const draftValue = numberDrafts[field] ?? String(value)
+const disabled = isPastDeadline && !fechamentoLiberado
+return (
+<div key={field} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+<label htmlFor={`mobile-${field}`} className="min-w-0 text-[15px] font-bold leading-tight text-[#111827]">
+{label}
+</label>
+<div className="grid w-[170px] grid-cols-[42px_minmax(0,1fr)_42px] gap-2">
+<button type="button" disabled={disabled} onClick={() => setMobileCounter(field, value - 1)} className="grid h-11 place-items-center rounded-[10px] border border-[#e5eaf2] bg-white text-[18px] font-black text-[#111827] shadow-sm disabled:opacity-45">
+<Minus size={16} aria-hidden="true" />
+</button>
+<input
+id={`mobile-${field}`}
+type="text"
+inputMode="numeric"
+pattern="[0-9]*"
+value={draftValue}
+onChange={(event) => updateNumberField(field, event.target.value.replace(/\D/g, '').slice(0, 3))}
+onBlur={() => commitNumberField(field)}
+disabled={disabled}
+aria-invalid={Boolean(fieldErrors[field])}
+className="h-11 min-w-0 rounded-[10px] border border-[#e5eaf2] bg-white text-center text-[20px] font-black tabular-nums text-[#111827] shadow-sm outline-none focus:border-[#0b63f6] focus:ring-4 focus:ring-[#0b63f6]/10 disabled:bg-[#f8fafc] disabled:text-[#94a3b8]"
+/>
+<button type="button" disabled={disabled} onClick={() => setMobileCounter(field, value + 1)} className="grid h-11 place-items-center rounded-[10px] border border-[#e5eaf2] bg-white text-[18px] font-black text-[#111827] shadow-sm disabled:opacity-45">
+<Plus size={16} aria-hidden="true" />
+</button>
+</div>
+</div>
+)
+})}
+</div>
+
+<div className="flex items-center gap-2 pb-4 text-[14px] font-bold text-[#64748b]">
+<span className="grid h-6 w-6 place-items-center rounded-full bg-[#34c759] text-[12px] font-black text-white">✓</span>
+Detalhados: {creditosValidos} de {totalAgendamentosD1}
+</div>
+
+<button
+type="button"
+onClick={() => mobileInternetRows.forEach(({ field }) => commitNumberField(field))}
+disabled={isPastDeadline && !fechamentoLiberado}
+className="h-12 w-full rounded-[12px] bg-[#0b63f6] text-[15px] font-black text-white shadow-[0_12px_30px_rgba(37,99,235,0.25)] transition-colors hover:bg-[#0a58dc] disabled:cursor-not-allowed disabled:bg-[#94a3b8]"
+>
+Confirmar Internet
+</button>
+</div>
+</section>
+
+<section className="hidden w-full max-w-full min-w-0 gap-mx-sm md:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1.35fr)_minmax(0,1.05fr)]">
+<MetricGroupCard
           title="1. LEADS RECEBIDOS DO DIA"
           columns="grid-cols-1 sm:grid-cols-2"
           tooltipText="Informe quantos novos interessados chegaram no dia de referência pelos canais Carteira e Internet. Não inclua clientes de showroom."

@@ -74,7 +74,7 @@ export default defineConfig({
   webServer: skipWebServer
     ? undefined
     : {
-        command: `npx vite --port=${playwrightPort} --host=0.0.0.0`,
+        command: `VITE_ENABLE_DEV_AUTH_BYPASS=true npx vite --port=${playwrightPort} --host=0.0.0.0`,
         url: baseURL,
         reuseExistingServer: reuseWebServer,
       },

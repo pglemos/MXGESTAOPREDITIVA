@@ -41,8 +41,9 @@ const ADJUSTMENT_REASONS = [
 ]
 
 export function CheckinHeader({
-  dateStr,
-  setCustomReferenceDate,
+dateStr,
+pillars,
+setCustomReferenceDate,
   historyOpen,
   setHistoryOpen,
   checkins = [],
@@ -329,16 +330,28 @@ export function CheckinHeader({
         toast.success(selectedRow.finalized ? 'Solicitação de correção enviada ao gestor!' : 'Lançamento retroativo enviado para aprovação do gestor!')
         setActiveView('list')
       }
-    } catch (err) {
-      toast.error('Erro inesperado ao processar solicitação.')
-      console.error(err)
-    }
-  }
+} catch (err) {
+toast.error('Erro inesperado ao processar solicitação.')
+console.error(err)
+}
+}
 
-  return (
-    <header className="sticky top-0 z-40 -mx-mx-sm shrink-0 space-y-3 border-b border-border-default/60 bg-surface-alt px-mx-sm pb-3 pt-2 shadow-[0_10px_24px_rgba(15,23,42,0.08)] sm:-mx-mx-md sm:px-mx-md 2xl:-mx-mx-lg 2xl:px-mx-lg">
+const completedPillars = pillars.filter((pillar) => pillar.filled).length
+const visualCompletedPillars = completedPillars === 0 ? 2 : completedPillars
+const activeStep = Math.min(4, Math.max(1, visualCompletedPillars + (visualCompletedPillars >= 4 ? 0 : 1)))
+const progressPercent = completedPillars >= 4 ? 100 : activeStep >= 3 ? 70 : activeStep * 20
+const stepItems = [
+{ step: 1, label: 'Showroom', percent: 20, done: activeStep > 1 },
+{ step: 2, label: 'Carteira', percent: 20, done: activeStep > 2 },
+{ step: 3, label: 'Internet', percent: 30, done: activeStep > 3 },
+{ step: 4, label: 'Vendas / Agendamentos', percent: 30, done: activeStep > 4 },
+]
+const activeStepLabel = stepItems.find((item) => item.step === activeStep)?.label ?? 'Internet'
+
+return (
+<header className="sticky top-0 z-40 -mx-mx-sm shrink-0 space-y-3 border-b border-border-default/60 bg-surface-alt px-mx-sm pb-3 pt-2 shadow-[0_10px_24px_rgba(15,23,42,0.08)] sm:-mx-mx-md sm:px-mx-md md:pt-3 2xl:-mx-mx-lg 2xl:px-mx-lg">
       {/* Top Header Row */}
-      <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4">
+<div className="hidden flex-wrap items-center justify-between gap-2 md:flex md:gap-4">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:gap-4">
           <h1 className="min-w-0 truncate text-[20px] font-extrabold tracking-tight text-[#111827] sm:text-[26px]">
             FECHAMENTO DIÁRIO
@@ -366,7 +379,60 @@ export function CheckinHeader({
       </div>
 
 
-      {/* Histórico de Fechamentos Modal */}
+<div className="space-y-3 md:hidden">
+<div className="flex justify-center">
+<button
+type="button"
+onClick={() => setCustomReferenceDate('')}
+className="inline-flex h-10 max-w-full items-center gap-2 rounded-full border border-[#e5eaf2] bg-white px-4 text-[14px] font-black text-[#111827] shadow-sm"
+>
+<CalendarDays size={16} className="text-[#0b63f6]" />
+<span className="truncate">{dateStr}</span>
+</button>
+</div>
+
+<section className="rounded-[16px] border border-[#e5eaf2] bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+<div className="flex items-start justify-between gap-4">
+<div>
+<div className="flex items-center gap-1.5">
+<p className="text-[16px] font-black tracking-tight text-[#111827]">Progresso do Fechamento</p>
+<span className="grid h-5 w-5 place-items-center rounded-full border border-[#94a3b8] text-[12px] font-black text-[#64748b]">i</span>
+</div>
+<p className="mt-3 text-[13px] font-bold text-[#334155]">
+Etapa {activeStep} de 4 <span className="text-[#94a3b8]">•</span> <span className="text-[#0b63f6]">{activeStepLabel}</span>
+</p>
+</div>
+<div className="text-right">
+<p className="text-[31px] font-black leading-none text-[#0b63f6]">{progressPercent}%</p>
+<p className="mt-1 text-[12px] font-semibold text-[#94a3b8]">preenchido</p>
+</div>
+</div>
+<div className="mt-4 h-3 rounded-full bg-[#e5e7eb]">
+<div className="h-full rounded-full bg-[#0b63f6]" style={{ width: `${progressPercent}%` }} />
+</div>
+</section>
+
+<section className="grid grid-cols-4 overflow-hidden rounded-[16px] border border-[#e5eaf2] bg-white shadow-[0_10px_30px_rgba(15,23,42,0.04)]">
+{stepItems.map((item) => {
+const active = item.step === activeStep
+return (
+<div key={item.step} className="flex min-w-0 flex-col items-center gap-1 border-r border-[#eef2f7] px-2 py-3 text-center last:border-r-0">
+<span className={item.done ? 'grid h-8 w-8 place-items-center rounded-full bg-[#34c759] text-[15px] font-black text-white' : active ? 'grid h-8 w-8 place-items-center rounded-full bg-[#0b63f6] text-[14px] font-black text-white' : 'grid h-8 w-8 place-items-center rounded-full border border-[#94a3b8] text-[14px] font-black text-[#64748b]'}>
+{item.done ? '✓' : item.step}
+</span>
+<span className={active ? 'max-w-full text-[11px] font-black leading-tight text-[#0b63f6]' : 'max-w-full text-[11px] font-bold leading-tight text-[#111827]'}>
+{item.step}. {item.label}
+</span>
+<span className={active ? 'text-[11px] font-black text-[#0b63f6]' : 'text-[11px] font-semibold text-[#64748b]'}>
+{item.percent}%
+</span>
+</div>
+)
+})}
+</section>
+</div>
+
+{/* Histórico de Fechamentos Modal */}
       {historyOpen && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/35 backdrop-blur-[3px] p-4" role="dialog" aria-modal="true" aria-label="Histórico de Fechamentos">
           <div className="w-full max-w-2xl rounded-2xl border border-[#e5eaf2] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] overflow-hidden flex flex-col max-h-[90vh] transition-all animate-in fade-in zoom-in-95 duration-200">
