@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import {
   AlertTriangle,
   CalendarClock,
@@ -66,9 +66,44 @@ const BRL = (value: number) =>
 // Interactive Tooltip Component
 export function InfoTooltip({ text }: { text: string }) {
   const [visible, setVisible] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const [coords, setCoords] = useState({ top: 0, left: 0 })
+
+  useEffect(() => {
+    if (!visible) return
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setVisible(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [visible])
+
+  const updateCoords = () => {
+    if (ref.current) {
+      const rect = ref.current.getBoundingClientRect()
+      setCoords({
+        top: rect.top - 8,
+        left: rect.left + rect.width / 2,
+      })
+    }
+  }
+
+  useEffect(() => {
+    if (visible) {
+      updateCoords()
+      window.addEventListener('resize', updateCoords)
+      window.addEventListener('scroll', updateCoords, { capture: true })
+      return () => {
+        window.removeEventListener('resize', updateCoords)
+        window.removeEventListener('scroll', updateCoords, { capture: true })
+      }
+    }
+  }, [visible])
 
   return (
-    <div className="relative inline-block ml-1.5 align-middle">
+    <div ref={ref} className="relative inline-block ml-1.5 align-middle">
       <button
         type="button"
         onMouseEnter={() => setVisible(true)}
@@ -81,7 +116,13 @@ export function InfoTooltip({ text }: { text: string }) {
         <HelpCircle size={14} className="stroke-[2.5]" />
       </button>
       {visible && (
-        <div className="absolute left-1/2 bottom-full mb-2 z-30 w-64 -translate-x-1/2 rounded-lg border border-border-default bg-white p-3 text-[12px] font-medium leading-relaxed text-text-secondary shadow-lg pointer-events-none transition-all">
+        <div
+          className="fixed z-[9999] w-64 -translate-x-1/2 -translate-y-full rounded-lg border border-border-default bg-white p-3 text-[12px] font-medium leading-relaxed text-text-secondary shadow-lg pointer-events-none transition-all"
+          style={{
+            top: `${coords.top}px`,
+            left: `${coords.left}px`,
+          }}
+        >
           <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-white" />
           {text}
         </div>
