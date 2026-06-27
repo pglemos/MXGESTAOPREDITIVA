@@ -95,6 +95,24 @@ quality_gate_tools: ["npm run lint", "npm run typecheck", "npm test", "npm run b
 - 2026-06-19: `npm run typecheck`, `npm run lint`, `npm test` (600 pass) e `npm run build` passaram.
 - 2026-06-22: Revisao UX da Home do vendedor corrigiu scrollbar visivel no sidebar, removeu status online falso, removeu fallbacks falsos de meta/comissao/score, ajustou empty states, contraste e grid dos cards superiores.
 - 2026-06-22: `npm run typecheck`, `bun test src/features/vendedor-home/VendedorHome.container.test.tsx`, `npm run lint`, `npm test` e `npm run build` passaram.
+- 2026-06-27: Telas do vendedor alinhadas ao pacote visual Base44 anexado: Home, Central de Execucao, Carteira de Clientes, Funil de Vendas e Meu Perfil passaram a usar os entry-points `src/base44-reference/pages/*`.
+- 2026-06-27: Adapter `base44Client` adicionado para entidades mockadas da referencia, incluindo metodo `get(id)` usado pela ficha da Carteira.
+- 2026-06-27: Central de Execucao corrigida para abrir pendencias sem navegar para rota legada e para formatar datas sem `NaN` quando a pendencia nao traz data direta.
+- 2026-06-27: Deploy de producao validado em `https://mxperformance-douclug9d-synvolt.vercel.app` com login de vendedor; rotas `/home`, `/central-de-execucao`, `/carteira-clientes`, `/funil-comercial` e `/perfil` carregaram sem erro runtime.
+- 2026-06-27: Browser smoke autenticado validou drawer de pendencias da Central, abertura de ficha na Carteira e Carteira mobile; evidencias geradas em `output/playwright/prod-*.png`.
+- 2026-06-27: `npm run typecheck`, `npm run build`, `npm run lint` e `npm test` passaram; suite retornou 671 testes, 0 falhas.
+- 2026-06-27: Correção visual global do módulo vendedor removeu o frame externo do shell, preservou o contrato de rolagem interna, padronizou padding dos wrappers Base44 e eliminou margem duplicada do `PageHeader`.
+- 2026-06-27: Auditoria Playwright local gerou evidências em `output/playwright/layout-fix-final` e `output/playwright/layout-fix-contract` para Home, Central, Carteira, Funil, Perfil e Carteira mobile sem overflow horizontal.
+- 2026-06-27: `npm run typecheck`, `npm run build`, `npm run lint` e `npm test` passaram novamente; suite retornou 671 testes, 0 falhas.
+- 2026-06-27: Deploy Vercel producao `dpl_4gVq8hfzz2obZWxGf8oNt2Y6dPGp` publicado em `https://mxperformance-7u7z8ab64-synvolt.vercel.app`.
+- 2026-06-27: Smoke autenticado em producao validou Home, Central, Carteira, Funil, Perfil e Carteira mobile sem overflow horizontal; evidencias em `output/playwright/prod-layout-fix-final`.
+
+### Completion Notes
+
+- Experiencia de vendedor publicada em producao com layout Base44 e sidebar/nav ajustadas para desktop e mobile.
+- Entry-points antigos continuam preservados como rotas da aplicacao, mas agora renderizam as telas Base44 adaptadas ao projeto.
+- Smoke de producao autenticado confirmou login real, navegacao principal do vendedor, drawer de pendencias e ficha da Carteira.
+- Rodada visual posterior corrigiu spacing, cabecalho, titulos e rolagem do shell vendedor mantendo o contrato do Check-in.
 
 ### File List
 
@@ -117,6 +135,21 @@ quality_gate_tools: ["npm run lint", "npm run typecheck", "npm test", "npm run b
 - `src/pages/Ranking.tsx`
 - `src/pages/RotinaGerente.tsx`
 - `src/pages/VendedorHome.tsx`
+- `src/pages/CentralExecucao.tsx`
+- `src/pages/CarteiraClientes.tsx`
+- `src/pages/FunilVendedor.tsx`
+- `src/pages/MeuPerfilVendedor.tsx`
+- `src/api/base44Client.js`
+- `src/base44-reference/carteira/*.jsx`
+- `src/base44-reference/execucao/*.jsx`
+- `src/base44-reference/layout/*.jsx`
+- `src/base44-reference/pages/*.jsx`
+- `src/components/carteira/*.jsx`
+- `src/components/execucao/*.jsx`
+- `src/components/ui/*.jsx`
+- `components.json`
+- `package.json`
+- `package-lock.json`
 - `src/features/vendedor-home/VendedorHome.container.tsx`
 - `src/features/vendedor-home/VendedorHome.container.test.tsx`
 - `src/features/vendedor-home/hooks/useVendedorHomePage.ts`

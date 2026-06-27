@@ -238,7 +238,7 @@ void onSignOut()
 
 const mobileNavItems: SellerLayoutNavItem[] = [
 { label: 'Dashboard', path: '/home', icon: Home, activePaths: ['/home', '/meu-dia'] },
-{ label: 'Fechamento', path: '/terminal-mx', icon: CalendarCheck, activePaths: ['/terminal-mx', '/vendedor/terminal-mx', '/lancamento-diario', '/fechamento-diario'] },
+  { label: 'Fechar', path: '/terminal-mx', icon: CalendarCheck, activePaths: ['/terminal-mx', '/vendedor/terminal-mx', '/lancamento-diario', '/fechamento-diario'] },
 { label: 'Execução', path: '/central-de-execucao', icon: Layers, activePaths: ['/central-de-execucao', '/central-execucao'] },
 { label: 'Funil', path: '/funil-comercial', icon: Funnel, activePaths: ['/funil-comercial', '/meu-funil'] },
 { label: 'Perfil', path: profilePath, icon: User, activePaths: [profilePath, '/meu-perfil-vendedor', '/vendedor/perfil'] },
@@ -366,7 +366,25 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
   const renderSidebarContent = (isCollapsed: boolean, canCollapse = false) => {
     const hiddenSections = new Set(['CONTA'])
     const bottomSectionLabels = new Set(['INTELIGÊNCIA', 'FERRAMENTAS', 'SISTEMA'])
-    const visibleSections = navSections.filter((section) => !hiddenSections.has(section.label))
+  const base44SellerSections: SellerLayoutNavSection[] = [
+    {
+      label: 'MENU',
+      items: [
+        { label: 'Dashboard', path: '/home', icon: Home, activePaths: ['/home', '/meu-dia'] },
+        { label: 'Fechamento Diário', path: '/terminal-mx', icon: CalendarCheck, activePaths: ['/terminal-mx', '/vendedor/terminal-mx', '/lancamento-diario', '/fechamento-diario'] },
+        { label: 'Central de Execução', path: '/central-de-execucao', icon: Target, activePaths: ['/central-de-execucao', '/central-execucao'] },
+        { label: 'Carteira de Clientes', path: '/carteira-clientes', icon: User },
+        { label: 'Funil de Vendas', path: '/funil-comercial', icon: Funnel, activePaths: ['/funil-comercial', '/meu-funil'] },
+        { label: 'Treinamentos', path: '/treinamentos', icon: GraduationCap },
+        { label: 'Feedback', path: '/feedbacks', icon: MessageCircle, activePaths: ['/feedbacks', '/devolutivas'] },
+        { label: 'PDI', path: '/pdi', icon: BarChart3 },
+        { label: 'Ranking', path: '/ranking', icon: Trophy, activePaths: ['/ranking', '/classificacao'] },
+        { label: 'Meu Perfil', path: '/perfil', icon: User, activePaths: ['/perfil', '/meu-perfil-vendedor', '/vendedor/perfil'] },
+      ],
+    },
+  ]
+  const effectiveNavSections = profileRoleLabel?.toLowerCase().includes('vendedor') ? base44SellerSections : navSections
+  const visibleSections = effectiveNavSections.filter((section) => !hiddenSections.has(section.label))
     const bottomSections = visibleSections.filter((section) => bottomSectionLabels.has(section.label))
     const mainSections = visibleSections.filter((section) => !bottomSectionLabels.has(section.label))
 
@@ -492,7 +510,7 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
         role="main"
         tabIndex={-1}
 className={cn(
-'h-[100dvh] overflow-hidden px-0 pb-[calc(82px+env(safe-area-inset-bottom))] pt-[calc(82px+env(safe-area-inset-top))] outline-none transition-[padding] duration-200 md:h-screen md:p-2',
+      'h-[100dvh] overflow-hidden bg-[#f7f9fc] px-0 pb-[calc(82px+env(safe-area-inset-bottom))] pt-[calc(82px+env(safe-area-inset-top))] outline-none transition-[padding] duration-200 md:h-screen md:p-2',
 collapsed ? 'md:pl-[88px]' : 'md:pl-[252px]'
 )}
       >
@@ -509,7 +527,7 @@ collapsed ? 'md:pl-[88px]' : 'md:pl-[252px]'
             )}
           </section>
         )}
-<section className="h-full w-full min-w-0 overflow-hidden rounded-none border-0 bg-[#f7f9fc] text-slate-950 shadow-none md:h-[calc(100vh-2rem)] md:rounded-[24px] md:border md:border-[#e5eaf2] md:shadow-[0_24px_70px_rgba(15,23,42,0.04)]">
+<section className="h-full min-h-0 w-full min-w-0 overflow-y-auto overflow-x-hidden bg-[#f7f9fc] text-slate-950">
 {children}
 </section>
 </main>
