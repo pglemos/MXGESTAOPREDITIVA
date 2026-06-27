@@ -138,11 +138,14 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
     effectiveTotals,
   } = ctx
 
-  const selectedDate = customReferenceDate || ctx.referenceDate
+const selectedDate = customReferenceDate || ctx.referenceDate
+const detalhesD1Concluidos = totalAgendamentosD1 <= 0 || creditosValidos >= totalAgendamentosD1
 
-  const useReferenceValues = allZero && changedFields.size === 0 && !historicalCheckin
-  const readValue = (field: NumericCheckinField) =>
-    useReferenceValues ? REFERENCE_VALUES[field] : Number(effectiveForm[field] ?? form[field] ?? 0)
+const useReferenceValues = allZero && changedFields.size === 0 && !historicalCheckin
+const readActualValue = (field: NumericCheckinField) =>
+Number(effectiveForm[field] ?? form[field] ?? 0)
+const readValue = (field: NumericCheckinField) =>
+useReferenceValues ? REFERENCE_VALUES[field] : readActualValue(field)
 
   const display = effectiveTotals
   const productionZeroActive = display.leads === 0 && display.visitas === 0 && display.agd === 0 && display.vendas === 0
@@ -232,7 +235,7 @@ updateField(field, Math.max(0, Math.min(CHECKIN_MAX_INPUT_VALUE, next)))
   const editLockedWithoutLiberacao = !canEditExisting && metricScope === 'daily' && !fechamentoLiberado
 
   return (
-    <form onSubmit={onFormSubmit} className="mt-mx-xs grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-mx-sm pb-28 md:pb-16">
+<form onSubmit={onFormSubmit} className="mt-mx-xs grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-mx-sm pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-16">
       {/* Aviso discreto (após 12h01, sem liberação — Especificação Funcional §3.3) */}
       {showDiscreetPendingBanner && (
         <div className="rounded-lg border border-status-warning/20 bg-status-warning-surface px-4 py-2.5 text-xs font-bold text-status-warning flex items-center justify-between gap-2 shadow-sm">
@@ -259,16 +262,16 @@ updateField(field, Math.max(0, Math.min(CHECKIN_MAX_INPUT_VALUE, next)))
         />
       )}
 
-<section className="md:hidden">
-<div className="rounded-[16px] border border-[#0b63f6]/45 bg-white p-4 shadow-[0_12px_32px_rgba(37,99,235,0.12)]">
-<header className="flex items-start justify-between gap-4 border-b border-[#e5eaf2] pb-4">
+<section className="scroll-mt-6 md:hidden">
+<div className="rounded-[16px] border border-[#0b63f6]/45 bg-white p-3 shadow-[0_12px_32px_rgba(37,99,235,0.12)]">
+<header className="flex items-start justify-between gap-3 border-b border-[#e5eaf2] pb-3">
 <div className="flex items-center gap-3">
-<span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-[#0b63f6] text-white shadow-[0_12px_28px_rgba(37,99,235,0.24)]">
-<Globe size={28} aria-hidden="true" />
+<span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#0b63f6] text-white shadow-[0_12px_28px_rgba(37,99,235,0.24)]">
+<Globe size={24} aria-hidden="true" />
 </span>
 <div>
-<h2 className="text-[20px] font-black tracking-tight text-[#111827]">Internet</h2>
-<p className="mt-1 text-[15px] font-semibold text-[#64748b]">Leads digitais</p>
+<h2 className="text-[18px] font-black tracking-tight text-[#111827]">Internet</h2>
+<p className="mt-0.5 text-[13px] font-semibold text-[#64748b]">Leads digitais</p>
 </div>
 </div>
 <div className="hidden max-w-[220px] rounded-[14px] bg-[#eff6ff] p-3 text-[12px] font-bold leading-relaxed text-[#334155] min-[420px]:block">
@@ -280,18 +283,18 @@ Info
 </div>
 </header>
 
-<div className="space-y-3 py-4">
+<div className="space-y-2.5 py-3">
 {mobileInternetRows.map(({ label, field }) => {
-const value = readValue(field)
+const value = readActualValue(field)
 const draftValue = numberDrafts[field] ?? String(value)
 const disabled = isPastDeadline && !fechamentoLiberado
 return (
 <div key={field} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-<label htmlFor={`mobile-${field}`} className="min-w-0 text-[15px] font-bold leading-tight text-[#111827]">
+<label htmlFor={`mobile-${field}`} className="min-w-0 text-[14px] font-bold leading-tight text-[#111827]">
 {label}
 </label>
-<div className="grid w-[170px] grid-cols-[42px_minmax(0,1fr)_42px] gap-2">
-<button type="button" disabled={disabled} onClick={() => setMobileCounter(field, value - 1)} className="grid h-11 place-items-center rounded-[10px] border border-[#e5eaf2] bg-white text-[18px] font-black text-[#111827] shadow-sm disabled:opacity-45">
+<div className="grid w-[152px] grid-cols-[38px_minmax(0,1fr)_38px] gap-1.5">
+<button type="button" disabled={disabled} onClick={() => setMobileCounter(field, value - 1)} className="grid h-10 place-items-center rounded-[10px] border border-[#e5eaf2] bg-white text-[18px] font-black text-[#111827] shadow-sm disabled:opacity-45">
 <Minus size={16} aria-hidden="true" />
 </button>
 <input
@@ -304,9 +307,9 @@ onChange={(event) => updateNumberField(field, event.target.value.replace(/\D/g, 
 onBlur={() => commitNumberField(field)}
 disabled={disabled}
 aria-invalid={Boolean(fieldErrors[field])}
-className="h-11 min-w-0 rounded-[10px] border border-[#e5eaf2] bg-white text-center text-[20px] font-black tabular-nums text-[#111827] shadow-sm outline-none focus:border-[#0b63f6] focus:ring-4 focus:ring-[#0b63f6]/10 disabled:bg-[#f8fafc] disabled:text-[#94a3b8]"
+className="h-10 min-w-0 rounded-[10px] border border-[#e5eaf2] bg-white text-center text-[18px] font-black tabular-nums text-[#111827] shadow-sm outline-none focus:border-[#0b63f6] focus:ring-4 focus:ring-[#0b63f6]/10 disabled:bg-[#f8fafc] disabled:text-[#94a3b8]"
 />
-<button type="button" disabled={disabled} onClick={() => setMobileCounter(field, value + 1)} className="grid h-11 place-items-center rounded-[10px] border border-[#e5eaf2] bg-white text-[18px] font-black text-[#111827] shadow-sm disabled:opacity-45">
+<button type="button" disabled={disabled} onClick={() => setMobileCounter(field, value + 1)} className="grid h-10 place-items-center rounded-[10px] border border-[#e5eaf2] bg-white text-[18px] font-black text-[#111827] shadow-sm disabled:opacity-45">
 <Plus size={16} aria-hidden="true" />
 </button>
 </div>
@@ -315,16 +318,18 @@ className="h-11 min-w-0 rounded-[10px] border border-[#e5eaf2] bg-white text-cen
 })}
 </div>
 
-<div className="flex items-center gap-2 pb-4 text-[14px] font-bold text-[#64748b]">
-<span className="grid h-6 w-6 place-items-center rounded-full bg-[#34c759] text-[12px] font-black text-white">✓</span>
-Detalhados: {creditosValidos} de {totalAgendamentosD1}
+<div className="flex items-center gap-2 pb-3 text-[13px] font-bold text-[#64748b]">
+<span className={cn('grid h-6 w-6 place-items-center rounded-full text-[12px] font-black text-white', detalhesD1Concluidos ? 'bg-[#34c759]' : 'bg-[#f59e0b]')}>
+{detalhesD1Concluidos ? '✓' : '!'}
+</span>
+{totalAgendamentosD1 > 0 ? `Detalhados: ${creditosValidos} de ${totalAgendamentosD1}` : 'Sem D+1 pendente'}
 </div>
 
 <button
 type="button"
 onClick={() => mobileInternetRows.forEach(({ field }) => commitNumberField(field))}
 disabled={isPastDeadline && !fechamentoLiberado}
-className="h-12 w-full rounded-[12px] bg-[#0b63f6] text-[15px] font-black text-white shadow-[0_12px_30px_rgba(37,99,235,0.25)] transition-colors hover:bg-[#0a58dc] disabled:cursor-not-allowed disabled:bg-[#94a3b8]"
+className="h-11 w-full rounded-[12px] bg-[#0b63f6] text-[14px] font-black text-white shadow-[0_12px_30px_rgba(37,99,235,0.25)] transition-colors hover:bg-[#0a58dc] disabled:cursor-not-allowed disabled:bg-[#94a3b8]"
 >
 Confirmar Internet
 </button>
@@ -519,7 +524,7 @@ Confirmar Internet
       </section>
 
       {/* Symmetric dashboard blocks: Resumo + Disciplina */}
-      <section className="grid w-full max-w-full min-w-0 gap-5 xl:grid-cols-2">
+<section className="grid w-full max-w-full min-w-0 scroll-mt-6 gap-5 md:scroll-mt-48 xl:grid-cols-2">
         {/* ── RESUMO DO DIA ANTERIOR ── */}
         <div className="rounded-[18px] border border-[#dfe7f0] bg-white px-6 py-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] flex flex-col justify-between gap-4">
           <p className="text-[12px] font-extrabold uppercase tracking-widest text-[#334155]">RESUMO DO DIA ANTERIOR</p>
@@ -617,8 +622,8 @@ Confirmar Internet
       </section>
 
       {disciplineModalOpen && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/35 p-4 backdrop-blur-[3px]">
-          <div className="w-full max-w-[620px] overflow-hidden rounded-[18px] border border-[#e5eaf2] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] flex flex-col max-h-[90vh] transition-all animate-in fade-in zoom-in-95 duration-200">
+<div className="fixed inset-0 z-[140] grid place-items-center bg-black/35 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] backdrop-blur-[3px]">
+<div className="flex max-h-[calc(100dvh-2rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] w-full max-w-[min(620px,calc(100vw-2rem))] flex-col overflow-hidden rounded-[18px] border border-[#e5eaf2] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] transition-all animate-in fade-in zoom-in-95 duration-200">
             {/* Fixed Header */}
             <header className="px-6 py-5 border-b border-[#eef2f7] flex items-center justify-between bg-[#f8fafc]">
               <div>
@@ -830,8 +835,8 @@ Confirmar Internet
       )}
 
       {confirmFinalizeModalOpen && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/35 p-4 backdrop-blur-[3px]">
-          <div className="w-full max-w-[460px] overflow-hidden rounded-[18px] border border-[#e5eaf2] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] flex flex-col transition-all animate-in fade-in zoom-in-95 duration-200">
+<div className="fixed inset-0 z-[140] grid place-items-center bg-black/35 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] backdrop-blur-[3px]">
+<div className="flex max-h-[calc(100dvh-2rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] w-full max-w-[min(460px,calc(100vw-2rem))] flex-col overflow-hidden rounded-[18px] border border-[#e5eaf2] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] transition-all animate-in fade-in zoom-in-95 duration-200">
             <header className="px-6 py-5 border-b border-[#eef2f7] bg-[#f8fafc]">
               <h2 className="text-lg font-extrabold text-[#111827] uppercase tracking-tight">
                 Deseja finalizar mesmo assim?

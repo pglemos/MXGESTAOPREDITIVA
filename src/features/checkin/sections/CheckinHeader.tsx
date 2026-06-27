@@ -15,11 +15,13 @@ interface PillarProgress {
 }
 
 interface CheckinHeaderProps {
-  dateStr: string
-  pillars: PillarProgress[]
-  setCustomReferenceDate: (value: string) => void
-  handleExit: () => void
-  historyOpen: boolean
+dateStr: string
+pillars: PillarProgress[]
+totalAgendamentosD1?: number
+creditosValidos?: number
+setCustomReferenceDate: (value: string) => void
+handleExit: () => void
+historyOpen: boolean
   setHistoryOpen: (open: boolean) => void
   checkins?: DailyCheckin[]
   userId?: string
@@ -43,9 +45,11 @@ const ADJUSTMENT_REASONS = [
 export function CheckinHeader({
 dateStr,
 pillars,
+totalAgendamentosD1 = 0,
+creditosValidos = 0,
 setCustomReferenceDate,
-  historyOpen,
-  setHistoryOpen,
+historyOpen,
+setHistoryOpen,
   checkins = [],
   userId = 'vendedor',
   saveCheckin,
@@ -337,19 +341,27 @@ console.error(err)
 }
 
 const completedPillars = pillars.filter((pillar) => pillar.filled).length
-const visualCompletedPillars = completedPillars === 0 ? 2 : completedPillars
-const activeStep = Math.min(4, Math.max(1, visualCompletedPillars + (visualCompletedPillars >= 4 ? 0 : 1)))
-const progressPercent = completedPillars >= 4 ? 100 : activeStep >= 3 ? 70 : activeStep * 20
+const baseReady = completedPillars >= 3
+const safeTotalAgendamentosD1 = Math.max(0, Number(totalAgendamentosD1) || 0)
+const safeCreditosValidos = Math.max(0, Number(creditosValidos) || 0)
+const detailRatio = safeTotalAgendamentosD1 > 0 ? Math.min(1, safeCreditosValidos / safeTotalAgendamentosD1) : baseReady ? 1 : 0
+const detailsComplete = baseReady && detailRatio >= 1
+const activeStep = baseReady ? 4 : Math.min(3, Math.max(1, completedPillars + 1))
+const progressPercent = baseReady
+? detailsComplete
+? 100
+: Math.min(99, 70 + Math.round(detailRatio * 30))
+: Math.min(70, completedPillars * 20)
 const stepItems = [
-{ step: 1, label: 'Showroom', percent: 20, done: activeStep > 1 },
-{ step: 2, label: 'Carteira', percent: 20, done: activeStep > 2 },
-{ step: 3, label: 'Internet', percent: 30, done: activeStep > 3 },
-{ step: 4, label: 'Vendas / Agendamentos', percent: 30, done: activeStep > 4 },
+{ step: 1, label: 'Showroom', percent: 20, done: completedPillars >= 1 },
+{ step: 2, label: 'Carteira', percent: 20, done: completedPillars >= 2 },
+{ step: 3, label: 'Internet', percent: 30, done: baseReady },
+{ step: 4, label: 'Vendas / Agendamentos', percent: 30, done: detailsComplete },
 ]
 const activeStepLabel = stepItems.find((item) => item.step === activeStep)?.label ?? 'Internet'
 
 return (
-<header className="sticky top-0 z-40 -mx-mx-sm shrink-0 space-y-3 border-b border-border-default/60 bg-surface-alt px-mx-sm pb-3 pt-2 shadow-[0_10px_24px_rgba(15,23,42,0.08)] sm:-mx-mx-md sm:px-mx-md md:pt-3 2xl:-mx-mx-lg 2xl:px-mx-lg">
+<header className="relative z-40 -mx-mx-sm shrink-0 space-y-3 border-b border-border-default/60 bg-surface-alt px-mx-sm pb-3 pt-2 shadow-[0_10px_24px_rgba(15,23,42,0.08)] sm:-mx-mx-md sm:px-mx-md md:sticky md:top-0 md:pt-3 2xl:-mx-mx-lg 2xl:px-mx-lg">
       {/* Top Header Row */}
 <div className="hidden flex-wrap items-center justify-between gap-2 md:flex md:gap-4">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:gap-4">
@@ -433,9 +445,9 @@ return (
 </div>
 
 {/* Histórico de Fechamentos Modal */}
-      {historyOpen && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/35 backdrop-blur-[3px] p-4" role="dialog" aria-modal="true" aria-label="Histórico de Fechamentos">
-          <div className="w-full max-w-2xl rounded-2xl border border-[#e5eaf2] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] overflow-hidden flex flex-col max-h-[90vh] transition-all animate-in fade-in zoom-in-95 duration-200">
+{historyOpen && (
+<div className="fixed inset-0 z-[140] grid place-items-center bg-black/35 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] backdrop-blur-[3px]" role="dialog" aria-modal="true" aria-label="Histórico de Fechamentos">
+<div className="flex max-h-[calc(100dvh-2rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] w-full max-w-[min(42rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-[#e5eaf2] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] transition-all animate-in fade-in zoom-in-95 duration-200">
             
             {/* Modal Header */}
             <header className="px-6 py-5 border-b border-[#eef2f7] flex items-center justify-between bg-[#f8fafc]">

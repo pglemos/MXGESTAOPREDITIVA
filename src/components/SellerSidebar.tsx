@@ -421,8 +421,8 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
   }
 
   return (
-    <div className="mx-app-scrollbarless h-screen overflow-hidden bg-[#f7f9fc] font-display text-[#111827]">
-<header className="fixed left-0 right-0 top-0 z-[90] flex h-[82px] items-center justify-between border-b border-[#e5eaf2] bg-white px-5 shadow-[0_8px_26px_rgba(15,23,42,0.05)] md:hidden">
+<div className="mx-app-scrollbarless h-[100dvh] overflow-hidden bg-[#f7f9fc] font-display text-[#111827]">
+<header className="fixed left-0 right-0 top-0 z-[90] flex h-[calc(82px+env(safe-area-inset-top))] items-center justify-between border-b border-[#e5eaf2] bg-white px-5 pt-[env(safe-area-inset-top)] shadow-[0_8px_26px_rgba(15,23,42,0.05)] md:hidden">
 <button type="button" aria-label="Abrir menu principal" onClick={() => setMobileOpen(true)} className="flex min-w-0 items-center gap-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500/45">
 <img src={MxLogo} alt="MX" className="h-10 w-10 shrink-0 object-contain" />
 <span className="hidden min-w-0 leading-tight min-[430px]:block">
@@ -430,7 +430,7 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
 <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#334155]">Performance</span>
 </span>
 </button>
-<div className="pointer-events-none absolute left-1/2 top-1/2 max-w-[48vw] -translate-x-1/2 -translate-y-1/2 truncate text-center text-[17px] font-black tracking-tight text-[#111827] min-[430px]:max-w-[42vw] min-[430px]:text-[18px]">
+<div className="pointer-events-none absolute left-1/2 top-[calc(50%+env(safe-area-inset-top)/2)] max-w-[48vw] -translate-x-1/2 -translate-y-1/2 truncate text-center text-[17px] font-black tracking-tight text-[#111827] min-[430px]:max-w-[42vw] min-[430px]:text-[18px]">
 {mobileTitle}
 </div>
 <div className="flex items-center gap-3">
@@ -492,7 +492,7 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
         role="main"
         tabIndex={-1}
 className={cn(
-'h-screen overflow-hidden px-0 pb-[88px] pt-[82px] outline-none transition-[padding] duration-200 md:p-2',
+'h-[100dvh] overflow-hidden px-0 pb-[calc(82px+env(safe-area-inset-bottom))] pt-[calc(82px+env(safe-area-inset-top))] outline-none transition-[padding] duration-200 md:h-screen md:p-2',
 collapsed ? 'md:pl-[88px]' : 'md:pl-[252px]'
 )}
       >
@@ -513,7 +513,7 @@ collapsed ? 'md:pl-[88px]' : 'md:pl-[252px]'
 {children}
 </section>
 </main>
-<nav className="fixed bottom-0 left-0 right-0 z-[90] flex h-[82px] items-start justify-around border-t border-[#e5eaf2] bg-white px-2 pt-3 shadow-[0_-12px_30px_rgba(15,23,42,0.08)] md:hidden" aria-label="Navegação principal mobile">
+<nav className="fixed bottom-0 left-0 right-0 z-[90] flex h-[calc(82px+env(safe-area-inset-bottom))] items-start justify-around border-t border-[#e5eaf2] bg-white px-2 pb-[env(safe-area-inset-bottom)] pt-3 shadow-[0_-12px_30px_rgba(15,23,42,0.08)] md:hidden" aria-label="Navegação principal mobile">
 {mobileNavItems.map((item) => {
 const active = isNavItemActive(item, location)
 return (

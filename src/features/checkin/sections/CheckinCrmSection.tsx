@@ -503,7 +503,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
         />
       </div>
 
-      <Card id="cadastrar-venda-agendamentos" className="min-w-0 overflow-hidden rounded-[18px] border border-[#dfe7f0] bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+<Card id="cadastrar-venda-agendamentos" className="scroll-mt-6 min-w-0 overflow-hidden rounded-[18px] border border-[#dfe7f0] bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)] md:scroll-mt-48">
 <header className="flex min-w-0 flex-col items-stretch justify-between gap-3 border-b border-[#eef2f7] px-4 py-4 sm:flex-row sm:items-center sm:px-5">
  <div className="flex min-w-0 items-start gap-2 sm:items-center">
             <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold bg-[#1e3a8a] text-white">

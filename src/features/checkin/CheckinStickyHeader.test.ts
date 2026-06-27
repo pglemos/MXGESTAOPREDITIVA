@@ -9,8 +9,9 @@ const checkinHookSource = readFileSync(new URL('./hooks/useCheckinPage.ts', impo
 const sellerShellSource = readFileSync(new URL('../../components/SellerSidebar.tsx', import.meta.url), 'utf8')
 
 describe('Checkin sticky header layout contract', () => {
-  test('keeps Fechamento Diario pinned inside the checkin scroll area', () => {
-    expect(checkinHeaderSource).toContain('sticky top-0')
+  test('keeps Fechamento Diario pinned only on desktop inside checkin scroll area', () => {
+    expect(checkinHeaderSource).toContain('md:sticky md:top-0')
+    expect(checkinHeaderSource).not.toContain('className="sticky top-0')
     expect(checkinHeaderSource).toContain('FECHAMENTO DIÁRIO')
     expect(checkinContainerSource).toContain('overflow-y-auto overscroll-contain')
     expect(checkinContainerSource).toContain("document.documentElement.style.overflow = 'hidden'")
@@ -19,13 +20,15 @@ describe('Checkin sticky header layout contract', () => {
     expect(checkinContainerSource).toContain("window.addEventListener('scroll', keepDocumentScrollPinned")
   })
 
-  test('prevents the seller shell from scrolling the whole document', () => {
-    expect(sellerShellSource).toContain('mx-app-scrollbarless h-screen overflow-hidden')
-    expect(sellerShellSource).toContain('h-screen overflow-hidden px-0 pb-[88px] pt-[82px]')
-    expect(sellerShellSource).toContain('md:p-2')
+  test('prevents seller shell from scrolling whole document', () => {
+    expect(sellerShellSource).toContain('mx-app-scrollbarless h-[100dvh] overflow-hidden')
+    expect(sellerShellSource).toContain('pt-[calc(82px+env(safe-area-inset-top))]')
+    expect(sellerShellSource).toContain('pb-[calc(82px+env(safe-area-inset-bottom))]')
+    expect(sellerShellSource).toContain('md:h-screen md:p-2')
+    expect(sellerShellSource).toContain('h-[calc(82px+env(safe-area-inset-bottom))]')
   })
 
-  test('uses CRM-derived effective totals instead of showing zero summary values', () => {
+  test('uses CRM-derived effective totals instead showing zero summary values', () => {
     expect(checkinHookSource).toContain('crmDailyCounters')
     expect(checkinHookSource).toContain('effectiveForm')
     expect(checkinHookSource).toContain('effectiveTotals')
@@ -41,7 +44,7 @@ describe('Checkin sticky header layout contract', () => {
     expect(checkinCrmSource).toContain('Veículo')
   })
 
-  test('uses neutral day terminology and explicit blocked finalize copy', () => {
+  test('uses neutral day terminology explicit blocked finalize copy', () => {
     expect(checkinFormSource).toContain('LEADS RECEBIDOS DO DIA')
     expect(checkinFormSource).toContain('ATENDIMENTOS DO DIA')
     expect(checkinFormSource).toContain('AGUARDANDO LIBERAÇÃO DO GERENTE')

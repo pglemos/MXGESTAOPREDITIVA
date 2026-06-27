@@ -108,6 +108,8 @@ export function Checkin() {
                 <CheckinHeader
                     dateStr={dateStr}
                     pillars={pillars}
+                    totalAgendamentosD1={ctx.totalAgendamentosD1}
+                    creditosValidos={ctx.creditosValidos}
                     setCustomReferenceDate={setCustomReferenceDate}
                     handleExit={handleExit}
                     historyOpen={historyOpen}
