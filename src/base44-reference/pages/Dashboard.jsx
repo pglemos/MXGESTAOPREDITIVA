@@ -116,7 +116,7 @@ export default function Dashboard() {
               { label: "Fechamento Diário", path: "/fechamento", icon: CalendarCheck, color: "text-mx-blue" },
               { label: "Central de Execução", path: "/execucao", icon: Target, color: "text-mx-green" },
               { label: "Funil de Vendas", path: "/funil", icon: BarChart3, color: "text-mx-amber" },
-              { label: "Carteira de Clientes", path: "/carteira", icon: Users, color: "text-[#F15BBA]" },
+            { label: "Carteira de Clientes", path: "/carteira", icon: Users, color: "text-mx-action" },
               { label: "Meu Perfil", path: "/perfil", icon: TrendingUp, color: "text-mx-navy" },
             ].map(item => (
               <Link

@@ -17,6 +17,28 @@ const toneMap = {
   neutral: "neutral",
 };
 
+function renderIcon(icon) {
+  if (!icon) return null;
+
+  if (React.isValidElement(icon)) {
+    return React.cloneElement(icon, {
+      className: ["h-5 w-5", icon.props.className].filter(Boolean).join(" "),
+      "aria-hidden": true,
+      focusable: false,
+    });
+  }
+
+  if (typeof icon === "function" || (typeof icon === "object" && icon.$$typeof)) {
+    return React.createElement(icon, {
+      className: "h-5 w-5",
+      "aria-hidden": true,
+      focusable: false,
+    });
+  }
+
+  return icon;
+}
+
 export default function StatCard({
   label,
   value,
@@ -28,15 +50,12 @@ export default function StatCard({
   active,
   onClick,
 }) {
-  const Icon = typeof icon === "function" ? icon : null;
-  const iconNode = Icon ? <Icon className="h-5 w-5" aria-hidden="true" /> : icon;
-
   return (
     <KpiCard
       label={label}
       value={value}
       sublabel={sublabel}
-      icon={iconNode}
+      icon={renderIcon(icon)}
       tone={toneMap[tone || color] || "action"}
       active={active}
       onClick={onClick}
