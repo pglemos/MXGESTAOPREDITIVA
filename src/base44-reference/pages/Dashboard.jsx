@@ -35,7 +35,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-mx-blue rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-[#DFE0E1] border-t-mx-blue rounded-full animate-spin" />
       </div>
     );
   }
@@ -66,13 +66,13 @@ export default function Dashboard() {
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl lg:text-3xl font-bold">Olá, {userName}! 👋</h1>
-            <p className="text-blue-200 mt-2 text-sm lg:text-base">
+            <p className="text-[#E0EBEA] mt-2 text-sm lg:text-base">
               Você tem {todayAppointments} agendamento{todayAppointments !== 1 ? "s" : ""} hoje e {activeClients} cliente{activeClients !== 1 ? "s" : ""} em andamento.
             </p>
           </div>
           <div className="flex items-center gap-3">
             <div className="bg-white/15 rounded-2xl px-5 py-3 backdrop-blur-sm">
-              <p className="text-xs text-blue-200">Meta do mês</p>
+              <p className="text-xs text-[#E0EBEA]">Meta do mês</p>
               <p className="text-2xl font-bold">{monthSales}/{goal}</p>
             </div>
           </div>
@@ -82,7 +82,7 @@ export default function Dashboard() {
       {/* Quick Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Vendas do Mês" value={monthSales} sublabel={`Meta: ${goal}`} icon={Trophy} color="green">
-          <div className="w-full bg-slate-100 rounded-full h-2 mt-1">
+          <div className="w-full bg-[#DFE0E1] rounded-full h-2 mt-1">
             <div className="bg-mx-green h-2 rounded-full transition-all duration-500" style={{ width: `${progressPct}%` }} />
           </div>
         </StatCard>
@@ -94,39 +94,39 @@ export default function Dashboard() {
       {/* Charts + Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Chart */}
-        <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+        <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-[#DFE0E1]">
           <h3 className="text-base font-semibold text-mx-navy mb-4">Atividade da Semana</h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={weekData} barGap={4}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-              <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#F7F8F8" />
+              <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#526B7A' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill: '#526B7A' }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }} />
-              <Bar dataKey="leads" fill="#005BFF" radius={[6, 6, 0, 0]} name="Leads" />
-              <Bar dataKey="atendimentos" fill="#22C55E" radius={[6, 6, 0, 0]} name="Atendimentos" />
+              <Bar dataKey="leads" fill="#00A89D" radius={[6, 6, 0, 0]} name="Leads" />
+              <Bar dataKey="atendimentos" fill="#00A89D" radius={[6, 6, 0, 0]} name="Atendimentos" />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#DFE0E1]">
           <h3 className="text-base font-semibold text-mx-navy mb-4">Ações Rápidas</h3>
           <div className="space-y-3">
             {[
               { label: "Fechamento Diário", path: "/fechamento", icon: CalendarCheck, color: "text-mx-blue" },
               { label: "Central de Execução", path: "/execucao", icon: Target, color: "text-mx-green" },
               { label: "Funil de Vendas", path: "/funil", icon: BarChart3, color: "text-mx-amber" },
-              { label: "Carteira de Clientes", path: "/carteira", icon: Users, color: "text-purple-500" },
+              { label: "Carteira de Clientes", path: "/carteira", icon: Users, color: "text-[#F15BBA]" },
               { label: "Meu Perfil", path: "/perfil", icon: TrendingUp, color: "text-mx-navy" },
             ].map(item => (
               <Link
                 key={item.path}
                 to={item.path}
-                className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors group"
+                className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#F7F8F8] transition-colors group"
               >
                 <item.icon className={`w-5 h-5 ${item.color}`} />
-                <span className="text-sm font-medium text-slate-700 flex-1">{item.label}</span>
-                <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-mx-blue transition-colors" />
+                <span className="text-sm font-medium text-[#071822] flex-1">{item.label}</span>
+                <ArrowRight className="w-4 h-4 text-[#E0EBEA] group-hover:text-mx-blue transition-colors" />
               </Link>
             ))}
           </div>

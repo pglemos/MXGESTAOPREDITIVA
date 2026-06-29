@@ -279,4 +279,9 @@ export const base44 = {
     },
   },
   entities: Object.fromEntries(Object.keys(state).map((name) => [name, entity(name)])),
+  analytics: {
+    track() {
+      return true
+    },
+  },
 }

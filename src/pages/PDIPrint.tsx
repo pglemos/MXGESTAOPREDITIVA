@@ -180,10 +180,10 @@ export default function PDIPrint() {
                             <div className="w-full h-mx-80">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
-                                        <PolarGrid stroke="#e2e8f0" />
-                                        <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 8, fontWeight: 900 }} />
-                                        <Radar name="Alvo" dataKey="alvo" stroke="#94a3b8" strokeDasharray="3 3" fill="transparent" />
-                                        <Radar name="Nota" dataKey="A" stroke="#4f46e5" strokeWidth={2} fill="#4f46e5" fillOpacity={0.2} />
+                                        <PolarGrid stroke="#DFE0E1" />
+                                        <PolarAngleAxis dataKey="subject" tick={{ fill: '#526B7A', fontSize: 8, fontWeight: 900 }} />
+                                        <Radar name="Alvo" dataKey="alvo" stroke="#526B7A" strokeDasharray="3 3" fill="transparent" />
+                                        <Radar name="Nota" dataKey="A" stroke="#00A89D" strokeWidth={2} fill="#00A89D" fillOpacity={0.2} />
                                     </RadarChart>
                                 </ResponsiveContainer>
                             </div>

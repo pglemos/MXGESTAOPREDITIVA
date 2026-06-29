@@ -3,11 +3,11 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const selectVariants = cva(
-  "flex w-full rounded-mx-md border bg-white px-5 py-3 text-sm font-bold text-text-primary shadow-inner transition-all appearance-none disabled:cursor-not-allowed disabled:opacity-50 h-mx-14 sm:h-12 focus:outline-none focus:ring-4 focus:ring-brand-primary/5",
+  "flex w-full rounded-mx-md border bg-white px-5 py-3 text-sm font-bold text-mx-text shadow-inner transition-all duration-[120ms] appearance-none disabled:cursor-not-allowed disabled:bg-mx-bg disabled:text-mx-muted disabled:opacity-100 h-mx-14 sm:h-12 focus:outline-none focus:ring-4 focus:ring-mx-action/20",
   {
     variants: {
       variant: {
-        default: "border-border-default focus:border-brand-primary/30",
+        default: "border-mx-border focus:border-mx-action data-[legacy-default=true]:border-border-default",
         error: "border-status-error focus:border-status-error focus:ring-status-error/5",
         ghost: "border-transparent bg-transparent shadow-none focus:ring-0",
       },

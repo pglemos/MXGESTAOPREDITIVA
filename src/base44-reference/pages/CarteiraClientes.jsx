@@ -72,7 +72,7 @@ export default function CarteiraClientes() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-[#005BFF] rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-[#DFE0E1] border-t-[#00A89D] rounded-full animate-spin" />
       </div>
     );
   }
@@ -82,26 +82,25 @@ export default function CarteiraClientes() {
       <MxPageHeader
         className="-mx-mx-sm sm:-mx-mx-md 2xl:-mx-mx-lg sticky top-0 z-30"
         title="Carteira de Clientes"
-        subtitle="Desenvolva seus clientes e avance cada relacionamento para o próximo passo."
         chip={
           <>
-            <Users size={14} className="text-[#2563eb]" />
+            <Users size={14} className="text-[#00A89D]" />
             <span>{clientes.length} clientes ativos</span>
           </>
         }
-        action={<Button onClick={() => setNovoClienteOpen(true)} className="rounded-xl bg-[#005BFF] hover:bg-blue-700 text-white text-sm gap-2 whitespace-nowrap"><Plus className="w-4 h-4" /> Novo cliente</Button>}
+        action={<Button onClick={() => setNovoClienteOpen(true)} className="rounded-xl bg-[#00A89D] hover:bg-[#00A89D] text-white text-sm gap-2 whitespace-nowrap"><Plus className="w-4 h-4" /> Novo cliente</Button>}
       />
-      <div className="max-w-[1280px] mx-auto py-6 space-y-6">
+      <div className="py-6 space-y-6">
 
 {/* Tabs */}
         {aba !== "execucao" && (
-          <div className="flex gap-1 bg-white border border-slate-100 rounded-2xl p-1 w-fit shadow-sm">
+          <div className="flex gap-1 bg-white border border-[#DFE0E1] rounded-2xl p-1 w-fit shadow-sm">
             {[
               { id: "carteira", label: "Carteira Ativa" },
               { id: "plano", label: "Plano de Ataque" },
             ].map(t => (
               <button key={t.id} onClick={() => setAba(t.id)}
-                className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${aba === t.id ? "bg-[#005BFF] text-white shadow-sm" : "text-slate-500 hover:text-[#031B3D]"}`}>
+                className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${aba === t.id ? "bg-[#00A89D] text-white shadow-sm" : "text-[#526B7A] hover:text-[#102C37]"}`}>
                 {t.label}
               </button>
             ))}

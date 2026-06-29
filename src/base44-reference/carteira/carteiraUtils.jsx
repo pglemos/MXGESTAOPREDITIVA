@@ -108,13 +108,13 @@ export function resultadoParaMomento(resultado) {
 }
 
 export function tempColor(t) {
-  if (t === "Quente") return "bg-red-50 text-red-600 border-red-100";
-  if (t === "Morno") return "bg-amber-50 text-amber-600 border-amber-100";
-  return "bg-slate-100 text-slate-500 border-slate-200";
+  if (t === "Quente") return "bg-[#FEECEC] text-[#EF4343] border-[#FEECEC]";
+  if (t === "Morno") return "bg-[#FFF7E6] text-[#F59F0A] border-[#FFF7E6]";
+  return "bg-[#DFE0E1] text-[#526B7A] border-[#DFE0E1]";
 }
 
 export function prioridadeColor(p) {
-  if (p === "Alta") return "bg-red-50 text-red-600";
-  if (p === "Média") return "bg-amber-50 text-amber-600";
-  return "bg-slate-100 text-slate-500";
+  if (p === "Alta") return "bg-[#FEECEC] text-[#EF4343]";
+  if (p === "Média") return "bg-[#FFF7E6] text-[#F59F0A]";
+  return "bg-[#DFE0E1] text-[#526B7A]";
 }

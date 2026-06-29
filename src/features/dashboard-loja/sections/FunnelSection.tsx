@@ -1,9 +1,10 @@
 import { useCallback } from 'react'
 import { ArrowRight } from 'lucide-react'
-import { motion } from 'motion/react'
+import { motion, useReducedMotion } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { Typography } from '@/components/atoms/Typography'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
+import { MotionCard, MotionList, MotionRow, duration, easing } from '@/design/motion'
 
 type FunnelData = {
   tx_lead_agd: number
@@ -27,6 +28,7 @@ type FunnelSectionProps = {
  * Extraído de DashboardLoja.tsx (Story 2.5).
  */
 export function FunnelSection({ funilData, funnelBenchmarks }: FunnelSectionProps) {
+  const reduceMotion = useReducedMotion()
   const funnelInterpretation = useCallback((value: number, benchmark: number) => {
     if (value >= benchmark) return 'Dentro ou acima do benchmark; mantenha a cadência e monitore volume.'
     const gap = Math.max(benchmark - value, 0)
@@ -40,7 +42,8 @@ export function FunnelSection({ funilData, funnelBenchmarks }: FunnelSectionProp
   ]
 
   return (
-    <Card className="w-full border-none shadow-mx-lg bg-white overflow-hidden">
+    <MotionCard className="w-full">
+      <Card className="w-full border-none shadow-mx-lg bg-white overflow-hidden">
       <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-lg">
         <div className="flex items-center justify-between">
           <div>
@@ -60,9 +63,9 @@ export function FunnelSection({ funilData, funnelBenchmarks }: FunnelSectionProp
         </div>
       </CardHeader>
       <CardContent className="p-mx-lg md:p-mx-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-lg md:gap-mx-14">
+        <MotionList className="grid grid-cols-1 md:grid-cols-3 gap-mx-lg md:gap-mx-14">
           {steps.map((step, idx) => (
-            <div key={`${step.from}-${step.to}`} className="space-y-mx-md">
+            <MotionRow key={`${step.from}-${step.to}`} className="space-y-mx-md">
               <div className="flex justify-between items-end">
                 <div className="flex items-center gap-mx-xs">
                   <div className="w-mx-8 h-mx-8 rounded-mx-lg bg-surface-alt flex items-center justify-center font-black text-text-tertiary text-xs border border-border-default shadow-sm">
@@ -83,11 +86,11 @@ export function FunnelSection({ funilData, funnelBenchmarks }: FunnelSectionProp
               </div>
               <div className="h-mx-xs w-full bg-surface-alt rounded-mx-full overflow-hidden border border-border-default shadow-inner p-px">
                 <motion.div
-                  initial={{ width: 0 }}
+                  initial={reduceMotion ? false : { width: 0 }}
                   animate={{ width: `${Math.min(step.val, 100)}%` }}
-                  transition={{ duration: 1.2, delay: idx * 0.15, ease: 'circOut' }}
+                  transition={{ duration: reduceMotion ? 0 : duration.slow, ease: easing.standard as [number, number, number, number] }}
                   className={cn(
-                    'h-full rounded-mx-full shadow-sm transition-all duration-1000',
+                    'h-full rounded-mx-full shadow-sm transition-colors duration-150',
                     step.val >= step.bench
                       ? 'bg-status-success shadow-[0_0_12px_rgba(16,185,129,0.4)]'
                       : 'bg-status-error shadow-[0_0_12px_rgba(239,68,68,0.4)]'
@@ -97,11 +100,12 @@ export function FunnelSection({ funilData, funnelBenchmarks }: FunnelSectionProp
               <Typography variant="p" tone="muted" className="text-sm">
                 {funnelInterpretation(step.val, step.bench)}
               </Typography>
-            </div>
+            </MotionRow>
           ))}
-        </div>
+        </MotionList>
       </CardContent>
-    </Card>
+      </Card>
+    </MotionCard>
   )
 }
 

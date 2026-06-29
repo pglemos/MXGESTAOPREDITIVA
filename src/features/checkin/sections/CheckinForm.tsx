@@ -304,19 +304,19 @@ updateField(field, Math.max(0, Math.min(CHECKIN_MAX_INPUT_VALUE, next)))
       )}
 
 <section className="scroll-mt-6 md:hidden">
-<div className="rounded-[16px] border border-[#0b63f6]/45 bg-white p-3 shadow-[0_12px_32px_rgba(37,99,235,0.12)]">
-<header className="flex items-start justify-between gap-3 border-b border-[#e5eaf2] pb-3">
+<div className="rounded-[16px] border border-[#00A89D]/45 bg-white p-3 shadow-[0_12px_32px_rgba(0,168,157,0.12)]">
+<header className="flex items-start justify-between gap-3 border-b border-[#DFE0E1] pb-3">
 <div className="flex items-center gap-3">
-<span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#0b63f6] text-white shadow-[0_12px_28px_rgba(37,99,235,0.24)]">
+<span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#00A89D] text-white shadow-[0_12px_28px_rgba(0,168,157,0.24)]">
 <Globe size={24} aria-hidden="true" />
 </span>
 <div>
-<h2 className="text-[18px] font-black tracking-tight text-[#111827]">Internet</h2>
-<p className="mt-0.5 text-[13px] font-semibold text-[#64748b]">Leads digitais</p>
+<h2 className="text-[18px] font-black tracking-tight text-[#071822]">Internet</h2>
+<p className="mt-0.5 text-[13px] font-semibold text-[#526B7A]">Leads digitais</p>
 </div>
 </div>
-<div className="hidden max-w-[220px] rounded-[14px] bg-[#eff6ff] p-3 text-[12px] font-bold leading-relaxed text-[#334155] min-[420px]:block">
-<span className="mb-1 inline-flex items-center gap-1 text-[#0b63f6]">
+<div className="hidden max-w-[220px] rounded-[14px] bg-[#E8F3F2] p-3 text-[12px] font-bold leading-relaxed text-[#334155] min-[420px]:block">
+<span className="mb-1 inline-flex items-center gap-1 text-[#00A89D]">
 <Info size={15} aria-hidden="true" />
 Info
 </span>
@@ -331,11 +331,11 @@ const draftValue = numberDrafts[field] ?? String(value)
 const disabled = isPastDeadline && !fechamentoLiberado
 return (
 <div key={field} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-<label htmlFor={`mobile-${field}`} className="min-w-0 text-[14px] font-bold leading-tight text-[#111827]">
+<label htmlFor={`mobile-${field}`} className="min-w-0 text-[14px] font-bold leading-tight text-[#071822]">
 {label}
 </label>
 <div className="grid w-[152px] grid-cols-[38px_minmax(0,1fr)_38px] gap-1.5">
-<button type="button" disabled={disabled} onClick={() => setMobileCounter(field, value - 1)} className="grid h-10 place-items-center rounded-[10px] border border-[#e5eaf2] bg-white text-[18px] font-black text-[#111827] shadow-sm disabled:opacity-45">
+<button type="button" disabled={disabled} onClick={() => setMobileCounter(field, value - 1)} className="grid h-10 place-items-center rounded-[10px] border border-[#DFE0E1] bg-white text-[18px] font-black text-[#071822] shadow-sm disabled:opacity-45">
 <Minus size={16} aria-hidden="true" />
 </button>
 <input
@@ -348,9 +348,9 @@ onChange={(event) => updateNumberField(field, event.target.value.replace(/\D/g, 
 onBlur={() => commitNumberField(field)}
 disabled={disabled}
 aria-invalid={Boolean(fieldErrors[field])}
-className="h-10 min-w-0 rounded-[10px] border border-[#e5eaf2] bg-white text-center text-[18px] font-black tabular-nums text-[#111827] shadow-sm outline-none focus:border-[#0b63f6] focus:ring-4 focus:ring-[#0b63f6]/10 disabled:bg-[#f8fafc] disabled:text-[#94a3b8]"
+className="h-10 min-w-0 rounded-[10px] border border-[#DFE0E1] bg-white text-center text-[18px] font-black tabular-nums text-[#071822] shadow-sm outline-none focus:border-[#00A89D] focus:ring-4 focus:ring-[#00A89D]/10 disabled:bg-[#F7F8F8] disabled:text-[#526B7A]"
 />
-<button type="button" disabled={disabled} onClick={() => setMobileCounter(field, value + 1)} className="grid h-10 place-items-center rounded-[10px] border border-[#e5eaf2] bg-white text-[18px] font-black text-[#111827] shadow-sm disabled:opacity-45">
+<button type="button" disabled={disabled} onClick={() => setMobileCounter(field, value + 1)} className="grid h-10 place-items-center rounded-[10px] border border-[#DFE0E1] bg-white text-[18px] font-black text-[#071822] shadow-sm disabled:opacity-45">
 <Plus size={16} aria-hidden="true" />
 </button>
 </div>
@@ -359,8 +359,8 @@ className="h-10 min-w-0 rounded-[10px] border border-[#e5eaf2] bg-white text-cen
 })}
 </div>
 
-<div className="flex items-center gap-2 pb-3 text-[13px] font-bold text-[#64748b]">
-<span className={cn('grid h-6 w-6 place-items-center rounded-full text-[12px] font-black text-white', detalhesD1Concluidos ? 'bg-[#34c759]' : 'bg-[#f59e0b]')}>
+<div className="flex items-center gap-2 pb-3 text-[13px] font-bold text-[#526B7A]">
+<span className={cn('grid h-6 w-6 place-items-center rounded-full text-[12px] font-black text-white', detalhesD1Concluidos ? 'bg-[#34c759]' : 'bg-[#F59F0A]')}>
 {detalhesD1Concluidos ? '✓' : '!'}
 </span>
 {totalAgendamentosD1 > 0 ? `Detalhados: ${creditosValidos} de ${totalAgendamentosD1}` : 'Sem D+1 pendente'}
@@ -370,7 +370,7 @@ className="h-10 min-w-0 rounded-[10px] border border-[#e5eaf2] bg-white text-cen
 type="button"
 onClick={() => mobileInternetRows.forEach(({ field }) => commitNumberField(field))}
 disabled={isPastDeadline && !fechamentoLiberado}
-className="h-11 w-full rounded-[12px] bg-[#0b63f6] text-[14px] font-black text-white shadow-[0_12px_30px_rgba(37,99,235,0.25)] transition-colors hover:bg-[#0a58dc] disabled:cursor-not-allowed disabled:bg-[#94a3b8]"
+className="h-11 w-full rounded-[12px] bg-[#00A89D] text-[14px] font-black text-white shadow-[0_12px_30px_rgba(0,168,157,0.25)] transition-colors hover:bg-[#00A89D] disabled:cursor-not-allowed disabled:bg-[#526B7A]"
 >
 Confirmar Internet
 </button>
@@ -463,9 +463,9 @@ Confirmar Internet
           <AnimatePresence>
             {productionZeroActive && (
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }}>
-                <Card className="space-y-3 rounded-[16px] border border-[#fcd34d] bg-[#fffbeb] px-5 py-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+                <Card className="space-y-3 rounded-[16px] border border-[#fcd34d] bg-[#FFF7E6] px-5 py-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
                   <header className="flex items-center gap-3">
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-[#061a33] text-[#f59e0b]">
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-[#102C37] text-[#F59F0A]">
                       <AlertTriangle size={19} strokeWidth={2} />
                     </div>
                     <div>
@@ -488,7 +488,7 @@ Confirmar Internet
                     disabled={isPastDeadline && !fechamentoLiberado}
                     aria-invalid={Boolean(fieldErrors.zero_reason)}
                     aria-describedby={fieldErrors.zero_reason ? 'checkin-error-zero-reason' : undefined}
-                    className="h-11 w-full rounded-xl border border-[#fcd34d] bg-white px-4 text-sm font-semibold uppercase tracking-wide text-[#92400e] outline-none focus:border-[#f59e0b]"
+                    className="h-11 w-full rounded-xl border border-[#fcd34d] bg-white px-4 text-sm font-semibold uppercase tracking-wide text-[#92400e] outline-none focus:border-[#F59F0A]"
                   >
                     <option value="">Selecione o motivo...</option>
                     {CHECKIN_ZERO_REASONS.map(reason => (
@@ -526,8 +526,8 @@ Confirmar Internet
           )}
 
           {(productionZeroActive || mandatoryFeedbackActionsCount > 0) && (
-            <Card className="space-y-2 rounded-[16px] border border-[#e5eaf2] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-              <label htmlFor="checkin-note" className="block text-sm font-bold text-[#111827]">
+            <Card className="space-y-2 rounded-[16px] border border-[#DFE0E1] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+              <label htmlFor="checkin-note" className="block text-sm font-bold text-[#071822]">
                 Observações Operacionais {productionZeroActive || mandatoryFeedbackActionsCount > 0 ? '(Obrigatório)' : '(Opcional)'}
               </label>
               <Typography variant="p" tone="muted" className="text-xs">
@@ -543,7 +543,7 @@ Confirmar Internet
                 aria-invalid={Boolean(fieldErrors.note)}
                 aria-describedby={fieldErrors.note ? 'checkin-error-note' : undefined}
                 placeholder="Digite suas observações..."
-                className="min-h-[76px] w-full resize-none rounded-xl border border-[#e5eaf2] bg-white p-3 text-sm text-[#111827] outline-none transition-all placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                className="min-h-[76px] w-full resize-none rounded-xl border border-[#DFE0E1] bg-white p-3 text-sm text-[#071822] outline-none transition-all placeholder:text-[#526B7A] focus:border-[#00A89D] focus:ring-4 focus:ring-[#00A89D]/10"
               />
               <div className="flex items-center justify-between">
                 {fieldErrors.note ? (
@@ -571,29 +571,29 @@ Confirmar Internet
           <p className="text-[12px] font-extrabold uppercase tracking-widest text-[#334155]">RESUMO DO DIA ANTERIOR</p>
 
           {/* 4 metrics in a horizontal row with dividers */}
-          <div className="flex items-stretch divide-x divide-[#eef2f7]">
+          <div className="flex items-stretch divide-x divide-[#DFE0E1]">
             <div className="flex flex-1 flex-col items-center gap-1 px-4 first:pl-0">
-              <span className="text-[28px] font-black leading-none tabular-nums text-[#2563eb]">{display.leads}</span>
-              <span className="mt-1 text-[11px] font-semibold text-[#94a3b8] text-center leading-tight">Leads Recebidos</span>
+              <span className="text-[28px] font-black leading-none tabular-nums text-[#00A89D]">{display.leads}</span>
+              <span className="mt-1 text-[11px] font-semibold text-[#526B7A] text-center leading-tight">Leads Recebidos</span>
             </div>
             <div className="flex flex-1 flex-col items-center gap-1 px-4">
-              <span className="text-[28px] font-black leading-none tabular-nums text-[#f59e0b]">{display.visitas}</span>
-              <span className="mt-1 text-[11px] font-semibold text-[#94a3b8] text-center leading-tight">Atendimentos</span>
+              <span className="text-[28px] font-black leading-none tabular-nums text-[#F59F0A]">{display.visitas}</span>
+              <span className="mt-1 text-[11px] font-semibold text-[#526B7A] text-center leading-tight">Atendimentos</span>
             </div>
             <div className="flex flex-1 flex-col items-center gap-1 px-4">
-              <span className="text-[28px] font-black leading-none tabular-nums text-[#f59e0b]">{display.agd}</span>
-              <span className="mt-1 text-[11px] font-semibold text-[#94a3b8] text-center leading-tight">Agend. p/ Amanhã</span>
+              <span className="text-[28px] font-black leading-none tabular-nums text-[#F59F0A]">{display.agd}</span>
+              <span className="mt-1 text-[11px] font-semibold text-[#526B7A] text-center leading-tight">Agend. p/ Amanhã</span>
             </div>
             <div className="flex flex-1 flex-col items-center gap-1 px-4 last:pr-0">
-              <span className="text-[28px] font-black leading-none tabular-nums text-[#ef4444]">{realSalesCount}</span>
-              <span className="mt-1 text-[11px] font-semibold text-[#94a3b8] text-center leading-tight">Vendas Realizadas</span>
+              <span className="text-[28px] font-black leading-none tabular-nums text-[#EF4343]">{realSalesCount}</span>
+              <span className="mt-1 text-[11px] font-semibold text-[#526B7A] text-center leading-tight">Vendas Realizadas</span>
             </div>
           </div>
 
           {/* Faturamento bar */}
-          <div className="flex items-center justify-between border-t border-[#eef2f7] pt-3">
-            <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#94a3b8]">FATURAMENTO</span>
-            <span className="text-[22px] font-black tabular-nums text-[#16a34a]">{BRL(realFaturamento)}</span>
+          <div className="flex items-center justify-between border-t border-[#DFE0E1] pt-3">
+            <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#526B7A]">FATURAMENTO</span>
+            <span className="text-[22px] font-black tabular-nums text-[#00A89D]">{BRL(realFaturamento)}</span>
           </div>
         </div>
 
@@ -604,8 +604,8 @@ Confirmar Internet
             : 30
           // Arc: red below base (70%), orange while incomplete, green at 100%
           const arcColor =
-            disciplinePercent >= 100 ? '#16a34a' : disciplinePercent < 70 ? '#ef4444' : '#f59e0b'
-          const trackColor = '#f1f5f9'
+            disciplinePercent >= 100 ? '#00A89D' : disciplinePercent < 70 ? '#EF4343' : '#F59F0A'
+          const trackColor = '#F7F8F8'
           const arcDeg = Math.round(disciplinePercent * 3.6)
           return (
             <div className="rounded-[18px] border border-[#dfe7f0] bg-white px-6 py-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] flex items-center gap-5">
@@ -623,10 +623,10 @@ Confirmar Internet
                   className="absolute rounded-full bg-white flex flex-col items-center justify-center"
                   style={{ inset: 11 }}
                 >
-                  <span className="text-[23px] font-black leading-none tabular-nums text-[#111827]">
+                  <span className="text-[23px] font-black leading-none tabular-nums text-[#071822]">
                     {disciplinePercent}%
                   </span>
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#94a3b8] mt-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#526B7A] mt-1">
                     SCORE
                   </span>
                 </div>
@@ -634,27 +634,27 @@ Confirmar Internet
 
               {/* Text column */}
               <div className="flex flex-1 min-w-0 flex-col gap-2">
-                <p className="text-[11px] font-extrabold uppercase tracking-widest text-[#94a3b8]">
+                <p className="text-[11px] font-extrabold uppercase tracking-widest text-[#526B7A]">
                   DISCIPLINA – FECHAMENTO DIÁRIO
                 </p>
 
                 {disciplineMessage && (
-                  <p className="text-[12px] font-medium text-[#475569] leading-snug">
+                  <p className="text-[12px] font-medium text-[#526B7A] leading-snug">
                     {disciplineMessage}
                   </p>
                 )}
 
-                <p className="text-[11px] font-medium text-[#94a3b8]">
+                <p className="text-[11px] font-medium text-[#526B7A]">
                   70% base + {pontosExtras}% detalhamento
                 </p>
 
                 <button
                   type="button"
-                  className="flex items-center gap-1 text-[12px] font-semibold text-[#2563eb] hover:text-[#1d4ed8] transition-colors w-fit p-0 bg-transparent border-none cursor-pointer"
+                  className="flex items-center gap-1 text-[12px] font-semibold text-[#00A89D] hover:text-[#00A89D] transition-colors w-fit p-0 bg-transparent border-none cursor-pointer"
                   onClick={() => setDisciplineModalOpen(true)}
                 >
                   Saiba mais
-                  <Info size={13} className="shrink-0 text-[#94a3b8]" />
+                  <Info size={13} className="shrink-0 text-[#526B7A]" />
                 </button>
               </div>
             </div>
@@ -664,21 +664,21 @@ Confirmar Internet
 
       {disciplineModalOpen && (
 <div className="fixed inset-0 z-[140] grid place-items-center bg-black/35 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] backdrop-blur-[3px]">
-<div className="flex max-h-[calc(100dvh-2rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] w-full max-w-[min(620px,calc(100vw-2rem))] flex-col overflow-hidden rounded-[18px] border border-[#e5eaf2] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] transition-all animate-in fade-in zoom-in-95 duration-200">
+<div className="flex max-h-[calc(100dvh-2rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] w-full max-w-[min(620px,calc(100vw-2rem))] flex-col overflow-hidden rounded-[18px] border border-[#DFE0E1] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] transition-all animate-in fade-in zoom-in-95 duration-200">
             {/* Fixed Header */}
-            <header className="px-6 py-5 border-b border-[#eef2f7] flex items-center justify-between bg-[#f8fafc]">
+            <header className="px-6 py-5 border-b border-[#DFE0E1] flex items-center justify-between bg-[#F7F8F8]">
               <div>
-                <h2 className="text-lg font-extrabold text-[#111827] uppercase tracking-tight">
+                <h2 className="text-lg font-extrabold text-[#071822] uppercase tracking-tight">
                   ENTENDA SUA PONTUAÇÃO DE DISCIPLINA
                 </h2>
-                <p className="text-xs font-semibold text-[#64748b] mt-1">
+                <p className="text-xs font-semibold text-[#526B7A] mt-1">
                   A pontuação do Fechamento Diário mede o quanto você manteve sua rotina comercial organizada no dia.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setDisciplineModalOpen(false)}
-                className="grid h-8 w-8 place-items-center rounded-lg text-[#64748b] hover:bg-[#f1f5f9] transition-colors"
+                className="grid h-8 w-8 place-items-center rounded-lg text-[#526B7A] hover:bg-[#F7F8F8] transition-colors"
                 aria-label="Fechar"
               >
                 <X size={18} />
@@ -686,11 +686,11 @@ Confirmar Internet
             </header>
 
             {/* Scrollable Content */}
-            <div className="p-6 overflow-y-auto space-y-6 text-xs leading-relaxed text-[#475569]">
+            <div className="p-6 overflow-y-auto space-y-6 text-xs leading-relaxed text-[#526B7A]">
               
               {/* SECTION 1: Fechamento básico — 70% */}
               <div className="space-y-2">
-                <h3 className="font-extrabold text-[#2563eb] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+                <h3 className="font-extrabold text-[#00A89D] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
                   <Check size={14} className="stroke-[3]" /> 1. Fechamento básico — 70%
                 </h3>
                 <p>
@@ -705,7 +705,7 @@ Confirmar Internet
                 <p>
                   Ou seja: se você preencher apenas os números e finalizar o fechamento, sua disciplina será de 70%.
                 </p>
-                <div className="bg-[#eff6ff] text-[#2563eb] font-bold p-2.5 rounded-lg border border-[#bfdbfe] flex items-center gap-2">
+                <div className="bg-[#E8F3F2] text-[#00A89D] font-bold p-2.5 rounded-lg border border-[#bfdbfe] flex items-center gap-2">
                   <Info size={14} />
                   <span>Preencheu os números do dia = 70%</span>
                 </div>
@@ -713,13 +713,13 @@ Confirmar Internet
 
               {/* SECTION 2: Cadastro dos agendamentos — até +30% */}
               <div className="space-y-2">
-                <h3 className="font-extrabold text-[#2563eb] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+                <h3 className="font-extrabold text-[#00A89D] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
                   <Award size={14} className="stroke-[2.5]" /> 2. Cadastro dos agendamentos — até +30%
                 </h3>
                 <p>
                   Os outros 30% são conquistados quando você detalha, no campo “Cadastrar Novo Cliente”, os agendamentos que informou no card “Agendamento para Amanhã”.
                 </p>
-                <p className="font-semibold text-[#111827]">
+                <p className="font-semibold text-[#071822]">
                   Exemplo:
                 </p>
                 <p>
@@ -739,15 +739,15 @@ Confirmar Internet
                 <p>
                   Se cadastrar corretamente os 2 clientes, sua pontuação será 100%. Se cadastrar apenas 1 dos 2 clientes, sua pontuação será 85%.
                 </p>
-                <div className="bg-[#ecfdf5] text-[#16a34a] font-bold p-2.5 rounded-lg border border-[#bbf7d0] flex items-center gap-2">
-                  <CheckCircle2 size={14} className="text-[#16a34a]" />
+                <div className="bg-[#ecfdf5] text-[#00A89D] font-bold p-2.5 rounded-lg border border-[#bbf7d0] flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-[#00A89D]" />
                   <span>Detalhou todos os agendamentos para amanhã corretamente = 100%</span>
                 </div>
               </div>
 
               {/* SECTION 3: Quando um cadastro conta como agendamento? */}
               <div className="space-y-2">
-                <h3 className="font-extrabold text-[#2563eb] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+                <h3 className="font-extrabold text-[#00A89D] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
                   <HelpCircle size={14} /> 3. Quando um cadastro conta como agendamento?
                 </h3>
                 <p>
@@ -758,13 +758,13 @@ Confirmar Internet
                   <li>O campo “Venda Realizada” deve estar como “Em Negociação”;</li>
                   <li>A data do agendamento deve ser para o dia seguinte ao fechamento, ou seja, para amanhã.</li>
                 </ul>
-                <p className="font-semibold text-[#111827]">
+                <p className="font-semibold text-[#071822]">
                   Exemplo:
                 </p>
                 <p>
                   Se o fechamento é do dia 22/05, o agendamento deve estar marcado para 23/05.
                 </p>
-                <div className="bg-[#fffbeb] text-[#d97706] font-bold p-2.5 rounded-lg border border-[#fed7aa] flex items-center gap-2">
+                <div className="bg-[#FFF7E6] text-[#d97706] font-bold p-2.5 rounded-lg border border-[#fed7aa] flex items-center gap-2">
                   <AlertCircle size={14} className="text-[#d97706]" />
                   <span>Para contar como agendamento, a venda deve estar como Em Negociação.</span>
                 </div>
@@ -772,7 +772,7 @@ Confirmar Internet
 
               {/* SECTION 4: Atenção à data do agendamento */}
               <div className="space-y-2">
-                <h3 className="font-extrabold text-[#2563eb] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+                <h3 className="font-extrabold text-[#00A89D] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
                   <Clock size={14} /> 4. Atenção à data do agendamento
                 </h3>
                 <p>
@@ -781,7 +781,7 @@ Confirmar Internet
                 <p>
                   Se a data cadastrada for diferente de amanhã, o sistema considera apenas 50% daquele cadastro para a pontuação extra.
                 </p>
-                <p className="font-semibold text-[#111827]">
+                <p className="font-semibold text-[#071822]">
                   Exemplo:
                 </p>
                 <p>
@@ -794,7 +794,7 @@ Confirmar Internet
                 <p>
                   Neste caso, sua pontuação será ajustada e ficará em 95%.
                 </p>
-                <div className="bg-[#fffbeb] text-[#d97706] font-bold p-2.5 rounded-lg border border-[#fed7aa] flex items-center gap-2">
+                <div className="bg-[#FFF7E6] text-[#d97706] font-bold p-2.5 rounded-lg border border-[#fed7aa] flex items-center gap-2">
                   <AlertTriangle size={14} className="text-[#d97706]" />
                   <span>Agendamento com data diferente de amanhã vale apenas 50% na pontuação extra.</span>
                 </div>
@@ -802,11 +802,11 @@ Confirmar Internet
 
               {/* SECTION 5: Venda não é agendamento */}
               <div className="space-y-2">
-                <h3 className="font-extrabold text-[#2563eb] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+                <h3 className="font-extrabold text-[#00A89D] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
                   <DollarSign size={14} /> 5. Venda não é agendamento
                 </h3>
                 <p>
-                  Se no cadastro do cliente você marcar: <strong className="text-[#111827]">“Venda Realizada = Sim”</strong>
+                  Se no cadastro do cliente você marcar: <strong className="text-[#071822]">“Venda Realizada = Sim”</strong>
                 </p>
                 <p>
                   O sistema entende que foi uma venda. Esse registro vai contar para:
@@ -817,9 +817,9 @@ Confirmar Internet
                   <li>Funil de vendas.</li>
                 </ul>
                 <p>
-                  Mas ele não conta como agendamento para amanhã. Para contar como agendamento, o campo deve estar como: <strong className="text-[#111827]">“Venda Realizada = Em Negociação”</strong>.
+                  Mas ele não conta como agendamento para amanhã. Para contar como agendamento, o campo deve estar como: <strong className="text-[#071822]">“Venda Realizada = Em Negociação”</strong>.
                 </p>
-                <div className="bg-[#eff6ff] text-[#2563eb] font-bold p-2.5 rounded-lg border border-[#bfdbfe] flex items-center gap-2">
+                <div className="bg-[#E8F3F2] text-[#00A89D] font-bold p-2.5 rounded-lg border border-[#bfdbfe] flex items-center gap-2">
                   <Info size={14} />
                   <span>Venda Realizada = Sim conta como venda, não como agendamento.</span>
                 </div>
@@ -827,7 +827,7 @@ Confirmar Internet
 
               {/* SECTION 6: Prazo para fechar o dia anterior */}
               <div className="space-y-2">
-                <h3 className="font-extrabold text-[#2563eb] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+                <h3 className="font-extrabold text-[#00A89D] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
                   <Clock size={14} /> 6. Prazo para fechar o dia anterior
                 </h3>
                 <p>
@@ -836,37 +836,37 @@ Confirmar Internet
                 <p>
                   Depois desse horário, o fechamento fica bloqueado. Caso precise ajustar, solicite liberação ao seu superior.
                 </p>
-                <div className="bg-[#f8fafc] text-[#475569] font-bold p-2.5 rounded-lg border border-[#e5eaf2] flex items-center gap-2">
+                <div className="bg-[#F7F8F8] text-[#526B7A] font-bold p-2.5 rounded-lg border border-[#DFE0E1] flex items-center gap-2">
                   <LockKeyhole size={14} />
                   <span>Após 09h30, somente o superior poderá liberar o fechamento.</span>
                 </div>
               </div>
 
               {/* SECTION 7: Resumo rápido */}
-              <div className="space-y-2 bg-[#f8fafc] p-4 rounded-xl border border-[#e5eaf2]">
-                <h3 className="font-extrabold text-[#2563eb] uppercase tracking-wider text-[10px]">
+              <div className="space-y-2 bg-[#F7F8F8] p-4 rounded-xl border border-[#DFE0E1]">
+                <h3 className="font-extrabold text-[#00A89D] uppercase tracking-wider text-[10px]">
                   7. Resumo rápido
                 </h3>
-                <ul className="space-y-1.5 font-semibold text-[#111827]">
-                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#16a34a] stroke-[3]" /> Preencheu os números do dia: 70%</li>
-                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#16a34a] stroke-[3]" /> Detalhou todos os agendamentos para amanhã corretamente: 100%</li>
-                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#16a34a] stroke-[3]" /> Detalhou apenas parte dos agendamentos: pontuação proporcional</li>
-                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#16a34a] stroke-[3]" /> Cadastrou com data diferente de amanhã: aquele cadastro vale apenas 50%</li>
-                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#16a34a] stroke-[3]" /> Cliente vendido conta como venda, não como agendamento</li>
-                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#16a34a] stroke-[3]" /> Fechamento do dia anterior fica liberado até 09h30 do dia seguinte</li>
+                <ul className="space-y-1.5 font-semibold text-[#071822]">
+                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#00A89D] stroke-[3]" /> Preencheu os números do dia: 70%</li>
+                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#00A89D] stroke-[3]" /> Detalhou todos os agendamentos para amanhã corretamente: 100%</li>
+                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#00A89D] stroke-[3]" /> Detalhou apenas parte dos agendamentos: pontuação proporcional</li>
+                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#00A89D] stroke-[3]" /> Cadastrou com data diferente de amanhã: aquele cadastro vale apenas 50%</li>
+                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#00A89D] stroke-[3]" /> Cliente vendido conta como venda, não como agendamento</li>
+                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#00A89D] stroke-[3]" /> Fechamento do dia anterior fica liberado até 09h30 do dia seguinte</li>
                 </ul>
-                <p className="italic font-bold text-[#2563eb] mt-3">
+                <p className="italic font-bold text-[#00A89D] mt-3">
                   “Essa regra existe para manter seu funil atualizado e ajudar você, sua liderança e a loja a acompanharem melhor as oportunidades reais de venda.”
                 </p>
               </div>
             </div>
 
             {/* Fixed Footer */}
-            <footer className="px-6 py-4 border-t border-[#eef2f7] flex justify-end bg-[#f8fafc]">
+            <footer className="px-6 py-4 border-t border-[#DFE0E1] flex justify-end bg-[#F7F8F8]">
               <button
                 type="button"
                 onClick={() => setDisciplineModalOpen(false)}
-                className="h-10 px-6 font-bold bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl shadow-sm transition-colors"
+                className="h-10 px-6 font-bold bg-[#00A89D] hover:bg-[#00A89D] text-white rounded-xl shadow-sm transition-colors"
               >
                 Entendi
               </button>
@@ -877,35 +877,35 @@ Confirmar Internet
 
       {confirmFinalizeModalOpen && (
 <div className="fixed inset-0 z-[140] grid place-items-center bg-black/35 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] backdrop-blur-[3px]">
-<div className="flex max-h-[calc(100dvh-2rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] w-full max-w-[min(460px,calc(100vw-2rem))] flex-col overflow-hidden rounded-[18px] border border-[#e5eaf2] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] transition-all animate-in fade-in zoom-in-95 duration-200">
-            <header className="px-6 py-5 border-b border-[#eef2f7] bg-[#f8fafc]">
-              <h2 className="text-lg font-extrabold text-[#111827] uppercase tracking-tight">
+<div className="flex max-h-[calc(100dvh-2rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] w-full max-w-[min(460px,calc(100vw-2rem))] flex-col overflow-hidden rounded-[18px] border border-[#DFE0E1] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] transition-all animate-in fade-in zoom-in-95 duration-200">
+            <header className="px-6 py-5 border-b border-[#DFE0E1] bg-[#F7F8F8]">
+              <h2 className="text-lg font-extrabold text-[#071822] uppercase tracking-tight">
                 Deseja finalizar mesmo assim?
               </h2>
             </header>
-            <div className="p-6 space-y-4 text-sm leading-relaxed text-[#475569]">
+            <div className="p-6 space-y-4 text-sm leading-relaxed text-[#526B7A]">
               <p>
-                Você informou <strong className="text-[#111827]">{totalAgendamentosD1}</strong> Agendamentos D+1, mas detalhou{' '}
-                <strong className="text-[#111827]">{creditosValidos}</strong>. O fechamento poderá ser finalizado normalmente, porém sua pontuação de disciplina será calculada apenas com os agendamentos detalhados.
+                Você informou <strong className="text-[#071822]">{totalAgendamentosD1}</strong> Agendamentos D+1, mas detalhou{' '}
+                <strong className="text-[#071822]">{creditosValidos}</strong>. O fechamento poderá ser finalizado normalmente, porém sua pontuação de disciplina será calculada apenas com os agendamentos detalhados.
               </p>
-              <ul className="space-y-1.5 font-semibold text-[#111827] bg-[#f8fafc] rounded-xl border border-[#e5eaf2] p-4">
+              <ul className="space-y-1.5 font-semibold text-[#071822] bg-[#F7F8F8] rounded-xl border border-[#DFE0E1] p-4">
                 <li>Agendamentos D+1 informados: {totalAgendamentosD1}</li>
                 <li>Agendamentos D+1 detalhados: {creditosValidos}</li>
                 <li>Pontuação estimada de disciplina: {disciplinePercent}%</li>
               </ul>
             </div>
-            <footer className="px-6 py-4 border-t border-[#eef2f7] flex flex-col-reverse gap-2 sm:flex-row sm:justify-end bg-[#f8fafc]">
+            <footer className="px-6 py-4 border-t border-[#DFE0E1] flex flex-col-reverse gap-2 sm:flex-row sm:justify-end bg-[#F7F8F8]">
               <button
                 type="button"
                 onClick={handleVoltarECadastrar}
-                className="h-10 px-6 font-bold text-[#475569] hover:bg-[#f1f5f9] rounded-xl transition-colors"
+                className="h-10 px-6 font-bold text-[#526B7A] hover:bg-[#F7F8F8] rounded-xl transition-colors"
               >
                 Voltar e cadastrar
               </button>
               <button
                 type="button"
                 onClick={handleFinalizarMesmoAssim}
-                className="h-10 px-6 font-bold bg-[#16a34a] hover:bg-[#15803d] text-white rounded-xl shadow-sm transition-colors"
+                className="h-10 px-6 font-bold bg-[#00A89D] hover:bg-[#00A89D] text-white rounded-xl shadow-sm transition-colors"
               >
                 Finalizar mesmo assim
               </button>
@@ -962,8 +962,8 @@ Confirmar Internet
           className={cn(
             "inline-flex w-full shrink-0 items-center justify-center gap-2.5 rounded-full px-6 py-3.5 text-center text-[12px] font-extrabold uppercase tracking-[0.06em] text-white shadow-[0_8px_20px_rgba(22,163,74,0.28)] transition-all sm:w-auto sm:px-8 sm:text-[13px] sm:tracking-[0.08em]",
             saving || submitBlockedByDeadline || editLockedWithoutLiberacao
-              ? "bg-[#94a3b8] cursor-not-allowed shadow-none"
-              : "bg-[#16a34a] hover:bg-[#15803d] active:scale-[0.98]"
+              ? "bg-[#526B7A] cursor-not-allowed shadow-none"
+              : "bg-[#00A89D] hover:bg-[#00A89D] active:scale-[0.98]"
           )}
           >
             {saving ? (
@@ -975,9 +975,9 @@ Confirmar Internet
           </button>
 
           {/* Warning text */}
-          <p className="text-[13px] font-semibold text-[#475569] leading-snug">
+          <p className="text-[13px] font-semibold text-[#526B7A] leading-snug">
             Após finalizar, as informações serão enviadas para sua liderança e{' '}
-            <strong className="font-extrabold text-[#111827]">não poderão mais ser editadas.</strong>
+            <strong className="font-extrabold text-[#071822]">não poderão mais ser editadas.</strong>
           </p>
         </div>
         {/* Hidden Salvar rascunho — mantém contrato de teste (CheckinForm.test.ts) */}
@@ -1009,14 +1009,14 @@ function MetricGroupCard({
   const label = labelParts.join('. ') || title
   const stepTone =
     step === '1'
-      ? 'bg-[#16a34a]'
+      ? 'bg-[#00A89D]'
       : step === '2'
-        ? 'bg-[#f59e0b]'
-        : 'bg-[#2563eb]'
+        ? 'bg-[#F59F0A]'
+        : 'bg-[#00A89D]'
 
   return (
     <Card className="min-w-0 overflow-hidden rounded-[16px] border border-[#dfe7f0] bg-white p-0 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-      <header className="flex min-h-12 items-start gap-2 border-b border-[#eef2f7] px-4 py-3 sm:items-center sm:px-5">
+      <header className="flex min-h-12 items-start gap-2 border-b border-[#DFE0E1] px-4 py-3 sm:items-center sm:px-5">
         <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] font-bold text-white ${stepTone}`}>
           {step}
         </span>
@@ -1025,7 +1025,7 @@ function MetricGroupCard({
         </h2>
         {tooltipText && <InfoTooltip text={tooltipText} />}
       </header>
-      <div className={`grid min-w-0 divide-y divide-[#eef2f7] p-3 sm:divide-y-0 sm:divide-x sm:p-5 ${columns}`}>{children}</div>
+      <div className={`grid min-w-0 divide-y divide-[#DFE0E1] p-3 sm:divide-y-0 sm:divide-x sm:p-5 ${columns}`}>{children}</div>
     </Card>
   )
 }
@@ -1065,10 +1065,10 @@ function MetricCounterCard({
   const inputValue = numberDrafts[field] ?? String(displayValue)
   const iconToneClass =
     tone === 'success'
-      ? 'bg-[#16a34a] text-white'
+      ? 'bg-[#00A89D] text-white'
       : tone === 'info'
-        ? 'bg-[#2563eb] text-white'
-        : 'bg-[#f59e0b] text-white'
+        ? 'bg-[#00A89D] text-white'
+        : 'bg-[#F59F0A] text-white'
 
   const setNext = (next: number) => {
     if (disabled) return
@@ -1108,15 +1108,15 @@ function MetricCounterCard({
     <div
       className={cn(
     "relative flex min-h-[124px] min-w-0 flex-col items-center justify-center gap-2 bg-white px-2 py-4 text-center sm:px-3",
-        fieldErrors[field] && "ring-2 ring-[#ef4444]/20 rounded-xl"
+        fieldErrors[field] && "ring-2 ring-[#EF4343]/20 rounded-xl"
       )}
     >
       <div className="flex items-center gap-1">
-        <span className="text-[13px] font-bold text-[#475569]">
+        <span className="text-[13px] font-bold text-[#526B7A]">
           {label}
         </span>
         {crmBadge && (
-          <span className="inline-flex items-center justify-center rounded-full bg-[#2563eb]/10 px-1.5 py-0.5 text-[9px] font-bold text-[#2563eb] border border-[#2563eb]/20">
+          <span className="inline-flex items-center justify-center rounded-full bg-[#00A89D]/10 px-1.5 py-0.5 text-[9px] font-bold text-[#00A89D] border border-[#00A89D]/20">
             CRM
           </span>
         )}
@@ -1139,29 +1139,29 @@ function MetricCounterCard({
         onBlur={handleBlur}
         onWheel={handleWheel}
         className="
-          h-11 w-20 rounded-xl border border-[#e5eaf2] bg-[#f8fafc] text-center
-          text-[26px] font-extrabold leading-none text-[#111827]
+          h-11 w-20 rounded-xl border border-[#DFE0E1] bg-[#F7F8F8] text-center
+          text-[26px] font-extrabold leading-none text-[#071822]
           outline-none tabular-nums cursor-text transition-all
           [appearance:textfield]
           [&::-webkit-inner-spin-button]:appearance-none
           [&::-webkit-outer-spin-button]:appearance-none
-          hover:border-[#2563eb]/30 hover:bg-[#f1f5f9]
-          focus:border-[#2563eb] focus:bg-white focus:ring-4 focus:ring-[#2563eb]/10
+          hover:border-[#00A89D]/30 hover:bg-[#F7F8F8]
+          focus:border-[#00A89D] focus:bg-white focus:ring-4 focus:ring-[#00A89D]/10
         "
       />
 
-      <div className="mt-1 grid h-8 w-full max-w-[120px] grid-cols-[28px_minmax(0,1fr)_28px] overflow-hidden rounded-lg border border-[#e5eaf2] bg-white shadow-sm transition-all focus-within:border-[#2563eb]/40 focus-within:ring-2 focus-within:ring-[#2563eb]/20">
+      <div className="mt-1 grid h-8 w-full max-w-[120px] grid-cols-[28px_minmax(0,1fr)_28px] overflow-hidden rounded-lg border border-[#DFE0E1] bg-white shadow-sm transition-all focus-within:border-[#00A89D]/40 focus-within:ring-2 focus-within:ring-[#00A89D]/20">
         <button
           type="button"
           aria-label={`Diminuir ${label}`}
           disabled={disabled || (Number(form[field]) <= 0 && displayValue <= 0)}
           onClick={() => setNext(displayValue - 1)}
-          className="grid h-full w-full place-items-center bg-[#f8fafc] text-[#475569] hover:bg-[#ef4444]/10 hover:text-[#ef4444] disabled:opacity-40 border-r border-[#e5eaf2] transition-colors"
+          className="grid h-full w-full place-items-center bg-[#F7F8F8] text-[#526B7A] hover:bg-[#EF4343]/10 hover:text-[#EF4343] disabled:opacity-40 border-r border-[#DFE0E1] transition-colors"
         >
           <Minus size={13} />
         </button>
 
-        <span className="grid place-items-center text-[14px] font-extrabold tabular-nums text-[#111827] bg-[#f8fafc]">
+        <span className="grid place-items-center text-[14px] font-extrabold tabular-nums text-[#071822] bg-[#F7F8F8]">
           {displayValue}
         </span>
 
@@ -1170,7 +1170,7 @@ function MetricCounterCard({
           aria-label={`Aumentar ${label}`}
           disabled={disabled || displayValue >= CHECKIN_MAX_INPUT_VALUE}
           onClick={() => setNext(displayValue + 1)}
-          className="grid h-full w-full place-items-center bg-[#f8fafc] text-[#475569] hover:bg-[#16a34a]/10 hover:text-[#16a34a] disabled:opacity-40 border-l border-[#e5eaf2] transition-colors"
+          className="grid h-full w-full place-items-center bg-[#F7F8F8] text-[#526B7A] hover:bg-[#00A89D]/10 hover:text-[#00A89D] disabled:opacity-40 border-l border-[#DFE0E1] transition-colors"
         >
           <Plus size={13} />
         </button>
@@ -1198,17 +1198,17 @@ function ResumoItem({
 }) {
   const iconClass =
     tone === 'success'
-      ? 'bg-[#ecfdf5] text-[#16a34a] border border-[#bbf7d0]'
+      ? 'bg-[#ecfdf5] text-[#00A89D] border border-[#bbf7d0]'
       : tone === 'info'
-        ? 'bg-[#eff6ff] text-[#2563eb] border border-[#bfdbfe]'
-        : 'bg-[#fffbeb] text-[#f59e0b] border border-[#fef3c7]'
+        ? 'bg-[#E8F3F2] text-[#00A89D] border border-[#bfdbfe]'
+        : 'bg-[#FFF7E6] text-[#F59F0A] border border-[#FFF7E6]'
 
   return (
-    <div className="grid min-h-[88px] place-items-center rounded-xl border border-[#eef2f7] bg-white p-3 text-center shadow-sm">
-      <span className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-wider">
+    <div className="grid min-h-[88px] place-items-center rounded-xl border border-[#DFE0E1] bg-white p-3 text-center shadow-sm">
+      <span className="text-[10px] font-bold text-[#526B7A] uppercase tracking-wider">
         {label}
       </span>
-      <span className={`max-w-full font-extrabold text-[#111827] tabular-nums ${value.length > 7 ? 'text-xs' : 'text-[17px]'}`}>
+      <span className={`max-w-full font-extrabold text-[#071822] tabular-nums ${value.length > 7 ? 'text-xs' : 'text-[17px]'}`}>
         {value}
       </span>
       <span className={cn("grid h-7 w-7 place-items-center rounded-full", iconClass)}>

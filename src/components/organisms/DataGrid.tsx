@@ -1,10 +1,11 @@
 import { ReactNode, memo } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
+import { AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
 import { Skeleton } from '@/components/atoms/Skeleton'
 import { SearchX } from 'lucide-react'
+import { MotionList, MotionRow, rowVariants } from '@/design/motion'
 
 export interface Column<T> {
   key: string
@@ -96,13 +97,15 @@ function DataGridInner<T extends { id: string | number }>({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-border-default bg-white">
+          <MotionList as="tbody" className="divide-y divide-border-default bg-white">
             <AnimatePresence mode="popLayout">
               {data.map((item, idx) => (
-                <motion.tr 
+                <MotionRow
+                  as="tr"
                   key={item.id}
                   layout
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  variants={rowVariants}
+                  exit={{ opacity: 0, transition: { duration: 0.12 } }}
                   onClick={() => onRowClick?.(item)}
                   className={cn(
                     "group transition-colors hover:bg-surface-alt/30 h-mx-20",
@@ -121,21 +124,22 @@ function DataGridInner<T extends { id: string | number }>({
                       {col.render ? col.render(item, idx) : getCellValue(item, col.key)}
                     </td>
                   ))}
-                </motion.tr>
+                </MotionRow>
               ))}
             </AnimatePresence>
-          </tbody>
+          </MotionList>
         </table>
       </div>
 
       {/* Mobile Card View */}
-      <div className="md:hidden space-y-mx-md pb-mx-24">
+      <MotionList className="md:hidden space-y-mx-md pb-mx-24">
         <AnimatePresence mode="popLayout">
           {data.map((item, idx) => (
-            <motion.div
+            <MotionRow
               key={item.id}
               layout
-              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
+              variants={rowVariants}
+              exit={{ opacity: 0, y: 6, transition: { duration: 0.12 } }}
               onClick={() => onRowClick?.(item)}
             >
               <Card className={cn(
@@ -162,10 +166,10 @@ function DataGridInner<T extends { id: string | number }>({
                   ))}
                 </div>
               </Card>
-            </motion.div>
+            </MotionRow>
           ))}
         </AnimatePresence>
-      </div>
+      </MotionList>
     </div>
   )
 }

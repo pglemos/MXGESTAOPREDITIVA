@@ -463,7 +463,7 @@ function EngagementMetric({ label, value, icon, accent = 'info' }: { label: stri
     info: { iconBg: 'bg-[var(--color-status-info-surface)]', iconText: 'text-status-info', bar: 'bg-status-info' },
     success: { iconBg: 'bg-[var(--color-status-success-surface)]', iconText: 'text-status-success', bar: 'bg-status-success' },
     warning: { iconBg: 'bg-[var(--color-status-warning-surface)]', iconText: 'text-status-warning', bar: 'bg-status-warning' },
-    teal: { iconBg: 'bg-cyan-50', iconText: 'text-cyan-600', bar: 'bg-cyan-500' },
+    teal: { iconBg: 'bg-secondary', iconText: 'text-brand-primary', bar: 'bg-brand-primary' },
     brand: { iconBg: 'bg-[var(--color-brand-primary)]/10', iconText: 'text-brand-primary', bar: 'bg-brand-primary' },
   }
   const styles = accentClasses[accent]
@@ -648,7 +648,7 @@ function gaugeGradient(tone: ManagerTone, value: number) {
 function medalTone(index: number) {
   if (index === 0) return 'border-status-warning/30 text-status-warning'
   if (index === 1) return 'border-text-tertiary/30 text-text-tertiary'
-  return 'border-status-warning/20 text-amber-700'
+  return 'border-status-warning/20 text-status-warning'
 }
 
 function scoreLabel(score: number) {

@@ -147,7 +147,7 @@ export default function AiDiagnostics() {
                                         log.type === 'error' ? 'text-status-error' : 
                                         log.type === 'warning' ? 'text-status-warning' : 
                                         log.type === 'success' ? 'text-status-success' : 
-                                        'text-indigo-300'
+                                        'text-sidebar-foreground'
                                     )}>{log.msg}</Typography>
                                 </div>
                             ))}

@@ -35,13 +35,13 @@ export function VisitReportTemplate({ client, visit, headerBase, quantData }: Pr
 
   // Estilos inline para máxima compatibilidade com html2canvas (evitando oklab)
   const colors = {
-    primary: '#0D3B2E',
-    secondary: '#22C55E',
+    primary: '#071822',
+    secondary: '#00A89D',
     warning: '#FACC15',
-    danger: '#EF4444',
+    danger: '#EF4343',
     textMuted: '#6B7280',
     bgLight: '#F9FAFB',
-    border: '#E5E7EB'
+    border: '#DFE0E1'
   }
 
   return (
@@ -117,7 +117,7 @@ export function VisitReportTemplate({ client, visit, headerBase, quantData }: Pr
       {/* Objetivo do Próximo Ciclo */}
       <section style={{ marginBottom: '30px', pageBreakInside: 'avoid' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-          <div style={{ width: '6px', height: '24px', backgroundColor: '#F59E0B', borderRadius: '999px' }} />
+          <div style={{ width: '6px', height: '24px', backgroundColor: '#F59F0A', borderRadius: '999px' }} />
           <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#000000', margin: 0 }}>Objetivo do Próximo Ciclo (30 dias)</h3>
         </div>
         <div style={{ padding: '24px', border: `1px solid #FED7AA`, borderRadius: '16px', backgroundColor: '#FFF7ED', fontSize: '14px', fontWeight: 'bold', lineHeight: '1.6', color: '#000000' }}>

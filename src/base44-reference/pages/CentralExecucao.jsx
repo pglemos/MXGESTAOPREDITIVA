@@ -62,7 +62,7 @@ export default function CentralExecucao() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-[#005BFF] rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-[#DFE0E1] border-t-[#00A89D] rounded-full animate-spin" />
       </div>
     );
   }
@@ -73,19 +73,18 @@ export default function CentralExecucao() {
       <MxPageHeader
         className="-mx-mx-sm sm:-mx-mx-md 2xl:-mx-mx-lg sticky top-0 z-30"
         title="Central de Execução"
-        subtitle="Organize e execute seu dia com foco"
         chip={
           <>
-            <CalendarDays size={14} className="text-[#2563eb]" />
+            <CalendarDays size={14} className="text-[#00A89D]" />
             <span className="capitalize">{moment().format("dddd")}</span>
-            <span className="text-[#94a3b8] font-bold">•</span>
-            <span className="text-[#64748B]">{moment().format("DD [de] MMMM [de] YYYY")}</span>
+            <span className="text-[#526B7A] font-bold">•</span>
+            <span className="text-[#526B7A]">{moment().format("DD [de] MMMM [de] YYYY")}</span>
           </>
         }
       />
 
       {/* Tabs */}
-      <div className="bg-white border-b border-[#E5E7EB] sticky top-[60px] md:top-[80px] z-20 -mx-mx-sm sm:-mx-mx-md 2xl:-mx-mx-lg px-mx-sm sm:px-mx-md 2xl:px-mx-lg">
+      <div className="bg-white border-b border-[#DFE0E1] sticky top-[60px] md:top-[80px] z-20 -mx-mx-sm sm:-mx-mx-md 2xl:-mx-mx-lg px-mx-sm sm:px-mx-md 2xl:px-mx-lg">
         <div className="flex gap-0">
           {TABS.map(t => (
             <button
@@ -93,8 +92,8 @@ export default function CentralExecucao() {
               onClick={() => setTab(t.id)}
               className={`px-5 py-3.5 text-[13px] font-bold transition-all border-b-2 ${
                 tab === t.id
-                  ? "text-[#005BFF] border-[#005BFF] bg-white"
-                  : "text-slate-400 border-transparent hover:text-slate-600"
+                  ? "text-[#00A89D] border-[#00A89D] bg-white"
+                  : "text-[#526B7A] border-transparent hover:text-[#526B7A]"
               }`}
             >
               {t.label}
@@ -104,7 +103,7 @@ export default function CentralExecucao() {
       </div>
 
       {/* Content */}
-      <div className="max-w-[1280px] mx-auto py-6">
+      <div className="py-6">
         {tab === "hoje" ? (
           <AbaHoje
             clients={clients}

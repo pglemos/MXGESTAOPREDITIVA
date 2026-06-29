@@ -1,44 +1,60 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { Info } from "lucide-react";
 
 export default function InfoTooltip({ text }) {
   const [visible, setVisible] = useState(false);
   const ref = useRef(null);
+  const tooltipId = useId();
 
   useEffect(() => {
-    if (!visible) return;
-    const handleClick = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setVisible(false);
+    if (!visible) return undefined;
+
+    const handleClick = (event) => {
+      if (ref.current && !ref.current.contains(event.target)) setVisible(false);
     };
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") setVisible(false);
+    };
+
     document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, [visible]);
 
+  const rect = ref.current?.getBoundingClientRect();
+
   return (
-    <div ref={ref} className="relative inline-flex items-center">
+    <span ref={ref} className="relative inline-flex items-center">
       <button
         type="button"
         onMouseEnter={() => setVisible(true)}
         onMouseLeave={() => setVisible(false)}
-        onClick={() => setVisible(v => !v)}
-        className="text-slate-300 hover:text-[#005BFF] transition-colors focus:outline-none"
+        onFocus={() => setVisible(true)}
+        onBlur={() => setVisible(false)}
+        onClick={() => setVisible((current) => !current)}
+        className="rounded-full text-mx-muted transition-colors duration-[120ms] hover:text-mx-teal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mx-action"
         aria-label="Mais informações"
+        aria-describedby={visible ? tooltipId : undefined}
       >
-        <Info className="w-3.5 h-3.5" />
+        <Info className="h-3.5 w-3.5" aria-hidden="true" />
       </button>
-
       {visible && (
-        <div
-          className="fixed z-[9999] w-[280px] bg-white border border-slate-200 rounded-xl shadow-xl px-3.5 py-3"
+        <span
+          id={tooltipId}
+          role="tooltip"
+          className="fixed z-[9999] w-[280px] rounded-[12px] border border-mx-border bg-white px-3.5 py-3 text-left text-[12px] leading-relaxed text-mx-muted shadow-popover"
           style={{
-            fontFamily: "Inter, sans-serif",
-            top: ref.current ? ref.current.getBoundingClientRect().bottom + 6 : 0,
-            left: ref.current ? Math.min(ref.current.getBoundingClientRect().left, window.innerWidth - 296) : 0,
+            top: rect ? rect.bottom + 6 : 0,
+            left: rect ? Math.min(rect.left, window.innerWidth - 296) : 0,
           }}
         >
-          <p className="text-[12px] text-slate-600 leading-relaxed">{text}</p>
-        </div>
+          {text}
+        </span>
       )}
-    </div>
+    </span>
   );
 }

@@ -1,29 +1,47 @@
 import React from "react";
 
-export default function StatCard({ label, value, sublabel, icon: Icon, color = "blue", children }) {
-  const colorMap = {
-    blue: "bg-mx-blue-light text-mx-blue",
-    green: "bg-mx-green-light text-mx-green",
-    amber: "bg-mx-amber-light text-mx-amber",
-    red: "bg-mx-red-light text-mx-red",
-    navy: "bg-slate-100 text-mx-navy",
-  };
+import { KpiCard } from "@/design/components";
+
+const toneMap = {
+  blue: "action",
+  brand: "teal",
+  green: "success",
+  success: "success",
+  amber: "warning",
+  orange: "warning",
+  warning: "warning",
+  red: "danger",
+  danger: "danger",
+  navy: "neutral",
+  muted: "neutral",
+  neutral: "neutral",
+};
+
+export default function StatCard({
+  label,
+  value,
+  sublabel,
+  icon,
+  color,
+  tone,
+  children,
+  active,
+  onClick,
+}) {
+  const Icon = typeof icon === "function" ? icon : null;
+  const iconNode = Icon ? <Icon className="h-5 w-5" aria-hidden="true" /> : icon;
 
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition-shadow duration-300">
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">{label}</p>
-          <p className="text-3xl font-bold text-mx-navy">{value}</p>
-          {sublabel && <p className="text-xs text-slate-400">{sublabel}</p>}
-        </div>
-        {Icon && (
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${colorMap[color] || colorMap.blue}`}>
-            <Icon className="w-5 h-5" />
-          </div>
-        )}
-      </div>
-      {children && <div className="mt-3">{children}</div>}
-    </div>
+    <KpiCard
+      label={label}
+      value={value}
+      sublabel={sublabel}
+      icon={iconNode}
+      tone={toneMap[tone || color] || "action"}
+      active={active}
+      onClick={onClick}
+    >
+      {children}
+    </KpiCard>
   );
 }

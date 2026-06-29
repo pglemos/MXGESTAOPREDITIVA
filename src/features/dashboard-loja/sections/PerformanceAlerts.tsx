@@ -185,9 +185,9 @@ export function usePerformanceAlerts({
     const total = metrics.totalSales
 
     return [
-      { label: 'Porta (Showroom)', color: 'bg-emerald-500', pct: total > 0 ? Math.round((porta / total) * 100) : 0, tone: 'success' as ChannelTone },
-      { label: 'Carteira (Ativo)', color: 'bg-blue-500', pct: total > 0 ? Math.round((carteira / total) * 100) : 0, tone: 'info' as ChannelTone },
-      { label: 'Digital (Leads)', color: 'bg-indigo-500', pct: total > 0 ? Math.round((digital / total) * 100) : 0, tone: 'brand' as ChannelTone },
+      { label: 'Porta (Showroom)', color: 'bg-brand-primary', pct: total > 0 ? Math.round((porta / total) * 100) : 0, tone: 'success' as ChannelTone },
+      { label: 'Carteira (Ativo)', color: 'bg-brand-primary', pct: total > 0 ? Math.round((carteira / total) * 100) : 0, tone: 'info' as ChannelTone },
+      { label: 'Digital (Leads)', color: 'bg-brand-primary', pct: total > 0 ? Math.round((digital / total) * 100) : 0, tone: 'brand' as ChannelTone },
     ]
   }, [checkins, metrics.totalSales])
 

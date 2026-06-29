@@ -225,16 +225,16 @@ function sumRows(rows: AdjustmentRow[], field: AdjustmentField, key: 'currentVal
 }
 
 function deltaClass(delta: number) {
-  if (delta > 0) return 'text-[#16a34a]'
-  if (delta < 0) return 'text-[#ef4444]'
-  return 'text-[#94a3b8]'
+  if (delta > 0) return 'text-[#00A89D]'
+  if (delta < 0) return 'text-[#EF4343]'
+  return 'text-[#526B7A]'
 }
 
 function StatusPill({ tone, children }: { tone: 'success' | 'warning' | 'info'; children: string }) {
   const toneClass: Record<typeof tone, string> = {
-    success: 'border-[#bbf7d0] bg-[#ecfdf5] text-[#16a34a]',
-    warning: 'border-[#fde68a] bg-[#fffbeb] text-[#b45309]',
-    info: 'border-[#bfdbfe] bg-[#eff6ff] text-[#2563eb]',
+    success: 'border-[#bbf7d0] bg-[#ecfdf5] text-[#00A89D]',
+    warning: 'border-[#FFF7E6] bg-[#FFF7E6] text-[#F59F0A]',
+    info: 'border-[#bfdbfe] bg-[#E8F3F2] text-[#00A89D]',
   }
   return (
     <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-bold ${toneClass[tone]}`}>
@@ -365,16 +365,16 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
   return (
     <div className="mt-6 grid w-full gap-6 pb-16">
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
-        <Card className="rounded-[18px] border border-[#dfe7f0] border-l-4 border-l-[#2563eb] bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+        <Card className="rounded-[18px] border border-[#dfe7f0] border-l-4 border-l-[#00A89D] bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
           <div className="flex items-center gap-4">
-            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-[#eff6ff] text-[#2563eb]">
+            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-[#E8F3F2] text-[#00A89D]">
               <Clock3 size={26} />
             </div>
             <div>
-              <Typography variant="h2" className="text-xl font-black text-[#111827]">
+              <Typography variant="h2" className="text-xl font-black text-[#071822]">
                 CORREÇÕES DISPONÍVEIS ATÉ 09:45
               </Typography>
-              <Typography variant="p" className="mt-1 text-sm font-semibold text-[#64748b]">
+              <Typography variant="p" className="mt-1 text-sm font-semibold text-[#526B7A]">
                 Ajuste apenas informações já registradas no fechamento diário.
               </Typography>
             </div>
@@ -383,14 +383,14 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
 
         <Card className="rounded-[18px] border border-[#dfe7f0] bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
           <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-full bg-[#ecfdf5] text-[#16a34a]">
+            <div className="grid h-10 w-10 place-items-center rounded-full bg-[#ecfdf5] text-[#00A89D]">
               <Clock3 size={20} />
             </div>
             <div>
-              <Typography variant="caption" className="text-[10px] font-extrabold uppercase text-[#94a3b8] tracking-wider">
+              <Typography variant="caption" className="text-[10px] font-extrabold uppercase text-[#526B7A] tracking-wider">
                 Prazo restante
               </Typography>
-              <div className="text-xl font-bold text-[#16a34a] tabular-nums">00:14:32</div>
+              <div className="text-xl font-bold text-[#00A89D] tabular-nums">00:14:32</div>
             </div>
           </div>
         </Card>
@@ -399,7 +399,7 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
         <div className="space-y-6">
           <Card className="rounded-[18px] border border-[#dfe7f0] bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-            <Typography variant="h2" className="text-sm font-extrabold uppercase tracking-wider text-[#334155] border-b border-[#eef2f7] pb-3">
+            <Typography variant="h2" className="text-sm font-extrabold uppercase tracking-wider text-[#334155] border-b border-[#DFE0E1] pb-3">
               1. Itens para ajuste
             </Typography>
             <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
@@ -423,12 +423,12 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
           </Card>
 
           <Card className="rounded-[18px] border border-[#dfe7f0] bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-            <div className="mb-4 flex items-center justify-between border-b border-[#eef2f7] pb-3">
+            <div className="mb-4 flex items-center justify-between border-b border-[#DFE0E1] pb-3">
               <Typography variant="h2" className="text-sm font-extrabold uppercase tracking-wider text-[#334155]">
                 2. Detalhamento dos ajustes
               </Typography>
             </div>
-            <div className="overflow-x-auto rounded-xl border border-[#e5eaf2]">
+            <div className="overflow-x-auto rounded-xl border border-[#DFE0E1]">
               <table className="w-full table-fixed text-left text-[13px]">
                 <colgroup>
                   <col className="w-[15%]" />
@@ -440,7 +440,7 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
                   <col className="w-[9%]" />
                   <col className="w-[6%]" />
                 </colgroup>
-                <thead className="bg-[#f8fafc] text-[11px] uppercase tracking-wider text-[#475569] border-b border-[#e5eaf2]">
+                <thead className="bg-[#F7F8F8] text-[11px] uppercase tracking-wider text-[#526B7A] border-b border-[#DFE0E1]">
                   <tr>
                     {['Campo', 'Canal', 'Valor Atual', 'Novo Valor', 'Motivo do Ajuste', 'Observação', 'Status', ''].map(column => (
                       <th scope="col" key={column} className="px-4 py-3.5 font-extrabold">
@@ -452,20 +452,20 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
                 <tbody>
                   {rows.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-5 py-8 text-center text-sm font-semibold text-[#64748b] bg-white">
+                      <td colSpan={8} className="px-5 py-8 text-center text-sm font-semibold text-[#526B7A] bg-white">
                         Nenhum item disponível para ajuste técnico.
                       </td>
                     </tr>
                   ) : (
                     rows.map(row => (
-                      <tr key={row.id} className="border-t border-[#eef2f7] hover:bg-[#f8fafc] transition-colors align-top">
-                        <td className="px-4 py-3.5 font-bold text-[#111827] leading-tight">
+                      <tr key={row.id} className="border-t border-[#DFE0E1] hover:bg-[#F7F8F8] transition-colors align-top">
+                        <td className="px-4 py-3.5 font-bold text-[#071822] leading-tight">
                           {row.field}
                         </td>
                         <td className="px-4 py-3.5">
                           <ChannelBadge channel={row.channel} />
                         </td>
-                        <td className="px-4 py-3.5 font-bold text-[#111827] tabular-nums">{row.currentValue}</td>
+                        <td className="px-4 py-3.5 font-bold text-[#071822] tabular-nums">{row.currentValue}</td>
                         <td className="px-4 py-2">
                           <input
                             type="number"
@@ -474,10 +474,10 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
                             value={row.newValue}
                             onChange={event => updateRow(row.id, { newValue: Math.max(0, Number(event.target.value)) })}
                             className={cn(
-                              'h-10 w-20 rounded-xl border px-2 text-center text-[13px] font-bold tabular-nums outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10',
+                              'h-10 w-20 rounded-xl border px-2 text-center text-[13px] font-bold tabular-nums outline-none transition focus:border-[#00A89D] focus:ring-4 focus:ring-[#00A89D]/10',
                               row.newValue !== row.currentValue
-                                ? 'border-[#16a34a] bg-[#ecfdf5] text-[#16a34a]'
-                                : 'border-[#e5eaf2] bg-white text-[#111827]',
+                                ? 'border-[#00A89D] bg-[#ecfdf5] text-[#00A89D]'
+                                : 'border-[#DFE0E1] bg-white text-[#071822]',
                             )}
                           />
                         </td>
@@ -486,7 +486,7 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
                             disabled={!canEditExisting}
                             value={row.reason}
                             onChange={event => updateRow(row.id, { reason: event.target.value })}
-                            className="h-10 w-full min-w-0 rounded-xl border border-[#e5eaf2] bg-white px-3 text-[13px] font-semibold text-[#111827] outline-none transition focus:border-[#2563eb]"
+                            className="h-10 w-full min-w-0 rounded-xl border border-[#DFE0E1] bg-white px-3 text-[13px] font-semibold text-[#071822] outline-none transition focus:border-[#00A89D]"
                           >
                             <option value="">Selecione</option>
                             {ADJUSTMENT_REASONS.map(reason => (
@@ -502,7 +502,7 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
                             value={row.note}
                             onChange={event => updateRow(row.id, { note: event.target.value })}
                             placeholder="Digite uma observação"
-                            className="h-10 w-full min-w-0 rounded-xl border border-[#e5eaf2] bg-white px-3 text-[13px] font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] placeholder:text-[#94a3b8]"
+                            className="h-10 w-full min-w-0 rounded-xl border border-[#DFE0E1] bg-white px-3 text-[13px] font-semibold text-[#071822] outline-none transition focus:border-[#00A89D] placeholder:text-[#526B7A]"
                           />
                         </td>
                         <td className="px-4 py-3.5">
@@ -513,7 +513,7 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
                             type="button"
                             onClick={() => removeRow(row.id)}
                             disabled={!canEditExisting}
-                            className="grid h-8 w-8 place-items-center rounded-lg bg-slate-100 text-slate-500 hover:bg-[#fef2f2] hover:text-[#ef4444] transition-colors disabled:opacity-40"
+                            className="grid h-8 w-8 place-items-center rounded-lg bg-[#DFE0E1] text-[#526B7A] hover:bg-[#fef2f2] hover:text-[#EF4343] transition-colors disabled:opacity-40"
                             title="Remover ajuste"
                           >
                             <Trash2 size={14} />
@@ -529,24 +529,24 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
               type="button"
               onClick={addRow}
               disabled={!canEditExisting}
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#e5eaf2] bg-white px-4 text-xs font-bold text-[#475569] transition-all hover:border-[#bfdbfe] hover:bg-[#eff6ff] hover:text-[#2563eb] mt-4"
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#DFE0E1] bg-white px-4 text-xs font-bold text-[#526B7A] transition-all hover:border-[#bfdbfe] hover:bg-[#E8F3F2] hover:text-[#00A89D] mt-4"
             >
               <Plus size={14} /> Adicionar ajuste
             </button>
             {validationError && (
-              <Typography variant="p" className="mt-3 text-sm font-bold text-[#ef4444]">
+              <Typography variant="p" className="mt-3 text-sm font-bold text-[#EF4343]">
                 {validationError}
               </Typography>
             )}
           </Card>
 
           <Card className="rounded-[18px] border border-[#dfe7f0] bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-            <Typography variant="h2" className="mb-4 text-sm font-extrabold uppercase tracking-wider text-[#334155] border-b border-[#eef2f7] pb-3">
+            <Typography variant="h2" className="mb-4 text-sm font-extrabold uppercase tracking-wider text-[#334155] border-b border-[#DFE0E1] pb-3">
               3. Histórico de ajustes
             </Typography>
-            <div className="overflow-x-auto rounded-xl border border-[#e5eaf2]">
+            <div className="overflow-x-auto rounded-xl border border-[#DFE0E1]">
               <table className="w-full min-w-[880px] text-left text-[13px]">
-                <thead className="bg-[#f8fafc] text-[11px] uppercase tracking-wider text-[#475569] border-b border-[#e5eaf2]">
+                <thead className="bg-[#F7F8F8] text-[11px] uppercase tracking-wider text-[#526B7A] border-b border-[#DFE0E1]">
                   <tr>
                     {['Data/Hora', 'Usuário', 'Campo Ajustado', 'Canal', 'De', 'Para', 'Motivo', 'Status'].map(column => (
                       <th scope="col" key={column} className="px-4 py-3.5 font-extrabold">
@@ -558,24 +558,24 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
                 <tbody>
                   {historyRows.length === 0 && SAMPLE_HISTORY.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-5 py-8 text-center text-sm font-semibold text-[#64748b] bg-white">
+                      <td colSpan={8} className="px-5 py-8 text-center text-sm font-semibold text-[#526B7A] bg-white">
                         Nenhum histórico de ajuste técnico encontrado.
                       </td>
                     </tr>
                   ) : (
                     [...historyRows, ...SAMPLE_HISTORY].map((row, index) => (
-                      <tr key={`${row.id}-${index}`} className="h-[52px] border-t border-[#eef2f7] hover:bg-[#f8fafc] transition-colors">
-                        <td className="px-4 py-3.5 text-[#475569]">
+                      <tr key={`${row.id}-${index}`} className="h-[52px] border-t border-[#DFE0E1] hover:bg-[#F7F8F8] transition-colors">
+                        <td className="px-4 py-3.5 text-[#526B7A]">
                           {index < historyRows.length ? '16/06/2026 08:51' : SAMPLE_HISTORY_DATES[index - historyRows.length]}
                         </td>
-                        <td className="px-4 py-3.5 font-semibold text-[#111827]">Vendedor MX Consultoria 1</td>
-                        <td className="px-4 py-3.5 font-semibold text-[#111827]">{row.field}</td>
+                        <td className="px-4 py-3.5 font-semibold text-[#071822]">Vendedor MX Consultoria 1</td>
+                        <td className="px-4 py-3.5 font-semibold text-[#071822]">{row.field}</td>
                         <td className="px-4 py-3.5">
                           <ChannelBadge channel={row.channel} />
                         </td>
-                        <td className="px-4 py-3.5 font-bold text-[#475569] tabular-nums">{row.currentValue}</td>
-                        <td className="px-4 py-3.5 font-bold text-[#111827] tabular-nums">{row.newValue}</td>
-                        <td className="px-4 py-3.5 text-[#475569]">{row.reason || 'Ajuste de contagem'}</td>
+                        <td className="px-4 py-3.5 font-bold text-[#526B7A] tabular-nums">{row.currentValue}</td>
+                        <td className="px-4 py-3.5 font-bold text-[#071822] tabular-nums">{row.newValue}</td>
+                        <td className="px-4 py-3.5 text-[#526B7A]">{row.reason || 'Ajuste de contagem'}</td>
                         <td className="px-4 py-3.5">
                           <StatusBadge status={row.status} />
                         </td>
@@ -587,7 +587,7 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
             </div>
             <button
               type="button"
-              className="mx-auto mt-5 flex h-9 items-center justify-center rounded-lg border border-[#e5eaf2] bg-white px-4 text-xs font-bold text-[#475569] hover:bg-[#f8fafc] transition-all"
+              className="mx-auto mt-5 flex h-9 items-center justify-center rounded-lg border border-[#DFE0E1] bg-white px-4 text-xs font-bold text-[#526B7A] hover:bg-[#F7F8F8] transition-all"
             >
               Ver histórico completo
             </button>
@@ -606,7 +606,7 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
             type="button"
             onClick={resetRows}
             disabled={saving}
-            className="h-12 rounded-xl border border-[#e5eaf2] bg-white text-sm font-bold text-[#475569] hover:bg-[#f8fafc] transition-all flex items-center justify-center gap-2"
+            className="h-12 rounded-xl border border-[#DFE0E1] bg-white text-sm font-bold text-[#526B7A] hover:bg-[#F7F8F8] transition-all flex items-center justify-center gap-2"
           >
             <RotateCcw size={18} /> Cancelar
           </button>
@@ -614,13 +614,13 @@ export function CheckinAdjustmentTab({ ctx }: CheckinAdjustmentTabProps) {
             type="button"
             onClick={saveAdjustments}
             disabled={saving || !canEditExisting}
-            className="h-12 rounded-xl bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-sm font-bold uppercase tracking-wider shadow-[0_10px_20px_rgba(37,99,235,0.22)] transition-all flex items-center justify-center gap-2 disabled:bg-[#94a3b8]"
+            className="h-12 rounded-xl bg-[#00A89D] hover:bg-[#00A89D] text-white text-sm font-bold uppercase tracking-wider shadow-[0_10px_20px_rgba(0,168,157,0.22)] transition-all flex items-center justify-center gap-2 disabled:bg-[#526B7A]"
           >
             <Save size={18} /> {saving ? 'Salvando...' : 'Salvar ajustes técnicos'}
           </button>
         </div>
-        <Typography variant="p" className="mt-4 flex items-center justify-center gap-1.5 text-xs font-semibold text-[#64748b]">
-          <ShieldCheck size={14} className="text-[#16a34a]" /> Todos os ajustes são registrados e visíveis para a liderança.
+        <Typography variant="p" className="mt-4 flex items-center justify-center gap-1.5 text-xs font-semibold text-[#526B7A]">
+          <ShieldCheck size={14} className="text-[#00A89D]" /> Todos os ajustes são registrados e visíveis para a liderança.
         </Typography>
       </div>
     </div>
@@ -648,17 +648,17 @@ function AdjustmentSummaryCard({
 }) {
   const iconClass =
     tone === 'success'
-      ? 'bg-[#ecfdf5] text-[#16a34a]'
+      ? 'bg-[#ecfdf5] text-[#00A89D]'
       : tone === 'info'
-        ? 'bg-[#eff6ff] text-[#2563eb]'
-        : 'bg-[#fffbeb] text-[#f59e0b]'
+        ? 'bg-[#E8F3F2] text-[#00A89D]'
+        : 'bg-[#FFF7E6] text-[#F59F0A]'
   const changed = before !== after
 
   return (
     <div
       className={cn(
         'flex flex-col gap-3 rounded-xl border p-4 shadow-[0_6px_18px_rgba(15,23,42,0.035)] transition-all',
-        changed ? 'border-[#16a34a] bg-[#ecfdf5]/30 ring-2 ring-[#16a34a]/10' : 'border-[#e5eaf2] bg-white',
+        changed ? 'border-[#00A89D] bg-[#ecfdf5]/30 ring-2 ring-[#00A89D]/10' : 'border-[#DFE0E1] bg-white',
       )}
     >
       <div className="flex items-center justify-between gap-2">
@@ -666,21 +666,21 @@ function AdjustmentSummaryCard({
           <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full ${iconClass}`}>
             <Icon size={16} />
           </span>
-          <Typography variant="h3" className="text-xs font-extrabold uppercase text-[#475569] tracking-wider">
+          <Typography variant="h3" className="text-xs font-extrabold uppercase text-[#526B7A] tracking-wider">
             {field}
           </Typography>
         </div>
         {changed && <StatusPill tone="success">Alterado</StatusPill>}
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <div className="rounded-lg bg-[#f8fafc] px-3 py-2">
-          <Typography variant="caption" className="text-[9px] font-extrabold uppercase text-[#94a3b8] tracking-wider normal-case">
+        <div className="rounded-lg bg-[#F7F8F8] px-3 py-2">
+          <Typography variant="caption" className="text-[9px] font-extrabold uppercase text-[#526B7A] tracking-wider normal-case">
             Atual
           </Typography>
-          <div className="text-lg font-bold text-[#111827] tabular-nums">{before}</div>
+          <div className="text-lg font-bold text-[#071822] tabular-nums">{before}</div>
         </div>
-        <div className="rounded-lg bg-[#f8fafc] px-3 py-2">
-          <Typography variant="caption" className="text-[9px] font-extrabold uppercase text-[#94a3b8] tracking-wider normal-case">
+        <div className="rounded-lg bg-[#F7F8F8] px-3 py-2">
+          <Typography variant="caption" className="text-[9px] font-extrabold uppercase text-[#526B7A] tracking-wider normal-case">
             Novo
           </Typography>
           <div className="grid h-7 grid-cols-[20px_1fr_20px] items-center">
@@ -688,16 +688,16 @@ function AdjustmentSummaryCard({
               type="button"
               disabled={disabled}
               onClick={onMinus}
-              className="grid place-items-center text-sm font-bold text-[#475569] hover:text-[#ef4444] disabled:opacity-40 transition-colors"
+              className="grid place-items-center text-sm font-bold text-[#526B7A] hover:text-[#EF4343] disabled:opacity-40 transition-colors"
             >
               -
             </button>
-            <span className="text-center text-lg font-bold text-[#111827] tabular-nums">{after}</span>
+            <span className="text-center text-lg font-bold text-[#071822] tabular-nums">{after}</span>
             <button
               type="button"
               disabled={disabled}
               onClick={onPlus}
-              className="grid place-items-center text-sm font-bold text-[#475569] hover:text-[#16a34a] disabled:opacity-40 transition-colors"
+              className="grid place-items-center text-sm font-bold text-[#526B7A] hover:text-[#00A89D] disabled:opacity-40 transition-colors"
             >
               +
             </button>
@@ -711,11 +711,11 @@ function AdjustmentSummaryCard({
 function RulesCard() {
   return (
     <Card className="rounded-[18px] border border-[#dfe7f0] bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-      <header className="mb-4 flex items-center gap-3 border-b border-[#eef2f7] pb-3">
-        <div className="grid h-10 w-10 place-items-center rounded-full bg-[#eff6ff] text-[#2563eb]">
+      <header className="mb-4 flex items-center gap-3 border-b border-[#DFE0E1] pb-3">
+        <div className="grid h-10 w-10 place-items-center rounded-full bg-[#E8F3F2] text-[#00A89D]">
           <ShieldCheck size={20} />
         </div>
-        <Typography variant="h3" className="text-sm font-extrabold text-[#111827]">
+        <Typography variant="h3" className="text-sm font-extrabold text-[#071822]">
           Regras do Ajuste
         </Typography>
       </header>
@@ -732,14 +732,14 @@ function RulesCard() {
 function RuleItem({ icon: Icon, title, text }: { icon: LucideIcon; title: string; text: string }) {
   return (
     <div className="flex gap-3">
-      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-[#f8fafc] text-[#2563eb]">
+      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-xl bg-[#F7F8F8] text-[#00A89D]">
         <Icon size={14} />
       </span>
       <div>
         <Typography variant="p" className="text-xs font-bold text-[#334155]">
           {title}
         </Typography>
-        <Typography variant="p" className="mt-0.5 text-xs leading-relaxed text-[#64748b]">
+        <Typography variant="p" className="mt-0.5 text-xs leading-relaxed text-[#526B7A]">
           {text}
         </Typography>
       </div>
@@ -758,16 +758,16 @@ function ImpactCard({
 }) {
   return (
     <Card className="rounded-[18px] border border-[#dfe7f0] bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-      <header className="mb-4 flex items-center gap-3 border-b border-[#eef2f7] pb-3">
-        <div className="grid h-10 w-10 place-items-center rounded-full bg-[#eff6ff] text-[#2563eb]">
+      <header className="mb-4 flex items-center gap-3 border-b border-[#DFE0E1] pb-3">
+        <div className="grid h-10 w-10 place-items-center rounded-full bg-[#E8F3F2] text-[#00A89D]">
           <TrendingUp size={20} />
         </div>
-        <Typography variant="h3" className="text-sm font-extrabold text-[#111827]">
+        <Typography variant="h3" className="text-sm font-extrabold text-[#071822]">
           Resumo do Impacto
         </Typography>
       </header>
       <table className="w-full text-left text-xs">
-        <thead className="text-[10px] uppercase tracking-wider text-[#94a3b8] border-b border-[#e5eaf2]">
+        <thead className="text-[10px] uppercase tracking-wider text-[#526B7A] border-b border-[#DFE0E1]">
           <tr>
             <th scope="col" className="pb-2 font-extrabold">Indicador</th>
             <th scope="col" className="pb-2 text-right font-extrabold">Antes</th>
@@ -775,12 +775,12 @@ function ImpactCard({
             <th scope="col" className="pb-2 text-right font-extrabold">Δ</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-[#eef2f7]">
+        <tbody className="divide-y divide-[#DFE0E1]">
           {impactRows.map(row => (
             <tr key={row.field} className="h-10">
-              <td className="py-2 text-[#475569] font-medium">{row.field}</td>
-              <td className="py-2 text-right text-[#475569] tabular-nums">{row.before}</td>
-              <td className="py-2 text-right font-bold text-[#111827] tabular-nums">{row.after}</td>
+              <td className="py-2 text-[#526B7A] font-medium">{row.field}</td>
+              <td className="py-2 text-right text-[#526B7A] tabular-nums">{row.before}</td>
+              <td className="py-2 text-right font-bold text-[#071822] tabular-nums">{row.after}</td>
               <td className={`py-2 text-right font-bold tabular-nums ${deltaClass(row.delta)}`}>
                 {row.delta > 0 ? '+' : ''}
                 {row.delta}
@@ -790,17 +790,17 @@ function ImpactCard({
         </tbody>
       </table>
       <div className="mt-5 rounded-xl border border-[#bbf7d0] bg-[#ecfdf5] p-4">
-        <Typography variant="caption" className="text-[10px] font-extrabold uppercase text-[#16a34a] tracking-wider">
+        <Typography variant="caption" className="text-[10px] font-extrabold uppercase text-[#00A89D] tracking-wider">
           Faturamento (Previsto)
         </Typography>
-        <div className="mt-1 grid grid-cols-3 gap-2 text-xs font-bold text-[#111827]">
-          <span className="whitespace-nowrap text-[#475569]">{BRL(beforeRevenue)}</span>
-          <span className="whitespace-nowrap text-[#111827]">{BRL(afterRevenue)}</span>
-          <span className="whitespace-nowrap text-[#16a34a]">+{BRL(Math.max(0, afterRevenue - beforeRevenue))}</span>
+        <div className="mt-1 grid grid-cols-3 gap-2 text-xs font-bold text-[#071822]">
+          <span className="whitespace-nowrap text-[#526B7A]">{BRL(beforeRevenue)}</span>
+          <span className="whitespace-nowrap text-[#071822]">{BRL(afterRevenue)}</span>
+          <span className="whitespace-nowrap text-[#00A89D]">+{BRL(Math.max(0, afterRevenue - beforeRevenue))}</span>
         </div>
       </div>
-      <div className="mt-3 rounded-xl border border-[#e5eaf2] bg-[#f8fafc] p-3">
-        <Typography variant="p" className="text-[11px] leading-relaxed text-[#64748b]">
+      <div className="mt-3 rounded-xl border border-[#DFE0E1] bg-[#F7F8F8] p-3">
+        <Typography variant="p" className="text-[11px] leading-relaxed text-[#526B7A]">
           Impactos são calculados com base nas metas e valores médios cadastrados no sistema.
         </Typography>
       </div>

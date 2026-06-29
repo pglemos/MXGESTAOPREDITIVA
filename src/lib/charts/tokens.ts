@@ -28,34 +28,34 @@ function cssVar(name: string, fallback: string): string {
  */
 export const chartTokens = {
     /** Marca: verde escuro institucional (séries primárias). */
-    primary: () => cssVar('--color-brand-secondary', '#0D3B2E'),
+    primary: () => cssVar('--color-brand-secondary', '#071822'),
     /** Marca: verde MX (ações positivas / accent). */
-    accent: () => cssVar('--color-brand-primary', '#22C55E'),
+    accent: () => cssVar('--color-brand-primary', '#00A89D'),
 
     /** Status semânticos (compartilham com `--color-status-*`). */
-    success: () => cssVar('--color-status-success', '#10b981'),
-    warning: () => cssVar('--color-status-warning', '#f59e0b'),
-    danger: () => cssVar('--color-status-error', '#ef4444'),
-    info: () => cssVar('--color-status-info', '#3b82f6'),
+    success: () => cssVar('--color-status-success', '#00A89D'),
+    warning: () => cssVar('--color-status-warning', '#F59F0A'),
+    danger: () => cssVar('--color-status-error', '#EF4343'),
+    info: () => cssVar('--color-status-info', '#00A89D'),
 
     /** Tons neutros para eixos, grids, ticks. */
     axisTick: () => cssVar('--color-chart-axis-tick', '#6B7280'),
-    axisTickMuted: () => cssVar('--color-chart-axis-tick-muted', '#94a3b8'),
-    axisTickStrong: () => cssVar('--color-chart-axis-tick-strong', '#64748b'),
-    grid: () => cssVar('--color-chart-grid', '#E5E7EB'),
-    gridStrong: () => cssVar('--color-chart-grid-strong', '#e2e8f0'),
+    axisTickMuted: () => cssVar('--color-chart-axis-tick-muted', '#526B7A'),
+    axisTickStrong: () => cssVar('--color-chart-axis-tick-strong', '#526B7A'),
+    grid: () => cssVar('--color-chart-grid', '#DFE0E1'),
+    gridStrong: () => cssVar('--color-chart-grid-strong', '#DFE0E1'),
     gridDark: () => cssVar('--color-chart-grid-dark', '#334155'),
     dotStroke: () => cssVar('--color-chart-dot-stroke', '#ffffff'),
 
     /** Série categórica (ordem estável para legend/cores consistentes). */
     series: {
-        s1: () => cssVar('--color-chart-1', '#0D3B2E'),
-        s2: () => cssVar('--color-chart-2', '#22C55E'),
+        s1: () => cssVar('--color-chart-1', '#071822'),
+        s2: () => cssVar('--color-chart-2', '#00A89D'),
         s3: () => cssVar('--color-chart-3', '#FACC15'),
-        s4: () => cssVar('--color-chart-4', '#2563EB'),
-        s5: () => cssVar('--color-chart-5', '#EF4444'),
-        s6: () => cssVar('--color-chart-6', '#7C3AED'),
-        s7: () => cssVar('--color-chart-7', '#F59E0B'),
+        s4: () => cssVar('--color-chart-4', '#00A89D'),
+        s5: () => cssVar('--color-chart-5', '#EF4343'),
+    s6: () => cssVar('--color-chart-6', '#005BFF'),
+        s7: () => cssVar('--color-chart-7', '#F59F0A'),
         s8: () => cssVar('--color-chart-8', '#00E5FF'),
     },
 } as const

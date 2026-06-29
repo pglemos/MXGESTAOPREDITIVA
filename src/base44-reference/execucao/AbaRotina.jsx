@@ -297,23 +297,23 @@ function frasePreview(stepId, ctx, acoesDia) {
 function ProspeccaoCard({ acao, onVerComoFazer }) {
   const Icon = TIPO_ICONS[acao.tipo] || Zap;
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col gap-3">
+    <div className="bg-white rounded-2xl border border-[#DFE0E1] shadow-sm p-4 flex flex-col gap-3">
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-            <Icon className="w-4 h-4 text-[#005BFF]" />
+          <div className="w-9 h-9 rounded-xl bg-[#E8F3F2] flex items-center justify-center flex-shrink-0">
+            <Icon className="w-4 h-4 text-[#00A89D]" />
           </div>
           <div>
-            <p className="font-bold text-[13px] text-[#0F172A]">{acao.tipo}</p>
-            <p className="text-[11px] text-slate-400">{acao.publico}</p>
+            <p className="font-bold text-[13px] text-[#071822]">{acao.tipo}</p>
+            <p className="text-[11px] text-[#526B7A]">{acao.publico}</p>
           </div>
         </div>
-        <span className="text-[11px] font-bold text-[#005BFF] bg-blue-50 px-2.5 py-1 rounded-full flex-shrink-0">{acao.meta}</span>
+        <span className="text-[11px] font-bold text-[#00A89D] bg-[#E8F3F2] px-2.5 py-1 rounded-full flex-shrink-0">{acao.meta}</span>
       </div>
-      {acao.exemplo && <p className="text-[12px] text-slate-500 italic">"{acao.exemplo}"</p>}
+      {acao.exemplo && <p className="text-[12px] text-[#526B7A] italic">"{acao.exemplo}"</p>}
       <button
         onClick={() => { onVerComoFazer(acao); base44.analytics.track({ eventName: "rotina_ver_como_fazer", properties: { tipo: acao.tipo } }); }}
-        className="flex items-center gap-1.5 text-[12px] font-bold text-[#005BFF] hover:underline mt-auto"
+        className="flex items-center gap-1.5 text-[12px] font-bold text-[#00A89D] hover:underline mt-auto"
       >
         <BookOpen className="w-3.5 h-3.5" /> Ver como fazer
       </button>
@@ -328,31 +328,31 @@ function ComoFazerDrawer({ acao, onClose }) {
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-[#0F172A]">
-            <Icon className="w-5 h-5 text-[#005BFF]" /> {acao.tipo}
+          <DialogTitle className="flex items-center gap-2 text-[#071822]">
+            <Icon className="w-5 h-5 text-[#00A89D]" /> {acao.tipo}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 mt-2">
-          <div className="flex items-center gap-3 bg-blue-50 rounded-xl p-3">
-            <span className="text-[12px] font-semibold text-[#005BFF]">Meta: {acao.meta}</span>
-            <span className="text-[12px] text-slate-500">• Público: {acao.publico}</span>
+          <div className="flex items-center gap-3 bg-[#E8F3F2] rounded-xl p-3">
+            <span className="text-[12px] font-semibold text-[#00A89D]">Meta: {acao.meta}</span>
+            <span className="text-[12px] text-[#526B7A]">• Público: {acao.publico}</span>
           </div>
-          {acao.objetivo && <p className="text-[13px] text-slate-600">{acao.objetivo}</p>}
+          {acao.objetivo && <p className="text-[13px] text-[#526B7A]">{acao.objetivo}</p>}
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Como fazer</p>
+            <p className="text-[11px] font-bold text-[#526B7A] uppercase tracking-wider mb-2">Como fazer</p>
             <ol className="space-y-2">
               {acao.instrucoes.map((inst, i) => (
                 <li key={i} className="flex items-start gap-2.5">
-                  <span className="w-5 h-5 rounded-full bg-[#005BFF] text-white text-[10px] font-black flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
-                  <span className="text-[13px] text-slate-700">{inst}</span>
+                  <span className="w-5 h-5 rounded-full bg-[#00A89D] text-white text-[10px] font-black flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
+                  <span className="text-[13px] text-[#071822]">{inst}</span>
                 </li>
               ))}
             </ol>
           </div>
           {acao.exemplo && (
-            <div className="bg-slate-50 rounded-xl p-3">
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Exemplo</p>
-              <p className="text-[13px] text-slate-600 italic">"{acao.exemplo}"</p>
+            <div className="bg-[#F7F8F8] rounded-xl p-3">
+              <p className="text-[11px] font-bold text-[#526B7A] uppercase tracking-wider mb-1">Exemplo</p>
+              <p className="text-[13px] text-[#526B7A] italic">"{acao.exemplo}"</p>
             </div>
           )}
         </div>
@@ -452,9 +452,9 @@ export default function AbaRotina({ profile, clients = [], clientesHoje = [], pd
       {/* Main steps */}
       <div className="lg:col-span-2 space-y-4">
         {conflito && (
-          <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-            <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-            <p className="text-[13px] text-amber-800 font-medium">
+          <div className="flex items-start gap-3 bg-[#FFF7E6] border border-[#F59F0A] rounded-xl px-4 py-3">
+            <AlertTriangle className="w-4 h-4 text-[#F59F0A] flex-shrink-0 mt-0.5" />
+            <p className="text-[13px] text-[#F59F0A] font-medium">
               Você possui um cliente agendado neste horário. Priorize o atendimento e retome sua rotina depois.
             </p>
           </div>
@@ -470,46 +470,46 @@ export default function AbaRotina({ profile, clients = [], clientesHoje = [], pd
           const instrucoesDinamicas = getInstrucoes(step);
 
           return (
-            <div key={step.id} className={`bg-white rounded-2xl border shadow-sm transition-all ${isCurrent ? "border-[#005BFF] shadow-blue-100" : "border-slate-200"}`}>
+            <div key={step.id} className={`bg-white rounded-2xl border shadow-sm transition-all ${isCurrent ? "border-[#00A89D] shadow-[0_8px_24px_rgba(0,168,157,0.14)]" : "border-[#DFE0E1]"}`}>
               <button
                 className="w-full flex items-center gap-4 px-5 py-4 text-left"
                 onClick={() => handleToggleStep(step.id)}
               >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isCurrent ? "bg-[#005BFF] text-white" : isPast ? "bg-green-100 text-green-600" : "bg-slate-100 text-slate-400"}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isCurrent ? "bg-[#00A89D] text-white" : isPast ? "bg-[#E8F3F2] text-[#00A89D]" : "bg-[#DFE0E1] text-[#526B7A]"}`}>
                   <Icon className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-lg ${isCurrent ? "bg-[#005BFF] text-white" : "bg-slate-100 text-slate-500"}`}>{time}</span>
-                    <span className={`text-[14px] font-bold ${isCurrent ? "text-[#0F172A]" : "text-slate-600"}`}>{step.label}</span>
-                    {isCurrent && <span className="text-[10px] font-black text-[#005BFF] bg-blue-50 px-2 py-0.5 rounded-full uppercase tracking-wider">Agora</span>}
+                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-lg ${isCurrent ? "bg-[#00A89D] text-white" : "bg-[#DFE0E1] text-[#526B7A]"}`}>{time}</span>
+                    <span className={`text-[14px] font-bold ${isCurrent ? "text-[#071822]" : "text-[#526B7A]"}`}>{step.label}</span>
+                    {isCurrent && <span className="text-[10px] font-black text-[#00A89D] bg-[#E8F3F2] px-2 py-0.5 rounded-full uppercase tracking-wider">Agora</span>}
                   </div>
                   {/* Frase contextual no card recolhido */}
                   {!isExpanded && (
-                    <p className={`text-[12px] mt-0.5 truncate ${isCurrent ? "text-[#005BFF] font-semibold" : "text-slate-400"}`}>
+                    <p className={`text-[12px] mt-0.5 truncate ${isCurrent ? "text-[#00A89D] font-semibold" : "text-[#526B7A]"}`}>
                       {isCurrent && preview ? preview : step.objetivo}
                     </p>
                   )}
                 </div>
-                {isExpanded ? <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" /> : <ChevronRight className="w-4 h-4 text-slate-400 flex-shrink-0" />}
+                {isExpanded ? <ChevronDown className="w-4 h-4 text-[#526B7A] flex-shrink-0" /> : <ChevronRight className="w-4 h-4 text-[#526B7A] flex-shrink-0" />}
               </button>
 
               {isExpanded && (
-                <div className="px-5 pb-5 border-t border-slate-100">
+                <div className="px-5 pb-5 border-t border-[#DFE0E1]">
                   {/* Título contextual para Foco do Dia */}
                   {step.id === "motivacao" && (
-                    <p className="text-[12px] font-bold text-[#005BFF] mt-3 mb-1 uppercase tracking-wider">
+                    <p className="text-[12px] font-bold text-[#00A89D] mt-3 mb-1 uppercase tracking-wider">
                       {motivacaoConteudo(ctx).titulo}
                     </p>
                   )}
-                  <p className="text-[13px] text-slate-500 mt-3 mb-4">{step.objetivo}</p>
+                  <p className="text-[13px] text-[#526B7A] mt-3 mb-4">{step.objetivo}</p>
 
                   {/* Prospecção */}
                   {step.id === "prospeccao" ? (
                     <div>
-                      <p className="text-[12px] font-bold text-slate-400 uppercase tracking-wider mb-3">Ações de hoje — {moment().format("dddd")}</p>
+                      <p className="text-[12px] font-bold text-[#526B7A] uppercase tracking-wider mb-3">Ações de hoje — {moment().format("dddd")}</p>
                       {acoesDia.length === 0 ? (
-                        <p className="text-[13px] text-slate-400">Sem ações programadas para hoje. Aproveite para avançar na carteira.</p>
+                        <p className="text-[13px] text-[#526B7A]">Sem ações programadas para hoje. Aproveite para avançar na carteira.</p>
                       ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {acoesDia.map((a, i) => <ProspeccaoCard key={i} acao={a} onVerComoFazer={setComoFazerAcao} />)}
@@ -521,33 +521,33 @@ export default function AbaRotina({ profile, clients = [], clientesHoje = [], pd
                       {/* Instruções dinâmicas */}
                       {instrucoesDinamicas.length > 0 && (
                         <div className="mb-4">
-                          <p className="text-[12px] font-bold text-slate-400 uppercase tracking-wider mb-2">Faça agora</p>
+                          <p className="text-[12px] font-bold text-[#526B7A] uppercase tracking-wider mb-2">Faça agora</p>
                           <ol className="space-y-2">
                             {instrucoesDinamicas.map((inst, i) => (
                               <li key={i} className="flex items-start gap-2.5">
-                                <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-black flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
-                                <span className="text-[13px] text-slate-700">{inst}</span>
+                                <span className="w-5 h-5 rounded-full bg-[#DFE0E1] text-[#526B7A] text-[10px] font-black flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
+                                <span className="text-[13px] text-[#071822]">{inst}</span>
                               </li>
                             ))}
                           </ol>
                         </div>
                       )}
-                      <p className="text-[12px] font-bold text-slate-400 uppercase tracking-wider mb-3">Selecione a objeção para ver o roteiro</p>
+                      <p className="text-[12px] font-bold text-[#526B7A] uppercase tracking-wider mb-3">Selecione a objeção para ver o roteiro</p>
                       <div className="flex flex-wrap gap-2 mb-4">
                         {OBJECOES.map(o => (
                           <button key={o.label} onClick={() => setObjecaoAberta(objecaoAberta === o.label ? null : o.label)}
-                            className={`px-3 py-1.5 text-[12px] font-bold rounded-xl border transition-colors ${objecaoAberta === o.label ? "bg-[#005BFF] text-white border-[#005BFF]" : "border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
+                            className={`px-3 py-1.5 text-[12px] font-bold rounded-xl border transition-colors ${objecaoAberta === o.label ? "bg-[#00A89D] text-white border-[#00A89D]" : "border-[#DFE0E1] text-[#526B7A] hover:bg-[#F7F8F8]"}`}>
                             {o.label}
                           </button>
                         ))}
                       </div>
                       {objecaoAberta && (
-                        <div className="bg-blue-50 rounded-xl p-4">
-                          <p className="text-[12px] font-bold text-[#005BFF] mb-2">{objecaoAberta}</p>
+                        <div className="bg-[#E8F3F2] rounded-xl p-4">
+                          <p className="text-[12px] font-bold text-[#00A89D] mb-2">{objecaoAberta}</p>
                           <ul className="space-y-1.5">
                             {OBJECOES.find(o => o.label === objecaoAberta)?.dicas.map((d, i) => (
-                              <li key={i} className="flex items-start gap-2 text-[13px] text-slate-700">
-                                <span className="text-[#005BFF] font-bold mt-0.5">→</span>{d}
+                              <li key={i} className="flex items-start gap-2 text-[13px] text-[#071822]">
+                                <span className="text-[#00A89D] font-bold mt-0.5">→</span>{d}
                               </li>
                             ))}
                           </ul>
@@ -557,12 +557,12 @@ export default function AbaRotina({ profile, clients = [], clientesHoje = [], pd
                   ) : (
                     instrucoesDinamicas.length > 0 && (
                       <div className="mb-4">
-                        <p className="text-[12px] font-bold text-slate-400 uppercase tracking-wider mb-2">Faça agora</p>
+                        <p className="text-[12px] font-bold text-[#526B7A] uppercase tracking-wider mb-2">Faça agora</p>
                         <ol className="space-y-2">
                           {instrucoesDinamicas.map((inst, i) => (
                             <li key={i} className="flex items-start gap-2.5">
-                              <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-black flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
-                              <span className="text-[13px] text-slate-700">{inst}</span>
+                              <span className="w-5 h-5 rounded-full bg-[#DFE0E1] text-[#526B7A] text-[10px] font-black flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
+                              <span className="text-[13px] text-[#071822]">{inst}</span>
                             </li>
                           ))}
                         </ol>
@@ -576,7 +576,7 @@ export default function AbaRotina({ profile, clients = [], clientesHoje = [], pd
                       {step.atalhos.map(a => (
                         <Link key={a.label} to={a.to}
                           onClick={() => base44.analytics.track({ eventName: "rotina_clicou_atalho", properties: { atalho: a.label, etapa: step.id } })}
-                          className={`flex items-center gap-1.5 text-[12px] font-bold px-3.5 py-2 rounded-xl transition-colors ${a.primary ? "bg-[#005BFF] text-white hover:bg-blue-700" : "border border-[#005BFF] text-[#005BFF] hover:bg-blue-50"}`}>
+                          className={`flex items-center gap-1.5 text-[12px] font-bold px-3.5 py-2 rounded-xl transition-colors ${a.primary ? "bg-[#00A89D] text-white hover:bg-[#00A89D]" : "border border-[#00A89D] text-[#00A89D] hover:bg-[#E8F3F2]"}`}>
                           <ExternalLink className="w-3 h-3" />{a.label}
                         </Link>
                       ))}
@@ -590,8 +590,8 @@ export default function AbaRotina({ profile, clients = [], clientesHoje = [], pd
       </div>
 
       {/* Timeline sidebar */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sticky top-6">
-        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-4">Linha do Tempo</p>
+      <div className="bg-white rounded-2xl border border-[#DFE0E1] shadow-sm p-5 sticky top-6">
+        <p className="text-[11px] font-bold text-[#526B7A] uppercase tracking-[0.15em] mb-4">Linha do Tempo</p>
         <div className="space-y-0.5">
           {[...ROUTINE_STEPS].sort((a, b) => stepTime(a) - stepTime(b)).map((step, idx, arr) => {
             const isCurrent = step.id === currentStepId;
@@ -600,14 +600,14 @@ export default function AbaRotina({ profile, clients = [], clientesHoje = [], pd
             return (
               <div key={step.id} className="flex items-start gap-3">
                 <div className="flex flex-col items-center">
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${isCurrent ? "bg-[#005BFF] text-white" : isPast ? "bg-green-100 text-green-600" : "bg-slate-100 text-slate-400"}`}>
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${isCurrent ? "bg-[#00A89D] text-white" : isPast ? "bg-[#E8F3F2] text-[#00A89D]" : "bg-[#DFE0E1] text-[#526B7A]"}`}>
                     <Icon className="w-3.5 h-3.5" />
                   </div>
-                  {idx < arr.length - 1 && <div className={`w-px h-5 ${isPast ? "bg-green-200" : "bg-slate-100"}`} />}
+                  {idx < arr.length - 1 && <div className={`w-px h-5 ${isPast ? "bg-[#E8F3F2]" : "bg-[#DFE0E1]"}`} />}
                 </div>
                 <div className="pb-3 pt-0.5">
-                  <p className={`text-[11px] font-bold ${isCurrent ? "text-[#005BFF]" : "text-slate-400"}`}>{formatMin(stepTime(step))}</p>
-                  <p className={`text-[12px] font-semibold leading-tight ${isCurrent ? "text-[#0F172A]" : "text-slate-500"}`}>{step.label}</p>
+                  <p className={`text-[11px] font-bold ${isCurrent ? "text-[#00A89D]" : "text-[#526B7A]"}`}>{formatMin(stepTime(step))}</p>
+                  <p className={`text-[12px] font-semibold leading-tight ${isCurrent ? "text-[#071822]" : "text-[#526B7A]"}`}>{step.label}</p>
                 </div>
               </div>
             );

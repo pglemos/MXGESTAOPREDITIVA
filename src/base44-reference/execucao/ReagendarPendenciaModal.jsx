@@ -39,20 +39,20 @@ export default function ReagendarPendenciaModal({ oportunidade, open, onClose, o
     <Dialog open={open} onOpenChange={v => { if (!saving) onClose(); }}>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle className="text-[#0F172A] font-bold">Reagendar atividade</DialogTitle>
+          <DialogTitle className="text-[#071822] font-bold">Reagendar atividade</DialogTitle>
         </DialogHeader>
-        <p className="text-[13px] text-slate-500 mt-1">{oportunidade.nome_cliente_snapshot} — {oportunidade.tipo}</p>
+        <p className="text-[13px] text-[#526B7A] mt-1">{oportunidade.nome_cliente_snapshot} — {oportunidade.tipo}</p>
         <div className="mt-3">
-          <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Nova data e horário</label>
+          <label className="text-[11px] font-bold text-[#526B7A] uppercase tracking-wider">Nova data e horário</label>
           <Input type="datetime-local" value={novaData} onChange={e => setNovaData(e.target.value)} className="mt-1.5" />
         </div>
         <div className="flex justify-end gap-3 mt-4">
           <button onClick={onClose} disabled={saving}
-            className="px-4 py-2 text-[13px] font-semibold text-slate-500 border border-slate-200 rounded-xl hover:bg-slate-50">
+            className="px-4 py-2 text-[13px] font-semibold text-[#526B7A] border border-[#DFE0E1] rounded-xl hover:bg-[#F7F8F8]">
             Cancelar
           </button>
           <button onClick={handleSalvar} disabled={!novaData || saving}
-            className="px-5 py-2 text-[13px] font-bold text-white bg-[#005BFF] hover:bg-blue-700 disabled:opacity-50 rounded-xl">
+            className="px-5 py-2 text-[13px] font-bold text-white bg-[#00A89D] hover:bg-[#00A89D] disabled:opacity-50 rounded-xl">
             {saving ? "Salvando..." : "Reagendar"}
           </button>
         </div>

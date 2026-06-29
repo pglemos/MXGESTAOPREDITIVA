@@ -74,9 +74,9 @@ export function LiberacaoFechamento() {
 
   if (!hasPermission) {
     return (
-      <main className="h-screen w-screen flex flex-col items-center justify-center text-center p-6 bg-slate-50">
-        <ShieldCheck size={64} className="text-red-500/20 mb-6" />
-        <Typography variant="h2" className="mb-2 text-red-600 font-extrabold uppercase">
+      <main className="h-screen w-screen flex flex-col items-center justify-center text-center p-6 bg-background">
+        <ShieldCheck size={64} className="text-status-error/20 mb-6" />
+        <Typography variant="h2" className="mb-2 text-status-error font-extrabold uppercase">
           Acesso Restrito
         </Typography>
         <Typography variant="p" tone="muted" className="max-w-md mx-auto text-xs font-semibold leading-relaxed">
@@ -91,8 +91,8 @@ export function LiberacaoFechamento() {
 
   if (!loading && (!solicitacao || loadError)) {
     return (
-      <main className="h-screen w-screen flex flex-col items-center justify-center text-center p-6 bg-slate-50">
-        <AlertTriangle size={64} className="text-amber-500/20 mb-6" />
+      <main className="h-screen w-screen flex flex-col items-center justify-center text-center p-6 bg-background">
+        <AlertTriangle size={64} className="text-status-warning/20 mb-6" />
         <Typography variant="h2" className="mb-2 text-text-primary font-extrabold uppercase">
           Solicitação Não Encontrada
         </Typography>
@@ -108,14 +108,14 @@ export function LiberacaoFechamento() {
 
   if (loading || !solicitacao) {
     return (
-      <main className="h-screen w-screen flex items-center justify-center bg-slate-50">
+      <main className="h-screen w-screen flex items-center justify-center bg-background">
         <Typography variant="p" tone="muted" className="text-xs font-semibold">Carregando solicitação...</Typography>
       </main>
     )
   }
 
   return (
-    <main className="min-h-screen w-full bg-slate-50 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 font-sans">
+    <main className="min-h-screen w-full bg-background flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 font-sans">
       <Card className="w-full max-w-lg bg-white rounded-2xl border border-border-default p-6 shadow-xl space-y-6">
         <header className="border-b border-border-default pb-4 flex items-center justify-between">
           <div>
@@ -131,7 +131,7 @@ export function LiberacaoFechamento() {
 
         <div className="space-y-4 text-xs leading-relaxed text-text-secondary">
           {/* Details */}
-          <div className="bg-slate-50 p-4 rounded-xl border border-border-subtle space-y-3 shadow-inner">
+          <div className="bg-background p-4 rounded-xl border border-border-subtle space-y-3 shadow-inner">
             <div className="flex items-center gap-2">
               <User size={15} className="text-brand-primary" />
               <span className="font-bold text-text-primary">Vendedor:</span>
@@ -156,8 +156,8 @@ export function LiberacaoFechamento() {
               <span className="font-bold text-text-primary">Status:</span>
               <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
                 solicitacao.status === 'liberado'
-                  ? 'bg-green-50 text-green-700 border border-green-200'
-                  : 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse'
+                  ? 'bg-secondary text-brand-primary border border-brand-primary'
+                  : 'bg-status-warning-surface text-status-warning border border-status-warning animate-pulse'
               }`}>
                 {solicitacao.status.toUpperCase()}
               </span>
@@ -179,8 +179,8 @@ export function LiberacaoFechamento() {
               />
             </div>
           ) : (
-            <div className="bg-emerald-50 text-emerald-700 border border-emerald-200 p-4 rounded-xl flex items-start gap-2.5 shadow-sm">
-              <CheckCircle2 size={18} className="shrink-0 text-emerald-600 mt-0.5" />
+            <div className="bg-secondary text-brand-primary border border-brand-primary p-4 rounded-xl flex items-start gap-2.5 shadow-sm">
+              <CheckCircle2 size={18} className="shrink-0 text-brand-primary mt-0.5" />
               <div>
                 <p className="font-black text-xs uppercase">Fechamento Liberado</p>
                 <p className="font-semibold mt-1">
@@ -195,7 +195,7 @@ export function LiberacaoFechamento() {
           <Button
             onClick={() => navigate('/home')}
             variant="outline"
-            className="h-9 px-4 text-xs font-bold border-border-default text-text-secondary hover:bg-slate-50 flex items-center gap-1.5"
+            className="h-9 px-4 text-xs font-bold border-border-default text-text-secondary hover:bg-background flex items-center gap-1.5"
           >
             <ArrowLeft size={13} /> Cockpit
           </Button>

@@ -57,42 +57,42 @@ export default function WhatsAppRoteiro({ open, onClose, cliente, missaoId, onRe
     <Dialog open={open} onOpenChange={v => { if (!v) onClose(); else handleOpen(); }}>
       <DialogContent className="max-w-md rounded-2xl">
         <DialogHeader>
-          <DialogTitle className="text-[#031B3D] font-black">
+          <DialogTitle className="text-[#102C37] font-black">
             {etapa === "script" ? "WhatsApp com Roteiro" : "Registrar Resultado"}
           </DialogTitle>
-          {cliente && <p className="text-sm text-slate-400">{cliente.nome} · {cliente.veiculo_interesse || "Sem veículo"}</p>}
+          {cliente && <p className="text-sm text-[#526B7A]">{cliente.nome} · {cliente.veiculo_interesse || "Sem veículo"}</p>}
         </DialogHeader>
 
         {etapa === "script" && (
           <div className="space-y-4 mt-2">
             <div>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Objetivo</p>
-              <p className="text-sm text-slate-600">{missaoId ? "Abordar o cliente com roteiro personalizado e registrar o resultado." : "Entrar em contato com o cliente."}</p>
+              <p className="text-xs font-semibold text-[#526B7A] uppercase tracking-wide mb-1">Objetivo</p>
+              <p className="text-sm text-[#526B7A]">{missaoId ? "Abordar o cliente com roteiro personalizado e registrar o resultado." : "Entrar em contato com o cliente."}</p>
             </div>
             <div>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Script sugerido</p>
+              <p className="text-xs font-semibold text-[#526B7A] uppercase tracking-wide mb-1">Script sugerido</p>
               <textarea
                 value={scriptEditado || scriptPreenchido}
                 onChange={e => setScriptEditado(e.target.value)}
                 rows={7}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 resize-none focus:outline-none focus:ring-1 focus:ring-[#005BFF] focus:border-[#005BFF]"
+                className="w-full rounded-xl border border-[#DFE0E1] bg-[#F7F8F8] px-3 py-2.5 text-sm text-[#071822] resize-none focus:outline-none focus:ring-1 focus:ring-[#00A89D] focus:border-[#00A89D]"
               />
-              <p className="text-xs text-slate-400 mt-1">Você pode editar o script antes de enviar.</p>
+              <p className="text-xs text-[#526B7A] mt-1">Você pode editar o script antes de enviar.</p>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={copiar} className="flex-1 rounded-xl gap-2">
-                {copiado ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                {copiado ? <Check className="w-4 h-4 text-[#00A89D]" /> : <Copy className="w-4 h-4" />}
                 {copiado ? "Copiado!" : "Copiar script"}
               </Button>
               {waUrl && (
                 <a href={waUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
-                  <Button className="w-full rounded-xl bg-[#005BFF] hover:bg-blue-700 text-white gap-2">
+                  <Button className="w-full rounded-xl bg-[#00A89D] hover:bg-[#00A89D] text-white gap-2">
                     <MessageCircle className="w-4 h-4" /> Abrir WhatsApp
                   </Button>
                 </a>
               )}
             </div>
-            <Button variant="ghost" onClick={() => setEtapa("resultado")} className="w-full rounded-xl text-[#005BFF] hover:bg-blue-50">
+            <Button variant="ghost" onClick={() => setEtapa("resultado")} className="w-full rounded-xl text-[#00A89D] hover:bg-[#E8F3F2]">
               Registrar resultado do contato →
             </Button>
           </div>
@@ -100,18 +100,18 @@ export default function WhatsAppRoteiro({ open, onClose, cliente, missaoId, onRe
 
         {etapa === "resultado" && (
           <div className="space-y-4 mt-2">
-            <p className="text-sm text-slate-500">O que aconteceu nesse contato?</p>
+            <p className="text-sm text-[#526B7A]">O que aconteceu nesse contato?</p>
             <div className="grid grid-cols-1 gap-1.5">
               {RESULTADOS.map(r => (
                 <button key={r} onClick={() => setResultado(r)}
-                  className={`text-left px-3 py-2.5 rounded-xl border text-sm transition-all ${resultado === r ? "border-[#005BFF] bg-blue-50 text-[#005BFF] font-semibold" : "border-slate-100 text-slate-600 hover:bg-slate-50"}`}>
+                  className={`text-left px-3 py-2.5 rounded-xl border text-sm transition-all ${resultado === r ? "border-[#00A89D] bg-[#E8F3F2] text-[#00A89D] font-semibold" : "border-[#DFE0E1] text-[#526B7A] hover:bg-[#F7F8F8]"}`}>
                   {r}
                 </button>
               ))}
             </div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setEtapa("script")} className="flex-1 rounded-xl">Voltar</Button>
-              <Button onClick={registrar} disabled={!resultado || salvando} className="flex-1 rounded-xl bg-[#005BFF] hover:bg-blue-700 text-white">
+              <Button onClick={registrar} disabled={!resultado || salvando} className="flex-1 rounded-xl bg-[#00A89D] hover:bg-[#00A89D] text-white">
                 {salvando ? "Salvando..." : "Confirmar resultado"}
               </Button>
             </div>

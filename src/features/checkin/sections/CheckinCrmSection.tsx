@@ -504,16 +504,16 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
       </div>
 
 <Card id="cadastrar-venda-agendamentos" className="scroll-mt-6 min-w-0 overflow-hidden rounded-[18px] border border-[#dfe7f0] bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)] md:scroll-mt-48">
-<header className="flex min-w-0 flex-col items-stretch justify-between gap-3 border-b border-[#eef2f7] px-4 py-4 sm:flex-row sm:items-center sm:px-5">
+<header className="flex min-w-0 flex-col items-stretch justify-between gap-3 border-b border-[#DFE0E1] px-4 py-4 sm:flex-row sm:items-center sm:px-5">
  <div className="flex min-w-0 items-start gap-2 sm:items-center">
-            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold bg-[#1e3a8a] text-white">
+            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold bg-[#102C37] text-white">
               4
             </span>
  <div className="min-w-0">
- <Typography variant="h2" className="!text-[16px] !leading-tight font-extrabold uppercase tracking-tight text-[#111827] sm:!text-[17px]">
+ <Typography variant="h2" className="!text-[16px] !leading-tight font-extrabold uppercase tracking-tight text-[#071822] sm:!text-[17px]">
                 CADASTRAR VENDA/AGENDAMENTOS
               </Typography>
- <Typography variant="p" className="mt-1 text-sm font-medium leading-snug text-[#64748b]">
+ <Typography variant="p" className="mt-1 text-sm font-medium leading-snug text-[#526B7A]">
                 Preencha suas vendas e seus agendamentos para enriquecer suas informações.
               </Typography>
             </div>
@@ -522,7 +522,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
             id="checkin-new-client-button"
             type="button"
             onClick={handleOpenNew}
-className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#2563eb] px-5 text-sm font-bold text-white shadow-[0_10px_20px_rgba(37,99,235,0.22)] transition hover:bg-[#1d4ed8] sm:w-auto"
+className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#00A89D] px-5 text-sm font-bold text-white shadow-[0_10px_20px_rgba(0,168,157,0.22)] transition hover:bg-[#00A89D] sm:w-auto"
           >
             <UserPlus size={16} /> + Novo Cliente
           </button>
@@ -531,42 +531,42 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
 <div className="md:hidden">
 {clientesList.length === 0 ? (
 <div className="flex min-h-[140px] flex-col items-center justify-center gap-2 px-5 py-8 text-center">
-<span className="grid h-10 w-10 place-items-center rounded-full bg-[#f1f5f9] text-[#94a3b8]">
+<span className="grid h-10 w-10 place-items-center rounded-full bg-[#F7F8F8] text-[#526B7A]">
 <Users size={17} />
 </span>
-<p className="text-[13px] font-bold text-[#475569]">Nenhum cliente cadastrado ainda</p>
-<p className="text-[12px] font-medium text-[#94a3b8]">Toque em "+ Novo Cliente" para registrar venda ou agendamento.</p>
+<p className="text-[13px] font-bold text-[#526B7A]">Nenhum cliente cadastrado ainda</p>
+<p className="text-[12px] font-medium text-[#526B7A]">Toque em "+ Novo Cliente" para registrar venda ou agendamento.</p>
 </div>
 ) : (
-<div className="divide-y divide-[#eef2f7]">
+<div className="divide-y divide-[#DFE0E1]">
 {clientesList.map((row: ClienteRow) => (
 <article key={row.id} className="space-y-3 bg-white px-4 py-4">
 <div className="flex items-start justify-between gap-3">
 <div className="min-w-0">
-<p className="truncate text-[15px] font-extrabold text-[#2563eb]">{row.nomeCliente}</p>
-<p className="mt-0.5 truncate text-[12px] font-semibold text-[#64748b]">{formatPhone(row.telefone)} · {row.veiculoInteresse}</p>
+<p className="truncate text-[15px] font-extrabold text-[#00A89D]">{row.nomeCliente}</p>
+<p className="mt-0.5 truncate text-[12px] font-semibold text-[#526B7A]">{formatPhone(row.telefone)} · {row.veiculoInteresse}</p>
 </div>
 <div className="flex shrink-0 items-center gap-1.5">
-<button type="button" onClick={() => handleEdit(row)} className="grid h-8 w-8 place-items-center rounded-lg bg-slate-100 text-slate-700 transition-colors hover:bg-[#eff6ff] hover:text-[#2563eb]" aria-label={`Editar ${row.nomeCliente}`}>
+<button type="button" onClick={() => handleEdit(row)} className="grid h-8 w-8 place-items-center rounded-lg bg-[#DFE0E1] text-[#071822] transition-colors hover:bg-[#E8F3F2] hover:text-[#00A89D]" aria-label={`Editar ${row.nomeCliente}`}>
 <Edit size={14} />
 </button>
-<button type="button" onClick={() => handleDelete(row)} className="grid h-8 w-8 place-items-center rounded-lg bg-slate-100 text-slate-500 transition-colors hover:bg-[#fef2f2] hover:text-[#ef4444]" aria-label={`Excluir ${row.nomeCliente}`}>
+<button type="button" onClick={() => handleDelete(row)} className="grid h-8 w-8 place-items-center rounded-lg bg-[#DFE0E1] text-[#526B7A] transition-colors hover:bg-[#fef2f2] hover:text-[#EF4343]" aria-label={`Excluir ${row.nomeCliente}`}>
 <Trash2 size={14} />
 </button>
 </div>
 </div>
 <div className="grid grid-cols-2 gap-2 text-[12px]">
-<div className="rounded-xl bg-[#f8fafc] p-3">
-<span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#94a3b8]">Valor</span>
-<strong className="mt-1 block text-[#111827]">{formatMoney(row.valorNegociado)}</strong>
+<div className="rounded-xl bg-[#F7F8F8] p-3">
+<span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#526B7A]">Valor</span>
+<strong className="mt-1 block text-[#071822]">{formatMoney(row.valorNegociado)}</strong>
 </div>
-<div className="rounded-xl bg-[#f8fafc] p-3">
-<span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#94a3b8]">Sinal</span>
-<strong className="mt-1 block text-[#475569]">{formatMoney(row.sinal)}</strong>
+<div className="rounded-xl bg-[#F7F8F8] p-3">
+<span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#526B7A]">Sinal</span>
+<strong className="mt-1 block text-[#526B7A]">{formatMoney(row.sinal)}</strong>
 </div>
-<div className="col-span-2 rounded-xl bg-[#f8fafc] p-3">
-<span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#94a3b8]">Agendamento</span>
-<strong className="mt-1 block truncate text-[#475569]">{formatAgendamentoDateTime(row.dataAgendamento)}</strong>
+<div className="col-span-2 rounded-xl bg-[#F7F8F8] p-3">
+<span className="block text-[10px] font-extrabold uppercase tracking-wider text-[#526B7A]">Agendamento</span>
+<strong className="mt-1 block truncate text-[#526B7A]">{formatAgendamentoDateTime(row.dataAgendamento)}</strong>
 </div>
 </div>
 <div className="flex flex-wrap gap-2">
@@ -598,7 +598,7 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
               <col className="w-[8%]" />
               <col className="w-[8%]" />
             </colgroup>
-            <thead className="bg-[#f8fafc] text-[11px] uppercase tracking-normal text-[#475569] border-b border-[#e5eaf2]">
+            <thead className="bg-[#F7F8F8] text-[11px] uppercase tracking-normal text-[#526B7A] border-b border-[#DFE0E1]">
               <tr>
                 {[
                   'Nome',
@@ -618,7 +618,7 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                     scope="col"
                     key={column}
                     className={`px-4 py-3.5 font-extrabold whitespace-nowrap truncate ${
-                      column === 'Nome' ? 'sticky left-0 aggression-z z-10 bg-[#f8fafc] shadow-[6px_0_10px_-10px_rgba(15,23,42,0.15)]' : ''
+                      column === 'Nome' ? 'sticky left-0 aggression-z z-10 bg-[#F7F8F8] shadow-[6px_0_10px_-10px_rgba(15,23,42,0.15)]' : ''
                     }`}
                     title={column}
                   >
@@ -632,11 +632,11 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                 <tr>
                   <td colSpan={12} className="bg-white px-5 py-0">
                     <div className="flex min-h-[96px] flex-col items-center justify-center gap-1.5 py-6">
-                      <span className="grid h-9 w-9 place-items-center rounded-full bg-[#f1f5f9] text-[#94a3b8]">
+                      <span className="grid h-9 w-9 place-items-center rounded-full bg-[#F7F8F8] text-[#526B7A]">
                         <Users size={16} />
                       </span>
-                      <p className="text-[13px] font-bold text-[#475569]">Nenhum cliente cadastrado ainda</p>
-                      <p className="text-[12px] font-medium text-[#94a3b8]">Clique em "+ Novo Cliente" para registrar a primeira venda ou agendamento.</p>
+                      <p className="text-[13px] font-bold text-[#526B7A]">Nenhum cliente cadastrado ainda</p>
+                      <p className="text-[12px] font-medium text-[#526B7A]">Clique em "+ Novo Cliente" para registrar a primeira venda ou agendamento.</p>
                     </div>
                   </td>
                 </tr>
@@ -647,22 +647,22 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                     <React.Fragment key={row.id}>
                       <tr
                         onClick={() => toggleRowExpanded(row.id)}
-                        className={`h-[52px] border-t border-[#eef2f7] hover:bg-[#f8fafc] transition-colors cursor-pointer ${
-                          isExpanded ? 'bg-[#f8fafc]/50' : 'bg-white'
+                        className={`h-[52px] border-t border-[#DFE0E1] hover:bg-[#F7F8F8] transition-colors cursor-pointer ${
+                          isExpanded ? 'bg-[#F7F8F8]/50' : 'bg-white'
                         }`}
                       >
-                        <td className="sticky left-0 z-10 whitespace-nowrap bg-inherit px-4 py-3 font-bold text-[#2563eb] shadow-[6px_0_10px_-10px_rgba(15,23,42,0.15)]">
+                        <td className="sticky left-0 z-10 whitespace-nowrap bg-inherit px-4 py-3 font-bold text-[#00A89D] shadow-[6px_0_10px_-10px_rgba(15,23,42,0.15)]">
                           <div className="flex items-center gap-1.5">
                             {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                             <span className="truncate" title={row.nomeCliente}>{row.nomeCliente}</span>
                           </div>
                         </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-[#475569] truncate" title={formatPhone(row.telefone)}>{formatPhone(row.telefone)}</td>
-                        <td className="whitespace-nowrap px-4 py-3 text-[#475569] truncate" title={row.veiculoInteresse}>{row.veiculoInteresse}</td>
-                        <td className="whitespace-nowrap px-4 py-3 font-bold text-[#111827] truncate" title={formatMoney(row.valorNegociado)}>
+                        <td className="whitespace-nowrap px-4 py-3 text-[#526B7A] truncate" title={formatPhone(row.telefone)}>{formatPhone(row.telefone)}</td>
+                        <td className="whitespace-nowrap px-4 py-3 text-[#526B7A] truncate" title={row.veiculoInteresse}>{row.veiculoInteresse}</td>
+                        <td className="whitespace-nowrap px-4 py-3 font-bold text-[#071822] truncate" title={formatMoney(row.valorNegociado)}>
                           {formatMoney(row.valorNegociado)}
                         </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-[#475569] truncate" title={formatAgendamentoDateTime(row.dataAgendamento)}>
+                        <td className="whitespace-nowrap px-4 py-3 text-[#526B7A] truncate" title={formatAgendamentoDateTime(row.dataAgendamento)}>
                           {formatAgendamentoDateTime(row.dataAgendamento)}
                         </td>
                         <td className="px-4 py-3">
@@ -674,7 +674,7 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                         <td className="px-4 py-3">
                           <BooleanBadge value={row.carroAvaliado} />
                         </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-[#475569] truncate" title={formatMoney(row.sinal)}>{formatMoney(row.sinal)}</td>
+                        <td className="whitespace-nowrap px-4 py-3 text-[#526B7A] truncate" title={formatMoney(row.sinal)}>{formatMoney(row.sinal)}</td>
                         <td className="px-4 py-3">
                           <FinanciamentoBadge value={row.financiamento} />
                         </td>
@@ -686,7 +686,7 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                             <button
                               type="button"
                               onClick={() => handleEdit(row)}
-                              className="grid h-8 w-8 place-items-center rounded-lg bg-slate-100 text-slate-700 hover:bg-[#eff6ff] hover:text-[#2563eb] transition-colors"
+                              className="grid h-8 w-8 place-items-center rounded-lg bg-[#DFE0E1] text-[#071822] hover:bg-[#E8F3F2] hover:text-[#00A89D] transition-colors"
                               title="Editar cliente"
                             >
                               <Edit size={14} />
@@ -694,7 +694,7 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                             <button
                               type="button"
                               onClick={() => handleDelete(row)}
-                              className="grid h-8 w-8 place-items-center rounded-lg bg-slate-100 text-slate-500 hover:bg-[#fef2f2] hover:text-[#ef4444] transition-colors"
+                              className="grid h-8 w-8 place-items-center rounded-lg bg-[#DFE0E1] text-[#526B7A] hover:bg-[#fef2f2] hover:text-[#EF4343] transition-colors"
                               title="Excluir cliente"
                             >
                               <Trash2 size={14} />
@@ -705,13 +705,13 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                       {isExpanded && (() => {
                         const draft = getInlineDraft(row)
                         return (
-                          <tr className="bg-[#f8fafc]/40 border-t border-[#eef2f7]" onClick={e => e.stopPropagation()}>
-                            <td colSpan={12} className="px-6 py-4 text-xs leading-relaxed text-[#475569]">
-                              <div className="flex flex-wrap items-end gap-4 bg-white/65 p-4 rounded-xl border border-[#e5eaf2] shadow-sm">
+                          <tr className="bg-[#F7F8F8]/40 border-t border-[#DFE0E1]" onClick={e => e.stopPropagation()}>
+                            <td colSpan={12} className="px-6 py-4 text-xs leading-relaxed text-[#526B7A]">
+                              <div className="flex flex-wrap items-end gap-4 bg-white/65 p-4 rounded-xl border border-[#DFE0E1] shadow-sm">
                                 <div className="flex flex-col gap-1.5 min-w-[200px]">
                                   <label
                                     htmlFor={`inline-data-${row.id}`}
-                                    className="text-[10px] font-extrabold uppercase tracking-wider text-[#94a3b8]"
+                                    className="text-[10px] font-extrabold uppercase tracking-wider text-[#526B7A]"
                                   >
                                     Data do novo agendamento
                                   </label>
@@ -720,13 +720,13 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                                     type="datetime-local"
                                     value={draft.dataNovoAgendamento}
                                     onChange={event => updateInlineDraft(row, { dataNovoAgendamento: event.target.value })}
-                                    className="h-10 rounded-lg border border-[#e5eaf2] bg-white px-3 text-[13px] font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                                    className="h-10 rounded-lg border border-[#DFE0E1] bg-white px-3 text-[13px] font-semibold text-[#071822] outline-none transition focus:border-[#00A89D] focus:ring-4 focus:ring-[#00A89D]/10"
                                   />
                                 </div>
                                 <div className="flex flex-col gap-1.5 min-w-[200px]">
                                   <label
                                     htmlFor={`inline-motivo-${row.id}`}
-                                    className="text-[10px] font-extrabold uppercase tracking-wider text-[#94a3b8]"
+                                    className="text-[10px] font-extrabold uppercase tracking-wider text-[#526B7A]"
                                   >
                                     Motivo da perda
                                   </label>
@@ -735,7 +735,7 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                                       id={`inline-motivo-${row.id}`}
                                       value={draft.motivoPerda}
                                       onChange={event => updateInlineDraft(row, { motivoPerda: event.target.value })}
-                                      className="h-10 w-full appearance-none rounded-lg border border-[#e5eaf2] bg-white px-3 pr-9 text-[13px] font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                                      className="h-10 w-full appearance-none rounded-lg border border-[#DFE0E1] bg-white px-3 pr-9 text-[13px] font-semibold text-[#071822] outline-none transition focus:border-[#00A89D] focus:ring-4 focus:ring-[#00A89D]/10"
                                     >
                                       <option value="">Não selecionado</option>
                                       <option value="Não compareceu">Não compareceu</option>
@@ -745,13 +745,13 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                                       <option value="Falta de estoque">Falta de estoque</option>
                                       <option value="Outro">Outro</option>
                                     </select>
-                                    <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none" />
+                                    <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#526B7A] pointer-events-none" />
                                   </div>
                                 </div>
                                 <div className="flex flex-1 flex-col gap-1.5 min-w-[220px]">
                                   <label
                                     htmlFor={`inline-obs-${row.id}`}
-                                    className="text-[10px] font-extrabold uppercase tracking-wider text-[#94a3b8]"
+                                    className="text-[10px] font-extrabold uppercase tracking-wider text-[#526B7A]"
                                   >
                                     Observações
                                   </label>
@@ -761,10 +761,10 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                                     value={draft.observacoes}
                                     onChange={event => updateInlineDraft(row, { observacoes: event.target.value })}
                                     placeholder="Ex: Cliente ficou de avaliar o usado e retornar."
-                                    className="h-10 w-full rounded-lg border border-[#e5eaf2] bg-white px-3 text-[13px] font-semibold text-[#111827] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                                    className="h-10 w-full rounded-lg border border-[#DFE0E1] bg-white px-3 text-[13px] font-semibold text-[#071822] outline-none transition placeholder:text-[#526B7A] focus:border-[#00A89D] focus:ring-4 focus:ring-[#00A89D]/10"
                                   />
                                 </div>
-                                <Button type="button" onClick={() => handleSaveInline(row)} className="h-10 shrink-0 bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow-none">
+                                <Button type="button" onClick={() => handleSaveInline(row)} className="h-10 shrink-0 bg-[#00A89D] hover:bg-[#00A89D] text-white shadow-none">
                                   Salvar
                                 </Button>
                               </div>
@@ -779,8 +779,8 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
             </tbody>
           </table>
         </div>
-        <div className="flex items-center gap-2 border-t border-[#e5eaf2] bg-[#eff6ff] px-5 py-3 text-xs font-bold text-[#2563eb]">
-          <Star size={14} className="shrink-0 fill-[#f59e0b] text-[#f59e0b]" />
+        <div className="flex items-center gap-2 border-t border-[#DFE0E1] bg-[#E8F3F2] px-5 py-3 text-xs font-bold text-[#00A89D]">
+          <Star size={14} className="shrink-0 fill-[#F59F0A] text-[#F59F0A]" />
           Clientes cadastrados ajudam a aumentar sua pontuação em Disciplina (30% dos pontos).
         </div>
       </Card>
@@ -794,23 +794,23 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
         >
           <div className="
             relative w-full max-w-[680px] my-8
-            rounded-[18px] border border-[#e5eaf2] bg-white
+            rounded-[18px] border border-[#DFE0E1] bg-white
             shadow-[0_24px_80px_rgba(15,23,42,0.24)]
             flex flex-col overflow-hidden
             animate-in fade-in zoom-in-95 duration-200
           ">
             {/* Header */}
-            <header className="px-8 pt-6 pb-4 border-b border-[#eef2f7] relative">
-              <h2 className="text-[20px] font-extrabold text-[#111827]">
+            <header className="px-8 pt-6 pb-4 border-b border-[#DFE0E1] relative">
+              <h2 className="text-[20px] font-extrabold text-[#071822]">
                 {editingClientId ? 'Editar Cadastro do Cliente' : 'Cadastrar Novo Cliente'}
               </h2>
-              <p className="mt-1.5 text-[13px] font-medium text-[#64748b] leading-relaxed">
+              <p className="mt-1.5 text-[13px] font-medium text-[#526B7A] leading-relaxed">
                 Preencha os dados do cliente para enriquecer seu histórico comercial e atualizar o fechamento do dia.
               </p>
               <button
                 type="button"
                 onClick={() => setDrawerOpen(false)}
-                className="absolute right-6 top-6 grid h-8 w-8 place-items-center rounded-lg text-[#94a3b8] hover:text-[#475569] hover:bg-[#f1f5f9] transition-all text-xl font-bold"
+                className="absolute right-6 top-6 grid h-8 w-8 place-items-center rounded-lg text-[#526B7A] hover:text-[#526B7A] hover:bg-[#F7F8F8] transition-all text-xl font-bold"
                 aria-label="Fechar cadastro"
               >
                 <X size={18} />
@@ -926,8 +926,8 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
               <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                 {/* 1. Nome do cliente */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="modal-nome" className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
-                    Nome do cliente <span className="text-[#ef4444]">*</span>
+                  <label htmlFor="modal-nome" className="text-[11px] font-extrabold text-[#526B7A] uppercase tracking-wider">
+                    Nome do cliente <span className="text-[#EF4343]">*</span>
                   </label>
                   <input
                     id="modal-nome"
@@ -936,14 +936,14 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                     onChange={event => setNome(event.target.value)}
                     placeholder="Ex: João Santos"
                     required
-                    className="h-11 w-full rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                    className="h-11 w-full rounded-xl border border-[#DFE0E1] bg-white px-4 text-sm font-semibold text-[#071822] outline-none transition placeholder:text-[#526B7A] focus:border-[#00A89D] focus:ring-4 focus:ring-[#00A89D]/10"
                   />
                 </div>
 
                 {/* 2. Telefone */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="modal-telefone" className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
-                    Telefone <span className="text-[#ef4444]">*</span>
+                  <label htmlFor="modal-telefone" className="text-[11px] font-extrabold text-[#526B7A] uppercase tracking-wider">
+                    Telefone <span className="text-[#EF4343]">*</span>
                   </label>
                   <input
                     id="modal-telefone"
@@ -952,14 +952,14 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                     onChange={event => handlePhoneChange(event.target.value)}
                     placeholder="(11) 98765-4321"
                     required
-                    className="h-11 w-full rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                    className="h-11 w-full rounded-xl border border-[#DFE0E1] bg-white px-4 text-sm font-semibold text-[#071822] outline-none transition placeholder:text-[#526B7A] focus:border-[#00A89D] focus:ring-4 focus:ring-[#00A89D]/10"
                   />
                 </div>
 
                 {/* 3. Veículo de interesse */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="modal-veiculo" className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
-                    Veículo de interesse <span className="text-[#ef4444]">*</span>
+                  <label htmlFor="modal-veiculo" className="text-[11px] font-extrabold text-[#526B7A] uppercase tracking-wider">
+                    Veículo de interesse <span className="text-[#EF4343]">*</span>
                   </label>
                   <input
                     id="modal-veiculo"
@@ -968,14 +968,14 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                     onChange={event => setVeiculo(event.target.value)}
                     placeholder="Ex: HB20 1.0 Comfort"
                     required
-                    className="h-11 w-full rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                    className="h-11 w-full rounded-xl border border-[#DFE0E1] bg-white px-4 text-sm font-semibold text-[#071822] outline-none transition placeholder:text-[#526B7A] focus:border-[#00A89D] focus:ring-4 focus:ring-[#00A89D]/10"
                   />
                 </div>
 
                 {/* 4. Valor Negociado — visual only, hidden input handles test */}
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
-                    Valor negociado {vendaRealizada === 'Sim' && <span className="text-[#ef4444]">*</span>}
+                  <span className="text-[11px] font-extrabold text-[#526B7A] uppercase tracking-wider">
+                    Valor negociado {vendaRealizada === 'Sim' && <span className="text-[#EF4343]">*</span>}
                   </span>
                   <input
                     type="text"
@@ -985,14 +985,14 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                     placeholder="R$ 68.900,00"
                     required={vendaRealizada === 'Sim'}
                     aria-hidden="true"
-                    className="h-11 w-full rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                    className="h-11 w-full rounded-xl border border-[#DFE0E1] bg-white px-4 text-sm font-semibold text-[#071822] outline-none transition placeholder:text-[#526B7A] focus:border-[#00A89D] focus:ring-4 focus:ring-[#00A89D]/10"
                   />
                 </div>
 
                 {/* 5. Data do agendamento */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="modal-data" className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
-                    Data do agendamento <span className="text-[#ef4444]">*</span>
+                  <label htmlFor="modal-data" className="text-[11px] font-extrabold text-[#526B7A] uppercase tracking-wider">
+                    Data do agendamento <span className="text-[#EF4343]">*</span>
                   </label>
                   <input
                     id="modal-data"
@@ -1000,14 +1000,14 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                     value={dataFechamento}
                     onChange={event => setDataFechamento(event.target.value)}
                     required
-                    className="h-11 w-full rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                    className="h-11 w-full rounded-xl border border-[#DFE0E1] bg-white px-4 text-sm font-semibold text-[#071822] outline-none transition focus:border-[#00A89D] focus:ring-4 focus:ring-[#00A89D]/10"
                   />
                 </div>
 
                 {/* 6. Canal — visual select synced to hidden test select */}
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
-                    Canal <span className="text-[#ef4444]">*</span>
+                  <span className="text-[11px] font-extrabold text-[#526B7A] uppercase tracking-wider">
+                    Canal <span className="text-[#EF4343]">*</span>
                   </span>
                   <div className="relative">
                     <select
@@ -1015,20 +1015,20 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                       onChange={event => setCanal(event.target.value as CrmCanal)}
                       required
                       aria-hidden="true"
-                      className="h-11 w-full appearance-none rounded-xl border border-[#e5eaf2] bg-white px-4 pr-10 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                      className="h-11 w-full appearance-none rounded-xl border border-[#DFE0E1] bg-white px-4 pr-10 text-sm font-semibold text-[#071822] outline-none transition focus:border-[#00A89D] focus:ring-4 focus:ring-[#00A89D]/10"
                     >
                       <option value="">Selecione...</option>
                       <option value="carteira">Carteira</option>
                       <option value="internet">Internet</option>
                       <option value="showroom">Showroom</option>
                     </select>
-                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none" />
+                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#526B7A] pointer-events-none" />
                   </div>
                 </div>
 
                 {/* 7. Compareceu */}
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
+                  <span className="text-[11px] font-extrabold text-[#526B7A] uppercase tracking-wider">
                     Compareceu
                   </span>
                   <div className="relative">
@@ -1036,18 +1036,18 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                       value={compareceu}
                       onChange={event => setCompareceu(event.target.value as any)}
                       aria-hidden="true"
-                      className="h-11 w-full appearance-none rounded-xl border border-[#e5eaf2] bg-white px-4 pr-10 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                      className="h-11 w-full appearance-none rounded-xl border border-[#DFE0E1] bg-white px-4 pr-10 text-sm font-semibold text-[#071822] outline-none transition focus:border-[#00A89D] focus:ring-4 focus:ring-[#00A89D]/10"
                     >
                       <option value="Sim">Sim</option>
                       <option value="Não">Não</option>
                     </select>
-                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none" />
+                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#526B7A] pointer-events-none" />
                   </div>
                 </div>
 
                 {/* 8. Carro Avaliado */}
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
+                  <span className="text-[11px] font-extrabold text-[#526B7A] uppercase tracking-wider">
                     Carro avaliado
                   </span>
                   <div className="relative">
@@ -1055,18 +1055,18 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                       value={carroAvaliado}
                       onChange={event => setCarroAvaliado(event.target.value as any)}
                       aria-hidden="true"
-                      className="h-11 w-full appearance-none rounded-xl border border-[#e5eaf2] bg-white px-4 pr-10 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                      className="h-11 w-full appearance-none rounded-xl border border-[#DFE0E1] bg-white px-4 pr-10 text-sm font-semibold text-[#071822] outline-none transition focus:border-[#00A89D] focus:ring-4 focus:ring-[#00A89D]/10"
                     >
                       <option value="sim">Sim</option>
                       <option value="nao">Não</option>
                     </select>
-                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none" />
+                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#526B7A] pointer-events-none" />
                   </div>
                 </div>
 
                 {/* 9. Sinal — visual only, hidden input handles test */}
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
+                  <span className="text-[11px] font-extrabold text-[#526B7A] uppercase tracking-wider">
                     Sinal (R$)
                   </span>
                   <input
@@ -1076,13 +1076,13 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                     onChange={event => setSinal(formatCurrencyLive(event.target.value))}
                     placeholder="R$ 1.000,00"
                     aria-hidden="true"
-                    className="h-11 w-full rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                    className="h-11 w-full rounded-xl border border-[#DFE0E1] bg-white px-4 text-sm font-semibold text-[#071822] outline-none transition placeholder:text-[#526B7A] focus:border-[#00A89D] focus:ring-4 focus:ring-[#00A89D]/10"
                   />
                 </div>
 
                 {/* 10. Financiamento — visual select synced to hidden */}
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
+                  <span className="text-[11px] font-extrabold text-[#526B7A] uppercase tracking-wider">
                     Financiamento
                   </span>
                   <div className="relative">
@@ -1090,20 +1090,20 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                       value={financiamento}
                       onChange={event => setFinanciamento(event.target.value as any)}
                       aria-hidden="true"
-                      className="h-11 w-full appearance-none rounded-xl border border-[#e5eaf2] bg-white px-4 pr-10 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                      className="h-11 w-full appearance-none rounded-xl border border-[#DFE0E1] bg-white px-4 pr-10 text-sm font-semibold text-[#071822] outline-none transition focus:border-[#00A89D] focus:ring-4 focus:ring-[#00A89D]/10"
                     >
                       <option value="aprovado">Aprovado</option>
                       <option value="reprovado">Recusado</option>
                       <option value="nao_aplica">Não se aplica</option>
                     </select>
-                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none" />
+                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#526B7A] pointer-events-none" />
                   </div>
                 </div>
 
                 {/* 11. Venda Realizada — visual select synced to hidden */}
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
-                    Venda realizada <span className="text-[#ef4444]">*</span>
+                  <span className="text-[11px] font-extrabold text-[#526B7A] uppercase tracking-wider">
+                    Venda realizada <span className="text-[#EF4343]">*</span>
                   </span>
                   <div className="relative">
                     <select
@@ -1117,16 +1117,16 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                       }}
                       required
                       aria-hidden="true"
-                      className="h-11 w-full appearance-none rounded-xl border border-[#e5eaf2] bg-white px-4 pr-10 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                      className="h-11 w-full appearance-none rounded-xl border border-[#DFE0E1] bg-white px-4 pr-10 text-sm font-semibold text-[#071822] outline-none transition focus:border-[#00A89D] focus:ring-4 focus:ring-[#00A89D]/10"
                     >
                       <option value="Em Negociação">Em Negociação</option>
                       <option value="Sim">Sim</option>
                       <option value="Não">Não</option>
                     </select>
-                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none" />
+                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#526B7A] pointer-events-none" />
                   </div>
                   {vendaRealizada === 'Em Negociação' && (
-                    <span className="text-[11px] text-[#f59e0b] font-semibold mt-1">
+                    <span className="text-[11px] text-[#F59F0A] font-semibold mt-1">
                       Agendamento para amanhã sugerido para a data acima.
                     </span>
                   )}
@@ -1134,7 +1134,7 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
 
                 {/* 12. Observações */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="modal-obs" className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
+                  <label htmlFor="modal-obs" className="text-[11px] font-extrabold text-[#526B7A] uppercase tracking-wider">
                     Observações
                   </label>
                   <input
@@ -1143,7 +1143,7 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                     value={observacoes}
                     onChange={event => setObservacoes(event.target.value)}
                     placeholder="Ex: Cliente ficou de avaliar o usado..."
-                    className="h-11 w-full rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-semibold text-[#111827] outline-none transition placeholder:text-[#94a3b8] focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                    className="h-11 w-full rounded-xl border border-[#DFE0E1] bg-white px-4 text-sm font-semibold text-[#071822] outline-none transition placeholder:text-[#526B7A] focus:border-[#00A89D] focus:ring-4 focus:ring-[#00A89D]/10"
                   />
                 </div>
               </div>
@@ -1151,8 +1151,8 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
               {/* Condicional: Motivo da Perda */}
               {(vendaRealizada === 'Não' || (vendaRealizada as string) === 'perdido') && (
                 <div className="flex flex-col gap-1.5 mt-3">
-                  <label htmlFor="modal-motivo-perda" className="text-[11px] font-extrabold text-[#475569] uppercase tracking-wider">
-                    Motivo da perda <span className="text-[#ef4444]">*</span>
+                  <label htmlFor="modal-motivo-perda" className="text-[11px] font-extrabold text-[#526B7A] uppercase tracking-wider">
+                    Motivo da perda <span className="text-[#EF4343]">*</span>
                   </label>
                   <div className="relative">
                     <select
@@ -1160,7 +1160,7 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                       value={motivoPerda}
                       onChange={event => setMotivoPerda(event.target.value)}
                       required
-                      className="h-11 w-full appearance-none rounded-xl border border-[#e5eaf2] bg-white px-4 pr-10 text-sm font-semibold text-[#111827] outline-none transition focus:border-[#2563eb] focus:ring-4 focus:ring-[#2563eb]/10"
+                      className="h-11 w-full appearance-none rounded-xl border border-[#DFE0E1] bg-white px-4 pr-10 text-sm font-semibold text-[#071822] outline-none transition focus:border-[#00A89D] focus:ring-4 focus:ring-[#00A89D]/10"
                     >
                       <option value="">Selecione...</option>
                       <option value="Não compareceu">Não compareceu</option>
@@ -1170,18 +1170,18 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                       <option value="Falta de estoque">Falta de estoque</option>
                       <option value="Outro">Outro</option>
                     </select>
-                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#94a3b8] pointer-events-none" />
+                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#526B7A] pointer-events-none" />
                   </div>
                 </div>
               )}
             </div>
 
             {/* Footer */}
-            <footer className="px-8 py-5 border-t border-[#eef2f7] flex justify-center gap-3 bg-[#f8fafc]">
+            <footer className="px-8 py-5 border-t border-[#DFE0E1] flex justify-center gap-3 bg-[#F7F8F8]">
               <button
                 type="button"
                 onClick={() => setDrawerOpen(false)}
-                className="h-[42px] px-6 rounded-full border border-[#e5eaf2] bg-white text-sm font-bold text-[#64748b] hover:bg-[#f8fafc] transition-colors"
+                className="h-[42px] px-6 rounded-full border border-[#DFE0E1] bg-white text-sm font-bold text-[#526B7A] hover:bg-[#F7F8F8] transition-colors"
               >
                 Cancelar
               </button>
@@ -1190,7 +1190,7 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                 type="button"
                 onClick={handleCadastrar}
                 disabled={saving}
-                className="h-[42px] px-8 rounded-full bg-[#2563eb] text-sm font-bold text-white shadow-[0_4px_12px_rgba(37,99,235,0.2)] hover:bg-[#1d4ed8] disabled:bg-[#94a3b8] transition-colors"
+                className="h-[42px] px-8 rounded-full bg-[#00A89D] text-sm font-bold text-white shadow-[0_4px_12px_rgba(0,168,157,0.2)] hover:bg-[#00A89D] disabled:bg-[#526B7A] transition-colors"
               >
                 {saving ? 'Salvando...' : 'Salvar Cliente'}
               </button>
@@ -1249,7 +1249,7 @@ function VendaBadge({ value }: { value: ClienteRow['vendaRealizada'] }) {
     return (
       <Badge
         variant="outline"
-        className="border-[#fde68a] bg-[#fef3c7] text-[#b45309] px-2 py-0 text-[10px] font-semibold shadow-mx-sm"
+        className="border-[#FFF7E6] bg-[#FFF7E6] text-[#F59F0A] px-2 py-0 text-[10px] font-semibold shadow-mx-sm"
       >
         Em Negociação
       </Badge>

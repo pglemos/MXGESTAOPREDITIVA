@@ -1,12 +1,12 @@
 import { expect, test } from "bun:test";
 
 const QUICK_ACTIONS = [
-  { label: 'Tentei Contato', icon: 'PhoneCall', tone: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
-  { label: 'Retorno Agendado', icon: 'Clock', tone: 'text-amber-600 bg-amber-50 border-amber-100' },
-  { label: 'Agendamento', icon: 'Calendar', tone: 'text-blue-600 bg-blue-50 border-blue-100' },
-  { label: 'Visita Feita', icon: 'UserCheck', tone: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
-  { label: 'Proposta', icon: 'FileText', tone: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
-  { label: 'Perdido', icon: 'XCircle', tone: 'text-rose-600 bg-rose-50 border-rose-100' },
+  { label: 'Tentei Contato', icon: 'PhoneCall', tone: 'text-[#00A89D] bg-[#E8F3F2] border-[#E8F3F2]' },
+  { label: 'Retorno Agendado', icon: 'Clock', tone: 'text-[#F59F0A] bg-[#FFF7E6] border-[#FFF7E6]' },
+  { label: 'Agendamento', icon: 'Calendar', tone: 'text-[#00A89D] bg-[#E8F3F2] border-[#E8F3F2]' },
+  { label: 'Visita Feita', icon: 'UserCheck', tone: 'text-[#00A89D] bg-[#E8F3F2] border-[#E8F3F2]' },
+  { label: 'Proposta', icon: 'FileText', tone: 'text-[#00A89D] bg-[#E8F3F2] border-[#E8F3F2]' },
+  { label: 'Perdido', icon: 'XCircle', tone: 'text-[#EF4343] bg-[#FEECEC] border-[#FEECEC]' },
 ]
 
 const targetLabel = 'Proposta'; // Near the end, to make the find do some work

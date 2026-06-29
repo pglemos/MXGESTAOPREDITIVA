@@ -36,7 +36,7 @@ const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
         aria-hidden="true"
         className={cn(
           // Animation respects reduced-motion preference via Tailwind's motion-safe variant.
-          'motion-safe:animate-pulse bg-surface-alt/80 border border-border-default/50',
+          'motion-safe:animate-[pulse_1200ms_ease-in-out_infinite] bg-mx-bg border border-mx-border/60',
           variantClasses[variant],
           className
         )}

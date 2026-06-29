@@ -106,6 +106,15 @@ quality_gate_tools: ["npm run lint", "npm run typecheck", "npm test", "npm run b
 - 2026-06-27: `npm run typecheck`, `npm run build`, `npm run lint` e `npm test` passaram novamente; suite retornou 671 testes, 0 falhas.
 - 2026-06-27: Deploy Vercel producao `dpl_4gVq8hfzz2obZWxGf8oNt2Y6dPGp` publicado em `https://mxperformance-7u7z8ab64-synvolt.vercel.app`.
 - 2026-06-27: Smoke autenticado em producao validou Home, Central, Carteira, Funil, Perfil e Carteira mobile sem overflow horizontal; evidencias em `output/playwright/prod-layout-fix-final`.
+- 2026-06-27: Padronizacao fina com referencia `/terminal-mx`: `/central-de-execucao`, `/carteira-clientes` e `/funil-comercial` ficaram com `h1.left=276`, `header.left=252`, `header.width=1180` em viewport 1440 e sem overflow horizontal.
+- 2026-06-27: Funil de Vendas reestruturado para restaurar o grid dos 3 KPIs no topo; validacao Playwright confirmou cards em 3 colunas desktop e empilhados sem overflow em 390px.
+- 2026-06-27: `npm run typecheck`, `npm run build`, `npm run lint` e `npm test` passaram; suite retornou 671 testes, 0 falhas.
+- 2026-06-27: Deploy Vercel producao `dpl_HitMV2JoWVGgjBgDPJCZ4U2x77kM` publicado em `https://mxperformance-mii0lotos-synvolt.vercel.app` e alias `https://mxperformance.vercel.app`.
+- 2026-06-27: Smoke autenticado em producao validou `/terminal-mx`, `/central-de-execucao`, `/carteira-clientes` e `/funil-comercial` em 1440x900 e 390x844 sem overflow horizontal e sem erros de console; evidencias em `output/playwright/prod-header-final`.
+- 2026-06-27: Validacao ampliada encontrou crash real ao clicar em `Rotina do Dia`: `Cannot read properties of undefined (reading 'track')`. Adapter `base44Client` corrigido com `analytics.track()` compatível com a referencia Base44.
+- 2026-06-27: `npm run typecheck`, `npm run build`, `npm run lint` e `npm test` passaram apos a correcao; suite retornou 671 testes, 0 falhas.
+- 2026-06-27: Deploy Vercel producao publicado em `https://mxperformance-5siwy4ko7-synvolt.vercel.app` e alias `https://mxperformance.vercel.app`.
+- 2026-06-27: Validacao final autenticada em producao retornou `allPass=true`: sem console errors, page errors, request failures, HTTP errors, overlays ou overflow; cabecalhos/laterais alinhados ao Terminal e interacoes de Rotina, Carteira e Funil funcionando; evidencias em `/tmp/mx-prod-final-validation-1782572561926`.
 
 ### Completion Notes
 
@@ -113,6 +122,8 @@ quality_gate_tools: ["npm run lint", "npm run typecheck", "npm test", "npm run b
 - Entry-points antigos continuam preservados como rotas da aplicacao, mas agora renderizam as telas Base44 adaptadas ao projeto.
 - Smoke de producao autenticado confirmou login real, navegacao principal do vendedor, drawer de pendencias e ficha da Carteira.
 - Rodada visual posterior corrigiu spacing, cabecalho, titulos e rolagem do shell vendedor mantendo o contrato do Check-in.
+- Rodada final alinhou titulos/cabecalhos/laterais das tres rotas CRM ao Terminal MX e corrigiu o grid quebrado do Funil de Vendas.
+- Validacao final corrigiu o crash de analytics na aba Rotina e comprovou producao sem erros para Central, Carteira e Funil.
 
 ### File List
 
@@ -121,6 +132,7 @@ quality_gate_tools: ["npm run lint", "npm run typecheck", "npm test", "npm run b
 - `src/index.css`
 - `src/components/Layout.tsx`
 - `src/components/SellerSidebar.tsx`
+- `src/components/ui/MxPageHeader.jsx`
 - `src/components/molecules/TabNavPill.tsx`
 - `src/pages/DashboardLoja.tsx`
 - `src/features/dashboard-loja/DashboardLoja.container.tsx`

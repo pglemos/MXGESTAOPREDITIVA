@@ -58,7 +58,7 @@ export function RankingPodium({ entries, onSelect }: Props) {
               </div>
             </div>
             <div className={`w-mx-20 sm:w-mx-32 rounded-t-2xl backdrop-blur-md border-x border-t border-white/30 flex flex-col items-center justify-end pb-4 shadow-2xl relative overflow-hidden transition-all duration-700
-              ${isFirst ? 'h-mx-64 bg-gradient-to-b from-brand-primary/80 to-brand-primary/5' : isSecond ? 'h-mx-48 bg-gradient-to-b from-border-strong/80 to-surface-alt/10' : 'h-mx-32 bg-gradient-to-b from-amber-700/60 to-amber-900/10'}`}>
+              ${isFirst ? 'h-mx-64 bg-gradient-to-b from-brand-primary/80 to-brand-primary/5' : isSecond ? 'h-mx-48 bg-gradient-to-b from-border-strong/80 to-surface-alt/10' : 'h-mx-32 bg-gradient-to-b from-status-warning/60 to-status-warning/10'}`}>
               <div className={`font-display font-black text-2xl sm:text-3xl mb-1 drop-shadow-sm ${isFirst ? 'text-mx-black' : 'text-text-primary'}`}>{seller.atingimento}%</div>
               <div className={cn(
                 "text-mx-nano sm:text-mx-micro uppercase font-bold tracking-wide sm:tracking-widest max-w-full text-center",

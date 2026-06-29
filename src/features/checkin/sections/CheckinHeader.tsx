@@ -365,12 +365,12 @@ return (
       {/* Top Header Row */}
 <div className="hidden flex-wrap items-center justify-between gap-2 md:flex md:gap-4">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:gap-4">
-          <h1 className="min-w-0 truncate text-[20px] font-extrabold tracking-tight text-[#111827] sm:text-[26px]">
+          <h1 className="min-w-0 truncate text-[20px] font-extrabold tracking-tight text-[#071822] sm:text-[26px]">
             FECHAMENTO DIÁRIO
           </h1>
 
-          <div className="inline-flex h-8 max-w-full items-center gap-2 rounded-full border border-[#e5eaf2] bg-white px-3 text-xs font-semibold text-[#475569] shadow-sm sm:h-9 sm:px-4 sm:text-sm">
-            <CalendarDays size={14} className="text-[#2563eb]" />
+          <div className="inline-flex h-8 max-w-full items-center gap-2 rounded-full border border-[#DFE0E1] bg-white px-3 text-xs font-semibold text-[#526B7A] shadow-sm sm:h-9 sm:px-4 sm:text-sm">
+            <CalendarDays size={14} className="text-[#00A89D]" />
             <span className="truncate">{dateStr}</span>
           </div>
         </div>
@@ -382,7 +382,7 @@ return (
               setActiveView('list')
               setHistoryOpen(true)
             }}
-            className="inline-flex h-9 items-center gap-2 rounded-xl border border-[#e5eaf2] bg-white px-4 text-sm font-bold text-[#334155] shadow-sm transition-colors hover:bg-[#f8fafc] sm:h-10 sm:px-5"
+            className="inline-flex h-9 items-center gap-2 rounded-xl border border-[#DFE0E1] bg-white px-4 text-sm font-bold text-[#334155] shadow-sm transition-colors hover:bg-[#F7F8F8] sm:h-10 sm:px-5"
           >
             <History size={14} />
             Histórico
@@ -396,46 +396,46 @@ return (
 <button
 type="button"
 onClick={() => setCustomReferenceDate('')}
-className="inline-flex h-10 max-w-full items-center gap-2 rounded-full border border-[#e5eaf2] bg-white px-4 text-[14px] font-black text-[#111827] shadow-sm"
+className="inline-flex h-10 max-w-full items-center gap-2 rounded-full border border-[#DFE0E1] bg-white px-4 text-[14px] font-black text-[#071822] shadow-sm"
 >
-<CalendarDays size={16} className="text-[#0b63f6]" />
+<CalendarDays size={16} className="text-[#00A89D]" />
 <span className="truncate">{dateStr}</span>
 </button>
 </div>
 
-<section className="rounded-[16px] border border-[#e5eaf2] bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+<section className="rounded-[16px] border border-[#DFE0E1] bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
 <div className="flex items-start justify-between gap-4">
 <div>
 <div className="flex items-center gap-1.5">
-<p className="text-[16px] font-black tracking-tight text-[#111827]">Progresso do Fechamento</p>
-<span className="grid h-5 w-5 place-items-center rounded-full border border-[#94a3b8] text-[12px] font-black text-[#64748b]">i</span>
+<p className="text-[16px] font-black tracking-tight text-[#071822]">Progresso do Fechamento</p>
+<span className="grid h-5 w-5 place-items-center rounded-full border border-[#526B7A] text-[12px] font-black text-[#526B7A]">i</span>
 </div>
 <p className="mt-3 text-[13px] font-bold text-[#334155]">
-Etapa {activeStep} de 4 <span className="text-[#94a3b8]">•</span> <span className="text-[#0b63f6]">{activeStepLabel}</span>
+Etapa {activeStep} de 4 <span className="text-[#526B7A]">•</span> <span className="text-[#00A89D]">{activeStepLabel}</span>
 </p>
 </div>
 <div className="text-right">
-<p className="text-[31px] font-black leading-none text-[#0b63f6]">{progressPercent}%</p>
-<p className="mt-1 text-[12px] font-semibold text-[#94a3b8]">preenchido</p>
+<p className="text-[31px] font-black leading-none text-[#00A89D]">{progressPercent}%</p>
+<p className="mt-1 text-[12px] font-semibold text-[#526B7A]">preenchido</p>
 </div>
 </div>
-<div className="mt-4 h-3 rounded-full bg-[#e5e7eb]">
-<div className="h-full rounded-full bg-[#0b63f6]" style={{ width: `${progressPercent}%` }} />
+<div className="mt-4 h-3 rounded-full bg-[#DFE0E1]">
+<div className="h-full rounded-full bg-[#00A89D]" style={{ width: `${progressPercent}%` }} />
 </div>
 </section>
 
-<section className="grid grid-cols-4 overflow-hidden rounded-[16px] border border-[#e5eaf2] bg-white shadow-[0_10px_30px_rgba(15,23,42,0.04)]">
+<section className="grid grid-cols-4 overflow-hidden rounded-[16px] border border-[#DFE0E1] bg-white shadow-[0_10px_30px_rgba(15,23,42,0.04)]">
 {stepItems.map((item) => {
 const active = item.step === activeStep
 return (
-<div key={item.step} className="flex min-w-0 flex-col items-center gap-1 border-r border-[#eef2f7] px-2 py-3 text-center last:border-r-0">
-<span className={item.done ? 'grid h-8 w-8 place-items-center rounded-full bg-[#34c759] text-[15px] font-black text-white' : active ? 'grid h-8 w-8 place-items-center rounded-full bg-[#0b63f6] text-[14px] font-black text-white' : 'grid h-8 w-8 place-items-center rounded-full border border-[#94a3b8] text-[14px] font-black text-[#64748b]'}>
+<div key={item.step} className="flex min-w-0 flex-col items-center gap-1 border-r border-[#DFE0E1] px-2 py-3 text-center last:border-r-0">
+<span className={item.done ? 'grid h-8 w-8 place-items-center rounded-full bg-[#34c759] text-[15px] font-black text-white' : active ? 'grid h-8 w-8 place-items-center rounded-full bg-[#00A89D] text-[14px] font-black text-white' : 'grid h-8 w-8 place-items-center rounded-full border border-[#526B7A] text-[14px] font-black text-[#526B7A]'}>
 {item.done ? '✓' : item.step}
 </span>
-<span className={active ? 'max-w-full text-[11px] font-black leading-tight text-[#0b63f6]' : 'max-w-full text-[11px] font-bold leading-tight text-[#111827]'}>
+<span className={active ? 'max-w-full text-[11px] font-black leading-tight text-[#00A89D]' : 'max-w-full text-[11px] font-bold leading-tight text-[#071822]'}>
 {item.step}. {item.label}
 </span>
-<span className={active ? 'text-[11px] font-black text-[#0b63f6]' : 'text-[11px] font-semibold text-[#64748b]'}>
+<span className={active ? 'text-[11px] font-black text-[#00A89D]' : 'text-[11px] font-semibold text-[#526B7A]'}>
 {item.percent}%
 </span>
 </div>
@@ -447,15 +447,15 @@ return (
 {/* Histórico de Fechamentos Modal */}
 {historyOpen && (
 <div className="fixed inset-0 z-[140] grid place-items-center bg-black/35 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] backdrop-blur-[3px]" role="dialog" aria-modal="true" aria-label="Histórico de Fechamentos">
-<div className="flex max-h-[calc(100dvh-2rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] w-full max-w-[min(42rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-[#e5eaf2] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] transition-all animate-in fade-in zoom-in-95 duration-200">
+<div className="flex max-h-[calc(100dvh-2rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] w-full max-w-[min(42rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-[#DFE0E1] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] transition-all animate-in fade-in zoom-in-95 duration-200">
             
             {/* Modal Header */}
-            <header className="px-6 py-5 border-b border-[#eef2f7] flex items-center justify-between bg-[#f8fafc]">
+            <header className="px-6 py-5 border-b border-[#DFE0E1] flex items-center justify-between bg-[#F7F8F8]">
               <div>
-                <h2 className="text-lg font-extrabold text-[#111827] uppercase tracking-tight">
+                <h2 className="text-lg font-extrabold text-[#071822] uppercase tracking-tight">
                   {activeView === 'list' ? 'Histórico de Fechamentos' : 'Regularizar Lançamento'}
                 </h2>
-                <p className="text-xs font-semibold text-[#64748b] mt-1">
+                <p className="text-xs font-semibold text-[#526B7A] mt-1">
                   {activeView === 'list' 
                     ? 'Visualize ou regularize seus fechamentos operacionais dos últimos 7 dias.' 
                     : `Data de referência operacional: ${selectedRow?.date.split('-').reverse().join('/')}`
@@ -468,7 +468,7 @@ return (
                   setHistoryOpen(false)
                   setActiveView('list')
                 }}
-                className="grid h-8 w-8 place-items-center rounded-lg text-[#64748b] hover:bg-[#f1f5f9] transition-colors"
+                className="grid h-8 w-8 place-items-center rounded-lg text-[#526B7A] hover:bg-[#F7F8F8] transition-colors"
                 aria-label="Fechar"
               >
                 <X size={18} />
@@ -492,22 +492,22 @@ return (
                         key={row.date}
                         className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border rounded-2xl transition-all ${
                           row.finalized
-                            ? 'border-[#e2e8f0] bg-[#f8fafc]/80'
+                            ? 'border-[#DFE0E1] bg-[#F7F8F8]/80'
                             : 'border-[#fecaca] bg-[#fef2f2]/60'
                         }`}
                       >
                         {/* Left Side: Date & Icon */}
                         <div className="flex items-center gap-3">
                           <div className={`grid h-9 w-9 place-items-center rounded-xl ${
-                            row.finalized ? 'bg-[#eff6ff] text-[#2563eb]' : 'bg-[#fef2f2] text-[#ef4444]'
+                            row.finalized ? 'bg-[#E8F3F2] text-[#00A89D]' : 'bg-[#fef2f2] text-[#EF4343]'
                           }`}>
                             <CalendarClock size={18} />
                           </div>
                           <div>
-                            <span className="font-extrabold text-[#111827] text-sm">{formattedDate}</span>
-                            <span className="text-[#94a3b8] text-xs font-bold ml-2 uppercase tracking-wide">{weekdayFormatted}</span>
+                            <span className="font-extrabold text-[#071822] text-sm">{formattedDate}</span>
+                            <span className="text-[#526B7A] text-xs font-bold ml-2 uppercase tracking-wide">{weekdayFormatted}</span>
                             {row.finalized && row.time && row.time !== '—' && (
-                              <span className="text-[#64748b] text-xs font-bold ml-2">
+                              <span className="text-[#526B7A] text-xs font-bold ml-2">
                                 · {row.time}
                               </span>
                             )}
@@ -521,30 +521,30 @@ return (
                               {/* Metrics */}
                               <div className="flex items-center gap-3 text-xs flex-wrap">
                                 <div>
-                                  <span className="text-[#2563eb] font-black">{row.leads}</span>{' '}
-                                  <span className="text-[#64748b] font-semibold">leads</span>
+                                  <span className="text-[#00A89D] font-black">{row.leads}</span>{' '}
+                                  <span className="text-[#526B7A] font-semibold">leads</span>
                                 </div>
-                                <div className="h-3 w-px bg-slate-200" />
+                                <div className="h-3 w-px bg-[#DFE0E1]" />
                                 <div>
-                                  <span className="text-[#7c3aed] font-black">{row.atend}</span>{' '}
-                                  <span className="text-[#64748b] font-semibold">atend.</span>
+                                  <span className="text-mx-action font-black">{row.atend}</span>{' '}
+                                  <span className="text-[#526B7A] font-semibold">atend.</span>
                                 </div>
-                                <div className="h-3 w-px bg-slate-200" />
+                                <div className="h-3 w-px bg-[#DFE0E1]" />
                                 <div>
                                   <span className="text-[#ea580c] font-black">{row.agend}</span>{' '}
-                                  <span className="text-[#64748b] font-semibold">agend.</span>
+                                  <span className="text-[#526B7A] font-semibold">agend.</span>
                                 </div>
-                                <div className="h-3 w-px bg-slate-200" />
+                                <div className="h-3 w-px bg-[#DFE0E1]" />
                                 <div>
-                                  <span className="text-[#16a34a] font-black">{row.vendas}</span>{' '}
-                                  <span className="text-[#64748b] font-semibold">vendas</span>
+                                  <span className="text-[#00A89D] font-black">{row.vendas}</span>{' '}
+                                  <span className="text-[#526B7A] font-semibold">vendas</span>
                                 </div>
                               </div>
                               {/* Action to correct */}
                               <button
                                 type="button"
                                 onClick={() => handleSelectRow(row)}
-                                className="inline-flex h-7 items-center justify-center rounded-lg border border-[#e5eaf2] bg-white px-3 text-[10px] font-black text-[#2563eb] hover:bg-[#eff6ff] transition-colors shadow-sm cursor-pointer"
+                                className="inline-flex h-7 items-center justify-center rounded-lg border border-[#DFE0E1] bg-white px-3 text-[10px] font-black text-[#00A89D] hover:bg-[#E8F3F2] transition-colors shadow-sm cursor-pointer"
                               >
                                 Ajustar
                               </button>
@@ -552,14 +552,14 @@ return (
                           ) : (
                             <>
                               {/* Pending Badge */}
-                              <span className="inline-flex items-center rounded-full bg-[#fef2f2] border border-[#fecaca] px-2.5 py-0.5 text-[10px] font-extrabold text-[#ef4444]">
+                              <span className="inline-flex items-center rounded-full bg-[#fef2f2] border border-[#fecaca] px-2.5 py-0.5 text-[10px] font-extrabold text-[#EF4343]">
                                 Pendente de Fechamento
                               </span>
                               {/* Action to regularize */}
                               <button
                                 type="button"
                                 onClick={() => handleSelectRow(row)}
-                                className="text-[#2563eb] font-black hover:underline text-xs cursor-pointer"
+                                className="text-[#00A89D] font-black hover:underline text-xs cursor-pointer"
                               >
                                 Regularizar
                               </button>
@@ -587,14 +587,14 @@ return (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     
                     {/* Leads Pillar */}
-                    <div className="border border-[#e5eaf2] rounded-xl p-4 bg-slate-50/50 space-y-3">
-                      <div className="flex items-center gap-2 border-b border-[#eef2f7] pb-2">
-                        <Users size={16} className="text-[#2563eb]" />
-                        <h3 className="text-xs font-black uppercase text-[#475569] tracking-wider">1. Leads Recebidos</h3>
+                    <div className="border border-[#DFE0E1] rounded-xl p-4 bg-[#F7F8F8]/50 space-y-3">
+                      <div className="flex items-center gap-2 border-b border-[#DFE0E1] pb-2">
+                        <Users size={16} className="text-[#00A89D]" />
+                        <h3 className="text-xs font-black uppercase text-[#526B7A] tracking-wider">1. Leads Recebidos</h3>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                            <label htmlFor="adjustment-leads-cart" className="text-[10px] font-bold text-[#94a3b8] uppercase">Carteira</label>
+                            <label htmlFor="adjustment-leads-cart" className="text-[10px] font-bold text-[#526B7A] uppercase">Carteira</label>
                             <input
                               id="adjustment-leads-cart"
                               type="number"
@@ -602,11 +602,11 @@ return (
                             disabled={regularizacaoBloqueada}
                             value={formValues.leads_cart}
                             onChange={(e) => handleFieldChange('leads_cart', Number(e.target.value))}
-                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-3 text-center text-xs font-bold outline-none focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
+                            className="mt-1 h-9 w-full rounded-lg border border-[#DFE0E1] bg-white px-3 text-center text-xs font-bold outline-none focus:border-[#00A89D] disabled:cursor-not-allowed disabled:bg-[#DFE0E1] disabled:text-[#526B7A]"
                           />
                         </div>
                         <div>
-                            <label htmlFor="adjustment-leads-net" className="text-[10px] font-bold text-[#94a3b8] uppercase">Internet</label>
+                            <label htmlFor="adjustment-leads-net" className="text-[10px] font-bold text-[#526B7A] uppercase">Internet</label>
                             <input
                               id="adjustment-leads-net"
                               type="number"
@@ -614,21 +614,21 @@ return (
                             disabled={regularizacaoBloqueada}
                             value={formValues.leads_net}
                             onChange={(e) => handleFieldChange('leads_net', Number(e.target.value))}
-                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-3 text-center text-xs font-bold outline-none focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
+                            className="mt-1 h-9 w-full rounded-lg border border-[#DFE0E1] bg-white px-3 text-center text-xs font-bold outline-none focus:border-[#00A89D] disabled:cursor-not-allowed disabled:bg-[#DFE0E1] disabled:text-[#526B7A]"
                           />
                         </div>
                       </div>
                     </div>
 
                     {/* Atendimentos Pillar */}
-                    <div className="border border-[#e5eaf2] rounded-xl p-4 bg-slate-50/50 space-y-3">
-                      <div className="flex items-center gap-2 border-b border-[#eef2f7] pb-2">
-                        <Globe size={16} className="text-[#2563eb]" />
-                        <h3 className="text-xs font-black uppercase text-[#475569] tracking-wider">2. Atendimentos</h3>
+                    <div className="border border-[#DFE0E1] rounded-xl p-4 bg-[#F7F8F8]/50 space-y-3">
+                      <div className="flex items-center gap-2 border-b border-[#DFE0E1] pb-2">
+                        <Globe size={16} className="text-[#00A89D]" />
+                        <h3 className="text-xs font-black uppercase text-[#526B7A] tracking-wider">2. Atendimentos</h3>
                       </div>
                       <div className="grid grid-cols-3 gap-1.5">
                         <div>
-                            <label htmlFor="adjustment-visitas-porta" className="text-[9px] font-bold text-[#94a3b8] uppercase">Porta</label>
+                            <label htmlFor="adjustment-visitas-porta" className="text-[9px] font-bold text-[#526B7A] uppercase">Porta</label>
                             <input
                               id="adjustment-visitas-porta"
                               type="number"
@@ -636,11 +636,11 @@ return (
                             disabled={regularizacaoBloqueada}
                             value={formValues.visitas_porta}
                             onChange={(e) => handleFieldChange('visitas_porta', Number(e.target.value))}
-                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
+                            className="mt-1 h-9 w-full rounded-lg border border-[#DFE0E1] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#00A89D] disabled:cursor-not-allowed disabled:bg-[#DFE0E1] disabled:text-[#526B7A]"
                           />
                         </div>
                         <div>
-                            <label htmlFor="adjustment-visitas-cart" className="text-[9px] font-bold text-[#94a3b8] uppercase">Carteira</label>
+                            <label htmlFor="adjustment-visitas-cart" className="text-[9px] font-bold text-[#526B7A] uppercase">Carteira</label>
                             <input
                               id="adjustment-visitas-cart"
                               type="number"
@@ -648,11 +648,11 @@ return (
                             disabled={regularizacaoBloqueada}
                             value={formValues.visitas_cart}
                             onChange={(e) => handleFieldChange('visitas_cart', Number(e.target.value))}
-                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
+                            className="mt-1 h-9 w-full rounded-lg border border-[#DFE0E1] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#00A89D] disabled:cursor-not-allowed disabled:bg-[#DFE0E1] disabled:text-[#526B7A]"
                           />
                         </div>
                         <div>
-                            <label htmlFor="adjustment-visitas-net" className="text-[9px] font-bold text-[#94a3b8] uppercase">Internet</label>
+                            <label htmlFor="adjustment-visitas-net" className="text-[9px] font-bold text-[#526B7A] uppercase">Internet</label>
                             <input
                               id="adjustment-visitas-net"
                               type="number"
@@ -660,21 +660,21 @@ return (
                             disabled={regularizacaoBloqueada}
                             value={formValues.visitas_net}
                             onChange={(e) => handleFieldChange('visitas_net', Number(e.target.value))}
-                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
+                            className="mt-1 h-9 w-full rounded-lg border border-[#DFE0E1] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#00A89D] disabled:cursor-not-allowed disabled:bg-[#DFE0E1] disabled:text-[#526B7A]"
                           />
                         </div>
                       </div>
                     </div>
 
                     {/* Agendamentos Pillar */}
-                    <div className="border border-[#e5eaf2] rounded-xl p-4 bg-slate-50/50 space-y-3">
-                      <div className="flex items-center gap-2 border-b border-[#eef2f7] pb-2">
-                        <CalendarClock size={16} className="text-[#2563eb]" />
-                        <h3 className="text-xs font-black uppercase text-[#475569] tracking-wider">3. Agend. p/ Amanhã</h3>
+                    <div className="border border-[#DFE0E1] rounded-xl p-4 bg-[#F7F8F8]/50 space-y-3">
+                      <div className="flex items-center gap-2 border-b border-[#DFE0E1] pb-2">
+                        <CalendarClock size={16} className="text-[#00A89D]" />
+                        <h3 className="text-xs font-black uppercase text-[#526B7A] tracking-wider">3. Agend. p/ Amanhã</h3>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                            <label htmlFor="adjustment-agd-cart" className="text-[10px] font-bold text-[#94a3b8] uppercase">Carteira</label>
+                            <label htmlFor="adjustment-agd-cart" className="text-[10px] font-bold text-[#526B7A] uppercase">Carteira</label>
                             <input
                               id="adjustment-agd-cart"
                               type="number"
@@ -682,11 +682,11 @@ return (
                             disabled={regularizacaoBloqueada}
                             value={formValues.agd_cart}
                             onChange={(e) => handleFieldChange('agd_cart', Number(e.target.value))}
-                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-3 text-center text-xs font-bold outline-none focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
+                            className="mt-1 h-9 w-full rounded-lg border border-[#DFE0E1] bg-white px-3 text-center text-xs font-bold outline-none focus:border-[#00A89D] disabled:cursor-not-allowed disabled:bg-[#DFE0E1] disabled:text-[#526B7A]"
                           />
                         </div>
                         <div>
-                            <label htmlFor="adjustment-agd-net" className="text-[10px] font-bold text-[#94a3b8] uppercase">Internet</label>
+                            <label htmlFor="adjustment-agd-net" className="text-[10px] font-bold text-[#526B7A] uppercase">Internet</label>
                             <input
                               id="adjustment-agd-net"
                               type="number"
@@ -694,21 +694,21 @@ return (
                             disabled={regularizacaoBloqueada}
                             value={formValues.agd_net}
                             onChange={(e) => handleFieldChange('agd_net', Number(e.target.value))}
-                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-3 text-center text-xs font-bold outline-none focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
+                            className="mt-1 h-9 w-full rounded-lg border border-[#DFE0E1] bg-white px-3 text-center text-xs font-bold outline-none focus:border-[#00A89D] disabled:cursor-not-allowed disabled:bg-[#DFE0E1] disabled:text-[#526B7A]"
                           />
                         </div>
                       </div>
                     </div>
 
                     {/* Vendas Pillar */}
-                    <div className="border border-[#e5eaf2] rounded-xl p-4 bg-slate-50/50 space-y-3">
-                      <div className="flex items-center gap-2 border-b border-[#eef2f7] pb-2">
-                        <DollarSign size={16} className="text-[#2563eb]" />
-                        <h3 className="text-xs font-black uppercase text-[#475569] tracking-wider">4. Vendas</h3>
+                    <div className="border border-[#DFE0E1] rounded-xl p-4 bg-[#F7F8F8]/50 space-y-3">
+                      <div className="flex items-center gap-2 border-b border-[#DFE0E1] pb-2">
+                        <DollarSign size={16} className="text-[#00A89D]" />
+                        <h3 className="text-xs font-black uppercase text-[#526B7A] tracking-wider">4. Vendas</h3>
                       </div>
                       <div className="grid grid-cols-3 gap-1.5">
                         <div>
-                            <label htmlFor="adjustment-vnd-porta" className="text-[9px] font-bold text-[#94a3b8] uppercase">Porta</label>
+                            <label htmlFor="adjustment-vnd-porta" className="text-[9px] font-bold text-[#526B7A] uppercase">Porta</label>
                             <input
                               id="adjustment-vnd-porta"
                               type="number"
@@ -716,11 +716,11 @@ return (
                             disabled={regularizacaoBloqueada}
                               value={formValues.vnd_porta}
                               onChange={(e) => handleFieldChange('vnd_porta', Number(e.target.value))}
-                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
+                            className="mt-1 h-9 w-full rounded-lg border border-[#DFE0E1] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#00A89D] disabled:cursor-not-allowed disabled:bg-[#DFE0E1] disabled:text-[#526B7A]"
                           />
                         </div>
                         <div>
-                            <label htmlFor="adjustment-vnd-cart" className="text-[9px] font-bold text-[#94a3b8] uppercase">Carteira</label>
+                            <label htmlFor="adjustment-vnd-cart" className="text-[9px] font-bold text-[#526B7A] uppercase">Carteira</label>
                             <input
                               id="adjustment-vnd-cart"
                               type="number"
@@ -728,11 +728,11 @@ return (
                             disabled={regularizacaoBloqueada}
                               value={formValues.vnd_cart}
                               onChange={(e) => handleFieldChange('vnd_cart', Number(e.target.value))}
-                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
+                            className="mt-1 h-9 w-full rounded-lg border border-[#DFE0E1] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#00A89D] disabled:cursor-not-allowed disabled:bg-[#DFE0E1] disabled:text-[#526B7A]"
                           />
                         </div>
                         <div>
-                            <label htmlFor="adjustment-vnd-net" className="text-[9px] font-bold text-[#94a3b8] uppercase">Internet</label>
+                            <label htmlFor="adjustment-vnd-net" className="text-[9px] font-bold text-[#526B7A] uppercase">Internet</label>
                             <input
                               id="adjustment-vnd-net"
                               type="number"
@@ -740,7 +740,7 @@ return (
                             disabled={regularizacaoBloqueada}
                               value={formValues.vnd_net}
                               onChange={(e) => handleFieldChange('vnd_net', Number(e.target.value))}
-                            className="mt-1 h-9 w-full rounded-lg border border-[#e5eaf2] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
+                            className="mt-1 h-9 w-full rounded-lg border border-[#DFE0E1] bg-white px-2 text-center text-xs font-bold outline-none focus:border-[#00A89D] disabled:cursor-not-allowed disabled:bg-[#DFE0E1] disabled:text-[#526B7A]"
                           />
                         </div>
                       </div>
@@ -749,9 +749,9 @@ return (
                   </div>
 
                   {/* Justification and Notes */}
-                  <div className="border border-[#e5eaf2] rounded-xl p-4 bg-slate-50/50 space-y-4">
+                  <div className="border border-[#DFE0E1] rounded-xl p-4 bg-[#F7F8F8]/50 space-y-4">
                     <div className="flex flex-col gap-1.5">
-                      <label htmlFor="adjustment-reason" className="text-[10px] font-extrabold text-[#475569] uppercase tracking-wider">
+                      <label htmlFor="adjustment-reason" className="text-[10px] font-extrabold text-[#526B7A] uppercase tracking-wider">
                         Motivo do Ajuste
                       </label>
                       <select
@@ -759,7 +759,7 @@ return (
                         value={formValues.reason}
                         disabled={regularizacaoBloqueada}
                         onChange={(e) => setFormValues(prev => ({ ...prev, reason: e.target.value }))}
-                        className="h-10 w-full rounded-xl border border-[#e5eaf2] bg-white px-3 text-xs font-semibold text-[#111827] outline-none focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
+                        className="h-10 w-full rounded-xl border border-[#DFE0E1] bg-white px-3 text-xs font-semibold text-[#071822] outline-none focus:border-[#00A89D] disabled:cursor-not-allowed disabled:bg-[#DFE0E1] disabled:text-[#526B7A]"
                       >
                         <option value="">Selecione o motivo...</option>
                         {ADJUSTMENT_REASONS.map(reason => (
@@ -771,7 +771,7 @@ return (
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <label htmlFor="adjustment-note" className="text-[10px] font-extrabold text-[#475569] uppercase tracking-wider">
+                      <label htmlFor="adjustment-note" className="text-[10px] font-extrabold text-[#526B7A] uppercase tracking-wider">
                         Observações Operacionais (Justificativa)
                       </label>
                       <textarea
@@ -780,10 +780,10 @@ return (
                         disabled={regularizacaoBloqueada}
                         onChange={(e) => setFormValues(prev => ({ ...prev, note: e.target.value }))}
                         placeholder="Descreva detalhadamente o motivo deste ajuste retroativo..."
-                        className="min-h-[80px] w-full resize-none rounded-xl border border-[#e5eaf2] bg-white p-3 text-xs text-[#111827] outline-none placeholder:text-[#94a3b8] focus:border-[#2563eb] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-[#94a3b8]"
+                        className="min-h-[80px] w-full resize-none rounded-xl border border-[#DFE0E1] bg-white p-3 text-xs text-[#071822] outline-none placeholder:text-[#526B7A] focus:border-[#00A89D] disabled:cursor-not-allowed disabled:bg-[#DFE0E1] disabled:text-[#526B7A]"
                         maxLength={250}
                       />
-                      <span className="text-[10px] text-right text-[#94a3b8] font-mono">
+                      <span className="text-[10px] text-right text-[#526B7A] font-mono">
                         {formValues.note.length}/250 caracteres
                       </span>
                     </div>
@@ -794,14 +794,14 @@ return (
             </div>
 
             {/* Modal Footer */}
-            <footer className="px-6 py-4 border-t border-[#eef2f7] flex justify-between items-center bg-[#f8fafc]">
+            <footer className="px-6 py-4 border-t border-[#DFE0E1] flex justify-between items-center bg-[#F7F8F8]">
               {activeView === 'list' ? (
                 <>
                   <span />
                   <Button
                     type="button"
                     onClick={() => setHistoryOpen(false)}
-                    className="h-10 px-5 text-xs font-bold bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl shadow-sm transition-colors"
+                    className="h-10 px-5 text-xs font-bold bg-[#00A89D] hover:bg-[#00A89D] text-white rounded-xl shadow-sm transition-colors"
                   >
                     Fechar
                   </Button>
@@ -811,7 +811,7 @@ return (
                   <Button
                     type="button"
                     onClick={() => setActiveView('list')}
-                    className="h-10 px-4 text-xs font-bold border border-[#e5eaf2] bg-white hover:bg-slate-50 text-[#475569] rounded-xl shadow-sm transition-colors flex items-center gap-1.5"
+                    className="h-10 px-4 text-xs font-bold border border-[#DFE0E1] bg-white hover:bg-[#F7F8F8] text-[#526B7A] rounded-xl shadow-sm transition-colors flex items-center gap-1.5"
                   >
                     <ArrowLeft size={14} /> Voltar
                   </Button>
@@ -822,7 +822,7 @@ return (
                     className={`h-10 px-5 text-xs font-bold text-white rounded-xl shadow-sm transition-colors flex items-center gap-1.5 ${
                       regularizacaoBloqueada
                         ? 'bg-status-error cursor-not-allowed opacity-80'
-                        : 'bg-[#16a34a] hover:bg-[#15803d]'
+                        : 'bg-[#00A89D] hover:bg-[#00A89D]'
                     }`}
                   >
                     <Send size={14} /> {regularizacaoBloqueada ? 'Aguardando liberação do gerente' : selectedRow?.finalized ? 'Enviar Correção' : 'Enviar p/ Aprovação'}

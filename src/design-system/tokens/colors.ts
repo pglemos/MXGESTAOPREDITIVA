@@ -41,33 +41,33 @@ export type ScoreBandSemantic =
  */
 export const alertTokens = {
   critical: () => ({
-    fg: cssVar('--color-status-error', '#ef4444'),
-    surface: cssVar('--color-status-error-surface', 'rgba(239, 68, 68, 0.05)'),
+    fg: cssVar('--color-status-error', '#EF4343'),
+    surface: cssVar('--color-status-error-surface', 'rgba(239, 67, 67, 0.08)'),
   }),
   warning: () => ({
-    fg: cssVar('--color-status-warning', '#f59e0b'), // lint-tokens-ignore-line
+    fg: cssVar('--color-status-warning', '#F59F0A'), // lint-tokens-ignore-line
     surface: cssVar('--color-status-warning-surface', 'rgba(245, 158, 11, 0.05)'),
   }),
   positive: () => ({
-    fg: cssVar('--color-status-success', '#10b981'), // lint-tokens-ignore-line
-    surface: cssVar('--color-status-success-surface', 'rgba(16, 185, 129, 0.05)'),
+    fg: cssVar('--color-status-success', '#00A89D'), // lint-tokens-ignore-line
+    surface: cssVar('--color-status-success-surface', 'rgba(0, 168, 157, 0.08)'),
   }),
   consultive: () => ({
-    fg: cssVar('--color-alert-consultive', '#6366f1'), // lint-tokens-ignore-line
-    surface: cssVar('--color-alert-consultive-surface', 'rgba(99, 102, 241, 0.05)'),
+    fg: cssVar('--color-alert-consultive', '#005BFF'), // lint-tokens-ignore-line
+    surface: cssVar('--color-alert-consultive-surface', 'rgba(0, 91, 255, 0.08)'),
   }),
 } as const
 
 /**
  * Cores semânticas das 5 faixas do MX Score (lazy).
- * `elite` consolida marca verde `#22C55E` (ADR-MX-002 Opção B).
+ * `elite` consolida a cor primary `#00A89D`.
  */
 export const scoreBandTokens = {
-  elite: () => cssVar('--color-score-elite', '#22C55E'), // lint-tokens-ignore-line
-  excellent: () => cssVar('--color-score-excellent', '#4ade80'), // lint-tokens-ignore-line
-  good: () => cssVar('--color-score-good', '#3b82f6'), // lint-tokens-ignore-line
-  attention: () => cssVar('--color-score-attention', '#f59e0b'), // lint-tokens-ignore-line
-  critical: () => cssVar('--color-score-critical', '#ef4444'),
+  elite: () => cssVar('--color-score-elite', '#00A89D'), // lint-tokens-ignore-line
+  excellent: () => cssVar('--color-score-excellent', '#00A89D'), // lint-tokens-ignore-line
+  good: () => cssVar('--color-score-good', '#071822'), // lint-tokens-ignore-line
+  attention: () => cssVar('--color-score-attention', '#F59F0A'), // lint-tokens-ignore-line
+  critical: () => cssVar('--color-score-critical', '#EF4343'),
 } as const
 
 /**

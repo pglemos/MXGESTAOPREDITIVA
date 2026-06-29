@@ -19,7 +19,7 @@
 
     const texts = opts.texts || ['MX', 'PERFORMANCE'];
     const color = opts.color || 'rgb(31,203,110)';
-    const fontFamily = opts.fontFamily || 'Space Grotesk, sans-serif';
+    const fontFamily = opts.fontFamily || 'Inter, sans-serif';
     const fontWeight = opts.fontWeight || 700;
     const fontSize = opts.fontSize || 96; // px
     const spread = opts.spread || 4;
@@ -266,7 +266,7 @@
       return;
     }
     const words = opts.words || ['MX'];
-    const fontFamily = opts.fontFamily || 'Space Grotesk, sans-serif';
+    const fontFamily = opts.fontFamily || 'Inter, sans-serif';
     const fontWeight = opts.fontWeight || 700;
     const fontSize = opts.fontSize || 120; // px
     const accent = opts.accent || [31, 203, 110];

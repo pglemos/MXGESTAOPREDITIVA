@@ -138,7 +138,7 @@ export default function FechamentoDiario() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-[#005BFF] rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-[#DFE0E1] border-t-[#00A89D] rounded-full animate-spin" />
       </div>
     );
   }
@@ -187,28 +187,28 @@ export default function FechamentoDiario() {
   const displayDow = moment(displayDate).format("dddd");
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-body">
+    <div className="min-h-screen bg-[#F7F8F8] font-body">
       {/* ── Topbar ── */}
-      <div className="bg-white border-b border-[#E5E7EB] px-6 h-[64px] flex items-center justify-between sticky top-0 z-30">
+      <div className="bg-white border-b border-[#DFE0E1] px-6 h-[64px] flex items-center justify-between sticky top-0 z-30">
         <div className="flex items-center gap-5">
-          <h1 className="text-[22px] font-black text-[#0F172A] tracking-tight uppercase">Fechamento Diário</h1>
-          <div className="flex items-center gap-1.5 text-[13px] bg-slate-50 border border-[#E5E7EB] rounded-lg px-3 py-1.5">
-            <CalendarDays className="w-4 h-4 text-[#005BFF]" />
-            <span className="font-semibold text-[#0F172A]">{displayLabel}</span>
-            <span className="text-[#64748B] capitalize">({displayDow})</span>
+          <h1 className="text-[22px] font-black text-[#071822] tracking-tight uppercase">Fechamento Diário</h1>
+          <div className="flex items-center gap-1.5 text-[13px] bg-[#F7F8F8] border border-[#DFE0E1] rounded-lg px-3 py-1.5">
+            <CalendarDays className="w-4 h-4 text-[#00A89D]" />
+            <span className="font-semibold text-[#071822]">{displayLabel}</span>
+            <span className="text-[#526B7A] capitalize">({displayDow})</span>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={openHistory}
-            className="flex items-center gap-2 text-[13px] font-semibold text-[#64748B] hover:text-[#005BFF] border border-[#E5E7EB] bg-white hover:border-[#005BFF] rounded-xl px-4 py-2 transition-all"
+            className="flex items-center gap-2 text-[13px] font-semibold text-[#526B7A] hover:text-[#00A89D] border border-[#DFE0E1] bg-white hover:border-[#00A89D] rounded-xl px-4 py-2 transition-all"
           >
             <History className="w-4 h-4" />
             Histórico de Fechamentos
           </button>
           <div className="relative cursor-pointer">
-            <Bell className="w-5 h-5 text-[#64748B]" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#EF4444] text-white text-[9px] font-black rounded-full flex items-center justify-center">3</span>
+            <Bell className="w-5 h-5 text-[#526B7A]" />
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#EF4343] text-white text-[9px] font-black rounded-full flex items-center justify-center">3</span>
           </div>
         </div>
       </div>
@@ -216,11 +216,11 @@ export default function FechamentoDiario() {
       <div className="p-6 space-y-5">
         {/* Alerta discreto: fechamento anterior pendente após 12h01 */}
         {yesterdayStatus === "expired" && (
-          <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-            <AlertTriangle className="w-4 h-4 text-[#F59E0B] flex-shrink-0" />
+          <div className="flex items-center gap-3 bg-[#FFF7E6] border border-[#F59F0A] rounded-xl px-4 py-3">
+            <AlertTriangle className="w-4 h-4 text-[#F59F0A] flex-shrink-0" />
             <p className="text-[13px] font-medium text-[#92400E]">
               Existe um fechamento anterior pendente.{" "}
-              <button onClick={openHistory} className="underline font-semibold hover:text-amber-900 transition-colors">
+              <button onClick={openHistory} className="underline font-semibold hover:text-[#F59F0A] transition-colors">
                 Acesse o Histórico de Fechamentos
               </button>{" "}
               para regularizar.
@@ -272,15 +272,15 @@ export default function FechamentoDiario() {
       <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-[#0F172A] font-bold">Histórico de Fechamentos</DialogTitle>
+            <DialogTitle className="text-[#071822] font-bold">Histórico de Fechamentos</DialogTitle>
           </DialogHeader>
           <div className="mt-4 space-y-3 max-h-[60vh] overflow-y-auto pr-1">
             {historyLoading ? (
               <div className="flex justify-center py-8">
-                <div className="w-6 h-6 border-4 border-slate-200 border-t-[#005BFF] rounded-full animate-spin" />
+                <div className="w-6 h-6 border-4 border-[#DFE0E1] border-t-[#00A89D] rounded-full animate-spin" />
               </div>
             ) : historyRecords.length === 0 ? (
-              <p className="text-[13px] text-[#64748B] text-center py-6">Nenhum fechamento registrado neste mês.</p>
+              <p className="text-[13px] text-[#526B7A] text-center py-6">Nenhum fechamento registrado neste mês.</p>
             ) : (() => {
               const visible = historyShowAll ? historyRecords : historyRecords.slice(0, 7);
               const hasMore = !historyShowAll && historyRecords.length > 7;
@@ -302,19 +302,19 @@ export default function FechamentoDiario() {
                 <>
                   {/* Pendentes primeiro */}
                   {pendentes.slice(0, historyShowAll ? undefined : 3).map(date => (
-                    <div key={`pending-${date}`} className="flex items-center justify-between p-3 bg-red-50 rounded-xl border border-red-200">
+                    <div key={`pending-${date}`} className="flex items-center justify-between p-3 bg-[#FEECEC] rounded-xl border border-[#EF4343]">
                       <div className="flex items-center gap-2">
-                        <CalendarDays className="w-4 h-4 text-[#EF4444] flex-shrink-0" />
-                        <span className="font-semibold text-[13px] text-[#0F172A]">{moment(date).format("DD/MM/YYYY")}</span>
-                        <span className="text-[11px] text-slate-400 capitalize">{moment(date).format("ddd")}</span>
+                        <CalendarDays className="w-4 h-4 text-[#EF4343] flex-shrink-0" />
+                        <span className="font-semibold text-[13px] text-[#071822]">{moment(date).format("DD/MM/YYYY")}</span>
+                        <span className="text-[11px] text-[#526B7A] capitalize">{moment(date).format("ddd")}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-[11px] font-bold text-[#EF4444] bg-red-100 px-2.5 py-0.5 rounded-full">
+                        <span className="text-[11px] font-bold text-[#EF4343] bg-[#FEECEC] px-2.5 py-0.5 rounded-full">
                           Pendente de Fechamento
                         </span>
                         <button
                           onClick={() => toast({ title: "Regularizar", description: `Solicite liberação para o fechamento de ${moment(date).format("DD/MM/YYYY")}.` })}
-                          className="text-[11px] font-bold text-[#005BFF] hover:underline"
+                          className="text-[11px] font-bold text-[#00A89D] hover:underline"
                         >
                           Regularizar
                         </button>
@@ -331,17 +331,17 @@ export default function FechamentoDiario() {
                       c.sale_status === "Sim" && moment(c.created_date).format("YYYY-MM-DD") === h.date
                     ).length;
                     return (
-                      <div key={h.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-[#E5E7EB]">
+                      <div key={h.id} className="flex items-center justify-between p-3 bg-[#F7F8F8] rounded-xl border border-[#DFE0E1]">
                         <div className="flex items-center gap-2 min-w-[110px]">
-                          <CalendarDays className="w-4 h-4 text-[#005BFF] flex-shrink-0" />
-                          <span className="font-semibold text-[13px] text-[#0F172A]">{moment(h.date).format("DD/MM/YYYY")}</span>
-                          <span className="text-[11px] text-slate-400 capitalize">{moment(h.date).format("ddd")}</span>
+                          <CalendarDays className="w-4 h-4 text-[#00A89D] flex-shrink-0" />
+                          <span className="font-semibold text-[13px] text-[#071822]">{moment(h.date).format("DD/MM/YYYY")}</span>
+                          <span className="text-[11px] text-[#526B7A] capitalize">{moment(h.date).format("ddd")}</span>
                         </div>
-                        <div className="flex items-center gap-4 text-[12px] text-[#64748B]">
-                          <span><strong className="text-[#005BFF]">{leads}</strong> leads</span>
+                        <div className="flex items-center gap-4 text-[12px] text-[#526B7A]">
+                          <span><strong className="text-[#00A89D]">{leads}</strong> leads</span>
                           <span><strong className="text-[#6D28D9]">{atend}</strong> atend.</span>
-                          <span><strong className="text-[#F59E0B]">{agend}</strong> agend.</span>
-                          <span><strong className="text-[#22C55E]">{vendas}</strong> vendas</span>
+                          <span><strong className="text-[#F59F0A]">{agend}</strong> agend.</span>
+                          <span><strong className="text-[#00A89D]">{vendas}</strong> vendas</span>
                         </div>
                       </div>
                     );
@@ -350,7 +350,7 @@ export default function FechamentoDiario() {
                   {hasMore && (
                     <button
                       onClick={() => setHistoryShowAll(true)}
-                      className="w-full text-[12px] font-semibold text-[#005BFF] hover:underline py-2 text-center"
+                      className="w-full text-[12px] font-semibold text-[#00A89D] hover:underline py-2 text-center"
                     >
                       Mostrar mais ({historyRecords.length - 7} registros restantes)
                     </button>

@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react'
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useNotifications } from '@/hooks/useData'
 import { useFeedbacks } from '@/hooks/useFeedbacks'
@@ -24,6 +24,7 @@ import { slugify } from '@/lib/utils'
 import SellerLayoutShell, { type SellerLayoutNavItem, type SellerLayoutNavSection } from './SellerSidebar'
 import { ForcePasswordChange } from '@/features/auth/components/ForcePasswordChange'
 import { canAccessPath } from '@/lib/auth/routeAccess'
+import { MotionPage } from '@/design/motion'
 
 type SubItem = { label: string; path: string; icon?: React.ReactNode }
 type NavCategory = { category: string; icon: React.ReactNode; items: SubItem[] }
@@ -225,6 +226,7 @@ export default function Layout() {
   const { devolutivas } = useFeedbacks()
   const pendingFeedbackCount = role === 'vendedor' ? devolutivas.filter(f => !f.acknowledged).length : 0
   const navigate = useNavigate()
+  const location = useLocation()
 
   const storeDashboardPath = membership?.store?.name ? `/lojas/${slugify(membership.store.name)}` : role === 'gerente' ? '/classificacao' : '/lojas'
   const storeTeamPath = role === 'gerente' ? '/equipe' : storeDashboardPath === '/lojas' ? '/lojas' : `${storeDashboardPath}${storeDashboardPath.includes('?') ? '&' : '?'}tab=equipe`
@@ -312,7 +314,9 @@ export default function Layout() {
         navigate('/painel', { replace: true })
       }}
     >
-      <Outlet />
+      <MotionPage key={location.pathname} className="h-full">
+        <Outlet />
+      </MotionPage>
     </SellerLayoutShell>
   )
 }

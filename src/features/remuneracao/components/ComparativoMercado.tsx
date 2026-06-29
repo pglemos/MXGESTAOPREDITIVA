@@ -19,10 +19,10 @@ const TAMANHOS = [
 ]
 
 const BADGE: Record<Classificacao, { label: string; cls: string }> = {
-  abaixo: { label: 'Abaixo da média', cls: 'bg-amber-100 text-amber-800' },
-  dentro: { label: 'Dentro da média', cls: 'bg-emerald-100 text-emerald-800' },
-  acima: { label: 'Acima da média', cls: 'bg-sky-100 text-sky-800' },
-  sem_referencia: { label: 'Sem referência', cls: 'bg-slate-100 text-slate-600' },
+  abaixo: { label: 'Abaixo da média', cls: 'bg-status-warning-surface text-status-warning' },
+  dentro: { label: 'Dentro da média', cls: 'bg-secondary text-brand-primary' },
+  acima: { label: 'Acima da média', cls: 'bg-accent text-accent-foreground' },
+  sem_referencia: { label: 'Sem referência', cls: 'bg-muted text-muted-foreground' },
 }
 
 export function ComparativoMercado({ lojaId }: { lojaId: string }) {

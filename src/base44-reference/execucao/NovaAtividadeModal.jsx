@@ -113,15 +113,15 @@ export default function NovaAtividadeModal({ open, onClose, clients, onCriada, v
     <Dialog open={open} onOpenChange={v => { if (!saving) handleClose(); }}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-[#0F172A] font-bold text-[17px]">Nova atividade</DialogTitle>
+          <DialogTitle className="text-[#071822] font-bold text-[17px]">Nova atividade</DialogTitle>
         </DialogHeader>
 
         {step === "tipo" && (
           <div className="mt-3 space-y-2">
-            <p className="text-[13px] text-slate-500 mb-3">Selecione o tipo de atividade comercial:</p>
+            <p className="text-[13px] text-[#526B7A] mb-3">Selecione o tipo de atividade comercial:</p>
             {TIPOS.map(t => (
               <button key={t} onClick={() => handleEscolherTipo(t)}
-                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:border-[#005BFF] hover:bg-blue-50 text-[13px] font-semibold text-[#0F172A] transition-colors">
+                className="w-full text-left px-4 py-3 rounded-xl border border-[#DFE0E1] hover:border-[#00A89D] hover:bg-[#E8F3F2] text-[13px] font-semibold text-[#071822] transition-colors">
                 {t}
               </button>
             ))}
@@ -132,13 +132,13 @@ export default function NovaAtividadeModal({ open, onClose, clients, onCriada, v
           <div className="mt-3 space-y-4">
             {/* Tipo selecionado */}
             <div className="flex items-center justify-between">
-              <span className="text-[12px] font-bold text-[#005BFF] bg-blue-50 px-3 py-1 rounded-full">{tipo}</span>
-              <button onClick={() => setStep("tipo")} className="text-[12px] text-slate-400 hover:text-slate-600 underline">Mudar tipo</button>
+              <span className="text-[12px] font-bold text-[#00A89D] bg-[#E8F3F2] px-3 py-1 rounded-full">{tipo}</span>
+              <button onClick={() => setStep("tipo")} className="text-[12px] text-[#526B7A] hover:text-[#526B7A] underline">Mudar tipo</button>
             </div>
 
             {/* Busca de cliente por telefone */}
             <div>
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Cliente ou Telefone</label>
+              <label className="text-[11px] font-bold text-[#526B7A] uppercase tracking-wider">Cliente ou Telefone</label>
               <div className="flex gap-2 mt-1.5">
                 <Input
                   value={telefone}
@@ -147,25 +147,25 @@ export default function NovaAtividadeModal({ open, onClose, clients, onCriada, v
                   className="flex-1"
                 />
                 <button onClick={buscarCliente}
-                  className="px-3 py-2 rounded-xl bg-[#005BFF] text-white hover:bg-blue-700 transition-colors">
+                  className="px-3 py-2 rounded-xl bg-[#00A89D] text-white hover:bg-[#00A89D] transition-colors">
                   <Search className="w-4 h-4" />
                 </button>
               </div>
               {clienteEncontrado && (
-                <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-xl">
-                  <UserCheck className="w-4 h-4 text-green-600 flex-shrink-0" />
+                <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-[#E8F3F2] border border-[#00A89D] rounded-xl">
+                  <UserCheck className="w-4 h-4 text-[#00A89D] flex-shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-[12px] font-bold text-green-800 truncate">{clienteEncontrado.name}</p>
-                    <p className="text-[11px] text-green-600 truncate">{clienteEncontrado.vehicle_sought || "—"}</p>
+                    <p className="text-[12px] font-bold text-[#00A89D] truncate">{clienteEncontrado.name}</p>
+                    <p className="text-[11px] text-[#00A89D] truncate">{clienteEncontrado.vehicle_sought || "—"}</p>
                   </div>
                 </div>
               )}
               {naoEncontrado && (
-                <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl">
-                  <UserX className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-[#FFF7E6] border border-[#F59F0A] rounded-xl">
+                  <UserX className="w-4 h-4 text-[#F59F0A] flex-shrink-0" />
                   <div className="min-w-0 flex-1">
-                    <p className="text-[12px] font-semibold text-amber-800">Cliente não encontrado.</p>
-                    <Link to="/carteira" onClick={handleClose} className="text-[11px] text-[#005BFF] underline">
+                    <p className="text-[12px] font-semibold text-[#F59F0A]">Cliente não encontrado.</p>
+                    <Link to="/carteira" onClick={handleClose} className="text-[11px] text-[#00A89D] underline">
                       Abrir Carteira de Clientes para cadastrar
                     </Link>
                   </div>
@@ -176,24 +176,24 @@ export default function NovaAtividadeModal({ open, onClose, clients, onCriada, v
             {/* Data / Hora */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Data</label>
+                <label className="text-[11px] font-bold text-[#526B7A] uppercase tracking-wider">Data</label>
                 <Input type="date" value={form.data} onChange={e => setF("data", e.target.value)} className="mt-1.5" />
               </div>
               <div>
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Hora</label>
+                <label className="text-[11px] font-bold text-[#526B7A] uppercase tracking-wider">Hora</label>
                 <Input type="time" value={form.hora} onChange={e => setF("hora", e.target.value)} className="mt-1.5" />
               </div>
             </div>
 
             {/* Veículo */}
             <div>
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Veículo (opcional)</label>
+              <label className="text-[11px] font-bold text-[#526B7A] uppercase tracking-wider">Veículo (opcional)</label>
               <Input value={form.veiculo} onChange={e => setF("veiculo", e.target.value)} className="mt-1.5" placeholder="Ex: HB20 1.0 Comfort" />
             </div>
 
             {/* Prioridade */}
             <div>
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Prioridade</label>
+              <label className="text-[11px] font-bold text-[#526B7A] uppercase tracking-wider">Prioridade</label>
               <Select value={String(form.prioridade)} onValueChange={v => setF("prioridade", Number(v))}>
                 <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -204,17 +204,17 @@ export default function NovaAtividadeModal({ open, onClose, clients, onCriada, v
 
             {/* Observação */}
             <div>
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Observação</label>
+              <label className="text-[11px] font-bold text-[#526B7A] uppercase tracking-wider">Observação</label>
               <Input value={form.descricao} onChange={e => setF("descricao", e.target.value)} className="mt-1.5" placeholder="Descreva o objetivo desta atividade..." />
             </div>
 
-            <div className="flex justify-end gap-3 pt-2 border-t border-slate-100">
+            <div className="flex justify-end gap-3 pt-2 border-t border-[#DFE0E1]">
               <button onClick={handleClose} disabled={saving}
-                className="px-5 py-2.5 text-[13px] font-semibold text-slate-500 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
+                className="px-5 py-2.5 text-[13px] font-semibold text-[#526B7A] border border-[#DFE0E1] rounded-xl hover:bg-[#F7F8F8] transition-colors">
                 Cancelar
               </button>
               <button onClick={handleSalvar} disabled={!podesSalvar || saving}
-                className="px-6 py-2.5 text-[13px] font-bold text-white bg-[#005BFF] hover:bg-blue-700 disabled:opacity-50 rounded-xl transition-colors">
+                className="px-6 py-2.5 text-[13px] font-bold text-white bg-[#00A89D] hover:bg-[#00A89D] disabled:opacity-50 rounded-xl transition-colors">
                 {saving ? "Salvando..." : "Salvar atividade"}
               </button>
             </div>

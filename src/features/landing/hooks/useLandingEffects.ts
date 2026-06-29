@@ -226,7 +226,7 @@ export function useLandingEffects() {
           window.MXTextEffects.mountVapour(heroEl, {
             texts: ['improviso.', 'achismo.', 'planilha.', 'ruído.', 'atraso.'],
             color: 'rgb(31,203,110)',
-            fontFamily: '"Instrument Serif", serif',
+            fontFamily: 'Inter, sans-serif',
             fontWeight: 400,
             fontSize: Math.round(px * 0.96),
             spread: 3.5,
@@ -245,7 +245,7 @@ export function useLandingEffects() {
       if (particleEl && window.MXTextEffects && !reduce) {
         window.MXTextEffects.mountParticle(particleEl, {
           words: ['LANÇAMENTO', 'MÉTODO', 'ROTINA', 'RESULTADO', 'DISCIPLINA', 'CONTROLE'],
-          fontFamily: '"Space Grotesk", sans-serif',
+          fontFamily: 'Inter, sans-serif',
           fontWeight: 700,
           fontSize: 130,
           accent: [31, 203, 110],
@@ -255,7 +255,7 @@ export function useLandingEffects() {
         })
       } else if (particleEl) {
         particleEl.innerHTML =
-          '<div style="font-family:Space Grotesk,sans-serif;font-weight:700;font-size:64px;color:#1FCB6E;text-align:center;line-height:1;letter-spacing:-.04em">MÉTODO</div>'
+          '<div style="font-family:Inter,sans-serif;font-weight:700;font-size:64px;color:#00A89D;text-align:center;line-height:1;letter-spacing:-.04em">MÉTODO</div>'
       }
     }
     if (window.MXTextEffects) {

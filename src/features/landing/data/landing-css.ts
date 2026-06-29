@@ -2,7 +2,7 @@
 // Do NOT alter visual rules without updating Playwright snapshots (Story 2.1, ADR-0050).
 
 export const FONTS_HREF =
-  'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap'
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
 
 export const LANDING_CSS = `
 :root{
@@ -11,10 +11,10 @@ export const LANDING_CSS = `
   --ink:#E8F0EA; --ink-2:#9BA89F; --ink-3:#5C6A60; --ink-4:#37423B;
   --mx:#1FCB6E; --mx-2:#0FB060; --mx-deep:#0A2A1A; --mx-glow:#22ff88;
   --warn:#FFB547; --crit:#FF6B5B;
-  --serif:'Space Grotesk', system-ui, sans-serif;
-  --instrument:'Instrument Serif', Georgia, serif;
+--serif:'Inter', system-ui, sans-serif;
+  --instrument:Inter, system-ui, sans-serif;
   --sans:'Inter', system-ui, sans-serif;
-  --mono:'JetBrains Mono', ui-monospace, monospace;
+--mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   --maxw:1320px;
 }
 body.mxp-active{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;font-feature-settings:"ss01","cv11";overflow-x:hidden}

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -8,10 +8,33 @@
      ========================================================================== */
 
 /* Palette Core — MX Brand (Green Identity) */
---color-mx-black: #0A0A0B;
+--color-mx-black: #071822;
 --color-pure-black: #000000;
---color-brand-primary: #15803d;
---color-brand-secondary: #0D3B2E;
+--color-brand-primary: #00A89D;
+--color-brand-secondary: #071822;
+--color-mx-navy: #051923;
+--color-mx-dark: #031B3D;
+--color-mx-dark-2: #0F172A;
+--color-mx-teal: #00A896;
+--color-mx-teal-light: #D0F5F2;
+--color-mx-teal-soft: #E6FAF7;
+--color-mx-action: #005BFF;
+--color-mx-action-hover: #004BE0;
+--color-mx-action-light: #EAF1FF;
+--color-mx-success: #22C55E;
+--color-mx-success-light: #D1FADD;
+--color-mx-warning: #F59E0B;
+--color-mx-warning-light: #FEF3C7;
+--color-mx-danger: #EF4444;
+--color-mx-danger-light: #FEE2E2;
+--color-mx-bg: #F8FAFC;
+--color-mx-surface: #FFFFFF;
+--color-mx-border: #E5E7EB;
+--color-mx-divider: #F1F5F9;
+--color-mx-text: #0F172A;
+--color-mx-muted: #64748B;
+--color-mx-subtle: #94A3B8;
+--color-whatsapp: #25D366;
 
 /* shadcn/Base44 semantic tokens */
 --color-background: hsl(var(--background));
@@ -60,82 +83,82 @@ to { height: 0; }
 }
   
   /* Status Semantics */
-  --color-status-success: #047857;
-  --color-status-success-surface: rgba(16, 185, 129, 0.05);
-  --color-status-warning: #f59e0b;
+  --color-status-success: #00A89D;
+  --color-status-success-surface: rgba(0, 168, 157, 0.08);
+  --color-status-warning: #F59F0A;
   --color-status-warning-surface: rgba(245, 158, 11, 0.05);
-  --color-status-error: #ef4444;
-  --color-status-error-strong: #b91c1c;
-  --color-status-error-surface: rgba(239, 68, 68, 0.05);
-  --color-status-info: #3b82f6;
-  --color-status-info-surface: rgba(59, 130, 246, 0.05);
+  --color-status-error: #EF4343;
+  --color-status-error-strong: #EF4343;
+  --color-status-error-surface: rgba(239, 67, 67, 0.08);
+  --color-status-info: #00A89D;
+  --color-status-info-surface: rgba(0, 168, 157, 0.08);
 
   /* Chart Series (Story 3.7 / UX-005) — paleta canônica para recharts.
      NUNCA usar hex em chart components: importar de src/lib/charts/tokens.ts */
-  --color-chart-1: #0D3B2E;
-  --color-chart-2: #22C55E;
-  --color-chart-3: #FACC15;
-  --color-chart-4: #2563EB;
-  --color-chart-5: #EF4444;
-  --color-chart-6: #7C3AED;
-  --color-chart-7: #F59E0B;
+  --color-chart-1: #00A89D;
+  --color-chart-2: #005BFF;
+  --color-chart-3: #071822;
+  --color-chart-4: #F59F0A;
+  --color-chart-5: #EF4343;
+  --color-chart-6: #005BFF;
+  --color-chart-7: #F59F0A;
   --color-chart-8: #00E5FF;
 
   /* Chart Axis / Grid tokens */
   --color-chart-axis-tick: #6B7280;
-  --color-chart-axis-tick-muted: #94a3b8;
-  --color-chart-axis-tick-strong: #64748b;
-  --color-chart-grid: #E5E7EB;
-  --color-chart-grid-strong: #e2e8f0;
+  --color-chart-axis-tick-muted: #526B7A;
+  --color-chart-axis-tick-strong: #526B7A;
+  --color-chart-grid: #DFE0E1;
+  --color-chart-grid-strong: #DFE0E1;
   --color-chart-grid-dark: #334155;
-  --color-chart-dot-stroke: #ffffff;
+  --color-chart-dot-stroke: #FFFFFF;
 
   /* Surface & Borders */
-  --color-surface-default: #ffffff;
-  --color-surface-alt: #f8fafc;
-  --color-border-default: #f1f5f9;
-  --color-border-subtle: #f1f5f9;
-  --color-border-strong: #e2e8f0;
+  --color-surface-default: #FFFFFF;
+  --color-surface-alt: #F7F8F8;
+  --color-border-default: #DFE0E1;
+  --color-border-subtle: #DFE0E1;
+  --color-border-strong: #DFE0E1;
 
   /* Typography Colors */
-  --color-text-primary: #0A0A0B;
-  --color-text-secondary: #475569;
-  --color-text-tertiary: #94a3b8;
-  --color-text-label: #64748b;
+  --color-text-primary: #071822;
+  --color-text-secondary: #526B7A;
+  --color-text-tertiary: #526B7A;
+  --color-text-label: #526B7A;
 
   --color-surface-overlay: #1A1A1D;
   --color-surface-elevated: #121214;
 
   /* Sidebar (Dark Navy theme — Story UI-redesign 20260529) */
-  --color-sidebar-bg: #0E1B33;
-  --color-sidebar-bg-strong: #0A1428;
-  --color-sidebar-text: #ffffff;
-  --color-sidebar-text-muted: #94a3b8;
-  --color-sidebar-section-label: #64748b;
+  --color-sidebar-bg: #102C37;
+  --color-sidebar-bg-strong: #102C37;
+  --color-sidebar-text: #E0EBEA;
+  --color-sidebar-text-muted: #E0EBEA;
+  --color-sidebar-section-label: #E0EBEA;
   --color-sidebar-item-hover: rgba(255, 255, 255, 0.06);
-  --color-sidebar-item-active-bg: rgba(34, 197, 94, 0.16);
-  --color-sidebar-item-active-text: #4ADE80;
-  --color-sidebar-border: rgba(255, 255, 255, 0.08);
+  --color-sidebar-item-active-bg: #1A3E4D;
+  --color-sidebar-item-active-text: #FFFFFF;
+  --color-sidebar-border: #1A3E4D;
 
-  /* Accent purple (redefined as blue to globally eliminate purple) */
-  --color-accent-purple: #2563eb;
-  --color-accent-purple-strong: #1d4ed8;
-  --color-accent-purple-soft: rgba(37, 99, 235, 0.12);
+  /* Legacy purple/pink aliases: deprecated; use mx-action tokens. */
+  --color-accent-purple: #005BFF;
+  --color-accent-purple-strong: #004BE0;
+  --color-accent-purple-soft: #EAF1FF;
 
   /* Accent blue (renamed to globally eliminate purple) */
-  --color-accent-blue: #2563eb;
-  --color-accent-blue-strong: #1d4ed8;
-  --color-accent-blue-soft: rgba(37, 99, 235, 0.12);
+  --color-accent-blue: #00A89D;
+  --color-accent-blue-strong: #00A89D;
+  --color-accent-blue-soft: rgba(0, 168, 157, 0.12);
 
   /* KPI footer status strips */
   --color-kpi-footer-success-bg: #ECFDF5;
-  --color-kpi-footer-success-text: #047857;
+  --color-kpi-footer-success-text: #00A89D;
   --color-kpi-footer-warning-bg: #FEF3C7;
   --color-kpi-footer-warning-text: #B45309;
   --color-kpi-footer-error-bg: #FEE2E2;
-  --color-kpi-footer-error-text: #B91C1C;
-  --color-kpi-footer-info-bg: #DBEAFE;
-  --color-kpi-footer-info-text: #1D4ED8;
+  --color-kpi-footer-error-text: #EF4343;
+  --color-kpi-footer-info-bg: #E8F3F2;
+  --color-kpi-footer-info-text: #00A89D;
 
   /* Radius Matrix */
   --radius-mx-sm: 0.5rem;
@@ -237,9 +260,14 @@ to { height: 0; }
   --height-mx-header: 64px;
 
   /* Semantic Glows */
-  --shadow-mx-glow-brand: 0 0 20px rgba(34, 197, 94, 0.3);
-  --shadow-mx-glow-brand-sm: 0 0 12px rgba(34, 197, 94, 0.25);
+  --shadow-mx-glow-brand: 0 0 20px rgba(0, 168, 157, 0.3);
+  --shadow-mx-glow-brand-sm: 0 0 12px rgba(0, 168, 157, 0.25);
   --shadow-mx-glow-white: 0 0 20px rgba(255, 255, 255, 0.5);
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-card-hover: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --shadow-popover: 0 16px 40px rgba(15, 23, 42, 0.14);
+  --shadow-modal: 0 24px 60px rgba(15, 23, 42, 0.22);
+  --shadow-action: 0 8px 20px rgba(0, 91, 255, 0.20);
 
   /* Effects */
   --blur-mx-huge: 80px;
@@ -249,13 +277,13 @@ to { height: 0; }
   --color-mx-green-100: #dcfce7;
   --color-mx-green-200: #bbf7d0;
   --color-mx-green-300: #86efac;
-  --color-mx-green-400: #4ade80;
-  --color-mx-green-500: #22c55e;
-  --color-mx-green-600: #16a34a;
-  --color-mx-green-700: #15803d;
+  --color-mx-green-400: #00A89D;
+  --color-mx-green-500: #00A89D;
+  --color-mx-green-600: #00A89D;
+  --color-mx-green-700: #00A89D;
   --color-mx-green-800: #166534;
   --color-mx-green-900: #14532d;
-  --color-mx-green-950: #052e16; --color-mx-blue: #005bff; --color-mx-blue-light: #dbeafe; --color-mx-navy: #061f3f; --color-mx-bg: #f7f9fc; --color-mx-green: #22c55e; --color-mx-green-light: #dcfce7; --color-mx-amber: #f59e0b; --color-mx-amber-light: #fef3c7; --color-mx-red: #ef4444; --color-mx-red-light: #fee2e2;
+  --color-mx-green-950: #052e16; --color-mx-blue: #00A89D; --color-mx-blue-light: #E0EBEA; --color-mx-navy: #061f3f; --color-mx-bg: #f7f9fc; --color-mx-green: #00A89D; --color-mx-green-light: #dcfce7; --color-mx-amber: #F59F0A; --color-mx-amber-light: #FFF7E6; --color-mx-red: #EF4343; --color-mx-red-light: #fee2e2;
 
   /* Legacy aliases (indigo → green) */
   --color-mx-indigo-50: var(--color-mx-green-50);
@@ -282,7 +310,7 @@ to { height: 0; }
   --spacing-mx-label-lg: 120px;
 
   --color-print-highlight: #facc15;
-  --color-print-gold: #fef3c7;
+  --color-print-gold: #FFF7E6;
 
   /* Orange Tokens (Objectives & Pending) */
   --color-mx-orange-50: #fff7ed;
@@ -297,15 +325,15 @@ to { height: 0; }
   --color-mx-orange-900: #7c2d12;
   --color-mx-orange-950: #431407;
 
-  --color-mx-amber-100: #fef3c7;
+  --color-mx-amber-100: #FFF7E6;
   --color-mx-amber-300: #fcd34d;
   --color-mx-amber-400: #fbbf24;
   --color-mx-emerald-100: #d1fae5;
   --color-mx-rose-100: #ffe4e6;
-  --color-electric-blue: #3b82f6;
+  --color-electric-blue: #00A89D;
   --color-mars-orange: #f97316;
 
-  --font-display: 'Plus Jakarta Sans', sans-serif;
+  --font-display: 'Inter', sans-serif;
   --animate-slide-up: slide-up 0.32s ease-out both;
 
   /* ==========================================================================
@@ -316,15 +344,15 @@ to { height: 0; }
      ========================================================================== */
 
   /* Alert Consultive — 4o tipo de alerta (FR-ALERT-1 / .docx §225–§228) */
-  --color-alert-consultive: #6366f1;
-  --color-alert-consultive-surface: rgba(99, 102, 241, 0.05);
+  --color-alert-consultive: #005BFF;
+  --color-alert-consultive-surface: rgba(241, 91, 186, 0.08);
 
   /* MX Score Bands — 5 faixas (FR-SCORE-2 / .docx §244–§249) */
-  --color-score-elite: #22C55E;     /* 90–100 — verde marca (consolidacao) */
-  --color-score-excellent: #4ade80; /* 80–89  — verde claro */
-  --color-score-good: #3b82f6;      /* 70–79  — azul info */
-  --color-score-attention: #f59e0b; /* 60–69  — ambar warning */
-  --color-score-critical: #ef4444;  /* <60    — vermelho error */
+  --color-score-elite: #00A89D;     /* 90–100 — verde marca (consolidacao) */
+  --color-score-excellent: #00A89D; /* 80–89  — verde claro */
+  --color-score-good: #00A89D;      /* 70–79  — azul info */
+  --color-score-attention: #F59F0A; /* 60–69  — ambar warning */
+  --color-score-critical: #EF4343;  /* <60    — vermelho error */
 }
 
 /* Mobile / PWA hardening — safe-area, tap highlight, scroll behavior */
@@ -336,104 +364,76 @@ overscroll-behavior-y: none;
 
 :root {
 --background: 210 40% 98%;
---foreground: 215 50% 13%;
+--foreground: 222 47% 11%;
 --card: 0 0% 100%;
---card-foreground: 215 50% 13%;
+--card-foreground: 222 47% 11%;
 --popover: 0 0% 100%;
---popover-foreground: 215 50% 13%;
---primary: 218 100% 50%;
+--popover-foreground: 222 47% 11%;
+--primary: 219 100% 50%;
 --primary-foreground: 0 0% 100%;
---secondary: 210 25% 95%;
---secondary-foreground: 215 50% 13%;
---muted: 210 25% 95%;
+--secondary: 176 100% 33%;
+--secondary-foreground: 0 0% 100%;
+--muted: 210 40% 96%;
 --muted-foreground: 215 16% 47%;
---accent: 210 25% 95%;
---accent-foreground: 215 50% 13%;
+--accent: 217 100% 96%;
+--accent-foreground: 219 100% 50%;
 --destructive: 0 84% 60%;
 --destructive-foreground: 0 0% 100%;
---border: 214 20% 90%;
---input: 214 20% 90%;
---ring: 218 100% 50%;
+--border: 220 13% 91%;
+--input: 220 13% 91%;
+--ring: 219 100% 50%;
 --radius: 1rem;
---sidebar-background: 215 50% 13%;
---sidebar-foreground: 210 40% 96%;
---sidebar-primary: 218 100% 50%;
+--sidebar-background: 202 68% 8%;
+--sidebar-foreground: 210 20% 82%;
+--sidebar-primary: 176 100% 33%;
 --sidebar-primary-foreground: 0 0% 100%;
---sidebar-accent: 215 45% 20%;
---sidebar-accent-foreground: 210 40% 96%;
---sidebar-border: 215 45% 20%;
---sidebar-ring: 218 100% 50%;
+--sidebar-accent: 197 50% 14%;
+--sidebar-accent-foreground: 0 0% 100%;
+--sidebar-border: 197 50% 18%;
+--sidebar-ring: 219 100% 50%;
 
---mx-seller-bg-page: #f8fafc;
---mx-seller-sidebar: #031b3d;
---mx-seller-sidebar-strong: #031225;
-  --mx-seller-sidebar-border: rgba(255, 255, 255, 0.08);
-  --mx-seller-sidebar-text: #dbeafe;
-  --mx-seller-sidebar-muted: #8ea4c4;
+--mx-seller-bg-page: #F7F8F8;
+--mx-seller-sidebar: #102C37;
+--mx-seller-sidebar-strong: #102C37;
+  --mx-seller-sidebar-border: #1A3E4D;
+  --mx-seller-sidebar-text: #E0EBEA;
+  --mx-seller-sidebar-muted: #E0EBEA;
   
-  --mx-seller-surface: #ffffff;
-  --mx-seller-surface-soft: #f8fafc;
-  --mx-seller-surface-hover: #f8fafc;
+  --mx-seller-surface: #FFFFFF;
+  --mx-seller-surface-soft: #F7F8F8;
+  --mx-seller-surface-hover: #F7F8F8;
   
-  --mx-seller-border: #e5eaf2;
-  --mx-seller-border-soft: #eef2f7;
+  --mx-seller-border: #DFE0E1;
+  --mx-seller-border-soft: #DFE0E1;
   
---mx-seller-primary: #005bff;
---mx-seller-primary-hover: #0052e6;
---mx-seller-primary-dark: #1e3a8a;
---mx-seller-primary-soft: #eff6ff;
+--mx-seller-primary: #00A89D;
+--mx-seller-primary-hover: #00A89D;
+--mx-seller-primary-dark: #102C37;
+--mx-seller-primary-soft: #E8F3F2;
 
 --mx-seller-bg-page-rgb: 248 250 252;
 --mx-seller-sidebar-rgb: 3 27 61;
---mx-seller-primary-rgb: 0 91 255;
-  --mx-seller-text-primary-rgb: 17 24 39;
+--mx-seller-primary-rgb: 0 168 157;
+  --mx-seller-text-primary-rgb: 7 24 34;
   
-  --mx-seller-text-primary: #111827;
-  --mx-seller-text-secondary: #475569;
-  --mx-seller-text-muted: #94a3b8;
+  --mx-seller-text-primary: #071822;
+  --mx-seller-text-secondary: #526B7A;
+  --mx-seller-text-muted: #526B7A;
 
-  --mx-seller-cyan: #0891b2;
-  --mx-seller-cyan-soft: #ecfeff;
-  --mx-seller-green: #16a34a;
-  --mx-seller-green-soft: #ecfdf5;
-  --mx-seller-warning: #f59e0b;
-  --mx-seller-warning-soft: #fffbeb;
-  --mx-seller-danger: #ef4444;
-  --mx-seller-danger-soft: #fef2f2;
+  --mx-seller-cyan: #00A89D;
+  --mx-seller-cyan-soft: #E8F3F2;
+  --mx-seller-green: #00A89D;
+  --mx-seller-green-soft: #E8F3F2;
+  --mx-seller-warning: #F59F0A;
+  --mx-seller-warning-soft: #FFF7E6;
+  --mx-seller-danger: #EF4343;
+  --mx-seller-danger-soft: #FEECEC;
 
-  --mx-seller-shadow-card: 0 8px 24px rgba(15, 23, 42, 0.04);
---mx-seller-shadow-action: 0 10px 22px rgba(0, 91, 255, 0.20);
+  --mx-seller-shadow-card: 0 8px 24px rgba(7, 24, 34, 0.06);
+--mx-seller-shadow-action: 0 10px 22px rgba(0, 168, 157, 0.20);
 }
 
-.dark {
---background: 215 50% 13%;
---foreground: 210 40% 96%;
---card: 215 45% 16%;
---card-foreground: 210 40% 96%;
---popover: 215 45% 16%;
---popover-foreground: 210 40% 96%;
---primary: 218 100% 50%;
---primary-foreground: 0 0% 100%;
---secondary: 215 45% 20%;
---secondary-foreground: 210 40% 96%;
---muted: 215 45% 20%;
---muted-foreground: 215 18% 72%;
---accent: 215 45% 20%;
---accent-foreground: 210 40% 96%;
---destructive: 0 84% 60%;
---destructive-foreground: 0 0% 100%;
---border: 215 45% 20%;
---input: 215 45% 20%;
---ring: 218 100% 50%;
---sidebar-background: 215 50% 13%;
---sidebar-foreground: 210 40% 96%;
---sidebar-primary: 218 100% 50%;
---sidebar-primary-foreground: 0 0% 100%;
---sidebar-accent: 215 45% 20%;
---sidebar-accent-foreground: 210 40% 96%;
---sidebar-border: 215 45% 20%;
---sidebar-ring: 218 100% 50%;
-}
+.dark { --background: 180 6.7% 97.1%; --foreground: 202.2 65.9% 8%; --card: 0 0% 100%; --card-foreground: 202.2 65.9% 8%; --popover: 0 0% 100%; --popover-foreground: 202.2 65.9% 8%; --primary: 176.1 100% 32.9%; --primary-foreground: 0 0% 100%; --secondary: 174.5 31.4% 93.1%; --secondary-foreground: 202.2 65.9% 8%; --muted: 210 3.2% 87.8%; --muted-foreground: 202.5 19.6% 40%; --accent: 322 84.3% 65.1%; --accent-foreground: 0 0% 100%; --destructive: 0 84.3% 60%; --destructive-foreground: 0 0% 100%; --border: 210 3.2% 87.8%; --input: 210 3.2% 87.8%; --ring: 176.1 100% 32.9%; --sidebar-background: 196.9 54.9% 13.9%; --sidebar-foreground: 174.5 21.6% 90%; --sidebar-primary: 176.1 100% 32.9%; --sidebar-primary-foreground: 0 0% 100%; --sidebar-accent: 197.6 49.5% 20.2%; --sidebar-accent-foreground: 174.5 21.6% 90%; --sidebar-border: 197.6 49.5% 20.2%; --sidebar-ring: 176.1 100% 32.9%; }
 
 @supports (padding: max(0px)) {
 body {
@@ -543,7 +543,7 @@ body {
 }
 
 @utility font-mono-numbers {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-variant-numeric: tabular-nums;
 }
 
@@ -898,7 +898,7 @@ body {
 
 .mx-pre-brand-copy p {
   margin: 0;
-  font-family: "Space Grotesk", Inter, system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 15px;
   font-weight: 700;
   letter-spacing: .04em;
@@ -913,7 +913,7 @@ body {
 .mx-pre-brand-copy small {
   display: block;
   margin-top: 5px;
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 10px;
   letter-spacing: .2em;
   color: #5c6a60;
@@ -925,7 +925,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 10.5px;
   text-transform: uppercase;
   letter-spacing: .16em;
@@ -967,7 +967,7 @@ body {
   align-items: center;
   gap: 14px;
   margin-bottom: 28px;
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 11px;
   letter-spacing: .18em;
   text-transform: uppercase;
@@ -986,7 +986,7 @@ body {
 }
 
 .mx-pre-intro h1 {
-  font-family: "Space Grotesk", Inter, system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
   font-size: clamp(58px, 8vw, 116px);
   line-height: .88;
   letter-spacing: -0.04em;
@@ -997,7 +997,7 @@ body {
 .mx-pre-intro h1 em {
   display: inline-block;
   color: #1fcb6e;
-  font-family: "Instrument Serif", Georgia, serif;
+  font-family: Inter, system-ui, sans-serif;
   font-weight: 400;
   font-style: italic;
   letter-spacing: -0.01em;
@@ -1035,7 +1035,7 @@ body {
 }
 
 .mx-pre-proof-row span {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   color: #5c6a60;
   text-transform: uppercase;
   letter-spacing: .16em;
@@ -1065,7 +1065,7 @@ body {
 }
 
 .mx-pre-mobile-progress span {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   color: #5c6a60;
   text-transform: uppercase;
   letter-spacing: .16em;
@@ -1073,7 +1073,7 @@ body {
 }
 
 .mx-pre-mobile-progress b {
-  font-family: "Space Grotesk", Inter, system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 28px;
   line-height: 1;
 }
@@ -1123,7 +1123,7 @@ body {
   padding: 13px 18px;
   border-bottom: 1px solid #172019;
   background: #070c09;
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 10.5px;
   letter-spacing: .14em;
   text-transform: uppercase;
@@ -1166,7 +1166,7 @@ body {
 
 .mx-pre-wizard-head p {
   margin: 0 0 6px;
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   color: #5c6a60;
   text-transform: uppercase;
   letter-spacing: .18em;
@@ -1175,7 +1175,7 @@ body {
 
 .mx-pre-wizard-head h2 {
   margin: 0;
-  font-family: "Space Grotesk", Inter, system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 34px;
   line-height: 1;
   letter-spacing: -0.03em;
@@ -1190,7 +1190,7 @@ body {
   display: block;
   text-align: right;
   color: #1fcb6e;
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 10px;
   margin-bottom: 9px;
 }
@@ -1227,7 +1227,7 @@ body {
   display: grid;
   place-items: center;
   color: #5c6a60;
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 10px;
 }
 
@@ -1304,7 +1304,7 @@ body {
 .mx-pre-owner-head b {
   display: block;
   color: #e8f0ea;
-  font-family: "Space Grotesk", Inter, system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 14px;
   font-weight: 800;
   text-transform: uppercase;
@@ -1354,7 +1354,7 @@ body {
 }
 
 .mx-pre-logo-tile {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.018));
+  background: linear-gradient(145deg, #1A3E4D, rgba(255, 255, 255, 0.018));
 }
 
 .mx-pre-info-card {
@@ -1446,7 +1446,7 @@ body {
 }
 
 .mx-photo-stage span {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   color: #5c6a60;
   font-size: 10px;
   letter-spacing: .16em;
@@ -1520,7 +1520,7 @@ body {
 
 .mx-pre-review h3 {
   margin: 0;
-  font-family: "Space Grotesk", Inter, system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
   font-size: 18px;
   letter-spacing: -0.01em;
   text-transform: uppercase;
@@ -1542,7 +1542,7 @@ body {
 }
 
 .mx-pre-review dt {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   color: #5c6a60;
   font-size: 9px;
   letter-spacing: .14em;
@@ -1632,7 +1632,7 @@ body {
 
 .mx-pre-state h2,
 .mx-pre-success h2 {
-  font-family: "Space Grotesk", Inter, system-ui, sans-serif;
+  font-family: Inter, system-ui, sans-serif;
   margin: 0;
   font-size: 30px;
   letter-spacing: -0.03em;
@@ -1679,7 +1679,7 @@ body {
 }
 
 .mx-pre-login-box small {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   color: #5c6a60;
   text-transform: uppercase;
   letter-spacing: .16em;

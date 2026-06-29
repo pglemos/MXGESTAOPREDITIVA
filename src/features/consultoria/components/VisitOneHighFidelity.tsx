@@ -65,7 +65,7 @@ export function VisitOneHighFidelity({ clientId, clientSlug, data, onChange }: {
 }
 
 function VisitOneDashboards({ data, onChange }: { data: VisitOneQuantData, onChange: (d: VisitOneQuantData) => void }) {
-  const COLORS = ['#0D3B2E', '#22C55E', '#FACC15', '#6B7280']
+  const COLORS = ['#071822', '#00A89D', '#FACC15', '#6B7280']
 
   const handleSalesChange = (index: number, value: number) => {
     const newSales = [...data.sales]

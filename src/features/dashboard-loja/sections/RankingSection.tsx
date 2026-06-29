@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Globe, History, Search } from 'lucide-react'
-import { motion } from 'motion/react'
+import { motion, useReducedMotion } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
@@ -10,6 +10,7 @@ import { Input } from '@/components/atoms/Input'
 import { Avatar } from '@/components/atoms/Avatar'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/molecules/Card'
 import { DataGrid, type Column } from '@/components/organisms/DataGrid'
+import { MotionCard, MotionList, MotionRow, duration, easing } from '@/design/motion'
 import type { RankingEntry } from '@/types/database'
 import type { ViewMode } from '../hooks/useDashboardLojaData'
 
@@ -28,6 +29,7 @@ type RankingSectionProps = {
  */
 export function RankingSection({ viewMode, ranking, mixCanais, diagnostics }: RankingSectionProps) {
   const navigate = useNavigate()
+  const reduceMotion = useReducedMotion()
   const [sellerSearch, setSellerSearch] = useState('')
 
   const columns = useMemo<Column<StoreRankingEntry>[]>(() => [
@@ -100,9 +102,10 @@ export function RankingSection({ viewMode, ranking, mixCanais, diagnostics }: Ra
   }, [ranking, sellerSearch])
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg pb-32">
-      <section className="xl:col-span-8 flex flex-col">
-        <Card className="border-none shadow-mx-lg bg-white overflow-hidden flex-1">
+    <MotionList className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg pb-32">
+      <MotionRow as="section" className="xl:col-span-8 flex flex-col">
+        <MotionCard className="flex-1">
+          <Card className="border-none shadow-mx-lg bg-white overflow-hidden flex-1">
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-mx-md p-mx-lg bg-surface-alt/30 border-b border-border-default">
             <div>
               <CardTitle className="text-xl md:text-2xl">{viewMode === 'day' ? 'Grade Diária' : 'Ranking da Unidade'}</CardTitle>
@@ -141,33 +144,42 @@ export function RankingSection({ viewMode, ranking, mixCanais, diagnostics }: Ra
             emptyMessage="Nenhum especialista localizado."
             emptyDescription="Limpe a busca ou confirme se a equipe ativa realizou lançamentos no período selecionado."
           />
-        </Card>
-      </section>
+          </Card>
+        </MotionCard>
+      </MotionRow>
 
-      <aside className="xl:col-span-4 flex flex-col gap-mx-lg">
-        <Card className="p-mx-lg border-none shadow-mx-lg bg-white">
+      <MotionRow as="aside" className="xl:col-span-4 flex flex-col gap-mx-lg">
+        <MotionCard>
+          <Card className="p-mx-lg border-none shadow-mx-lg bg-white">
           <header className="flex items-center gap-mx-sm mb-8">
             <div className="w-mx-12 h-mx-12 rounded-mx-xl bg-surface-alt flex items-center justify-center text-brand-primary shadow-mx-inner border border-border-default shrink-0">
               <Globe size={24} />
             </div>
             <Typography variant="h3" className="text-lg uppercase tracking-tight font-black">Mix de Canais</Typography>
           </header>
-          <div className="space-y-mx-lg">
+          <MotionList className="space-y-mx-lg">
             {mixCanais.map(ch => (
-              <div key={ch.label} className="space-y-mx-xs">
+              <MotionRow key={ch.label} className="space-y-mx-xs">
                 <div className="flex justify-between items-end">
                   <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-mx-tiny">{ch.label}</Typography>
                   <Typography variant="mono" tone={ch.tone} className="text-sm font-black">{ch.pct}%</Typography>
                 </div>
                 <div className="h-mx-xs w-full bg-surface-alt rounded-mx-full overflow-hidden border border-border-default p-0.5">
-                  <motion.div initial={{ width: 0 }} animate={{ width: `${ch.pct}%` }} transition={{ duration: 1.5 }} className={cn('h-full rounded-full', ch.color)} />
+                  <motion.div
+                    initial={reduceMotion ? false : { width: 0 }}
+                    animate={{ width: `${ch.pct}%` }}
+                    transition={{ duration: reduceMotion ? 0 : duration.slow, ease: easing.standard as [number, number, number, number] }}
+                    className={cn('h-full rounded-full transition-colors duration-150', ch.color)}
+                  />
                 </div>
-              </div>
+              </MotionRow>
             ))}
-          </div>
-        </Card>
+          </MotionList>
+          </Card>
+        </MotionCard>
 
-        <Card className="p-mx-lg bg-brand-primary rounded-mx-3xl text-white shadow-mx-xl relative overflow-hidden group border-none">
+        <MotionCard>
+          <Card className="p-mx-lg bg-brand-primary rounded-mx-3xl text-white shadow-mx-xl relative overflow-hidden group border-none">
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-50" />
           <div className="relative z-10 text-center py-4">
             <History className="mx-auto mb-6 opacity-30 transform group-hover:scale-110 transition-transform" size={40} />
@@ -176,9 +188,10 @@ export function RankingSection({ viewMode, ranking, mixCanais, diagnostics }: Ra
               &quot;{diagnostics.diagnostico} {diagnostics.sugestao}&quot;
             </Typography>
           </div>
-        </Card>
-      </aside>
-    </div>
+          </Card>
+        </MotionCard>
+      </MotionRow>
+    </MotionList>
   )
 }
 
