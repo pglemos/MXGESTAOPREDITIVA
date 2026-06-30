@@ -2,16 +2,28 @@ import { describe, expect, it } from 'bun:test'
 import {
   calcularDistribuicaoVendasPorCanal,
   calcularPlanoFunilPonderado,
+  derivarOportunidadesFunilCarteira,
   normalizarCanalEstrategia,
+  type FunilClienteCarteiraLike,
   type FunilOportunidadeLike,
 } from './funil'
 
 const baseOpportunity = (partial: Partial<FunilOportunidadeLike>): FunilOportunidadeLike => ({
+  cliente_id: 'cliente-base',
   etapa: 'ganho',
   canal: 'internet',
   created_at: '2026-06-01T10:00:00.000Z',
   updated_at: '2026-06-01T10:00:00.000Z',
   closed_at: '2026-06-01T10:00:00.000Z',
+  ...partial,
+})
+
+const makeClienteCarteira = (partial: Partial<FunilClienteCarteiraLike>): FunilClienteCarteiraLike => ({
+  id: 'cliente-base',
+  canal_origem: 'internet',
+  status: 'oportunidade',
+  created_at: '2026-06-16T10:00:00.000Z',
+  updated_at: '2026-06-16T10:00:00.000Z',
   ...partial,
 })
 
@@ -21,7 +33,41 @@ describe('funil ponderado por canal', () => {
     expect(normalizarCanalEstrategia('carteira')).toBe('carteira')
     expect(normalizarCanalEstrategia('porta')).toBe('porta')
     expect(normalizarCanalEstrategia('showroom')).toBe('porta')
+    expect(normalizarCanalEstrategia('Internet')).toBe('internet')
+    expect(normalizarCanalEstrategia('Carteira')).toBe('carteira')
+    expect(normalizarCanalEstrategia('Porta')).toBe('porta')
+    expect(normalizarCanalEstrategia('Indicação')).toBe('carteira')
     expect(normalizarCanalEstrategia(null)).toBe(null)
+  })
+
+  it('deriva qualificados reais da carteira sem duplicar oportunidades existentes', () => {
+    const clientes: FunilClienteCarteiraLike[] = [
+      makeClienteCarteira({ id: 'cliente-roberto', canal_origem: 'Internet' }),
+      makeClienteCarteira({ id: 'cliente-paola', canal_origem: 'Carteira' }),
+      makeClienteCarteira({ id: 'cliente-beatriz', canal_origem: 'Porta' }),
+      makeClienteCarteira({ id: 'cliente-maria', canal_origem: 'Indicação' }),
+      makeClienteCarteira({ id: 'cliente-inativo', canal_origem: 'Internet', status: 'inativo' }),
+    ]
+    const oportunidades = [
+      baseOpportunity({ cliente_id: 'cliente-roberto', canal: 'internet', etapa: 'ganho' }),
+    ]
+
+    const derivadas = derivarOportunidadesFunilCarteira(oportunidades, clientes)
+
+    expect(derivadas).toHaveLength(3)
+    expect(derivadas.filter(item => item.cliente_id === 'cliente-roberto')).toHaveLength(1)
+    expect(derivadas).toContainEqual(expect.objectContaining({
+      cliente_id: 'cliente-paola',
+      canal: 'carteira',
+      etapa: 'qualificacao',
+    }))
+    expect(derivadas).toContainEqual(expect.objectContaining({
+      cliente_id: 'cliente-maria',
+      canal: 'carteira',
+      etapa: 'qualificacao',
+    }))
+    expect(derivadas.some(item => item.cliente_id === 'cliente-beatriz')).toBe(false)
+    expect(derivadas.some(item => item.cliente_id === 'cliente-inativo')).toBe(false)
   })
 
   it('calcula distribuicao por vendas ganhas dos ultimos tres meses', () => {

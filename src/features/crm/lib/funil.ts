@@ -5,11 +5,20 @@ export type FunilCanalEstrategia = 'internet' | 'carteira' | 'porta'
 export type FunilPlanoFonte = 'manual' | 'historico' | 'fallback'
 
 export type FunilOportunidadeLike = {
+  cliente_id?: string | null
   etapa: CrmEtapaFunil | string
   canal: CrmCanal | string | null
   created_at: string | null
   updated_at: string | null
   closed_at: string | null
+}
+
+export type FunilClienteCarteiraLike = {
+  id: string
+  canal_origem?: CrmCanal | string | null
+  status?: string | null
+  created_at?: string | null
+  updated_at?: string | null
 }
 
 export type FunilMetaRulesLike = {
@@ -90,10 +99,44 @@ const CANAL_CONFIG: Record<FunilCanalEstrategia, Omit<FunilCanalPlano, 'percentu
 }
 
 export function normalizarCanalEstrategia(canal: CrmCanal | string | null | undefined): FunilCanalEstrategia | null {
-  if (canal === 'internet') return 'internet'
-  if (canal === 'carteira') return 'carteira'
-  if (canal === 'porta' || canal === 'showroom') return 'porta'
+  const value = normalizarTextoCanal(canal)
+  if (value === 'internet') return 'internet'
+  if (value === 'carteira' || value === 'indicacao') return 'carteira'
+  if (value === 'porta' || value === 'showroom') return 'porta'
   return null
+}
+
+export function derivarOportunidadesFunilCarteira(
+  oportunidades: FunilOportunidadeLike[],
+  clientes: FunilClienteCarteiraLike[],
+): FunilOportunidadeLike[] {
+  if (clientes.length === 0) return oportunidades
+
+  const clientesComOportunidade = new Set(
+    oportunidades
+      .map((oportunidade) => oportunidade.cliente_id)
+      .filter((clienteId): clienteId is string => Boolean(clienteId)),
+  )
+  const derivadas: FunilOportunidadeLike[] = []
+
+  for (const cliente of clientes) {
+    if (clientesComOportunidade.has(cliente.id) || clienteInativo(cliente)) continue
+
+    const canal = normalizarCanalEstrategia(cliente.canal_origem)
+    if (canal !== 'internet' && canal !== 'carteira') continue
+
+    const dataCadastro = cliente.created_at || cliente.updated_at || null
+    derivadas.push({
+      cliente_id: cliente.id,
+      etapa: 'qualificacao',
+      canal,
+      created_at: dataCadastro,
+      updated_at: dataCadastro,
+      closed_at: null,
+    })
+  }
+
+  return oportunidades.concat(derivadas)
 }
 
 export function calcularDistribuicaoVendasPorCanal(
@@ -227,6 +270,19 @@ function parseDataVenda(oportunidade: FunilOportunidadeLike): Date | null {
   if (!value) return null
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? null : date
+}
+
+function normalizarTextoCanal(canal: CrmCanal | string | null | undefined) {
+  return String(canal || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+}
+
+function clienteInativo(cliente: FunilClienteCarteiraLike) {
+  const status = normalizarTextoCanal(cliente.status)
+  return status === 'inativo' || status === 'inativa' || status === 'encerrado' || status === 'encerrada'
 }
 
 function normalizarMixManual(mixManual: FunilMixManual | null | undefined) {

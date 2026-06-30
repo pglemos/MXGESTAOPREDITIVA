@@ -1,9 +1,10 @@
 import React from 'react'
 import { afterEach, describe, expect, it, mock } from 'bun:test'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
 type OportunidadeMock = {
+  cliente_id?: string | null
   etapa: string
   canal: string | null
   created_at: string
@@ -12,13 +13,44 @@ type OportunidadeMock = {
   valor_negociado?: number
 }
 
+type AgendamentoMock = {
+  canal: string | null
+  data_hora: string
+  status: string
+}
+
+type ClienteMock = {
+  id: string
+  canal_origem: string | null
+  status: string
+  created_at: string
+  updated_at: string
+}
+
 const makeOpportunity = (partial: Partial<OportunidadeMock>): OportunidadeMock => ({
+  cliente_id: 'cliente-oportunidade',
   etapa: 'ganho',
   canal: 'internet',
-  created_at: dateMonthsAgo(1),
-  updated_at: dateMonthsAgo(1),
-  closed_at: dateMonthsAgo(1),
+  created_at: dateDaysAgo(2),
+  updated_at: dateDaysAgo(2),
+  closed_at: dateDaysAgo(2),
   valor_negociado: 100000,
+  ...partial,
+})
+
+const makeAgendamento = (partial: Partial<AgendamentoMock>): AgendamentoMock => ({
+  canal: 'internet',
+  data_hora: dateDaysAgo(2),
+  status: 'confirmado',
+  ...partial,
+})
+
+const makeCliente = (partial: Partial<ClienteMock>): ClienteMock => ({
+  id: 'cliente-carteira',
+  canal_origem: 'Internet',
+  status: 'oportunidade',
+  created_at: dateDaysAgo(2),
+  updated_at: dateDaysAgo(2),
   ...partial,
 })
 
@@ -28,29 +60,14 @@ function dateDaysAgo(days: number) {
   return date.toISOString()
 }
 
-function dateMonthsAgo(months: number) {
-  const date = new Date()
-  date.setMonth(date.getMonth() - months)
-  return date.toISOString()
-}
-
 let oportunidadesMock: OportunidadeMock[] = []
+let agendamentosMock: AgendamentoMock[] = []
+let clientesMock: ClienteMock[] = []
 let oportunidadesErrorMock: string | null = null
-const refreshSnapshotMock = mock(() => Promise.resolve({ error: null }))
-let snapshotMock: unknown = null
-let perfilMixMock = {
- mix_canal_internet_pct: null as number | null,
- mix_canal_carteira_pct: null as number | null,
-  mix_canal_porta_pct: null as number | null,
-}
 
 mock.module('@/features/vendedor-home/hooks/useVendedorHomePage', () => ({
   useVendedorHomePage: () => ({
     metrics: { meta: 10, vendasMes: 6, projecao: 8 },
-    remuneracaoResumo: {
-      realizado: { disponivel: true, total: 8450 },
-      projetado: { disponivel: true, total: 12000 },
-    },
   }),
 }))
 
@@ -61,24 +78,6 @@ mock.module('@/hooks/useGoals', () => ({
 }))
 
 mock.module('@/features/crm/hooks/useOportunidades', () => ({
-  buildOportunidadePayload: (input: any, context: any, nowIso = () => new Date().toISOString()) => {
-    const isTerminal = input.etapa === 'ganho' || input.etapa === 'perdido'
-    return {
-      cliente_id: input.cliente_id,
-      loja_id: context.loja_id,
-      seller_user_id: context.seller_user_id,
-      veiculo_interesse: input.veiculo_interesse?.trim() || null,
-      tipo_veiculo: input.tipo_veiculo || null,
-      valor_negociado: input.valor_negociado ?? 0,
-      etapa: input.etapa || 'prospeccao',
-      canal: input.canal || null,
-      sinal: input.sinal ?? 0,
-      financiamento: input.financiamento || 'nao_aplica',
-      carro_avaliado: input.carro_avaliado ?? false,
-      motivo_perda: input.etapa === 'perdido' ? (input.motivo_perda?.trim() || null) : null,
-      closed_at: isTerminal ? (input.closed_at || nowIso()) : null,
-    }
-  },
   useOportunidades: () => ({
     oportunidades: oportunidadesMock,
     error: oportunidadesErrorMock,
@@ -86,141 +85,98 @@ mock.module('@/features/crm/hooks/useOportunidades', () => ({
   }),
 }))
 
-mock.module('@/features/crm/hooks/useAgendamentos', () => ({
-  useAgendamentos: () => ({
-    agendamentos: [],
+mock.module('@/features/crm/hooks/useClientes', () => ({
+  useClientes: () => ({
+    clientes: clientesMock,
+    loading: false,
+    error: null,
+    refetch: () => {},
   }),
 }))
 
-mock.module('@/features/crm/hooks/useVendedorPerfil', () => ({
- useVendedorPerfil: () => ({
- perfil: perfilMixMock,
- }),
-}))
-
-mock.module('@/features/crm/hooks/useFunnelMetricsSnapshot', () => ({
- useFunnelMetricsSnapshot: () => ({
- snapshot: snapshotMock,
- loading: false,
- saving: false,
- error: null,
- refetch: () => Promise.resolve(),
- refreshSnapshot: refreshSnapshotMock,
- }),
+mock.module('@/features/crm/hooks/useAgendamentos', () => ({
+  useAgendamentos: () => ({
+    agendamentos: agendamentosMock,
+  }),
 }))
 
 const { FunilVendedor } = await import('./FunilVendedor.container')
 
 afterEach(() => {
   cleanup()
- oportunidadesMock = []
- oportunidadesErrorMock = null
- snapshotMock = null
- refreshSnapshotMock.mockClear()
- perfilMixMock = {
- mix_canal_internet_pct: null,
- mix_canal_carteira_pct: null,
-    mix_canal_porta_pct: null,
-  }
+  oportunidadesMock = []
+  agendamentosMock = []
+  clientesMock = []
+  oportunidadesErrorMock = null
 })
 
 describe('FunilVendedor', () => {
-  it('mantem todos os canais visiveis e orienta canais sem dados recentes', () => {
+  it('organiza o funil como tela operacional com diagnostico, canais compactos e acoes', () => {
     oportunidadesMock = [
-      makeOpportunity({ canal: 'internet', closed_at: dateDaysAgo(2) }),
-      makeOpportunity({ canal: 'internet', closed_at: dateDaysAgo(3) }),
-      makeOpportunity({ canal: 'internet', closed_at: dateDaysAgo(4) }),
-      makeOpportunity({ canal: 'carteira', closed_at: dateDaysAgo(5) }),
-      makeOpportunity({ canal: 'porta', closed_at: dateMonthsAgo(4) }),
+      ...Array.from({ length: 4 }, (_, index) => makeOpportunity({
+        canal: 'porta',
+        etapa: 'apresentacao',
+        closed_at: null,
+        created_at: dateDaysAgo(index + 1),
+        updated_at: dateDaysAgo(index + 1),
+      })),
+      makeOpportunity({ canal: 'porta', etapa: 'ganho', closed_at: dateDaysAgo(1) }),
+      makeOpportunity({ canal: 'porta', etapa: 'ganho', closed_at: dateDaysAgo(2) }),
+      ...Array.from({ length: 5 }, (_, index) => makeOpportunity({
+        canal: 'internet',
+        etapa: 'prospeccao',
+        closed_at: null,
+        created_at: dateDaysAgo(index + 1),
+        updated_at: dateDaysAgo(index + 1),
+      })),
+      makeOpportunity({ canal: 'internet', etapa: 'qualificacao', closed_at: null }),
+      makeOpportunity({ canal: 'internet', etapa: 'qualificacao', closed_at: null }),
+      makeOpportunity({ canal: 'internet', etapa: 'apresentacao', closed_at: null }),
+      makeOpportunity({ canal: 'internet', etapa: 'apresentacao', closed_at: null }),
+      makeOpportunity({ canal: 'internet', etapa: 'ganho', closed_at: dateDaysAgo(1) }),
+      ...Array.from({ length: 3 }, () => makeOpportunity({ canal: 'carteira', etapa: 'qualificacao', closed_at: null })),
+      makeOpportunity({ canal: 'carteira', etapa: 'apresentacao', closed_at: null }),
+      makeOpportunity({ canal: 'carteira', etapa: 'apresentacao', closed_at: null }),
+      makeOpportunity({ canal: 'carteira', etapa: 'ganho', closed_at: dateDaysAgo(1) }),
+    ]
+    agendamentosMock = [
+      ...Array.from({ length: 4 }, () => makeAgendamento({ canal: 'internet' })),
+      ...Array.from({ length: 3 }, () => makeAgendamento({ canal: 'carteira' })),
     ]
 
     render(<MemoryRouter><FunilVendedor /></MemoryRouter>)
 
-    expect(screen.getByText('60% da meta alcançada')).toBeInTheDocument()
-    expect(screen.getByText(/R\$\s*8\.450/)).toBeInTheDocument()
-    expect(screen.getByText(/R\$\s*12\.000/)).toBeInTheDocument()
-    expect(screen.getByText(/R\$\s*3\.550/)).toBeInTheDocument()
-    expect(screen.getAllByRole('heading', { name: /^internet$/i }).length).toBeGreaterThan(0)
-    expect(screen.getAllByRole('heading', { name: /^carteira$/i }).length).toBeGreaterThan(0)
-    expect(screen.getAllByRole('heading', { name: /^porta$/i }).length).toBeGreaterThan(0)
-    expect(screen.getByText(/Plano para bater sua meta/i)).toBeInTheDocument()
-    expect(screen.getByText(/Gargalo principal/i)).toBeInTheDocument()
-    expect(screen.getByText(/Gerar plano na Central de Execução/i)).toBeInTheDocument()
-    expect(screen.getByText('85')).toBeInTheDocument()
-    expect(screen.getByText('13')).toBeInTheDocument()
-    expect(screen.getAllByText('7').length).toBeGreaterThan(0)
-    expect(screen.getByText('Canal prioritário do mês')).toBeInTheDocument()
-    expect(screen.getAllByText('18%').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('55%').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('16%').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('11,9%').length).toBeGreaterThan(0)
+    expect(screen.getByRole('heading', { name: /Funil de Vendas/i })).toBeInTheDocument()
+    expect(screen.getAllByText(/Meta (do )?mês/i).length).toBeGreaterThan(0)
+    expect(screen.getByText('Esforço necessário meta')).toBeInTheDocument()
+    expect(screen.getByText('Eficiência por canal')).toBeInTheDocument()
+    expect(screen.getByText('Base estatística')).toBeInTheDocument()
+    expect(screen.getByText('Atendimento Comercial -> Venda')).toBeInTheDocument()
+    expect(screen.getByText('Oportunidades -> Qualificados -> Agendamento -> Atendimento Comercial -> Venda')).toBeInTheDocument()
+    expect(screen.getByText('Qualificados -> Agendamento -> Atendimento Comercial -> Venda')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Evolução dos últimos 6 meses/i })).toBeInTheDocument()
   })
 
-  it('mantem a referencia visual mesmo quando o mix manual diverge', () => {
-    perfilMixMock = {
-      mix_canal_internet_pct: 70,
-      mix_canal_carteira_pct: 30,
-      mix_canal_porta_pct: 0,
-    }
-    oportunidadesMock = [
-      makeOpportunity({ canal: 'porta', closed_at: dateDaysAgo(2) }),
-      makeOpportunity({ canal: 'porta', closed_at: dateDaysAgo(3) }),
+  it('usa clientes reais da carteira como qualificados de Internet e Carteira sem criar etapa para Showroom', () => {
+    clientesMock = [
+      makeCliente({ id: 'cliente-roberto', canal_origem: 'Internet' }),
+      makeCliente({ id: 'cliente-paola', canal_origem: 'Carteira' }),
+      makeCliente({ id: 'cliente-beatriz', canal_origem: 'Porta' }),
+      makeCliente({ id: 'cliente-inativo', canal_origem: 'Internet', status: 'inativo' }),
     ]
 
     render(<MemoryRouter><FunilVendedor /></MemoryRouter>)
 
- expect(screen.getByText('42%')).toBeInTheDocument()
- expect(screen.getByText('57%')).toBeInTheDocument()
- expect(screen.getAllByRole('heading', { name: /^internet$/i }).length).toBeGreaterThan(0)
- expect(screen.getAllByRole('heading', { name: /^carteira$/i }).length).toBeGreaterThan(0)
- expect(screen.getAllByRole('heading', { name: /^porta$/i }).length).toBeGreaterThan(0)
- })
-
- it('exibe snapshot historico salvo do funil', () => {
- snapshotMock = {
- id: 'snapshot-1',
- loja_id: 'loja-1',
- seller_user_id: 'seller-1',
- period_start: '2026-04-01',
- period_end: '2026-06-17',
- period_key: '90',
- meta: null,
- vendas_realizadas: 7,
- vendas_faltantes: null,
- atingimento: null,
- totals: { oportunidades_total: 12, ganhos: 7, perdidos: 2 },
- channels: { internet: {}, carteira: {} },
- source: 'rpc_snapshot',
- created_at: '2026-06-17T12:00:00Z',
- updated_at: '2026-06-17T12:00:00Z',
- }
-
- render(<MemoryRouter><FunilVendedor /></MemoryRouter>)
-
- expect(screen.getByText('Snapshot historico')).toBeInTheDocument()
- expect(screen.getByText(/Atualizado em/i)).toBeInTheDocument()
- expect(screen.getByText('Oportunidades')).toBeInTheDocument()
- expect(screen.getByText('Ganhos')).toBeInTheDocument()
- expect(screen.getByText('Canais')).toBeInTheDocument()
-    expect(screen.getByText('Registrar snapshot')).toBeInTheDocument()
+    expect(screen.getAllByText('Qualificados')).toHaveLength(2)
+    expect(screen.getByText('Atendimento Comercial -> Venda')).toBeInTheDocument()
   })
 
-  it('aciona o registro de snapshot pelo botao historico', async () => {
-    render(<MemoryRouter><FunilVendedor /></MemoryRouter>)
-
-    fireEvent.click(screen.getByRole('button', { name: /registrar snapshot/i }))
-
-    await waitFor(() => {
-      expect(refreshSnapshotMock).toHaveBeenCalled()
-    })
-  })
-
- it('exibe mensagem de erro com botao tentar novamente quando dados falham', () => {
- oportunidadesErrorMock = 'Falha ao carregar oportunidades'
+  it('exibe mensagem de erro com botao tentar novamente quando dados falham', () => {
+    oportunidadesErrorMock = 'Falha ao carregar oportunidades'
 
     render(<MemoryRouter><FunilVendedor /></MemoryRouter>)
 
-    expect(screen.getByText(/erro ao carregar/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /tentar novamente/i })).toBeInTheDocument()
+    expect(screen.getByText('Erro ao carregar dados do funil.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Tentar novamente/i })).toBeInTheDocument()
   })
 })
