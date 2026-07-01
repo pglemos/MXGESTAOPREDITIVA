@@ -125,16 +125,25 @@ function rowMatchesStore(row: FunnelRow, storeId: string | null) {
 }
 
 /**
- * Meta do vendedor = regras_metas_loja.monthly_goal da loja ativa, sem
- * rateio — mesma regra já usada pela RPC upsert_funnel_metrics_snapshot
- * (supabase/migrations/20260617009000_funnel_metrics_snapshot.sql).
- * Não existe tabela "metas" por vendedor/mês no schema real.
+ * Meta do vendedor = regras_metas_loja.monthly_goal da loja ativa. Modo
+ * 'even' (rateio igualitario) divide pelo numero de vendedores ativos da
+ * loja (via RPC contar_vendedores_ativos_loja, ja que RLS nao deixa o
+ * vendedor contar os colegas direto). Modos 'custom' e 'proportional'
+ * ainda nao tem configuracao por vendedor/peso historico no sistema —
+ * caem no fallback da meta cheia da loja (mesma regra da RPC
+ * upsert_funnel_metrics_snapshot, supabase/migrations/20260617009000)
+ * ate essa configuracao existir.
  */
-function resolveStoreMonthlyGoal(storeConfig: FunnelRow | null): number | null {
+function resolveStoreMonthlyGoal(storeConfig: FunnelRow | null, activeSellersCount: number | null): number | null {
   if (!storeConfig) return null
   const raw = storeConfig.monthly_goal
   const value = typeof raw === 'number' ? raw : Number(raw)
-  return Number.isFinite(value) && value > 0 ? value : null
+  if (!Number.isFinite(value) || value <= 0) return null
+  const mode = String(storeConfig.individual_goal_mode || 'even')
+  if (mode === 'even' && activeSellersCount && activeSellersCount > 0) {
+    return Math.round(value / activeSellersCount)
+  }
+  return value
 }
 
 function formatDate(date: Date) {
@@ -165,6 +174,7 @@ export default function FunilVendedor() {
   const [rows, setRows] = useState<SourceRows>(emptyRows)
   const [loading, setLoading] = useState(true)
   const [errors, setErrors] = useState<string[]>([])
+  const [activeSellersCount, setActiveSellersCount] = useState<number | null>(null)
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -182,16 +192,28 @@ export default function FunilVendedor() {
     void loadData()
   }, [loadData])
 
+  // Rateio de meta individual (individual_goal_mode='even'): RLS de
+  // vinculos_loja nao deixa um vendedor contar os colegas direto, por isso
+  // usa RPC dedicada (contar_vendedores_ativos_loja).
+  useEffect(() => {
+    if (!effectiveStoreId) { setActiveSellersCount(null); return }
+    let cancelled = false
+    supabase.rpc('contar_vendedores_ativos_loja', { p_store_id: effectiveStoreId }).then(({ data, error }) => {
+      if (!cancelled) setActiveSellersCount(error ? null : (typeof data === 'number' ? data : null))
+    })
+    return () => { cancelled = true }
+  }, [effectiveStoreId])
+
   const period = useMemo(() => resolvePeriod(periodKey), [periodKey])
   const dashboard = useMemo(
-    () => buildDashboard(rows, sellerIds, effectiveStoreId, period),
-    [effectiveStoreId, period, rows, sellerIds],
+    () => buildDashboard(rows, sellerIds, effectiveStoreId, period, activeSellersCount),
+    [effectiveStoreId, period, rows, sellerIds, activeSellersCount],
   )
   const selectedHasBase = hasEnoughBase(dashboard)
   const rollingPeriod = useMemo(() => buildLastThreeMonthsRange(), [])
   const rollingDashboard = useMemo(
-    () => buildDashboard(rows, sellerIds, effectiveStoreId, rollingPeriod),
-    [effectiveStoreId, rollingPeriod, rows, sellerIds],
+    () => buildDashboard(rows, sellerIds, effectiveStoreId, rollingPeriod, activeSellersCount),
+    [effectiveStoreId, rollingPeriod, rows, sellerIds, activeSellersCount],
   )
   const rollingHasBase = hasEnoughBase(rollingDashboard)
   const confidence = getConfidence(selectedHasBase, rollingHasBase)
@@ -297,9 +319,9 @@ export default function FunilVendedor() {
   )
 }
 
-function buildDashboard(rows: SourceRows, sellerIds: string[], storeId: string | null, period: PeriodRange) {
+function buildDashboard(rows: SourceRows, sellerIds: string[], storeId: string | null, period: PeriodRange, activeSellersCount: number | null) {
   const storeConfig = rows.storeConfigs.find(row => rowMatchesStore(row, storeId)) || null
-  const meta = resolveStoreMonthlyGoal(storeConfig)
+  const meta = resolveStoreMonthlyGoal(storeConfig, activeSellersCount)
   return buildFunnelDashboard({
     events: rows.events,
     customers: rows.customers,
