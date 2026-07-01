@@ -25,8 +25,7 @@ import {
 import type { CheckinPageContext, ClienteRow } from '../hooks/useCheckinPage'
 import { addDaysDateOnly } from '../lib/crm-derived-totals'
 import { parseDateOnly } from '../hooks/useCheckinPage'
-import { GarantiaModal } from './GarantiaModal'
-import { QualificadoModal } from './QualificadoModal'
+import { NovoRegistroModal } from './NovoRegistroModal'
 
 /** Diferenca em dias entre a data do agendamento e a data de referencia do fechamento. */
 function diasAgendamento(dataAgendamento: string | null | undefined, referencia: string): number | null {
@@ -175,8 +174,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
   const [motivoPerda, setMotivoPerda] = useState('')
   const [observacoes, setObservacoes] = useState('')
 
-  const [garantiaModalOpen, setGarantiaModalOpen] = useState(false)
-  const [qualificadoModalOpen, setQualificadoModalOpen] = useState(false)
+  const [novoRegistroModalOpen, setNovoRegistroModalOpen] = useState(false)
   // Coerencia venda-sem-atendimento (Base44 CASO 3): nao bloqueia o cadastro,
   // apenas confirma a origem antes de salvar quando nao ha atendimento do
   // canal registrado no Movimento do Dia.
@@ -583,26 +581,10 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
           </div>
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
             <button
-              id="checkin-new-garantia-button"
-              type="button"
-              onClick={() => setGarantiaModalOpen(true)}
-              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[#DFE0E1] bg-white px-5 text-sm font-bold text-[#526B7A] transition hover:bg-[#F7F8F8] sm:w-auto"
-            >
-              <AlertCircle size={16} /> Registrar Garantia
-            </button>
-            <button
-              id="checkin-new-qualificado-button"
-              type="button"
-              onClick={() => setQualificadoModalOpen(true)}
-              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[#DFE0E1] bg-white px-5 text-sm font-bold text-[#526B7A] transition hover:bg-[#F7F8F8] sm:w-auto"
-            >
-              <Star size={16} /> Registrar Qualificado
-            </button>
-            <button
               id="checkin-new-client-button"
               type="button"
-              onClick={handleOpenNew}
-className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#00A89D] px-5 text-sm font-bold text-white shadow-[0_10px_20px_rgba(0,168,157,0.22)] transition hover:bg-[#00A89D] sm:w-auto"
+              onClick={() => setNovoRegistroModalOpen(true)}
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#6D28D9] px-5 text-sm font-bold text-white shadow-[0_10px_20px_rgba(109,40,217,0.22)] transition hover:bg-purple-700 sm:w-auto"
             >
               <UserPlus size={16} /> + Novo Cliente
             </button>
@@ -1286,17 +1268,11 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
         </div>
       )}
 
-      <GarantiaModal
-        open={garantiaModalOpen}
-        onClose={() => setGarantiaModalOpen(false)}
+      <NovoRegistroModal
+        open={novoRegistroModalOpen}
+        onClose={() => setNovoRegistroModalOpen(false)}
         onSaved={refetchClientesList}
-        defaultDate={`${selectedDate}T12:00`}
-      />
-
-      <QualificadoModal
-        open={qualificadoModalOpen}
-        onClose={() => setQualificadoModalOpen(false)}
-        onSaved={refetchClientesList}
+        defaultDate={selectedDate}
       />
 
       {coerenciaModalOpen && (

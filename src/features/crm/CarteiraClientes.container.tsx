@@ -1242,6 +1242,8 @@ function makeDemoOportunidade(
     financiamento,
     carro_avaliado,
     motivo_perda: null,
+    placa_veiculo: null,
+    data_entrega_prevista: null,
     created_at: '2026-06-16T12:00:00Z',
     updated_at: '2026-06-16T12:00:00Z',
     closed_at: etapa === 'ganho' ? '2026-06-16T18:00:00Z' : null,

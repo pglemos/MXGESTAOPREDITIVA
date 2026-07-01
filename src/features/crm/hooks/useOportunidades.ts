@@ -32,6 +32,8 @@ export type OportunidadeInput = {
   motivo_perda?: string | null
   closed_at?: string | null
   created_at?: string | null
+  placa_veiculo?: string | null
+  data_entrega_prevista?: string | null
 }
 
 export function buildOportunidadePayload(
@@ -54,6 +56,8 @@ export function buildOportunidadePayload(
     carro_avaliado: input.carro_avaliado ?? false,
     motivo_perda: input.etapa === 'perdido' ? (input.motivo_perda?.trim() || null) : null,
     closed_at: isTerminal ? (input.closed_at || nowIso()) : null,
+    placa_veiculo: input.placa_veiculo?.trim() || null,
+    data_entrega_prevista: input.data_entrega_prevista || null,
     ...(input.created_at ? { created_at: input.created_at } : {}),
   }
 }

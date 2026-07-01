@@ -141,6 +141,8 @@ export const OportunidadeSchema = z.object({
   financiamento: z.enum(CRM_FINANCIAMENTO),
   carro_avaliado: z.boolean(),
   motivo_perda: z.string().nullable(),
+  placa_veiculo: z.string().nullable().default(null),
+  data_entrega_prevista: z.string().nullable().default(null),
   created_at: z.string(),
   updated_at: z.string(),
   closed_at: z.string().nullable(),
