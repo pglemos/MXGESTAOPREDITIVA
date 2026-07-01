@@ -12,6 +12,7 @@ import {
   type CrmTipoVeiculo,
 } from '@/lib/schemas/crm.schema'
 import { z } from 'zod'
+import { eventoJaExiste, registrarEventoComercial } from '@/features/crm/lib/eventosComerciais'
 
 const OportunidadeComClienteSchema = OportunidadeSchema.extend({
   cliente: z.object({ nome: z.string(), telefone: z.string().nullable() }).nullable().optional(),
@@ -94,6 +95,27 @@ export function useOportunidades() {
     const payload = buildOportunidadePayload(input, { loja_id: effectiveStoreId, seller_user_id: supabaseUser.id })
     const { data, error: insertError } = await supabase.from('oportunidades').insert(payload).select('id').single()
     if (insertError) return { error: insertError.message }
+
+    if (data?.id) {
+      const eventoContext = { lojaId: effectiveStoreId, sellerUserId: supabaseUser.id }
+      // Qualificado nasce sempre que o cliente vira oportunidade trabalhável.
+      await registrarEventoComercial({
+        clienteId: input.cliente_id,
+        oportunidadeId: data.id,
+        tipoEvento: 'cliente_qualificado',
+        canal: payload.canal,
+      }, eventoContext)
+      // Internet também soma como "Oportunidade" (etapa adicional do funil).
+      if (payload.canal === 'internet') {
+        await registrarEventoComercial({
+          clienteId: input.cliente_id,
+          oportunidadeId: data.id,
+          tipoEvento: 'oportunidade_registrada',
+          canal: payload.canal,
+        }, eventoContext)
+      }
+    }
+
     await fetchOportunidades()
     return { error: null, id: data?.id }
   }, [supabaseUser, effectiveStoreId, fetchOportunidades])
@@ -126,9 +148,29 @@ export function useOportunidades() {
     }
     const { error: updateError } = await supabase.from('oportunidades').update(patch).eq('id', id)
     if (updateError) return { error: updateError.message }
+
+    if (etapa === 'ganho' && effectiveStoreId) {
+      const jaRegistrada = await eventoJaExiste(id, 'venda_realizada')
+      if (!jaRegistrada) {
+        const oportunidade = oportunidades.find(o => o.id === id)
+        if (oportunidade) {
+          // Coerência venda/atendimento: não bloqueia — apenas anota quando
+          // não houve atendimento comercial registrado antes da venda.
+          const teveAtendimento = await eventoJaExiste(id, 'atendimento_comercial_realizado')
+          await registrarEventoComercial({
+            clienteId: oportunidade.cliente_id,
+            oportunidadeId: id,
+            tipoEvento: 'venda_realizada',
+            canal: oportunidade.canal,
+            observacao: teveAtendimento ? null : 'Venda sem atendimento comercial registrado previamente.',
+          }, { lojaId: effectiveStoreId, sellerUserId: supabaseUser.id })
+        }
+      }
+    }
+
     await fetchOportunidades()
     return { error: null }
-  }, [supabaseUser, fetchOportunidades])
+  }, [supabaseUser, effectiveStoreId, fetchOportunidades, oportunidades])
 
   const deleteOportunidade = useCallback(async (id: string): Promise<{ error: string | null }> => {
     if (!supabaseUser) return { error: 'Sessão inválida.' }

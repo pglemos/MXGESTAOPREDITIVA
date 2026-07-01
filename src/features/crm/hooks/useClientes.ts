@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import {
+  normalizarTelefone,
   parseClientes,
   toDateOnlyBR,
   type Cliente,
@@ -85,10 +86,37 @@ export function useClientes() {
     setLoading(false)
   }, [supabaseUser])
 
-  const createCliente = useCallback(async (input: ClienteInput): Promise<{ error: string | null; id?: string }> => {
+  /**
+   * Base única: evita cadastrar o mesmo cliente duas vezes quando o
+   * telefone já existe na carteira deste vendedor. Escopo é por vendedor
+   * (não por loja) porque a RLS de `clientes` restringe leitura/escrita
+   * de linhas de outro seller_user_id — cada vendedor só enxerga a própria
+   * carteira.
+   */
+  const buscarClienteExistentePorTelefone = useCallback(async (telefone: string | null | undefined) => {
+    const normalizado = normalizarTelefone(telefone)
+    if (!supabaseUser || !normalizado) return null
+    const { data } = await supabase
+      .from('clientes')
+      .select('id')
+      .eq('seller_user_id', supabaseUser.id)
+      .eq('telefone_normalizado', normalizado)
+      .limit(1)
+      .maybeSingle()
+    return data?.id ?? null
+  }, [supabaseUser])
+
+  const createCliente = useCallback(async (input: ClienteInput): Promise<{ error: string | null; id?: string; existed?: boolean }> => {
     if (!supabaseUser) return { error: 'Sessão inválida.' }
     if (!effectiveStoreId) return { error: 'Loja não identificada para o vendedor.' }
     if (!input.nome?.trim()) return { error: 'Nome do cliente é obrigatório.' }
+
+    const existenteId = await buscarClienteExistentePorTelefone(input.telefone)
+    if (existenteId) {
+      const { error: updateError } = await updateCliente(existenteId, input)
+      if (updateError) return { error: updateError }
+      return { error: null, id: existenteId, existed: true }
+    }
 
     const payload = buildClientePayload(input, { lojaId: effectiveStoreId, sellerUserId: supabaseUser.id })
 
@@ -103,8 +131,8 @@ export function useClientes() {
       await supabase.rpc('inicializar_cadencia_cliente', { p_cliente_id: data.id })
     }
     await fetchClientes()
-    return { error: null, id: data?.id }
-  }, [supabaseUser, effectiveStoreId, fetchClientes])
+    return { error: null, id: data?.id, existed: false }
+  }, [supabaseUser, effectiveStoreId, fetchClientes, buscarClienteExistentePorTelefone])
 
   const updateCliente = useCallback(async (id: string, patch: Partial<ClienteInput>): Promise<{ error: string | null }> => {
     if (!supabaseUser) return { error: 'Sessão inválida.' }

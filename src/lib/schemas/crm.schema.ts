@@ -13,6 +13,19 @@ export const CRM_FINANCIAMENTO = ['aprovado', 'reprovado', 'nao_aplica', 'penden
 export const CRM_TIPO_VEICULO = ['carro', 'moto', 'caminhao'] as const
 export const CRM_AGENDAMENTO_TIPO = ['visita', 'retorno', 'test_drive', 'entrega', 'negociacao'] as const
 export const CRM_AGENDAMENTO_STATUS = ['confirmado', 'aguardando', 'compareceu', 'nao_compareceu'] as const
+export const CRM_EVENTO_TIPO = [
+  'oportunidade_registrada',
+  'cliente_qualificado',
+  'agendamento_criado',
+  'atendimento_comercial_realizado',
+  'venda_realizada',
+  'proposta_enviada',
+  'retorno_realizado',
+  'entrega_realizada',
+  'garantia_registrada',
+  'pos_venda_realizado',
+] as const
+export const CRM_EVENTO_MODALIDADE = ['visita_loja', 'atendimento_externo', 'videochamada'] as const
 
 export type CrmCanal = (typeof CRM_CANAIS)[number]
 export type CrmClienteStatus = (typeof CRM_CLIENTE_STATUS)[number]
@@ -22,6 +35,8 @@ export type CrmFinanciamento = (typeof CRM_FINANCIAMENTO)[number]
 export type CrmTipoVeiculo = (typeof CRM_TIPO_VEICULO)[number]
 export type CrmAgendamentoTipo = (typeof CRM_AGENDAMENTO_TIPO)[number]
 export type CrmAgendamentoStatus = (typeof CRM_AGENDAMENTO_STATUS)[number]
+export type CrmEventoTipo = (typeof CRM_EVENTO_TIPO)[number]
+export type CrmEventoModalidade = (typeof CRM_EVENTO_MODALIDADE)[number]
 
 // Etapas que compõem o funil "vivo" (exclui terminais ganho/perdido)
 export const CRM_ETAPAS_ATIVAS: CrmEtapaFunil[] = ['prospeccao', 'qualificacao', 'apresentacao', 'negociacao', 'fechamento']
@@ -151,6 +166,23 @@ export const AtendimentoSchema = z.object({
 })
 export type Atendimento = z.infer<typeof AtendimentoSchema>
 
+export const EventoComercialSchema = z.object({
+  id: z.string().uuid(),
+  cliente_id: z.string().uuid(),
+  oportunidade_id: z.string().uuid().nullable(),
+  agendamento_id: z.string().uuid().nullable(),
+  loja_id: z.string().uuid(),
+  seller_user_id: z.string().uuid(),
+  tipo_evento: z.enum(CRM_EVENTO_TIPO),
+  canal: z.enum(CRM_CANAIS).nullable(),
+  modalidade: z.enum(CRM_EVENTO_MODALIDADE).nullable(),
+  data_evento: z.string(),
+  origem_modulo: z.string(),
+  observacao: z.string().nullable(),
+  created_at: z.string(),
+})
+export type EventoComercial = z.infer<typeof EventoComercialSchema>
+
 // ---------------------------------------------------------------------------
 // Parse helpers (tolerantes — descartam linhas fora do contrato sem quebrar UI)
 // ---------------------------------------------------------------------------
@@ -189,3 +221,14 @@ export const parseClientes = (d: unknown) => parseArray(ClienteSchema, d)
 export const parseOportunidades = (d: unknown) => parseArray(OportunidadeSchema, d)
 export const parseAgendamentos = (d: unknown) => parseArray(AgendamentoSchema, d)
 export const parseAtendimentos = (d: unknown) => parseArray(AtendimentoSchema, d)
+export const parseEventosComerciais = (d: unknown) => parseArray(EventoComercialSchema, d)
+
+/**
+ * Normaliza telefone para apenas dígitos — espelha a coluna gerada
+ * `clientes.telefone_normalizado` (ver migration 20260630180000).
+ */
+export function normalizarTelefone(telefone: string | null | undefined): string | null {
+  if (!telefone) return null
+  const digitos = telefone.replace(/\D/g, '')
+  return digitos.length > 0 ? digitos : null
+}

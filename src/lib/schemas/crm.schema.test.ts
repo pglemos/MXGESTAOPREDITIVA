@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'bun:test'
 import {
   CRM_TIPO_VEICULO_LABEL,
+  EventoComercialSchema,
   OportunidadeSchema,
+  normalizarTelefone,
 } from './crm.schema'
 
 const baseOportunidade = {
@@ -46,6 +48,59 @@ describe('OportunidadeSchema', () => {
       tipo_veiculo: 'van',
     })
 
+    expect(parsed.success).toBe(false)
+  })
+})
+
+describe('normalizarTelefone', () => {
+  it('remove mascara e mantem so digitos', () => {
+    expect(normalizarTelefone('(31) 99999-0000')).toBe('31999990000')
+  })
+
+  it('retorna null para vazio, nulo ou sem digitos', () => {
+    expect(normalizarTelefone(null)).toBeNull()
+    expect(normalizarTelefone(undefined)).toBeNull()
+    expect(normalizarTelefone('')).toBeNull()
+    expect(normalizarTelefone('---')).toBeNull()
+  })
+
+  it('trata numeros com mesma mascara final como o mesmo telefone (dedupe)', () => {
+    const a = normalizarTelefone('31 99999-0000')
+    const b = normalizarTelefone('(31)999990000')
+    expect(a).toBe(b)
+  })
+})
+
+describe('EventoComercialSchema', () => {
+  const baseEvento = {
+    id: '11111111-1111-4111-8111-111111111111',
+    cliente_id: '22222222-2222-4222-8222-222222222222',
+    oportunidade_id: null,
+    agendamento_id: null,
+    loja_id: '33333333-3333-4333-8333-333333333333',
+    seller_user_id: '44444444-4444-4444-8444-444444444444',
+    tipo_evento: 'venda_realizada',
+    canal: 'internet',
+    modalidade: null,
+    data_evento: '2026-06-30T10:00:00.000Z',
+    origem_modulo: 'crm',
+    observacao: null,
+    created_at: '2026-06-30T10:00:00.000Z',
+  }
+
+  it('aceita todos os tipos de evento do funil e da central de execucao', () => {
+    for (const tipo of [
+      'oportunidade_registrada', 'cliente_qualificado', 'agendamento_criado',
+      'atendimento_comercial_realizado', 'venda_realizada', 'proposta_enviada',
+      'retorno_realizado', 'entrega_realizada', 'garantia_registrada', 'pos_venda_realizado',
+    ]) {
+      const parsed = EventoComercialSchema.safeParse({ ...baseEvento, tipo_evento: tipo })
+      expect(parsed.success).toBe(true)
+    }
+  })
+
+  it('rejeita tipo de evento fora do contrato', () => {
+    const parsed = EventoComercialSchema.safeParse({ ...baseEvento, tipo_evento: 'invalido' })
     expect(parsed.success).toBe(false)
   })
 })

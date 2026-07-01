@@ -8,6 +8,7 @@ import {
   type CrmAgendamentoTipo,
   type CrmAgendamentoStatus,
 } from '@/lib/schemas/crm.schema'
+import { eventoJaExiste, registrarEventoComercial } from '@/features/crm/lib/eventosComerciais'
 
 const AgendamentoComClienteSchema = AgendamentoSchema.extend({
   cliente: z.object({ nome: z.string(), telefone: z.string().nullable() }).nullable().optional(),
@@ -80,8 +81,19 @@ export function useAgendamentos() {
       proxima_acao: input.proxima_acao?.trim() || null,
       observacoes: input.observacoes?.trim() || null,
     }
-    const { error: insertError } = await supabase.from('agendamentos').insert(payload)
+    const { data, error: insertError } = await supabase.from('agendamentos').insert(payload).select('id').single()
     if (insertError) return { error: insertError.message }
+
+    if (data?.id && payload.cliente_id) {
+      await registrarEventoComercial({
+        clienteId: payload.cliente_id,
+        oportunidadeId: payload.oportunidade_id,
+        agendamentoId: data.id,
+        tipoEvento: 'agendamento_criado',
+        canal: payload.canal,
+      }, { lojaId: effectiveStoreId, sellerUserId: supabaseUser.id })
+    }
+
     await fetchAgendamentos()
     return { error: null }
   }, [supabaseUser, effectiveStoreId, fetchAgendamentos])
@@ -113,9 +125,26 @@ export function useAgendamentos() {
     if (!supabaseUser) return { error: 'Sessão inválida.' }
     const { error: updErr } = await supabase.from('agendamentos').update({ status }).eq('id', id)
     if (updErr) return { error: updErr.message }
+
+    if (status === 'compareceu' && effectiveStoreId) {
+      const jaRegistrado = await eventoJaExiste(id, 'atendimento_comercial_realizado', 'agendamento_id')
+      if (!jaRegistrado) {
+        const agendamento = agendamentos.find(a => a.id === id)
+        if (agendamento?.cliente_id) {
+          await registrarEventoComercial({
+            clienteId: agendamento.cliente_id,
+            oportunidadeId: agendamento.oportunidade_id,
+            agendamentoId: id,
+            tipoEvento: 'atendimento_comercial_realizado',
+            canal: agendamento.canal,
+          }, { lojaId: effectiveStoreId, sellerUserId: supabaseUser.id })
+        }
+      }
+    }
+
     await fetchAgendamentos()
     return { error: null }
-  }, [supabaseUser, fetchAgendamentos])
+  }, [supabaseUser, effectiveStoreId, fetchAgendamentos, agendamentos])
 
   const deleteAgendamento = useCallback(async (id: string): Promise<{ error: string | null }> => {
     if (!supabaseUser) return { error: 'Sessão inválida.' }
