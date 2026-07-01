@@ -621,7 +621,7 @@ Confirmar Internet
               
               {/* SECTION 1: Fechamento básico — 70% */}
               <div className="space-y-2">
-                <h3 className="font-extrabold text-[#00A89D] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+                <h3 className="font-extrabold text-[#005BFF] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
                   <Check size={14} className="stroke-[3]" /> 1. Fechamento básico — 70%
                 </h3>
                 <p>
@@ -636,7 +636,7 @@ Confirmar Internet
                 <p>
                   Ou seja: se você preencher apenas os números e finalizar o fechamento, sua disciplina será de 70%.
                 </p>
-                <div className="bg-[#E8F3F2] text-[#00A89D] font-bold p-2.5 rounded-lg border border-[#bfdbfe] flex items-center gap-2">
+                <div className="bg-blue-50 text-blue-800 font-bold p-2.5 rounded-lg border border-blue-200 flex items-center gap-2">
                   <Info size={14} />
                   <span>Preencheu os números do dia = 70%</span>
                 </div>
@@ -644,7 +644,7 @@ Confirmar Internet
 
               {/* SECTION 2: Cadastro dos agendamentos — até +30% */}
               <div className="space-y-2">
-                <h3 className="font-extrabold text-[#00A89D] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+                <h3 className="font-extrabold text-[#22C55E] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
                   <Award size={14} className="stroke-[2.5]" /> 2. Cadastro dos agendamentos — até +30%
                 </h3>
                 <p>
@@ -670,15 +670,15 @@ Confirmar Internet
                 <p>
                   Se cadastrar corretamente os 2 clientes, sua pontuação será 100%. Se cadastrar apenas 1 dos 2 clientes, sua pontuação será 85%.
                 </p>
-                <div className="bg-[#ecfdf5] text-[#00A89D] font-bold p-2.5 rounded-lg border border-[#bbf7d0] flex items-center gap-2">
-                  <CheckCircle2 size={14} className="text-[#00A89D]" />
+                <div className="bg-green-50 text-green-800 font-bold p-2.5 rounded-lg border border-green-200 flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-[#22C55E]" />
                   <span>Detalhou todos os agendamentos para amanhã corretamente = 100%</span>
                 </div>
               </div>
 
               {/* SECTION 3: Quando um cadastro conta como agendamento? */}
               <div className="space-y-2">
-                <h3 className="font-extrabold text-[#00A89D] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+                <h3 className="font-extrabold text-[#6D28D9] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
                   <HelpCircle size={14} /> 3. Quando um cadastro conta como agendamento?
                 </h3>
                 <p>
@@ -703,7 +703,7 @@ Confirmar Internet
 
               {/* SECTION 4: Atenção à data do agendamento */}
               <div className="space-y-2">
-                <h3 className="font-extrabold text-[#00A89D] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+                <h3 className="font-extrabold text-[#F59E0B] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
                   <Clock size={14} /> 4. Atenção à data do agendamento
                 </h3>
                 <p>
@@ -725,15 +725,15 @@ Confirmar Internet
                 <p>
                   Neste caso, sua pontuação será ajustada e ficará em 95%.
                 </p>
-                <div className="bg-[#FFF7E6] text-[#d97706] font-bold p-2.5 rounded-lg border border-[#fed7aa] flex items-center gap-2">
-                  <AlertTriangle size={14} className="text-[#d97706]" />
+                <div className="bg-red-50 text-red-800 font-bold p-2.5 rounded-lg border border-red-200 flex items-center gap-2">
+                  <AlertTriangle size={14} className="text-red-600" />
                   <span>Agendamento com data diferente de amanhã vale apenas 50% na pontuação extra.</span>
                 </div>
               </div>
 
               {/* SECTION 5: Venda não é agendamento */}
               <div className="space-y-2">
-                <h3 className="font-extrabold text-[#00A89D] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+                <h3 className="font-extrabold text-[#22C55E] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
                   <DollarSign size={14} /> 5. Venda não é agendamento
                 </h3>
                 <p>
@@ -750,7 +750,7 @@ Confirmar Internet
                 <p>
                   Mas ele não conta como agendamento para amanhã. Para contar como agendamento, o campo deve estar como: <strong className="text-[#071822]">“Venda Realizada = Em Negociação”</strong>.
                 </p>
-                <div className="bg-[#E8F3F2] text-[#00A89D] font-bold p-2.5 rounded-lg border border-[#bfdbfe] flex items-center gap-2">
+                <div className="bg-blue-50 text-blue-800 font-bold p-2.5 rounded-lg border border-blue-200 flex items-center gap-2">
                   <Info size={14} />
                   <span>Venda Realizada = Sim conta como venda, não como agendamento.</span>
                 </div>
@@ -758,7 +758,7 @@ Confirmar Internet
 
               {/* SECTION 6: Prazo para fechar o dia anterior */}
               <div className="space-y-2">
-                <h3 className="font-extrabold text-[#00A89D] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+                <h3 className="font-extrabold text-[#64748B] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
                   <Clock size={14} /> 6. Prazo para fechar o dia anterior
                 </h3>
                 <p>
@@ -775,18 +775,18 @@ Confirmar Internet
 
               {/* SECTION 7: Resumo rápido */}
               <div className="space-y-2 bg-[#F7F8F8] p-4 rounded-xl border border-[#DFE0E1]">
-                <h3 className="font-extrabold text-[#00A89D] uppercase tracking-wider text-[10px]">
+                <h3 className="font-extrabold text-[#005BFF] uppercase tracking-wider text-[10px]">
                   7. Resumo rápido
                 </h3>
                 <ul className="space-y-1.5 font-semibold text-[#071822]">
-                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#00A89D] stroke-[3]" /> Preencheu os números do dia: 70%</li>
-                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#00A89D] stroke-[3]" /> Detalhou todos os agendamentos para amanhã corretamente: 100%</li>
-                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#00A89D] stroke-[3]" /> Detalhou apenas parte dos agendamentos: pontuação proporcional</li>
-                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#00A89D] stroke-[3]" /> Cadastrou com data diferente de amanhã: aquele cadastro vale apenas 50%</li>
-                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#00A89D] stroke-[3]" /> Cliente vendido conta como venda, não como agendamento</li>
-                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#00A89D] stroke-[3]" /> Fechamento do dia anterior fica liberado até 09h30 do dia seguinte</li>
+                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#22C55E] stroke-[3]" /> Preencheu os números do dia: 70%</li>
+                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#22C55E] stroke-[3]" /> Detalhou todos os agendamentos para amanhã corretamente: 100%</li>
+                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#22C55E] stroke-[3]" /> Detalhou apenas parte dos agendamentos: pontuação proporcional</li>
+                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#22C55E] stroke-[3]" /> Cadastrou com data diferente de amanhã: aquele cadastro vale apenas 50%</li>
+                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#22C55E] stroke-[3]" /> Cliente vendido conta como venda, não como agendamento</li>
+                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#22C55E] stroke-[3]" /> Fechamento do dia anterior fica liberado até 09h30 do dia seguinte</li>
                 </ul>
-                <p className="italic font-bold text-[#00A89D] mt-3">
+                <p className="italic text-[#475569] mt-3">
                   “Essa regra existe para manter seu funil atualizado e ajudar você, sua liderança e a loja a acompanharem melhor as oportunidades reais de venda.”
                 </p>
               </div>

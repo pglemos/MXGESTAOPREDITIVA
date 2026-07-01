@@ -652,32 +652,28 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
 <div className="hidden max-w-full overflow-x-auto md:block">
   <table className="w-full min-w-[1280px] table-fixed text-left text-[13px]">
             <colgroup>
-              <col className="w-[12%]" />
-              <col className="w-[10%]" />
-              <col className="w-[10%]" />
-              <col className="w-[8%]" />
               <col className="w-[14%]" />
-              <col className="w-[8%]" />
+              <col className="w-[11%]" />
+              <col className="w-[12%]" />
+              <col className="w-[9%]" />
+              <col className="w-[12%]" />
               <col className="w-[9%]" />
               <col className="w-[8%]" />
+              <col className="w-[9%]" />
+              <col className="w-[9%]" />
               <col className="w-[7%]" />
-              <col className="w-[8%]" />
-              <col className="w-[8%]" />
-              <col className="w-[8%]" />
             </colgroup>
             <thead className="bg-[#F7F8F8] text-[11px] uppercase tracking-normal text-[#526B7A] border-b border-[#DFE0E1]">
               <tr>
                 {[
-                  'Nome',
+                  'Nome do Cliente',
                   'Telefone',
                   'Veículo',
                   'Valor',
-                  'Agendamento',
+                  'Data',
                   'Canal',
-                  'Compareceu',
-                  'Avaliado',
-                  'Sinal',
-                  'Financ.',
+                  'Troca?',
+                  'Ficha?',
                   'Status',
                   'Ações',
                 ].map(column => (
@@ -685,7 +681,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
                     scope="col"
                     key={column}
                     className={`px-4 py-3.5 font-extrabold whitespace-nowrap truncate ${
-                      column === 'Nome' ? 'sticky left-0 aggression-z z-10 bg-[#F7F8F8] shadow-[6px_0_10px_-10px_rgba(15,23,42,0.15)]' : ''
+                      column === 'Nome do Cliente' ? 'sticky left-0 aggression-z z-10 bg-[#F7F8F8] shadow-[6px_0_10px_-10px_rgba(15,23,42,0.15)]' : ''
                     }`}
                     title={column}
                   >
@@ -697,7 +693,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
             <tbody>
               {clientesList.length === 0 ? (
                 <tr>
-                  <td colSpan={12} className="bg-white px-5 py-0">
+                  <td colSpan={10} className="bg-white px-5 py-0">
                     <div className="flex min-h-[96px] flex-col items-center justify-center gap-1.5 py-6">
                       <span className="grid h-9 w-9 place-items-center rounded-full bg-[#F7F8F8] text-[#526B7A]">
                         <Users size={16} />
@@ -738,12 +734,8 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
                           <ChannelBadge canal={row.canal} />
                         </td>
                         <td className="px-4 py-3">
-                          <CompareceuBadge value={row.compareceu} />
-                        </td>
-                        <td className="px-4 py-3">
                           <BooleanBadge value={row.carroAvaliado} />
                         </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-[#526B7A] truncate" title={formatMoney(row.sinal)}>{formatMoney(row.sinal)}</td>
                         <td className="px-4 py-3">
                           <FinanciamentoBadge value={row.financiamento} />
                         </td>
@@ -775,7 +767,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
                         const draft = getInlineDraft(row)
                         return (
                           <tr className="bg-[#F7F8F8]/40 border-t border-[#DFE0E1]" onClick={e => e.stopPropagation()}>
-                            <td colSpan={12} className="px-6 py-4 text-xs leading-relaxed text-[#526B7A]">
+                            <td colSpan={10} className="px-6 py-4 text-xs leading-relaxed text-[#526B7A]">
                               <div className="flex flex-wrap items-end gap-4 bg-white/65 p-4 rounded-xl border border-[#DFE0E1] shadow-sm">
                                 <div className="flex flex-col gap-1.5 min-w-[200px]">
                                   <label

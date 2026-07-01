@@ -12,7 +12,7 @@ describe('Checkin sticky header layout contract', () => {
   test('keeps Fechamento Diario pinned only on desktop inside checkin scroll area', () => {
     expect(checkinHeaderSource).toContain('md:sticky md:top-0')
     expect(checkinHeaderSource).not.toContain('className="sticky top-0')
-    expect(checkinHeaderSource).toContain('FECHAMENTO DIÁRIO')
+    expect(checkinHeaderSource).toContain('Fechamento')
     expect(checkinContainerSource).toContain('overflow-y-auto overscroll-contain')
     expect(checkinContainerSource).toContain("document.documentElement.style.overflow = 'hidden'")
     expect(checkinContainerSource).toContain("document.body.style.overflow = 'hidden'")

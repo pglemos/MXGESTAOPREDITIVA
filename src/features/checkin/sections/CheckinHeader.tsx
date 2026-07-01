@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { CalendarDays, History, X, ArrowLeft, Send, Users, Globe, CalendarClock, DollarSign } from 'lucide-react'
+import { CalendarDays, History, X, ArrowLeft, Send, Users, Globe, CalendarClock, DollarSign, Bell } from 'lucide-react'
 import { Button } from '@/components/atoms/Button'
 import { supabase } from '@/lib/supabase'
 import { useCheckinAuditor } from '@/hooks/useCheckinAuditor'
@@ -364,29 +364,33 @@ return (
 <header className="relative z-40 -mx-mx-sm shrink-0 space-y-3 border-b border-border-default/60 bg-surface-alt px-mx-sm pb-3 pt-2 shadow-[0_10px_24px_rgba(15,23,42,0.08)] sm:-mx-mx-md sm:px-mx-md md:sticky md:top-0 md:pt-3 2xl:-mx-mx-lg 2xl:px-mx-lg">
       {/* Top Header Row */}
 <div className="hidden flex-wrap items-center justify-between gap-2 md:flex md:gap-4">
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:gap-4">
-          <h1 className="min-w-0 truncate text-[20px] font-extrabold tracking-tight text-[#071822] sm:text-[26px]">
-            FECHAMENTO DIÁRIO
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:gap-5">
+          <h1 className="min-w-0 truncate text-[20px] font-black uppercase tracking-tight text-[#0F172A] sm:text-[22px]">
+            Fechamento
           </h1>
 
-          <div className="inline-flex h-8 max-w-full items-center gap-2 rounded-full border border-[#DFE0E1] bg-white px-3 text-xs font-semibold text-[#526B7A] shadow-sm sm:h-9 sm:px-4 sm:text-sm">
-            <CalendarDays size={14} className="text-[#00A89D]" />
-            <span className="truncate">{dateStr}</span>
+          <div className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-lg border border-[#E5E7EB] bg-slate-50 px-3 text-[13px] sm:h-9">
+            <CalendarDays size={14} className="text-[#005BFF]" />
+            <span className="truncate font-semibold text-[#0F172A]">{dateStr}</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => {
               setActiveView('list')
               setHistoryOpen(true)
             }}
-            className="inline-flex h-9 items-center gap-2 rounded-xl border border-[#DFE0E1] bg-white px-4 text-sm font-bold text-[#334155] shadow-sm transition-colors hover:bg-[#F7F8F8] sm:h-10 sm:px-5"
+            className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#E5E7EB] bg-white px-4 text-[13px] font-semibold text-[#64748B] shadow-sm transition-all hover:border-[#005BFF] hover:text-[#005BFF] sm:h-10 sm:px-5"
           >
             <History size={14} />
-            Histórico
+            Histórico de Fechamentos
           </button>
+          <span className="relative hidden cursor-pointer sm:block">
+            <Bell size={20} className="text-[#64748B]" />
+            <span className="absolute -right-1 -top-1 grid h-4 w-4 place-items-center rounded-full bg-[#EF4444] text-[9px] font-black text-white">3</span>
+          </span>
         </div>
       </div>
 
