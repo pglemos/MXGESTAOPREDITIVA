@@ -33,6 +33,7 @@ import { CHECKIN_MAX_INPUT_VALUE, CHECKIN_ZERO_REASONS } from '@/hooks/useChecki
 import { CheckinValidationBanner } from './CheckinValidationBanner'
 import { CheckinSuccessSection } from './CheckinSuccessSection'
 import { CheckinCrmSection } from './CheckinCrmSection'
+import { FluxoFechamento } from './FluxoFechamento'
 import type { CheckinPageContext, NumericCheckinField } from '../hooks/useCheckinPage'
 import { shouldConfirmBeforeFinalizar } from '../lib/confirm-finalize'
 
@@ -377,83 +378,15 @@ Confirmar Internet
 </div>
 </section>
 
-<section className="hidden w-full max-w-full min-w-0 gap-mx-sm md:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1.35fr)_minmax(0,1.05fr)]">
-<MetricGroupCard
-          title="1. LEADS RECEBIDOS DO DIA"
-          columns="grid-cols-1 sm:grid-cols-2"
-          tooltipText="Informe quantos novos interessados chegaram no dia de referência pelos canais Carteira e Internet. Não inclua clientes de showroom."
-        >
-          <MetricCounterCard
-            label="Canal Carteira"
-            field="leads_cart"
-            icon={Users}
-            tone="success"
-            crmBadge={showCrmBadge && crmDerived.leads_cart > 0}
-            {...counterProps}
-          />
-          <MetricCounterCard
-            label="Canal Internet"
-            field="leads_net"
-            icon={Globe}
-            tone="info"
-            crmBadge={showCrmBadge && crmDerived.leads_net > 0}
-            {...counterProps}
-          />
-        </MetricGroupCard>
-
-        <MetricGroupCard
-          title="2. ATENDIMENTOS DO DIA"
-          columns="grid-cols-1 sm:grid-cols-3"
-          tooltipText="Informe quantos clientes você atendeu no dia de referência, separados por Showroom, Carteira e Internet."
-        >
-          <MetricCounterCard
-            label="Porta"
-            field="visitas_porta"
-            icon={Store}
-            tone="warning"
-            crmBadge={showCrmBadge && crmDerived.visitas_porta > 0}
-            {...counterProps}
-          />
-          <MetricCounterCard
-            label="Carteira"
-            field="visitas_cart"
-            icon={Users}
-            tone="success"
-            crmBadge={showCrmBadge && crmDerived.visitas_cart > 0}
-            {...counterProps}
-          />
-          <MetricCounterCard
-            label="Internet"
-            field="visitas_net"
-            icon={Globe}
-            tone="info"
-            crmBadge={showCrmBadge && crmDerived.visitas_net > 0}
-            {...counterProps}
-          />
-        </MetricGroupCard>
-
-        <MetricGroupCard
-          title="3. AGENDAMENTO PARA AMANHÃ"
-          columns="grid-cols-1 sm:grid-cols-2"
-          tooltipText="Informe quantos clientes ficaram com visitas/negociações agendados para amanhã, separados por Carteira e Internet."
-        >
-          <MetricCounterCard
-            label="Carteira"
-            field="agd_cart"
-            icon={CalendarClock}
-            tone="success"
-            crmBadge={showCrmBadge && crmDerived.agd_cart > 0}
-            {...counterProps}
-          />
-          <MetricCounterCard
-            label="Internet"
-            field="agd_net"
-            icon={CalendarClock}
-            tone="info"
-            crmBadge={showCrmBadge && crmDerived.agd_net > 0}
-            {...counterProps}
-          />
-        </MetricGroupCard>
+<section className="hidden w-full max-w-full min-w-0 md:block">
+        <FluxoFechamento
+          readValue={readValue}
+          updateField={updateField}
+          disabled={isPastDeadline && !fechamentoLiberado}
+          agdCartAtivos={crmDerived.agd_cart}
+          agdNetAtivos={crmDerived.agd_net}
+          temClientesCadastrados={clientesList.length > 0}
+        />
       </section>
 
 

@@ -44,9 +44,8 @@ describe('Checkin sticky header layout contract', () => {
     expect(checkinCrmSource).toContain('Veículo')
   })
 
-  test('uses neutral day terminology explicit blocked finalize copy', () => {
-    expect(checkinFormSource).toContain('LEADS RECEBIDOS DO DIA')
-    expect(checkinFormSource).toContain('ATENDIMENTOS DO DIA')
+  test('uses wizard de 4 etapas (Base44) e copy explicita de bloqueio', () => {
+    expect(checkinFormSource).toContain('<FluxoFechamento')
     expect(checkinFormSource).toContain('AGUARDANDO LIBERAÇÃO DO GERENTE')
   })
 })
