@@ -26,6 +26,7 @@ import type { CheckinPageContext, ClienteRow } from '../hooks/useCheckinPage'
 import { addDaysDateOnly } from '../lib/crm-derived-totals'
 import { parseDateOnly } from '../hooks/useCheckinPage'
 import { GarantiaModal } from './GarantiaModal'
+import { QualificadoModal } from './QualificadoModal'
 
 /** Diferenca em dias entre a data do agendamento e a data de referencia do fechamento. */
 function diasAgendamento(dataAgendamento: string | null | undefined, referencia: string): number | null {
@@ -165,6 +166,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
   const [observacoes, setObservacoes] = useState('')
 
   const [garantiaModalOpen, setGarantiaModalOpen] = useState(false)
+  const [qualificadoModalOpen, setQualificadoModalOpen] = useState(false)
   // Coerencia venda-sem-atendimento (Base44 CASO 3): nao bloqueia o cadastro,
   // apenas confirma a origem antes de salvar quando nao ha atendimento do
   // canal registrado no Movimento do Dia.
@@ -577,6 +579,14 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
               className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[#DFE0E1] bg-white px-5 text-sm font-bold text-[#526B7A] transition hover:bg-[#F7F8F8] sm:w-auto"
             >
               <AlertCircle size={16} /> Registrar Garantia
+            </button>
+            <button
+              id="checkin-new-qualificado-button"
+              type="button"
+              onClick={() => setQualificadoModalOpen(true)}
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[#DFE0E1] bg-white px-5 text-sm font-bold text-[#526B7A] transition hover:bg-[#F7F8F8] sm:w-auto"
+            >
+              <Star size={16} /> Registrar Qualificado
             </button>
             <button
               id="checkin-new-client-button"
@@ -1269,6 +1279,12 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
         onClose={() => setGarantiaModalOpen(false)}
         onSaved={refetchClientesList}
         defaultDate={`${selectedDate}T12:00`}
+      />
+
+      <QualificadoModal
+        open={qualificadoModalOpen}
+        onClose={() => setQualificadoModalOpen(false)}
+        onSaved={refetchClientesList}
       />
 
       {coerenciaModalOpen && (
