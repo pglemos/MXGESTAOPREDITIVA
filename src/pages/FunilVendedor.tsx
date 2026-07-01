@@ -32,6 +32,12 @@ import {
 
 type PeriodKey = 'current_month' | 'last_month' | 'last_3_months'
 type Confidence = 'Alta' | 'Média' | 'Baixa'
+
+const confidenceToneClass: Record<Confidence, string> = {
+  Alta: 'border-status-success/30 bg-status-success-surface text-status-success',
+  Média: 'border-status-warning/30 bg-status-warning-surface text-status-warning',
+  Baixa: 'border-border-subtle bg-white text-text-tertiary',
+}
 type Tone = 'green' | 'blue' | 'orange'
 
 type SourceRows = {
@@ -85,9 +91,9 @@ const kpiCopy = [
 ] as const
 
 const channelUi: Record<ChannelFunnel['channel'], { icon: ReactNode; tone: Tone }> = {
-  Showroom: { icon: <Warehouse size={22} />, tone: 'green' },
+  Showroom: { icon: <Warehouse size={22} />, tone: 'orange' },
   Internet: { icon: <Globe2 size={22} />, tone: 'blue' },
-  Carteira: { icon: <Users size={22} />, tone: 'orange' },
+  Carteira: { icon: <Users size={22} />, tone: 'green' },
 }
 
 const toneClass: Record<Tone, { text: string; soft: string; border: string; badge: string }> = {
@@ -379,7 +385,10 @@ function StatisticalBaseCard({ displayedPeriod, calculationPeriod, confidence }:
       <div className="mt-mx-sm grid gap-mx-sm md:grid-cols-4">
         <BaseStat label="Período exibido" value={displayedPeriod} />
         <BaseStat label="Período usado para cálculo" value={calculationPeriod} />
-        <BaseStat label="Confiança da projeção" value={confidence} />
+        <div className="rounded-mx-md border border-border-subtle bg-surface-alt p-mx-sm">
+          <Typography variant="caption" tone="muted" className="block font-semibold normal-case tracking-normal">Confiança da projeção</Typography>
+          <span className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-xs font-bold ${confidenceToneClass[confidence]}`}>{confidence}</span>
+        </div>
         <BaseStat label="Motivo da confiança" value={confidenceReason(confidence)} />
       </div>
     </DashboardCard>

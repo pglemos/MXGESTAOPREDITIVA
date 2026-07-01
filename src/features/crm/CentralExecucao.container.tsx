@@ -38,6 +38,7 @@ import {
   type CrmTipoVeiculo,
 } from '@/lib/schemas/crm.schema'
 import { timestampMatchesDateOnly } from '@/features/checkin/lib/clientes-list-from-crm'
+import { getSPHoursMinutes } from '@/features/checkin/hooks/useCheckinPage'
 import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
 import { useClientes } from '@/features/crm/hooks/useClientes'
 import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
@@ -91,6 +92,11 @@ function onlyDigits(value: string | null | undefined) {
 
 function fmtHora(iso: string) {
   return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+}
+
+function slotMinutes(time: string) {
+  const [hours, minutes] = time.split(':').map(Number)
+  return (hours || 0) * 60 + (minutes || 0)
 }
 
 function fmtMoeda(value: number | null) {
@@ -245,6 +251,10 @@ export function CentralExecucao() {
     workEndTime: perfil.hora_saida,
     agendaHojeItems,
   })
+  const nowMinutesForTimeline = useMemo(() => {
+    const { hours, minutes } = getSPHoursMinutes()
+    return hours * 60 + minutes
+  }, [])
 
   function openReagendar(item: AgendaHojeItem) {
     setReagendarItem(item)
@@ -534,12 +544,28 @@ export function CentralExecucao() {
 
             <aside className="flex flex-col gap-mx-sm">
               <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-mx-widest">Linha do tempo</Typography>
-              {slots.map((slot: RoutineSlot) => (
-                <div key={slot.key} className={cn('flex items-center gap-mx-sm rounded-mx-md border px-mx-sm py-mx-xs', slot.isCurrent ? 'border-brand-primary/30 bg-brand-primary/5' : 'border-border-subtle bg-white')}>
-                  <Typography variant="caption" className={cn('w-12 font-bold', slot.isCurrent ? 'text-brand-primary' : 'text-text-secondary')}>{slot.time}</Typography>
-                  <Typography variant="caption" className="font-semibold text-text-primary">{slot.template?.nome || slot.key}</Typography>
-                </div>
-              ))}
+              {slots.map((slot: RoutineSlot) => {
+                const isPast = !slot.isCurrent && slotMinutes(slot.time) < nowMinutesForTimeline
+                return (
+                  <div
+                    key={slot.key}
+                    className={cn(
+                      'flex items-center gap-mx-sm rounded-mx-md border px-mx-sm py-mx-xs',
+                      slot.isCurrent
+                        ? 'border-brand-primary/30 bg-brand-primary/5'
+                        : isPast
+                          ? 'border-status-success/20 bg-status-success/5'
+                          : 'border-border-subtle bg-white',
+                    )}
+                  >
+                    <span className="flex w-12 shrink-0 items-center gap-1">
+                      {isPast && <CheckCircle2 size={12} className="shrink-0 text-status-success" />}
+                      <Typography variant="caption" className={cn('font-bold', slot.isCurrent ? 'text-brand-primary' : isPast ? 'text-status-success' : 'text-text-secondary')}>{slot.time}</Typography>
+                    </span>
+                    <Typography variant="caption" className={cn('font-semibold', isPast ? 'text-status-success' : 'text-text-primary')}>{slot.template?.nome || slot.key}</Typography>
+                  </div>
+                )
+              })}
             </aside>
           </div>
         )}

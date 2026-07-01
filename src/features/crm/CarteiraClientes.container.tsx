@@ -930,7 +930,9 @@ function CentralExecucaoBadge({ cliente }: { cliente: Cliente }) {
 }
 
 function ProgressInline({ value }: { value: number }) {
-  const tone = value >= 70 ? 'bg-status-success' : value >= 40 ? 'bg-brand-primary' : 'bg-status-error'
+  // status-success e brand-primary sao o mesmo hex (#00A89D) no design system —
+  // usar status-warning na faixa media pra nao repetir cor entre 40-69% e 70-100%.
+  const tone = value >= 70 ? 'bg-status-success' : value >= 40 ? 'bg-status-warning' : 'bg-status-error'
   return (
     <span className="flex items-center gap-mx-xs">
       <span className="text-xs font-bold text-text-primary">{value}%</span>
