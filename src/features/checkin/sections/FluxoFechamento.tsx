@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { CheckCircle2, ChevronRight, Globe, ShoppingCart, Store, Users } from 'lucide-react'
 import type { NumericCheckinField } from '../hooks/useCheckinPage'
 
@@ -45,6 +45,11 @@ const COLOR_MAP = {
 
 const SEGMENT_COLORS: Record<StepId, string> = {
   showroom: '#F97316', carteira: '#22C55E', internet: '#3B82F6', vendas: '#9333EA',
+}
+
+/** Mesmo clamp do setCounter original do Base44: Math.min(999, Math.max(0, newVal)). */
+function clampCounter(value: number): number {
+  return Math.min(999, Math.max(0, value))
 }
 
 function StepperInput({ value, onDecrement, onIncrement, onSet, disabled }: { value: number; onDecrement: () => void; onIncrement: () => void; onSet: (v: number) => void; disabled?: boolean }) {
@@ -116,7 +121,7 @@ function StepperHeader({ currentStep, completedSteps, onStepClick }: { currentSt
         const c = COLOR_MAP[step.color]
         const Icon = step.icon
         return (
-          <div key={step.id} className="contents">
+          <Fragment key={step.id}>
             <button type="button" onClick={() => onStepClick(step.id)} className="flex min-w-0 flex-1 flex-col items-center gap-1 transition-all">
               <div className={`flex h-9 w-9 items-center justify-center rounded-full shadow-sm transition-all ${done ? c.stepDone : active ? c.stepActive : 'bg-slate-100 text-slate-400'}`}>
                 {done ? <CheckCircle2 className="h-4 w-4 text-white" /> : <Icon className="h-4 w-4" />}
@@ -127,7 +132,7 @@ function StepperHeader({ currentStep, completedSteps, onStepClick }: { currentSt
             {idx < STEPS.length - 1 && (
               <div className={`h-0.5 max-w-[24px] flex-1 rounded-full transition-all ${completedSteps.has(step.id) ? COLOR_MAP[STEPS[idx + 1].color].progress : 'bg-slate-100'}`} />
             )}
-          </div>
+          </Fragment>
         )
       })}
     </div>
@@ -269,9 +274,9 @@ export function FluxoFechamento({ readValue, updateField, disabled, agdCartAtivo
             <FieldRow
               label="Atendimentos realizados"
               value={visitasPorta}
-              onDecrement={() => updateField('visitas_porta', Math.max(0, visitasPorta - 1))}
-              onIncrement={() => updateField('visitas_porta', visitasPorta + 1)}
-              onSet={v => updateField('visitas_porta', v)}
+              onDecrement={() => updateField('visitas_porta', clampCounter(visitasPorta - 1))}
+              onIncrement={() => updateField('visitas_porta', clampCounter(visitasPorta + 1))}
+              onSet={v => updateField('visitas_porta', clampCounter(v))}
               disabled={disabled}
             />
           </div>
@@ -298,10 +303,17 @@ export function FluxoFechamento({ readValue, updateField, disabled, agdCartAtivo
           </div>
           <p className="text-[12px] text-slate-500">Informe os contatos, atendimentos e agendamentos gerados pela sua carteira.</p>
           <div className={`space-y-4 border-t ${cg.divider} pt-4`}>
-            <FieldRow label="Leads recebidos" value={leadsCart} onDecrement={() => updateField('leads_cart', Math.max(0, leadsCart - 1))} onIncrement={() => updateField('leads_cart', leadsCart + 1)} onSet={v => updateField('leads_cart', v)} disabled={disabled} />
-            <FieldRow label="Atendimentos realizados" value={visitasCart} onDecrement={() => updateField('visitas_cart', Math.max(0, visitasCart - 1))} onIncrement={() => updateField('visitas_cart', visitasCart + 1)} onSet={v => updateField('visitas_cart', v)} disabled={disabled} />
-            <FieldRow label="Agendamentos D+1" value={agdCart} onDecrement={() => updateField('agd_cart', Math.max(0, agdCart - 1))} onIncrement={() => updateField('agd_cart', agdCart + 1)} onSet={v => updateField('agd_cart', v)} disabled={disabled} />
-            {agdCartAtivos > 0 && (
+            <FieldRow label="Leads recebidos" value={leadsCart} onDecrement={() => updateField('leads_cart', clampCounter(leadsCart - 1))} onIncrement={() => updateField('leads_cart', clampCounter(leadsCart + 1))} onSet={v => updateField('leads_cart', clampCounter(v))} disabled={disabled} />
+            <FieldRow label="Atendimentos realizados" value={visitasCart} onDecrement={() => updateField('visitas_cart', clampCounter(visitasCart - 1))} onIncrement={() => updateField('visitas_cart', clampCounter(visitasCart + 1))} onSet={v => updateField('visitas_cart', clampCounter(v))} disabled={disabled} />
+            {!disabled ? (
+              <FieldRow label="Agendamentos D+1" value={agdCart} onDecrement={() => updateField('agd_cart', clampCounter(agdCart - 1))} onIncrement={() => updateField('agd_cart', clampCounter(agdCart + 1))} onSet={v => updateField('agd_cart', clampCounter(v))} disabled={false} />
+            ) : (
+              <div className="flex items-center justify-between gap-3">
+                <span className="flex-1 text-[13px] font-semibold text-slate-500">Agendamentos D+1 ativos</span>
+                <span className={`text-[22px] font-black tabular-nums ${cg.title}`}>{agdCartAtivos}</span>
+              </div>
+            )}
+            {disabled && (
               <p className={`text-[10px] ${cg.note}`}>Planejados: <strong>{agdCart}</strong> · Detalhados: <strong>{agdCartAtivos}</strong></p>
             )}
           </div>
@@ -327,10 +339,17 @@ export function FluxoFechamento({ readValue, updateField, disabled, agdCartAtivo
           </div>
           <p className="text-[12px] text-slate-500">Informe os leads digitais recebidos e o andamento dos atendimentos.</p>
           <div className={`space-y-4 border-t ${cb.divider} pt-4`}>
-            <FieldRow label="Leads recebidos" value={leadsNet} onDecrement={() => updateField('leads_net', Math.max(0, leadsNet - 1))} onIncrement={() => updateField('leads_net', leadsNet + 1)} onSet={v => updateField('leads_net', v)} disabled={disabled} />
-            <FieldRow label="Atendimentos realizados" value={visitasNet} onDecrement={() => updateField('visitas_net', Math.max(0, visitasNet - 1))} onIncrement={() => updateField('visitas_net', visitasNet + 1)} onSet={v => updateField('visitas_net', v)} disabled={disabled} />
-            <FieldRow label="Agendamentos D+1" value={agdNet} onDecrement={() => updateField('agd_net', Math.max(0, agdNet - 1))} onIncrement={() => updateField('agd_net', agdNet + 1)} onSet={v => updateField('agd_net', v)} disabled={disabled} />
-            {agdNetAtivos > 0 && (
+            <FieldRow label="Leads recebidos" value={leadsNet} onDecrement={() => updateField('leads_net', clampCounter(leadsNet - 1))} onIncrement={() => updateField('leads_net', clampCounter(leadsNet + 1))} onSet={v => updateField('leads_net', clampCounter(v))} disabled={disabled} />
+            <FieldRow label="Atendimentos realizados" value={visitasNet} onDecrement={() => updateField('visitas_net', clampCounter(visitasNet - 1))} onIncrement={() => updateField('visitas_net', clampCounter(visitasNet + 1))} onSet={v => updateField('visitas_net', clampCounter(v))} disabled={disabled} />
+            {!disabled ? (
+              <FieldRow label="Agendamentos D+1" value={agdNet} onDecrement={() => updateField('agd_net', clampCounter(agdNet - 1))} onIncrement={() => updateField('agd_net', clampCounter(agdNet + 1))} onSet={v => updateField('agd_net', clampCounter(v))} disabled={false} />
+            ) : (
+              <div className="flex items-center justify-between gap-3">
+                <span className="flex-1 text-[13px] font-semibold text-slate-500">Agendamentos D+1 ativos</span>
+                <span className={`text-[22px] font-black tabular-nums ${cb.title}`}>{agdNetAtivos}</span>
+              </div>
+            )}
+            {disabled && (
               <p className={`text-[10px] ${cb.note}`}>Planejados: <strong>{agdNet}</strong> · Detalhados: <strong>{agdNetAtivos}</strong></p>
             )}
           </div>
