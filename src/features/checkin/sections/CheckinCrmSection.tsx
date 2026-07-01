@@ -137,9 +137,10 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
     selectedDate: '2026-06-16',
     supabaseUser: { id: 'vendedor-id' },
     finalizadoAposPrazo: false,
+    effectiveForm: { visitas_porta: 0, visitas_cart: 0, visitas_net: 0 },
   }
   const activeCtx = ctx || (fallbackCtx as any)
-  const { clientesList, refetchClientesList, selectedDate, supabaseUser, finalizadoAposPrazo } = activeCtx
+  const { clientesList, refetchClientesList, selectedDate, supabaseUser, finalizadoAposPrazo, effectiveForm } = activeCtx
 
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -164,6 +165,11 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
   const [observacoes, setObservacoes] = useState('')
 
   const [garantiaModalOpen, setGarantiaModalOpen] = useState(false)
+  // Coerencia venda-sem-atendimento (Base44 CASO 3): nao bloqueia o cadastro,
+  // apenas confirma a origem antes de salvar quando nao ha atendimento do
+  // canal registrado no Movimento do Dia.
+  const [coerenciaModalOpen, setCoerenciaModalOpen] = useState(false)
+  const [coerenciaCanalPendente, setCoerenciaCanalPendente] = useState<CrmCanal | ''>('')
 
   // Expanded Row State
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
@@ -327,7 +333,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
   }
 
   // Submit Client
-  async function handleCadastrar() {
+  async function handleCadastrar(options?: { coerenciaObservacao?: string }) {
     const isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
 
     // 1. Validations
@@ -389,6 +395,28 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
       }
     }
 
+    const normalizedVendaRealizada = (vendaRealizada === 'Sim' || (vendaRealizada as string) === 'ganho')
+      ? 'Sim'
+      : (vendaRealizada === 'Não' || (vendaRealizada as string) === 'perdido')
+      ? 'Não'
+      : 'Em Negociação'
+
+    // Coerencia venda-sem-atendimento (Base44 CASO 3): se marcou Venda Realizada
+    // sem ter atendimento do canal registrado hoje, confirma a origem antes de
+    // salvar. Nao bloqueia — o vendedor pode salvar mesmo assim.
+    if (!isTest && !options?.coerenciaObservacao && normalizedVendaRealizada === 'Sim' && canal) {
+      const atendimentosPorCanal: Record<string, number> = {
+        showroom: Number(effectiveForm?.visitas_porta ?? 0),
+        carteira: Number(effectiveForm?.visitas_cart ?? 0),
+        internet: Number(effectiveForm?.visitas_net ?? 0),
+      }
+      if ((atendimentosPorCanal[canal] ?? 0) === 0) {
+        setCoerenciaCanalPendente(canal)
+        setCoerenciaModalOpen(true)
+        return
+      }
+    }
+
     setSaving(true)
 
     try {
@@ -396,12 +424,6 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
       const existingCliente = normalizedTelefone
         ? (clientes as any[]).find(cliente => phoneDigits(cliente.telefone) === normalizedTelefone)
         : null
-
-      const normalizedVendaRealizada = (vendaRealizada === 'Sim' || (vendaRealizada as string) === 'ganho')
-        ? 'Sim'
-        : (vendaRealizada === 'Não' || (vendaRealizada as string) === 'perdido')
-        ? 'Não'
-        : 'Em Negociação'
 
       // Construct date of competence timestamp override (noon of selectedDate in Sao Paulo time)
       const createdAtOverride = `${selectedDate}T12:00:00-03:00`
@@ -465,13 +487,16 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
         const linkedAgendamento = editingClientId
           ? (agendamentos as any[]).find(ag => ag.oportunidade_id === oportunidadeId)
           : null
+        const observacoesFinal = [observacoes.trim() || null, options?.coerenciaObservacao || null]
+          .filter(Boolean)
+          .join(' — ') || null
         const agendamentoPayload = {
           cliente_id: activeClientId,
           oportunidade_id: oportunidadeId,
           data_hora: dataFechamento,
           canal: canal || null,
           status: compareceuToAgendamentoStatus(compareceu),
-          observacoes: observacoes.trim() || null,
+          observacoes: observacoesFinal,
         }
         const { error: agendamentoError } = linkedAgendamento
           ? await updateAgendamento(linkedAgendamento.id, agendamentoPayload)
@@ -494,6 +519,8 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
       setDrawerOpen(false)
       setEditingClientId(null)
       setEditingClienteDbId(null)
+      setCoerenciaModalOpen(false)
+      setCoerenciaCanalPendente('')
     } catch (e) {
       toast.error('Erro ao cadastrar cliente.')
     } finally {
@@ -1226,7 +1253,7 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
 
               <button
                 type="button"
-                onClick={handleCadastrar}
+                onClick={() => handleCadastrar()}
                 disabled={saving}
                 className="h-[42px] px-8 rounded-full bg-[#00A89D] text-sm font-bold text-white shadow-[0_4px_12px_rgba(0,168,157,0.2)] hover:bg-[#00A89D] disabled:bg-[#526B7A] transition-colors"
               >
@@ -1243,6 +1270,48 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
         onSaved={refetchClientesList}
         defaultDate={`${selectedDate}T12:00`}
       />
+
+      {coerenciaModalOpen && (
+        <div className="fixed inset-0 z-[150] grid place-items-center bg-black/40 p-4 backdrop-blur-[3px]" role="dialog" aria-modal="true" aria-label="Confirme a origem da venda">
+          <div className="w-full max-w-[440px] rounded-[18px] border border-[#DFE0E1] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)]">
+            <header className="px-6 py-5 border-b border-[#DFE0E1]">
+              <h2 className="flex items-center gap-2 text-[16px] font-extrabold text-[#071822]">
+                <AlertCircle size={18} className="text-[#F59E0B]" />
+                Venda sem atendimento registrado hoje
+              </h2>
+              <p className="mt-2 text-[13px] font-medium leading-relaxed text-[#526B7A]">
+                Não encontramos atendimento hoje para o canal <strong className="text-[#071822]">{CRM_CANAL_LABEL[coerenciaCanalPendente as CrmCanal] || coerenciaCanalPendente}</strong>. Esta venda veio de um atendimento anterior?
+              </p>
+              <p className="mt-2 text-[12px] font-medium text-[#526B7A]">
+                No mercado automotivo, é comum o cliente atender em um dia e confirmar a compra em outro — isso é válido. Você pode continuar normalmente.
+              </p>
+            </header>
+            <div className="flex flex-col gap-2 p-6">
+              <button
+                type="button"
+                onClick={() => handleCadastrar({ coerenciaObservacao: 'Venda de atendimento anterior (confirmado pelo vendedor).' })}
+                className="h-11 rounded-xl bg-[#22C55E] px-4 text-sm font-bold text-white shadow-sm transition-colors hover:bg-green-600"
+              >
+                Sim, atendimento anterior
+              </button>
+              <button
+                type="button"
+                onClick={() => setCoerenciaModalOpen(false)}
+                className="h-11 rounded-xl bg-[#F59E0B] px-4 text-sm font-bold text-white shadow-sm transition-colors hover:bg-amber-600"
+              >
+                Corrigir canal ou atendimento
+              </button>
+              <button
+                type="button"
+                onClick={() => handleCadastrar({ coerenciaObservacao: 'Venda sem atendimento do canal registrado — salva mesmo assim.' })}
+                className="h-11 rounded-xl border border-[#DFE0E1] bg-white px-4 text-sm font-bold text-[#526B7A] transition-colors hover:bg-[#F7F8F8]"
+              >
+                Salvar mesmo assim
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
