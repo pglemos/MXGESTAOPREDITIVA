@@ -23,7 +23,6 @@ import {
   buildLastMonthRange,
   buildLastThreeMonthsRange,
   formatPercent,
-  resolveMetaTarget,
   type ChannelFunnel,
   type FunnelDashboard,
   type FunnelRow,
@@ -38,7 +37,6 @@ type Tone = 'green' | 'blue' | 'orange'
 type SourceRows = {
   events: FunnelRow[]
   customers: FunnelRow[]
-  metas: FunnelRow[]
   storeConfigs: FunnelRow[]
 }
 
@@ -68,7 +66,6 @@ const readOnlyDb = supabase as unknown as {
 const emptyRows: SourceRows = {
   events: [],
   customers: [],
-  metas: [],
   storeConfigs: [],
 }
 
@@ -121,6 +118,19 @@ function rowMatchesStore(row: FunnelRow, storeId: string | null) {
   return value === storeId
 }
 
+/**
+ * Meta do vendedor = regras_metas_loja.monthly_goal da loja ativa, sem
+ * rateio — mesma regra já usada pela RPC upsert_funnel_metrics_snapshot
+ * (supabase/migrations/20260617009000_funnel_metrics_snapshot.sql).
+ * Não existe tabela "metas" por vendedor/mês no schema real.
+ */
+function resolveStoreMonthlyGoal(storeConfig: FunnelRow | null): number | null {
+  if (!storeConfig) return null
+  const raw = storeConfig.monthly_goal
+  const value = typeof raw === 'number' ? raw : Number(raw)
+  return Number.isFinite(value) && value > 0 ? value : null
+}
+
 function formatDate(date: Date) {
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
@@ -152,14 +162,13 @@ export default function FunilVendedor() {
 
   const loadData = useCallback(async () => {
     setLoading(true)
-    const [events, customers, metas, storeConfigs] = await Promise.all([
+    const [events, customers, storeConfigs] = await Promise.all([
       readRows('eventos_comerciais'),
       readRows('clientes_oportunidades'),
-      readRows('metas'),
       readRows('regras_metas_loja'),
     ])
-    setRows({ events: events.rows, customers: customers.rows, metas: metas.rows, storeConfigs: storeConfigs.rows })
-    setErrors([events.error, customers.error, metas.error, storeConfigs.error].filter((error): error is string => Boolean(error)))
+    setRows({ events: events.rows, customers: customers.rows, storeConfigs: storeConfigs.rows })
+    setErrors([events.error, customers.error, storeConfigs.error].filter((error): error is string => Boolean(error)))
     setLoading(false)
   }, [])
 
@@ -283,8 +292,8 @@ export default function FunilVendedor() {
 }
 
 function buildDashboard(rows: SourceRows, sellerIds: string[], storeId: string | null, period: PeriodRange) {
-  const meta = resolveMetaTarget(rows.metas, sellerIds, storeId, period.end)
   const storeConfig = rows.storeConfigs.find(row => rowMatchesStore(row, storeId)) || null
+  const meta = resolveStoreMonthlyGoal(storeConfig)
   return buildFunnelDashboard({
     events: rows.events,
     customers: rows.customers,
