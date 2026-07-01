@@ -11,7 +11,7 @@ export const CRM_RELACIONAMENTO = ['excelente', 'bom', 'neutro', 'ruim', 'critic
 export const CRM_ETAPAS_FUNIL = ['prospeccao', 'qualificacao', 'apresentacao', 'negociacao', 'fechamento', 'ganho', 'perdido'] as const
 export const CRM_FINANCIAMENTO = ['aprovado', 'reprovado', 'nao_aplica', 'pendente'] as const
 export const CRM_TIPO_VEICULO = ['carro', 'moto', 'caminhao'] as const
-export const CRM_AGENDAMENTO_TIPO = ['visita', 'retorno', 'test_drive', 'entrega', 'negociacao'] as const
+export const CRM_AGENDAMENTO_TIPO = ['visita', 'retorno', 'test_drive', 'entrega', 'negociacao', 'garantia', 'pos_venda'] as const
 export const CRM_AGENDAMENTO_STATUS = ['confirmado', 'aguardando', 'compareceu', 'nao_compareceu'] as const
 export const CRM_EVENTO_TIPO = [
   'oportunidade_registrada',
@@ -85,6 +85,16 @@ export const CRM_FINANCIAMENTO_LABEL: Record<CrmFinanciamento, string> = {
   reprovado: 'Reprovado',
   nao_aplica: 'Não se aplica',
   pendente: 'Pendente',
+}
+
+export const CRM_AGENDAMENTO_TIPO_LABEL: Record<CrmAgendamentoTipo, string> = {
+  visita: 'Visita',
+  retorno: 'Retorno',
+  test_drive: 'Test-drive',
+  entrega: 'Entrega',
+  negociacao: 'Negociação',
+  garantia: 'Garantia',
+  pos_venda: 'Pós-venda',
 }
 
 export const CRM_AGENDAMENTO_STATUS_LABEL: Record<CrmAgendamentoStatus, string> = {

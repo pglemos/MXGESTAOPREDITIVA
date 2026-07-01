@@ -9,6 +9,14 @@ import {
   type CrmAgendamentoStatus,
 } from '@/lib/schemas/crm.schema'
 import { eventoJaExiste, registrarEventoComercial } from '@/features/crm/lib/eventosComerciais'
+import type { CrmEventoTipo } from '@/lib/schemas/crm.schema'
+
+/** Garantia e pós-venda não são "compromisso futuro" no sentido do funil — já nascem como o fato realizado. */
+function eventoDeCriacaoParaTipo(tipo: CrmAgendamentoTipo): CrmEventoTipo {
+  if (tipo === 'garantia') return 'garantia_registrada'
+  if (tipo === 'pos_venda') return 'pos_venda_realizado'
+  return 'agendamento_criado'
+}
 
 const AgendamentoComClienteSchema = AgendamentoSchema.extend({
   cliente: z.object({ nome: z.string(), telefone: z.string().nullable() }).nullable().optional(),
@@ -89,8 +97,9 @@ export function useAgendamentos() {
         clienteId: payload.cliente_id,
         oportunidadeId: payload.oportunidade_id,
         agendamentoId: data.id,
-        tipoEvento: 'agendamento_criado',
+        tipoEvento: eventoDeCriacaoParaTipo(payload.tipo),
         canal: payload.canal,
+        observacao: payload.observacoes,
       }, { lojaId: effectiveStoreId, sellerUserId: supabaseUser.id })
     }
 
