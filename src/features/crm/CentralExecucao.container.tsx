@@ -386,7 +386,9 @@ export function CentralExecucao() {
               <MetricCard icon={<CheckCircle2 size={24} />} label="Compareceram" value={String(compareceramHoje)} hint="Atendimentos feitos" tone="green" />
               <MetricCard icon={<Clock size={24} />} label="Em Negociação" value={String(agendaHojeItems.length)} hint="Aguardando você hoje" tone="orange" />
               <MetricCard icon={<CircleDollarSign size={24} />} label="Vendas Realizadas Hoje" value={String(vendasRealizadasHoje)} hint="Fechadas hoje" tone="green" />
-              <ScoreCard score={score} items={scoreItems} />
+              <div className="col-span-2 md:col-span-1">
+                <ScoreCard score={score} items={scoreItems} />
+              </div>
             </section>
 
             {agendaHojeItems.length === 0 ? (

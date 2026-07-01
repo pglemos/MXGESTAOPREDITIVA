@@ -591,17 +591,17 @@ export function CarteiraClientes() {
               </AnalyticsCard>
             </section>
 
-            <div className="flex items-center justify-between gap-mx-md rounded-mx-lg border border-status-success/20 bg-status-success/5 px-mx-lg py-mx-md">
+            <div className="flex flex-col items-start gap-mx-sm rounded-mx-lg border border-status-success/20 bg-status-success/5 px-mx-lg py-mx-md sm:flex-row sm:items-center sm:justify-between sm:gap-mx-md">
               <span className="flex min-w-0 items-center gap-mx-md">
                 <span className="flex h-mx-11 w-mx-11 shrink-0 items-center justify-center rounded-full bg-status-success/10 text-status-success">
                   <CheckCircle size={22} />
                 </span>
-                <Typography variant="p" className="truncate font-bold text-status-success">Dica do dia</Typography>
+                <Typography variant="p" className="shrink-0 font-bold text-status-success">Dica do dia</Typography>
                 <Typography variant="p" tone="muted" className="hidden truncate font-bold lg:block">
                   Nenhum cliente deve ficar sem próxima ação. Priorize quem aparece como sem ação ou vencido.
                 </Typography>
               </span>
-              <Button variant="outline">Ver mais dicas</Button>
+              <Button variant="outline" className="w-full sm:w-auto">Ver mais dicas</Button>
             </div>
           </section>
 

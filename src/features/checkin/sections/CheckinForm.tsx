@@ -567,24 +567,24 @@ Confirmar Internet
       {/* Symmetric dashboard blocks: Resumo + Disciplina */}
 <section className="grid w-full max-w-full min-w-0 scroll-mt-6 gap-5 md:scroll-mt-48 xl:grid-cols-2">
         {/* ── RESUMO DO DIA ANTERIOR ── */}
-        <div className="rounded-[18px] border border-[#dfe7f0] bg-white px-6 py-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] flex flex-col justify-between gap-4">
+        <div className="rounded-[18px] border border-[#dfe7f0] bg-white px-4 py-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] flex flex-col justify-between gap-4 sm:px-6">
           <p className="text-[12px] font-extrabold uppercase tracking-widest text-[#334155]">RESUMO DO DIA ANTERIOR</p>
 
-          {/* 4 metrics in a horizontal row with dividers */}
-          <div className="flex items-stretch divide-x divide-[#DFE0E1]">
-            <div className="flex flex-1 flex-col items-center gap-1 px-4 first:pl-0">
+          {/* 4 metrics: 2x2 grid on mobile, single row with dividers from sm+ */}
+          <div className="grid grid-cols-2 gap-y-4 sm:flex sm:items-stretch sm:gap-y-0 sm:divide-x sm:divide-[#DFE0E1]">
+            <div className="flex flex-col items-center gap-1 px-2 sm:flex-1 sm:px-4 sm:first:pl-0">
               <span className="text-[28px] font-black leading-none tabular-nums text-[#005BFF]">{display.leads}</span>
               <span className="mt-1 text-[11px] font-semibold text-[#526B7A] text-center leading-tight">Leads Recebidos</span>
             </div>
-            <div className="flex flex-1 flex-col items-center gap-1 px-4">
+            <div className="flex flex-col items-center gap-1 px-2 sm:flex-1 sm:px-4">
               <span className="text-[28px] font-black leading-none tabular-nums text-[#6D28D9]">{display.visitas}</span>
               <span className="mt-1 text-[11px] font-semibold text-[#526B7A] text-center leading-tight">Atendimentos</span>
             </div>
-            <div className="flex flex-1 flex-col items-center gap-1 px-4">
+            <div className="flex flex-col items-center gap-1 px-2 sm:flex-1 sm:px-4">
               <span className="text-[28px] font-black leading-none tabular-nums text-[#F59E0B]">{display.agd}</span>
               <span className="mt-1 text-[11px] font-semibold text-[#526B7A] text-center leading-tight">Agend. p/ Amanhã</span>
             </div>
-            <div className="flex flex-1 flex-col items-center gap-1 px-4 last:pr-0">
+            <div className="flex flex-col items-center gap-1 px-2 sm:flex-1 sm:px-4 sm:last:pr-0">
               <span className="text-[28px] font-black leading-none tabular-nums text-[#EF4343]">{realSalesCount}</span>
               <span className="mt-1 text-[11px] font-semibold text-[#526B7A] text-center leading-tight">Vendas Realizadas</span>
             </div>
