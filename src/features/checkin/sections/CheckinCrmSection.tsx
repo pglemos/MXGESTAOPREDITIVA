@@ -42,8 +42,18 @@ function DiasBadge({ dataAgendamento, selectedDate, vendaRealizada }: { dataAgen
   const dias = diasAgendamento(dataAgendamento, selectedDate)
   if (dias === null || dias < 1) return null
   return (
-    <span className={`inline-flex shrink-0 items-center rounded-full px-1.5 py-0.5 text-[10px] font-black ${dias === 1 ? 'bg-[#E8F3F2] text-[#00A89D]' : 'bg-[#EFF6FF] text-[#3B82F6]'}`}>
+    <span className={`inline-flex shrink-0 items-center rounded-full px-1.5 py-0.5 text-[10px] font-black ${dias === 1 ? 'bg-[#EFF6FF] text-[#2563EB]' : 'bg-[#F0F9FF] text-[#0284C7]'}`}>
       D+{dias}
+    </span>
+  )
+}
+
+/** Badge fixo ao lado do nome quando a venda foi realizada (Base44: "$" verde). */
+function VendaTipoBadge({ vendaRealizada }: { vendaRealizada: string }) {
+  if (vendaRealizada !== 'Sim' && (vendaRealizada as string) !== 'ganho') return null
+  return (
+    <span className="inline-flex shrink-0 items-center rounded-full bg-[#F0FDF4] px-1.5 py-0.5 text-[10px] font-black text-[#16A34A]">
+      $
     </span>
   )
 }
@@ -617,6 +627,7 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
 <p className="flex items-center gap-1.5 truncate text-[15px] font-extrabold text-[#00A89D]">
 {row.nomeCliente}
 <DiasBadge dataAgendamento={row.dataAgendamento} selectedDate={selectedDate} vendaRealizada={row.vendaRealizada} />
+<VendaTipoBadge vendaRealizada={row.vendaRealizada} />
 </p>
 <p className="mt-0.5 truncate text-[12px] font-semibold text-[#526B7A]">{formatPhone(row.telefone)} · {row.veiculoInteresse}</p>
 </div>
@@ -730,6 +741,7 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                             {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                             <span className="truncate" title={row.nomeCliente}>{row.nomeCliente}</span>
                             <DiasBadge dataAgendamento={row.dataAgendamento} selectedDate={selectedDate} vendaRealizada={row.vendaRealizada} />
+                            <VendaTipoBadge vendaRealizada={row.vendaRealizada} />
                           </div>
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-[#526B7A] truncate" title={formatPhone(row.telefone)}>{formatPhone(row.telefone)}</td>
@@ -1385,10 +1397,10 @@ function VendaBadge({ value }: { value: ClienteRow['vendaRealizada'] }) {
       </Badge>
     )
   }
-  const variant = value === 'Sim' || (value as string) === 'ganho' ? 'success' : 'danger'
+  const isVenda = value === 'Sim' || (value as string) === 'ganho'
   return (
-    <Badge variant={variant} className="px-2 py-0 text-[10px]">
-      {value}
+    <Badge variant={isVenda ? 'success' : 'danger'} className="px-2 py-0 text-[10px]">
+      {isVenda ? 'Venda Realizada' : value}
     </Badge>
   )
 }
