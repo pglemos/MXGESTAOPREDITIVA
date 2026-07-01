@@ -1,1 +1,1 @@
-export { default } from '@/base44-reference/pages/MeuPerfil'
+export { MeuPerfilVendedor as default } from '@/features/crm/MeuPerfilVendedor.container'

@@ -1,1 +1,1 @@
-export { default } from '@/base44-reference/pages/CentralExecucao'
+export { CentralExecucao as default } from '@/features/crm/CentralExecucao.container'

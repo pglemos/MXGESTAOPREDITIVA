@@ -1,1 +1,1 @@
-export { default } from '@/base44-reference/pages/CarteiraClientes'
+export { CarteiraClientes as default } from '@/features/crm/CarteiraClientes.container'

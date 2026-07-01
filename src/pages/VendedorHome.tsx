@@ -1,1 +1,1 @@
-export { default } from '@/base44-reference/pages/Dashboard'
+export { VendedorHome as default } from '@/features/vendedor-home/VendedorHome.container'
