@@ -34,6 +34,8 @@ import { Textarea } from '@/components/atoms/Textarea'
 import { EmptyState } from '@/components/atoms/EmptyState'
 import { FormField } from '@/components/molecules/FormField'
 import { Modal } from '@/components/organisms/Modal'
+import { TabNav } from '@/components/molecules/TabNav'
+import { PlanoAtaqueTab } from '@/features/crm/PlanoAtaqueTab'
 import { useClientes, type ClienteInput } from '@/features/crm/hooks/useClientes'
 import { useOportunidades, type OportunidadeComCliente } from '@/features/crm/hooks/useOportunidades'
 import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
@@ -141,6 +143,7 @@ export function CarteiraClientes() {
   const [panelClosed, setPanelClosed] = useState(false)
   const [cadenciaSaving, setCadenciaSaving] = useState(false)
   const [naoRespondeuCliente, setNaoRespondeuCliente] = useState<Cliente | null>(null)
+  const [activeTab, setActiveTab] = useState<'ativa' | 'ataque'>('ativa')
   const runtimeUserAgent = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : ''
   const isAutomatedTest = (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') || runtimeUserAgent.includes('happy-dom') || runtimeUserAgent.includes('jsdom')
   const demoMode = clientes.length === 0 && !isAutomatedTest && import.meta.env.DEV
@@ -259,6 +262,45 @@ export function CarteiraClientes() {
     toast.success(status === 'nao_feito' ? 'Tentativa registrada e próxima ação mantida no fluxo.' : 'Cadência atualizada.')
   }
 
+  const tabNav = (
+    <TabNav
+      tabs={[
+        { key: 'ativa', label: 'Carteira Ativa' },
+        { key: 'ataque', label: 'Plano de Ataque' },
+      ]}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      className="mb-0 mt-mx-sm border-b-0"
+    />
+  )
+
+  if (activeTab === 'ataque') {
+    return (
+      <main className="h-full w-full min-w-0 overflow-y-auto bg-surface-alt px-mx-sm pb-mx-sm pt-0 text-text-primary no-scrollbar sm:px-mx-md sm:pb-mx-md 2xl:px-mx-lg 2xl:pb-mx-lg">
+        <div className="flex w-full min-w-0 flex-col gap-mx-xs">
+          <header className="relative z-40 -mx-mx-sm shrink-0 border-b border-border-default/60 bg-surface-alt px-mx-sm pb-3 pt-2 shadow-[0_10px_24px_rgba(15,23,42,0.08)] sm:-mx-mx-md sm:px-mx-md md:sticky md:top-0 md:pt-3 2xl:-mx-mx-lg 2xl:px-mx-lg">
+            <PageHeading
+              title="Carteira de Clientes"
+              subtitle="Missões calculadas a partir das situações reais da sua carteira."
+            />
+            {tabNav}
+          </header>
+          <section className="min-w-0 py-mx-sm">
+            <PlanoAtaqueTab
+              clientes={carteiraClientes}
+              oportunidadePorCliente={oportunidadePorCliente}
+              onAbrirFicha={clienteId => {
+                setActiveTab('ativa')
+                setPanelClosed(false)
+                setSelectedId(clienteId)
+              }}
+            />
+          </section>
+        </div>
+      </main>
+    )
+  }
+
   return (
   <main className="h-full w-full min-w-0 overflow-y-auto bg-surface-alt px-mx-sm pb-mx-sm pt-0 text-text-primary no-scrollbar sm:px-mx-md sm:pb-mx-md 2xl:px-mx-lg 2xl:pb-mx-lg">
     <div className="flex w-full min-w-0 flex-col gap-mx-xs">
@@ -278,6 +320,7 @@ export function CarteiraClientes() {
               </>
             )}
           />
+          {tabNav}
         </header>
 
         <section className="grid grid-cols-2 gap-mx-xs md:grid-cols-3 xl:grid-cols-[repeat(5,minmax(0,1fr))_1.45fr]" aria-label="Indicadores da carteira">
