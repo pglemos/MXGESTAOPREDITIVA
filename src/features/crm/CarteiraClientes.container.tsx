@@ -22,6 +22,7 @@ import {
   TrendingUp,
   Users,
   X,
+  Zap,
 } from 'lucide-react'
 import { Card } from '@/components/molecules/Card'
 import { PageHeading } from '@/components/molecules/PageHeading'
@@ -36,6 +37,7 @@ import { FormField } from '@/components/molecules/FormField'
 import { Modal } from '@/components/organisms/Modal'
 import { TabNav } from '@/components/molecules/TabNav'
 import { PlanoAtaqueTab } from '@/features/crm/PlanoAtaqueTab'
+import { ModoAtaqueView } from '@/features/crm/ModoAtaqueView'
 import { useClientes, type ClienteInput } from '@/features/crm/hooks/useClientes'
 import { useOportunidades, type OportunidadeComCliente } from '@/features/crm/hooks/useOportunidades'
 import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
@@ -144,6 +146,7 @@ export function CarteiraClientes() {
   const [cadenciaSaving, setCadenciaSaving] = useState(false)
   const [naoRespondeuCliente, setNaoRespondeuCliente] = useState<Cliente | null>(null)
   const [activeTab, setActiveTab] = useState<'ativa' | 'ataque'>('ativa')
+  const [modoAtaqueOpen, setModoAtaqueOpen] = useState(false)
   const runtimeUserAgent = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : ''
   const isAutomatedTest = (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') || runtimeUserAgent.includes('happy-dom') || runtimeUserAgent.includes('jsdom')
   const demoMode = clientes.length === 0 && !isAutomatedTest && import.meta.env.DEV
@@ -316,6 +319,9 @@ export function CarteiraClientes() {
                 </span>
                 <Button variant="outline" onClick={() => setStatusFilter('todos')}>
                   <Filter size={16} /> Filtros
+                </Button>
+                <Button onClick={() => setModoAtaqueOpen(true)}>
+                  <Zap size={16} /> Modo Ataque
                 </Button>
               </>
             )}
@@ -684,6 +690,20 @@ export function CarteiraClientes() {
           </div>
         </div>
       </Modal>
+
+      {modoAtaqueOpen && (
+        <ModoAtaqueView
+          clientes={carteiraClientes}
+          oportunidadePorCliente={oportunidadePorCliente}
+          registrarStatusCadencia={registrarStatusCadencia}
+          onSair={() => setModoAtaqueOpen(false)}
+          onAbrirFicha={clienteId => {
+            setModoAtaqueOpen(false)
+            setPanelClosed(false)
+            setSelectedId(clienteId)
+          }}
+        />
+      )}
     </main>
   )
 }
