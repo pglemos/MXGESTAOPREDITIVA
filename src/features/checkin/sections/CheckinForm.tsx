@@ -573,15 +573,15 @@ Confirmar Internet
           {/* 4 metrics in a horizontal row with dividers */}
           <div className="flex items-stretch divide-x divide-[#DFE0E1]">
             <div className="flex flex-1 flex-col items-center gap-1 px-4 first:pl-0">
-              <span className="text-[28px] font-black leading-none tabular-nums text-[#00A89D]">{display.leads}</span>
+              <span className="text-[28px] font-black leading-none tabular-nums text-[#005BFF]">{display.leads}</span>
               <span className="mt-1 text-[11px] font-semibold text-[#526B7A] text-center leading-tight">Leads Recebidos</span>
             </div>
             <div className="flex flex-1 flex-col items-center gap-1 px-4">
-              <span className="text-[28px] font-black leading-none tabular-nums text-[#F59F0A]">{display.visitas}</span>
+              <span className="text-[28px] font-black leading-none tabular-nums text-[#6D28D9]">{display.visitas}</span>
               <span className="mt-1 text-[11px] font-semibold text-[#526B7A] text-center leading-tight">Atendimentos</span>
             </div>
             <div className="flex flex-1 flex-col items-center gap-1 px-4">
-              <span className="text-[28px] font-black leading-none tabular-nums text-[#F59F0A]">{display.agd}</span>
+              <span className="text-[28px] font-black leading-none tabular-nums text-[#F59E0B]">{display.agd}</span>
               <span className="mt-1 text-[11px] font-semibold text-[#526B7A] text-center leading-tight">Agend. p/ Amanhã</span>
             </div>
             <div className="flex flex-1 flex-col items-center gap-1 px-4 last:pr-0">
@@ -593,7 +593,7 @@ Confirmar Internet
           {/* Faturamento bar */}
           <div className="flex items-center justify-between border-t border-[#DFE0E1] pt-3">
             <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#526B7A]">FATURAMENTO</span>
-            <span className="text-[22px] font-black tabular-nums text-[#00A89D]">{BRL(realFaturamento)}</span>
+            <span className="text-[22px] font-black tabular-nums text-[#22C55E]">{BRL(realFaturamento)}</span>
           </div>
         </div>
 
@@ -602,9 +602,10 @@ Confirmar Internet
           const pontosExtras = totalAgendamentosD1 > 0
             ? Math.round((creditosValidos / totalAgendamentosD1) * 30)
             : 30
-          // Arc: red below base (70%), orange while incomplete, green at 100%
+          // Escala de cores da Disciplina (Especificação Funcional §18):
+          // 0-39% vermelho, 40-69% laranja, 70-89% azul, 90-100% verde.
           const arcColor =
-            disciplinePercent >= 100 ? '#00A89D' : disciplinePercent < 70 ? '#EF4343' : '#F59F0A'
+            disciplinePercent >= 90 ? '#22C55E' : disciplinePercent >= 70 ? '#3B82F6' : disciplinePercent >= 40 ? '#F97316' : '#EF4444'
           const trackColor = '#F7F8F8'
           const arcDeg = Math.round(disciplinePercent * 3.6)
           return (
@@ -625,9 +626,6 @@ Confirmar Internet
                 >
                   <span className="text-[23px] font-black leading-none tabular-nums text-[#071822]">
                     {disciplinePercent}%
-                  </span>
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#526B7A] mt-1">
-                    SCORE
                   </span>
                 </div>
               </div>
@@ -1009,10 +1007,10 @@ function MetricGroupCard({
   const label = labelParts.join('. ') || title
   const stepTone =
     step === '1'
-      ? 'bg-[#00A89D]'
+      ? 'bg-[#22C55E]'
       : step === '2'
-        ? 'bg-[#F59F0A]'
-        : 'bg-[#00A89D]'
+        ? 'bg-[#F59E0B]'
+        : 'bg-[#005BFF]'
 
   return (
     <Card className="min-w-0 overflow-hidden rounded-[16px] border border-[#dfe7f0] bg-white p-0 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
@@ -1065,10 +1063,10 @@ function MetricCounterCard({
   const inputValue = numberDrafts[field] ?? String(displayValue)
   const iconToneClass =
     tone === 'success'
-      ? 'bg-[#00A89D] text-white'
+      ? 'bg-[#22C55E] text-white'
       : tone === 'info'
-        ? 'bg-[#00A89D] text-white'
-        : 'bg-[#F59F0A] text-white'
+        ? 'bg-[#005BFF] text-white'
+        : 'bg-[#F59E0B] text-white'
 
   const setNext = (next: number) => {
     if (disabled) return
