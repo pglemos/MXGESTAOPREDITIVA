@@ -24,6 +24,7 @@ import {
 } from '@/lib/schemas/crm.schema'
 import type { CheckinPageContext, ClienteRow } from '../hooks/useCheckinPage'
 import { addDaysDateOnly } from '../lib/crm-derived-totals'
+import { GarantiaModal } from './GarantiaModal'
 
 interface CheckinCrmSectionProps {
   ctx?: CheckinPageContext
@@ -140,6 +141,8 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
   const [dataFechamento, setDataFechamento] = useState('')
   const [motivoPerda, setMotivoPerda] = useState('')
   const [observacoes, setObservacoes] = useState('')
+
+  const [garantiaModalOpen, setGarantiaModalOpen] = useState(false)
 
   // Expanded Row State
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
@@ -518,14 +521,24 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
               </Typography>
             </div>
           </div>
-          <button
-            id="checkin-new-client-button"
-            type="button"
-            onClick={handleOpenNew}
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <button
+              id="checkin-new-garantia-button"
+              type="button"
+              onClick={() => setGarantiaModalOpen(true)}
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[#DFE0E1] bg-white px-5 text-sm font-bold text-[#526B7A] transition hover:bg-[#F7F8F8] sm:w-auto"
+            >
+              <AlertCircle size={16} /> Registrar Garantia
+            </button>
+            <button
+              id="checkin-new-client-button"
+              type="button"
+              onClick={handleOpenNew}
 className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#00A89D] px-5 text-sm font-bold text-white shadow-[0_10px_20px_rgba(0,168,157,0.22)] transition hover:bg-[#00A89D] sm:w-auto"
-          >
-            <UserPlus size={16} /> + Novo Cliente
-          </button>
+            >
+              <UserPlus size={16} /> + Novo Cliente
+            </button>
+          </div>
         </header>
 
 <div className="md:hidden">
@@ -1198,6 +1211,13 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
           </div>
         </div>
       )}
+
+      <GarantiaModal
+        open={garantiaModalOpen}
+        onClose={() => setGarantiaModalOpen(false)}
+        onSaved={refetchClientesList}
+        defaultDate={`${selectedDate}T12:00`}
+      />
     </>
   )
 }

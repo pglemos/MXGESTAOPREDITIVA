@@ -182,5 +182,9 @@ export function useClientes() {
     return { total, ativos, oportunidades, posVenda, aguardando, inativos, potencialTotal }
   }, [clientes])
 
-  return { clientes, metrics, loading, error, refetch: fetchClientes, createCliente, updateCliente, deleteCliente, registrarStatusCadencia }
+  return {
+    clientes, metrics, loading, error, refetch: fetchClientes,
+    createCliente, updateCliente, deleteCliente, registrarStatusCadencia,
+    buscarClienteExistentePorTelefone,
+  }
 }
