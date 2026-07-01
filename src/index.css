@@ -90,8 +90,8 @@ to { height: 0; }
   --color-status-error: #EF4343;
   --color-status-error-strong: #EF4343;
   --color-status-error-surface: rgba(239, 67, 67, 0.08);
-  --color-status-info: #00A89D;
-  --color-status-info-surface: rgba(0, 168, 157, 0.08);
+  --color-status-info: #005BFF;
+  --color-status-info-surface: rgba(0, 91, 255, 0.08);
 
   /* Chart Series (Story 3.7 / UX-005) — paleta canônica para recharts.
      NUNCA usar hex em chart components: importar de src/lib/charts/tokens.ts */
