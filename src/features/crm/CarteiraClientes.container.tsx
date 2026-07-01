@@ -38,6 +38,7 @@ import { Modal } from '@/components/organisms/Modal'
 import { TabNav } from '@/components/molecules/TabNav'
 import { PlanoAtaqueTab } from '@/features/crm/PlanoAtaqueTab'
 import { ModoAtaqueView } from '@/features/crm/ModoAtaqueView'
+import { AlterarProximoPasso } from '@/features/crm/AlterarProximoPasso'
 import { useClientes, type ClienteInput } from '@/features/crm/hooks/useClientes'
 import { useOportunidades, type OportunidadeComCliente } from '@/features/crm/hooks/useOportunidades'
 import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
@@ -130,7 +131,7 @@ const DEMO_OPORTUNIDADES: OportunidadeComCliente[] = [
 
 export function CarteiraClientes() {
   const { profile } = useAuth()
-  const { clientes, metrics, loading, error, createCliente, deleteCliente, registrarStatusCadencia } = useClientes()
+  const { clientes, metrics, loading, error, createCliente, updateCliente, deleteCliente, registrarStatusCadencia } = useClientes()
   const { oportunidades } = useOportunidades()
   const { agendamentos } = useAgendamentos()
   const [search, setSearch] = useState('')
@@ -147,6 +148,7 @@ export function CarteiraClientes() {
   const [naoRespondeuCliente, setNaoRespondeuCliente] = useState<Cliente | null>(null)
   const [activeTab, setActiveTab] = useState<'ativa' | 'ataque'>('ativa')
   const [modoAtaqueOpen, setModoAtaqueOpen] = useState(false)
+  const [editandoProximoPasso, setEditandoProximoPasso] = useState<Cliente | null>(null)
   const runtimeUserAgent = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : ''
   const isAutomatedTest = (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') || runtimeUserAgent.includes('happy-dom') || runtimeUserAgent.includes('jsdom')
   const demoMode = clientes.length === 0 && !isAutomatedTest && import.meta.env.DEV
@@ -613,6 +615,7 @@ export function CarteiraClientes() {
                 statusSaving={cadenciaSaving}
                 onStatus={handleRegistrarStatusCadencia}
                 onNaoRespondeu={cliente => setNaoRespondeuCliente(cliente)}
+                onEditarProximoPasso={cliente => setEditandoProximoPasso(cliente)}
               onClose={() => { setSelectedId(null); setPanelClosed(true) }}
             />
           )}
@@ -704,6 +707,19 @@ export function CarteiraClientes() {
           }}
         />
       )}
+
+      <AlterarProximoPasso
+        open={!!editandoProximoPasso}
+        cliente={editandoProximoPasso}
+        onClose={() => setEditandoProximoPasso(null)}
+        onSalvar={async ({ proxima_acao, proxima_acao_em }) => {
+          if (!editandoProximoPasso) return { error: null }
+          const { error } = await updateCliente(editandoProximoPasso.id, { proxima_acao, proxima_acao_em })
+          if (error) { toast.error(error); return { error } }
+          toast.success('Próximo passo atualizado.')
+          return { error: null }
+        }}
+      />
     </main>
   )
 }
@@ -717,6 +733,7 @@ function FluxoClientePanel({
   statusSaving,
   onStatus,
   onNaoRespondeu,
+  onEditarProximoPasso,
   onClose,
 }: {
   cliente: Cliente
@@ -727,6 +744,7 @@ function FluxoClientePanel({
   statusSaving: boolean
   onStatus: (clienteId: string, status: CadenciaResultadoAcao) => void
   onNaoRespondeu: (cliente: Cliente) => void
+  onEditarProximoPasso: (cliente: Cliente) => void
   onClose: () => void
 }) {
   const primeiroNome = cliente.nome.split(' ')[0]
@@ -839,7 +857,10 @@ function FluxoClientePanel({
           </ul>
         </div>
         <div className="rounded-mx-lg border border-status-success/20 bg-status-success/5 p-mx-sm">
-          <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-normal">Próxima Melhor Ação</Typography>
+          <div className="flex items-center justify-between gap-mx-sm">
+            <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-normal">Próxima Melhor Ação</Typography>
+            <Button variant="ghost" size="xs" onClick={() => onEditarProximoPasso(cliente)}>Editar</Button>
+          </div>
           <Typography variant="p" className="mt-mx-tiny text-sm font-bold">{cliente.proxima_acao || progresso.etapaAtual.objetivo}</Typography>
           <Typography variant="caption" tone="muted" className="block">Motivo: manter cliente no fluxo e alimentar a Central de Execução.</Typography>
           <Typography variant="caption" tone="muted" className="block">Horário: {cliente.proxima_acao_em ? formatDateBR(cliente.proxima_acao_em) : 'Hoje - definir horário'}</Typography>
