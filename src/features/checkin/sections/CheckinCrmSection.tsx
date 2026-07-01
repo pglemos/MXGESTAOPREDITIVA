@@ -24,7 +24,28 @@ import {
 } from '@/lib/schemas/crm.schema'
 import type { CheckinPageContext, ClienteRow } from '../hooks/useCheckinPage'
 import { addDaysDateOnly } from '../lib/crm-derived-totals'
+import { parseDateOnly } from '../hooks/useCheckinPage'
 import { GarantiaModal } from './GarantiaModal'
+
+/** Diferenca em dias entre a data do agendamento e a data de referencia do fechamento. */
+function diasAgendamento(dataAgendamento: string | null | undefined, referencia: string): number | null {
+  if (!dataAgendamento) return null
+  const a = new Date(`${parseDateOnly(dataAgendamento)}T12:00:00`)
+  const b = new Date(`${parseDateOnly(referencia)}T12:00:00`)
+  if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return null
+  return Math.round((a.getTime() - b.getTime()) / 86400000)
+}
+
+function DiasBadge({ dataAgendamento, selectedDate, vendaRealizada }: { dataAgendamento: string | null | undefined; selectedDate: string; vendaRealizada: string }) {
+  if (vendaRealizada !== 'Em Negociação' && (vendaRealizada as string) !== 'em_negociacao') return null
+  const dias = diasAgendamento(dataAgendamento, selectedDate)
+  if (dias === null || dias < 1) return null
+  return (
+    <span className={`inline-flex shrink-0 items-center rounded-full px-1.5 py-0.5 text-[10px] font-black ${dias === 1 ? 'bg-[#E8F3F2] text-[#00A89D]' : 'bg-[#EFF6FF] text-[#3B82F6]'}`}>
+      D+{dias}
+    </span>
+  )
+}
 
 interface CheckinCrmSectionProps {
   ctx?: CheckinPageContext
@@ -556,7 +577,10 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
 <article key={row.id} className="space-y-3 bg-white px-4 py-4">
 <div className="flex items-start justify-between gap-3">
 <div className="min-w-0">
-<p className="truncate text-[15px] font-extrabold text-[#00A89D]">{row.nomeCliente}</p>
+<p className="flex items-center gap-1.5 truncate text-[15px] font-extrabold text-[#00A89D]">
+{row.nomeCliente}
+<DiasBadge dataAgendamento={row.dataAgendamento} selectedDate={selectedDate} vendaRealizada={row.vendaRealizada} />
+</p>
 <p className="mt-0.5 truncate text-[12px] font-semibold text-[#526B7A]">{formatPhone(row.telefone)} · {row.veiculoInteresse}</p>
 </div>
 <div className="flex shrink-0 items-center gap-1.5">
@@ -668,6 +692,7 @@ className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl 
                           <div className="flex items-center gap-1.5">
                             {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                             <span className="truncate" title={row.nomeCliente}>{row.nomeCliente}</span>
+                            <DiasBadge dataAgendamento={row.dataAgendamento} selectedDate={selectedDate} vendaRealizada={row.vendaRealizada} />
                           </div>
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-[#526B7A] truncate" title={formatPhone(row.telefone)}>{formatPhone(row.telefone)}</td>
