@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/components/ui/use-toast";
 import { Trophy, Target, Star, Plus, Calendar } from "lucide-react";
+import MetasSugeridas from "@/components/pdi/MetasSugeridas";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from "recharts";
 
 const techCompetencies = [
@@ -84,7 +85,7 @@ export default function PDIPage() {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-4 border-[#DFE0E1] border-t-mx-blue rounded-full animate-spin" /></div>;
+    return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-4 border-slate-200 border-t-mx-blue rounded-full animate-spin" /></div>;
   }
 
   const currentPDI = pdi || {};
@@ -93,7 +94,7 @@ export default function PDIPage() {
 
   const CompetencySlider = ({ comp, value, onChange }) => (
     <div className="flex items-center gap-4">
-      <span className="text-sm text-[#526B7A] w-32 flex-shrink-0">{comp.label}</span>
+      <span className="text-sm text-slate-600 w-32 flex-shrink-0">{comp.label}</span>
       <Slider
         value={[value]}
         onValueChange={v => onChange(v[0])}
@@ -104,13 +105,13 @@ export default function PDIPage() {
       />
       <div className="flex items-center gap-2 w-20">
         <span className="text-sm font-bold text-mx-navy w-6 text-right">{value}</span>
-        <span className="text-xs text-[#526B7A]">/10</span>
+        <span className="text-xs text-slate-400">/10</span>
       </div>
     </div>
   );
 
   const statusColors = {
-    "Pendente": "bg-[#DFE0E1] text-[#526B7A]",
+    "Pendente": "bg-slate-100 text-slate-500",
     "Em Andamento": "bg-mx-blue-light text-mx-blue",
     "Concluído": "bg-mx-green-light text-mx-green",
   };
@@ -119,8 +120,10 @@ export default function PDIPage() {
     <div className="space-y-8">
       <PageHeader title="PDI" subtitle="Plano de Desenvolvimento Individual" />
 
+      <MetasSugeridas />
+
       {/* Goals */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#DFE0E1]">
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
         <div className="flex items-center gap-2 mb-6">
           <Trophy className="w-5 h-5 text-mx-amber" />
           <h3 className="text-base font-semibold text-mx-navy">Conquistas</h3>
@@ -132,8 +135,8 @@ export default function PDIPage() {
             { label: "Longo Prazo", sublabel: "3 Anos", key: "long_term_goal", color: "border-mx-amber" },
           ].map(goal => (
             <div key={goal.key} className={`border-l-4 ${goal.color} pl-4`}>
-              <p className="text-xs text-[#526B7A] uppercase tracking-wider">{goal.label}</p>
-              <p className="text-xs text-[#526B7A]">{goal.sublabel}</p>
+              <p className="text-xs text-slate-400 uppercase tracking-wider">{goal.label}</p>
+              <p className="text-xs text-slate-400">{goal.sublabel}</p>
               <Textarea
                 value={currentPDI[goal.key] || ""}
                 onChange={e => {
@@ -142,7 +145,7 @@ export default function PDIPage() {
                 }}
                 onBlur={() => savePDI({ [goal.key]: currentPDI[goal.key] || "" })}
                 placeholder="Descreva sua meta..."
-                className="mt-2 rounded-xl resize-none border-[#DFE0E1]"
+                className="mt-2 rounded-xl resize-none border-slate-100"
                 rows={3}
               />
             </div>
@@ -153,16 +156,16 @@ export default function PDIPage() {
       {/* Competencies */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Technical */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#DFE0E1]">
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
           <h3 className="text-base font-semibold text-mx-navy mb-6">Competências Técnicas</h3>
           <div className="h-64 mb-6">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={techData}>
-                <PolarGrid stroke="#DFE0E1" />
-                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fill: '#526B7A' }} />
+                <PolarGrid stroke="#e2e8f0" />
+                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fill: '#64748b' }} />
                 <PolarRadiusAxis angle={30} domain={[0, 10]} tick={{ fontSize: 10 }} />
-                <Radar name="Atual" dataKey="value" stroke="#00A89D" fill="#00A89D" fillOpacity={0.2} />
-                <Radar name="Alvo" dataKey="target" stroke="#00A89D" fill="#00A89D" fillOpacity={0.05} strokeDasharray="5 5" />
+                <Radar name="Atual" dataKey="value" stroke="#005BFF" fill="#005BFF" fillOpacity={0.2} />
+                <Radar name="Alvo" dataKey="target" stroke="#22C55E" fill="#22C55E" fillOpacity={0.05} strokeDasharray="5 5" />
               </RadarChart>
             </ResponsiveContainer>
           </div>
@@ -183,16 +186,16 @@ export default function PDIPage() {
         </div>
 
         {/* Behavioral */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#DFE0E1]">
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
           <h3 className="text-base font-semibold text-mx-navy mb-6">Competências Comportamentais</h3>
           <div className="h-64 mb-6">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={behavData}>
-                <PolarGrid stroke="#DFE0E1" />
-                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fill: '#526B7A' }} />
+                <PolarGrid stroke="#e2e8f0" />
+                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fill: '#64748b' }} />
                 <PolarRadiusAxis angle={30} domain={[0, 10]} tick={{ fontSize: 10 }} />
-                <Radar name="Atual" dataKey="value" stroke="#F59F0A" fill="#F59F0A" fillOpacity={0.2} />
-                <Radar name="Alvo" dataKey="target" stroke="#00A89D" fill="#00A89D" fillOpacity={0.05} strokeDasharray="5 5" />
+                <Radar name="Atual" dataKey="value" stroke="#F59E0B" fill="#F59E0B" fillOpacity={0.2} />
+                <Radar name="Alvo" dataKey="target" stroke="#22C55E" fill="#22C55E" fillOpacity={0.05} strokeDasharray="5 5" />
               </RadarChart>
             </ResponsiveContainer>
           </div>
@@ -214,12 +217,12 @@ export default function PDIPage() {
       </div>
 
       {/* Action Plan */}
-      <div className="bg-white rounded-2xl shadow-sm border border-[#DFE0E1] overflow-hidden">
-        <div className="p-5 border-b border-[#DFE0E1] flex items-center justify-between">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
           <h3 className="text-base font-semibold text-mx-navy">Plano de Ação</h3>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="bg-mx-blue hover:bg-[#00A89D] rounded-xl gap-1"><Plus className="w-4 h-4" />Nova Ação</Button>
+              <Button size="sm" className="bg-mx-blue hover:bg-blue-600 rounded-xl gap-1"><Plus className="w-4 h-4" />Nova Ação</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Nova Ação</DialogTitle></DialogHeader>
@@ -228,35 +231,35 @@ export default function PDIPage() {
                 <div><Label>Competência</Label><Input value={newAction.competency} onChange={e => setNewAction({ ...newAction, competency: e.target.value })} /></div>
                 <div><Label>Descrição</Label><Textarea value={newAction.description} onChange={e => setNewAction({ ...newAction, description: e.target.value })} className="resize-none" rows={2} /></div>
                 <div><Label>Prazo</Label><Input type="date" value={newAction.deadline} onChange={e => setNewAction({ ...newAction, deadline: e.target.value })} /></div>
-                <Button onClick={createAction} disabled={!newAction.action || !newAction.competency || !newAction.deadline} className="bg-mx-blue hover:bg-[#00A89D] rounded-xl">Criar Ação</Button>
+                <Button onClick={createAction} disabled={!newAction.action || !newAction.competency || !newAction.deadline} className="bg-mx-blue hover:bg-blue-600 rounded-xl">Criar Ação</Button>
               </div>
             </DialogContent>
           </Dialog>
         </div>
         {actions.length === 0 ? (
           <div className="p-12 text-center">
-            <Target className="w-10 h-10 text-[#E0EBEA] mx-auto mb-3" />
-            <p className="text-sm text-[#526B7A]">Nenhuma ação cadastrada.</p>
+            <Target className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+            <p className="text-sm text-slate-400">Nenhuma ação cadastrada.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-[#F7F8F8]">
+                <tr className="bg-slate-50">
                   {["Ação", "Competência", "Prazo", "Status", "Progresso"].map(h => (
-                    <th key={h} className="text-left text-xs font-medium text-[#526B7A] uppercase tracking-wider px-5 py-3">{h}</th>
+                    <th key={h} className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider px-5 py-3">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#F7F8F8]">
+              <tbody className="divide-y divide-slate-50">
                 {actions.map(a => (
-                  <tr key={a.id} className="hover:bg-[#F7F8F8]/50">
+                  <tr key={a.id} className="hover:bg-slate-50/50">
                     <td className="px-5 py-3.5">
                       <p className="text-sm font-medium text-mx-navy">{a.action}</p>
-                      <p className="text-xs text-[#526B7A]">{a.description}</p>
+                      <p className="text-xs text-slate-400">{a.description}</p>
                     </td>
-                    <td className="px-5 py-3.5 text-sm text-[#526B7A]">{a.competency}</td>
-                    <td className="px-5 py-3.5 text-sm text-[#526B7A] flex items-center gap-1"><Calendar className="w-3 h-3 text-[#526B7A]" />{a.deadline}</td>
+                    <td className="px-5 py-3.5 text-sm text-slate-600">{a.competency}</td>
+                    <td className="px-5 py-3.5 text-sm text-slate-600 flex items-center gap-1"><Calendar className="w-3 h-3 text-slate-400" />{a.deadline}</td>
                     <td className="px-5 py-3.5">
                       <Select value={a.status} onValueChange={v => updateActionStatus(a.id, v, v === "Concluído" ? 100 : a.progress)}>
                         <SelectTrigger className="h-8 w-[140px] border-0 shadow-none">
@@ -271,7 +274,7 @@ export default function PDIPage() {
                     </td>
                     <td className="px-5 py-3.5 w-32">
                       <Progress value={a.progress || 0} className="h-2" />
-                      <p className="text-[10px] text-[#526B7A] mt-1">{a.progress || 0}%</p>
+                      <p className="text-[10px] text-slate-400 mt-1">{a.progress || 0}%</p>
                     </td>
                   </tr>
                 ))}

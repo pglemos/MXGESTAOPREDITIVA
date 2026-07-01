@@ -23,7 +23,7 @@ export default function AppLayout() {
         </button>
         <div className="flex items-center gap-2 ml-3">
           <span className="text-white font-bold text-lg">MX</span>
-          <span className="text-[#E0EBEA] text-xs font-medium tracking-wider uppercase">Performance</span>
+          <span className="text-blue-300 text-xs font-medium tracking-wider uppercase">Performance</span>
         </div>
       </div>
 

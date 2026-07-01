@@ -1,208 +1,596 @@
-import React, { useEffect, useState } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import React, { useEffect, useState, useMemo } from "react";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { base44 } from "@/api/base44Client";
-import { MessageCircle, Phone, Clock, Edit2, Check, X } from "lucide-react";
+import { Zap, X, Edit2, ChevronDown, ChevronUp, AlertCircle, Clock, CheckCircle2, Pencil } from "lucide-react";
+import AlterarProximoPasso from "./AlterarProximoPasso";
 import moment from "moment";
-import { MOMENTOS, TEMPERATURAS, calcularProximaAcao, tempColor } from "./carteiraUtils";
+import {
+  SITUACOES_ATUAIS, TEMPERATURAS, CANAIS_COMERCIAIS, STATUS_COMERCIAIS,
+  calcularObjetivoEProximoPasso, calcularScore, explicacaoCliente, tempColor,
+} from "./carteiraUtils";
 
-function InfoRow({ label, value }) {
-  if (!value) return null;
+// ─── QUALIDADE DA OPORTUNIDADE ───────────────────────────────────────────────
+function calcularQualidade(cliente) {
+  const s = cliente.situacao_atual || cliente.momento || "";
+  const temVeiculo = !!cliente.veiculo_interesse;
+  const temValor = !!cliente.valor_negociado;
+  const temContato = !!cliente.ultimo_contato;
+  const temVisita = !!cliente.visita_agendada_em;
+
+  if (["Financiamento aprovado sem compra", "Em negociação ativa", "Vai pensar"].includes(s))
+    return { label: "Excelente oportunidade", color: "bg-green-50 text-green-700 border-green-200" };
+  if (["Visita agendada", "Visita hoje", "Visita a confirmar", "Visita realizada", "Proposta enviada"].includes(s))
+    return { label: "Boa oportunidade", color: "bg-blue-50 text-blue-700 border-blue-200" };
+  if (temVeiculo && (temValor || temVisita))
+    return { label: "Em desenvolvimento", color: "bg-amber-50 text-amber-700 border-amber-200" };
+  if (temContato && temVeiculo)
+    return { label: "Precisa de informação", color: "bg-orange-50 text-orange-700 border-orange-200" };
+  if (["Venda perdida", "Cadência encerrada"].includes(s))
+    return { label: "Recuperação", color: "bg-red-50 text-red-700 border-red-200" };
+  return { label: "Nova oportunidade", color: "bg-slate-50 text-slate-600 border-slate-200" };
+}
+
+// ─── URGÊNCIA DA AÇÃO ─────────────────────────────────────────────────────────
+function calcularUrgencia(cliente) {
+  const s = cliente.situacao_atual || cliente.momento || "";
+  const proxData = cliente.proxima_acao_data;
+  const visitaData = cliente.visita_agendada_em;
+
+  const hoje = moment().startOf("day");
+  const isHoje = (d) => d && moment(d).isSame(hoje, "day");
+  const isVencido = (d) => d && moment(d).isBefore(hoje);
+  const amanha = moment().add(1, "day").startOf("day");
+  const isAmanha = (d) => d && moment(d).isSame(amanha, "day");
+
+  if (["Cliente respondeu", "Aguardando ação do vendedor", "Visita hoje", "Financiamento aprovado sem compra"].includes(s))
+    return { label: "Ação imediata", color: "bg-red-50 text-red-700 border-red-200" };
+  if (isVencido(proxData) || isVencido(visitaData))
+    return { label: "Próximo passo vencido", color: "bg-red-50 text-red-700 border-red-200" };
+  if (isHoje(proxData) || isHoje(visitaData))
+    return { label: "Ação para hoje", color: "bg-orange-50 text-orange-700 border-orange-200" };
+  if (["Visita agendada", "Visita a confirmar"].includes(s))
+    return { label: "Visita próxima", color: "bg-blue-50 text-blue-700 border-blue-200" };
+  if (isAmanha(proxData) || isAmanha(visitaData))
+    return { label: "Acompanhar amanhã", color: "bg-amber-50 text-amber-700 border-amber-200" };
+  return { label: "Sem urgência imediata", color: "bg-slate-50 text-slate-500 border-slate-200" };
+}
+
+// ─── O QUE FALTA PARA EVOLUIR ────────────────────────────────────────────────
+function calcularPendencias(cliente) {
+  const s = cliente.situacao_atual || cliente.momento || "";
+  const items = [];
+  const diasSemContato = cliente.ultimo_contato
+    ? moment().diff(moment(cliente.ultimo_contato), "days") : 99;
+
+  if (!cliente.valor_negociado && !["Venda realizada", "Venda perdida"].includes(s))
+    items.push("Confirmar orçamento");
+  if (cliente.interesse_financiamento == null && !["Venda realizada", "Venda perdida"].includes(s))
+    items.push("Definir forma de pagamento");
+  if (cliente.interesse_troca == null && !["Venda realizada", "Venda perdida"].includes(s))
+    items.push("Entender se possui troca");
+  if (!cliente.visita_agendada_em && ["Cliente quente sem visita", "Veículo definido", "Necessidade em qualificação", "Cliente respondeu"].includes(s))
+    items.push("Agendar visita");
+  if (["Visita agendada", "Visita a confirmar"].includes(s))
+    items.push("Confirmar visita");
+  if (["Proposta enviada", "Proposta sem retorno"].includes(s))
+    items.push("Retomar proposta");
+  if (cliente.motivo_perda && cliente.motivo_perda.toLowerCase().includes("preço"))
+    items.push("Resolver objeção de preço");
+  if (cliente.motivo_perda && (cliente.motivo_perda.toLowerCase().includes("parcela") || cliente.motivo_perda.toLowerCase().includes("financiamento")))
+    items.push("Revisar condição de financiamento");
+  if (cliente.motivo_perda && cliente.motivo_perda.toLowerCase().includes("avaliação"))
+    items.push("Resolver avaliação do usado");
+  if (diasSemContato >= 4 && !["Venda realizada", "Venda perdida"].includes(s))
+    items.push("Recuperar contato");
+  if (!cliente.proxima_acao_data && !["Venda realizada", "Venda perdida", "Cadência encerrada"].includes(s))
+    items.push("Registrar próximo passo");
+
+  return items;
+}
+
+// ─── MOTIVO DA RECOMENDAÇÃO ───────────────────────────────────────────────────
+function motivoRecomendacao(cliente) {
+  return explicacaoCliente(cliente);
+}
+
+// ─── FIELD ROW (leitura) ─────────────────────────────────────────────────────
+function FieldRow({ label, value, vazio = "Não informado" }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-[11px] text-[#526B7A] font-semibold uppercase tracking-wide">{label}</span>
-      <span className="text-[13px] text-[#071822] font-medium">{value}</span>
+      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{label}</span>
+      {value
+        ? <span className="text-[13px] text-slate-700 font-medium">{value}</span>
+        : <span className="text-[12px] text-slate-300 italic">{vazio}</span>
+      }
     </div>
   );
 }
 
-export default function FichaClienteSheet({ clienteId, open, onClose, onAtualizado }) {
+// ─── BLOCO COLAPSÁVEL ────────────────────────────────────────────────────────
+function Bloco({ title, icon, children, defaultOpen = true }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="border border-slate-100 rounded-2xl overflow-hidden">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          {icon && <span className="text-base">{icon}</span>}
+          <span className="text-xs font-black text-slate-600 uppercase tracking-wide">{title}</span>
+        </div>
+        {open ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+      </button>
+      {open && <div className="px-4 py-4">{children}</div>}
+    </div>
+  );
+}
+
+// ─── FORMULÁRIO DE EDIÇÃO ─────────────────────────────────────────────────────
+function FormularioEdicao({ form, setForm, onSalvar, onCancelar, salvando }) {
+  const campo = (k, l, span2 = false) => (
+    <div key={k} className={span2 ? "col-span-2" : ""}>
+      <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1 block">{l}</label>
+      <Input value={form[k] || ""} onChange={e => setForm(p => ({ ...p, [k]: e.target.value }))} className="rounded-xl h-8 text-sm" />
+    </div>
+  );
+
+  return (
+    <div className="space-y-4 bg-slate-50 rounded-2xl p-4">
+      <p className="text-xs font-black text-slate-500 uppercase tracking-wider">Editar informações</p>
+
+      <div className="grid grid-cols-2 gap-3">
+        {campo("nome", "Nome", true)}
+        {campo("whatsapp", "WhatsApp")}
+        {campo("telefone", "Telefone")}
+        {campo("email", "E-mail", true)}
+        {campo("veiculo_interesse", "Veículo de interesse", true)}
+        {campo("valor_negociado", "Orçamento")}
+      </div>
+
+      <div>
+        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Origem (canal)</label>
+        <select value={form.canal_comercial || "Internet"} onChange={e => setForm(p => ({ ...p, canal_comercial: e.target.value }))} className="w-full h-9 rounded-xl border border-input bg-white px-3 text-sm">
+          {CANAIS_COMERCIAIS.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+      </div>
+      <div>
+        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Temperatura</label>
+        <select value={form.temperatura || "Morno"} onChange={e => setForm(p => ({ ...p, temperatura: e.target.value }))} className="w-full h-9 rounded-xl border border-input bg-white px-3 text-sm">
+          {TEMPERATURAS.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
+      </div>
+      <div>
+        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Situação atual</label>
+        <select value={form.situacao_atual || ""} onChange={e => setForm(p => ({ ...p, situacao_atual: e.target.value }))} className="w-full h-9 rounded-xl border border-input bg-white px-3 text-sm">
+          {SITUACOES_ATUAIS.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="col-span-2">
+          <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Próximo passo</label>
+          <Input value={form.proximo_passo || ""} onChange={e => setForm(p => ({ ...p, proximo_passo: e.target.value }))} className="rounded-xl h-8 text-sm" />
+        </div>
+        <div className="col-span-2">
+          <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Data do próximo passo</label>
+          <Input type="datetime-local" value={form.proxima_acao_data ? form.proxima_acao_data.slice(0, 16) : ""} onChange={e => setForm(p => ({ ...p, proxima_acao_data: e.target.value }))} className="rounded-xl h-8 text-sm" />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">Interesses</p>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={!!form.interesse_troca} onChange={e => setForm(p => ({ ...p, interesse_troca: e.target.checked }))} className="rounded" />
+          <span className="text-sm text-slate-600">Possui troca</span>
+        </label>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={!!form.interesse_financiamento} onChange={e => setForm(p => ({ ...p, interesse_financiamento: e.target.checked }))} className="rounded" />
+          <span className="text-sm text-slate-600">Interesse em financiamento</span>
+        </label>
+      </div>
+
+      <div>
+        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Objeções / Motivo de perda</label>
+        <Input value={form.motivo_perda || ""} onChange={e => setForm(p => ({ ...p, motivo_perda: e.target.value }))} className="rounded-xl h-8 text-sm" placeholder="Ex: preço, parcela, avaliação..." />
+      </div>
+
+      {(form.situacao_atual === "Visita agendada" || form.situacao_atual === "Visita a confirmar" || form.situacao_atual === "Visita hoje") && (
+        <div>
+          <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Data da visita</label>
+          <Input type="datetime-local" value={form.visita_agendada_em ? form.visita_agendada_em.slice(0, 16) : ""} onChange={e => setForm(p => ({ ...p, visita_agendada_em: e.target.value }))} className="rounded-xl h-8 text-sm" />
+        </div>
+      )}
+
+      <div>
+        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Observações</label>
+        <textarea value={form.observacoes || ""} onChange={e => setForm(p => ({ ...p, observacoes: e.target.value }))} rows={2} className="w-full rounded-xl border border-input bg-white px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-ring" />
+      </div>
+
+      <div className="flex gap-2 pt-1">
+        <Button variant="outline" onClick={onCancelar} className="flex-1 rounded-xl" disabled={salvando}>Cancelar</Button>
+        <Button onClick={onSalvar} className="flex-1 rounded-xl bg-[#005BFF] hover:bg-blue-700 text-white" disabled={salvando}>
+          {salvando ? "Salvando..." : "Salvar"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
+export default function FichaClienteSheet({ clienteId, open, onClose, onAtualizado, onExecutar }) {
   const [cliente, setCliente] = useState(null);
   const [loading, setLoading] = useState(true);
   const [historico, setHistorico] = useState([]);
   const [editando, setEditando] = useState(false);
   const [form, setForm] = useState({});
   const [salvando, setSalvando] = useState(false);
+  const [alterarPassoOpen, setAlterarPassoOpen] = useState(false);
+  const [passoPrefill, setPassoPrefill] = useState(null);
 
   useEffect(() => {
     if (!open || !clienteId) return;
     setLoading(true);
+    setEditando(false);
     Promise.all([
       base44.entities.CarteiraCliente.get(clienteId),
-      base44.entities.CarteiraHistorico.filter({ cliente_id: clienteId }, "-created_date", 20),
+      base44.entities.CarteiraHistorico.filter({ cliente_id: clienteId }, "-created_date", 30),
     ]).then(([c, h]) => {
       setCliente(c);
       setForm(c);
-      setHistorico(h);
+      setHistorico(h || []);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [open, clienteId]);
 
-  const tel = (cliente?.whatsapp || "").replace(/\D/g, "");
-  const waUrl = tel ? `https://wa.me/55${tel}` : null;
-
   async function salvarEdicao() {
     setSalvando(true);
-    const atualizado = { ...form, proxima_acao: calcularProximaAcao(form) };
+    const { objetivo, proximoPasso } = calcularObjetivoEProximoPasso(form);
+    const atualizado = {
+      ...form,
+      objetivo_atual: form.objetivo_atual || objetivo,
+      proximo_passo: form.proximo_passo || proximoPasso,
+    };
     await base44.entities.CarteiraCliente.update(clienteId, atualizado);
+    await base44.entities.CarteiraHistorico.create({
+      cliente_id: clienteId,
+      tipo: "Ficha atualizada",
+      descricao: "Dados do cliente editados manualmente.",
+      momento_anterior: cliente?.situacao_atual,
+      momento_novo: atualizado.situacao_atual,
+    });
     setCliente(atualizado);
+    setForm(atualizado);
     setEditando(false);
     setSalvando(false);
     if (onAtualizado) onAtualizado(atualizado);
   }
 
+  function handlePassoSalvo(atualizado) {
+    setCliente(atualizado);
+    setForm(atualizado);
+    setAlterarPassoOpen(false);
+    setPassoPrefill(null);
+    // Reload histórico
+    base44.entities.CarteiraHistorico.filter({ cliente_id: clienteId }, "-created_date", 30)
+      .then(h => setHistorico(h || [])).catch(() => {});
+    if (onAtualizado) onAtualizado(atualizado);
+  }
+
+  function abrirAlterarPasso(prefill) {
+    setPassoPrefill(prefill || null);
+    setAlterarPassoOpen(true);
+  }
+
+  const qualidade = useMemo(() => cliente ? calcularQualidade(cliente) : null, [cliente]);
+  const urgencia = useMemo(() => cliente ? calcularUrgencia(cliente) : null, [cliente]);
+  const pendencias = useMemo(() => cliente ? calcularPendencias(cliente) : [], [cliente]);
+  const { objetivo, proximoPasso } = useMemo(() => cliente ? calcularObjetivoEProximoPasso(cliente) : { objetivo: "—", proximoPasso: "—" }, [cliente]);
+  const motivo = useMemo(() => cliente ? motivoRecomendacao(cliente) : "", [cliente]);
+  const { score } = useMemo(() => cliente ? calcularScore(cliente) : { score: 0 }, [cliente]);
+
+  const situacao = cliente?.situacao_atual || cliente?.momento || "—";
+  const canal = cliente?.canal_comercial || cliente?.canal_origem || "—";
+  const tel = (cliente?.whatsapp || cliente?.telefone || "").replace(/\D/g, "");
+  const iniciais = (cliente?.nome || "?").split(" ").slice(0, 2).map(p => p[0]).join("").toUpperCase();
+
   return (
     <Sheet open={open} onOpenChange={v => !v && onClose()}>
-      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-xl overflow-y-auto p-0 flex flex-col">
         {loading ? (
           <div className="flex items-center justify-center h-48">
-            <div className="w-6 h-6 border-4 border-[#DFE0E1] border-t-[#00A89D] rounded-full animate-spin" />
+            <div className="w-6 h-6 border-4 border-slate-200 border-t-[#005BFF] rounded-full animate-spin" />
           </div>
-        ) : cliente ? (
-          <div className="space-y-6 pb-8">
-            {/* Header */}
-            <div className="flex items-start gap-3 pt-2">
-              <div className="w-12 h-12 rounded-full bg-[#E8F3F2] flex items-center justify-center text-base font-black text-[#00A89D] shrink-0">
-                {(cliente.nome || "?").split(" ").slice(0, 2).map(p => p[0]).join("").toUpperCase()}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-[17px] font-black text-[#071822] leading-tight">{cliente.nome}</h3>
-                <p className="text-xs text-[#526B7A] mt-0.5">{cliente.canal_origem} · Cadastrado {moment(cliente.created_date).format("DD/MM/YYYY")}</p>
-                <div className="flex items-center gap-2 mt-1.5">
-                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${tempColor(cliente.temperatura)}`}>{cliente.temperatura}</span>
-                  <span className="text-[11px] text-[#526B7A]">{cliente.momento}</span>
-                </div>
-              </div>
-              <button onClick={() => setEditando(e => !e)} className="p-2 rounded-xl hover:bg-[#DFE0E1] transition-colors">
-                <Edit2 className="w-4 h-4 text-[#526B7A]" />
-              </button>
-            </div>
+        ) : !cliente ? (
+          <div className="flex items-center justify-center h-48 text-slate-400 text-sm">Cliente não encontrado.</div>
+        ) : (
+          <div className="flex flex-col flex-1 overflow-y-auto">
 
-            {/* Próxima ação destaque */}
-            <div className="bg-[#E8F3F2] border border-[#E8F3F2] rounded-2xl p-4">
-              <p className="text-[11px] font-black text-[#00A89D] uppercase tracking-wide mb-1">Próxima Ação</p>
-              <p className="text-sm font-semibold text-[#102C37]">{cliente.proxima_acao || calcularProximaAcao(cliente)}</p>
-            </div>
-
-            {/* Ações rápidas */}
-            <div className="flex gap-2">
-              {waUrl && (
-                <a href={waUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
-                  <Button className="w-full rounded-xl bg-[#00A89D] hover:bg-[#00A89D] text-white gap-2 text-sm">
-                    <MessageCircle className="w-4 h-4" /> WhatsApp
-                  </Button>
-                </a>
-              )}
-              {tel && (
-                <a href={`tel:${tel}`} className="flex-1">
-                  <Button variant="outline" className="w-full rounded-xl gap-2 text-sm">
-                    <Phone className="w-4 h-4" /> Ligar
-                  </Button>
-                </a>
-              )}
-            </div>
-
-            {/* Dados editáveis ou exibição */}
-            {editando ? (
-              <div className="space-y-3 bg-[#F7F8F8] rounded-2xl p-4">
-                <p className="text-xs font-black text-[#526B7A] uppercase tracking-wider">Editar dados</p>
-                {[{ k: "veiculo_interesse", l: "Veículo de Interesse" }, { k: "email", l: "E-mail" }, { k: "valor_negociado", l: "Valor Negociado" }].map(({ k, l }) => (
-                  <div key={k}>
-                    <label className="text-xs font-semibold text-[#526B7A] uppercase tracking-wide mb-1 block">{l}</label>
-                    <Input value={form[k] || ""} onChange={e => setForm(p => ({ ...p, [k]: e.target.value }))} className="rounded-xl" />
-                  </div>
-                ))}
-                <div>
-                  <label className="text-xs font-semibold text-[#526B7A] uppercase tracking-wide mb-1 block">Temperatura</label>
-                  <select value={form.temperatura || "Morno"} onChange={e => setForm(p => ({ ...p, temperatura: e.target.value }))} className="w-full h-9 rounded-xl border border-input bg-white px-3 text-sm">
-                    {TEMPERATURAS.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
+            {/* ── BLOCO 1: CABEÇALHO ────────────────────────────────────── */}
+            <div className="px-5 pt-5 pb-4 border-b border-slate-100 space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-base font-black text-[#005BFF] shrink-0">
+                  {iniciais}
                 </div>
-                <div>
-                  <label className="text-xs font-semibold text-[#526B7A] uppercase tracking-wide mb-1 block">Momento do Cliente</label>
-                  <select value={form.momento || ""} onChange={e => setForm(p => ({ ...p, momento: e.target.value }))} className="w-full h-9 rounded-xl border border-input bg-white px-3 text-sm">
-                    {MOMENTOS.map(m => <option key={m} value={m}>{m}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-[#526B7A] uppercase tracking-wide mb-1 block">Observações</label>
-                  <textarea value={form.observacoes || ""} onChange={e => setForm(p => ({ ...p, observacoes: e.target.value }))} rows={2} className="w-full rounded-xl border border-input bg-white px-3 py-2 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-ring" />
-                </div>
-                {form.momento === "Visita agendada" && (
-                  <div>
-                    <label className="text-xs font-semibold text-[#526B7A] uppercase tracking-wide mb-1 block">Visita Agendada</label>
-                    <Input type="datetime-local" value={form.visita_agendada_em ? form.visita_agendada_em.slice(0, 16) : ""} onChange={e => setForm(p => ({ ...p, visita_agendada_em: e.target.value }))} className="rounded-xl" />
-                  </div>
-                )}
-                <div className="flex gap-2 pt-1">
-                  <Button variant="outline" onClick={() => setEditando(false)} className="flex-1 rounded-xl" disabled={salvando}>Cancelar</Button>
-                  <Button onClick={salvarEdicao} className="flex-1 rounded-xl bg-[#00A89D] hover:bg-[#00A89D] text-white" disabled={salvando}>
-                    {salvando ? "Salvando..." : "Salvar"}
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-[#F7F8F8] rounded-2xl p-4 space-y-4">
-                <p className="text-xs font-black text-[#526B7A] uppercase tracking-wider">Informações</p>
-                <div className="grid grid-cols-2 gap-4">
-                  <InfoRow label="WhatsApp" value={cliente.whatsapp} />
-                  <InfoRow label="E-mail" value={cliente.email} />
-                  <InfoRow label="Canal" value={cliente.canal_origem} />
-                  <InfoRow label="Veículo de Interesse" value={cliente.veiculo_interesse} />
-                  <InfoRow label="Veículo Comprado" value={cliente.veiculo_comprado} />
-                  <InfoRow label="Valor Negociado" value={cliente.valor_negociado} />
-                  <InfoRow label="Aniversário" value={cliente.data_nascimento ? moment(cliente.data_nascimento).format("DD/MM/YYYY") : null} />
-                  {cliente.visita_agendada_em && (
-                    <InfoRow label="Visita Agendada" value={moment(cliente.visita_agendada_em).format("DD/MM [às] HH:mm")} />
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-[17px] font-black text-[#0F172A] leading-tight">{cliente.nome}</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {canal}{cliente.origem_detalhada ? ` · ${cliente.origem_detalhada}` : ""} · Cadastrado {moment(cliente.created_date).format("DD/MM/YYYY")}
+                  </p>
+                  {cliente.whatsapp && (
+                    <p className="text-xs text-slate-500 mt-0.5">📱 {cliente.whatsapp}</p>
+                  )}
+                  {cliente.veiculo_interesse && (
+                    <p className="text-xs font-semibold text-[#031B3D] mt-1">🚗 {cliente.veiculo_interesse}</p>
                   )}
                 </div>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {cliente.proposta_enviada && <span className="text-xs bg-[#E8F3F2] text-[#00A89D] px-2 py-0.5 rounded-full">Proposta enviada</span>}
-                  {cliente.interesse_troca && <span className="text-xs bg-[#FFF7E6] text-[#F59F0A] px-2 py-0.5 rounded-full">Interesse em troca</span>}
-                  {cliente.interesse_financiamento && <span className="text-xs bg-[#F15BBA] text-[#F15BBA] px-2 py-0.5 rounded-full">Interesse em financiamento</span>}
-                </div>
-                {cliente.observacoes && (
-                  <div>
-                    <p className="text-[11px] text-[#526B7A] font-semibold uppercase tracking-wide">Observações</p>
-                    <p className="text-sm text-[#526B7A] mt-0.5">{cliente.observacoes}</p>
-                  </div>
-                )}
-                {cliente.motivo_perda && (
-                  <div className="bg-[#FEECEC] rounded-xl p-3">
-                    <p className="text-[11px] text-[#EF4343] font-semibold uppercase tracking-wide">Motivo de Perda</p>
-                    <p className="text-sm text-[#EF4343] mt-0.5">{cliente.motivo_perda}</p>
-                  </div>
-                )}
               </div>
-            )}
 
-            {/* Histórico */}
-            {historico.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-black text-[#526B7A] uppercase tracking-wider">Histórico</p>
-                <div className="space-y-2">
-                  {historico.map(h => (
-                    <div key={h.id} className="flex items-start gap-2.5 py-2 border-b border-[#F7F8F8] last:border-0">
-                      <div className="w-1.5 h-1.5 rounded-full bg-[#00A89D] mt-1.5 shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-[#526B7A]">{h.tipo}</p>
-                        <p className="text-xs text-[#526B7A]">{h.descricao}</p>
-                        {h.momento_novo && h.momento_novo !== h.momento_anterior && (
-                          <p className="text-xs text-[#00A89D] mt-0.5">{h.momento_anterior} → {h.momento_novo}</p>
+              {/* Situação + Temperatura */}
+              <div className="flex flex-wrap gap-1.5">
+                <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${tempColor(cliente.temperatura)}`}>{cliente.temperatura || "Morno"}</span>
+                <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">{situacao}</span>
+              </div>
+
+              {/* Qualidade x Urgência */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className={`rounded-xl border px-3 py-2 ${qualidade.color}`}>
+                  <p className="text-[9px] font-bold uppercase tracking-wide opacity-60 mb-0.5">Qualidade</p>
+                  <p className="text-xs font-bold">{qualidade.label}</p>
+                </div>
+                <div className={`rounded-xl border px-3 py-2 ${urgencia.color}`}>
+                  <p className="text-[9px] font-bold uppercase tracking-wide opacity-60 mb-0.5">Urgência</p>
+                  <p className="text-xs font-bold">{urgencia.label}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* ── CONTEÚDO ───────────────────────────────────────────────── */}
+            <div className="px-5 py-4 space-y-3 flex-1">
+
+              {/* Formulário de edição (inline) */}
+              {editando && (
+                <FormularioEdicao
+                  form={form}
+                  setForm={setForm}
+                  onSalvar={salvarEdicao}
+                  onCancelar={() => { setEditando(false); setForm(cliente); }}
+                  salvando={salvando}
+                />
+              )}
+
+              {/* ── BLOCO 2: PRÓXIMA AÇÃO RECOMENDADA ──────────────────── */}
+              {!editando && (
+                <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-[#005BFF]" />
+                    <p className="text-xs font-black text-[#005BFF] uppercase tracking-wide">Próxima ação recomendada</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Próximo passo</p>
+                      <p className="text-sm font-bold text-[#031B3D] mt-0.5">{cliente.proximo_passo || proximoPasso}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Objetivo</p>
+                      <p className="text-sm font-semibold text-slate-600 mt-0.5">{cliente.objetivo_atual || objetivo}</p>
+                    </div>
+                    {motivo && (
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Motivo</p>
+                        <p className="text-xs text-slate-500 mt-0.5 italic">{motivo}</p>
+                      </div>
+                    )}
+                    {cliente.proxima_acao_data && (
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                        <Clock className="w-3.5 h-3.5" />
+                        Programado para {moment(cliente.proxima_acao_data).format("DD/MM/YYYY [às] HH:mm")}
+                      </div>
+                    )}
+                    {cliente.visita_agendada_em && (
+                      <div className="flex items-center gap-1.5 text-xs text-blue-600 font-semibold">
+                        <Clock className="w-3.5 h-3.5" />
+                        Visita: {moment(cliente.visita_agendada_em).format("DD/MM/YYYY [às] HH:mm")}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex gap-2 pt-1 flex-wrap">
+                    {onExecutar && (
+                      <Button
+                        onClick={() => { onClose(); onExecutar(cliente); }}
+                        className="flex-1 rounded-xl bg-[#005BFF] hover:bg-blue-700 text-white text-sm gap-2"
+                      >
+                        <Zap className="w-3.5 h-3.5" /> Executar
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      onClick={() => abrirAlterarPasso(null)}
+                      className="rounded-xl text-sm border-slate-200 text-slate-600 hover:bg-slate-50 gap-1.5"
+                    >
+                      <Pencil className="w-3.5 h-3.5" /> Alterar próximo passo
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* ── BLOCO 3: O QUE FALTA PARA EVOLUIR ─────────────────── */}
+              {!editando && pendencias.length > 0 && (
+                <Bloco title="O que falta para evoluir" icon="⚠️">
+                  <div className="space-y-2">
+                    {pendencias.map((p, i) => (
+                      <div key={i} className="flex items-center justify-between gap-2">
+                        <div className="flex items-start gap-2.5">
+                          <AlertCircle className="w-3.5 h-3.5 text-amber-500 mt-0.5 shrink-0" />
+                          <span className="text-sm text-slate-600">{p}</span>
+                        </div>
+                        <button
+                          onClick={() => abrirAlterarPasso(p)}
+                          className="text-[11px] font-semibold text-[#005BFF] hover:underline whitespace-nowrap shrink-0"
+                        >
+                          Definir →
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </Bloco>
+              )}
+
+              {!editando && pendencias.length === 0 && (
+                <div className="flex items-center gap-2 px-4 py-3 bg-green-50 border border-green-100 rounded-2xl">
+                  <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+                  <p className="text-sm text-green-700 font-medium">Oportunidade bem qualificada. Execute o próximo passo.</p>
+                </div>
+              )}
+
+              {/* ── BLOCO 4: O QUE SABEMOS ──────────────────────────────── */}
+              {!editando && (
+                <Bloco title="O que sabemos" icon="📋" defaultOpen={false}>
+                  <div className="space-y-5">
+
+                    {/* Interesse */}
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-wide mb-2">Interesse</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <FieldRow label="Veículo" value={cliente.veiculo_interesse} />
+                        <FieldRow label="Orçamento" value={cliente.valor_negociado} />
+                      </div>
+                      {cliente.observacoes && (
+                        <div className="mt-2 p-2.5 bg-slate-50 rounded-xl">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-0.5">Observações</p>
+                          <p className="text-xs text-slate-600">{cliente.observacoes}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Compra */}
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-wide mb-2">Compra</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <FieldRow label="Orçamento" value={cliente.valor_negociado} />
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Possui troca</span>
+                          {cliente.interesse_troca != null
+                            ? <span className="text-[13px] text-slate-700 font-medium">{cliente.interesse_troca ? "Sim" : "Não"}</span>
+                            : <span className="text-[12px] text-slate-300 italic">Não informado</span>
+                          }
+                        </div>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Financiamento</span>
+                          {cliente.interesse_financiamento != null
+                            ? <span className="text-[13px] text-slate-700 font-medium">{cliente.interesse_financiamento ? "Sim" : "Não"}</span>
+                            : <span className="text-[12px] text-slate-300 italic">Não informado</span>
+                          }
+                        </div>
+                        {cliente.proposta_enviada && (
+                          <div className="col-span-2">
+                            <span className="text-[11px] bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full font-semibold border border-blue-100">✓ Proposta enviada</span>
+                          </div>
                         )}
                       </div>
-                      <span className="text-[11px] text-[#E0EBEA] shrink-0">{moment(h.created_date).format("DD/MM HH:mm")}</span>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+
+                    {/* Dados de contato */}
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-wide mb-2">Contato</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <FieldRow label="WhatsApp" value={cliente.whatsapp} />
+                        <FieldRow label="Telefone" value={cliente.telefone} />
+                        <FieldRow label="E-mail" value={cliente.email} />
+                        <FieldRow label="Aniversário" value={cliente.data_nascimento ? moment(cliente.data_nascimento).format("DD/MM/YYYY") : null} />
+                        <FieldRow label="Último contato" value={cliente.ultimo_contato ? moment(cliente.ultimo_contato).fromNow() : null} />
+                      </div>
+                    </div>
+
+                    {/* Objeções */}
+                    {cliente.motivo_perda && (
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-wide mb-2">Objeções</p>
+                        <div className="bg-red-50 border border-red-100 rounded-xl px-3 py-2">
+                          <p className="text-sm text-red-700">{cliente.motivo_perda}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </Bloco>
+              )}
+
+              {/* ── BLOCO 5: HISTÓRICO ──────────────────────────────────── */}
+              {!editando && (
+                <Bloco title="Histórico da oportunidade" icon="🕐" defaultOpen={false}>
+                  {historico.length === 0 ? (
+                    <p className="text-sm text-slate-400 text-center py-4">Nenhuma ação registrada ainda.</p>
+                  ) : (
+                    <div className="space-y-0">
+                      {historico.map((h, idx) => (
+                        <div key={h.id} className="flex items-start gap-3 pb-4 last:pb-0 relative">
+                          {/* Linha vertical */}
+                          {idx < historico.length - 1 && (
+                            <div className="absolute left-[7px] top-5 bottom-0 w-px bg-slate-100" />
+                          )}
+                          <div className="w-3.5 h-3.5 rounded-full border-2 border-[#005BFF] bg-white shrink-0 mt-0.5 relative z-10" />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <p className="text-xs font-bold text-slate-700">{h.tipo}</p>
+                              <span className="text-[11px] text-slate-300 shrink-0">{moment(h.created_date).format("DD/MM HH:mm")}</span>
+                            </div>
+                            {h.descricao && <p className="text-xs text-slate-500 mt-0.5">{h.descricao}</p>}
+                            {h.resultado && (
+                              <span className="inline-block mt-1 text-[11px] font-semibold text-[#005BFF] bg-blue-50 px-2 py-0.5 rounded-full">
+                                → {h.resultado}
+                              </span>
+                            )}
+                            {h.momento_novo && h.momento_novo !== h.momento_anterior && (
+                              <p className="text-[11px] text-slate-400 mt-0.5 italic">{h.momento_anterior} → {h.momento_novo}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </Bloco>
+              )}
+            </div>
+
+            {/* ── BARRA DE AÇÕES FIXA ────────────────────────────────────── */}
+            <div className="sticky bottom-0 bg-white border-t border-slate-100 px-5 py-3 flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => { setEditando(e => !e); if (editando) setForm(cliente); }}
+                className="rounded-xl text-sm gap-1.5 border-slate-200"
+              >
+                <Edit2 className="w-3.5 h-3.5" /> {editando ? "Cancelar edição" : "Editar"}
+              </Button>
+              {onExecutar && !editando && (
+                <Button
+                  onClick={() => { onClose(); onExecutar(cliente); }}
+                  className="flex-1 rounded-xl bg-[#005BFF] hover:bg-blue-700 text-white text-sm gap-2"
+                >
+                  <Zap className="w-3.5 h-3.5" /> Executar próximo passo
+                </Button>
+              )}
+              <Button variant="ghost" onClick={onClose} className="rounded-xl text-sm text-slate-400 hover:text-slate-600 px-3">
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+
           </div>
-        ) : (
-          <div className="flex items-center justify-center h-48 text-[#526B7A]">Cliente não encontrado.</div>
         )}
       </SheetContent>
+
+      {cliente && (
+        <AlterarProximoPasso
+          open={alterarPassoOpen}
+          onClose={() => { setAlterarPassoOpen(false); setPassoPrefill(null); }}
+          cliente={passoPrefill ? { ...cliente, _prefill: passoPrefill } : cliente}
+          pendencias={pendencias}
+          onSalvo={handlePassoSalvo}
+        />
+      )}
     </Sheet>
   );
 }

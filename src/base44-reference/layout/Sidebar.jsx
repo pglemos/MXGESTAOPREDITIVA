@@ -39,13 +39,13 @@ export default function Sidebar() {
     >
       <div className="flex items-center h-[72px] px-4 border-b border-white/10">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00A89D] to-[#00A89D] flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-mx-blue to-blue-400 flex items-center justify-center flex-shrink-0">
             <Zap className="w-5 h-5 text-white" />
           </div>
           {expanded && (
             <div className="overflow-hidden">
               <h1 className="text-white font-bold text-lg leading-tight tracking-tight">MX</h1>
-              <p className="text-[#E0EBEA] text-[11px] font-medium tracking-wider uppercase">Performance</p>
+              <p className="text-blue-300 text-[11px] font-medium tracking-wider uppercase">Performance</p>
             </div>
           )}
         </div>
@@ -65,10 +65,10 @@ export default function Sidebar() {
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative ${
                 isActive
                   ? "bg-mx-blue text-white shadow-lg shadow-mx-blue/25"
-                  : "text-[#526B7A] hover:text-white hover:bg-white/8"
+                  : "text-slate-400 hover:text-white hover:bg-white/8"
               }`}
             >
-              <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-white" : "text-[#526B7A] group-hover:text-white"}`} />
+              <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-white" : "text-slate-400 group-hover:text-white"}`} />
               {expanded && (
                 <span className="text-sm font-medium truncate">{item.label}</span>
               )}
@@ -85,7 +85,7 @@ export default function Sidebar() {
       <div className="p-3 border-t border-white/10">
         <button
           onClick={() => setExpanded(!expanded)}
-          className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-[#526B7A] hover:text-white hover:bg-white/8 transition-all duration-200"
+          className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/8 transition-all duration-200"
         >
           {expanded ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
           {expanded && <span className="text-xs font-medium">Recolher</span>}

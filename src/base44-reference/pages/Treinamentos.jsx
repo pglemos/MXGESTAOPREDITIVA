@@ -15,7 +15,7 @@ const levelColors = {
   "N1 Iniciante": "bg-mx-green-light text-mx-green",
   "N2 Intermediário": "bg-mx-blue-light text-mx-blue",
   "N3 Performance": "bg-mx-amber-light text-mx-amber",
-  "N4 Alta Performance": "bg-[#F15BBA] text-[#F15BBA]",
+  "N4 Alta Performance": "bg-purple-100 text-purple-700",
 };
 
 export default function Treinamentos() {
@@ -38,7 +38,7 @@ export default function Treinamentos() {
   }, []);
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-4 border-[#DFE0E1] border-t-mx-blue rounded-full animate-spin" /></div>;
+    return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-4 border-slate-200 border-t-mx-blue rounded-full animate-spin" /></div>;
   }
 
   const completedIds = new Set(progress.filter(p => p.completed).map(p => p.training_id));
@@ -58,7 +58,7 @@ export default function Treinamentos() {
   const pastLive = liveTrainings.filter(t => t.live_date && new Date(t.live_date) <= new Date());
 
   const TrainingCard = ({ training, large = false }) => (
-    <div className={`bg-white rounded-2xl shadow-sm border border-[#DFE0E1] overflow-hidden group hover:shadow-md transition-all duration-300 ${large ? "col-span-1" : ""}`}>
+    <div className={`bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden group hover:shadow-md transition-all duration-300 ${large ? "col-span-1" : ""}`}>
       <div className={`${large ? "h-40" : "h-28"} bg-gradient-to-br from-mx-navy to-mx-blue relative overflow-hidden`}>
         <div className="absolute inset-0 flex items-center justify-center">
           <Play className="w-10 h-10 text-white/30 group-hover:text-white/60 transition-colors" />
@@ -71,11 +71,11 @@ export default function Treinamentos() {
       </div>
       <div className="p-4">
         <div className="flex items-center gap-2 mb-2">
-          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${levelColors[training.level] || "bg-[#DFE0E1] text-[#526B7A]"}`}>{training.level}</span>
-          <span className="text-[10px] text-[#526B7A]">{training.duration_minutes || 30} min</span>
+          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${levelColors[training.level] || "bg-slate-100 text-slate-500"}`}>{training.level}</span>
+          <span className="text-[10px] text-slate-400">{training.duration_minutes || 30} min</span>
         </div>
         <h4 className="text-sm font-semibold text-mx-navy line-clamp-2">{training.title}</h4>
-        <p className="text-xs text-[#526B7A] mt-1">{training.category}</p>
+        <p className="text-xs text-slate-400 mt-1">{training.category}</p>
       </div>
     </div>
   );
@@ -94,7 +94,7 @@ export default function Treinamentos() {
       </div>
 
       <Tabs defaultValue="biblioteca" className="w-full">
-        <TabsList className="bg-white border border-[#DFE0E1] rounded-xl p-1">
+        <TabsList className="bg-white border border-slate-100 rounded-xl p-1">
           <TabsTrigger value="biblioteca" className="rounded-lg data-[state=active]:bg-mx-blue data-[state=active]:text-white">Biblioteca</TabsTrigger>
           <TabsTrigger value="trilha" className="rounded-lg data-[state=active]:bg-mx-blue data-[state=active]:text-white">Trilha</TabsTrigger>
           <TabsTrigger value="aovivo" className="rounded-lg data-[state=active]:bg-mx-blue data-[state=active]:text-white">Aulas ao Vivo</TabsTrigger>
@@ -115,7 +115,7 @@ export default function Treinamentos() {
           {/* Search & Filters */}
           <div className="flex flex-wrap gap-3">
             <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#526B7A]" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar treinamento..." className="pl-9 rounded-xl bg-white" />
             </div>
             <Select value={filterCat} onValueChange={setFilterCat}>
@@ -135,9 +135,9 @@ export default function Treinamentos() {
           </div>
 
           {filtered.length === 0 ? (
-            <div className="bg-white rounded-2xl p-12 text-center border border-[#DFE0E1]">
-              <BookOpen className="w-10 h-10 text-[#E0EBEA] mx-auto mb-3" />
-              <p className="text-sm text-[#526B7A]">Nenhum treinamento encontrado.</p>
+            <div className="bg-white rounded-2xl p-12 text-center border border-slate-100">
+              <BookOpen className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+              <p className="text-sm text-slate-400">Nenhum treinamento encontrado.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -148,18 +148,18 @@ export default function Treinamentos() {
 
         {/* Trilha */}
         <TabsContent value="trilha" className="mt-6 space-y-6">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#DFE0E1]">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
             <h3 className="text-base font-semibold text-mx-navy mb-2">Sua Maturidade Profissional</h3>
-            <p className="text-xs text-[#526B7A] mb-6">A trilha representa sua maturidade, não apenas evolução.</p>
+            <p className="text-xs text-slate-400 mb-6">A trilha representa sua maturidade, não apenas evolução.</p>
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               {levels.map((level, idx) => {
                 const isActive = idx <= Math.min(Math.floor(completedCount / 3), 3);
                 return (
-                  <div key={level} className={`p-4 rounded-xl border-2 text-center transition-all ${isActive ? "border-mx-blue bg-mx-blue-light/50" : "border-[#DFE0E1]"}`}>
-                    <div className={`w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center text-lg font-bold ${isActive ? "bg-mx-blue text-white" : "bg-[#DFE0E1] text-[#526B7A]"}`}>
+                  <div key={level} className={`p-4 rounded-xl border-2 text-center transition-all ${isActive ? "border-mx-blue bg-mx-blue-light/50" : "border-slate-100"}`}>
+                    <div className={`w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center text-lg font-bold ${isActive ? "bg-mx-blue text-white" : "bg-slate-100 text-slate-400"}`}>
                       {idx + 1}
                     </div>
-                    <p className={`text-sm font-semibold ${isActive ? "text-mx-navy" : "text-[#526B7A]"}`}>{level}</p>
+                    <p className={`text-sm font-semibold ${isActive ? "text-mx-navy" : "text-slate-400"}`}>{level}</p>
                   </div>
                 );
               })}
@@ -182,21 +182,21 @@ export default function Treinamentos() {
 
         {/* Aulas ao Vivo */}
         <TabsContent value="aovivo" className="mt-6 space-y-6">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#DFE0E1]">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
             <h3 className="text-base font-semibold text-mx-navy mb-1">Presença Validada por Quiz</h3>
-            <p className="text-xs text-[#526B7A]">5 a 10 questões · Aprovação mínima: 70%</p>
+            <p className="text-xs text-slate-400">5 a 10 questões · Aprovação mínima: 70%</p>
             <div className="grid grid-cols-3 gap-4 mt-4">
-              <div className="text-center p-3 bg-[#F7F8F8] rounded-xl">
+              <div className="text-center p-3 bg-slate-50 rounded-xl">
                 <p className="text-2xl font-bold text-mx-navy">{avgScore > 0 ? `${avgScore.toFixed(0)}%` : "—"}</p>
-                <p className="text-xs text-[#526B7A]">Média das Provas</p>
+                <p className="text-xs text-slate-400">Média das Provas</p>
               </div>
-              <div className="text-center p-3 bg-[#F7F8F8] rounded-xl">
+              <div className="text-center p-3 bg-slate-50 rounded-xl">
                 <p className="text-2xl font-bold text-mx-navy">{progress.filter(p => p.attended_live).length}</p>
-                <p className="text-xs text-[#526B7A]">Presenças</p>
+                <p className="text-xs text-slate-400">Presenças</p>
               </div>
-              <div className="text-center p-3 bg-[#F7F8F8] rounded-xl">
+              <div className="text-center p-3 bg-slate-50 rounded-xl">
                 <p className="text-2xl font-bold text-mx-navy">{totalHours.toFixed(1)}h</p>
-                <p className="text-xs text-[#526B7A]">Horas Estudadas</p>
+                <p className="text-xs text-slate-400">Horas Estudadas</p>
               </div>
             </div>
           </div>
@@ -206,13 +206,13 @@ export default function Treinamentos() {
               <h3 className="text-sm font-semibold text-mx-navy mb-3">Próximas Aulas</h3>
               <div className="space-y-3">
                 {upcomingLive.map(t => (
-                  <div key={t.id} className="bg-white rounded-xl p-4 border border-[#DFE0E1] flex items-center gap-4">
+                  <div key={t.id} className="bg-white rounded-xl p-4 border border-slate-100 flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-mx-red-light flex items-center justify-center flex-shrink-0">
                       <Video className="w-5 h-5 text-mx-red" />
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-mx-navy">{t.title}</p>
-                      <p className="text-xs text-[#526B7A] flex items-center gap-1"><Calendar className="w-3 h-3" />{t.live_date ? new Date(t.live_date).toLocaleDateString("pt-BR") : "—"}</p>
+                      <p className="text-xs text-slate-400 flex items-center gap-1"><Calendar className="w-3 h-3" />{t.live_date ? new Date(t.live_date).toLocaleDateString("pt-BR") : "—"}</p>
                     </div>
                   </div>
                 ))}
@@ -230,9 +230,9 @@ export default function Treinamentos() {
           )}
 
           {liveTrainings.length === 0 && (
-            <div className="bg-white rounded-2xl p-12 text-center border border-[#DFE0E1]">
-              <Video className="w-10 h-10 text-[#E0EBEA] mx-auto mb-3" />
-              <p className="text-sm text-[#526B7A]">Nenhuma aula ao vivo agendada.</p>
+            <div className="bg-white rounded-2xl p-12 text-center border border-slate-100">
+              <Video className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+              <p className="text-sm text-slate-400">Nenhuma aula ao vivo agendada.</p>
             </div>
           )}
         </TabsContent>

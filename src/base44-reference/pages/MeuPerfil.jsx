@@ -49,11 +49,11 @@ export default function MeuPerfil() {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-4 border-[#DFE0E1] border-t-mx-blue rounded-full animate-spin" /></div>;
+    return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-4 border-slate-200 border-t-mx-blue rounded-full animate-spin" /></div>;
   }
 
   const Section = ({ title, icon: Icon, children }) => (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#DFE0E1]">
+    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
       <div className="flex items-center gap-2 mb-6">
         <div className="w-8 h-8 rounded-lg bg-mx-blue-light flex items-center justify-center">
           <Icon className="w-4 h-4 text-mx-blue" />
@@ -66,15 +66,15 @@ export default function MeuPerfil() {
 
   const Field = ({ label, children }) => (
     <div>
-      <Label className="text-xs text-[#526B7A] uppercase tracking-wider">{label}</Label>
+      <Label className="text-xs text-slate-500 uppercase tracking-wider">{label}</Label>
       <div className="mt-1.5">{children}</div>
     </div>
   );
 
   return (
-<div className="mx-base44-page space-y-6 lg:space-y-8">
+    <div className="space-y-8">
       <PageHeader title="Meu Perfil" subtitle="Gerencie suas informações pessoais e profissionais">
-        <Button onClick={handleSave} disabled={saving} className="bg-mx-blue hover:bg-[#00A89D] rounded-xl gap-2">
+        <Button onClick={handleSave} disabled={saving} className="bg-mx-blue hover:bg-blue-600 rounded-xl gap-2">
           <Save className="w-4 h-4" />
           {saving ? "Salvando..." : "Salvar"}
         </Button>
