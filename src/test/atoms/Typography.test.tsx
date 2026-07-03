@@ -7,7 +7,7 @@ afterEach(() => {
 })
 
 describe('Typography Atom', () => {
-  test('uses lighter default weights aligned to the seller typography spec', () => {
+  test('uses weights aligned to the Base44 seller typography spec (h1 font-black, h2 font-bold, h3/h4 font-semibold)', () => {
     render(
       <div>
         <Typography variant="h1">Title</Typography>
@@ -20,16 +20,12 @@ describe('Typography Atom', () => {
       </div>,
     )
 
-    expect(screen.getByText('Title').className).toContain('font-bold')
-    expect(screen.getByText('Subtitle').className).toContain('font-semibold')
+    expect(screen.getByText('Title').className).toContain('font-black')
+    expect(screen.getByText('Subtitle').className).toContain('font-bold')
     expect(screen.getByText('Card title').className).toContain('font-semibold')
     expect(screen.getByText('Small heading').className).toContain('font-semibold')
     expect(screen.getByText('Body copy').className).toContain('font-normal')
     expect(screen.getByText('Caption').className).toContain('font-medium')
     expect(screen.getByText('Tiny').className).toContain('font-medium')
-
-    for (const label of ['Title', 'Subtitle', 'Card title', 'Small heading', 'Body copy', 'Caption', 'Tiny']) {
-      expect(screen.getByText(label).className).not.toContain('font-black')
-    }
   })
 })

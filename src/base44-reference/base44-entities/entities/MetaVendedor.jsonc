@@ -1,0 +1,66 @@
+{
+  "name": "MetaVendedor",
+  "type": "object",
+  "properties": {
+    "vendedor_id": {
+      "type": "string",
+      "title": "Vendedor ID"
+    },
+    "vendedor_nome": {
+      "type": "string",
+      "title": "Vendedor"
+    },
+    "unidade_id": {
+      "type": "string",
+      "title": "Unidade ID"
+    },
+    "unidade_nome": {
+      "type": "string",
+      "title": "Unidade"
+    },
+    "tipo_meta": {
+      "type": "string",
+      "title": "Tipo de Meta",
+      "enum": [
+        "Volume de vendas",
+        "Faturamento"
+      ],
+      "default": "Volume de vendas"
+    },
+    "periodo": {
+      "type": "string",
+      "title": "Per\u00edodo",
+      "enum": [
+        "Mensal",
+        "Trimestral",
+        "Semestral",
+        "Anual"
+      ],
+      "default": "Mensal"
+    },
+    "data_inicio": {
+      "type": "string",
+      "format": "date",
+      "title": "Data In\u00edcio"
+    },
+    "data_fim": {
+      "type": "string",
+      "format": "date",
+      "title": "Data Fim"
+    },
+    "meta_volume": {
+      "type": "number",
+      "title": "Meta Volume (unidades)",
+      "default": 60
+    },
+    "meta_faturamento": {
+      "type": "number",
+      "title": "Meta Faturamento (R$)",
+      "default": 100000
+    }
+  },
+  "required": [
+    "vendedor_id",
+    "periodo"
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "name": "RegularizacaoFechamento",
+  "type": "object",
+  "properties": {
+    "fechamento_id": {
+      "type": "string",
+      "title": "Fechamento ID"
+    },
+    "vendedor_id": {
+      "type": "string",
+      "title": "Vendedor ID"
+    },
+    "vendedor_nome": {
+      "type": "string",
+      "title": "Vendedor"
+    },
+    "data_competencia": {
+      "type": "string",
+      "format": "date",
+      "title": "Data de Compet\u00eancia"
+    },
+    "data_hora_envio": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Data/Hora Envio"
+    },
+    "status_solicitacao": {
+      "type": "string",
+      "title": "Status da Solicita\u00e7\u00e3o",
+      "enum": [
+        "Pendente",
+        "Aprovada",
+        "Recusada"
+      ],
+      "default": "Pendente"
+    },
+    "tipo_solicitacao": {
+      "type": "string",
+      "title": "Tipo",
+      "default": "Regulariza\u00e7\u00e3o de Fechamento"
+    },
+    "aprovador_id": {
+      "type": "string",
+      "title": "Aprovador ID"
+    },
+    "aprovador_nome": {
+      "type": "string",
+      "title": "Aprovador"
+    },
+    "aprovador_perfil": {
+      "type": "string",
+      "title": "Perfil do Aprovador"
+    },
+    "data_hora_aprovacao": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Data/Hora Aprova\u00e7\u00e3o"
+    },
+    "motivo_recusa": {
+      "type": "string",
+      "title": "Motivo da Recusa"
+    },
+    "contabilizar_no_sistema": {
+      "type": "boolean",
+      "title": "Contabilizar no Sistema",
+      "default": false
+    },
+    "leads_carteira": {
+      "type": "number",
+      "default": 0
+    },
+    "leads_internet": {
+      "type": "number",
+      "default": 0
+    },
+    "atendimentos_showroom": {
+      "type": "number",
+      "default": 0
+    },
+    "atendimentos_carteira": {
+      "type": "number",
+      "default": 0
+    },
+    "atendimentos_internet": {
+      "type": "number",
+      "default": 0
+    },
+    "agendamentos_carteira": {
+      "type": "number",
+      "default": 0
+    },
+    "agendamentos_internet": {
+      "type": "number",
+      "default": 0
+    },
+    "pontuacao_disciplina_calculada": {
+      "type": "number",
+      "default": 0
+    },
+    "pontuacao_disciplina_com_penalizacao": {
+      "type": "number",
+      "default": 0
+    },
+    "regularizado_fora_do_prazo": {
+      "type": "boolean",
+      "default": true
+    },
+    "enviado_para_aprovacao": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "data_competencia",
+    "status_solicitacao"
+  ]
+}

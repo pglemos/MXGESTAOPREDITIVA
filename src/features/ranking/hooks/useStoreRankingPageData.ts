@@ -1,91 +1,121 @@
 import { useCallback, useMemo, useState } from 'react'
+import { startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear } from 'date-fns'
 import { useRanking } from '@/hooks/useRanking'
 import { useAuth } from '@/hooks/useAuth'
-import { useCheckins } from '@/hooks/useCheckins'
-import { useStoreSales } from '@/hooks/useStoreSales'
 import { useStoreMetaRules } from '@/hooks/useGoals'
-import { buildStoreSalesRules } from '@/lib/storeSalesRules'
+
+export type RankingPeriodo = 'Mensal' | 'Trimestral' | 'Semestral' | 'Anual'
+export const RANKING_PERIODOS: RankingPeriodo[] = ['Mensal', 'Trimestral', 'Semestral', 'Anual']
+
+const MESES_POR_PERIODO: Record<RankingPeriodo, number> = {
+  Mensal: 1,
+  Trimestral: 3,
+  Semestral: 6,
+  Anual: 12,
+}
+
+function toISODate(d: Date): string {
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function getPeriodoRange(periodo: RankingPeriodo): { startDate: string; endDate: string } {
+  const hoje = new Date()
+  if (periodo === 'Trimestral') {
+    return { startDate: toISODate(startOfQuarter(hoje)), endDate: toISODate(endOfQuarter(hoje)) }
+  }
+  if (periodo === 'Semestral') {
+    const semestreInicioMes = hoje.getMonth() < 6 ? 0 : 6
+    const inicio = new Date(hoje.getFullYear(), semestreInicioMes, 1)
+    const fim = new Date(hoje.getFullYear(), semestreInicioMes + 6, 0)
+    return { startDate: toISODate(inicio), endDate: toISODate(fim) }
+  }
+  if (periodo === 'Anual') {
+    return { startDate: toISODate(startOfYear(hoje)), endDate: toISODate(endOfYear(hoje)) }
+  }
+  return { startDate: toISODate(startOfMonth(hoje)), endDate: toISODate(endOfMonth(hoje)) }
+}
+
+export type RankedVendedor = {
+  id: string
+  nome: string
+  foto?: string | null
+  unidade?: string
+  vendas: number
+  meta: number
+}
 
 /**
- * Aggregator hook do StoreRanking — concentra:
- * - fetch (useRanking + useCheckins + useStoreMetaRules)
- * - processamento via useStoreSales
- * - estado de filtros (search) e modos (leaderboard | battle)
- * - oponentes selecionados
- * - métricas derivadas (podium, lista filtrada)
- *
- * Preserva comportamento idêntico ao StoreRankingView original
- * (Ranking.tsx, Story 2.3 — ADR-0050).
+ * Aggregator hook do Ranking por Loja — replica a estrutura de dados
+ * do protótipo Base44 (Pódio, Sua posição, Corrida do período, Tabela),
+ * com abas de período reais (Mensal/Trimestral/Semestral/Anual) usando
+ * o mesmo pipeline de dados (useRanking + useStoreMetaRules).
  */
 export function useStoreRankingPageData() {
-  const { profile, role } = useAuth()
-  const { ranking, loading: rankingLoading, error: rankingError, refetch: refetchRanking } = useRanking()
-  const { checkins, loading: checkinsLoading, fetchCheckins } = useCheckins()
-  const { metaRules, fetchMetaRules } = useStoreMetaRules()
-
-  const [viewMode, setViewMode] = useState<'leaderboard' | 'battle'>('leaderboard')
-  const [searchTerm, setSearchTerm] = useState('')
+  const { profile } = useAuth()
+  const [periodo, setPeriodo] = useState<RankingPeriodo>('Mensal')
   const [isRefetching, setIsRefetching] = useState(false)
-  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null)
-  const [selectedSeller, setSelectedSeller] = useState<string | null>(null)
-  const [battleOpponents, setBattleOpponents] = useState<string[]>([])
+
+  const { startDate, endDate } = useMemo(() => getPeriodoRange(periodo), [periodo])
+  const { ranking, loading, error, refetch } = useRanking(undefined, { startDate, endDate })
+  const { metaRules, fetchMetaRules } = useStoreMetaRules()
 
   const handleRefresh = useCallback(async () => {
     setIsRefetching(true)
     try {
-      await Promise.all([refetchRanking(), fetchCheckins(), fetchMetaRules()])
-      setLastUpdatedAt(new Date())
+      await Promise.all([refetch(), fetchMetaRules()])
     } finally {
       setIsRefetching(false)
     }
-  }, [refetchRanking, fetchCheckins, fetchMetaRules])
+  }, [refetch, fetchMetaRules])
 
-  const storeSales = useStoreSales({
-    checkins,
-    ranking,
-    rules: buildStoreSalesRules({ monthlyGoal: metaRules?.monthly_goal || 0, metaRules })
-  })
+  const metaPeriodo = (metaRules?.monthly_goal || 0) * MESES_POR_PERIODO[periodo]
 
-  const sortedRanking = useMemo(() => {
-    return (storeSales.processedRanking || []).filter(r => r.user_name.toLowerCase().includes(searchTerm.toLowerCase()) && !r.is_venda_loja)
-  }, [storeSales.processedRanking, searchTerm])
+  const vendedores = useMemo<RankedVendedor[]>(() => {
+    return ranking
+      .filter(r => !r.is_venda_loja)
+      .map(r => ({
+        id: r.user_id,
+        nome: r.user_name,
+        foto: r.avatar_url,
+        unidade: r.store_name,
+        vendas: r.vnd_total,
+        meta: metaPeriodo || r.meta,
+      }))
+      .sort((a, b) => (b.vendas !== a.vendas ? b.vendas - a.vendas : a.nome.localeCompare(b.nome)))
+  }, [ranking, metaPeriodo])
 
-  const top3 = useMemo(() => [...sortedRanking].sort((a, b) => a.position - b.position).slice(0, 3), [sortedRanking])
-  const podiumOrder = useMemo(() => [top3[1], top3[0], top3[2]].filter(Boolean), [top3])
+  const top3 = vendedores.slice(0, 3)
+  const meuIndex = vendedores.findIndex(v => v.id === profile?.id)
+  const posicao = meuIndex + 1
+  const euVendedor = meuIndex >= 0 ? vendedores[meuIndex] : null
+  const atingimento = euVendedor && euVendedor.meta > 0 ? Math.round((euVendedor.vendas / euVendedor.meta) * 100) : 0
 
-  const toggleOpponent = useCallback((id: string) => {
-    setBattleOpponents(prev => {
-      if (prev.includes(id)) return prev.filter(oid => oid !== id)
-      if (prev.length < 2) return [...prev, id]
-      return [prev[0], id]
-    })
-  }, [])
-
-  const selectedSellerEntry = selectedSeller
-    ? sortedRanking.find(s => s.user_id === selectedSeller) || (storeSales.processedRanking || []).find(s => s.user_id === selectedSeller) || null
-    : null
+  let faltamValor: number | null = null
+  if (posicao > 1 && euVendedor) {
+    const acima = vendedores[posicao - 2]
+    faltamValor = Math.max(0, acima.vendas - euVendedor.vendas)
+  }
 
   return {
-    profile,
-    role,
-    loading: rankingLoading || checkinsLoading,
-    error: rankingError,
-    viewMode,
-    setViewMode,
-    searchTerm,
-    setSearchTerm,
+    loading,
+    error,
+    periodo,
+    setPeriodo,
     isRefetching,
-    lastUpdatedAt,
     handleRefresh,
-    storeSales,
-    sortedRanking,
-    podiumOrder,
-    battleOpponents,
-    setBattleOpponents,
-    toggleOpponent,
-    selectedSeller,
-    setSelectedSeller,
-    selectedSellerEntry,
+    vendedores,
+    top3,
+    posicao,
+    totalVendedores: vendedores.length,
+    atingimento,
+    faltamValor,
+    euVendedor,
+    metaPeriodo,
+    meuId: profile?.id,
+    profile,
   }
 }
 

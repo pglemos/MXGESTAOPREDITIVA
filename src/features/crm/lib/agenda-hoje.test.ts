@@ -45,14 +45,20 @@ describe('deriveAgendaHojeFromCrm', () => {
     expect(result[0].clienteNome).toBe('Carlos Mendes')
   })
 
-  it('exclui quando etapa é ganho (Venda Realizada = Sim)', () => {
+  it('inclui agendamento de hoje mesmo quando a oportunidade vinculada já foi ganha (ex.: acompanhamento pós-venda)', () => {
     const result = deriveAgendaHojeFromCrm([op({ etapa: 'ganho' })], [ag()], HOJE)
-    expect(result).toHaveLength(0)
+    expect(result).toHaveLength(1)
   })
 
-  it('exclui quando etapa é perdido (Venda Realizada = Não)', () => {
+  it('inclui agendamento de hoje mesmo quando a oportunidade vinculada já foi perdida', () => {
     const result = deriveAgendaHojeFromCrm([op({ etapa: 'perdido' })], [ag()], HOJE)
-    expect(result).toHaveLength(0)
+    expect(result).toHaveLength(1)
+  })
+
+  it('inclui agendamento de hoje sem nenhuma oportunidade vinculada (atividade avulsa criada via Nova Atividade)', () => {
+    const result = deriveAgendaHojeFromCrm([], [ag({ oportunidade_id: null })], HOJE)
+    expect(result).toHaveLength(1)
+    expect(result[0].oportunidadeId).toBeNull()
   })
 
   it('Teste 3: exclui quando o agendamento foi reagendado para amanhã (sem duplicar, sem precisar de lógica de remoção — é a mesma fonte recalculada)', () => {
@@ -60,7 +66,7 @@ describe('deriveAgendaHojeFromCrm', () => {
     expect(result).toHaveLength(0)
   })
 
-  it('exclui quando não há nenhum agendamento vinculado', () => {
+  it('exclui oportunidade sem nenhum agendamento hoje vinculado', () => {
     const result = deriveAgendaHojeFromCrm([op()], [], HOJE)
     expect(result).toHaveLength(0)
   })
@@ -78,7 +84,7 @@ describe('deriveAgendaHojeFromCrm', () => {
     expect(result[0].agendamentoId).toBe('ag-novo')
   })
 
-  it('ordena atrasados-não-tratados primeiro, depois por horário crescente', () => {
+  it('ordena atrasados-não-tratados primeiro, depois por horário crescente, e exclui os já tratados', () => {
     const now = new Date(`${HOJE}T14:00:00.000Z`)
     const result = deriveAgendaHojeFromCrm(
       [
@@ -94,10 +100,11 @@ describe('deriveAgendaHojeFromCrm', () => {
       HOJE,
       now,
     )
-    expect(result.map(r => r.clienteNome)).toEqual(['Atrasado', 'Cedo', 'Futuro'])
+    // "Cedo" já foi tratado (compareceu) e some da lista — igual ao Base44 AbaHoje.jsx.
+    expect(result.map(r => r.clienteNome)).toEqual(['Atrasado', 'Futuro'])
   })
 
-  it('não marca como atrasado um agendamento vencido que já foi tratado (compareceu/não compareceu)', () => {
+  it('exclui da lista um agendamento já tratado (compareceu/não compareceu), mesmo se estava vencido', () => {
     const now = new Date(`${HOJE}T14:00:00.000Z`)
     const result = deriveAgendaHojeFromCrm(
       [op()],
@@ -105,6 +112,6 @@ describe('deriveAgendaHojeFromCrm', () => {
       HOJE,
       now,
     )
-    expect(result[0].atrasadoNaoTratado).toBe(false)
+    expect(result).toHaveLength(0)
   })
 })

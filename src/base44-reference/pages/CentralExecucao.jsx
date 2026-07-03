@@ -94,7 +94,7 @@ export default function CentralExecucao() {
             <Target className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h1 className="text-[20px] font-black text-[#0F172A] tracking-tight leading-none">Central de Execução</h1>
+            <h1 className="text-[20px] font-black text-[#0F172A] tracking-tight leading-none">Rotina do Dia</h1>
             <p className="text-[11px] text-slate-400 font-medium mt-0.5">Organize e execute seu dia com foco</p>
           </div>
         </div>

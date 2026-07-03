@@ -1,0 +1,42 @@
+{
+  "name": "CarteiraHistorico",
+  "type": "object",
+  "properties": {
+    "cliente_id": {
+      "type": "string",
+      "title": "Cliente ID"
+    },
+    "vendedor_id": {
+      "type": "string",
+      "title": "Vendedor ID"
+    },
+    "tipo": {
+      "type": "string",
+      "title": "Tipo de Evento"
+    },
+    "descricao": {
+      "type": "string",
+      "title": "Descri\u00e7\u00e3o"
+    },
+    "resultado": {
+      "type": "string",
+      "title": "Resultado"
+    },
+    "momento_anterior": {
+      "type": "string",
+      "title": "Momento Anterior"
+    },
+    "momento_novo": {
+      "type": "string",
+      "title": "Momento Novo"
+    },
+    "missao_id": {
+      "type": "string",
+      "title": "Miss\u00e3o ID"
+    }
+  },
+  "required": [
+    "cliente_id",
+    "tipo"
+  ]
+}

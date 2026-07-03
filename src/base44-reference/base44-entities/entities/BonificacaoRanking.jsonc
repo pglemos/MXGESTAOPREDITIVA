@@ -1,0 +1,71 @@
+{
+  "name": "BonificacaoRanking",
+  "type": "object",
+  "properties": {
+    "unidade_id": {
+      "type": "string",
+      "title": "Unidade ID"
+    },
+    "unidade_nome": {
+      "type": "string",
+      "title": "Unidade"
+    },
+    "periodo": {
+      "type": "string",
+      "title": "Per\u00edodo",
+      "enum": [
+        "Mensal",
+        "Trimestral",
+        "Semestral",
+        "Anual"
+      ],
+      "default": "Mensal"
+    },
+    "primeiro_lugar_valor": {
+      "type": "number",
+      "title": "1\u00ba Lugar \u2014 Valor (R$)",
+      "default": 2000
+    },
+    "primeiro_lugar_descricao": {
+      "type": "string",
+      "title": "1\u00ba Lugar \u2014 Descri\u00e7\u00e3o extra",
+      "default": "+ Trof\u00e9u"
+    },
+    "segundo_lugar_valor": {
+      "type": "number",
+      "title": "2\u00ba Lugar \u2014 Valor (R$)",
+      "default": 1000
+    },
+    "segundo_lugar_descricao": {
+      "type": "string",
+      "title": "2\u00ba Lugar \u2014 Descri\u00e7\u00e3o extra"
+    },
+    "terceiro_lugar_valor": {
+      "type": "number",
+      "title": "3\u00ba Lugar \u2014 Valor (R$)",
+      "default": 500
+    },
+    "terceiro_lugar_descricao": {
+      "type": "string",
+      "title": "3\u00ba Lugar \u2014 Descri\u00e7\u00e3o extra"
+    },
+    "bonus_meta_valor": {
+      "type": "number",
+      "title": "B\u00f4nus acima da meta (R$)",
+      "default": 800
+    },
+    "bonus_meta_descricao": {
+      "type": "string",
+      "title": "Descri\u00e7\u00e3o do b\u00f4nus extra",
+      "default": "b\u00f4nus extra de"
+    },
+    "ativo": {
+      "type": "boolean",
+      "title": "Ativo",
+      "default": true
+    }
+  },
+  "required": [
+    "periodo"
+  ]
+}

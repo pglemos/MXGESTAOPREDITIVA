@@ -1,0 +1,135 @@
+{
+  "name": "AtividadeExecucao",
+  "type": "object",
+  "properties": {
+    "cliente_id": {
+      "type": "string",
+      "title": "Cliente ID",
+      "description": "Refer\u00eancia ao ID em CarteiraCliente (base \u00fanica). Pode ser vazio para atividades sem cliente vinculado."
+    },
+    "loja_id": {
+      "type": "string",
+      "title": "Loja ID"
+    },
+    "vendedor_id": {
+      "type": "string",
+      "title": "Vendedor ID"
+    },
+    "tipo_atividade": {
+      "type": "string",
+      "title": "Tipo de Atividade",
+      "enum": [
+        "agendamento",
+        "entrega",
+        "garantia",
+        "retorno",
+        "pos_venda",
+        "comercial"
+      ]
+    },
+    "titulo": {
+      "type": "string",
+      "title": "T\u00edtulo"
+    },
+    "descricao": {
+      "type": "string",
+      "title": "Descri\u00e7\u00e3o"
+    },
+    "objetivo": {
+      "type": "string",
+      "title": "Objetivo"
+    },
+    "data_execucao": {
+      "type": "string",
+      "format": "date",
+      "title": "Data de Execu\u00e7\u00e3o"
+    },
+    "data_hora_execucao": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Data/Hora de Execu\u00e7\u00e3o"
+    },
+    "status_atividade": {
+      "type": "string",
+      "title": "Status da Atividade",
+      "enum": [
+        "Pendente",
+        "Em andamento",
+        "Resolvida",
+        "Reagendada",
+        "Cancelada"
+      ],
+      "default": "Pendente"
+    },
+    "prioridade": {
+      "type": "number",
+      "title": "Prioridade",
+      "default": 5
+    },
+    "resultado": {
+      "type": "string",
+      "title": "Resultado"
+    },
+    "observacao_resultado": {
+      "type": "string",
+      "title": "Observa\u00e7\u00e3o do Resultado"
+    },
+    "resolvida_por": {
+      "type": "string",
+      "title": "Resolvida Por (user ID)"
+    },
+    "resolvida_em": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Resolvida Em"
+    },
+    "origem_atividade": {
+      "type": "string",
+      "title": "Origem da Atividade",
+      "enum": [
+        "Manual",
+        "FechamentoDiario",
+        "CarteiraClientes",
+        "CentralExecucao",
+        "Sistema",
+        "Automatico"
+      ],
+      "default": "Manual"
+    },
+    "evento_id": {
+      "type": "string",
+      "title": "Evento Comercial ID"
+    },
+    "fechamento_id": {
+      "type": "string",
+      "title": "Fechamento ID"
+    },
+    "nome_cliente_snapshot": {
+      "type": "string",
+      "title": "Nome do Cliente (snapshot)"
+    },
+    "telefone_snapshot": {
+      "type": "string",
+      "title": "Telefone (snapshot)"
+    },
+    "veiculo_snapshot": {
+      "type": "string",
+      "title": "Ve\u00edculo (snapshot)"
+    },
+    "ativo": {
+      "type": "boolean",
+      "title": "Ativo",
+      "default": true
+    },
+    "criado_automaticamente": {
+      "type": "boolean",
+      "title": "Criado Automaticamente",
+      "default": false
+    }
+  },
+  "required": [
+    "tipo_atividade",
+    "data_hora_execucao",
+    "status_atividade"
+  ]
+}

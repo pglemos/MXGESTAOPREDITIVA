@@ -1,0 +1,57 @@
+{
+  "name": "RoutineActivityTemplate",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "title": "Nome"
+    },
+    "objetivo": {
+      "type": "string",
+      "title": "Objetivo"
+    },
+    "tipo": {
+      "type": "string",
+      "title": "Tipo"
+    },
+    "ordem": {
+      "type": "number",
+      "title": "Ordem",
+      "default": 1
+    },
+    "offset_minutos": {
+      "type": "number",
+      "title": "Offset desde entrada (min)",
+      "default": 0
+    },
+    "duracao_minutos": {
+      "type": "number",
+      "title": "Dura\u00e7\u00e3o (min)",
+      "default": 30
+    },
+    "instrucoes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Instru\u00e7\u00f5es"
+    },
+    "atalhos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Atalhos"
+    },
+    "ativo": {
+      "type": "boolean",
+      "title": "Ativo",
+      "default": true
+    }
+  },
+  "required": [
+    "nome",
+    "tipo",
+    "ordem"
+  ]
+}

@@ -11,7 +11,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/components/ui/use-toast";
 import { Trophy, Target, Star, Plus, Calendar } from "lucide-react";
-import MetasSugeridas from "@/components/pdi/MetasSugeridas";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from "recharts";
 
 const techCompetencies = [
@@ -119,8 +118,6 @@ export default function PDIPage() {
   return (
     <div className="space-y-8">
       <PageHeader title="PDI" subtitle="Plano de Desenvolvimento Individual" />
-
-      <MetasSugeridas />
 
       {/* Goals */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">

@@ -1,0 +1,41 @@
+{
+  "name": "RankingConfig",
+  "type": "object",
+  "properties": {
+    "unidade_id": {
+      "type": "string",
+      "title": "Unidade ID"
+    },
+    "unidade_nome": {
+      "type": "string",
+      "title": "Unidade"
+    },
+    "tipo_meta_ranking": {
+      "type": "string",
+      "title": "Tipo de Meta",
+      "enum": [
+        "Volume de vendas",
+        "Faturamento"
+      ],
+      "default": "Volume de vendas"
+    },
+    "meta_padrao_volume": {
+      "type": "number",
+      "title": "Meta Padr\u00e3o (volume)",
+      "default": 60
+    },
+    "meta_padrao_faturamento": {
+      "type": "number",
+      "title": "Meta Padr\u00e3o (faturamento)",
+      "default": 100000
+    },
+    "ativo": {
+      "type": "boolean",
+      "title": "Ativo",
+      "default": true
+    }
+  },
+  "required": [
+    "tipo_meta_ranking"
+  ]
+}

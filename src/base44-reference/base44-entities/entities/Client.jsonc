@@ -1,0 +1,111 @@
+{
+  "name": "Client",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Nome"
+    },
+    "phone": {
+      "type": "string",
+      "title": "Telefone"
+    },
+    "vehicle_sought": {
+      "type": "string",
+      "title": "Ve\u00edculo de Interesse"
+    },
+    "negotiated_value": {
+      "type": "string",
+      "title": "Valor Negociado"
+    },
+    "appointment_datetime": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Data do Agendamento"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "Internet",
+        "Carteira",
+        "Showroom",
+        "Porta"
+      ],
+      "title": "Canal"
+    },
+    "attended": {
+      "type": "string",
+      "enum": [
+        "Sim",
+        "N\u00e3o"
+      ],
+      "title": "Compareceu"
+    },
+    "car_evaluated": {
+      "type": "string",
+      "enum": [
+        "Sim",
+        "N\u00e3o"
+      ],
+      "title": "Carro Avaliado"
+    },
+    "signal": {
+      "type": "string",
+      "title": "Sinal (R$)"
+    },
+    "financing": {
+      "type": "string",
+      "enum": [
+        "Aprovado",
+        "Recusado",
+        "N\u00e3o se aplica"
+      ],
+      "title": "Financiamento"
+    },
+    "sale_completed": {
+      "type": "boolean",
+      "title": "Venda Realizada",
+      "default": false
+    },
+    "sale_status": {
+      "type": "string",
+      "enum": [
+        "Sim",
+        "N\u00e3o",
+        "Em Negocia\u00e7\u00e3o"
+      ],
+      "title": "Status da Venda",
+      "default": "N\u00e3o"
+    },
+    "loss_reason": {
+      "type": "string",
+      "title": "Motivo da Perda"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Observa\u00e7\u00f5es"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Em Andamento",
+        "Aguardando Cliente",
+        "Sem Resposta",
+        "Vendido",
+        "Perdido"
+      ],
+      "title": "Status",
+      "default": "Em Andamento"
+    },
+    "d1_excluido": {
+      "type": "boolean",
+      "title": "Agendamento D+1 Exclu\u00eddo",
+      "default": false
+    }
+  },
+  "required": [
+    "name",
+    "phone",
+    "channel"
+  ]
+}

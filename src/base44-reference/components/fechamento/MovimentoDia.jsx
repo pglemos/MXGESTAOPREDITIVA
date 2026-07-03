@@ -1,0 +1,347 @@
+import React, { useState } from "react";
+import { Store, Users, Globe, Info, Lock } from "lucide-react";
+import moment from "moment";
+import { isClienteD1 } from "@/components/fechamento/ClientCard";
+
+// ── Stepper Input ─────────────────────────────────────────────────────────────
+
+function StepperInput({ value, onDecrement, onIncrement, onSet, disabled }) {
+  const [inputVal, setInputVal] = useState(null);
+
+  const handleFocus = (e) => {
+    if (disabled) return;
+    setInputVal(String(value));
+    setTimeout(() => e.target.select(), 0);
+  };
+
+  const handleChange = (e) => {
+    if (disabled) return;
+    const raw = e.target.value.replace(/\D/g, "");
+    setInputVal(raw);
+  };
+
+  const commit = () => {
+    if (disabled) return;
+    const num = inputVal === "" || inputVal === null ? 0 : parseInt(inputVal, 10);
+    onSet(Math.min(999, Math.max(0, isNaN(num) ? 0 : num)));
+    setInputVal(null);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === "Tab") commit();
+  };
+
+  if (disabled) {
+    return (
+      <div className="flex items-center border border-slate-100 rounded-xl h-9 bg-slate-50 opacity-60 cursor-not-allowed">
+        <div className="w-9 h-full flex items-center justify-center text-slate-300 border-r border-slate-100 text-[18px] font-light">−</div>
+        <span className="flex-1 text-center font-bold text-[15px] text-slate-400 tabular-nums">{value}</span>
+        <div className="w-9 h-full flex items-center justify-center text-slate-300 border-l border-slate-100 text-[18px] font-light">+</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center border border-slate-200 rounded-xl shadow-sm h-9 focus-within:border-blue-400 focus-within:shadow-[0_0_0_3px_rgba(59,130,246,0.12)] transition-all bg-white">
+      <button
+        onClick={onDecrement}
+        className="w-9 h-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-50 active:bg-slate-100 border-r border-slate-200 rounded-l-xl transition-colors text-[18px] font-light flex-shrink-0"
+      >−</button>
+      <input
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        value={inputVal !== null ? inputVal : String(value)}
+        onFocus={handleFocus}
+        onChange={handleChange}
+        onBlur={commit}
+        onKeyDown={handleKeyDown}
+        onWheel={e => e.target.blur()}
+        className="flex-1 min-w-0 text-center font-bold text-[15px] text-slate-700 bg-transparent border-none outline-none h-full tabular-nums"
+        style={{ boxShadow: "none" }}
+      />
+      <button
+        onClick={onIncrement}
+        className="w-9 h-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-50 active:bg-slate-100 border-l border-slate-200 rounded-r-xl transition-colors text-[18px] font-light flex-shrink-0"
+      >+</button>
+    </div>
+  );
+}
+
+// ── Field Row ─────────────────────────────────────────────────────────────────
+
+function FieldRow({ label, value, onDecrement, onIncrement, onSet, disabled }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className={`text-[12px] font-semibold leading-tight flex-1 min-w-0 ${disabled ? "text-slate-300" : "text-slate-500"}`}>{label}</span>
+      <div className="w-[120px] flex-shrink-0">
+        <StepperInput value={value} onDecrement={onDecrement} onIncrement={onIncrement} onSet={onSet} disabled={disabled} />
+      </div>
+    </div>
+  );
+}
+
+// ── Canal Cards ───────────────────────────────────────────────────────────────
+
+function ShowroomCard({ dc, updateCounter, setCounter, bloqueado }) {
+  return (
+    <div className={`flex-1 rounded-2xl p-5 flex flex-col gap-4 min-w-0 border ${bloqueado ? "bg-slate-50 border-slate-100 opacity-70" : "bg-orange-50/60 border-orange-100"}`}>
+      <div className="flex items-center gap-3">
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-md ${bloqueado ? "bg-slate-300 shadow-slate-100" : "bg-orange-500 shadow-orange-200"}`}>
+          {bloqueado ? <Lock className="w-5 h-5 text-white" /> : <Store className="w-5 h-5 text-white" />}
+        </div>
+        <div>
+          <p className={`text-[13px] font-black uppercase tracking-wider leading-none ${bloqueado ? "text-slate-400" : "text-orange-700"}`}>Showroom</p>
+          <p className={`text-[11px] mt-0.5 font-medium ${bloqueado ? "text-slate-300" : "text-orange-400"}`}>Atendimento presencial</p>
+        </div>
+      </div>
+      <div className="space-y-3">
+        <FieldRow
+          label="Atendimentos realizados"
+          value={dc.atendimentos_showroom || 0}
+          onDecrement={() => updateCounter("atendimentos_showroom", -1)}
+          onIncrement={() => updateCounter("atendimentos_showroom", 1)}
+          onSet={v => setCounter("atendimentos_showroom", v)}
+          disabled={bloqueado}
+        />
+      </div>
+      <p className={`text-[10px] leading-relaxed mt-auto pt-1 border-t ${bloqueado ? "text-slate-300 border-slate-100" : "text-orange-400 border-orange-100"}`}>
+        Vendas devem ser registradas em Cadastrar Venda/Agendamentos.
+      </p>
+    </div>
+  );
+}
+
+// Card Carteira — exibe quantidade ativa calculada pelos registros quando finalizado
+function CarteiraCard({ dc, updateCounter, setCounter, clients, closingDate, bloqueado, d1Editavel, onAuditLog }) {
+  const d1Date = moment(closingDate).add(1, "day").format("YYYY-MM-DD");
+
+  // Planejados (fotografia original do fechamento)
+  const planejados = dc.agendamentos_carteira || 0;
+
+  // Ativos: calculados dinamicamente pelos registros válidos (após finalização)
+  const ativos = clients.filter(c =>
+    c.channel === "Carteira" &&
+    c.sale_status === "Em Negociação" &&
+    c.appointment_datetime &&
+    moment(c.appointment_datetime).format("YYYY-MM-DD") === d1Date &&
+    !c.d1_excluido
+  ).length;
+
+  // Antes da finalização: mostra o stepper editável com planejados
+  // Após finalização: mostra ativos como número principal + planejados discreto
+  const showPostFinalizado = d1Editavel || bloqueado;
+
+  return (
+    <div className={`flex-1 rounded-2xl p-5 flex flex-col gap-4 min-w-0 border ${bloqueado ? "bg-slate-50 border-slate-100 opacity-70" : "bg-green-50/60 border-green-100"}`}>
+      <div className="flex items-center gap-3">
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-md ${bloqueado ? "bg-slate-300 shadow-slate-100" : "bg-green-500 shadow-green-200"}`}>
+          {bloqueado ? <Lock className="w-5 h-5 text-white" /> : <Users className="w-5 h-5 text-white" />}
+        </div>
+        <div>
+          <p className={`text-[13px] font-black uppercase tracking-wider leading-none ${bloqueado ? "text-slate-400" : "text-green-700"}`}>Carteira</p>
+          <p className={`text-[11px] mt-0.5 font-medium ${bloqueado ? "text-slate-300" : "text-green-400"}`}>Relacionamento e prospecção</p>
+        </div>
+      </div>
+      <div className="space-y-3">
+        <FieldRow
+          label="Leads recebidos"
+          value={dc.leads_carteira || 0}
+          onDecrement={() => updateCounter("leads_carteira", -1)}
+          onIncrement={() => updateCounter("leads_carteira", 1)}
+          onSet={v => setCounter("leads_carteira", v)}
+          disabled={bloqueado || d1Editavel}
+        />
+        <FieldRow
+          label="Atendimentos realizados"
+          value={dc.atendimentos_carteira || 0}
+          onDecrement={() => updateCounter("atendimentos_carteira", -1)}
+          onIncrement={() => updateCounter("atendimentos_carteira", 1)}
+          onSet={v => setCounter("atendimentos_carteira", v)}
+          disabled={bloqueado || d1Editavel}
+        />
+        {/* Agendamentos D+1: stepper livre antes; display calculado depois */}
+        {!showPostFinalizado ? (
+          <FieldRow
+            label="Agendamentos D+1"
+            value={planejados}
+            onDecrement={() => updateCounter("agendamentos_carteira", -1)}
+            onIncrement={() => updateCounter("agendamentos_carteira", 1)}
+            onSet={v => setCounter("agendamentos_carteira", v)}
+            disabled={false}
+          />
+        ) : (
+          <div className="flex items-center justify-between gap-3">
+            <span className={`text-[12px] font-semibold leading-tight flex-1 min-w-0 ${bloqueado ? "text-slate-300" : "text-slate-500"}`}>
+              Agendamentos D+1 ativos
+            </span>
+            <div className="w-[120px] flex-shrink-0 flex items-center justify-center">
+              <span className={`text-[22px] font-black tabular-nums ${bloqueado ? "text-slate-400" : "text-green-700"}`}>{ativos}</span>
+            </div>
+          </div>
+        )}
+      </div>
+      {/* Planejados originais (sempre discreto após finalização) */}
+      {showPostFinalizado && (
+        <div className={`mt-auto pt-3 border-t space-y-1 ${bloqueado ? "border-slate-100" : "border-green-100"}`}>
+          <p className={`text-[10px] font-medium ${bloqueado ? "text-slate-300" : "text-green-500"}`}>
+            Planejados no fechamento: <strong className={bloqueado ? "text-slate-400" : "text-green-700"}>{planejados}</strong>
+          </p>
+          {!bloqueado && (
+            <p className="text-[10px] font-semibold text-green-500">
+              Detalhados: <strong className="text-green-700">{ativos}</strong> de <strong className="text-green-700">{planejados}</strong>
+            </p>
+          )}
+        </div>
+      )}
+      {/* Antes da finalização: detalhados vs planejados */}
+      {!showPostFinalizado && planejados > 0 && (
+        <div className="flex items-center gap-1.5 mt-auto pt-3 border-t border-green-100">
+          <span className="text-[11px] font-semibold text-green-500">
+            Detalhados: <strong className="text-green-700">{ativos}</strong> de <strong className="text-green-700">{planejados}</strong>
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Card Internet — mesma lógica do Carteira
+function InternetCard({ dc, updateCounter, setCounter, clients, closingDate, bloqueado, d1Editavel, onAuditLog }) {
+  const d1Date = moment(closingDate).add(1, "day").format("YYYY-MM-DD");
+
+  const planejados = dc.agendamentos_internet || 0;
+
+  const ativos = clients.filter(c =>
+    c.channel === "Internet" &&
+    c.sale_status === "Em Negociação" &&
+    c.appointment_datetime &&
+    moment(c.appointment_datetime).format("YYYY-MM-DD") === d1Date &&
+    !c.d1_excluido
+  ).length;
+
+  const showPostFinalizado = d1Editavel || bloqueado;
+
+  return (
+    <div className={`flex-1 rounded-2xl p-5 flex flex-col gap-4 min-w-0 border ${bloqueado ? "bg-slate-50 border-slate-100 opacity-70" : "bg-blue-50/60 border-blue-100"}`}>
+      <div className="flex items-center gap-3">
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-md ${bloqueado ? "bg-slate-300 shadow-slate-100" : "bg-blue-600 shadow-blue-200"}`}>
+          {bloqueado ? <Lock className="w-5 h-5 text-white" /> : <Globe className="w-5 h-5 text-white" />}
+        </div>
+        <div>
+          <p className={`text-[13px] font-black uppercase tracking-wider leading-none ${bloqueado ? "text-slate-400" : "text-blue-700"}`}>Internet</p>
+          <p className={`text-[11px] mt-0.5 font-medium ${bloqueado ? "text-slate-300" : "text-blue-400"}`}>Leads digitais</p>
+        </div>
+      </div>
+      <div className="space-y-3">
+        <FieldRow
+          label="Leads recebidos"
+          value={dc.leads_internet || 0}
+          onDecrement={() => updateCounter("leads_internet", -1)}
+          onIncrement={() => updateCounter("leads_internet", 1)}
+          onSet={v => setCounter("leads_internet", v)}
+          disabled={bloqueado || d1Editavel}
+        />
+        <FieldRow
+          label="Atendimentos realizados"
+          value={dc.atendimentos_internet || 0}
+          onDecrement={() => updateCounter("atendimentos_internet", -1)}
+          onIncrement={() => updateCounter("atendimentos_internet", 1)}
+          onSet={v => setCounter("atendimentos_internet", v)}
+          disabled={bloqueado || d1Editavel}
+        />
+        {!showPostFinalizado ? (
+          <FieldRow
+            label="Agendamentos D+1"
+            value={planejados}
+            onDecrement={() => updateCounter("agendamentos_internet", -1)}
+            onIncrement={() => updateCounter("agendamentos_internet", 1)}
+            onSet={v => setCounter("agendamentos_internet", v)}
+            disabled={false}
+          />
+        ) : (
+          <div className="flex items-center justify-between gap-3">
+            <span className={`text-[12px] font-semibold leading-tight flex-1 min-w-0 ${bloqueado ? "text-slate-300" : "text-slate-500"}`}>
+              Agendamentos D+1 ativos
+            </span>
+            <div className="w-[120px] flex-shrink-0 flex items-center justify-center">
+              <span className={`text-[22px] font-black tabular-nums ${bloqueado ? "text-slate-400" : "text-blue-700"}`}>{ativos}</span>
+            </div>
+          </div>
+        )}
+      </div>
+      {showPostFinalizado && (
+        <div className={`mt-auto pt-3 border-t space-y-1 ${bloqueado ? "border-slate-100" : "border-blue-100"}`}>
+          <p className={`text-[10px] font-medium ${bloqueado ? "text-slate-300" : "text-blue-500"}`}>
+            Planejados no fechamento: <strong className={bloqueado ? "text-slate-400" : "text-blue-700"}>{planejados}</strong>
+          </p>
+          {!bloqueado && (
+            <p className="text-[10px] font-semibold text-blue-500">
+              Detalhados: <strong className="text-blue-700">{ativos}</strong> de <strong className="text-blue-700">{planejados}</strong>
+            </p>
+          )}
+        </div>
+      )}
+      {!showPostFinalizado && planejados > 0 && (
+        <div className="flex items-center gap-1.5 mt-auto pt-3 border-t border-blue-100">
+          <span className="text-[11px] font-semibold text-blue-500">
+            Detalhados: <strong className="text-blue-700">{ativos}</strong> de <strong className="text-blue-700">{planejados}</strong>
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Main Export ───────────────────────────────────────────────────────────────
+
+export default function MovimentoDia({ dc, updateCounter, setCounter, clients = [], closingDate, bloqueado = false, d1Editavel = false, onAuditLog }) {
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+        <div className="flex items-center gap-2.5 flex-1 min-w-0">
+          <span className="w-6 h-6 rounded-full bg-[#005BFF] text-white text-[11px] font-black flex items-center justify-center flex-shrink-0">1</span>
+          <div>
+            <h2 className="text-[14px] font-black text-[#0F172A] uppercase tracking-wide leading-none">Movimento do Dia</h2>
+            <p className="text-[12px] text-slate-400 mt-0.5 font-medium">Informe rapidamente o que aconteceu hoje em cada canal.</p>
+          </div>
+        </div>
+        <div className="relative group flex-shrink-0">
+          <Info className="w-4 h-4 text-slate-300 hover:text-slate-500 cursor-pointer transition-colors" />
+          <div className="absolute right-0 top-6 w-72 bg-slate-800 text-white text-[11px] rounded-xl p-3 shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 leading-relaxed">
+            Preencha os dados de cada canal. Os totais são somados automaticamente no Resumo do Dia. Após a finalização, os Agendamentos D+1 ativos são calculados automaticamente pelos registros cadastrados.
+          </div>
+        </div>
+      </div>
+
+      <div className="p-5 flex gap-4">
+        <ShowroomCard
+          dc={dc}
+          updateCounter={updateCounter}
+          setCounter={setCounter}
+          bloqueado={bloqueado || d1Editavel}
+        />
+        <CarteiraCard
+          dc={dc}
+          updateCounter={updateCounter}
+          setCounter={setCounter}
+          clients={clients}
+          closingDate={closingDate}
+          bloqueado={bloqueado}
+          d1Editavel={d1Editavel}
+          onAuditLog={onAuditLog}
+        />
+        <InternetCard
+          dc={dc}
+          updateCounter={updateCounter}
+          setCounter={setCounter}
+          clients={clients}
+          closingDate={closingDate}
+          bloqueado={bloqueado}
+          d1Editavel={d1Editavel}
+          onAuditLog={onAuditLog}
+        />
+      </div>
+    </div>
+  );
+}

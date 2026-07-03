@@ -1,19 +1,39 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import {
   AlarmClock,
+  AlertTriangle,
+  BookOpen,
+  Brain,
   Calendar,
-  CalendarCheck,
   CheckCircle2,
-  Clock,
+  ChevronDown,
   ChevronRight,
   CircleDollarSign,
+  ExternalLink,
+  FolderOpen,
+  Headphones,
+  Inbox,
   Info,
+  ListChecks,
   MessageCircle,
   MoreHorizontal,
+  Phone,
+  Plus,
+  RefreshCw,
   RotateCcw,
+  Search,
+  Shield,
+  Sparkles,
   Target,
+  Truck,
+  UserCheck,
+  UserPlus,
+  UserRound,
+  Users,
+  UserX,
+  type LucideIcon,
 } from 'lucide-react'
 
 import { Button } from '@/components/atoms/Button'
@@ -25,12 +45,13 @@ import { FormField } from '@/components/molecules/FormField'
 import { PageHeading } from '@/components/molecules/PageHeading'
 import { TabNav } from '@/components/molecules/TabNav'
 import { Modal } from '@/components/organisms/Modal'
-import { calculateReferenceDate, useCheckinsToday } from '@/hooks/checkins'
-import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 import {
+  normalizarTelefone,
   toDateOnlyBR,
-  CRM_AGENDAMENTO_STATUS_LABEL,
+  CRM_AGENDAMENTO_TIPO,
+  CRM_AGENDAMENTO_TIPO_LABEL,
+  type Cliente,
   type CrmAgendamentoStatus,
   type CrmAgendamentoTipo,
   type CrmCanal,
@@ -39,11 +60,11 @@ import {
 } from '@/lib/schemas/crm.schema'
 import { timestampMatchesDateOnly } from '@/features/checkin/lib/clientes-list-from-crm'
 import { getSPHoursMinutes } from '@/features/checkin/hooks/useCheckinPage'
-import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
+import type { DailyRoutineAutoSlotKey } from '@/lib/daily-routine'
+import { useAgendamentos, type AgendamentoComCliente } from '@/features/crm/hooks/useAgendamentos'
 import { useClientes } from '@/features/crm/hooks/useClientes'
 import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
 import { useVendedorPerfil } from '@/features/crm/hooks/useVendedorPerfil'
-import { useScoreRotina, type ScoreRotinaItem } from '@/features/crm/hooks/useScoreRotina'
 import {
   TIPO_ACAO_LABEL,
   useRoutinePlaybook,
@@ -82,6 +103,81 @@ const STATUS_TONE: Record<CrmAgendamentoStatus, string> = {
   nao_compareceu: 'bg-status-error-surface text-status-error border-status-error/20',
 }
 
+// ── Aba "Hoje" — tipo de agendamento: ícone + cor do badge (paleta 1:1 com o Base44 AbaHoje.jsx) ──
+const TIPO_ICON: Record<CrmAgendamentoTipo, LucideIcon> = {
+  visita: Calendar,
+  negociacao: Calendar,
+  test_drive: Calendar,
+  retorno: RefreshCw,
+  entrega: Truck,
+  garantia: Shield,
+  pos_venda: Users,
+}
+const TIPO_BAR: Record<CrmAgendamentoTipo, string> = {
+  visita: 'bg-blue-500',
+  negociacao: 'bg-blue-500',
+  test_drive: 'bg-blue-500',
+  retorno: 'bg-amber-500',
+  entrega: 'bg-purple-500',
+  garantia: 'bg-orange-500',
+  pos_venda: 'bg-teal-500',
+}
+const TIPO_BADGE: Record<CrmAgendamentoTipo, string> = {
+  visita: 'bg-blue-50 text-blue-700',
+  negociacao: 'bg-blue-50 text-blue-700',
+  test_drive: 'bg-blue-50 text-blue-700',
+  retorno: 'bg-amber-50 text-amber-700',
+  entrega: 'bg-purple-50 text-purple-700',
+  garantia: 'bg-orange-50 text-orange-700',
+  pos_venda: 'bg-teal-50 text-teal-700',
+}
+// Prioridade base por tipo (menor = mais urgente) — mesma ordem do Base44
+const TIPO_PRIORIDADE_BASE: Record<CrmAgendamentoTipo, number> = {
+  visita: 1,
+  negociacao: 1,
+  test_drive: 1,
+  entrega: 2,
+  garantia: 3,
+  retorno: 4,
+  pos_venda: 5,
+}
+const FILTROS_TIPO: { id: CrmAgendamentoTipo | 'todos'; label: string }[] = [
+  { id: 'todos', label: 'Todas' },
+  ...CRM_AGENDAMENTO_TIPO.map(tipo => ({ id: tipo, label: CRM_AGENDAMENTO_TIPO_LABEL[tipo] })),
+]
+type OrdenarHoje = 'prioridade' | 'horario' | 'tipo' | 'cliente'
+
+// Ícone por etapa da Rotina do Dia — 1:1 com o Base44 AbaRotina.jsx (ROUTINE_STEPS).
+const STEP_ICON: Record<DailyRoutineAutoSlotKey, LucideIcon> = {
+  mentalidade: Brain,
+  organizacao: FolderOpen,
+  novos_leads: UserPlus,
+  prospeccao: Phone,
+  atendimento: Headphones,
+  lista_quente: ListChecks,
+  fechamento: CheckCircle2,
+}
+
+function avatarIniciais(nome: string) {
+  if (!nome) return '?'
+  return nome.split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase()
+}
+
+function sortAgendaHoje(lista: AgendaHojeItem[], ordenar: OrdenarHoje): AgendaHojeItem[] {
+  const copia = [...lista]
+  if (ordenar === 'horario') return copia.sort((a, b) => a.horario.localeCompare(b.horario))
+  if (ordenar === 'tipo') return copia.sort((a, b) => a.agendamento.tipo.localeCompare(b.agendamento.tipo))
+  if (ordenar === 'cliente') return copia.sort((a, b) => a.clienteNome.localeCompare(b.clienteNome))
+  // Prioridade (padrão): atrasado primeiro, depois por tipo, depois horário
+  return copia.sort((a, b) => {
+    if (a.atrasadoNaoTratado !== b.atrasadoNaoTratado) return a.atrasadoNaoTratado ? -1 : 1
+    const pa = TIPO_PRIORIDADE_BASE[a.agendamento.tipo as CrmAgendamentoTipo] ?? 9
+    const pb = TIPO_PRIORIDADE_BASE[b.agendamento.tipo as CrmAgendamentoTipo] ?? 9
+    if (pa !== pb) return pa - pb
+    return a.horario.localeCompare(b.horario)
+  })
+}
+
 function Pill({ children, className }: { children: React.ReactNode; className: string }) {
   return <span className={cn('inline-flex shrink-0 rounded-mx-sm border px-2.5 py-1 text-xs font-bold', className)}>{children}</span>
 }
@@ -110,102 +206,94 @@ function getDateLabel(date: Date) {
   return `${dateLabel} (${weekday.charAt(0).toUpperCase()}${weekday.slice(1)})`
 }
 
-function MetricCard({
-  icon,
-  label,
-  value,
-  hint,
-  tone,
+function OportunidadeCard({
+  item,
+  onWhatsApp,
+  onAbrirCliente,
+  onResolver,
 }: {
-  icon: React.ReactNode
-  label: string
-  value: string
-  hint: string
-  tone: 'green' | 'red' | 'orange' | 'blue'
+  item: AgendaHojeItem
+  onWhatsApp: (item: AgendaHojeItem) => void
+  onAbrirCliente: (item: AgendaHojeItem) => void
+  onResolver: (item: AgendaHojeItem) => void
 }) {
-  const toneClass = {
-    green: 'bg-status-success-surface text-status-success',
-    red: 'bg-status-error-surface text-status-error',
-    orange: 'bg-status-warning-surface text-status-warning',
-    blue: 'bg-status-info-surface text-status-info',
-  }[tone]
+  const tipo = item.agendamento.tipo as CrmAgendamentoTipo
+  const Icon = TIPO_ICON[tipo] || Calendar
+  const isVencido = item.atrasadoNaoTratado
+  const tel = onlyDigits(item.clienteTelefone)
 
   return (
-    <Card className="h-full min-h-[116px] rounded-mx-lg border border-border-subtle bg-white p-mx-xs shadow-mx-sm">
-      <div className="flex h-full min-w-0 flex-col justify-center gap-mx-xs">
-        <Typography variant="caption" className="block min-w-0 whitespace-normal text-center text-[11px] font-bold leading-snug tracking-normal text-text-primary">{label}</Typography>
-        <div className="flex min-w-0 items-center gap-mx-xs">
-          <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full [&_svg]:size-4', toneClass)}>{icon}</span>
-          <div className="min-w-0">
-            <Typography variant="h2" className="text-2xl leading-none text-text-primary">{value}</Typography>
-            <Typography variant="caption" tone="muted" className="mt-mx-xs block text-[11px] font-bold leading-tight tracking-normal">{hint}</Typography>
+    <div className={cn('group flex overflow-hidden rounded-2xl border bg-white shadow-sm transition-shadow hover:shadow-md', isVencido ? 'border-red-200' : 'border-slate-200')}>
+      <div className={cn('w-1.5 shrink-0', TIPO_BAR[tipo])} />
+      <div className="flex min-w-0 flex-1 items-center gap-4 px-5 py-4">
+        <div className="w-12 shrink-0 text-center">
+          <div className={cn('mx-auto mb-1 flex h-9 w-9 items-center justify-center rounded-xl', TIPO_BADGE[tipo])}>
+            <Icon size={16} />
           </div>
+          <p className={cn('text-[10px] font-bold', isVencido ? 'text-red-500' : 'text-slate-400')}>{fmtHora(item.horario)}</p>
         </div>
-      </div>
-    </Card>
-  )
-}
 
-function ScoreCard({ score, items }: { score: number; items: ScoreRotinaItem[] }) {
-  return (
-    <Card className="h-full min-h-[116px] rounded-mx-lg border border-border-subtle bg-white p-mx-xs shadow-mx-sm">
-      <div className="grid h-full grid-cols-[72px_minmax(0,1fr)] items-center gap-mx-xs">
-        <div className="relative flex h-[72px] w-[72px] items-center justify-center rounded-full" style={{ background: `conic-gradient(var(--color-brand-primary) ${score * 3.6}deg, var(--color-border-subtle) 0deg)` }}>
-          <div className="flex h-[54px] w-[54px] flex-col items-center justify-center rounded-full bg-white">
-            <Typography variant="h2" className="text-2xl leading-none text-brand-primary">{score}%</Typography>
-            <Typography variant="tiny" className="font-bold leading-none tracking-normal text-brand-primary">{score >= 70 ? 'Bom!' : 'Foco!'}</Typography>
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[12px] font-black text-slate-500">
+            {avatarIniciais(item.clienteNome)}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="truncate text-[14px] font-bold text-[#0F172A]">{item.clienteNome || 'Cliente sem nome'}</p>
+              <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold', TIPO_BADGE[tipo])}>{CRM_AGENDAMENTO_TIPO_LABEL[tipo]}</span>
+              {isVencido && <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-500">Vencido</span>}
+            </div>
+            {item.veiculoInteresse && <p className="truncate text-[12px] text-slate-400">{item.veiculoInteresse}</p>}
           </div>
         </div>
-        <div className="min-w-0">
-          <div className="flex items-center gap-mx-tiny">
-            <Typography variant="caption" className="font-bold tracking-normal text-text-primary">Score da Rotina</Typography>
-            <Info size={12} className="shrink-0 text-text-tertiary" />
-          </div>
-          <div className="mt-2 space-y-1.5">
-            {items.map(item => (
-              <div key={item.label} className="grid grid-cols-[12px_minmax(0,1fr)_auto] items-center gap-1.5 text-[11px]">
-                <span className={cn('flex h-3 w-3 items-center justify-center rounded-full text-white', item.done ? 'bg-status-success' : 'border border-border-strong bg-white')} />
-                <span className="font-semibold leading-tight text-text-secondary">{item.compactLabel || item.label}</span>
-                <span className={cn('font-bold', item.done ? 'text-brand-primary' : 'text-text-tertiary')}>{item.value}</span>
-              </div>
-            ))}
-          </div>
+
+        <div className="flex shrink-0 items-center gap-1.5">
+          <button type="button" title="WhatsApp" onClick={() => onWhatsApp(item)} className="rounded-xl bg-green-50 p-2 text-green-600 transition-colors hover:bg-green-100">
+            <MessageCircle size={16} />
+          </button>
+          {tel && (
+            <a href={`tel:${tel}`} title="Ligar" className="rounded-xl bg-slate-50 p-2 text-slate-500 transition-colors hover:bg-slate-100">
+              <Phone size={16} />
+            </a>
+          )}
+          <Link to="/carteira-clientes" onClick={() => onAbrirCliente(item)} title="Abrir cliente" className="rounded-xl bg-blue-50 p-2 text-[#005BFF] transition-colors hover:bg-blue-100">
+            <UserRound size={16} />
+          </Link>
+          <button type="button" onClick={() => onResolver(item)} className="ml-1 flex items-center gap-1.5 rounded-xl bg-[#005BFF] px-4 py-2 text-[12px] font-bold text-white transition-colors hover:bg-blue-700">
+            Resolver
+          </button>
         </div>
       </div>
-    </Card>
+    </div>
   )
 }
 
 function AtalhoButton({ atalho, onTabChange, onInfo }: { atalho: RoutineAtalho; onTabChange: (tab: CentralTab) => void; onInfo: (label: string) => void }) {
+  const secondaryClass = 'flex items-center gap-1.5 rounded-xl border border-[#005BFF] px-3.5 py-2 text-[12px] font-bold text-[#005BFF] transition-colors hover:bg-blue-50'
   if (atalho.type === 'tab') {
     return (
-      <Button variant="outline" size="sm" className="h-mx-9 bg-white text-xs" onClick={() => onTabChange(atalho.target as CentralTab)}>
-        {atalho.label}
-      </Button>
+      <button type="button" className={secondaryClass} onClick={() => onTabChange(atalho.target as CentralTab)}>
+        <ExternalLink size={12} />{atalho.label}
+      </button>
     )
   }
   if (atalho.type === 'route' && atalho.target) {
     return (
-      <Button asChild variant="outline" size="sm" className="h-mx-9 bg-white text-xs">
-        <Link to={atalho.target}>{atalho.label}</Link>
-      </Button>
+      <Link to={atalho.target} className={secondaryClass}>
+        <ExternalLink size={12} />{atalho.label}
+      </Link>
     )
   }
   return (
-    <Button variant="ghost" size="sm" className="h-mx-9 text-xs text-text-tertiary" onClick={() => onInfo(atalho.label)}>
+    <button type="button" className="text-[12px] font-bold text-slate-400 hover:text-slate-600" onClick={() => onInfo(atalho.label)}>
       {atalho.label}
-    </Button>
+    </button>
   )
 }
 
 export function CentralExecucao() {
-  const { profile, activeStoreId, storeId } = useAuth()
-  const effectiveStoreId = activeStoreId || storeId || null
-  const referenceDate = calculateReferenceDate()
-  const { todayCheckin } = useCheckinsToday(profile, effectiveStoreId, referenceDate)
-
   const { oportunidades, updateOportunidade } = useOportunidades()
-  const { agendamentos, updateAgendamento } = useAgendamentos()
+  const { agendamentos, createAgendamento, updateAgendamento, updateStatus } = useAgendamentos()
   const { clientes } = useClientes()
   const { perfil } = useVendedorPerfil()
 
@@ -220,6 +308,22 @@ export function CentralExecucao() {
   const [verComoFazerOpen, setVerComoFazerOpen] = useState(false)
   const [saving, setSaving] = useState(false)
 
+  const [filtroTipo, setFiltroTipo] = useState<CrmAgendamentoTipo | 'todos'>('todos')
+  const [ordenar, setOrdenar] = useState<OrdenarHoje>('prioridade')
+  const [pendenciasOpen, setPendenciasOpen] = useState(false)
+  const [novaAtividadeOpen, setNovaAtividadeOpen] = useState(false)
+  const [novaAtividadeStep, setNovaAtividadeStep] = useState<'tipo' | 'form'>('tipo')
+  const [novaAtividadeTipo, setNovaAtividadeTipo] = useState<CrmAgendamentoTipo | null>(null)
+  const [novaAtividadeTelefone, setNovaAtividadeTelefone] = useState('')
+  const [clienteEncontrado, setClienteEncontrado] = useState<Cliente | null>(null)
+  const [clienteNaoEncontrado, setClienteNaoEncontrado] = useState(false)
+  const [novaAtividadeForm, setNovaAtividadeForm] = useState({
+    data: '',
+    hora: '',
+    veiculo: '',
+    observacoes: '',
+  })
+
   const hoje = useMemo(() => new Date(), [])
   const hojeStr = useMemo(() => toDateOnlyBR(), [])
 
@@ -228,22 +332,28 @@ export function CentralExecucao() {
     [oportunidades, agendamentos, hojeStr, hoje],
   )
 
-  const clientesCriadosHoje = useMemo(
-    () => clientes.filter(c => timestampMatchesDateOnly(c.created_at, hojeStr)).length,
-    [clientes, hojeStr],
+  // Pendências de dias anteriores: agendamentos ainda não tratados (aguardando/confirmado) com data já passada.
+  const pendenciasAnteriores = useMemo(
+    () => agendamentos.filter(a => {
+      if (a.status === 'compareceu' || a.status === 'nao_compareceu') return false
+      return new Date(a.data_hora) < hoje && !timestampMatchesDateOnly(a.data_hora, hojeStr)
+    }),
+    [agendamentos, hoje, hojeStr],
   )
 
-  const { score, items: scoreItems } = useScoreRotina({ clientesCriadosHoje, fechamentoFeito: Boolean(todayCheckin) })
+  const contagemPorTipo = useMemo(() => {
+    const map: Partial<Record<CrmAgendamentoTipo, number>> = {}
+    agendaHojeItems.forEach(item => {
+      const tipo = item.agendamento.tipo as CrmAgendamentoTipo
+      map[tipo] = (map[tipo] || 0) + 1
+    })
+    return map
+  }, [agendaHojeItems])
 
-  const agendamentosHojeTodos = useMemo(
-    () => agendamentos.filter(a => timestampMatchesDateOnly(a.data_hora, hojeStr)),
-    [agendamentos, hojeStr],
-  )
-  const compareceramHoje = agendamentosHojeTodos.filter(a => a.status === 'compareceu').length
-  const vendasRealizadasHoje = useMemo(
-    () => oportunidades.filter(o => o.etapa === 'ganho' && timestampMatchesDateOnly(o.closed_at, hojeStr)).length,
-    [oportunidades, hojeStr],
-  )
+  const listaFiltrada = useMemo(() => {
+    const filtrada = filtroTipo === 'todos' ? agendaHojeItems : agendaHojeItems.filter(item => item.agendamento.tipo === filtroTipo)
+    return sortAgendaHoje(filtrada, ordenar)
+  }, [agendaHojeItems, filtroTipo, ordenar])
 
   const { slots, currentSlot, prospeccaoHoje, storyIdeaHoje, conflitoCliente } = useRoutinePlaybook({
     workStartTime: perfil.hora_entrada,
@@ -251,10 +361,84 @@ export function CentralExecucao() {
     workEndTime: perfil.hora_saida,
     agendaHojeItems,
   })
+
+  const [expandedStep, setExpandedStep] = useState<DailyRoutineAutoSlotKey | null>(null)
+  useEffect(() => {
+    if (currentSlot) setExpandedStep(currentSlot.key)
+  }, [currentSlot?.key])
+
   const nowMinutesForTimeline = useMemo(() => {
     const { hours, minutes } = getSPHoursMinutes()
     return hours * 60 + minutes
   }, [])
+
+  async function handleMarcarStatus(item: AgendaHojeItem, status: CrmAgendamentoStatus) {
+    setSaving(true)
+    const { error } = await updateStatus(item.agendamento.id, status)
+    setSaving(false)
+    if (error) { toast.error(error); return }
+    setMaisAcoesItem(null)
+    toast.success(status === 'compareceu' ? 'Marcado como compareceu.' : 'Marcado como não compareceu.')
+  }
+
+  function resetarNovaAtividade() {
+    setNovaAtividadeStep('tipo')
+    setNovaAtividadeTipo(null)
+    setNovaAtividadeTelefone('')
+    setClienteEncontrado(null)
+    setClienteNaoEncontrado(false)
+    setNovaAtividadeForm({ data: toDateOnlyBR(), hora: new Date().toTimeString().slice(0, 5), veiculo: '', observacoes: '' })
+  }
+
+  function abrirNovaAtividade() {
+    resetarNovaAtividade()
+    setNovaAtividadeOpen(true)
+  }
+
+  function fecharNovaAtividade() {
+    resetarNovaAtividade()
+    setNovaAtividadeOpen(false)
+  }
+
+  function escolherTipoNovaAtividade(tipo: CrmAgendamentoTipo) {
+    setNovaAtividadeTipo(tipo)
+    setNovaAtividadeStep('form')
+  }
+
+  function buscarClienteNovaAtividade() {
+    const tel = normalizarTelefone(novaAtividadeTelefone)
+    if (!tel) return
+    const found = clientes.find(c => normalizarTelefone(c.telefone) === tel)
+    if (found) {
+      setClienteEncontrado(found)
+      setClienteNaoEncontrado(false)
+    } else {
+      setClienteEncontrado(null)
+      setClienteNaoEncontrado(true)
+    }
+  }
+
+  async function confirmarNovaAtividade() {
+    if (!novaAtividadeTipo || !novaAtividadeForm.data || !novaAtividadeForm.hora) {
+      toast.error('Selecione o tipo, a data e o horário.')
+      return
+    }
+    setSaving(true)
+    const observacoes = novaAtividadeForm.veiculo
+      ? `Veículo: ${novaAtividadeForm.veiculo}.${novaAtividadeForm.observacoes ? ` ${novaAtividadeForm.observacoes}` : ''}`
+      : novaAtividadeForm.observacoes || null
+    const { error } = await createAgendamento({
+      cliente_id: clienteEncontrado?.id || null,
+      data_hora: `${novaAtividadeForm.data}T${novaAtividadeForm.hora}`,
+      tipo: novaAtividadeTipo,
+      status: 'aguardando',
+      observacoes,
+    })
+    setSaving(false)
+    if (error) { toast.error(error); return }
+    fecharNovaAtividade()
+    toast.success('Atividade criada com sucesso.')
+  }
 
   function openReagendar(item: AgendaHojeItem) {
     setReagendarItem(item)
@@ -287,6 +471,7 @@ export function CentralExecucao() {
   }
 
   function openVenda(item: AgendaHojeItem) {
+    if (!item.oportunidade) { toast.error('Esta atividade não está vinculada a uma oportunidade do funil.'); return }
     setVendaItem(item)
     setVendaForm({
       valorNegociado: item.oportunidade.valor_negociado ? String(item.oportunidade.valor_negociado) : '',
@@ -297,7 +482,7 @@ export function CentralExecucao() {
   }
 
   async function confirmVenda() {
-    if (!vendaItem) return
+    if (!vendaItem || !vendaItem.oportunidade) return
     const valor = Number(vendaForm.valorNegociado.replace(/\D/g, '')) || 0
     if (valor <= 0) { toast.error('Informe o valor negociado.'); return }
     setSaving(true)
@@ -321,12 +506,13 @@ export function CentralExecucao() {
   }
 
   function openPerda(item: AgendaHojeItem) {
+    if (!item.oportunidade) { toast.error('Esta atividade não está vinculada a uma oportunidade do funil.'); return }
     setPerdaItem(item)
     setPerdaMotivo(item.oportunidade.motivo_perda || '')
   }
 
   async function confirmPerda() {
-    if (!perdaItem) return
+    if (!perdaItem || !perdaItem.oportunidade) return
     if (!perdaMotivo) { toast.error('Selecione o motivo da perda.'); return }
     setSaving(true)
     const op = perdaItem.oportunidade
@@ -356,221 +542,273 @@ export function CentralExecucao() {
     window.open(`https://wa.me/${num}`, '_blank', 'noopener')
   }
 
+  const weekdayLabel = hoje.toLocaleDateString('pt-BR', { weekday: 'long' })
+  const dateFullLabel = hoje.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).replace(' de ', ' de ')
+
   return (
-    <main className="h-full w-full min-w-0 overflow-y-auto bg-surface-alt px-mx-sm pb-mx-sm pt-0 no-scrollbar sm:px-mx-md sm:pb-mx-md 2xl:px-mx-lg 2xl:pb-mx-lg">
-      <div className="flex min-w-0 flex-col gap-mx-lg pb-20">
-        <header className="relative z-40 -mx-mx-sm shrink-0 border-b border-border-default/60 bg-surface-alt px-mx-sm pb-3 pt-2 shadow-[0_10px_24px_rgba(15,23,42,0.08)] sm:-mx-mx-md sm:px-mx-md md:sticky md:top-0 md:pt-3 2xl:-mx-mx-lg 2xl:px-mx-lg">
-          <PageHeading
-            title="Central de Execução"
-            subtitle="Organize seu dia e foque no que gera resultado."
-            actions={(
-              <span className="inline-flex h-10 shrink-0 items-center gap-mx-xs whitespace-nowrap rounded-mx-md border border-border-subtle bg-white px-2 text-[11px] font-bold text-text-primary shadow-mx-sm">
-                <Calendar size={14} className="text-text-secondary" />
-                {getDateLabel(hoje)}
-              </span>
-            )}
-          />
-        </header>
-
-        <TabNav tabs={CENTRAL_TABS} activeTab={tab} onTabChange={setTab} />
-
-        {tab === 'hoje' ? (
-          <div className="flex min-w-0 flex-col gap-mx-md">
+    <main className="h-full w-full min-w-0 overflow-y-auto bg-[#F8FAFC] no-scrollbar">
+      <div className="mx-auto flex min-w-0 max-w-full flex-col pb-20">
+        {/* Topbar — 1:1 com Base44 CentralExecucao.jsx */}
+        <div className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[#E5E7EB] bg-white px-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#005BFF] to-blue-400">
+              <Target className="h-4 w-4 text-white" />
+            </div>
             <div>
-              <Typography variant="h3" className="tracking-normal text-text-primary">Agenda do Dia</Typography>
-              <Typography variant="caption" tone="muted">Clientes e negociações que precisam da sua atenção hoje.</Typography>
+              <h1 className="text-[20px] font-black leading-none tracking-tight text-[#0F172A]">Rotina do Dia</h1>
+              <p className="mt-0.5 text-[11px] font-medium text-slate-400">Organize e execute seu dia com foco</p>
+            </div>
+          </div>
+          <div className="hidden text-right sm:block">
+            <p className="text-[13px] font-bold capitalize text-[#0F172A]">{weekdayLabel}</p>
+            <p className="text-[12px] text-slate-400">{dateFullLabel}</p>
+          </div>
+        </div>
+
+        {/* Tabs — 1:1 com Base44 */}
+        <div className="sticky top-16 z-20 border-b border-[#E5E7EB] bg-white px-6">
+          <div className="flex gap-0">
+            {CENTRAL_TABS.map(t => (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => setTab(t.key)}
+                className={cn(
+                  'border-b-2 px-5 py-3.5 text-[13px] font-bold transition-all',
+                  tab === t.key ? 'border-[#005BFF] bg-white text-[#005BFF]' : 'border-transparent text-slate-400 hover:text-slate-600',
+                )}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="p-5 lg:p-6">
+        {tab === 'hoje' ? (
+          <div className="flex min-w-0 flex-col gap-5">
+            {pendenciasAnteriores.length > 0 && (
+              <div className="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+                <AlertTriangle size={16} className="shrink-0 text-amber-500" />
+                <p className="flex-1 text-[13px] font-semibold text-amber-800">
+                  Você possui {pendenciasAnteriores.length} pendência{pendenciasAnteriores.length > 1 ? 's' : ''} de dias anteriores.
+                </p>
+                <button type="button" onClick={() => setPendenciasOpen(true)} className="shrink-0 text-[12px] font-bold text-[#005BFF] hover:underline">
+                  Ver pendências
+                </button>
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 className="text-[14px] font-black text-[#0F172A]">O que você não pode deixar de fazer hoje</h3>
+                <p className="text-[12px] text-slate-400">Atividades vencidas ou previstas para hoje. Execute e registre o resultado.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Select aria-label="Ordenar" value={ordenar} onChange={event => setOrdenar(event.target.value as OrdenarHoje)} className="h-8 w-[150px] rounded-xl border-slate-200 text-[12px] font-semibold">
+                  <option value="prioridade">Prioridade</option>
+                  <option value="horario">Horário</option>
+                  <option value="tipo">Tipo</option>
+                  <option value="cliente">Cliente</option>
+                </Select>
+                <button type="button" onClick={abrirNovaAtividade} className="flex items-center gap-1.5 rounded-xl bg-[#005BFF] px-4 py-2 text-[12px] font-bold text-white shadow-sm shadow-blue-100 transition-colors hover:bg-blue-700">
+                  <Plus className="h-4 w-4" /> Nova atividade
+                </button>
+              </div>
             </div>
 
-            <section className="grid min-w-0 grid-cols-2 gap-mx-sm md:grid-cols-3 xl:grid-cols-[repeat(4,minmax(112px,1fr))_minmax(220px,1.05fr)]" aria-label="Indicadores do dia">
-              <MetricCard icon={<CalendarCheck size={24} />} label="Agendados Hoje" value={String(agendamentosHojeTodos.length)} hint="Compromissos do dia" tone="blue" />
-              <MetricCard icon={<CheckCircle2 size={24} />} label="Compareceram" value={String(compareceramHoje)} hint="Atendimentos feitos" tone="green" />
-              <MetricCard icon={<Clock size={24} />} label="Em Negociação" value={String(agendaHojeItems.length)} hint="Aguardando você hoje" tone="orange" />
-              <MetricCard icon={<CircleDollarSign size={24} />} label="Vendas Realizadas Hoje" value={String(vendasRealizadasHoje)} hint="Fechadas hoje" tone="green" />
-              <div className="col-span-2 md:col-span-1">
-                <ScoreCard score={score} items={scoreItems} />
+            {agendaHojeItems.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                {FILTROS_TIPO.map(f => {
+                  const count = f.id === 'todos' ? agendaHojeItems.length : (contagemPorTipo[f.id as CrmAgendamentoTipo] || 0)
+                  if (f.id !== 'todos' && count === 0) return null
+                  const ativo = filtroTipo === f.id
+                  return (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => setFiltroTipo(f.id)}
+                      className={cn(
+                        'flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[12px] font-bold transition-colors',
+                        ativo ? 'border-[#005BFF] bg-[#005BFF] text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-[#005BFF] hover:text-[#005BFF]',
+                      )}
+                    >
+                      {f.label}
+                      <span className={cn('rounded-full px-1.5 py-0.5 text-[10px] font-black', ativo ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500')}>{count}</span>
+                    </button>
+                  )
+                })}
               </div>
-            </section>
+            )}
 
-            {agendaHojeItems.length === 0 ? (
-              <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-xl shadow-mx-sm">
-                <EmptyState
-                  title="Nenhum cliente agendado para hoje."
-                  description="Use este momento para avançar na sua Rotina do Dia ou trabalhar sua Carteira de Clientes."
-                  action={(
-                    <div className="flex flex-wrap justify-center gap-mx-sm">
-                      <Button variant="outline" onClick={() => setTab('rotina')}>Ver Rotina do Dia</Button>
-                      <Button asChild><Link to="/carteira-clientes">Abrir Carteira de Clientes</Link></Button>
-                    </div>
-                  )}
-                />
-              </Card>
-            ) : (
-              <>
-                <Card className="hidden overflow-hidden rounded-mx-lg border border-border-subtle bg-white p-0 shadow-mx-md md:block">
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[980px] table-fixed text-left text-sm">
-                      <thead className="bg-surface-alt/70 text-text-secondary">
-                        <tr>
-                          <th className="px-mx-sm py-mx-sm text-[13px] font-bold">Horário</th>
-                          <th className="px-mx-sm py-mx-sm text-[13px] font-bold">Cliente / Contato</th>
-                          <th className="px-mx-sm py-mx-sm text-[13px] font-bold">Veículo de Interesse</th>
-                          <th className="px-mx-sm py-mx-sm text-[13px] font-bold">Canal</th>
-                          <th className="px-mx-sm py-mx-sm text-[13px] font-bold">Status</th>
-                          <th className="px-mx-sm py-mx-sm text-[13px] font-bold">Próxima Ação</th>
-                          <th className="px-mx-sm py-mx-sm text-right text-[13px] font-bold">Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {agendaHojeItems.map(item => (
-                          <tr key={item.id} className={cn('border-t border-border-subtle align-middle hover:bg-surface-alt/60', item.atrasadoNaoTratado && 'bg-status-error-surface/20')}>
-                            <td className="px-mx-sm py-mx-md">
-                              <Typography variant="p" className={cn('font-bold', item.atrasadoNaoTratado ? 'text-status-error' : 'text-brand-primary')}>{fmtHora(item.horario)}</Typography>
-                            </td>
-                            <td className="px-mx-sm py-mx-md">
-                              <Typography variant="p" className="font-bold leading-tight text-text-primary">{item.clienteNome || 'Cliente sem nome'}</Typography>
-                              <Typography variant="caption" tone="muted">{item.clienteTelefone || 'Telefone não cadastrado'}</Typography>
-                            </td>
-                            <td className="px-mx-sm py-mx-md">
-                              <Typography variant="p" className="font-bold leading-tight text-text-primary">{item.veiculoInteresse || '—'}</Typography>
-                              <Typography variant="caption" tone="muted">{fmtMoeda(item.valorNegociado)}</Typography>
-                            </td>
-                            <td className="px-mx-sm py-mx-md"><Pill className={CANAL_TONE[item.canal]}>{item.canal}</Pill></td>
-                            <td className="px-mx-sm py-mx-md"><Pill className={STATUS_TONE[item.agendamento.status as CrmAgendamentoStatus] || STATUS_TONE.aguardando}>{CRM_AGENDAMENTO_STATUS_LABEL[item.agendamento.status as CrmAgendamentoStatus] || item.agendamento.status}</Pill></td>
-                            <td className="px-mx-sm py-mx-md"><Typography variant="caption" className="font-bold text-text-secondary">{item.proximaAcao || 'Definir próxima ação'}</Typography></td>
-                            <td className="px-mx-sm py-mx-md">
-                              <div className="flex items-center justify-end gap-1">
-                                <Button variant="outline" size="icon" aria-label="WhatsApp" title="WhatsApp" onClick={() => openWhatsApp(item)} className="h-7 w-7 rounded-mx-sm border-status-success/30 bg-white text-status-success [&_svg]:size-3.5"><MessageCircle size={14} /></Button>
-                                <Button variant="outline" size="icon" aria-label="Reagendar" title="Reagendar" onClick={() => openReagendar(item)} className="h-7 w-7 rounded-mx-sm border-brand-primary/30 bg-white text-brand-primary [&_svg]:size-3.5"><RotateCcw size={14} /></Button>
-                                <Button variant="ghost" size="icon" aria-label="Mais ações" title="Mais ações" onClick={() => setMaisAcoesItem(item)} className="h-7 w-7 rounded-mx-sm border border-border-subtle bg-white [&_svg]:size-3.5"><MoreHorizontal size={15} /></Button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+            {listaFiltrada.length === 0 ? (
+              agendaHojeItems.length === 0 ? (
+                <div className="rounded-2xl border border-slate-200 bg-white p-14 text-center shadow-sm">
+                  <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50">
+                    <CheckCircle2 className="h-7 w-7 text-[#005BFF]" />
                   </div>
-                </Card>
-
-                <div className="flex flex-col gap-mx-sm md:hidden">
-                  {agendaHojeItems.map(item => (
-                    <Card key={item.id} className={cn('rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm', item.atrasadoNaoTratado && 'border-status-error/30 bg-status-error-surface/20')}>
-                      <div className="flex items-start justify-between gap-mx-sm">
-                        <div className="min-w-0">
-                          <Typography variant="p" className={cn('font-bold', item.atrasadoNaoTratado ? 'text-status-error' : 'text-brand-primary')}>{fmtHora(item.horario)}</Typography>
-                          <Typography variant="p" className="font-bold leading-tight text-text-primary">{item.clienteNome || 'Cliente sem nome'}</Typography>
-                          <Typography variant="caption" tone="muted">{item.clienteTelefone || 'Telefone não cadastrado'}</Typography>
-                          <Typography variant="caption" className="mt-mx-xs block text-text-secondary">{item.veiculoInteresse || '—'} · {item.canal}</Typography>
-                        </div>
-                        <Pill className={STATUS_TONE[item.agendamento.status as CrmAgendamentoStatus] || STATUS_TONE.aguardando}>{CRM_AGENDAMENTO_STATUS_LABEL[item.agendamento.status as CrmAgendamentoStatus] || item.agendamento.status}</Pill>
-                      </div>
-                      <Typography variant="caption" className="mt-mx-sm block font-bold text-text-secondary">{item.proximaAcao || 'Definir próxima ação'}</Typography>
-                      <div className="mt-mx-sm flex items-center gap-mx-xs">
-                        <Button variant="outline" size="sm" onClick={() => openWhatsApp(item)} className="h-9 flex-1 border-status-success/30 bg-white text-status-success"><MessageCircle size={14} /> WhatsApp</Button>
-                        <Button variant="outline" size="sm" onClick={() => openReagendar(item)} className="h-9 flex-1 border-brand-primary/30 bg-white text-brand-primary"><RotateCcw size={14} /> Reagendar</Button>
-                        <Button variant="ghost" size="icon" aria-label="Mais ações" onClick={() => setMaisAcoesItem(item)} className="h-9 w-9 border border-border-subtle bg-white"><MoreHorizontal size={16} /></Button>
-                      </div>
-                    </Card>
-                  ))}
+                  <p className="mb-1 text-[16px] font-black text-[#0F172A]">Tela limpa por hoje.</p>
+                  <p className="mx-auto mb-5 max-w-sm text-[13px] text-slate-400">Você não possui oportunidades pendentes para executar agora.</p>
+                  <div className="flex flex-wrap items-center justify-center gap-3">
+                    <button type="button" onClick={() => setTab('rotina')} className="flex items-center gap-1.5 rounded-xl border border-[#005BFF] px-4 py-2 text-[13px] font-bold text-[#005BFF] transition-colors hover:bg-blue-50">
+                      <Sparkles className="h-4 w-4" /> Ver Rotina do Dia
+                    </button>
+                    <Link to="/carteira-clientes" className="flex items-center gap-1.5 rounded-xl border border-slate-200 px-4 py-2 text-[13px] font-bold text-slate-600 transition-colors hover:bg-slate-50">
+                      <Users className="h-4 w-4" /> Abrir Carteira
+                    </Link>
+                    <button type="button" onClick={abrirNovaAtividade} className="flex items-center gap-1.5 rounded-xl bg-[#005BFF] px-4 py-2 text-[13px] font-bold text-white transition-colors hover:bg-blue-700">
+                      <Plus className="h-4 w-4" /> Nova atividade
+                    </button>
+                  </div>
                 </div>
-              </>
+              ) : (
+                <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
+                  <Inbox className="mx-auto mb-3 h-10 w-10 text-slate-200" />
+                  <p className="text-[13px] text-slate-400">Nenhuma oportunidade do tipo <strong>{filtroTipo !== 'todos' ? CRM_AGENDAMENTO_TIPO_LABEL[filtroTipo] : ''}</strong> para hoje.</p>
+                  <button type="button" onClick={() => setFiltroTipo('todos')} className="mt-2 text-[12px] font-bold text-[#005BFF] hover:underline">Ver todas</button>
+                </div>
+              )
+            ) : (
+              <div className="flex flex-col gap-3">
+                {listaFiltrada.map(item => (
+                  <OportunidadeCard
+                    key={item.id}
+                    item={item}
+                    onWhatsApp={openWhatsApp}
+                    onAbrirCliente={() => {}}
+                    onResolver={setMaisAcoesItem}
+                  />
+                ))}
+              </div>
             )}
           </div>
         ) : (
-          <div className="grid min-w-0 grid-cols-1 gap-mx-md xl:grid-cols-[minmax(0,1fr)_300px]">
-            <div className="min-w-0 space-y-mx-md">
+          <div className="grid min-w-0 grid-cols-1 items-start gap-5 lg:grid-cols-3">
+            <div className="space-y-4 lg:col-span-2">
               {conflitoCliente && (
-                <Card className="rounded-mx-lg border border-status-warning/25 bg-status-warning-surface/35 p-mx-md shadow-mx-sm">
-                  <Typography variant="p" className="text-sm font-bold text-status-warning">Você possui um cliente agendado neste horário. Priorize o atendimento e retome sua rotina depois.</Typography>
-                </Card>
+                <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                  <AlertTriangle size={16} className="mt-0.5 shrink-0 text-amber-500" />
+                  <p className="text-[13px] font-medium text-amber-800">Você possui um cliente agendado neste horário. Priorize o atendimento e retome sua rotina depois.</p>
+                </div>
               )}
 
-              {currentSlot?.template ? (
-                <Card className="rounded-mx-lg border border-brand-primary/20 bg-white p-mx-lg shadow-mx-md">
-                  <div className="flex items-center justify-between gap-mx-sm">
-                    <Pill className="border-brand-primary/20 bg-brand-primary/10 text-brand-primary">Agora · {currentSlot.time}</Pill>
-                    {currentSlot.template.duracao_minutos && <Typography variant="caption" tone="muted">{currentSlot.template.duracao_minutos} min sugeridos</Typography>}
-                  </div>
-                  <Typography variant="h2" className="mt-mx-sm text-xl text-text-primary">{currentSlot.template.nome}</Typography>
-                  <Typography variant="p" tone="muted" className="mt-mx-tiny">{currentSlot.template.objetivo}</Typography>
-
-                  {currentSlot.template.instrucoes.length > 0 && (
-                    <ul className="mt-mx-md space-y-mx-xs">
-                      {currentSlot.template.instrucoes.map((instrucao, index) => (
-                        <li key={index} className="flex items-start gap-mx-xs text-sm text-text-secondary">
-                          <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-primary" />
-                          {instrucao}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-
-                  {currentSlot.key === 'prospeccao' && (
-                    <div className="mt-mx-md space-y-mx-sm">
-                      {prospeccaoHoje.length === 0 ? (
-                        <Typography variant="caption" tone="muted">Nenhuma ação de prospecção configurada para hoje.</Typography>
-                      ) : prospeccaoHoje.map((acao: ProspectingScheduleRow) => (
-                        <div key={acao.id} className="rounded-mx-md border border-border-subtle bg-surface-alt/60 p-mx-sm">
-                          <Typography variant="p" className="font-bold text-text-primary">{TIPO_ACAO_LABEL[acao.tipo_acao] || acao.tipo_acao}</Typography>
-                          <Typography variant="caption" tone="muted">{acao.objetivo}</Typography>
-                          {acao.quantidade && <Typography variant="caption" className="mt-mx-tiny block font-bold text-text-secondary">Meta: {acao.quantidade} {acao.periodicidade} · Público: {acao.publico}</Typography>}
-                        </div>
-                      ))}
-                      {storyIdeaHoje && (
-                        <Button variant="outline" size="sm" className="bg-white" onClick={() => setVerComoFazerOpen(true)}>
-                          <ChevronRight size={14} /> Ver como fazer
-                        </Button>
-                      )}
-                    </div>
-                  )}
-
-                  {currentSlot.template.meta_sugerida && (
-                    <div className="mt-mx-md rounded-mx-md border border-brand-primary/15 bg-brand-primary/5 px-mx-md py-mx-sm">
-                      <Typography variant="caption" className="font-bold text-brand-primary">{currentSlot.template.meta_sugerida}</Typography>
-                    </div>
-                  )}
-
-                  {currentSlot.template.atalhos.length > 0 && (
-                    <div className="mt-mx-md flex flex-wrap gap-mx-xs">
-                      {currentSlot.template.atalhos.map(atalho => (
-                        <AtalhoButton key={atalho.label} atalho={atalho} onTabChange={setTab} onInfo={(label) => toast.info(label)} />
-                      ))}
-                    </div>
-                  )}
-                </Card>
-              ) : (
-                <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
-                  <Typography tone="muted">Carregando rotina do dia...</Typography>
-                </Card>
-              )}
-            </div>
-
-            <aside className="flex flex-col gap-mx-sm">
-              <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-mx-widest">Linha do tempo</Typography>
               {slots.map((slot: RoutineSlot) => {
+                const StepIcon = STEP_ICON[slot.key]
+                const isExpanded = expandedStep === slot.key
                 const isPast = !slot.isCurrent && slotMinutes(slot.time) < nowMinutesForTimeline
+                const preview = slot.template?.objetivo || ''
                 return (
-                  <div
-                    key={slot.key}
-                    className={cn(
-                      'flex items-center gap-mx-sm rounded-mx-md border px-mx-sm py-mx-xs',
-                      slot.isCurrent
-                        ? 'border-brand-primary/30 bg-brand-primary/5'
-                        : isPast
-                          ? 'border-status-success/20 bg-status-success/5'
-                          : 'border-border-subtle bg-white',
+                  <div key={slot.key} className={cn('rounded-2xl border bg-white shadow-sm transition-all', slot.isCurrent ? 'border-[#005BFF] shadow-blue-100' : 'border-slate-200')}>
+                    <button
+                      type="button"
+                      className="flex w-full items-center gap-4 px-5 py-4 text-left"
+                      onClick={() => setExpandedStep(isExpanded ? null : slot.key)}
+                    >
+                      <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', slot.isCurrent ? 'bg-[#005BFF] text-white' : isPast ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-400')}>
+                        <StepIcon size={20} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className={cn('rounded-lg px-2 py-0.5 text-[11px] font-bold', slot.isCurrent ? 'bg-[#005BFF] text-white' : 'bg-slate-100 text-slate-500')}>{slot.time}</span>
+                          <span className={cn('text-[14px] font-bold', slot.isCurrent ? 'text-[#0F172A]' : 'text-slate-600')}>{slot.template?.nome || slot.key}</span>
+                          {slot.isCurrent && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-[#005BFF]">Agora</span>}
+                        </div>
+                        {!isExpanded && preview && (
+                          <p className={cn('mt-0.5 truncate text-[12px]', slot.isCurrent ? 'font-semibold text-[#005BFF]' : 'text-slate-400')}>{preview}</p>
+                        )}
+                      </div>
+                      {isExpanded ? <ChevronDown size={16} className="shrink-0 text-slate-400" /> : <ChevronRight size={16} className="shrink-0 text-slate-400" />}
+                    </button>
+
+                    {isExpanded && slot.template && (
+                      <div className="border-t border-slate-100 px-5 pb-5">
+                        <p className="mb-4 mt-3 text-[13px] text-slate-500">{slot.template.objetivo}</p>
+
+                        {slot.key === 'prospeccao' ? (
+                          <div>
+                            <p className="mb-3 text-[12px] font-bold uppercase tracking-wider text-slate-400">Ações de hoje</p>
+                            {prospeccaoHoje.length === 0 ? (
+                              <p className="text-[13px] text-slate-400">Sem ações programadas para hoje. Aproveite para avançar na carteira.</p>
+                            ) : (
+                              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                {prospeccaoHoje.map((acao: ProspectingScheduleRow) => (
+                                  <div key={acao.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                                    <p className="text-[13px] font-bold text-[#0F172A]">{TIPO_ACAO_LABEL[acao.tipo_acao] || acao.tipo_acao}</p>
+                                    {acao.publico && <p className="text-[11px] text-slate-400">{acao.publico}</p>}
+                                    {acao.objetivo && <p className="mt-1 text-[12px] text-slate-500">{acao.objetivo}</p>}
+                                    {acao.quantidade && <p className="mt-1.5 text-[11px] font-bold text-[#005BFF]">Meta: {acao.quantidade} {acao.periodicidade}</p>}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {storyIdeaHoje && (
+                              <button type="button" onClick={() => setVerComoFazerOpen(true)} className="mt-3 flex items-center gap-1.5 text-[12px] font-bold text-[#005BFF] hover:underline">
+                                <BookOpen size={14} /> Ver como fazer
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          slot.template.instrucoes.length > 0 && (
+                            <div className="mb-4">
+                              <p className="mb-2 text-[12px] font-bold uppercase tracking-wider text-slate-400">Faça agora</p>
+                              <ol className="space-y-2">
+                                {slot.template.instrucoes.map((inst, i) => (
+                                  <li key={i} className="flex items-start gap-2.5">
+                                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-black text-slate-500">{i + 1}</span>
+                                    <span className="text-[13px] text-slate-700">{inst}</span>
+                                  </li>
+                                ))}
+                              </ol>
+                            </div>
+                          )
+                        )}
+
+                        {slot.template.meta_sugerida && (
+                          <div className="mt-2 rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-2">
+                            <p className="text-[12px] font-bold text-[#005BFF]">{slot.template.meta_sugerida}</p>
+                          </div>
+                        )}
+
+                        {slot.template.atalhos.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {slot.template.atalhos.map(atalho => (
+                              <AtalhoButton key={atalho.label} atalho={atalho} onTabChange={setTab} onInfo={(label) => toast.info(label)} />
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     )}
-                  >
-                    <span className="flex w-12 shrink-0 items-center gap-1">
-                      {isPast && <CheckCircle2 size={12} className="shrink-0 text-status-success" />}
-                      <Typography variant="caption" className={cn('font-bold', slot.isCurrent ? 'text-brand-primary' : isPast ? 'text-status-success' : 'text-text-secondary')}>{slot.time}</Typography>
-                    </span>
-                    <Typography variant="caption" className={cn('font-semibold', isPast ? 'text-status-success' : 'text-text-primary')}>{slot.template?.nome || slot.key}</Typography>
                   </div>
                 )
               })}
+            </div>
+
+            <aside className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:sticky lg:top-24">
+              <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.15em] text-slate-400">Linha do Tempo</p>
+              <div className="space-y-0.5">
+                {slots.map((slot: RoutineSlot, idx) => {
+                  const isPast = !slot.isCurrent && slotMinutes(slot.time) < nowMinutesForTimeline
+                  const StepIcon = STEP_ICON[slot.key]
+                  return (
+                    <div key={slot.key} className="flex items-start gap-3">
+                      <div className="flex flex-col items-center">
+                        <div className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-lg', slot.isCurrent ? 'bg-[#005BFF] text-white' : isPast ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-400')}>
+                          <StepIcon size={14} />
+                        </div>
+                        {idx < slots.length - 1 && <div className={cn('h-5 w-px', isPast ? 'bg-green-200' : 'bg-slate-100')} />}
+                      </div>
+                      <div className="pb-3 pt-0.5">
+                        <p className={cn('text-[11px] font-bold', slot.isCurrent ? 'text-[#005BFF]' : 'text-slate-400')}>{slot.time}</p>
+                        <p className={cn('text-[12px] font-semibold leading-tight', slot.isCurrent ? 'text-[#0F172A]' : 'text-slate-500')}>{slot.template?.nome || slot.key}</p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </aside>
           </div>
         )}
+        </div>
       </div>
 
       <Modal
@@ -636,14 +874,153 @@ export function CentralExecucao() {
       <Modal
         open={Boolean(maisAcoesItem)}
         onClose={() => setMaisAcoesItem(null)}
-        title={maisAcoesItem?.clienteNome || 'Mais ações'}
-        description="Escolha a próxima ação para este cliente."
+        title={maisAcoesItem?.clienteNome || 'Registrar resultado'}
+        description="Como foi resolvido este atendimento?"
       >
         <div className="flex flex-col gap-mx-xs">
-          <Button variant="outline" className="justify-start bg-white" onClick={() => { if (maisAcoesItem) openVenda(maisAcoesItem); setMaisAcoesItem(null) }}><CircleDollarSign size={16} /> Registrar Venda</Button>
-          <Button variant="outline" className="justify-start bg-white" onClick={() => { if (maisAcoesItem) openPerda(maisAcoesItem); setMaisAcoesItem(null) }}><AlarmClock size={16} /> Registrar Perda</Button>
+          <Button variant="outline" className="justify-start bg-white" disabled={saving} onClick={() => { if (maisAcoesItem) handleMarcarStatus(maisAcoesItem, 'compareceu') }}><CheckCircle2 size={16} /> Compareceu</Button>
+          <Button variant="outline" className="justify-start bg-white" disabled={saving} onClick={() => { if (maisAcoesItem) handleMarcarStatus(maisAcoesItem, 'nao_compareceu') }}><AlertTriangle size={16} /> Não compareceu</Button>
+          <Button variant="outline" className="justify-start bg-white" onClick={() => { if (maisAcoesItem) openReagendar(maisAcoesItem); setMaisAcoesItem(null) }}><RotateCcw size={16} /> Reagendar</Button>
+          {maisAcoesItem?.oportunidade && (
+            <>
+              <Button variant="outline" className="justify-start bg-white" onClick={() => { if (maisAcoesItem) openVenda(maisAcoesItem); setMaisAcoesItem(null) }}><CircleDollarSign size={16} /> Registrar Venda</Button>
+              <Button variant="outline" className="justify-start bg-white" onClick={() => { if (maisAcoesItem) openPerda(maisAcoesItem); setMaisAcoesItem(null) }}><AlarmClock size={16} /> Registrar Perda</Button>
+            </>
+          )}
           <Button asChild variant="outline" className="justify-start bg-white"><Link to="/carteira-clientes" onClick={() => setMaisAcoesItem(null)}><Target size={16} /> Abrir na Carteira de Clientes</Link></Button>
         </div>
+      </Modal>
+
+      <Modal
+        open={novaAtividadeOpen}
+        onClose={fecharNovaAtividade}
+        title="Nova atividade"
+        size="sm"
+        footer={novaAtividadeStep === 'form' ? (
+          <div className="flex justify-end gap-3">
+            <button type="button" onClick={fecharNovaAtividade} disabled={saving} className="rounded-xl border border-slate-200 px-5 py-2.5 text-[13px] font-semibold text-slate-500 transition-colors hover:bg-slate-50">Cancelar</button>
+            <button
+              type="button"
+              onClick={confirmarNovaAtividade}
+              disabled={saving || !novaAtividadeForm.data || !novaAtividadeForm.hora}
+              className="rounded-xl bg-[#005BFF] px-6 py-2.5 text-[13px] font-bold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+            >
+              {saving ? 'Salvando...' : 'Salvar atividade'}
+            </button>
+          </div>
+        ) : undefined}
+      >
+        {novaAtividadeStep === 'tipo' ? (
+          <div className="mt-3 space-y-2">
+            <p className="mb-3 text-[13px] text-slate-500">Selecione o tipo de atividade comercial:</p>
+            {CRM_AGENDAMENTO_TIPO.map(tipo => (
+              <button
+                key={tipo}
+                type="button"
+                onClick={() => escolherTipoNovaAtividade(tipo)}
+                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-left text-[13px] font-semibold text-[#0F172A] transition-colors hover:border-[#005BFF] hover:bg-blue-50"
+              >
+                {CRM_AGENDAMENTO_TIPO_LABEL[tipo]}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-3 space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="rounded-full bg-blue-50 px-3 py-1 text-[12px] font-bold text-[#005BFF]">{novaAtividadeTipo && CRM_AGENDAMENTO_TIPO_LABEL[novaAtividadeTipo]}</span>
+              <button type="button" onClick={() => setNovaAtividadeStep('tipo')} className="text-[12px] text-slate-400 underline hover:text-slate-600">Mudar tipo</button>
+            </div>
+
+            <div>
+              <label htmlFor="nova-atividade-telefone" className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Cliente ou Telefone</label>
+              <div className="mt-1.5 flex gap-2">
+                <input
+                  id="nova-atividade-telefone"
+                  value={novaAtividadeTelefone}
+                  onChange={event => { setNovaAtividadeTelefone(event.target.value); setClienteEncontrado(null); setClienteNaoEncontrado(false) }}
+                  placeholder="(11) 98765-4321"
+                  className="h-10 flex-1 rounded-xl border border-slate-200 px-3 text-[13px] focus:border-[#005BFF] focus:outline-none focus:ring-2 focus:ring-blue-100"
+                />
+                <button type="button" onClick={buscarClienteNovaAtividade} className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#005BFF] text-white transition-colors hover:bg-blue-700">
+                  <Search className="h-4 w-4" />
+                </button>
+              </div>
+              {clienteEncontrado && (
+                <div className="mt-2 flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 px-3 py-2">
+                  <UserCheck className="h-4 w-4 shrink-0 text-green-600" />
+                  <div className="min-w-0">
+                    <p className="truncate text-[12px] font-bold text-green-800">{clienteEncontrado.nome}</p>
+                  </div>
+                </div>
+              )}
+              {clienteNaoEncontrado && (
+                <div className="mt-2 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">
+                  <UserX className="h-4 w-4 shrink-0 text-amber-600" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[12px] font-semibold text-amber-800">Cliente não encontrado.</p>
+                    <Link to="/carteira-clientes" onClick={fecharNovaAtividade} className="text-[11px] text-[#005BFF] underline">Abrir Carteira de Clientes para cadastrar</Link>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="nova-atividade-data" className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Data</label>
+                <input id="nova-atividade-data" type="date" value={novaAtividadeForm.data} onChange={event => setNovaAtividadeForm(current => ({ ...current, data: event.target.value }))} className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 text-[13px] focus:border-[#005BFF] focus:outline-none focus:ring-2 focus:ring-blue-100" />
+              </div>
+              <div>
+                <label htmlFor="nova-atividade-hora" className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Hora</label>
+                <input id="nova-atividade-hora" type="time" value={novaAtividadeForm.hora} onChange={event => setNovaAtividadeForm(current => ({ ...current, hora: event.target.value }))} className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 text-[13px] focus:border-[#005BFF] focus:outline-none focus:ring-2 focus:ring-blue-100" />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="nova-atividade-veiculo" className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Veículo (opcional)</label>
+              <input id="nova-atividade-veiculo" value={novaAtividadeForm.veiculo} onChange={event => setNovaAtividadeForm(current => ({ ...current, veiculo: event.target.value }))} placeholder="Ex: HB20 1.0 Comfort" className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 text-[13px] focus:border-[#005BFF] focus:outline-none focus:ring-2 focus:ring-blue-100" />
+            </div>
+
+            <div>
+              <label htmlFor="nova-atividade-observacoes" className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Observação</label>
+              <input id="nova-atividade-observacoes" value={novaAtividadeForm.observacoes} onChange={event => setNovaAtividadeForm(current => ({ ...current, observacoes: event.target.value }))} placeholder="Descreva o objetivo desta atividade..." className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 text-[13px] focus:border-[#005BFF] focus:outline-none focus:ring-2 focus:ring-blue-100" />
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        open={pendenciasOpen}
+        onClose={() => setPendenciasOpen(false)}
+        title={`Pendências anteriores (${pendenciasAnteriores.length})`}
+        description="Atividades de dias anteriores que ainda não foram tratadas."
+      >
+        {pendenciasAnteriores.length === 0 ? (
+          <Typography variant="caption" tone="muted" className="block py-mx-lg text-center">Nenhuma pendência anterior.</Typography>
+        ) : (
+          <div className="flex flex-col gap-mx-sm">
+            {pendenciasAnteriores.map((ag: AgendamentoComCliente) => {
+              const tipo = ag.tipo as CrmAgendamentoTipo
+              const atraso = Math.max(0, Math.floor((hoje.getTime() - new Date(ag.data_hora).getTime()) / 86400000))
+              return (
+                <Card key={ag.id} className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
+                  <div className="flex items-center gap-mx-xs">
+                    <Pill className={TIPO_BADGE[tipo]}>{CRM_AGENDAMENTO_TIPO_LABEL[tipo]}</Pill>
+                    <Pill className="border-status-error/20 bg-status-error-surface text-status-error">{atraso === 0 ? 'Hoje' : `${atraso}d atraso`}</Pill>
+                  </div>
+                  <Typography variant="p" className="mt-mx-xs font-bold text-text-primary">{ag.cliente?.nome || 'Cliente sem nome'}</Typography>
+                  <Typography variant="caption" tone="muted">{new Date(ag.data_hora).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</Typography>
+                  <div className="mt-mx-sm flex flex-wrap items-center gap-mx-tiny">
+                    {ag.cliente?.telefone && (
+                      <Button variant="outline" size="sm" className="h-8 border-status-success/30 bg-status-success-surface text-status-success" onClick={() => window.open(`https://wa.me/55${onlyDigits(ag.cliente?.telefone)}`, '_blank', 'noopener')}><MessageCircle size={13} /> WhatsApp</Button>
+                    )}
+                    <Button asChild variant="outline" size="sm" className="h-8"><Link to="/carteira-clientes" onClick={() => setPendenciasOpen(false)}><UserRound size={13} /> Abrir cliente</Link></Button>
+                    <Button size="sm" className="ml-auto h-8" onClick={async () => { setSaving(true); const { error } = await updateStatus(ag.id, 'compareceu'); setSaving(false); if (error) toast.error(error); else toast.success('Marcado como compareceu.') }}>Resolver</Button>
+                  </div>
+                </Card>
+              )
+            })}
+          </div>
+        )}
       </Modal>
 
       <Modal

@@ -1,0 +1,58 @@
+{
+  "name": "Appointment",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Data"
+    },
+    "time": {
+      "type": "string",
+      "title": "Hor\u00e1rio"
+    },
+    "client_id": {
+      "type": "string",
+      "title": "Cliente ID"
+    },
+    "client_name": {
+      "type": "string",
+      "title": "Cliente"
+    },
+    "vehicle": {
+      "type": "string",
+      "title": "Ve\u00edculo"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "Internet",
+        "Carteira",
+        "Porta"
+      ],
+      "title": "Canal"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Agendado",
+        "Compareceu",
+        "N\u00e3o Compareceu",
+        "Em Negocia\u00e7\u00e3o",
+        "Venda Realizada",
+        "Cancelado"
+      ],
+      "title": "Status",
+      "default": "Agendado"
+    },
+    "next_action": {
+      "type": "string",
+      "title": "Pr\u00f3xima A\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "date",
+    "time",
+    "client_name"
+  ]
+}

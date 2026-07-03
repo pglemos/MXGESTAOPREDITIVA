@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Target, TrendingUp } from "lucide-react";
+import { TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
 import moment from "moment/min/moment-with-locales";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
-import EficienciaCanal from "@/components/funil/EficienciaCanal";
+import StatusMeta from "@/components/funil/StatusMeta";
 import EsforcoNecessario from "@/components/funil/EsforcoNecessario";
-import ProjecaoMes from "@/components/funil/ProjecaoMes";
+import EficienciaCanal from "@/components/funil/EficienciaCanal";
 import BaseEstatistica from "@/components/funil/BaseEstatistica";
 
 moment.locale("pt-br");
@@ -66,6 +65,11 @@ function filtrarEventos(eventos, tipo, canal, inicio, fim) {
   );
 }
 
+// Soma quantidade de eventos (respeita campo quantidade, senão conta 1 por evento)
+function somarQuantidade(evts) {
+  return evts.reduce((acc, e) => acc + (e.quantidade && e.quantidade > 1 ? e.quantidade : 1), 0);
+}
+
 function agruparModalidades(eventos) {
   const map = {};
   eventos.forEach(e => {
@@ -75,13 +79,12 @@ function agruparModalidades(eventos) {
   return Object.entries(map).map(([label, value]) => ({ label, value })).filter(m => m.value > 0);
 }
 
-// ── Normalizar canal MX ──────────────────────────────────────────────────────
-
 function normalizarCanal(c) {
   const raw = c.canal_comercial || c.canal_entrada || c.canal_origem || "Carteira";
   if (raw === "Internet") return "Internet";
   if (raw === "Carteira") return "Carteira";
   if (raw === "Indicação") return "Carteira";
+  // "Porta" e "Showroom" → Showroom
   return "Showroom";
 }
 
@@ -152,9 +155,7 @@ function vendasBackup(clientes, canal, inicio, fim, eventoVendaIds) {
   }).length;
 }
 
-// ── Cálculo do funil para um período ─────────────────────────────────────────
-
-function calcFunis(eventos, clientes, inicio, fim, vid) {
+function calcFunis(eventos, clientes, fechamentos, inicio, fim, vid) {
   const evIdsQual  = new Set([
     ...filtrarEventos(eventos, "cliente_qualificado", "Internet", inicio, fim).map(e => e.cliente_id),
     ...filtrarEventos(eventos, "cliente_qualificado", "Carteira", inicio, fim).map(e => e.cliente_id),
@@ -169,22 +170,52 @@ function calcFunis(eventos, clientes, inicio, fim, vid) {
     ...filtrarEventos(eventos, "atendimento_comercial_realizado", "Showroom", inicio, fim).map(e => e.cliente_id),
   ]);
 
-  // SHOWROOM
+  // SHOWROOM — fallback direto dos Fechamentos Diários
   const showAtendEvts = filtrarEventos(eventos, "atendimento_comercial_realizado", "Showroom", inicio, fim);
+  // source_record_ids já cobertos por eventos agregados (evitar dupla contagem)
+  const sourceIdsJaContados = new Set(showAtendEvts.filter(e => e.source_record_id).map(e => e.source_record_id));
+  // Somar quantidade nos eventos de Showroom (agregados ou individuais)
+  const showAtendDeEventos = somarQuantidade(showAtendEvts);
+  // Fallback: fechamentos no período que ainda não foram convertidos em evento agregado
+  const showAtendFechamentos = fechamentos
+    .filter(f => {
+      if (!f.date || f.date < inicio || f.date > fim) return false;
+      const srcId = `${f.id}_showroom_atendimentos`;
+      return !sourceIdsJaContados.has(srcId) && (f.atendimentos_showroom || 0) > 0;
+    })
+    .reduce((acc, f) => acc + (f.atendimentos_showroom || 0), 0);
+
+
+
   const showVendaEvts = filtrarEventos(eventos, "venda_realizada", "Showroom", inicio, fim);
   const showVendaIds  = new Set(showVendaEvts.map(e => e.cliente_id));
+  const showVendasClientes = vendasBackup(clientes, "Showroom", inicio, fim, showVendaIds);
+
+  // Fallback: vendas do Fechamento Diário (dias sem evento de venda_realizada)
+  const datasComVendaEvento = new Set(showVendaEvts.map(e => e.data_evento));
+  const showVendasFechamento = fechamentos
+    .filter(f => {
+      if (!f.date || f.date < inicio || f.date > fim) return false;
+      const status = (f.status_fechamento || f.status || "").toLowerCase();
+      const invalido = ["rascunho", "cancelado", "excluido", "excluído", "rejeitado"].some(s => status.includes(s));
+      if (invalido) return false;
+      // Só conta se não há evento de venda já registrado nessa data
+      return !datasComVendaEvento.has(f.date) && (f.vendas || f.veiculos_vendidos || f.quantidade_vendas || 0) > 0;
+    })
+    .reduce((acc, f) => acc + (Number(f.vendas || f.veiculos_vendidos || f.quantidade_vendas || 0)), 0);
+
   const showroom = {
-    atendimento: showAtendEvts.length + clientesComAtendimento(clientes, "Showroom", inicio, fim, vid).filter(c => !evIdsAtend.has(c.id)).length,
+    atendimento: showAtendDeEventos + showAtendFechamentos + clientesComAtendimento(clientes, "Showroom", inicio, fim, vid).filter(c => !evIdsAtend.has(c.id)).length,
     atendimentoModal: agruparModalidades(showAtendEvts),
-    venda: showVendaEvts.length + vendasBackup(clientes, "Showroom", inicio, fim, showVendaIds),
+    venda: showVendaEvts.length + showVendasClientes + showVendasFechamento,
   };
 
   // INTERNET
-  const inetOppEvts   = filtrarEventos(eventos, "oportunidade_registrada",             "Internet", inicio, fim);
-  const inetQualEvts  = filtrarEventos(eventos, "cliente_qualificado",                 "Internet", inicio, fim);
-  const inetAgendEvts = filtrarEventos(eventos, "agendamento_criado",                  "Internet", inicio, fim);
-  const inetAtendEvts = filtrarEventos(eventos, "atendimento_comercial_realizado",     "Internet", inicio, fim);
-  const inetVendaEvts = filtrarEventos(eventos, "venda_realizada",                     "Internet", inicio, fim);
+  const inetOppEvts   = filtrarEventos(eventos, "oportunidade_registrada",         "Internet", inicio, fim);
+  const inetQualEvts  = filtrarEventos(eventos, "cliente_qualificado",             "Internet", inicio, fim);
+  const inetAgendEvts = filtrarEventos(eventos, "agendamento_criado",              "Internet", inicio, fim);
+  const inetAtendEvts = filtrarEventos(eventos, "atendimento_comercial_realizado", "Internet", inicio, fim);
+  const inetVendaEvts = filtrarEventos(eventos, "venda_realizada",                 "Internet", inicio, fim);
   const inetVendaIds  = new Set(inetVendaEvts.map(e => e.cliente_id));
   const inetClientesPeriodo = clientesNoPeriodo(clientes, "Internet", inicio, fim, vid);
   const inetQualFallback  = inetClientesPeriodo.filter(c => !evIdsQual.has(c.id)).length;
@@ -202,10 +233,10 @@ function calcFunis(eventos, clientes, inicio, fim, vid) {
   };
 
   // CARTEIRA
-  const cartQualEvts  = filtrarEventos(eventos, "cliente_qualificado",                 "Carteira", inicio, fim);
-  const cartAgendEvts = filtrarEventos(eventos, "agendamento_criado",                  "Carteira", inicio, fim);
-  const cartAtendEvts = filtrarEventos(eventos, "atendimento_comercial_realizado",     "Carteira", inicio, fim);
-  const cartVendaEvts = filtrarEventos(eventos, "venda_realizada",                     "Carteira", inicio, fim);
+  const cartQualEvts  = filtrarEventos(eventos, "cliente_qualificado",             "Carteira", inicio, fim);
+  const cartAgendEvts = filtrarEventos(eventos, "agendamento_criado",              "Carteira", inicio, fim);
+  const cartAtendEvts = filtrarEventos(eventos, "atendimento_comercial_realizado", "Carteira", inicio, fim);
+  const cartVendaEvts = filtrarEventos(eventos, "venda_realizada",                 "Carteira", inicio, fim);
   const cartVendaIds  = new Set(cartVendaEvts.map(e => e.cliente_id));
   const cartClientesPeriodo = clientesNoPeriodo(clientes, "Carteira", inicio, fim, vid);
   const cartQualFallback  = cartClientesPeriodo.filter(c => !evIdsQual.has(c.id)).length;
@@ -222,8 +253,6 @@ function calcFunis(eventos, clientes, inicio, fim, vid) {
 
   return { showroom, internet, carteira };
 }
-
-// ── Gráfico dos últimos 6 meses ───────────────────────────────────────────────
 
 function buildChartData(eventos, clientes) {
   return Array.from({ length: 6 }, (_, i) => {
@@ -251,27 +280,6 @@ function buildChartData(eventos, clientes) {
   });
 }
 
-// ── KPI Card ──────────────────────────────────────────────────────────────────
-
-function KpiCard({ titulo, valor, subtitulo, cor }) {
-  const corMap = { blue: "text-[#005BFF]", green: "text-[#22C55E]", red: "text-[#EF4444]", amber: "text-[#F59E0B]", slate: "text-slate-500" };
-  return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">{titulo}</p>
-      <p className={`text-[28px] font-black tabular-nums leading-none ${corMap[cor] || "text-[#0F172A]"}`}>{valor}</p>
-      {subtitulo && <p className="text-[12px] text-slate-400 mt-1">{subtitulo}</p>}
-    </div>
-  );
-}
-
-const FILTROS = [
-  { value: "mes_atual",   label: "Este mês" },
-  { value: "mes_passado", label: "Mês passado" },
-  { value: "tres_meses",  label: "Últimos 3 meses" },
-];
-
-// ── Base suficiente por canal (para confiança) ────────────────────────────────
-
 function calcConfianca(funis, funis90) {
   const showOk = funis.showroom.atendimento >= 5 || funis.showroom.venda >= 1;
   const inetOk = funis.internet.oportunidades >= 5 && funis.internet.atendimento >= 1;
@@ -284,6 +292,12 @@ function calcConfianca(funis, funis90) {
   return "Baixa";
 }
 
+const FILTROS = [
+  { value: "mes_atual",   label: "Este mês" },
+  { value: "mes_passado", label: "Mês passado" },
+  { value: "tres_meses",  label: "Últimos 3 meses" },
+];
+
 // ── Componente Principal ──────────────────────────────────────────────────────
 
 export default function FunilVendas() {
@@ -293,6 +307,8 @@ export default function FunilVendas() {
   const [profile, setProfile] = useState(null);
   const [eventos, setEventos] = useState([]);
   const [clientes, setClientes] = useState([]);
+  const [fechamentos, setFechamentos] = useState([]);
+  const [chartAberto, setChartAberto] = useState(false);
 
   const periodo = getPeriodo(filtro);
 
@@ -305,12 +321,14 @@ export default function FunilVendas() {
       setMe(usuario);
       setProfile(profiles[0] || null);
       if (usuario) {
-        const [evs, clis] = await Promise.all([
+        const [evs, clis, fechs] = await Promise.all([
           base44.entities.EventoComercial.filter({ vendedor_id: usuario.id }, "-data_evento", 500).catch(() => []),
           base44.entities.CarteiraCliente.filter({ vendedor_id: usuario.id, ativo: true }, "-created_date", 500).catch(() => []),
+          base44.entities.DailyClose.filter({ vendedor_id: usuario.id }, "-date", 200).catch(() => []),
         ]);
         setEventos(evs);
         setClientes(clis);
+        setFechamentos(fechs);
       }
       setLoading(false);
     });
@@ -318,14 +336,12 @@ export default function FunilVendas() {
 
   const { inicio, fim } = periodo;
 
-  // Período de 90 dias para fallback estatístico
   const inicio90 = useMemo(() => moment().subtract(90, "days").format("YYYY-MM-DD"), []);
   const fim90    = useMemo(() => moment().format("YYYY-MM-DD"), []);
 
-  const funis = useMemo(() => calcFunis(eventos, clientes, inicio, fim, me?.id || null), [eventos, clientes, inicio, fim, me]);
-  const funis90 = useMemo(() => calcFunis(eventos, clientes, inicio90, fim90, me?.id || null), [eventos, clientes, inicio90, fim90, me]);
+  const funis   = useMemo(() => calcFunis(eventos, clientes, fechamentos, inicio, fim, me?.id || null), [eventos, clientes, fechamentos, inicio, fim, me]);
+  const funis90 = useMemo(() => calcFunis(eventos, clientes, fechamentos, inicio90, fim90, me?.id || null), [eventos, clientes, fechamentos, inicio90, fim90, me]);
 
-  // Verificar se o período tem base suficiente; se não, usar 90 dias para esforço
   const baseSufPeriodo =
     funis.showroom.atendimento >= 5 || funis.showroom.venda >= 1 ||
     funis.internet.oportunidades >= 5 ||
@@ -333,15 +349,13 @@ export default function FunilVendas() {
   const usou90 = !baseSufPeriodo;
   const confianca = calcConfianca(funis, funis90);
 
-  // ── Indicadores ──────────────────────────────────────────────────────────
-
   const indicadores = useMemo(() => {
     const meta = profile?.monthly_goal || null;
     const realizadoSimples = funis.showroom.venda + funis.internet.venda + funis.carteira.venda;
     const faltam = meta ? Math.max(0, meta - realizadoSimples) : null;
     const diasRestantes = filtro === "mes_atual" ? diasUteisRestantes() : null;
     const diasPassados  = filtro === "mes_atual" ? diasUteisPassados()  : null;
-    const mediaDia   = diasPassados > 0 ? realizadoSimples / diasPassados : 0;
+    const mediaDia = diasPassados > 0 ? realizadoSimples / diasPassados : 0;
     const projetadas = realizadoSimples + mediaDia * (diasRestantes || 0);
     const probabilidade = meta && meta > 0 ? Math.min(100, Math.round((projetadas / meta) * 100)) : null;
     const necessarioPorDia = faltam !== null && diasRestantes > 0 ? (faltam / diasRestantes).toFixed(2) : null;
@@ -349,7 +363,7 @@ export default function FunilVendas() {
   }, [funis, filtro, profile]);
 
   const chartData = useMemo(() => buildChartData(eventos, clientes), [eventos, clientes]);
-  const temDado   = eventos.length > 0 || clientes.length > 0;
+  const temDado   = eventos.length > 0 || clientes.length > 0 || fechamentos.some(f => (f.atendimentos_showroom || 0) > 0);
 
   if (loading) {
     return (
@@ -365,7 +379,7 @@ export default function FunilVendas() {
       <div className="bg-white border-b border-slate-200 px-4 sm:px-6 h-[64px] flex items-center justify-between sticky top-0 z-30">
         <div className="flex items-center gap-3">
           <TrendingUp className="w-5 h-5 text-[#005BFF]" />
-          <h1 className="text-[18px] sm:text-[22px] font-black text-[#0F172A] uppercase tracking-tight">Funil de Vendas</h1>
+          <h1 className="text-[18px] sm:text-[22px] font-black text-[#0F172A] uppercase tracking-tight">Minha Meta</h1>
         </div>
         <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-1">
           {FILTROS.map(f => (
@@ -382,66 +396,23 @@ export default function FunilVendas() {
         </div>
       </div>
 
-      <div className="p-4 sm:p-6 space-y-5">
+      <div className="p-4 sm:p-6 space-y-4">
 
-        {/* BLOCO 2 — Indicadores da meta */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          {indicadores.meta ? (
-            <KpiCard titulo="Meta do mês" valor={indicadores.meta} subtitulo="unidades" cor="blue" />
-          ) : (
-            <div className="bg-white rounded-2xl border border-dashed border-slate-300 shadow-sm p-5 flex flex-col items-center justify-center text-center gap-1">
-              <Target className="w-5 h-5 text-slate-300" />
-              <p className="text-[11px] text-slate-400 font-semibold">Meta não configurada</p>
-              <Link to="/perfil" className="text-[11px] font-bold text-[#005BFF] hover:underline">Definir meta</Link>
-            </div>
-          )}
-          <KpiCard titulo="Realizado" valor={indicadores.realizado} subtitulo="no período" cor="green" />
-          <KpiCard
-            titulo="Faltam"
-            valor={indicadores.faltam !== null ? (indicadores.faltam === 0 ? "✓" : indicadores.faltam) : "—"}
-            subtitulo={indicadores.faltam === 0 ? "Meta batida!" : indicadores.faltam !== null ? "para a meta" : "Sem meta"}
-            cor={indicadores.faltam === 0 ? "green" : "red"}
-          />
-          <KpiCard
-            titulo="Dias úteis restantes"
-            valor={filtro === "mes_atual" ? (indicadores.diasRestantes ?? "—") : "—"}
-            subtitulo="seg–sab"
-            cor="slate"
-          />
-          <KpiCard
-            titulo="Necessário por dia"
-            valor={indicadores.necessarioPorDia !== null && filtro === "mes_atual"
-              ? (indicadores.faltam === 0 ? "Meta batida" : indicadores.necessarioPorDia)
-              : "—"}
-            subtitulo="vendas/dia útil"
-            cor="amber"
-          />
-          <KpiCard
-            titulo="Probabilidade de meta"
-            valor={indicadores.probabilidade !== null ? `${indicadores.probabilidade}%` : "—"}
-            subtitulo="com ritmo atual"
-            cor={indicadores.probabilidade !== null ? (indicadores.probabilidade >= 80 ? "green" : indicadores.probabilidade >= 50 ? "amber" : "red") : "slate"}
-          />
-        </div>
+        {/* BLOCO 1 — Status da Meta */}
+        <StatusMeta indicadores={indicadores} filtro={filtro} />
 
         {/* Estado vazio */}
         {!temDado && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-10 text-center">
             <TrendingUp className="w-10 h-10 text-slate-200 mx-auto mb-3" />
             <p className="text-[15px] font-bold text-[#0F172A] mb-1">Sem dados suficientes neste período.</p>
-            <p className="text-[13px] text-slate-400 mb-4">Registre atendimentos na Carteira ou no Fechamento Diário para alimentar o Funil.</p>
-            <Link to="/fechamento" className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#005BFF] hover:bg-blue-700 text-white text-[13px] font-bold rounded-xl transition-colors">
-              Ver Fechamento Diário
-            </Link>
+            <p className="text-[13px] text-slate-400">Registre atendimentos na Carteira ou no Fechamento Diário para alimentar o Funil.</p>
           </div>
         )}
 
         {temDado && (
           <>
-            {/* BLOCO 3 — Projeção do mês */}
-            <ProjecaoMes indicadores={indicadores} filtro={filtro} />
-
-            {/* BLOCO 4 — Esforço necessário */}
+            {/* BLOCO 2 — Esforço necessário */}
             <EsforcoNecessario
               funis={funis}
               faltam={indicadores.faltam ?? 0}
@@ -449,39 +420,51 @@ export default function FunilVendas() {
               usou90={usou90}
             />
 
-            {/* BLOCO 5 — Eficiência por canal */}
+            {/* BLOCO 3 — Eficiência por canal */}
             <EficienciaCanal funis={funis} />
 
-            {/* BLOCO 6 — Gráfico 6 meses (apoio discreto) */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Evolução dos últimos 6 meses</p>
-              {chartData.every(d => d.oportunidades === 0 && d.atendimento === 0 && d.vendas === 0) ? (
-                <p className="text-center py-6 text-[12px] text-slate-300">Sem registros nos últimos 6 meses.</p>
-              ) : (
-                <ResponsiveContainer width="100%" height={150}>
-                  <LineChart data={chartData} margin={{ top: 4, right: 8, left: -18, bottom: 0 }}>
-                    <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} allowDecimals={false} />
-                    <Tooltip contentStyle={{ borderRadius: 10, fontSize: 11, border: "1px solid #e2e8f0" }} />
-                    <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: 11 }} />
-                    <Line type="monotone" dataKey="oportunidades"  name="Oportunidades"     stroke="#6D28D9" strokeWidth={1.5} dot={false} />
-                    <Line type="monotone" dataKey="atendimento"    name="Atend. Comercial"  stroke="#005BFF" strokeWidth={1.5} dot={false} />
-                    <Line type="monotone" dataKey="vendas"         name="Vendas"            stroke="#22C55E" strokeWidth={2}   dot={{ r: 2, fill: "#22C55E" }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              )}
-            </div>
-
-            {/* BLOCO 7 — Base estatística */}
+            {/* BLOCO 4 — Base do cálculo */}
             <BaseEstatistica
               filtro={filtro}
               usou90={usou90}
               confianca={confianca}
               periodoCalculo={usou90 ? "Últimos 90 dias" : null}
             />
+
+            {/* BLOCO 5 — Evolução (recolhida) */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <button
+                onClick={() => setChartAberto(v => !v)}
+                className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-slate-50 transition-colors"
+              >
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Ver evolução dos últimos meses</p>
+                {chartAberto
+                  ? <ChevronUp className="w-4 h-4 text-slate-400" />
+                  : <ChevronDown className="w-4 h-4 text-slate-400" />
+                }
+              </button>
+              {chartAberto && (
+                <div className="px-5 pb-4 border-t border-slate-100">
+                  {chartData.every(d => d.oportunidades === 0 && d.atendimento === 0 && d.vendas === 0) ? (
+                    <p className="text-center py-6 text-[12px] text-slate-300">Sem registros nos últimos 6 meses.</p>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={150}>
+                      <LineChart data={chartData} margin={{ top: 12, right: 8, left: -18, bottom: 0 }}>
+                        <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} allowDecimals={false} />
+                        <Tooltip contentStyle={{ borderRadius: 10, fontSize: 11, border: "1px solid #e2e8f0" }} />
+                        <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: 11 }} />
+                        <Line type="monotone" dataKey="oportunidades"  name="Oportunidades"    stroke="#6D28D9" strokeWidth={1.5} dot={false} />
+                        <Line type="monotone" dataKey="atendimento"    name="Atend. Comercial" stroke="#005BFF" strokeWidth={1.5} dot={false} />
+                        <Line type="monotone" dataKey="vendas"         name="Vendas"           stroke="#22C55E" strokeWidth={2}   dot={{ r: 2, fill: "#22C55E" }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              )}
+            </div>
           </>
         )}
-
       </div>
     </div>
   );

@@ -1,0 +1,90 @@
+{
+  "name": "PoliticaRemuneracao",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "title": "Nome da Pol\u00edtica"
+    },
+    "loja_id": {
+      "type": "string",
+      "title": "Loja ID"
+    },
+    "loja_nome": {
+      "type": "string",
+      "title": "Loja"
+    },
+    "departamento": {
+      "type": "string",
+      "title": "Departamento"
+    },
+    "cargo": {
+      "type": "string",
+      "title": "Cargo"
+    },
+    "vendedor_id": {
+      "type": "string",
+      "title": "Vendedor ID (espec\u00edfico)"
+    },
+    "vendedor_nome": {
+      "type": "string",
+      "title": "Vendedor (espec\u00edfico)"
+    },
+    "tipo_comissao": {
+      "type": "string",
+      "title": "Tipo de Comiss\u00e3o",
+      "enum": [
+        "Comiss\u00e3o fixa por ve\u00edculo",
+        "Comiss\u00e3o percentual sobre valor vendido",
+        "Comiss\u00e3o por faixa de volume",
+        "Comiss\u00e3o mista"
+      ]
+    },
+    "periodo_apuracao": {
+      "type": "string",
+      "title": "Per\u00edodo de Apura\u00e7\u00e3o",
+      "enum": [
+        "Mensal",
+        "Quinzenal",
+        "Semanal",
+        "Personalizado"
+      ]
+    },
+    "data_inicio": {
+      "type": "string",
+      "format": "date",
+      "title": "Data de In\u00edcio"
+    },
+    "data_fim": {
+      "type": "string",
+      "format": "date",
+      "title": "Data de Fim"
+    },
+    "aplicar_faixa_sobre_todos_veiculos": {
+      "type": "boolean",
+      "title": "Aplicar faixa atingida sobre todos os ve\u00edculos do per\u00edodo",
+      "default": true
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "Ativa",
+        "Inativa",
+        "Rascunho"
+      ],
+      "default": "Ativa"
+    },
+    "created_by": {
+      "type": "string",
+      "title": "Criado Por"
+    }
+  },
+  "required": [
+    "nome",
+    "tipo_comissao",
+    "periodo_apuracao",
+    "data_inicio",
+    "status"
+  ]
+}

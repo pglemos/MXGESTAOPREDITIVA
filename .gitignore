@@ -44,3 +44,6 @@ scratch/
 
 # Storybook
 storybook-static
+
+# Extração/scratch local (cópia bruta de zips etc.)
+tmp/

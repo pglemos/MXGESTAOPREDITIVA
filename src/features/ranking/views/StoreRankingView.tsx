@@ -1,105 +1,98 @@
-import { Search } from 'lucide-react'
-import { Input } from '@/components/atoms/Input'
-import { SellerProfileModal } from '@/features/ranking/components/SellerProfileModal'
+import { Trophy } from 'lucide-react'
 import { RankingErrorBoundary } from '@/features/ranking/components/RankingErrorBoundary'
-import { RankingSkeleton } from '@/features/ranking/components/RankingSkeleton'
-import { StoreRankingHeader } from '@/features/ranking/sections/StoreRankingHeader'
-import { StoreStatsCards } from '@/features/ranking/sections/StoreStatsCards'
-import { StoreContextCards } from '@/features/ranking/sections/StoreContextCards'
-import { BattleSelector } from '@/features/ranking/sections/BattleSelector'
-import { LeaderboardList } from '@/features/ranking/sections/LeaderboardList'
-import { useStoreRankingPageData } from '@/features/ranking/hooks/useStoreRankingPageData'
+import { PodioRanking } from '@/features/ranking/components/base44/PodioRanking'
+import { SuaPosicao } from '@/features/ranking/components/base44/SuaPosicao'
+import { CorridaPeriodo } from '@/features/ranking/components/base44/CorridaPeriodo'
+import { BonificacaoPeriodo } from '@/features/ranking/components/base44/BonificacaoPeriodo'
+import { TabelaRanking } from '@/features/ranking/components/base44/TabelaRanking'
+import { RANKING_PERIODOS, useStoreRankingPageData } from '@/features/ranking/hooks/useStoreRankingPageData'
 
 /**
- * Container slim do Ranking por Loja (perfis vendedor/gerente/dono).
- * Orquestra header, contexto, stats, tabs (leaderboard/battle) e modal de profile
- * via aggregator hook `useStoreRankingPageData`.
- *
- * Story 2.3 — ADR-0050. Decompõe parte store de `src/pages/Ranking.tsx`.
+ * Ranking por Loja — reproduz 1:1 a estrutura do protótipo Base44
+ * (src/base44-reference/pages/Ranking.jsx): topbar com trófeu + avatar,
+ * abas de período, Pódio + Sua posição, Corrida + Bonificação, Tabela.
  */
 export function StoreRankingView() {
   const data = useStoreRankingPageData()
 
   if (data.loading) {
-    return <RankingSkeleton ariaLabel="Consolidando ranking" variant="store" />
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-8 h-8 border-4 border-slate-200 border-t-green-500 rounded-full animate-spin" />
+      </div>
+    )
   }
+
+  const me = data.profile
 
   return (
     <RankingErrorBoundary sectionName="Ranking da Loja">
-      <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt relative">
-        <StoreRankingHeader
-          rankingCount={data.sortedRanking.length}
-          viewMode={data.viewMode}
-          onChangeViewMode={data.setViewMode}
-          onRefresh={data.handleRefresh}
-          isRefetching={data.isRefetching}
-          lastUpdatedAt={data.lastUpdatedAt}
-        />
-
-        <StoreContextCards role={data.role} />
-
-        <StoreStatsCards
-          storeTotalVendas={data.storeSales.storeTotalVendas}
-          storeAttainment={data.storeSales.storeAttainment}
-          storeTotalLeads={data.storeSales.storeTotalLeads}
-          storeTotalAgd={data.storeSales.storeTotalAgd}
-          storeTotalVis={data.storeSales.storeTotalVis}
-        />
-
-        {data.error && (
-          <div role="alert" className="rounded-mx-2xl border border-status-error/20 bg-status-error-surface px-mx-md py-mx-sm text-sm font-bold text-status-error">
-            {data.error}
+      <div className="min-h-screen bg-[#F8FAFC] font-body">
+        <div className="bg-white border-b border-slate-200 px-4 sm:px-6 h-[64px] flex items-center justify-between sticky top-0 z-30">
+          <div className="flex items-center gap-3">
+            <Trophy className="w-5 h-5 text-green-600" fill="currentColor" />
+            <div>
+              <h1 className="text-[18px] sm:text-[20px] font-black text-slate-900 leading-tight">Ranking</h1>
+              <p className="text-[11px] text-slate-400 hidden sm:block">Acompanhe sua posição, a corrida do período e as bonificações da loja.</p>
+            </div>
           </div>
-        )}
-
-        <div className="flex-1 min-h-0 pb-32" aria-live="polite">
-          {data.viewMode === 'battle' && (
-            <BattleSelector
-              opponents={data.battleOpponents}
-              ranking={data.sortedRanking}
-              onToggle={data.toggleOpponent}
-              onClear={() => data.setBattleOpponents([])}
-              showStoreName={false}
-            />
-          )}
-
-          {data.viewMode === 'leaderboard' && (
-            <LeaderboardList
-              ranking={data.sortedRanking}
-              podium={data.podiumOrder}
-              currentUserId={data.profile?.id}
-              battleOpponents={data.battleOpponents}
-              showStoreName={false}
-              onSelect={data.setSelectedSeller}
-              onToggleOpponent={(id) => {
-                data.toggleOpponent(id)
-                data.setViewMode('battle')
-              }}
-              beforeList={
-                <div className="relative group w-full max-w-sm mb-4">
-                  <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
-                  <Input
-                    id="ranking-store-search"
-                    name="ranking-store-search"
-                    aria-label="Localizar vendedor"
-                    placeholder="LOCALIZAR VENDEDOR..."
-                    value={data.searchTerm}
-                    onChange={(e) => data.setSearchTerm(e.target.value)}
-                    className="!pl-11 !h-mx-14 !text-mx-tiny uppercase tracking-widest font-black"
-                  />
-                </div>
-              }
-            />
+          {me && (
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white text-[13px] font-bold">
+                {(me.name || 'U').split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase()}
+              </div>
+              <div className="hidden sm:block text-right">
+                <p className="text-[12px] font-semibold text-slate-800 leading-tight">{me.name}</p>
+                <p className="text-[10px] text-slate-400">Vendedor</p>
+              </div>
+            </div>
           )}
         </div>
 
-        {data.selectedSellerEntry && (
-          <SellerProfileModal
-            seller={data.selectedSellerEntry}
-            onClose={() => data.setSelectedSeller(null)}
-          />
-        )}
-      </main>
+        <div className="p-4 sm:p-6 space-y-5">
+          <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-1 flex-wrap w-fit">
+            {RANKING_PERIODOS.map(p => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => data.setPeriodo(p)}
+                className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all ${
+                  data.periodo === p
+                    ? 'bg-white text-green-700 shadow-sm border border-green-200'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+
+          {data.error && (
+            <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-bold text-red-700">
+              {data.error}
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-4">
+            <PodioRanking top3={data.top3} />
+            {data.euVendedor && (
+              <SuaPosicao
+                posicao={data.posicao}
+                total={data.totalVendedores}
+                atingimento={data.atingimento}
+                faltamValor={data.faltamValor}
+              />
+            )}
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4">
+            <CorridaPeriodo vendedores={data.vendedores.slice(0, 8)} meta={data.metaPeriodo} meuId={data.meuId} />
+            <BonificacaoPeriodo />
+          </div>
+
+          <TabelaRanking vendedores={data.vendedores} meta={data.metaPeriodo} meuId={data.meuId} />
+        </div>
+      </div>
     </RankingErrorBoundary>
   )
 }

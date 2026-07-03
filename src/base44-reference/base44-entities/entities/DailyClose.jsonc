@@ -1,0 +1,114 @@
+{
+  "name": "DailyClose",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Data"
+    },
+    "vendedor_id": {
+      "type": "string",
+      "title": "Vendedor ID"
+    },
+    "loja_id": {
+      "type": "string",
+      "title": "Loja ID"
+    },
+    "leads_carteira": {
+      "type": "number",
+      "title": "Leads Carteira",
+      "default": 0
+    },
+    "leads_internet": {
+      "type": "number",
+      "title": "Leads Internet",
+      "default": 0
+    },
+    "atendimentos_showroom": {
+      "type": "number",
+      "title": "Atendimentos Showroom",
+      "default": 0
+    },
+    "atendimentos_carteira": {
+      "type": "number",
+      "title": "Atendimentos Carteira",
+      "default": 0
+    },
+    "atendimentos_internet": {
+      "type": "number",
+      "title": "Atendimentos Internet",
+      "default": 0
+    },
+    "agendamentos_carteira": {
+      "type": "number",
+      "title": "Agendamentos D+1 Carteira",
+      "default": 0
+    },
+    "agendamentos_internet": {
+      "type": "number",
+      "title": "Agendamentos D+1 Internet",
+      "default": 0
+    },
+    "status_fechamento": {
+      "type": "string",
+      "title": "Status do Fechamento",
+      "enum": [
+        "Aberto",
+        "Fechado",
+        "Revisado"
+      ],
+      "default": "Aberto"
+    },
+    "finalizado": {
+      "type": "boolean",
+      "title": "Fechamento Finalizado",
+      "default": false
+    },
+    "data_hora_finalizacao": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Data/Hora Finaliza\u00e7\u00e3o"
+    },
+    "ajustes_d1_permitidos": {
+      "type": "boolean",
+      "title": "Ajustes D+1 Permitidos",
+      "default": false
+    },
+    "data_hora_limite_ajuste_d1": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Limite Ajuste D+1"
+    },
+    "data_hora_consolidacao_d1": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Data/Hora Consolida\u00e7\u00e3o D+1"
+    },
+    "pontuacao_disciplina_provisoria": {
+      "type": "number",
+      "title": "Disciplina Provis\u00f3ria",
+      "default": 0
+    },
+    "pontuacao_disciplina_consolidada": {
+      "type": "number",
+      "title": "Disciplina Consolidada",
+      "default": 0
+    },
+    "agenda_d1_consolidada": {
+      "type": "string",
+      "title": "Agenda D+1 Consolidada (JSON)"
+    },
+    "status_regularizacao": {
+      "type": "string",
+      "title": "Status de Regulariza\u00e7\u00e3o"
+    },
+    "observacao_geral": {
+      "type": "string",
+      "title": "Observa\u00e7\u00e3o Geral"
+    }
+  },
+  "required": [
+    "date"
+  ]
+}

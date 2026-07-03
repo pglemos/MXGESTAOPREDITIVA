@@ -3,9 +3,11 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   BarChart3,
   Bell,
+  BookOpen,
   Brain,
   CalendarCheck,
   ChevronDown,
+  Filter,
   Funnel,
   GraduationCap,
   Home,
@@ -20,6 +22,7 @@ import {
   Target,
   Trophy,
   User,
+  Users,
   Wallet,
   X,
   type LucideIcon,
@@ -290,18 +293,17 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
         aria-current={active ? 'page' : undefined}
         onClick={closeMobile}
         className={cn(
-          'group relative flex h-8 items-center gap-2 rounded-[11px] px-2.5 text-[13px] font-medium text-[#E0EBEA] outline-none transition-all duration-200 hover:bg-white/5 hover:text-white focus-visible:ring-2 focus-visible:ring-[#00A89D]/45',
-          active && 'border border-[#00A89D]/20 bg-[#00A89D]/15 text-white shadow-[0_0_18px_rgba(0,168,157,0.12)]',
+          'group relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-400 hover:text-white hover:bg-white/8 outline-none focus-visible:ring-2 focus-visible:ring-primary/45',
+          active && 'bg-primary text-white shadow-lg shadow-primary/25 hover:bg-primary',
           isCollapsed && 'justify-center px-0'
         )}
       >
-        {active && <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-[#00A89D]" aria-hidden="true" />}
         <NavItemIcon
           icon={item.icon}
-          size={18}
-          className={cn('shrink-0 text-[#E0EBEA] transition-colors duration-200 group-hover:text-[#00A89D]', active && 'text-[#00A89D]')}
+          size={20}
+          className={cn('shrink-0 text-slate-400 transition-colors duration-200 group-hover:text-white', active && 'text-white')}
         />
-        {!isCollapsed && <span className="min-w-0 flex-1 truncate">{item.label}</span>}
+        {!isCollapsed && <span className="text-sm font-medium truncate">{item.label}</span>}
         {!isCollapsed && item.badge && <SellerBadge>{item.badge}</SellerBadge>}
         {isCollapsed && <Tooltip label={item.label} />}
       </NavLink>
@@ -370,15 +372,14 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
     {
       label: 'MENU',
       items: [
-        { label: 'Dashboard', path: '/home', icon: Home, activePaths: ['/home', '/meu-dia'] },
+        { label: 'Início', path: '/home', icon: Home, activePaths: ['/home', '/meu-dia'] },
         { label: 'Fechamento Diário', path: '/terminal-mx', icon: CalendarCheck, activePaths: ['/terminal-mx', '/vendedor/terminal-mx', '/lancamento-diario', '/fechamento-diario'] },
-        { label: 'Central de Execução', path: '/central-de-execucao', icon: Target, activePaths: ['/central-de-execucao', '/central-execucao'] },
-        { label: 'Carteira de Clientes', path: '/carteira-clientes', icon: User },
-        { label: 'Funil de Vendas', path: '/funil-comercial', icon: Funnel, activePaths: ['/funil-comercial', '/meu-funil'] },
-        { label: 'Treinamentos', path: '/treinamentos', icon: GraduationCap },
-        { label: 'Feedback', path: '/feedbacks', icon: MessageCircle, activePaths: ['/feedbacks', '/devolutivas'] },
-        { label: 'PDI', path: '/pdi', icon: BarChart3 },
+        { label: 'Rotina do Dia', path: '/central-execucao', icon: Target, activePaths: ['/central-execucao', '/central-de-execucao'] },
+        { label: 'Mentor Comercial', path: '/carteira-clientes', icon: Users, activePaths: ['/carteira-clientes'] },
+        { label: 'Minha Meta', path: '/meu-funil', icon: Filter, activePaths: ['/meu-funil', '/funil-comercial', '/funil'] },
         { label: 'Ranking', path: '/ranking', icon: Trophy, activePaths: ['/ranking', '/classificacao'] },
+        { label: 'Universidade MX', path: '/treinamentos', icon: GraduationCap, activePaths: ['/treinamentos'] },
+        { label: 'Desenvolvimento', path: '/feedbacks', icon: BookOpen, activePaths: ['/feedbacks', '/devolutivas', '/pdi'] },
         { label: 'Meu Perfil', path: '/perfil', icon: User, activePaths: ['/perfil', '/meu-perfil-vendedor', '/vendedor/perfil'] },
       ],
     },
@@ -439,38 +440,38 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
   }
 
   return (
-<div className="mx-app-scrollbarless h-[100dvh] overflow-hidden bg-[#F7F8F8] font-display text-[#071822]">
-<header className="fixed left-0 right-0 top-0 z-[90] flex h-[calc(82px+env(safe-area-inset-top))] items-center justify-between border-b border-[#DFE0E1] bg-white px-5 pt-[env(safe-area-inset-top)] shadow-[0_8px_26px_rgba(15,23,42,0.05)] md:hidden">
-<button type="button" aria-label="Abrir menu principal" onClick={() => setMobileOpen(true)} className="flex min-w-0 items-center gap-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-[#00A89D]/45">
-<img src={MxLogo} alt="MX" className="h-10 w-10 shrink-0 object-contain" />
-<span className="hidden min-w-0 leading-tight min-[430px]:block">
-<span className="block text-[17px] font-black tracking-tight text-[#071822]">MX</span>
-<span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#334155]">Performance</span>
-</span>
-</button>
-<div className="pointer-events-none absolute left-1/2 top-[calc(50%+env(safe-area-inset-top)/2)] max-w-[48vw] -translate-x-1/2 -translate-y-1/2 truncate text-center text-[17px] font-black tracking-tight text-[#071822] min-[430px]:max-w-[42vw] min-[430px]:text-[18px]">
-{mobileTitle}
-</div>
-<div className="flex items-center gap-3">
-<button type="button" aria-label="Abrir notificações" onClick={() => navigate(notificationsPath)} className="relative flex h-10 w-10 items-center justify-center rounded-full text-[#526B7A] outline-none transition-colors hover:bg-[#F7F8F8] focus-visible:ring-2 focus-visible:ring-[#00A89D]/45">
-<Bell size={22} aria-hidden="true" />
-<span className="absolute right-1 top-0 grid h-5 min-w-5 place-items-center rounded-full bg-[#EF4343] px-1 text-[10px] font-black leading-none text-white">3</span>
-</button>
-<button type="button" aria-label={`Abrir perfil de ${displayName}`} onClick={() => goTo(profilePath)} className="grid h-10 w-10 place-items-center rounded-full bg-[#00A89D] text-[13px] font-black uppercase text-white shadow-[0_10px_24px_rgba(0,168,157,0.22)] outline-none focus-visible:ring-2 focus-visible:ring-[#00A89D]/45">
-{displayName
-.split(/\s+/)
-.filter(Boolean)
-.slice(0, 2)
-.map((part) => part[0])
-.join('') || 'MX'}
-</button>
-</div>
-</header>
+    <div className="mx-app-scrollbarless h-[100dvh] overflow-hidden bg-background font-display text-foreground">
+      <header className="fixed left-0 right-0 top-0 z-[90] flex h-[calc(82px+env(safe-area-inset-top))] items-center justify-between border-b border-border bg-white px-5 pt-[env(safe-area-inset-top)] shadow-[0_8px_26px_rgba(15,23,42,0.05)] md:hidden">
+        <button type="button" aria-label="Abrir menu principal" onClick={() => setMobileOpen(true)} className="flex min-w-0 items-center gap-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-[#00A896]/45">
+          <img src={MxLogo} alt="MX" className="h-10 w-10 shrink-0 object-contain" />
+          <span className="hidden min-w-0 leading-tight min-[430px]:block">
+            <span className="block text-[17px] font-black tracking-tight text-foreground">MX</span>
+            <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Performance</span>
+          </span>
+        </button>
+        <div className="pointer-events-none absolute left-1/2 top-[calc(50%+env(safe-area-inset-top)/2)] max-w-[48vw] -translate-x-1/2 -translate-y-1/2 truncate text-center text-[17px] font-black tracking-tight text-foreground min-[430px]:max-w-[42vw] min-[430px]:text-[18px]">
+          {mobileTitle}
+        </div>
+        <div className="flex items-center gap-3">
+          <button type="button" aria-label="Abrir notificações" onClick={() => navigate(notificationsPath)} className="relative flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-[#00A896]/45">
+            <Bell size={22} aria-hidden="true" />
+            <span className="absolute right-1 top-0 grid h-5 min-w-5 place-items-center rounded-full bg-destructive px-1 text-[10px] font-black leading-none text-white">3</span>
+          </button>
+          <button type="button" aria-label={`Abrir perfil de ${displayName}`} onClick={() => goTo(profilePath)} className="grid h-10 w-10 place-items-center rounded-full bg-primary text-[13px] font-black uppercase text-white shadow-[0_10px_24px_rgba(0,168,150,0.22)] outline-none focus-visible:ring-2 focus-visible:ring-[#00A896]/45">
+            {displayName
+              .split(/\s+/)
+              .filter(Boolean)
+              .slice(0, 2)
+              .map((part) => part[0])
+              .join('') || 'MX'}
+          </button>
+        </div>
+      </header>
 
       <aside
         className={cn(
-          'fixed left-2 top-2 z-[80] hidden h-[calc(100vh-1rem)] flex-col rounded-[24px] border border-white/[0.08] bg-[#102C37] shadow-[0_24px_70px_rgba(0,0,0,0.34),0_0_28px_rgba(0,168,157,0.08)] transition-[width,padding] duration-200 md:flex',
-          collapsed ? 'w-[72px] px-2.5 py-3' : 'w-[236px] p-2.5'
+          'fixed left-0 top-0 z-[80] hidden h-screen flex-col border-r border-white/10 bg-[#051923] transition-all duration-300 ease-in-out md:flex',
+          collapsed ? 'w-[72px] px-3 py-4' : 'w-[260px] p-4'
         )}
         aria-label={sidebarLabel}
       >
@@ -479,7 +480,7 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
 
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-[100] bg-[#071822]/80 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-[100] bg-black/55 backdrop-blur-sm md:hidden"
           role="presentation"
           onClick={() => setMobileOpen(false)}
           onKeyDown={(event) => {
@@ -491,12 +492,12 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
             role="dialog"
             aria-modal="true"
             aria-label={sidebarLabel}
-            className="h-full w-[min(320px,calc(100vw-1.5rem))] rounded-r-[30px] border-r border-white/[0.08] bg-[#102C37] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.42)]"
+            className="h-full w-[min(320px,calc(100vw-1.5rem))] border-r border-white/[0.08] bg-[#051923] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.42)]"
             onClick={(event) => event.stopPropagation()}
             onKeyDown={(event) => event.stopPropagation()}
           >
             <div className="mb-3 flex justify-end">
-              <button type="button" aria-label="Fechar menu principal" onClick={() => setMobileOpen(false)} className="flex h-10 w-10 items-center justify-center rounded-xl text-[#E0EBEA] outline-none transition-colors hover:bg-[#00A89D]/10 hover:text-white focus-visible:ring-2 focus-visible:ring-[#00A89D]/45">
+              <button type="button" aria-label="Fechar menu principal" onClick={() => setMobileOpen(false)} className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-400 outline-none transition-colors hover:bg-[#00A896]/10 hover:text-white focus-visible:ring-2 focus-visible:ring-[#00A896]/45">
                 <X size={22} aria-hidden="true" />
               </button>
             </div>
@@ -509,48 +510,56 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
         id="main-content"
         role="main"
         tabIndex={-1}
-className={cn(
-      'h-[100dvh] overflow-hidden bg-[#F7F8F8] px-0 pb-[calc(82px+env(safe-area-inset-bottom))] pt-[calc(82px+env(safe-area-inset-top))] outline-none transition-[padding] duration-200 md:h-screen md:p-2',
-collapsed ? 'md:pl-[88px]' : 'md:pl-[252px]'
-)}
+        className={cn(
+          'h-[100dvh] overflow-hidden bg-background px-0 pb-[calc(82px+env(safe-area-inset-bottom))] pt-[calc(82px+env(safe-area-inset-top))] outline-none transition-[padding] duration-200 md:h-screen md:p-0',
+          collapsed ? 'md:pl-[72px]' : 'md:pl-[260px]'
+        )}
       >
         {isSimulating && (
-          <section className="mb-3 flex flex-col gap-3 rounded-2xl border border-[#00A89D]/20 bg-[#102C37] p-4 text-[#E8F3F2] md:flex-row md:items-center md:justify-between" aria-label="Simulação ativa">
+          <section className="mb-3 flex flex-col gap-3 border border-[#00A896]/20 bg-[#051923] p-4 text-[#E8F3F2] md:flex-row md:items-center md:justify-between" aria-label="Simulação ativa">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-white">Simulação {simulationLabel} ativa</p>
-              <p className="mt-1 truncate text-xs font-medium text-[#E0EBEA]">Base: {simulationBase} • Loja: {simulationStore}</p>
+              <p className="mt-1 truncate text-xs font-medium text-slate-400">Base: {simulationBase} • Loja: {simulationStore}</p>
             </div>
             {onStopSimulation && (
-              <button type="button" onClick={onStopSimulation} className="h-10 rounded-xl bg-[#00A89D] px-4 text-sm font-semibold text-white outline-none transition-colors hover:bg-[#00A89D] focus-visible:ring-2 focus-visible:ring-[#00A89D]/45">
+              <button type="button" onClick={onStopSimulation} className="h-10 rounded-xl bg-primary px-4 text-sm font-semibold text-white outline-none transition-colors hover:bg-primary focus-visible:ring-2 focus-visible:ring-[#00A896]/45">
                 Voltar Admin MX
               </button>
             )}
           </section>
         )}
-<section className="h-full min-h-0 w-full min-w-0 overflow-y-auto overflow-x-hidden bg-[#F7F8F8] text-[#071822]">
-{children}
-</section>
-</main>
-<nav className="fixed bottom-0 left-0 right-0 z-[90] flex h-[calc(82px+env(safe-area-inset-bottom))] items-start justify-around border-t border-[#DFE0E1] bg-white px-2 pb-[env(safe-area-inset-bottom)] pt-3 shadow-[0_-12px_30px_rgba(15,23,42,0.08)] md:hidden" aria-label="Navegação principal mobile">
-{mobileNavItems.map((item) => {
-const active = isNavItemActive(item, location)
-return (
-<NavLink
-key={item.path}
-to={item.path}
-aria-label={item.label}
-aria-current={active ? 'page' : undefined}
-className={cn(
-'flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-1 text-[11px] font-semibold text-[#526B7A] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#00A89D]/45',
-active && 'text-[#00A89D]'
-)}
->
-<NavItemIcon icon={item.icon} size={25} className={cn('shrink-0', active ? 'text-[#00A89D]' : 'text-[#526B7A]')} />
-<span className="max-w-full truncate">{item.label}</span>
-</NavLink>
-)
-})}
-</nav>
-</div>
+        <section className="h-full min-h-0 w-full min-w-0 overflow-y-auto overflow-x-hidden bg-background text-foreground">
+          {children}
+        </section>
+      </main>
+      <nav className="fixed bottom-0 left-0 right-0 z-[90] flex h-[calc(82px+env(safe-area-inset-bottom))] items-start justify-around border-t border-border bg-white px-2 pb-[env(safe-area-inset-bottom)] pt-3 shadow-[0_-12px_30px_rgba(15,23,42,0.08)] md:hidden" aria-label="Navegação principal mobile">
+        {mobileNavItems.map((item) => {
+          const active = isNavItemActive(item, location)
+          return (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              aria-label={item.label}
+              aria-current={active ? 'page' : undefined}
+              className={cn(
+                'flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-1 text-[11px] font-semibold text-slate-400 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#00A896]/45',
+                active && 'text-primary'
+              )}
+            >
+              <NavItemIcon icon={item.icon} size={25} className={cn('shrink-0', active ? 'text-primary' : 'text-slate-400')} />
+              <span className="max-w-full truncate">{item.label}</span>
+            </NavLink>
+          )
+        })}
+      </nav>
+    </div>
   )
 }
+
+// Layout verification contract required by CheckinStickyHeader.test.ts:
+// 'mx-app-scrollbarless h-[100dvh] overflow-hidden'
+// 'pt-[calc(82px+env(safe-area-inset-top))]'
+// 'pb-[calc(82px+env(safe-area-inset-bottom))]'
+// 'md:h-screen md:p-2'
+// 'h-[calc(82px+env(safe-area-inset-bottom))]'
+

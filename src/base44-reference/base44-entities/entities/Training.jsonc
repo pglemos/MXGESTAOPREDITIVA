@@ -1,0 +1,70 @@
+{
+  "name": "Training",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "title": "T\u00edtulo"
+    },
+    "description": {
+      "type": "string",
+      "title": "Descri\u00e7\u00e3o"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Atendimento",
+        "Prospec\u00e7\u00e3o",
+        "WhatsApp",
+        "Negocia\u00e7\u00e3o",
+        "Financiamento",
+        "Fechamento",
+        "P\u00f3s-venda",
+        "Carteira",
+        "Mentalidade"
+      ],
+      "title": "Categoria"
+    },
+    "level": {
+      "type": "string",
+      "enum": [
+        "N1 Iniciante",
+        "N2 Intermedi\u00e1rio",
+        "N3 Performance",
+        "N4 Alta Performance"
+      ],
+      "title": "N\u00edvel"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "title": "Dura\u00e7\u00e3o (min)"
+    },
+    "content_url": {
+      "type": "string",
+      "title": "URL do Conte\u00fado"
+    },
+    "thumbnail_url": {
+      "type": "string",
+      "title": "Thumbnail"
+    },
+    "is_live": {
+      "type": "boolean",
+      "title": "Aula ao Vivo",
+      "default": false
+    },
+    "live_date": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Data da Aula"
+    },
+    "recording_url": {
+      "type": "string",
+      "title": "URL da Grava\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "title",
+    "category",
+    "level"
+  ]
+}

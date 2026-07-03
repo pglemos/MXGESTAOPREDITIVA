@@ -1,0 +1,91 @@
+{
+  "name": "BonificacaoRemuneracao",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "title": "Nome da Bonifica\u00e7\u00e3o"
+    },
+    "tipo": {
+      "type": "string",
+      "title": "Tipo",
+      "enum": [
+        "Loja bateu meta",
+        "Melhor vendedor do m\u00eas",
+        "Melhor vendedor do trimestre",
+        "Melhor vendedor do semestre",
+        "Melhor vendedor do ano",
+        "Campanha espec\u00edfica",
+        "Outro"
+      ]
+    },
+    "criterio": {
+      "type": "string",
+      "title": "Crit\u00e9rio"
+    },
+    "valor": {
+      "type": "number",
+      "title": "Valor (R$)",
+      "default": 0
+    },
+    "data_inicio": {
+      "type": "string",
+      "format": "date",
+      "title": "Data de In\u00edcio"
+    },
+    "data_fim": {
+      "type": "string",
+      "format": "date",
+      "title": "Data de Fim"
+    },
+    "aplicavel_para": {
+      "type": "string",
+      "title": "Aplic\u00e1vel Para"
+    },
+    "loja_id": {
+      "type": "string",
+      "title": "Loja ID"
+    },
+    "loja_nome": {
+      "type": "string",
+      "title": "Loja"
+    },
+    "departamento": {
+      "type": "string",
+      "title": "Departamento"
+    },
+    "cargo": {
+      "type": "string",
+      "title": "Cargo"
+    },
+    "vendedor_id": {
+      "type": "string",
+      "title": "Vendedor ID (espec\u00edfico)"
+    },
+    "vendedor_nome": {
+      "type": "string",
+      "title": "Vendedor (espec\u00edfico)"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "Ativa",
+        "Inativa",
+        "Encerrada"
+      ],
+      "default": "Ativa"
+    },
+    "observacoes": {
+      "type": "string",
+      "title": "Observa\u00e7\u00f5es"
+    }
+  },
+  "required": [
+    "nome",
+    "tipo",
+    "valor",
+    "data_inicio",
+    "status"
+  ]
+}

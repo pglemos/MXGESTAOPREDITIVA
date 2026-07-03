@@ -1,0 +1,52 @@
+{
+  "name": "FaixaComissao",
+  "type": "object",
+  "properties": {
+    "politica_id": {
+      "type": "string",
+      "title": "Pol\u00edtica ID"
+    },
+    "politica_nome": {
+      "type": "string",
+      "title": "Pol\u00edtica"
+    },
+    "quantidade_inicial": {
+      "type": "number",
+      "title": "De (ve\u00edculos)",
+      "default": 1
+    },
+    "quantidade_final": {
+      "type": "number",
+      "title": "At\u00e9 (ve\u00edculos)"
+    },
+    "tipo": {
+      "type": "string",
+      "title": "Tipo",
+      "enum": [
+        "Valor fixo por ve\u00edculo",
+        "Percentual sobre valor vendido"
+      ]
+    },
+    "valor": {
+      "type": "number",
+      "title": "Valor",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "Ativa",
+        "Inativa"
+      ],
+      "default": "Ativa"
+    }
+  },
+  "required": [
+    "politica_id",
+    "quantidade_inicial",
+    "tipo",
+    "valor",
+    "status"
+  ]
+}

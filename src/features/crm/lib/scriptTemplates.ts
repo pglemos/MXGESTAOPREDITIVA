@@ -53,3 +53,41 @@ export function obterScriptSugerido(
     .replace(/{nome}/g, nome || 'tudo bem')
     .replace(/{veiculo}/g, veiculo || 'veículo de interesse')
 }
+
+/**
+ * Tons do script — mesma lista do Base44 (ScriptIA.jsx), mas aplicados por
+ * transformação determinística de texto, não por chamada de LLM (NFR-IA1:
+ * MX não usa LLM em produção — decisão mantida na sessão de 2026-07-03,
+ * ver docs/auditorias/auditoria-comparativa-base44-vs-mx-2026-07-03.md).
+ */
+export type ScriptTom = 'consultivo' | 'direto' | 'leve' | 'reativacao' | 'audio'
+
+export const TONS: { id: ScriptTom; label: string; desc: string }[] = [
+  { id: 'consultivo', label: 'Consultivo', desc: 'Perguntativo, orientado a entender a necessidade' },
+  { id: 'direto', label: 'Direto', desc: 'Objetivo, claro, sem rodeios' },
+  { id: 'leve', label: 'Leve', desc: 'Descontraído, próximo, não pressiona' },
+  { id: 'reativacao', label: 'Reativação', desc: 'Para clientes frios ou sem resposta' },
+  { id: 'audio', label: 'Áudio curto', desc: 'Breve, natural, como uma mensagem de voz' },
+]
+
+function primeiraFrase(texto: string): string {
+  const match = texto.replace(/\n+/g, ' ').match(/^[^.!?]+[.!?]/)
+  return (match ? match[0] : texto).trim()
+}
+
+export function aplicarTom(scriptBase: string, tom: ScriptTom, nome: string, veiculo: string | null | undefined): string {
+  const v = veiculo || 'veículo de interesse'
+  switch (tom) {
+    case 'direto':
+      return `${primeiraFrase(scriptBase)} Podemos avançar com o ${v}?`
+    case 'leve':
+      return `Oi, ${nome}! 😊 Passando rapidinho por aqui sobre o ${v} — sem pressa nenhuma, só quando fizer sentido pra você. Me chama quando puder!`
+    case 'reativacao':
+      return `Oi, ${nome}! Faz um tempo que a gente não se fala. Ainda faz sentido eu te ajudar com o ${v}? Se não for mais o momento, sem problema — só me avisa.`
+    case 'audio':
+      return `Oi ${nome}, tudo bem? Aqui é rapidinho: queria saber se ainda faz sentido pra você a gente seguir conversando sobre o ${v}. Fico no aguardo, viu? Um abraço.`
+    case 'consultivo':
+    default:
+      return scriptBase
+  }
+}

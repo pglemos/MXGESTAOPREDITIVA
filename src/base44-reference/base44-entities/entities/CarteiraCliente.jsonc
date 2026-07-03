@@ -1,0 +1,419 @@
+{
+  "name": "CarteiraCliente",
+  "type": "object",
+  "properties": {
+    "vendedor_id": {
+      "type": "string",
+      "title": "Vendedor ID"
+    },
+    "loja_id": {
+      "type": "string",
+      "title": "Loja ID"
+    },
+    "nome": {
+      "type": "string",
+      "title": "Nome"
+    },
+    "telefone": {
+      "type": "string",
+      "title": "Telefone"
+    },
+    "whatsapp": {
+      "type": "string",
+      "title": "WhatsApp"
+    },
+    "telefone_whatsapp_normalizado": {
+      "type": "string",
+      "title": "Telefone Normalizado (t\u00e9cnico)"
+    },
+    "email": {
+      "type": "string",
+      "title": "E-mail"
+    },
+    "data_nascimento": {
+      "type": "string",
+      "format": "date",
+      "title": "Data de Nascimento"
+    },
+    "canal_comercial": {
+      "type": "string",
+      "title": "Canal MX",
+      "enum": [
+        "Showroom",
+        "Internet",
+        "Carteira"
+      ]
+    },
+    "canal_entrada": {
+      "type": "string",
+      "title": "Canal de Entrada",
+      "enum": [
+        "Showroom",
+        "Internet",
+        "Carteira"
+      ]
+    },
+    "canal_venda": {
+      "type": "string",
+      "title": "Canal de Venda",
+      "enum": [
+        "Showroom",
+        "Internet",
+        "Carteira"
+      ]
+    },
+    "canal_origem": {
+      "type": "string",
+      "title": "Canal Origem (legado)",
+      "enum": [
+        "Internet",
+        "Carteira",
+        "Showroom",
+        "Instagram",
+        "Indica\u00e7\u00e3o",
+        "Porta"
+      ]
+    },
+    "origem_detalhada": {
+      "type": "string",
+      "title": "Origem Detalhada",
+      "description": "Ex: Indica\u00e7\u00e3o, Cliente antigo, Redes Sociais, P\u00f3s-venda, Tr\u00e1fego Pago, Marketplace, Outro"
+    },
+    "veiculo_interesse": {
+      "type": "string",
+      "title": "Ve\u00edculo de Interesse (texto)"
+    },
+    "marca_interesse": {
+      "type": "string",
+      "title": "Marca de Interesse"
+    },
+    "modelo_interesse": {
+      "type": "string",
+      "title": "Modelo de Interesse"
+    },
+    "versao_interesse": {
+      "type": "string",
+      "title": "Vers\u00e3o de Interesse"
+    },
+    "ano_interesse": {
+      "type": "string",
+      "title": "Ano de Interesse"
+    },
+    "veiculo_comprado": {
+      "type": "string",
+      "title": "Ve\u00edculo Comprado"
+    },
+    "valor_negociado": {
+      "type": "string",
+      "title": "Valor Negociado"
+    },
+    "forma_pagamento": {
+      "type": "string",
+      "title": "Forma de Pagamento",
+      "enum": [
+        "\u00c0 vista",
+        "Financiamento",
+        "Troca + \u00e0 vista",
+        "Troca + financiamento",
+        "Cons\u00f3rcio",
+        "N\u00e3o informado",
+        "Outro"
+      ],
+      "default": "N\u00e3o informado"
+    },
+    "financiamento": {
+      "type": "string",
+      "title": "Financiamento",
+      "enum": [
+        "Aprovado",
+        "Recusado",
+        "N\u00e3o se aplica",
+        ""
+      ]
+    },
+    "possui_troca": {
+      "type": "boolean",
+      "title": "Possui Troca",
+      "default": false
+    },
+    "veiculo_troca": {
+      "type": "string",
+      "title": "Ve\u00edculo para Troca"
+    },
+    "valor_esperado_troca": {
+      "type": "string",
+      "title": "Valor Esperado na Troca"
+    },
+    "interesse_troca": {
+      "type": "boolean",
+      "title": "Interesse em Troca",
+      "default": false
+    },
+    "interesse_financiamento": {
+      "type": "boolean",
+      "title": "Interesse em Financiamento",
+      "default": false
+    },
+    "urgencia_compra": {
+      "type": "string",
+      "title": "Urg\u00eancia de Compra",
+      "enum": [
+        "Imediato",
+        "30 dias",
+        "60 dias",
+        "90 dias",
+        "Sem prazo",
+        ""
+      ]
+    },
+    "necessidade_compra": {
+      "type": "string",
+      "title": "Necessidade de Compra"
+    },
+    "conhece_loja": {
+      "type": "boolean",
+      "title": "Conhece a Loja",
+      "default": false
+    },
+    "conhece_veiculo": {
+      "type": "boolean",
+      "title": "Conhece o Ve\u00edculo",
+      "default": false
+    },
+    "conhece_preco": {
+      "type": "boolean",
+      "title": "Conhece o Pre\u00e7o",
+      "default": false
+    },
+    "cliente_distante": {
+      "type": "boolean",
+      "title": "Cliente Distante",
+      "default": false
+    },
+    "preferencia_modalidade": {
+      "type": "string",
+      "title": "Prefer\u00eancia de Modalidade",
+      "enum": [
+        "Visita na loja",
+        "Atendimento externo",
+        "Videochamada",
+        "N\u00e3o informado"
+      ],
+      "default": "N\u00e3o informado"
+    },
+    "temperatura": {
+      "type": "string",
+      "title": "Temperatura",
+      "enum": [
+        "Frio",
+        "Morno",
+        "Quente"
+      ],
+      "default": "Morno"
+    },
+    "situacao_atual": {
+      "type": "string",
+      "title": "Situa\u00e7\u00e3o Atual",
+      "enum": [
+        "Lead sem resposta",
+        "Primeiro contato pendente",
+        "Em cad\u00eancia sem resposta",
+        "Cliente respondeu",
+        "Necessidade em qualifica\u00e7\u00e3o",
+        "Ve\u00edculo definido",
+        "Cliente quente sem visita",
+        "Visita agendada",
+        "Visita a confirmar",
+        "Visita hoje",
+        "N\u00e3o compareceu",
+        "Visita realizada",
+        "Proposta enviada",
+        "Proposta sem retorno",
+        "Financiamento em an\u00e1lise",
+        "Financiamento aprovado sem compra",
+        "Em negocia\u00e7\u00e3o ativa",
+        "Vai pensar",
+        "Aguardando resposta do cliente",
+        "Aguardando a\u00e7\u00e3o do vendedor",
+        "Venda realizada",
+        "Venda perdida",
+        "P\u00f3s-venda ativo",
+        "Garantia em acompanhamento",
+        "Oportunidade futura",
+        "Cad\u00eancia encerrada"
+      ],
+      "default": "Lead sem resposta"
+    },
+    "situacao_oportunidade": {
+      "type": "string",
+      "title": "Situa\u00e7\u00e3o da Oportunidade",
+      "enum": [
+        "Nova",
+        "Valida\u00e7\u00e3o",
+        "Constru\u00e7\u00e3o",
+        "Compromisso",
+        "Decis\u00e3o",
+        "Recupera\u00e7\u00e3o"
+      ],
+      "default": "Nova"
+    },
+    "status_comercial": {
+      "type": "string",
+      "title": "Status Comercial",
+      "enum": [
+        "Novo",
+        "Em negocia\u00e7\u00e3o",
+        "Agendado",
+        "Vendido",
+        "Perdido",
+        "P\u00f3s-venda",
+        "Garantia",
+        "Futuro"
+      ],
+      "default": "Novo"
+    },
+    "status_oportunidade": {
+      "type": "string",
+      "title": "Status da Oportunidade",
+      "enum": [
+        "Ativa",
+        "Vendida",
+        "Encerrada",
+        "Inativa"
+      ],
+      "default": "Ativa"
+    },
+    "momento": {
+      "type": "string",
+      "title": "Momento (legado)"
+    },
+    "objetivo_atual": {
+      "type": "string",
+      "title": "Objetivo Atual"
+    },
+    "proximo_passo": {
+      "type": "string",
+      "title": "Pr\u00f3ximo Passo"
+    },
+    "data_proximo_passo": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Data do Pr\u00f3ximo Passo"
+    },
+    "objetivo_proximo_passo": {
+      "type": "string",
+      "title": "Objetivo do Pr\u00f3ximo Passo"
+    },
+    "motivo_recomendacao": {
+      "type": "string",
+      "title": "Motivo da Recomenda\u00e7\u00e3o"
+    },
+    "prioridade_comercial": {
+      "type": "string",
+      "title": "Prioridade Comercial",
+      "enum": [
+        "M\u00e1xima",
+        "Alta",
+        "M\u00e9dia",
+        "Baixa"
+      ],
+      "default": "M\u00e9dia"
+    },
+    "prioridade_operacional": {
+      "type": "number",
+      "title": "Prioridade Operacional",
+      "default": 5
+    },
+    "score_oportunidade": {
+      "type": "number",
+      "title": "Score da Oportunidade",
+      "default": 100
+    },
+    "score_cliente": {
+      "type": "number",
+      "title": "Score do Cliente (legado)",
+      "default": 100
+    },
+    "proxima_acao": {
+      "type": "string",
+      "title": "Pr\u00f3xima A\u00e7\u00e3o"
+    },
+    "proxima_acao_data": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Data da Pr\u00f3xima A\u00e7\u00e3o"
+    },
+    "visita_agendada_em": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Visita Agendada Em"
+    },
+    "ultima_acao_em": {
+      "type": "string",
+      "format": "date-time",
+      "title": "\u00daltima A\u00e7\u00e3o Em"
+    },
+    "ultima_evolucao_em": {
+      "type": "string",
+      "format": "date-time",
+      "title": "\u00daltima Evolu\u00e7\u00e3o Em"
+    },
+    "proposta_enviada": {
+      "type": "boolean",
+      "title": "Proposta Enviada",
+      "default": false
+    },
+    "motivo_perda": {
+      "type": "string",
+      "title": "Motivo de Perda"
+    },
+    "observacoes": {
+      "type": "string",
+      "title": "Observa\u00e7\u00f5es"
+    },
+    "ativo": {
+      "type": "boolean",
+      "title": "Ativo",
+      "default": true
+    },
+    "ultimo_contato": {
+      "type": "string",
+      "format": "date-time",
+      "title": "\u00daltimo Contato"
+    },
+    "vendido": {
+      "type": "boolean",
+      "title": "Vendido",
+      "default": false
+    },
+    "data_venda": {
+      "type": "string",
+      "format": "date",
+      "title": "Data da Venda"
+    },
+    "valor_venda": {
+      "type": "string",
+      "title": "Valor da Venda"
+    },
+    "_data_competencia_fechamento": {
+      "type": "string",
+      "format": "date",
+      "title": "Data Compet\u00eancia Fechamento"
+    },
+    "_d1_excluido": {
+      "type": "boolean",
+      "title": "D+1 Exclu\u00eddo",
+      "default": false
+    },
+    "data_cadastro_mx": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Data de Cadastro no MX"
+    }
+  },
+  "required": [
+    "nome",
+    "whatsapp",
+    "canal_comercial"
+  ]
+}

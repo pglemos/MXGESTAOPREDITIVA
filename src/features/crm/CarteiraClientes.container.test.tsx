@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it, mock } from 'bun:test'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 const createCliente = mock(async () => ({ error: null, id: 'cliente-1' }))
-const deleteCliente = mock(async () => ({ error: null }))
 const registrarStatusCadencia = mock(async () => ({ error: null }))
 const toastSuccess = mock(() => {})
 const toastError = mock(() => {})
@@ -88,7 +87,6 @@ mock.module('@/features/crm/hooks/useClientes', () => ({
     loading: false,
     error: null,
     createCliente,
-    deleteCliente,
     registrarStatusCadencia,
   }),
 }))
@@ -161,7 +159,6 @@ const { CarteiraClientes } = await import('./CarteiraClientes.container')
 afterEach(() => {
   cleanup()
   createCliente.mockClear()
-  deleteCliente.mockClear()
   registrarStatusCadencia.mockClear()
   toastSuccess.mockClear()
   toastError.mockClear()
@@ -171,7 +168,8 @@ describe('CarteiraClientes', () => {
   it('registra status Feito da acao de cadencia sem exigir observacao', async () => {
     render(<CarteiraClientes />)
 
-    expect(screen.getAllByText('Enviar mensagem 1 de primeiro contato').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Ana Souza').length).toBeGreaterThan(0)
+    fireEvent.click(screen.getByRole('button', { name: /Abrir ficha/i }))
     fireEvent.click(screen.getByRole('button', { name: 'Feito' }))
 
     await waitFor(() => {
@@ -183,6 +181,7 @@ describe('CarteiraClientes', () => {
   it('registra tentativa nao respondeu como status nao_feito', async () => {
     render(<CarteiraClientes />)
 
+    fireEvent.click(screen.getByRole('button', { name: /Abrir ficha/i }))
     fireEvent.click(screen.getByRole('button', { name: 'Não respondeu' }))
     expect(screen.getByRole('heading', { name: 'Cliente não respondeu' })).toBeTruthy()
     expect(screen.getByText('Amanhã às 10:00 - Tentativa 2/3')).toBeTruthy()
@@ -192,25 +191,5 @@ describe('CarteiraClientes', () => {
       expect(registrarStatusCadencia).toHaveBeenCalledWith({ clienteId: 'cliente-1', status: 'nao_feito' })
     })
     expect(toastSuccess).toHaveBeenCalledWith('Tentativa registrada e próxima ação mantida no fluxo.')
-  })
-
-  it('remove cliente apos confirmacao explicita', async () => {
-    const originalConfirm = globalThis.confirm
-    const confirmMock = mock(() => true)
-    Object.defineProperty(globalThis, 'confirm', { value: confirmMock, writable: true })
-
-    try {
-      render(<CarteiraClientes />)
-
-      fireEvent.click(screen.getByRole('button', { name: 'Remover' }))
-
-      expect(confirmMock).toHaveBeenCalledWith('Remover "Ana Souza" da sua carteira?')
-      await waitFor(() => {
-        expect(deleteCliente).toHaveBeenCalledWith('cliente-1')
-      })
-      expect(toastSuccess).toHaveBeenCalledWith('Cliente removido.')
-    } finally {
-      Object.defineProperty(globalThis, 'confirm', { value: originalConfirm, writable: true })
-    }
   })
 })

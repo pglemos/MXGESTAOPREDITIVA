@@ -1,0 +1,188 @@
+{
+  "name": "EventoComercial",
+  "type": "object",
+  "properties": {
+    "cliente_id": {
+      "type": "string",
+      "title": "Cliente ID",
+      "description": "Refer\u00eancia ao ID em CarteiraCliente (base \u00fanica de clientes/oportunidades)"
+    },
+    "loja_id": {
+      "type": "string",
+      "title": "Loja ID"
+    },
+    "vendedor_id": {
+      "type": "string",
+      "title": "Vendedor ID"
+    },
+    "data_evento": {
+      "type": "string",
+      "format": "date",
+      "title": "Data do Evento"
+    },
+    "data_hora_evento": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Data/Hora do Evento"
+    },
+    "tipo_evento": {
+      "type": "string",
+      "title": "Tipo do Evento",
+      "enum": [
+        "oportunidade_registrada",
+        "cliente_qualificado",
+        "agendamento_criado",
+        "atendimento_comercial_realizado",
+        "venda_realizada",
+        "proposta_enviada",
+        "retorno_realizado",
+        "entrega_realizada",
+        "garantia_registrada",
+        "pos_venda_realizado"
+      ]
+    },
+    "canal_mx": {
+      "type": "string",
+      "title": "Canal MX",
+      "enum": [
+        "Showroom",
+        "Internet",
+        "Carteira"
+      ]
+    },
+    "modalidade": {
+      "type": "string",
+      "title": "Modalidade",
+      "enum": [
+        "Visita na loja",
+        "Atendimento externo",
+        "Videochamada",
+        ""
+      ],
+      "description": "Obrigat\u00f3rio para agendamento_criado e atendimento_comercial_realizado"
+    },
+    "status_evento": {
+      "type": "string",
+      "title": "Status do Evento",
+      "enum": [
+        "Realizado",
+        "Cancelado",
+        "Pendente",
+        "Criado",
+        "Aberta"
+      ],
+      "default": "Realizado"
+    },
+    "resultado_evento": {
+      "type": "string",
+      "title": "Resultado do Evento",
+      "enum": [
+        "Positivo",
+        "Neutro",
+        "Negativo",
+        "Venda",
+        "Reagendado",
+        "Agendamento criado",
+        "Venda realizada",
+        "Cliente qualificado",
+        "Garantia registrada",
+        ""
+      ],
+      "default": ""
+    },
+    "origem_modulo": {
+      "type": "string",
+      "title": "M\u00f3dulo de Origem",
+      "enum": [
+        "FechamentoDiario",
+        "CarteiraClientes",
+        "CentralExecucao",
+        "Regularizacao",
+        "Sistema"
+      ],
+      "default": "Sistema"
+    },
+    "fechamento_id": {
+      "type": "string",
+      "title": "Fechamento ID"
+    },
+    "atividade_id": {
+      "type": "string",
+      "title": "Atividade ID"
+    },
+    "veiculo_id": {
+      "type": "string",
+      "title": "Ve\u00edculo ID"
+    },
+    "veiculo_texto_snapshot": {
+      "type": "string",
+      "title": "Ve\u00edculo (texto snapshot)",
+      "description": "Descri\u00e7\u00e3o textual do ve\u00edculo quando n\u00e3o houver veiculo_id"
+    },
+    "motivo_evento": {
+      "type": "string",
+      "title": "Motivo do Evento",
+      "description": "Obrigat\u00f3rio para garantia_registrada. Ex: Mec\u00e2nica, Documenta\u00e7\u00e3o, Acess\u00f3rio, Acabamento, Promessa comercial, Outro"
+    },
+    "nome_cliente_snapshot": {
+      "type": "string",
+      "title": "Nome do Cliente (snapshot)"
+    },
+    "canal_snapshot": {
+      "type": "string",
+      "title": "Canal (snapshot)"
+    },
+    "observacao": {
+      "type": "string",
+      "title": "Observa\u00e7\u00e3o"
+    },
+    "created_by": {
+      "type": "string",
+      "title": "Criado Por (user ID)"
+    },
+    "financiamento": {
+      "type": "string",
+      "title": "Financiamento",
+      "enum": [
+        "Aprovado",
+        "Recusado",
+        "N\u00e3o se aplica",
+        ""
+      ]
+    },
+    "valor_negociado": {
+      "type": "string",
+      "title": "Valor Negociado"
+    },
+    "placa_veiculo": {
+      "type": "string",
+      "title": "Placa do Ve\u00edculo"
+    },
+    "data_hora_agendamento": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Data/Hora do Agendamento"
+    },
+    "data_hora_entrega_prevista": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Data/Hora da Entrega Prevista"
+    },
+    "quantidade": {
+      "type": "number",
+      "title": "Quantidade",
+      "default": 1,
+      "description": "Quantidade agregada do evento (ex: atendimentos de Showroom do Fechamento Di\u00e1rio)"
+    },
+    "source_record_id": {
+      "type": "string",
+      "title": "Source Record ID",
+      "description": "ID \u00fanico para idempot\u00eancia de eventos agregados (ex: fechamento_id + _showroom_atendimentos)"
+    }
+  },
+  "required": [
+    "tipo_evento",
+    "data_evento",
+    "canal_mx"
+  ]
+}

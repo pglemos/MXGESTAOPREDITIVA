@@ -1,0 +1,64 @@
+{
+  "name": "VeiculoEstoque",
+  "type": "object",
+  "properties": {
+    "loja_id": {
+      "type": "string",
+      "title": "Loja ID"
+    },
+    "vendedor_id": {
+      "type": "string",
+      "title": "Vendedor ID"
+    },
+    "marca": {
+      "type": "string",
+      "title": "Marca"
+    },
+    "modelo": {
+      "type": "string",
+      "title": "Modelo"
+    },
+    "versao": {
+      "type": "string",
+      "title": "Vers\u00e3o"
+    },
+    "ano_modelo": {
+      "type": "string",
+      "title": "Ano do Modelo"
+    },
+    "preco": {
+      "type": "number",
+      "title": "Pre\u00e7o (R$)"
+    },
+    "data_entrada": {
+      "type": "string",
+      "format": "date",
+      "title": "Data de Entrada"
+    },
+    "status_estoque": {
+      "type": "string",
+      "title": "Status no Estoque",
+      "enum": [
+        "Dispon\u00edvel",
+        "Reservado",
+        "Vendido",
+        "Prepara\u00e7\u00e3o"
+      ],
+      "default": "Dispon\u00edvel"
+    },
+    "observacao": {
+      "type": "string",
+      "title": "Observa\u00e7\u00e3o"
+    },
+    "ativo": {
+      "type": "boolean",
+      "title": "Ativo",
+      "default": true
+    }
+  },
+  "required": [
+    "marca",
+    "modelo",
+    "data_entrada"
+  ]
+}

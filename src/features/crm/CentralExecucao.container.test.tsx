@@ -16,25 +16,26 @@ const toastInfo = mock(() => {})
 let oportunidadesMock: unknown[] = []
 let agendamentosMock: unknown[] = []
 let scoreMock = { score: 10, items: [{ label: 'Abriu a Central de Execução', value: '10pts', done: true }] }
+const organizacaoTemplate = {
+  tipo: 'organizacao',
+  nome: 'Organização do Dia',
+  objetivo: 'Sair da organização sabendo quais clientes e ações devem ser priorizados.',
+  ordem: 2,
+  duracao_minutos: 40,
+  instrucoes: ['Confira os agendamentos de hoje'],
+  meta_sugerida: null,
+  atalhos: [],
+}
 let routinePlaybookMock = {
   slots: [
     { key: 'mentalidade', time: '08:00', template: null, isCurrent: false },
-    { key: 'organizacao', time: '08:15', template: null, isCurrent: true },
+    { key: 'organizacao', time: '08:15', template: organizacaoTemplate, isCurrent: true },
   ],
   currentSlot: {
     key: 'organizacao',
     time: '08:15',
     isCurrent: true,
-    template: {
-      tipo: 'organizacao',
-      nome: 'Organização do Dia',
-      objetivo: 'Sair da organização sabendo quais clientes e ações devem ser priorizados.',
-      ordem: 2,
-      duracao_minutos: 40,
-      instrucoes: ['Confira os agendamentos de hoje'],
-      meta_sugerida: null,
-      atalhos: [],
-    },
+    template: organizacaoTemplate,
   },
   prospeccaoHoje: [],
   storyIdeaHoje: null,
@@ -171,13 +172,13 @@ function agendamento(overrides: Record<string, unknown> = {}) {
 }
 
 describe('CentralExecucao', () => {
-  it('mostra a aba Hoje por padrão com o estado vazio quando não há clientes em negociação hoje', async () => {
+  it('mostra a aba Hoje por padrão com o estado vazio quando não há atividades hoje', async () => {
     render(<MemoryRouter><CentralExecucao /></MemoryRouter>)
 
-    expect(await screen.findByText('Agenda do Dia')).toBeTruthy()
-    expect(screen.getByText('Nenhum cliente agendado para hoje.')).toBeTruthy()
+    expect(await screen.findByText('O que você não pode deixar de fazer hoje')).toBeTruthy()
+    expect(screen.getByText('Tela limpa por hoje.')).toBeTruthy()
     expect(screen.getByText('Ver Rotina do Dia')).toBeTruthy()
-    expect(screen.getByText('Abrir Carteira de Clientes')).toBeTruthy()
+    expect(screen.getByText('Abrir Carteira')).toBeTruthy()
   })
 
   it('lista cliente em negociação com agendamento hoje (deriva de oportunidades+agendamentos reais)', async () => {
@@ -187,34 +188,25 @@ describe('CentralExecucao', () => {
     render(<MemoryRouter><CentralExecucao /></MemoryRouter>)
 
     expect((await screen.findAllByText('Carlos Mendes')).length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Apresentação do veículo').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Compass').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Retorno').length).toBeGreaterThan(0)
   })
 
-  it('não lista cliente cuja venda já foi concluída (etapa ganho)', async () => {
+  it('lista o agendamento de hoje mesmo quando a oportunidade vinculada já foi concluída (ex.: pós-venda)', async () => {
     oportunidadesMock = [oportunidade({ etapa: 'ganho' })]
     agendamentosMock = [agendamento()]
 
     render(<MemoryRouter><CentralExecucao /></MemoryRouter>)
 
-    expect(await screen.findByText('Nenhum cliente agendado para hoje.')).toBeTruthy()
-  })
-
-  it('exibe o Score da Rotina vindo de useScoreRotina', async () => {
-    scoreMock = { score: 70, items: [{ label: 'Cadastrou novos clientes hoje', value: '40pts', done: true }] }
-
-    render(<MemoryRouter><CentralExecucao /></MemoryRouter>)
-
-    expect(await screen.findByText('70%')).toBeTruthy()
+    expect((await screen.findAllByText('Carlos Mendes')).length).toBeGreaterThan(0)
   })
 
   it('troca para a aba Rotina do Dia e mostra a etapa atual', async () => {
     render(<MemoryRouter><CentralExecucao /></MemoryRouter>)
 
-    screen.getByRole('tab', { name: 'Rotina do Dia' }).click()
+    screen.getByRole('button', { name: 'Rotina do Dia' }).click()
 
-    expect(await screen.findByText('Organização do Dia')).toBeTruthy()
-    expect(screen.getByText('Sair da organização sabendo quais clientes e ações devem ser priorizados.')).toBeTruthy()
+    expect((await screen.findAllByText('Organização do Dia')).length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Sair da organização sabendo quais clientes e ações devem ser priorizados.').length).toBeGreaterThan(0)
     expect(screen.getByText('Confira os agendamentos de hoje')).toBeTruthy()
   })
 
@@ -222,7 +214,7 @@ describe('CentralExecucao', () => {
     routinePlaybookMock = { ...routinePlaybookMock, conflitoCliente: { clienteNome: 'Carlos Mendes' } }
 
     render(<MemoryRouter><CentralExecucao /></MemoryRouter>)
-    screen.getByRole('tab', { name: 'Rotina do Dia' }).click()
+    screen.getByRole('button', { name: 'Rotina do Dia' }).click()
 
     expect(await screen.findByText(/Você possui um cliente agendado neste horário/)).toBeTruthy()
   })

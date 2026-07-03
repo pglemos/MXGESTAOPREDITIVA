@@ -1,0 +1,32 @@
+{
+  "name": "TrainingProgress",
+  "type": "object",
+  "properties": {
+    "training_id": {
+      "type": "string",
+      "title": "Treinamento ID"
+    },
+    "completed": {
+      "type": "boolean",
+      "title": "Conclu\u00eddo",
+      "default": false
+    },
+    "quiz_score": {
+      "type": "number",
+      "title": "Nota do Quiz"
+    },
+    "hours_studied": {
+      "type": "number",
+      "title": "Horas Estudadas",
+      "default": 0
+    },
+    "attended_live": {
+      "type": "boolean",
+      "title": "Presen\u00e7a Validada",
+      "default": false
+    }
+  },
+  "required": [
+    "training_id"
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "name": "HistoricoRemuneracao",
+  "type": "object",
+  "properties": {
+    "usuario_id": {
+      "type": "string",
+      "title": "Usu\u00e1rio ID"
+    },
+    "usuario_nome": {
+      "type": "string",
+      "title": "Usu\u00e1rio"
+    },
+    "acao": {
+      "type": "string",
+      "title": "A\u00e7\u00e3o"
+    },
+    "entidade": {
+      "type": "string",
+      "title": "Entidade"
+    },
+    "entidade_id": {
+      "type": "string",
+      "title": "Entidade ID"
+    },
+    "dados_antes": {
+      "type": "string",
+      "title": "Dados Antes (JSON)"
+    },
+    "dados_depois": {
+      "type": "string",
+      "title": "Dados Depois (JSON)"
+    }
+  },
+  "required": [
+    "usuario_id",
+    "acao",
+    "entidade"
+  ]
+}

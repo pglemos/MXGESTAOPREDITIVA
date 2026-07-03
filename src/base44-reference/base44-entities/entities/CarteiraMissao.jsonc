@@ -1,0 +1,97 @@
+{
+  "name": "CarteiraMissao",
+  "type": "object",
+  "properties": {
+    "vendedor_id": {
+      "type": "string",
+      "title": "Vendedor ID"
+    },
+    "tipo_missao": {
+      "type": "string",
+      "title": "Tipo de Miss\u00e3o"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "Preparando",
+        "Enviando mensagens",
+        "Aguardando respostas",
+        "Respondendo clientes",
+        "Conclu\u00edda"
+      ],
+      "default": "Preparando"
+    },
+    "clientes_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Clientes IDs"
+    },
+    "total_clientes": {
+      "type": "number",
+      "title": "Total de Clientes",
+      "default": 0
+    },
+    "mensagens_enviadas": {
+      "type": "number",
+      "title": "Mensagens Enviadas",
+      "default": 0
+    },
+    "pulados": {
+      "type": "number",
+      "title": "Pulados",
+      "default": 0
+    },
+    "aguardando_resposta_cliente": {
+      "type": "number",
+      "title": "Aguardando Resposta do Cliente",
+      "default": 0
+    },
+    "aguardando_sua_resposta": {
+      "type": "number",
+      "title": "Aguardando Sua Resposta",
+      "default": 0
+    },
+    "concluidos": {
+      "type": "number",
+      "title": "Conclu\u00eddos",
+      "default": 0
+    },
+    "agendou_visita": {
+      "type": "number",
+      "title": "Agendou Visita",
+      "default": 0
+    },
+    "pediu_proposta": {
+      "type": "number",
+      "title": "Pediu Proposta",
+      "default": 0
+    },
+    "sem_interesse": {
+      "type": "number",
+      "title": "Sem Interesse",
+      "default": 0
+    },
+    "nao_respondeu": {
+      "type": "number",
+      "title": "N\u00e3o Respondeu",
+      "default": 0
+    },
+    "indice_atual": {
+      "type": "number",
+      "title": "\u00cdndice Atual",
+      "default": 0
+    },
+    "iniciada_em": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Iniciada Em"
+    }
+  },
+  "required": [
+    "tipo_missao",
+    "status"
+  ]
+}

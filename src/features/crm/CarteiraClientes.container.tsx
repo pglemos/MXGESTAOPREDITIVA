@@ -1,41 +1,46 @@
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import {
-  AlertCircle,
-  Bell,
   CalendarDays,
-  Car,
   Check,
   CheckCircle,
   ChevronDown,
-  ChevronRight,
-  Clock,
   Copy,
+  FileText,
   Filter,
-  Globe2,
   Hourglass,
   MessageCircle,
-  MoreHorizontal,
   Phone,
   Plus,
   Search,
-  TrendingUp,
+  Sparkles,
   Users,
   X,
-  Zap,
 } from 'lucide-react'
+import {
+  calcularPrioridadeCliente,
+  calcularPrioridadeDia,
+  calcularScoreCliente,
+  classificacaoScore,
+  derivarObjetivoEMentor,
+  derivarSituacao,
+  derivarTemperatura,
+  explicacaoCliente,
+  PRIORIDADE_LABEL,
+  TEMPERATURA_LABEL,
+  type Prioridade,
+  type PrioridadeDia,
+} from '@/features/crm/lib/mentorComercial'
 import { Card } from '@/components/molecules/Card'
 import { PageHeading } from '@/components/molecules/PageHeading'
 import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
-import { Input } from '@/components/atoms/Input'
 import { Select } from '@/components/atoms/Select'
 import { Textarea } from '@/components/atoms/Textarea'
 import { EmptyState } from '@/components/atoms/EmptyState'
 import { FormField } from '@/components/molecules/FormField'
 import { Modal } from '@/components/organisms/Modal'
-import { TabNav } from '@/components/molecules/TabNav'
 import { PlanoAtaqueTab } from '@/features/crm/PlanoAtaqueTab'
 import { ModoAtaqueView } from '@/features/crm/ModoAtaqueView'
 import { AlterarProximoPasso } from '@/features/crm/AlterarProximoPasso'
@@ -58,20 +63,13 @@ import {
   CRM_RELACIONAMENTO,
   CRM_RELACIONAMENTO_LABEL,
   formatDateBR,
+  toDateOnlyBR,
   type Cliente,
   type CrmCanal,
   type CrmClienteStatus,
 } from '@/lib/schemas/crm.schema'
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format
-
-const STATUS_VARIANT: Record<CrmClienteStatus, 'success' | 'warning' | 'info' | 'danger' | 'brand'> = {
-  oportunidade: 'success',
-  ativo: 'brand',
-  pos_venda: 'info',
-  aguardando_contato: 'warning',
-  inativo: 'danger',
-}
 
 const STATUS_CLIENTE_LABEL: Record<CrmClienteStatus, string> = {
   oportunidade: 'Em andamento',
@@ -131,7 +129,7 @@ const DEMO_OPORTUNIDADES: OportunidadeComCliente[] = [
 
 export function CarteiraClientes() {
   const { profile } = useAuth()
-  const { clientes, metrics, loading, error, createCliente, updateCliente, deleteCliente, registrarStatusCadencia } = useClientes()
+  const { clientes, metrics, loading, error, createCliente, updateCliente, registrarStatusCadencia } = useClientes()
   const { oportunidades } = useOportunidades()
   const { agendamentos } = useAgendamentos()
   const [search, setSearch] = useState('')
@@ -149,6 +147,8 @@ export function CarteiraClientes() {
   const [activeTab, setActiveTab] = useState<'ativa' | 'ataque'>('ativa')
   const [modoAtaqueOpen, setModoAtaqueOpen] = useState(false)
   const [editandoProximoPasso, setEditandoProximoPasso] = useState<Cliente | null>(null)
+  const [diaFiltro, setDiaFiltro] = useState<PrioridadeDia | 'todos'>('hoje')
+  const hoje = useMemo(() => toDateOnlyBR(), [])
   const runtimeUserAgent = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : ''
   const isAutomatedTest = (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') || runtimeUserAgent.includes('happy-dom') || runtimeUserAgent.includes('jsdom')
   const demoMode = clientes.length === 0 && !isAutomatedTest && import.meta.env.DEV
@@ -169,8 +169,8 @@ export function CarteiraClientes() {
   )
 
   const selectedCliente = useMemo(
-    () => carteiraClientes.find(cliente => cliente.id === selectedId) || (!panelClosed ? carteiraClientes[demoMode ? 1 : 0] : null),
-    [carteiraClientes, demoMode, panelClosed, selectedId],
+    () => (panelClosed ? null : carteiraClientes.find(cliente => cliente.id === selectedId) || null),
+    [carteiraClientes, panelClosed, selectedId],
   )
 
   const oportunidadePorCliente = useMemo(() => {
@@ -183,6 +183,48 @@ export function CarteiraClientes() {
     }
     return map
   }, [carteiraOportunidades])
+
+  // ── Mentor Comercial: prioridade por dia + prioridade comercial (1:1 com Base44 Mentor Comercial) ──
+  const diaPorCliente = useMemo(() => {
+    const map = new Map<string, PrioridadeDia>()
+    for (const cliente of carteiraClientes) map.set(cliente.id, calcularPrioridadeDia(cliente, hoje))
+    return map
+  }, [carteiraClientes, hoje])
+
+  const prioridadePorCliente = useMemo(() => {
+    const map = new Map<string, Prioridade>()
+    for (const cliente of carteiraClientes) map.set(cliente.id, calcularPrioridadeCliente(cliente, oportunidadePorCliente.get(cliente.id), hoje))
+    return map
+  }, [carteiraClientes, hoje, oportunidadePorCliente])
+
+  const contagemPorDia = useMemo(() => {
+    const map: Record<PrioridadeDia, number> = { hoje: 0, amanha: 0, dia2: 0, dia3: 0, futuro: 0 }
+    diaPorCliente.forEach(dia => { map[dia] += 1 })
+    return map
+  }, [diaPorCliente])
+
+  const diaLabel = useMemo(() => {
+    const nomeDia = (offset: number) => {
+      const d = new Date(`${hoje}T12:00:00`)
+      d.setDate(d.getDate() + offset)
+      const nome = d.toLocaleDateString('pt-BR', { weekday: 'long' })
+      return nome.charAt(0).toUpperCase() + nome.slice(1)
+    }
+    return { hoje: 'Hoje', amanha: 'Amanhã', dia2: nomeDia(2), dia3: nomeDia(3) }
+  }, [hoje])
+
+  const PRIORIDADE_ORDER: Record<Prioridade, number> = { maxima: 0, alta: 1, media: 2, baixa: 3 }
+  const clientesOrdenadosPorPrioridade = useMemo(() => {
+    const base = diaFiltro === 'todos' ? carteiraClientes : carteiraClientes.filter(cliente => diaPorCliente.get(cliente.id) === diaFiltro)
+    return [...base].sort((a, b) => {
+      const pa = PRIORIDADE_ORDER[prioridadePorCliente.get(a.id) || 'baixa']
+      const pb = PRIORIDADE_ORDER[prioridadePorCliente.get(b.id) || 'baixa']
+      if (pa !== pb) return pa - pb
+      const sa = calcularScoreCliente(a, hoje).score
+      const sb = calcularScoreCliente(b, hoje).score
+      return sa - sb
+    })
+  }, [carteiraClientes, diaFiltro, diaPorCliente, hoje, prioridadePorCliente])
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -203,27 +245,18 @@ export function CarteiraClientes() {
     })
   }, [canalFilter, carroFilter, carteiraClientes, fichaFilter, oportunidadePorCliente, search, statusFilter])
 
-  const clientesPaginados = filtered.slice(0, 8)
-  const vendidos = [...progressoPorCliente.values()].filter(progresso => progresso.encerramento === 'ganho').length
-  const emAndamento = demoMode ? DEMO_KPIS.emAndamento : carteiraClientes.filter(cliente => ['oportunidade', 'ativo'].includes(cliente.status)).length
-  const aguardandoCliente = demoMode ? DEMO_KPIS.aguardandoCliente : carteiraClientes.filter(cliente => cliente.status === 'aguardando_contato').length
-  const semResposta = demoMode ? DEMO_KPIS.semResposta : carteiraClientes.filter(cliente => cliente.relacionamento === 'critico' || cliente.status === 'inativo').length
   const totalClientes = demoMode ? DEMO_KPIS.total : metrics.total
-  const totalVendidos = demoMode ? DEMO_KPIS.vendidos : vendidos
-  const persistenciaCarteira = demoMode ? DEMO_KPIS.persistencia : persistencia
-  const canalCounts = demoMode
-    ? [
-      { canal: 'internet' as CrmCanal, count: 32 },
-      { canal: 'carteira' as CrmCanal, count: 35 },
-      { canal: 'porta' as CrmCanal, count: 16 },
-      { canal: 'showroom' as CrmCanal, count: 13 },
-    ]
-    : CRM_CANAIS.map(canal => ({ canal, count: carteiraClientes.filter(cliente => cliente.canal_origem === canal).length }))
-  const carroSim = [...oportunidadePorCliente.values()].filter(oportunidade => oportunidade.carro_avaliado).length
-  const fichaAprovada = [...oportunidadePorCliente.values()].filter(oportunidade => oportunidade.financiamento === 'aprovado').length
-  const fichaPendente = [...oportunidadePorCliente.values()].filter(oportunidade => oportunidade.financiamento === 'pendente').length
-  const fichaRecusada = [...oportunidadePorCliente.values()].filter(oportunidade => oportunidade.financiamento === 'reprovado').length
-  const gargalo = getGargaloCarteira([...progressoPorCliente.values()])
+
+  const listaBuscada = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return clientesOrdenadosPorPrioridade
+    return clientesOrdenadosPorPrioridade.filter(cliente => {
+      const oportunidade = oportunidadePorCliente.get(cliente.id)
+      return cliente.nome.toLowerCase().includes(q)
+        || (cliente.telefone || '').includes(q)
+        || (oportunidade?.veiculo_interesse || cliente.empresa || '').toLowerCase().includes(q)
+    })
+  }, [clientesOrdenadosPorPrioridade, oportunidadePorCliente, search])
 
   async function handleCreate() {
     if (!form.nome.trim()) {
@@ -242,16 +275,6 @@ export function CarteiraClientes() {
     setModalOpen(false)
   }
 
-  async function handleDelete(id: string, nome: string) {
-    if (!confirm(`Remover "${nome}" da sua carteira?`)) return
-    const { error: delError } = await deleteCliente(id)
-    if (delError) {
-      toast.error(delError)
-      return
-    }
-    toast.success('Cliente removido.')
-  }
-
   async function handleRegistrarStatusCadencia(clienteId: string, status: CadenciaResultadoAcao) {
     if (demoMode) {
       toast.success(status === 'nao_feito' ? 'Tentativa registrada e próxima ação enviada para a Central.' : 'Cadência atualizada no modo demonstração.')
@@ -267,16 +290,34 @@ export function CarteiraClientes() {
     toast.success(status === 'nao_feito' ? 'Tentativa registrada e próxima ação mantida no fluxo.' : 'Cadência atualizada.')
   }
 
+  function executarProximoPasso(cliente: Cliente) {
+    const progresso = progressoPorCliente.get(cliente.id)
+    if (cliente.telefone && progresso) {
+      const vendedorNome = (profile?.name || 'vendedor').split(' ')[0]
+      const script = progresso.etapaAtual.script({ cliente: cliente.nome.split(' ')[0], vendedor: vendedorNome })
+      const tel = cliente.telefone.replace(/\D/g, '')
+      window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(script)}`, '_blank', 'noopener')
+    }
+    setPanelClosed(false)
+    setSelectedId(cliente.id)
+  }
+
   const tabNav = (
-    <TabNav
-      tabs={[
-        { key: 'ativa', label: 'Carteira Ativa' },
-        { key: 'ataque', label: 'Plano de Ataque' },
-      ]}
-      activeTab={activeTab}
-      onTabChange={setActiveTab}
-      className="mb-0 mt-mx-sm border-b-0"
-    />
+    <div className="flex w-fit gap-1 rounded-2xl border border-slate-100 bg-white p-1 shadow-sm">
+      {[
+        { id: 'ativa' as const, label: 'Carteira Ativa' },
+        { id: 'ataque' as const, label: 'Plano de Ataque' },
+      ].map(t => (
+        <button
+          key={t.id}
+          type="button"
+          onClick={() => setActiveTab(t.id)}
+          className={cn('rounded-xl px-5 py-2 text-sm font-bold transition-all', activeTab === t.id ? 'bg-[#005BFF] text-white shadow-sm' : 'text-slate-500 hover:text-[#031B3D]')}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
   )
 
   if (activeTab === 'ataque') {
@@ -307,302 +348,128 @@ export function CarteiraClientes() {
   }
 
   return (
-  <main className="h-full w-full min-w-0 overflow-y-auto bg-surface-alt px-mx-sm pb-mx-sm pt-0 text-text-primary no-scrollbar sm:px-mx-md sm:pb-mx-md 2xl:px-mx-lg 2xl:pb-mx-lg">
-    <div className="flex w-full min-w-0 flex-col gap-mx-xs">
-        <header className="relative z-40 -mx-mx-sm shrink-0 border-b border-border-default/60 bg-surface-alt px-mx-sm pb-3 pt-2 shadow-[0_10px_24px_rgba(15,23,42,0.08)] sm:-mx-mx-md sm:px-mx-md md:sticky md:top-0 md:pt-3 2xl:-mx-mx-lg 2xl:px-mx-lg">
-          <PageHeading
-            title="Carteira de Clientes"
-            subtitle="Acompanhe sua carteira, siga a cadência e conduza cada cliente até a venda."
-            actions={(
-              <>
-                <span className="inline-flex h-10 items-center gap-mx-xs rounded-mx-md border border-border-subtle bg-white px-mx-sm text-sm font-bold">
-                  <CalendarDays size={16} />
-                  {new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', weekday: 'short' }).format(new Date())}
-                </span>
-                <Button variant="outline" onClick={() => setStatusFilter('todos')}>
-                  <Filter size={16} /> Filtros
-                </Button>
-                <Button onClick={() => setModoAtaqueOpen(true)}>
-                  <Zap size={16} /> Modo Ataque
-                </Button>
-              </>
-            )}
-          />
-          {tabNav}
-        </header>
+  <main className="h-full w-full min-w-0 overflow-y-auto bg-[#F8FAFC] text-text-primary no-scrollbar">
+    <div className="mx-auto flex w-full max-w-[1440px] min-w-0 flex-col gap-5 px-4 py-6 sm:px-4 xl:px-8">
+        {tabNav}
 
-        <section className="grid grid-cols-2 gap-mx-xs md:grid-cols-3 xl:grid-cols-[repeat(5,minmax(0,1fr))_1.45fr]" aria-label="Indicadores da carteira">
-          <MetricCard icon={<Users size={22} />} label="Total de Clientes" value={String(totalClientes)} hint="100% do total" accent="green" />
-          <MetricCard icon={<Clock size={22} />} label="Em andamento" value={String(emAndamento)} hint={`${percent(emAndamento, totalClientes)}% do total`} accent="green" />
-          <MetricCard icon={<Hourglass size={22} />} label="Aguardando cliente" value={String(aguardandoCliente)} hint={`${percent(aguardandoCliente, totalClientes)}% do total`} accent="yellow" />
-          <MetricCard icon={<Phone size={22} />} label="Sem resposta" value={String(semResposta)} hint={`${percent(semResposta, totalClientes)}% do total`} accent="red" />
-          <MetricCard icon={<CheckCircle size={22} />} label="Vendidos" value={String(totalVendidos)} hint={`${percent(totalVendidos, totalClientes)}% do total`} accent="green" />
-          <Card className="min-h-[92px] rounded-mx-xl border border-status-success/20 bg-status-success/5 p-mx-sm shadow-mx-sm">
-            <div className="flex items-start justify-between gap-mx-sm">
-              <div>
-                <span className="inline-flex items-center gap-mx-xs">
-                  <Typography variant="caption" tone="muted" className="uppercase tracking-normal">Persistência Comercial</Typography>
-                  {carteiraClientes.length < 5 && <AlertCircle size={14} className="text-status-warning" />}
-                </span>
-                <Typography variant="h2" className="text-2xl leading-tight">{persistenciaCarteira === null ? '—' : `${persistenciaCarteira}%`}</Typography>
-                <Typography variant="caption" className="font-bold text-status-success">
-                  {persistenciaCarteira === null ? 'Sem base encerrada' : demoMode ? 'Ótimo!' : carteiraClientes.length < 5 ? 'Amostra pequena' : 'Fluxo saudável'}
-                </Typography>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-black text-[#0F172A]">Mentor Comercial</h1>
+            <p className="text-sm text-slate-500">Sua agenda comercial de hoje. Execute e registre resultados.</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="relative block">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                value={search}
+                onChange={event => setSearch(event.target.value)}
+                placeholder="Buscar cliente..."
+                className="h-10 w-56 rounded-xl border border-slate-200 pl-9 pr-3 text-sm focus:border-[#005BFF] focus:outline-none focus:ring-2 focus:ring-blue-100"
+              />
+            </span>
+            <button type="button" onClick={() => setStatusFilter('todos')} className="flex h-10 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-50">
+              <Filter size={16} /> Filtros
+            </button>
+            <button type="button" onClick={() => setModalOpen(true)} className="flex h-10 items-center gap-1.5 rounded-xl bg-[#005BFF] px-4 text-sm font-bold text-white transition-colors hover:bg-blue-700">
+              <Plus size={16} /> Novo cliente
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          {([
+            { id: 'hoje' as const, label: 'Prioridade Hoje', sub: 'pendentes agora', count: contagemPorDia.hoje },
+            { id: 'amanha' as const, label: 'Prioridade Amanhã', sub: 'próximas ações', count: contagemPorDia.amanha },
+            { id: 'dia2' as const, label: `Prioridade ${diaLabel.dia2}`, sub: 'ações programadas', count: contagemPorDia.dia2 },
+            { id: 'dia3' as const, label: `Prioridade ${diaLabel.dia3}`, sub: 'ações programadas', count: contagemPorDia.dia3 },
+          ]).map(tab => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setDiaFiltro(tab.id)}
+              className={cn('rounded-2xl border p-4 text-left transition-colors', diaFiltro === tab.id ? 'border-[#005BFF] bg-[#005BFF] text-white shadow-sm' : 'border-slate-200 bg-white text-[#0F172A] hover:border-[#005BFF]/40')}
+            >
+              <p className="text-2xl font-black">{tab.count}</p>
+              <p className={cn('text-xs font-bold', diaFiltro === tab.id ? 'text-white' : 'text-[#0F172A]')}>{tab.label}</p>
+              <p className={cn('text-[11px]', diaFiltro === tab.id ? 'text-white/80' : 'text-slate-400')}>{tab.sub}</p>
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => setDiaFiltro('todos')}
+            className={cn('rounded-2xl border p-4 text-left transition-colors', diaFiltro === 'todos' ? 'border-[#005BFF] bg-[#005BFF] text-white shadow-sm' : 'border-slate-200 bg-white text-[#0F172A] hover:border-[#005BFF]/40')}
+          >
+            <p className="text-2xl font-black">{totalClientes}</p>
+            <p className={cn('text-xs font-bold', diaFiltro === 'todos' ? 'text-white' : 'text-[#0F172A]')}>Ver Todos</p>
+            <p className={cn('text-[11px]', diaFiltro === 'todos' ? 'text-white/80' : 'text-slate-400')}>lista por prioridade</p>
+          </button>
+        </div>
+
+        <div className={cn('grid grid-cols-1 gap-4', selectedCliente && 'xl:grid-cols-[minmax(0,1fr)_440px] xl:items-start')}>
+          <section className="min-w-0 space-y-3">
+            <p className="text-sm font-bold text-[#0F172A]">{listaBuscada.length} clientes · {diaFiltro === 'todos' ? 'Todos' : `Prioridade ${diaFiltro === 'hoje' ? 'Hoje' : diaFiltro === 'amanha' ? 'Amanhã' : diaFiltro === 'dia2' ? diaLabel.dia2 : diaLabel.dia3}`}</p>
+
+            {error && <Typography tone="muted" className="text-status-error">{error}</Typography>}
+            {loading ? (
+              <Typography tone="muted">Carregando carteira...</Typography>
+            ) : listaBuscada.length === 0 ? (
+              <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
+                <EmptyState
+                  title={carteiraClientes.length === 0 ? 'Sua carteira está vazia' : 'Nenhum cliente encontrado'}
+                  description={carteiraClientes.length === 0 ? 'Adicione seu primeiro cliente para iniciar cadência e próxima ação.' : 'Ajuste a busca ou o filtro de prioridade.'}
+                />
               </div>
-              <TrendingUp size={32} className="text-status-success" />
-            </div>
-          </Card>
-        </section>
-
-        <div className={cn('grid grid-cols-1 gap-mx-xs', selectedCliente && 'xl:grid-cols-[minmax(0,1fr)_440px] xl:items-start')}>
-          <section className="min-w-0 space-y-mx-xs">
-            <Card className="rounded-mx-xl border border-border-subtle bg-white p-mx-sm shadow-mx-sm">
-              <div className="grid grid-cols-1 gap-mx-xs md:grid-cols-2 xl:grid-cols-4">
-                <FilterSelect label="Origem" value={canalFilter} onChange={value => setCanalFilter(value as CrmCanal | 'todos')}>
-                  <option value="todos">Todos</option>
-                  {CRM_CANAIS.map(canal => <option key={canal} value={canal}>{CRM_CANAL_LABEL[canal]}</option>)}
-                </FilterSelect>
-                <FilterSelect label="Carro na Troca" value={carroFilter} onChange={value => setCarroFilter(value as typeof carroFilter)}>
-                  <option value="todos">Todos</option>
-                  <option value="sim">Sim</option>
-                  <option value="nao">Não</option>
-                </FilterSelect>
-                <FilterSelect label="Ficha do Cliente" value={fichaFilter} onChange={value => setFichaFilter(value as typeof fichaFilter)}>
-                  <option value="todos">Todos</option>
-                  <option value="aprovada">Aprovada</option>
-                  <option value="pendente">Não enviada</option>
-                  <option value="recusada">Recusada</option>
-                </FilterSelect>
-                <FilterSelect label="Status do Cliente" value={statusFilter} onChange={value => setStatusFilter(value as CrmClienteStatus | 'todos')}>
-                  <option value="todos">Todos</option>
-                  {CRM_CLIENTE_STATUS.map(status => <option key={status} value={status}>{STATUS_CLIENTE_LABEL[status] || CRM_CLIENTE_STATUS_LABEL[status]}</option>)}
-                </FilterSelect>
-                <label className="block min-w-0 xl:col-span-3">
-                  <Typography variant="caption" tone="muted" className="mb-mx-xs block uppercase tracking-normal">Buscar</Typography>
-                  <span className="relative block">
-                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-                    <Input value={search} onChange={event => setSearch(event.target.value)} placeholder="Buscar por nome, telefone ou veículo..." className="h-11 pl-9" />
-                  </span>
-                </label>
-                <div className="flex min-w-0 items-end xl:col-span-1">
-                  <Button className="h-11 w-full whitespace-nowrap px-2" onClick={() => setModalOpen(true)}>
-                    <Plus size={16} /> Novo Cliente
-                  </Button>
-                </div>
-              </div>
-
-              <div className="mt-mx-sm flex flex-wrap items-center gap-mx-xs">
-                <SourceTab active={statusFilter === 'todos' && canalFilter === 'todos'} onClick={() => { setStatusFilter('todos'); setCanalFilter('todos') }}>
-                  Todos <span>{totalClientes}</span>
-                </SourceTab>
-                <SourceTab active={canalFilter === 'internet'} onClick={() => setCanalFilter('internet')}>
-                  <Globe2 size={15} /> Internet <span>{canalCounts.find(item => item.canal === 'internet')?.count || 0}</span>
-                </SourceTab>
-                <SourceTab active={canalFilter === 'carteira'} onClick={() => setCanalFilter('carteira')}>
-                  <Users size={15} /> Carteira <span>{canalCounts.find(item => item.canal === 'carteira')?.count || 0}</span>
-                </SourceTab>
-                <SourceTab active={canalFilter === 'porta'} onClick={() => setCanalFilter('porta')}>
-                  <CalendarDays size={15} /> Porta / Showroom <span>{getPortaShowroomCount(canalCounts)}</span>
-                </SourceTab>
-                <SourceTab active={false} onClick={() => toast.info('Clientes sem próxima ação serão destacados na tabela.')}>
-                  Sem Próxima Ação <span>{demoMode ? 9 : carteiraClientes.filter(cliente => !cliente.proxima_acao).length}</span>
-                </SourceTab>
-                <SourceTab active={false} onClick={() => toast.info('Clientes com cadência vencida serão destacados na tabela.')}>
-                  Cadência Vencida <span>{demoMode ? 13 : carteiraClientes.filter(cliente => getCentralExecucaoLabel(cliente) === 'Vencida').length}</span>
-                </SourceTab>
-              </div>
-
-              <div className="mt-mx-sm flex flex-col gap-mx-sm border-t border-border-subtle pt-mx-sm sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <Typography variant="caption" className="block font-black uppercase tracking-normal">Clientes da Carteira</Typography>
-                  <Typography variant="caption" tone="muted">Visualize e gerencie todos os clientes da sua carteira comercial.</Typography>
-                </div>
-                <div className="flex flex-wrap gap-mx-xs">
-                  <Button variant="outline" size="sm" onClick={() => toast.info('Personalização de colunas será aplicada à tabela.')}>Personalizar colunas</Button>
-                  <Button variant="outline" size="sm" onClick={() => toast.info('Exportação será preparada com os filtros atuais.')}>Exportar</Button>
-                </div>
-              </div>
-
-              <div className="no-scrollbar mt-mx-sm max-w-full min-h-[405px] overflow-x-auto overscroll-x-contain rounded-mx-md border border-border-subtle bg-white">
-                {error && <Typography tone="muted" className="text-status-error">{error}</Typography>}
-                {loading ? (
-                  <Typography tone="muted">Carregando carteira...</Typography>
-                ) : filtered.length === 0 ? (
-                  <EmptyState
-                    title={carteiraClientes.length === 0 ? 'Sua carteira está vazia' : 'Nenhum cliente encontrado'}
-                    description={carteiraClientes.length === 0 ? 'Adicione seu primeiro cliente para iniciar cadência e próxima ação.' : 'Ajuste a busca ou os filtros.'}
-                  />
-                ) : (
-                <table className="w-full min-w-[1120px] text-left text-xs xl:min-w-[1380px]">
-                    <thead>
-                      <tr className="border-y border-border-subtle bg-surface-alt/40 text-[10px] uppercase tracking-normal text-text-muted">
-                        <th scope="col" className="px-mx-sm py-mx-xs font-bold">Cliente</th>
-                        <th scope="col" className="px-mx-sm py-mx-xs font-bold">Veículo Procurado</th>
-                        <th scope="col" className="px-mx-sm py-mx-xs font-bold">Origem</th>
-                        <th scope="col" className="px-mx-sm py-mx-xs font-bold">Etapa Atual</th>
-                        <th scope="col" className="px-mx-sm py-mx-xs font-bold">Cadência</th>
-                        <th scope="col" className="px-mx-sm py-mx-xs font-bold">Próxima Ação</th>
-                        <th scope="col" className="px-mx-sm py-mx-xs font-bold">Central de Execução</th>
-                        <th scope="col" className="px-mx-sm py-mx-xs font-bold">Carro na Troca</th>
-                        <th scope="col" className="px-mx-sm py-mx-xs font-bold">Ficha</th>
-                        <th scope="col" className="px-mx-sm py-mx-xs font-bold">Status do Cliente</th>
-                        <th scope="col" className="px-mx-sm py-mx-xs font-bold">Status da Ação</th>
-                        <th scope="col" className="px-mx-sm py-mx-xs text-right font-bold">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {clientesPaginados.map(cliente => {
-                        const progresso = progressoPorCliente.get(cliente.id)
-                        const oportunidade = oportunidadePorCliente.get(cliente.id)
-                        const actionStatus = getStatusAcao(cliente, progresso)
-                        return (
-                          <tr
-                            key={cliente.id}
-                            onClick={() => {
-                              setPanelClosed(false)
-                              setSelectedId(current => current === cliente.id ? null : cliente.id)
-                            }}
-                            className={cn('cursor-pointer border-b border-border-subtle transition-colors hover:bg-brand-primary/5', selectedCliente?.id === cliente.id && 'bg-brand-primary/5')}
-                          >
-                            <td className="px-mx-xs py-[7px]">
-                              <span className="flex items-center gap-mx-xs">
-                                <ClienteAvatar nome={cliente.nome} />
-                                <span className="min-w-0">
-                                  <Typography variant="p" className="truncate font-bold">{cliente.nome}</Typography>
-                                  <span className="inline-flex items-center gap-1 text-xs font-bold text-text-secondary">
-                                    {cliente.telefone || 'Sem telefone'}
-                                    {cliente.telefone && <MessageCircle size={13} className="text-status-success" />}
-                                  </span>
-                                </span>
-                              </span>
-                            </td>
-                            <td className="px-mx-xs py-[7px]">
-                              <Typography variant="p" className="font-bold">{oportunidade?.veiculo_interesse || cliente.empresa || 'Não informado'}</Typography>
-                              <Typography variant="caption" tone="muted">{oportunidade?.valor_negociado ? BRL(oportunidade.valor_negociado) : BRL(cliente.potencial_negocio || 0)}</Typography>
-                            </td>
-                            <td className="px-mx-xs py-[7px]"><CanalBadge canal={cliente.canal_origem} /></td>
-                            <td className="px-mx-xs py-[7px]">
-                              <span className="inline-flex items-start gap-mx-xs">
-                                <CalendarDays size={18} className="mt-0.5 text-brand-primary" />
-                                <span>
-                                  <Typography variant="p" className="font-bold">{progresso?.etapaAtual.label || 'Lead'}</Typography>
-                                  <Typography variant="caption" tone="muted">Etapa {progresso ? progresso.etapaAtualIndex + 1 : 1} de {progresso?.etapas.length || 7}</Typography>
-                                </span>
-                              </span>
-                            </td>
-                            <td className="px-mx-xs py-[7px]"><ProgressInline value={progresso?.cadencia || 0} /></td>
-                            <td className="px-mx-xs py-[7px]">
-                              <Typography variant="p" className="font-bold">{cliente.proxima_acao || progresso?.etapaAtual.objetivo || 'Definir ação'}</Typography>
-                              <Typography variant="caption" tone={cliente.proxima_acao_em ? 'muted' : 'default'} className={cn(!cliente.proxima_acao_em && 'font-bold text-status-warning')}>
-                                {cliente.proxima_acao_em ? formatDateBR(cliente.proxima_acao_em) : 'Sem ação - criar alerta'}
-                              </Typography>
-                            </td>
-                            <td className="px-mx-xs py-[7px]"><CentralExecucaoBadge cliente={cliente} /></td>
-                            <td className="px-mx-xs py-[7px]">
-                              <span className={cn('inline-flex items-center gap-1 font-bold', oportunidade?.carro_avaliado ? 'text-status-success' : 'text-status-error')}>
-                                {oportunidade?.carro_avaliado ? <Car size={16} /> : <X size={16} />}
-                                {oportunidade?.carro_avaliado ? 'Sim' : 'Não'}
-                              </span>
-                            </td>
-                            <td className="px-mx-xs py-[7px]"><FichaBadge value={oportunidade?.financiamento} /></td>
-                            <td className="px-mx-xs py-[7px]"><StatusClienteBadge status={cliente.status} /></td>
-                            <td className="px-mx-xs py-[7px]"><StatusAcaoBadge status={actionStatus} /></td>
-                            <td className="px-mx-xs py-[7px] text-right">
-                              <Button variant="ghost" size="icon" aria-label="Remover" onClick={(event) => { event.stopPropagation(); handleDelete(cliente.id, cliente.nome) }}>
-                                <MoreHorizontal size={17} />
-                              </Button>
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-
-              <div className="mt-mx-sm flex flex-col gap-mx-sm text-sm font-bold text-text-secondary sm:flex-row sm:items-center sm:justify-between">
-                <span>Mostrando 1 a {clientesPaginados.length} de {demoMode ? totalClientes : filtered.length} clientes</span>
-                <span className="inline-flex items-center gap-mx-xs">
-                  {[1, 2, 3].map(page => (
-                    <button key={page} type="button" className={cn('h-8 w-8 rounded-mx-md border text-xs font-bold', page === 1 ? 'border-brand-primary bg-brand-primary/10 text-brand-primary' : 'border-border-subtle text-text-secondary')}>{page}</button>
-                  ))}
-                  <button type="button" className="h-8 rounded-mx-md border border-border-subtle px-2" aria-label="Próxima página"><ChevronRight size={14} /></button>
-                  <span className="ml-mx-sm rounded-mx-md border border-border-subtle px-3 py-1.5">8 por página</span>
-                </span>
-              </div>
-            </Card>
-
-          <section className="grid grid-cols-1 gap-mx-xs md:grid-cols-2 2xl:grid-cols-5">
-              <AnalyticsCard title="Evolução da Cadência">
-                <div className="flex items-center gap-mx-md">
-                  <Donut value={demoMode ? 58 : persistencia ?? 0} />
-                  <div>
-                    <Typography variant="p" tone="muted" className="text-sm">Média da carteira comercial.</Typography>
-                    <div className="mt-mx-xs space-y-1 text-xs font-bold">
-                      <LegendItem color="bg-status-success" label="Concluída" value={demoMode ? '58%' : `${persistencia ?? 0}%`} />
-                      <LegendItem color="bg-brand-primary" label="Em andamento" value={demoMode ? '29%' : `${Math.max(0, 100 - (persistencia ?? 0))}%`} />
-                      <LegendItem color="bg-status-error" label="Atrasada" value={demoMode ? '13%' : '0%'} />
-                    </div>
-                    <Badge variant={persistenciaCarteira !== null && persistenciaCarteira >= 70 ? 'success' : 'warning'} className="mt-mx-xs px-2 py-0.5">
-                      {persistenciaCarteira !== null && persistenciaCarteira >= 70 ? 'Concluída' : 'Em andamento'}
-                    </Badge>
-                  </div>
-                </div>
-              </AnalyticsCard>
-              <AnalyticsCard title="Origem dos Clientes">
-                <div className="flex items-center gap-mx-md">
-                  <SourceDonut counts={canalCounts.map(item => item.count)} />
-                  <div className="space-y-mx-xs text-xs font-bold">
-                    {canalCounts.map(item => (
-                      <div key={item.canal} className="flex items-center gap-mx-xs">
-                        <span className="h-2 w-2 rounded-full bg-brand-primary" />
-                        {CRM_CANAL_LABEL[item.canal]} {item.count} ({percent(item.count, totalClientes)}%)
+            ) : (
+              listaBuscada.map(cliente => {
+                const progresso = progressoPorCliente.get(cliente.id)
+                const oportunidade = oportunidadePorCliente.get(cliente.id)
+                const temperatura = derivarTemperatura(oportunidade)
+                const prioridade = prioridadePorCliente.get(cliente.id) || 'baixa'
+                const { score } = calcularScoreCliente(cliente, hoje)
+                const classificacao = classificacaoScore(score)
+                const situacao = derivarSituacao(cliente, oportunidade, progresso?.etapaAtual.label)
+                const { objetivo, mentorRecomenda } = derivarObjetivoEMentor(cliente, oportunidade, progresso?.etapaAtual.objetivo || 'Definir próximo passo')
+                const explicacao = explicacaoCliente(cliente, oportunidade, hoje, progresso?.etapaAtual.label)
+                return (
+                  <Card key={cliente.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="flex min-w-0 flex-1 items-start gap-3">
+                        <ClienteAvatar nome={cliente.nome} />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-bold text-[#0F172A]">{cliente.nome}</p>
+                            <span className={cn('rounded-full border px-2 py-0.5 text-[10px] font-bold', temperatura === 'quente' ? 'border-red-100 bg-red-50 text-red-600' : temperatura === 'morno' ? 'border-amber-100 bg-amber-50 text-amber-600' : 'border-slate-200 bg-slate-100 text-slate-500')}>{TEMPERATURA_LABEL[temperatura]}</span>
+                            <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold', prioridade === 'maxima' ? 'bg-red-100 text-red-700' : prioridade === 'alta' ? 'bg-red-50 text-red-600' : prioridade === 'media' ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-500')}>{PRIORIDADE_LABEL[prioridade]}</span>
+                          </div>
+                          <p className="text-xs font-bold text-slate-400">{cliente.canal_origem ? CRM_CANAL_LABEL[cliente.canal_origem] : 'Sem origem'}</p>
+                          <p className="text-xs text-slate-400">{oportunidade?.veiculo_interesse || cliente.empresa || 'Veículo não informado'}</p>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </AnalyticsCard>
-              <AnalyticsCard title="Carro na Troca">
-                <MiniBar label="Sim" value={carroSim} total={Math.max(oportunidadePorCliente.size, 1)} tone="green" />
-                <MiniBar label="Não" value={Math.max(oportunidadePorCliente.size - carroSim, 0)} total={Math.max(oportunidadePorCliente.size, 1)} tone="red" />
-              </AnalyticsCard>
-              <AnalyticsCard title="Ficha do Cliente">
-                <MiniBar label="Aprovada" value={fichaAprovada} total={Math.max(oportunidadePorCliente.size, 1)} tone="green" />
-                <MiniBar label="Não enviada" value={fichaPendente} total={Math.max(oportunidadePorCliente.size, 1)} tone="yellow" />
-                <MiniBar label="Recusada" value={fichaRecusada} total={Math.max(oportunidadePorCliente.size, 1)} tone="red" />
-              </AnalyticsCard>
-              <AnalyticsCard title="Gargalo da Carteira" emphasis>
-                <div className="space-y-mx-sm">
-                  <div className="flex items-start gap-mx-sm">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-status-warning/10 text-status-warning">
-                      <AlertCircle size={19} />
-                    </span>
-                    <div>
-                      <Typography variant="p" className="font-bold">{gargalo.etapa}</Typography>
-                      <Typography variant="caption" tone="muted">{gargalo.total} clientes travados</Typography>
-                    </div>
-                  </div>
-                  <Typography variant="caption" tone="muted" className="block">Tempo médio parado: {gargalo.tempoMedio}</Typography>
-                  <Typography variant="caption" className="block font-bold text-status-success">Ação recomendada: {gargalo.acao}</Typography>
-                  <Button variant="outline" size="sm" onClick={() => setSearch(gargalo.etapa === 'Sem dados' ? '' : gargalo.etapa)}>
-                    Ver Clientes
-                  </Button>
-                </div>
-              </AnalyticsCard>
-            </section>
 
-            <div className="flex flex-col items-start gap-mx-sm rounded-mx-lg border border-status-success/20 bg-status-success/5 px-mx-lg py-mx-md sm:flex-row sm:items-center sm:justify-between sm:gap-mx-md">
-              <span className="flex min-w-0 items-center gap-mx-md">
-                <span className="flex h-mx-11 w-mx-11 shrink-0 items-center justify-center rounded-full bg-status-success/10 text-status-success">
-                  <CheckCircle size={22} />
-                </span>
-                <Typography variant="p" className="shrink-0 font-bold text-status-success">Dica do dia</Typography>
-                <Typography variant="p" tone="muted" className="hidden truncate font-bold lg:block">
-                  Nenhum cliente deve ficar sem próxima ação. Priorize quem aparece como sem ação ou vencido.
-                </Typography>
-              </span>
-              <Button variant="outline" className="w-full sm:w-auto">Ver mais dicas</Button>
-            </div>
+                      <div className="min-w-0 flex-1 lg:px-4">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Situação</p>
+                        <p className="text-sm font-bold text-[#0F172A]">{situacao}</p>
+                        <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Objetivo</p>
+                        <p className="text-sm text-slate-600">{objetivo}</p>
+                        <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Mentor recomenda</p>
+                        <p className="text-sm font-bold text-[#005BFF]">{mentorRecomenda}</p>
+                        <p className="mt-1 text-xs italic text-slate-400">{explicacao}</p>
+                        <p className="mt-1 text-xs font-bold text-amber-500">★ {score} · {classificacao.label}</p>
+                      </div>
+
+                      <div className="flex shrink-0 flex-col gap-2 lg:w-[180px]">
+                        <button type="button" onClick={() => executarProximoPasso(cliente)} className="flex items-center justify-center gap-1.5 rounded-xl bg-[#005BFF] px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-blue-700">
+                          <Sparkles size={14} /> Executar próximo passo
+                        </button>
+                        <button type="button" onClick={() => { setPanelClosed(false); setSelectedId(cliente.id) }} className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50">
+                          <FileText size={14} /> Abrir ficha
+                        </button>
+                      </div>
+                    </div>
+                  </Card>
+                )
+              })
+            )}
           </section>
 
           {selectedCliente && (
@@ -919,11 +786,6 @@ function FluxoClientePanel({
   )
 }
 
-function percent(value: number, total: number) {
-  if (!total) return 0
-  return Math.round((value / total) * 100)
-}
-
 function getInitials(name: string) {
   return name
     .split(' ')
@@ -933,181 +795,10 @@ function getInitials(name: string) {
     .join('') || 'MX'
 }
 
-function FilterSelect({ label, value, onChange, children }: { label: string; value: string; onChange: (value: string) => void; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <Typography variant="caption" tone="muted" className="mb-mx-xs block uppercase tracking-normal">{label}</Typography>
-      <Select value={value} onChange={event => onChange(event.target.value)} className="h-11 py-2">
-        {children}
-      </Select>
-    </label>
-  )
-}
-
-function SourceTab({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        'inline-flex h-9 items-center gap-mx-xs rounded-mx-md border px-mx-sm text-sm font-bold transition-colors',
-        active ? 'border-brand-primary bg-brand-primary text-white shadow-mx-sm' : 'border-border-subtle bg-white text-text-secondary hover:bg-surface-alt',
-      )}
-    >
-      {children}
-    </button>
-  )
-}
-
 function ClienteAvatar({ nome }: { nome: string }) {
   const colors = ['bg-brand-primary', 'bg-status-success', 'bg-status-info', 'bg-status-warning', 'bg-status-error']
   const color = colors[nome.length % colors.length]
   return <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white', color)}>{getInitials(nome)}</span>
-}
-
-function CanalBadge({ canal }: { canal: CrmCanal | null }) {
-  if (!canal) return <Badge variant="outline" className="px-2 py-0.5 text-[10px]">Sem origem</Badge>
-  const variant: Record<CrmCanal, 'brand' | 'success' | 'warning' | 'info'> = {
-    internet: 'brand',
-    carteira: 'success',
-    porta: 'warning',
-    showroom: 'info',
-  }
-  const label = canal === 'showroom' ? 'Porta / Showroom' : CRM_CANAL_LABEL[canal]
-  return <Badge variant={variant[canal]} className="px-2 py-0.5 text-[10px]">{label}</Badge>
-}
-
-function FichaBadge({ value }: { value?: string | null }) {
-  if (value === 'aprovado') return <Badge variant="success" className="px-2 py-0.5 text-[10px]">Aprovada</Badge>
-  if (value === 'reprovado') return <Badge variant="danger" className="px-2 py-0.5 text-[10px]">Recusada</Badge>
-  if (value === 'pendente') return <Badge variant="warning" className="px-2 py-0.5 text-[10px]">Não enviada</Badge>
-  return <Badge variant="outline" className="px-2 py-0.5 text-[10px]">Não aplica</Badge>
-}
-
-function StatusClienteBadge({ status }: { status: CrmClienteStatus }) {
-  return <Badge variant={STATUS_VARIANT[status]} className="px-2 py-0.5 text-[10px]">{STATUS_CLIENTE_LABEL[status] || CRM_CLIENTE_STATUS_LABEL[status]}</Badge>
-}
-
-function StatusAcaoBadge({ status }: { status: StatusAcao }) {
-  const variant: Record<StatusAcao, 'success' | 'warning' | 'info' | 'danger' | 'outline'> = {
-    Pendente: 'warning',
-    Agendada: 'info',
-    Feita: 'success',
-    'Não respondeu': 'danger',
-    Aguardando: 'warning',
-    Reagendada: 'info',
-    'Não feita': 'danger',
-    Concluída: 'success',
-  }
-  return <Badge variant={variant[status]} className="px-2 py-0.5 text-[10px]">{status}</Badge>
-}
-
-function CentralExecucaoBadge({ cliente }: { cliente: Cliente }) {
-  const label = getCentralExecucaoLabel(cliente)
-  const isLate = label === 'Vencida'
-  const isEmpty = label === 'Sem ação'
-  return (
-    <span className={cn('inline-flex rounded-mx-md border px-2 py-1 text-xs font-bold', isLate ? 'border-status-error/20 bg-status-error/5 text-status-error' : isEmpty ? 'border-status-warning/20 bg-status-warning/5 text-status-warning' : 'border-status-success/20 bg-status-success/5 text-status-success')}>
-      {label}
-    </span>
-  )
-}
-
-function ProgressInline({ value }: { value: number }) {
-  // status-success e brand-primary sao o mesmo hex (#00A89D) no design system —
-  // usar status-warning na faixa media pra nao repetir cor entre 40-69% e 70-100%.
-  const tone = value >= 70 ? 'bg-status-success' : value >= 40 ? 'bg-status-warning' : 'bg-status-error'
-  return (
-    <span className="flex items-center gap-mx-xs">
-      <span className="text-xs font-bold text-text-primary">{value}%</span>
-      <span className="h-1.5 w-16 rounded-full bg-surface-alt">
-        <span className={cn('block h-1.5 rounded-full', tone)} style={{ width: `${Math.max(value, 5)}%` }} />
-      </span>
-    </span>
-  )
-}
-
-function AnalyticsCard({ title, children, emphasis = false }: { title: string; children: React.ReactNode; emphasis?: boolean }) {
-  return (
-    <Card className={cn('min-h-[178px] rounded-mx-xl border bg-white p-mx-md shadow-mx-sm', emphasis ? 'border-status-warning/30 bg-status-warning/5' : 'border-border-subtle')}>
-      <Typography variant="caption" tone="muted" className="mb-mx-sm block uppercase tracking-normal">{title}</Typography>
-      {children}
-    </Card>
-  )
-}
-
-function LegendItem({ color, label, value }: { color: string; label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-mx-sm">
-      <span className="inline-flex items-center gap-mx-xs">
-        <span className={cn('h-2 w-2 rounded-full', color)} />
-        {label}
-      </span>
-      <span>{value}</span>
-    </div>
-  )
-}
-
-function Donut({ value }: { value: number }) {
-  return (
-    <div
-      className="flex h-28 w-28 shrink-0 items-center justify-center rounded-full"
-      style={{ background: `conic-gradient(var(--color-status-success) ${value * 3.6}deg, var(--color-surface-alt) 0deg)` }}
-    >
-      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white">
-        <Typography variant="h2" className="text-2xl">{value}%</Typography>
-      </div>
-    </div>
-  )
-}
-
-function SourceDonut({ counts }: { counts: number[] }) {
-  const total = counts.reduce((sum, item) => sum + item, 0) || 1
-  const first = (counts[0] || 0) / total * 360
-  const second = first + (counts[1] || 0) / total * 360
-  const third = second + (counts[2] || 0) / total * 360
-  return (
-    <div
-      className="h-24 w-24 shrink-0 rounded-full"
-      style={{ background: `conic-gradient(var(--color-brand-primary) 0deg ${first}deg, var(--color-status-success) ${first}deg ${second}deg, var(--color-status-warning) ${second}deg ${third}deg, var(--color-status-info) ${third}deg 360deg)` }}
-    />
-  )
-}
-
-function MiniBar({ label, value, total, tone }: { label: string; value: number; total: number; tone: 'green' | 'red' | 'yellow' }) {
-  const pct = percent(value, total)
-  const color = tone === 'green' ? 'bg-status-success' : tone === 'red' ? 'bg-status-error' : 'bg-status-warning'
-  return (
-    <div className="mb-mx-xs">
-      <div className="mb-1 flex items-center justify-between text-xs font-bold">
-        <span>{label}</span>
-        <span>{value} ({pct}%)</span>
-      </div>
-      <div className="h-1.5 rounded-full bg-surface-alt">
-        <div className={cn('h-1.5 rounded-full', color)} style={{ width: `${pct}%` }} />
-      </div>
-    </div>
-  )
-}
-
-function MetricCard({ icon, label, value, hint, accent }: { icon: React.ReactNode; label: string; value: string; hint: string; accent: 'green' | 'yellow' | 'red' }) {
-  const tones = {
-    green: 'bg-status-success/10 text-status-success',
-    yellow: 'bg-status-warning/10 text-status-warning',
-    red: 'bg-status-error/10 text-status-error',
-  }
-  return (
-    <Card className="min-h-[92px] rounded-mx-xl border border-border-subtle bg-white p-mx-sm shadow-mx-sm">
-      <div className="flex h-full items-center gap-mx-sm">
-        <span className={cn('flex h-mx-11 w-mx-11 shrink-0 items-center justify-center rounded-full', tones[accent])}>{icon}</span>
-        <div>
-          <Typography variant="caption" tone="muted" className="uppercase tracking-normal text-[10px]">{label}</Typography>
-          <Typography variant="h2" className="text-xl leading-tight">{value}</Typography>
-          <Typography variant="caption" tone="muted" className="text-[11px]">{hint}</Typography>
-        </div>
-      </div>
-    </Card>
-  )
 }
 
 function InfoItem({ label, value }: { label: string; value: string }) {
@@ -1136,15 +827,6 @@ function getFichaLabel(value?: string | null) {
   return 'Não aplica'
 }
 
-function getStatusAcao(cliente: Cliente, progresso?: ProgressoCadencia): StatusAcao {
-  if (progresso?.encerramento === 'ganho') return 'Concluída'
-  if (cliente.status === 'inativo') return 'Não respondeu'
-  if (cliente.status === 'aguardando_contato') return 'Agendada'
-  if (!cliente.proxima_acao) return 'Pendente'
-  if (cliente.relacionamento === 'critico') return 'Não respondeu'
-  return 'Pendente'
-}
-
 function getVisualStageIndex(label: string, status: CrmClienteStatus) {
   if (status === 'pos_venda') return 6
   const normalized = label.toLowerCase()
@@ -1157,38 +839,6 @@ function getVisualStageIndex(label: string, status: CrmClienteStatus) {
   return 0
 }
 
-function getCentralExecucaoLabel(cliente: Cliente) {
-  if (!cliente.proxima_acao) return 'Sem ação'
-  if (!cliente.proxima_acao_em) return 'Enviada'
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const actionDate = new Date(`${cliente.proxima_acao_em}T00:00:00`)
-  if (Number.isNaN(actionDate.getTime())) return 'Enviada'
-  if (actionDate < today) return 'Vencida'
-  if (actionDate.toDateString() === today.toDateString()) return 'Hoje 15:00'
-  return 'Amanhã 10:00'
-}
-
-function getPortaShowroomCount(canalCounts: Array<{ canal: CrmCanal; count: number }>) {
-  return (canalCounts.find(item => item.canal === 'porta')?.count || 0) + (canalCounts.find(item => item.canal === 'showroom')?.count || 0)
-}
-
-function getGargaloCarteira(progressos: ProgressoCadencia[]) {
-  if (progressos.length === 0) {
-    return { etapa: 'Sem dados', total: 0, tempoMedio: '0 dias', acao: 'Cadastrar clientes e iniciar cadência' }
-  }
-  const counts = new Map<string, number>()
-  for (const progresso of progressos) {
-    counts.set(progresso.etapaAtual.label, (counts.get(progresso.etapaAtual.label) || 0) + 1)
-  }
-  const [etapa, total] = [...counts.entries()].sort((a, b) => b[1] - a[1])[0]
-  return {
-    etapa,
-    total,
-    tempoMedio: total > 3 ? '3 dias' : '1 dia',
-    acao: etapa === 'Venda' ? 'Ativar pós-venda e indicação' : 'Reforçar follow-up e execução comercial',
-  }
-}
 
 function makeDemoCliente(
   id: string,

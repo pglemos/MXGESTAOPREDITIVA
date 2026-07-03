@@ -1,0 +1,44 @@
+{
+  "name": "VeiculoChegado",
+  "type": "object",
+  "properties": {
+    "marca": {
+      "type": "string",
+      "title": "Marca"
+    },
+    "modelo": {
+      "type": "string",
+      "title": "Modelo"
+    },
+    "versao": {
+      "type": "string",
+      "title": "Vers\u00e3o"
+    },
+    "ano": {
+      "type": "string",
+      "title": "Ano"
+    },
+    "preco": {
+      "type": "number",
+      "title": "Pre\u00e7o (R$)"
+    },
+    "data_entrada": {
+      "type": "string",
+      "format": "date",
+      "title": "Data de Entrada"
+    },
+    "observacao": {
+      "type": "string",
+      "title": "Observa\u00e7\u00e3o"
+    },
+    "vendedor_id": {
+      "type": "string",
+      "title": "Vendedor ID"
+    }
+  },
+  "required": [
+    "marca",
+    "modelo",
+    "data_entrada"
+  ]
+}

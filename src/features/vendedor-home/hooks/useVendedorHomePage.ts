@@ -193,6 +193,7 @@ export function useVendedorHomePage() {
     checkins,
     metrics,
     ranking,
+    oportunidades,
     treinamentos,
     devolutivas,
     todayCheckin,

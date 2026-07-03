@@ -17,17 +17,16 @@ const Terms = lazy(() => import('@/pages/Terms'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
 const StorePreRegistration = lazy(() => import('@/pages/StorePreRegistration'))
 
-// Vendedor
-const VendedorHome = lazy(() => import('@/pages/VendedorHome'))
+// Vendedor — Real MX implementations (Supabase-powered, not Base44 reference)
 const VendedorPDI = lazy(() => import('@/pages/VendedorPDI'))
-const Checkin = lazy(() => import('@/pages/Checkin'))
+const Checkin = lazy(() => import('@/base44-reference/pages/FechamentoDiario'))
 const LiberacaoFechamento = lazy(() => import('@/pages/LiberacaoFechamento'))
 const Ranking = lazy(() => import('@/pages/Ranking'))
 const VendedorFeedback = lazy(() => import('@/pages/VendedorFeedback'))
 const VendedorTreinamentos = lazy(() => import('@/pages/VendedorTreinamentos'))
 const VendedorAjuda = lazy(() => import('@/pages/VendedorAjuda'))
 const VendedorConfiguracoes = lazy(() => import('@/pages/VendedorConfiguracoes'))
-const MinhaRemuneracao = lazy(() => import('@/features/remuneracao/MinhaRemuneracaoPage'))
+const MinhaRemuneracao = lazy(() => import('@/pages/MinhaRemuneracao'))
 const CarteiraClientes = lazy(() => import('@/pages/CarteiraClientes'))
 const FunilVendedor = lazy(() => import('@/pages/FunilVendedor'))
 const CentralExecucao = lazy(() => import('@/pages/CentralExecucao'))
@@ -243,9 +242,9 @@ export default function App() {
                 Dono e admin redirecionam (dono escolhe loja em /lojas, admin vai pra /painel). */}
 <Route path="meu-dia" element={<RedirectWithSearch to="/home" />} />
 <Route path="home" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<VendedorHome />} gerente={<DashboardLoja />} dono={<RoleRedirect />} admin={<RoleRedirect />} />
+              <RoleSwitch vendedor={<MinhaRemuneracao />} gerente={<DashboardLoja />} dono={<RoleRedirect />} admin={<RoleRedirect />} />
             </Suspense>} />
-            <Route path="minha-remuneracao" element={<Suspense fallback={<Spinner />}><MinhaRemuneracao /></Suspense>} />
+            <Route path="minha-remuneracao" element={<RedirectWithSearch to="/home" />} />
                         <Route path="lancamento-diario" element={<RedirectWithSearch to="/terminal-mx" />} />
                         <Route path="fechamento-diario" element={<RedirectWithSearch to="/terminal-mx" />} />
 <Route path="vendedor/terminal-mx" element={<Suspense fallback={<Spinner />}>
