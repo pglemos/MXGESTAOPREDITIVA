@@ -6,7 +6,7 @@ type Mes = { label: string; mes: string; comissao: number; isAtual: boolean }
 export function LastSixMonthsCard({ historico }: { historico: Mes[] }) {
   if (!historico || historico.length === 0) {
     return (
-      <div className="rounded-2xl p-6" style={{ background: '#071525', border: '1px solid rgba(255,255,255,0.06)' }}>
+      <div className="rounded-2xl p-6" style={{ background: 'var(--color-seller-card-bg)', border: '1px solid rgba(255,255,255,0.06)' }}>
         <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-4">Últimos 6 Meses</p>
         <p className="text-slate-500 text-sm">Sem histórico disponível ainda.</p>
       </div>
@@ -17,7 +17,7 @@ export function LastSixMonthsCard({ historico }: { historico: Mes[] }) {
   const maxVal = melhorComissao || 1
 
   return (
-    <div className="rounded-2xl p-6" style={{ background: '#071525', border: '1px solid rgba(255,255,255,0.06)' }}>
+    <div className="rounded-2xl p-6" style={{ background: 'var(--color-seller-card-bg)', border: '1px solid rgba(255,255,255,0.06)' }}>
       <p className="text-slate-300 text-xs font-bold uppercase tracking-widest mb-5">Últimos 6 Meses</p>
       <div className="space-y-3">
         {historico.map((mes, i) => {
@@ -34,17 +34,17 @@ export function LastSixMonthsCard({ historico }: { historico: Mes[] }) {
                     style={{
                       width: `${barWidth}%`,
                       background: mes.isAtual
-                        ? 'linear-gradient(90deg, #1d4ed8, #3b82f6)'
+                        ? 'linear-gradient(90deg, var(--color-seller-blue-strong), var(--color-seller-blue))'
                         : isMelhor
-                          ? 'linear-gradient(90deg, #16a34a, #22c55e)'
-                          : 'linear-gradient(90deg, #15803d, #16a34a)',
+                          ? 'linear-gradient(90deg, var(--color-seller-green-strong), var(--color-seller-green))'
+                          : 'linear-gradient(90deg, var(--color-seller-green-dark), var(--color-seller-green-strong))',
                       boxShadow: isMelhor ? '0 0 6px rgba(34,197,94,0.4)' : 'none',
                     }}
                   />
                 </div>
                 {isMelhor && <Trophy className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />}
               </div>
-              <span className="text-sm font-bold tabular-nums w-24 text-right flex-shrink-0" style={{ color: mes.isAtual ? '#60A5FA' : isMelhor ? '#4ade80' : '#94a3b8' }}>
+              <span className="text-sm font-bold tabular-nums w-24 text-right flex-shrink-0" style={{ color: mes.isAtual ? 'var(--color-seller-blue-soft)' : isMelhor ? 'var(--color-seller-green)' : 'var(--color-chart-axis-tick-muted)' }}>
                 {formatBRLWhole(mes.comissao)}
               </span>
             </div>

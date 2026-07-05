@@ -56,6 +56,7 @@ export type RankedVendedor = {
 export function useStoreRankingPageData() {
   const { profile } = useAuth()
   const [periodo, setPeriodo] = useState<RankingPeriodo>('Mensal')
+  const [unidade, setUnidade] = useState('todas')
   const [isRefetching, setIsRefetching] = useState(false)
 
   const { startDate, endDate } = useMemo(() => getPeriodoRange(periodo), [periodo])
@@ -73,7 +74,7 @@ export function useStoreRankingPageData() {
 
   const metaPeriodo = (metaRules?.monthly_goal || 0) * MESES_POR_PERIODO[periodo]
 
-  const vendedores = useMemo<RankedVendedor[]>(() => {
+  const todosVendedores = useMemo<RankedVendedor[]>(() => {
     return ranking
       .filter(r => !r.is_venda_loja)
       .map(r => ({
@@ -86,6 +87,16 @@ export function useStoreRankingPageData() {
       }))
       .sort((a, b) => (b.vendas !== a.vendas ? b.vendas - a.vendas : a.nome.localeCompare(b.nome)))
   }, [ranking, metaPeriodo])
+
+  const unidades = useMemo(() => {
+    const set = new Set(todosVendedores.map(v => v.unidade).filter((u): u is string => Boolean(u)))
+    return Array.from(set).sort((a, b) => a.localeCompare(b))
+  }, [todosVendedores])
+
+  const vendedores = useMemo<RankedVendedor[]>(() => {
+    if (unidade === 'todas') return todosVendedores
+    return todosVendedores.filter(v => v.unidade === unidade)
+  }, [todosVendedores, unidade])
 
   const top3 = vendedores.slice(0, 3)
   const meuIndex = vendedores.findIndex(v => v.id === profile?.id)
@@ -104,6 +115,9 @@ export function useStoreRankingPageData() {
     error,
     periodo,
     setPeriodo,
+    unidade,
+    setUnidade,
+    unidades,
     isRefetching,
     handleRefresh,
     vendedores,

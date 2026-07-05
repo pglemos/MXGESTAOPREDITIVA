@@ -3,9 +3,9 @@ import { RankingAvatar } from './RankingAvatar'
 import type { RankedVendedor } from '../../hooks/useStoreRankingPageData'
 
 const PEDESTAL = [
-  { pos: 2, label: '2º', bg: 'linear-gradient(180deg,#cbd5e1,#94a3b8)', height: 56, order: 1 },
-  { pos: 1, label: '1º', bg: 'linear-gradient(180deg,#FDE68A,#F59E0B)', height: 80, order: 2 },
-  { pos: 3, label: '3º', bg: 'linear-gradient(180deg,#e9c57e,#CD7F32)', height: 40, order: 3 },
+  { pos: 2, label: '2º', bg: 'linear-gradient(180deg,var(--color-chart-grid-strong),var(--color-chart-axis-tick-muted))', height: 56, order: 1 },
+  { pos: 1, label: '1º', bg: 'linear-gradient(180deg,var(--color-status-warning-surface),var(--color-status-warning))', height: 80, order: 2 },
+  { pos: 3, label: '3º', bg: 'linear-gradient(180deg,var(--color-status-warning-surface),var(--color-status-warning))', height: 40, order: 3 },
 ] as const
 
 function formatVendas(v: number) {
@@ -34,7 +34,7 @@ export function PodioRanking({ top3 }: { top3: RankedVendedor[] }) {
               {pos === 1 && (
                 <Trophy
                   className="w-6 h-6 mb-0.5"
-                  style={{ color: '#F59E0B', filter: 'drop-shadow(0 0 6px rgba(245,158,11,0.5))' }}
+                  style={{ color: 'var(--color-status-warning)', filter: 'drop-shadow(0 0 6px rgba(245,158,11,0.5))' }}
                   fill="currentColor"
                 />
               )}
@@ -42,11 +42,11 @@ export function PodioRanking({ top3 }: { top3: RankedVendedor[] }) {
                 nome={v.nome}
                 foto={v.foto}
                 size={pos === 1 ? 68 : 56}
-                border={pos === 1 ? '4px solid #F59E0B' : '3px solid #e2e8f0'}
+                border={pos === 1 ? '4px solid var(--color-status-warning)' : '3px solid var(--color-border-default)'}
               />
               <div className="text-center mt-1">
                 <p className="text-[13px] font-bold text-slate-800 leading-tight">{v.nome?.split(' ')[0]}</p>
-                <p className="text-[11px] font-semibold" style={{ color: '#00A896' }}>{formatVendas(v.vendas)}</p>
+                <p className="text-[11px] font-semibold" style={{ color: 'var(--color-brand-primary)' }}>{formatVendas(v.vendas)}</p>
               </div>
               <div className="relative rounded-t-md flex items-center justify-center w-16 sm:w-20" style={{ height, background: bg }}>
                 <span className="text-white font-black text-xl drop-shadow">{label}</span>

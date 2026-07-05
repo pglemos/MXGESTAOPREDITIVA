@@ -116,16 +116,40 @@ describe('route access matrix', () => {
       '/vendedor/meu-funil',
       '/vendedor/feedback',
       '/vendedor/devolutivas',
+      '/pdi',
+      '/devolutivas',
       '/vendedor/treinamentos',
-'/vendedor/terminal-mx',
-'/meu-dia',
-'/fechamento-diario',
-'/terminal-mx',
+      '/vendedor/terminal-mx',
+      '/home',
+      '/meu-dia',
+      '/fechamento-diario',
+      '/terminal-mx',
+      '/carteira-clientes',
+      '/carteira',
+      '/vendedor/carteira',
+      '/mentor-comercial',
+      '/vendedor/mentor-comercial',
+      '/meu-funil',
+      '/minha-meta',
+      '/vendedor/minha-meta',
+      '/ranking',
+      '/treinamentos',
+      '/rotina-do-dia',
+      '/vendedor/rotina-do-dia',
+      '/central-execucao',
       '/central-de-execucao',
       '/funil-comercial',
       '/relatorios',
       '/feedbacks',
       '/consultor-ia',
+      '/universidade-mx',
+      '/vendedor/universidade-mx',
+      '/desenvolvimento',
+      '/vendedor/desenvolvimento',
+      '/perfil',
+      '/meu-perfil',
+      '/meu-perfil-vendedor',
+      '/vendedor/perfil',
     ]) {
       expect(canAccessPath(route, 'vendedor')).toBe(true)
       expect(getRouteAccessRule(route)).not.toBeNull()
@@ -134,6 +158,15 @@ describe('route access matrix', () => {
     expect(canAccessPath('/vendedor/terminal-mx', 'gerente')).toBe(false)
     expect(canAccessPath('/vendedor/configuracoes', 'vendedor')).toBe(true)
     expect(canAccessPath('/vendedor/configuracoes', 'gerente')).toBe(false)
+    expect(canAccessPath('/vendedor/feedback', 'gerente')).toBe(false)
+    expect(canAccessPath('/vendedor/devolutivas', 'gerente')).toBe(false)
+    expect(canAccessPath('/devolutivas', 'gerente')).toBe(true)
+    expect(canAccessPath('/pdi', 'gerente')).toBe(true)
+    expect(canAccessPath('/desenvolvimento', 'gerente')).toBe(false)
+    expect(canAccessPath('/vendedor/desenvolvimento', 'gerente')).toBe(false)
+    expect(canAccessPath('/meu-perfil', 'gerente')).toBe(true)
+    expect(canAccessPath('/meu-perfil-vendedor', 'gerente')).toBe(false)
+    expect(canAccessPath('/vendedor/perfil', 'gerente')).toBe(false)
     expect(canAccessPath('/configuracoes', 'vendedor')).toBe(true)
     expect(canAccessPath('/configuracoes/operacional', 'vendedor')).toBe(false)
   })

@@ -54,7 +54,13 @@ para enxergar treinamento, PDI, feedback e evolucao como uma jornada unica.
 ## File List
 
 - `docs/stories/story-DEV-24-reposicionar-treinamentos-desenvolvimento.md`
+- `src/App.tsx`
 - `src/components/Layout.tsx`
+- `src/lib/auth/routeAccess.ts`
+- `src/lib/auth/routeAccess.test.ts`
+- `src/pages/VendedorDesenvolvimento.tsx`
+- `src/pages/VendedorDesenvolvimento.test.tsx`
 - `src/pages/VendedorTreinamentos.tsx`
+- `src/pages/VendedorTreinamentos.test.tsx`
 - `src/pages/GerenteTreinamentos.tsx`
 - `src/lib/development-content.ts`

@@ -6,7 +6,7 @@ type Props = {
   gradient?: string
 }
 
-export function RankingAvatar({ nome, foto, size = 64, border, gradient = 'linear-gradient(135deg, #00A896, #005BFF)' }: Props) {
+export function RankingAvatar({ nome, foto, size = 64, border, gradient = 'linear-gradient(135deg, var(--color-brand-primary), var(--color-chart-2))' }: Props) {
   const initials = nome ? nome.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() : '?'
   return (
     <div
@@ -16,7 +16,7 @@ export function RankingAvatar({ nome, foto, size = 64, border, gradient = 'linea
         height: size,
         minWidth: size,
         background: gradient,
-        border: border ?? '3px solid #e2e8f0',
+        border: border ?? '3px solid var(--color-border-default)',
         fontSize: size * 0.32,
       }}
     >

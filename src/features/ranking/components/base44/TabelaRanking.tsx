@@ -3,9 +3,9 @@ import { RankingAvatar } from './RankingAvatar'
 import type { RankedVendedor } from '../../hooks/useStoreRankingPageData'
 
 const MEDAL = [
-  { color: '#F59E0B', bg: '#FEF3C7' },
-  { color: '#94a3b8', bg: '#f1f5f9' },
-  { color: '#CD7F32', bg: '#fef9f0' },
+  { color: 'var(--color-status-warning)', bg: 'var(--color-status-warning-surface)' },
+  { color: 'var(--color-chart-axis-tick-muted)', bg: 'var(--color-surface-alt)' },
+  { color: 'var(--color-status-warning)', bg: 'var(--color-status-warning-surface)' },
 ]
 
 function StatusBadge({ pct }: { pct: number }) {
@@ -42,7 +42,7 @@ export function TabelaRanking({ vendedores, meta, meuId }: Props) {
                 <tr
                   key={v.id}
                   className={`border-b border-slate-50 transition-colors ${isMe ? 'bg-blue-50/60' : 'hover:bg-slate-50/50'}`}
-                  style={isMe ? { outline: '1.5px solid #3b82f6', outlineOffset: '-1px' } : undefined}
+                  style={isMe ? { outline: '1.5px solid var(--color-chart-2)', outlineOffset: '-1px' } : undefined}
                 >
                   <td className="px-4 py-3">
                     {medal ? (

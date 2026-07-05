@@ -240,11 +240,11 @@ void onSignOut()
 }
 
 const mobileNavItems: SellerLayoutNavItem[] = [
-{ label: 'Dashboard', path: '/home', icon: Home, activePaths: ['/home', '/meu-dia'] },
-  { label: 'Fechar', path: '/terminal-mx', icon: CalendarCheck, activePaths: ['/terminal-mx', '/vendedor/terminal-mx', '/lancamento-diario', '/fechamento-diario'] },
-{ label: 'Execução', path: '/central-de-execucao', icon: Layers, activePaths: ['/central-de-execucao', '/central-execucao'] },
-{ label: 'Funil', path: '/funil-comercial', icon: Funnel, activePaths: ['/funil-comercial', '/meu-funil'] },
-{ label: 'Perfil', path: profilePath, icon: User, activePaths: [profilePath, '/meu-perfil-vendedor', '/vendedor/perfil'] },
+  { label: 'Início', path: '/home', icon: Home, activePaths: ['/home', '/meu-dia'] },
+  { label: 'Fechamento', path: '/terminal-mx', icon: CalendarCheck, activePaths: ['/terminal-mx', '/vendedor/terminal-mx', '/lancamento-diario', '/fechamento-diario'] },
+  { label: 'Rotina', path: '/central-execucao', icon: Target, activePaths: ['/central-execucao', '/central-de-execucao'] },
+  { label: 'Meta', path: '/meu-funil', icon: Filter, activePaths: ['/meu-funil', '/funil-comercial', '/funil'] },
+  { label: 'Perfil', path: profilePath, icon: User, activePaths: [profilePath, '/meu-perfil', '/meu-perfil-vendedor', '/vendedor/perfil'] },
 ]
 
 const mobileTitle = isNavItemActive(mobileNavItems[1], location) ? 'Fechamento Diário' : 'MX Performance'
@@ -379,7 +379,7 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
         { label: 'Minha Meta', path: '/meu-funil', icon: Filter, activePaths: ['/meu-funil', '/funil-comercial', '/funil'] },
         { label: 'Ranking', path: '/ranking', icon: Trophy, activePaths: ['/ranking', '/classificacao'] },
         { label: 'Universidade MX', path: '/treinamentos', icon: GraduationCap, activePaths: ['/treinamentos'] },
-        { label: 'Desenvolvimento', path: '/feedbacks', icon: BookOpen, activePaths: ['/feedbacks', '/devolutivas', '/pdi'] },
+        { label: 'Desenvolvimento', path: '/desenvolvimento', icon: BookOpen, activePaths: ['/desenvolvimento', '/feedbacks', '/devolutivas', '/pdi'] },
         { label: 'Meu Perfil', path: '/perfil', icon: User, activePaths: ['/perfil', '/meu-perfil-vendedor', '/vendedor/perfil'] },
       ],
     },
@@ -562,4 +562,3 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
 // 'pb-[calc(82px+env(safe-area-inset-bottom))]'
 // 'md:h-screen md:p-2'
 // 'h-[calc(82px+env(safe-area-inset-bottom))]'
-

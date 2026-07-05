@@ -84,8 +84,8 @@ export function AlterarProximoPasso({ open, cliente, onClose, onSalvar }: Altera
                 onClick={() => setAcao(sugestao)}
                 className={`rounded-mx-lg border px-mx-xs py-1 text-xs font-semibold transition-colors ${
                   acao === sugestao
-                    ? 'border-brand-primary bg-brand-primary text-white'
-                    : 'border-border-subtle bg-surface-alt text-text-secondary hover:border-brand-primary/40'
+                    ? 'border-[#005BFF] bg-[#005BFF] text-white'
+                    : 'border-border-subtle bg-surface-alt text-text-secondary hover:border-[#005BFF]/40'
                 }`}
               >
                 {sugestao}
@@ -101,7 +101,7 @@ export function AlterarProximoPasso({ open, cliente, onClose, onSalvar }: Altera
             onChange={event => setAcao(event.target.value)}
             rows={2}
             placeholder="Descreva o próximo passo..."
-            className="w-full resize-none rounded-mx-lg border border-border-subtle bg-white p-mx-sm text-sm outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10"
+            className="w-full resize-none rounded-mx-lg border border-border-subtle bg-white p-mx-sm text-sm outline-none focus:border-[#005BFF] focus:ring-4 focus:ring-[#005BFF]/10"
           />
         </div>
 
@@ -112,7 +112,7 @@ export function AlterarProximoPasso({ open, cliente, onClose, onSalvar }: Altera
               type="date"
               value={dataStr}
               onChange={event => setDataStr(event.target.value)}
-              className="h-9 w-full rounded-mx-lg border border-border-subtle bg-white px-mx-xs text-sm outline-none focus:border-brand-primary"
+              className="h-9 w-full rounded-mx-lg border border-border-subtle bg-white px-mx-xs text-sm outline-none focus:border-[#005BFF]"
             />
           </div>
           <div>
@@ -121,7 +121,7 @@ export function AlterarProximoPasso({ open, cliente, onClose, onSalvar }: Altera
               type="time"
               value={horario}
               onChange={event => setHorario(event.target.value)}
-              className="h-9 w-full rounded-mx-lg border border-border-subtle bg-white px-mx-xs text-sm outline-none focus:border-brand-primary"
+              className="h-9 w-full rounded-mx-lg border border-border-subtle bg-white px-mx-xs text-sm outline-none focus:border-[#005BFF]"
             />
           </div>
         </div>

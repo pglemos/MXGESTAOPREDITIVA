@@ -1,18 +1,23 @@
 import { useMemo, useState } from 'react'
-import { ArrowLeft, Car, Plus, Users, X, Zap } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Car, MessageCircle, Plus, Users, X, Zap } from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/atoms/Button'
-import { Card } from '@/components/molecules/Card'
-import { Typography } from '@/components/atoms/Typography'
 import { FormField } from '@/components/molecules/FormField'
 import type { Cliente } from '@/lib/schemas/crm.schema'
+import { toDateOnlyBR } from '@/lib/schemas/crm.schema'
 import type { OportunidadeComCliente } from '@/features/crm/hooks/useOportunidades'
+import type { AgendamentoComCliente } from '@/features/crm/hooks/useAgendamentos'
 import { useVeiculosEstoque, type VeiculoEstoque } from '@/features/crm/hooks/useVeiculosEstoque'
+import { derivarSituacao, derivarTemperatura, type Temperatura } from '@/features/crm/lib/mentorComercial'
+import type { ProgressoCadencia } from '@/features/crm/lib/cadencia'
 
 interface PlanoAtaqueTabProps {
   clientes: Cliente[]
   oportunidadePorCliente: Map<string, OportunidadeComCliente>
+  progressoPorCliente: Map<string, ProgressoCadencia>
+  agendamentos: AgendamentoComCliente[]
+  vendedorNome: string
   onAbrirFicha: (clienteId: string) => void
+  onIniciarModoAtaque: () => void
 }
 
 function normalizar(str: string | null | undefined): string {
@@ -52,58 +57,226 @@ function entradaLabel(dataISO: string): string {
   return `Entrou há ${dias} dias`
 }
 
-export function PlanoAtaqueTab({ clientes, oportunidadePorCliente, onAbrirFicha }: PlanoAtaqueTabProps) {
+function diasEntre(dataIso: string | null | undefined, hoje: string): number | null {
+  if (!dataIso) return null
+  const dataOnly = dataIso.length === 10 ? dataIso : toDateOnlyBR(new Date(dataIso))
+  const ms = new Date(`${hoje}T00:00:00`).getTime() - new Date(`${dataOnly}T00:00:00`).getTime()
+  return Math.round(ms / 86400000)
+}
+
+type ClienteContexto = {
+  cliente: Cliente
+  oportunidade?: OportunidadeComCliente
+  situacao: string
+  temperatura: Temperatura
+  diasVencido: number | null
+  diasSemContato: number | null
+  temGarantia: boolean
+}
+
+type MissaoDef = {
+  id: string
+  nome: string
+  icone: string
+  prioridade: 'Máxima' | 'Alta' | 'Média' | 'Baixa'
+  objetivo: string
+  porqueAgora: string
+  potencial: string
+  filtro: (ctx: ClienteContexto) => boolean
+}
+
+const MISSOES: MissaoDef[] = [
+  {
+    id: 'financiamento_aprovado', nome: 'Converter aprovações', icone: '💳', prioridade: 'Máxima',
+    objetivo: 'Converter financiamento aprovado em venda.',
+    porqueAgora: 'Financiamento aprovado sem compra é a oportunidade mais quente da carteira.',
+    potencial: '2 a 4 vendas',
+    filtro: ctx => ctx.oportunidade?.financiamento === 'aprovado' && ctx.oportunidade?.etapa !== 'ganho' && ctx.oportunidade?.etapa !== 'perdido',
+  },
+  {
+    id: 'nao_compareceu', nome: 'Reagendar visitas', icone: '📅', prioridade: 'Alta',
+    objetivo: 'Reagendar clientes que não compareceram.',
+    porqueAgora: 'Cada visita não realizada é uma oportunidade que pode ser recuperada rapidamente.',
+    potencial: '2 a 5 vendas',
+    filtro: ctx => ctx.situacao === 'Agendamento em andamento' && (ctx.diasVencido ?? -1) > 0,
+  },
+  {
+    id: 'confirmar_visita', nome: 'Confirmar visitas', icone: '✅', prioridade: 'Alta',
+    objetivo: 'Confirmar presença de clientes agendados.',
+    porqueAgora: 'Visitas confirmadas têm taxa muito maior de comparecimento.',
+    potencial: '3 a 6 vendas',
+    filtro: ctx => ctx.situacao === 'Visita agendada' && (ctx.diasVencido ?? 1) <= 0,
+  },
+  {
+    id: 'cliente_quente', nome: 'Agendar visitas (quentes)', icone: '🔥', prioridade: 'Alta',
+    objetivo: 'Transformar interesse quente em visita.',
+    porqueAgora: 'Clientes quentes sem visita perdem temperatura a cada dia.',
+    potencial: '3 a 7 vendas',
+    filtro: ctx => ctx.temperatura === 'quente' && !['Visita agendada', 'Em negociação ativa', 'Fechamento em andamento', 'Venda realizada', 'Venda perdida'].includes(ctx.situacao),
+  },
+  {
+    id: 'proposta_sem_retorno', nome: 'Recuperar propostas', icone: '📋', prioridade: 'Alta',
+    objetivo: 'Retomar proposta e fechar negócio.',
+    porqueAgora: 'Clientes com proposta sem resposta têm alto potencial e risco crescente de perda.',
+    potencial: '2 a 4 vendas',
+    filtro: ctx => ctx.situacao === 'Fechamento em andamento',
+  },
+  {
+    id: 'visitou_nao_comprou', nome: 'Recuperar visitas', icone: '🚗', prioridade: 'Alta',
+    objetivo: 'Entender barreira e tentar fechar.',
+    porqueAgora: 'Quem visitou já tem intenção. Falta superar a barreira.',
+    potencial: '3 a 7 vendas',
+    filtro: ctx => ctx.situacao === 'Visita agendada' && (ctx.diasVencido ?? -1) > 0,
+  },
+  {
+    id: 'lead_sem_resposta', nome: 'Retomar leads', icone: '👻', prioridade: 'Média',
+    objetivo: 'Reativar leads sem resposta.',
+    porqueAgora: 'Leads frios podem ser reativados com abordagem correta.',
+    potencial: '1 a 3 vendas',
+    filtro: ctx => ['Lead sem resposta', 'Aguardando resposta do cliente', 'Primeiro contato pendente'].includes(ctx.situacao),
+  },
+  {
+    id: 'vai_pensar', nome: 'Follow-up de decisão', icone: '🤔', prioridade: 'Média',
+    objetivo: 'Descobrir objeção e converter.',
+    porqueAgora: 'Clientes "vão pensar" precisam de follow-up inteligente.',
+    potencial: '2 a 4 vendas',
+    filtro: ctx => ctx.situacao === 'Em negociação ativa',
+  },
+  {
+    id: 'reativar_carteira', nome: 'Reativar carteira', icone: '🔄', prioridade: 'Média',
+    objetivo: 'Retomar relacionamento com clientes antigos.',
+    porqueAgora: 'Clientes antigos compram mais rápido do que leads novos.',
+    potencial: '2 a 5 vendas',
+    filtro: ctx => ctx.situacao === 'Venda realizada' && (ctx.diasSemContato ?? 0) >= 60,
+  },
+  {
+    id: 'pos_venda', nome: 'Pós-venda e indicação', icone: '⭐', prioridade: 'Média',
+    objetivo: 'Manter relacionamento e pedir indicação.',
+    porqueAgora: 'Clientes satisfeitos indicam. Não deixe essa janela fechar.',
+    potencial: 'Indicações',
+    filtro: ctx => ctx.situacao === 'Venda realizada' && (ctx.diasSemContato ?? 0) < 60,
+  },
+  {
+    id: 'garantia', nome: 'Acompanhar garantias', icone: '🛡️', prioridade: 'Baixa',
+    objetivo: 'Proteger relacionamento pós-venda.',
+    porqueAgora: 'Clientes com garantia precisam de atenção para manter confiança.',
+    potencial: 'Relacionamento',
+    filtro: ctx => ctx.temGarantia,
+  },
+  {
+    id: 'troca_futura', nome: 'Oportunidades de troca', icone: '🔁', prioridade: 'Baixa',
+    objetivo: 'Cultivar oportunidade de troca futura.',
+    porqueAgora: 'Clientes com intenção futura podem antecipar a compra.',
+    potencial: '2 a 5 vendas',
+    filtro: ctx => ctx.situacao === 'Venda perdida',
+  },
+]
+
+const PRIORIDADE_ORDEM: Record<MissaoDef['prioridade'], number> = { Máxima: 0, Alta: 1, Média: 2, Baixa: 3 }
+
+function prioridadeBadgeClass(p: MissaoDef['prioridade']): string {
+  if (p === 'Máxima') return 'bg-red-100 text-red-700'
+  if (p === 'Alta') return 'bg-red-50 text-red-600'
+  if (p === 'Média') return 'bg-amber-50 text-amber-600'
+  return 'bg-slate-100 text-slate-500'
+}
+
+function temperaturaBadgeClass(t: Temperatura): string {
+  if (t === 'quente') return 'bg-red-50 text-red-600'
+  if (t === 'morno') return 'bg-amber-50 text-amber-600'
+  return 'bg-slate-100 text-slate-500'
+}
+
+const TEMPERATURA_LABEL: Record<Temperatura, string> = { quente: 'Quente', morno: 'Morno', frio: 'Frio' }
+
+export function PlanoAtaqueTab({ clientes, oportunidadePorCliente, progressoPorCliente, agendamentos, vendedorNome, onAbrirFicha, onIniciarModoAtaque }: PlanoAtaqueTabProps) {
   const { veiculos, loading, createVeiculo } = useVeiculosEstoque()
   const [modalOpen, setModalOpen] = useState(false)
   const [veiculoAtaque, setVeiculoAtaque] = useState<VeiculoEstoque | null>(null)
+  const [missaoSelecionada, setMissaoSelecionada] = useState<MissaoDef | null>(null)
+  const hoje = useMemo(() => toDateOnlyBR(), [])
 
   const listaCompativeis = useMemo(
     () => (veiculoAtaque ? clientesCompativeis(clientes, oportunidadePorCliente, veiculoAtaque) : []),
     [clientes, oportunidadePorCliente, veiculoAtaque],
   )
 
+  const contextos = useMemo<ClienteContexto[]>(() => clientes.map(cliente => {
+    const oportunidade = oportunidadePorCliente.get(cliente.id)
+    const progresso = progressoPorCliente.get(cliente.id)
+    return {
+      cliente,
+      oportunidade,
+      situacao: derivarSituacao(cliente, oportunidade, progresso?.etapaAtual.label),
+      temperatura: derivarTemperatura(oportunidade),
+      diasVencido: diasEntre(cliente.proxima_acao_em, hoje),
+      diasSemContato: diasEntre(cliente.ultima_interacao, hoje),
+      temGarantia: agendamentos.some(a => a.cliente_id === cliente.id && a.tipo === 'garantia'),
+    }
+  }), [clientes, oportunidadePorCliente, progressoPorCliente, agendamentos, hoje])
+
+  const missoesComContagem = useMemo(
+    () => MISSOES.map(missao => ({ ...missao, contextos: contextos.filter(missao.filtro) })),
+    [contextos],
+  )
+
+  const totalOportunidades = missoesComContagem.reduce((acc, m) => acc + m.contextos.length, 0)
+
+  const missoesOrdenadas = useMemo(() => [...missoesComContagem].sort((a, b) => {
+    const pa = PRIORIDADE_ORDEM[a.prioridade]
+    const pb = PRIORIDADE_ORDEM[b.prioridade]
+    if (pa !== pb) return pa - pb
+    return b.contextos.length - a.contextos.length
+  }), [missoesComContagem])
+
   if (veiculoAtaque) {
     return (
-      <div className="space-y-mx-md">
+      <div className="space-y-6">
         <button
           type="button"
           onClick={() => setVeiculoAtaque(null)}
-          className="flex items-center gap-1.5 text-sm font-semibold text-brand-primary hover:underline"
+          className="flex items-center gap-1.5 text-sm text-[#005BFF] hover:underline"
         >
-          <ArrowLeft size={16} /> Voltar aos veículos
+          <ArrowLeft className="h-4 w-4" /> Voltar aos veículos
         </button>
 
-        <Card className="rounded-mx-xl bg-gradient-to-r from-brand-primary to-brand-primary/80 p-mx-lg text-white">
-          <Typography variant="caption" className="uppercase tracking-widest text-white/70">Veículo que chegou</Typography>
-          <Typography variant="h2" className="mt-1 text-white">{veiculoAtaque.marca} {veiculoAtaque.modelo} {veiculoAtaque.versao}</Typography>
-          <Typography variant="p" className="text-white/80">
+        <div className="bg-gradient-to-r from-[#005BFF] to-blue-600 rounded-2xl p-5 text-white">
+          <p className="text-xs font-bold uppercase tracking-wide text-blue-200">Veículo que chegou</p>
+          <p className="text-xl font-black mt-1">{veiculoAtaque.marca} {veiculoAtaque.modelo} {veiculoAtaque.versao}</p>
+          <p className="text-sm text-blue-100 mt-1">
             {veiculoAtaque.ano}{veiculoAtaque.preco ? ` · ${veiculoAtaque.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}` : ''}
-          </Typography>
-        </Card>
+          </p>
+        </div>
 
         {listaCompativeis.length === 0 ? (
-          <Card className="rounded-mx-xl p-mx-xl text-center">
-            <Typography variant="p" className="font-semibold text-text-secondary">Nenhum cliente compatível encontrado.</Typography>
-            <Typography variant="caption" tone="muted">Verifique os veículos de interesse registrados na carteira.</Typography>
-          </Card>
+          <div className="bg-white border border-slate-100 rounded-2xl p-10 text-center">
+            <p className="text-sm font-bold text-slate-600">Nenhum cliente compatível encontrado.</p>
+            <p className="text-xs text-slate-400 mt-1">Verifique os veículos de interesse registrados na carteira.</p>
+          </div>
         ) : (
-          <div className="space-y-mx-xs">
-            <Typography variant="caption" tone="muted" className="uppercase tracking-widest">
+          <div className="space-y-2">
+            <p className="text-xs font-black text-slate-400 uppercase tracking-wider">
               {listaCompativeis.length} cliente{listaCompativeis.length !== 1 ? 's' : ''} compatível{listaCompativeis.length !== 1 ? 'eis' : ''}
-            </Typography>
+            </p>
             {listaCompativeis.map(cliente => (
-              <Card key={cliente.id} className="flex items-center gap-mx-sm rounded-mx-lg p-mx-sm">
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-primary/10 text-xs font-black text-brand-primary">
+              <div key={cliente.id} className="bg-white border border-slate-100 rounded-xl px-4 py-3 flex items-center gap-3">
+                <span className="w-9 h-9 shrink-0 grid place-items-center rounded-full bg-blue-50 text-xs font-black text-[#005BFF]">
                   {(cliente.nome || '?').split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase()}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <Typography variant="p" className="truncate font-semibold">{cliente.nome}</Typography>
-                  <Typography variant="caption" tone="muted" className="truncate">
+                  <p className="text-sm font-semibold text-slate-900 truncate">{cliente.nome}</p>
+                  <p className="text-xs text-slate-400 truncate">
                     {oportunidadePorCliente.get(cliente.id)?.veiculo_interesse || '—'}
-                  </Typography>
+                  </p>
                 </div>
-                <Button variant="outline" onClick={() => onAbrirFicha(cliente.id)}>Ficha</Button>
-              </Card>
+                <button
+                  type="button"
+                  onClick={() => onAbrirFicha(cliente.id)}
+                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-[#005BFF] hover:bg-blue-50"
+                >
+                  Ficha
+                </button>
+              </div>
             ))}
           </div>
         )}
@@ -111,58 +284,226 @@ export function PlanoAtaqueTab({ clientes, oportunidadePorCliente, onAbrirFicha 
     )
   }
 
-  return (
-    <div className="space-y-mx-md">
-      <div className="flex items-start justify-between gap-mx-sm">
-        <div>
-          <Typography variant="h2">Veículos que chegaram</Typography>
-          <Typography variant="p" tone="muted">Encontre clientes da carteira interessados nos veículos recém-entrados.</Typography>
+  if (missaoSelecionada) {
+    const missao = missoesComContagem.find(m => m.id === missaoSelecionada.id) || { ...missaoSelecionada, contextos: [] }
+    return (
+      <div className="space-y-6">
+        <button
+          type="button"
+          onClick={() => setMissaoSelecionada(null)}
+          className="flex items-center gap-1.5 text-sm text-[#005BFF] hover:underline"
+        >
+          <ArrowLeft className="h-4 w-4" /> Voltar ao Plano de Ataque
+        </button>
+
+        <div className="bg-white border border-slate-100 rounded-2xl p-6 space-y-4">
+          <div className="flex items-start gap-4">
+            <span className="text-3xl">{missao.icone}</span>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-xl font-black text-slate-900">{missao.nome}</h2>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${prioridadeBadgeClass(missao.prioridade)}`}>{missao.prioridade}</span>
+              </div>
+              <p className="text-sm text-slate-500 mt-1">{missao.objetivo}</p>
+              <p className="text-xs text-slate-400 mt-1 italic">{missao.porqueAgora}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-4 pt-2 border-t border-slate-50">
+            <div className="text-center">
+              <p className="text-2xl font-black text-slate-900">{missao.contextos.length}</p>
+              <p className="text-xs text-slate-400">Clientes</p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-bold text-[#005BFF]">{missao.potencial}</p>
+              <p className="text-xs text-slate-400">Potencial</p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-bold text-slate-600">{missao.prioridade}</p>
+              <p className="text-xs text-slate-400">Prioridade</p>
+            </div>
+          </div>
         </div>
-        <Button variant="outline" onClick={() => setModalOpen(true)}>
-          <Plus size={16} /> Registrar veículo
-        </Button>
+
+        {missao.contextos.length === 0 ? (
+          <div className="bg-white border border-slate-100 rounded-2xl p-10 text-center">
+            <p className="text-sm font-bold text-slate-600">Nenhum cliente nesta missão no momento.</p>
+          </div>
+        ) : (
+          <div>
+            <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-3">Clientes da missão</p>
+            <div className="space-y-2">
+              {missao.contextos.map(ctx => {
+                const progresso = progressoPorCliente.get(ctx.cliente.id)
+                const tel = (ctx.cliente.telefone || '').replace(/\D/g, '')
+                const waUrl = tel && progresso
+                  ? `https://wa.me/55${tel}?text=${encodeURIComponent(progresso.etapaAtual.script({ cliente: ctx.cliente.nome.split(' ')[0], vendedor: vendedorNome }))}`
+                  : null
+                return (
+                  <div key={ctx.cliente.id} className="bg-white border border-slate-100 rounded-xl px-4 py-3 flex items-center gap-3">
+                    <span className="w-9 h-9 shrink-0 grid place-items-center rounded-full bg-blue-50 text-xs font-black text-[#005BFF]">
+                      {(ctx.cliente.nome || '?').split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase()}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-slate-900 truncate">{ctx.cliente.nome}</p>
+                      <p className="text-xs text-slate-400 truncate">{ctx.situacao}</p>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${temperaturaBadgeClass(ctx.temperatura)}`}>
+                      {TEMPERATURA_LABEL[ctx.temperatura]}
+                    </span>
+                    {waUrl && (
+                      <a
+                        href={waUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="shrink-0 flex items-center gap-1 rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-bold text-green-700 hover:bg-green-100"
+                      >
+                        <MessageCircle size={13} /> WhatsApp
+                      </a>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => onAbrirFicha(ctx.cliente.id)}
+                      className="shrink-0 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-[#005BFF] hover:bg-blue-50"
+                    >
+                      Ficha
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-black text-slate-900">Plano de Ataque</h1>
+        <p className="text-sm text-slate-400 mt-1">Missões calculadas a partir das situações reais da sua carteira.</p>
       </div>
 
-      {loading ? (
-        <Typography variant="p" tone="muted">Carregando veículos...</Typography>
-      ) : veiculos.length === 0 ? (
-        <Card className="rounded-mx-xl p-mx-xl text-center">
-          <Car size={28} className="mx-auto text-text-tertiary" />
-          <Typography variant="p" className="mt-mx-xs font-semibold text-text-secondary">Nenhum veículo recém-chegado registrado no momento.</Typography>
-          <Button className="mt-mx-sm" onClick={() => setModalOpen(true)}>
-            <Plus size={16} /> Registrar veículo que chegou
-          </Button>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 gap-mx-sm sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {veiculos.map(veiculo => {
-            const compat = clientesCompativeis(clientes, oportunidadePorCliente, veiculo).length
-            return (
-              <Card key={veiculo.id} className="space-y-mx-sm rounded-mx-xl p-mx-sm">
-                <div className="flex items-start gap-mx-xs">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-mx-md bg-brand-primary/10 text-brand-primary">
-                    <Car size={20} />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <Typography variant="p" className="truncate font-black">{veiculo.marca} {veiculo.modelo} {veiculo.versao}</Typography>
-                    <Typography variant="caption" tone="muted">
-                      {veiculo.ano}{veiculo.preco ? ` · ${veiculo.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}` : ''}
-                    </Typography>
-                    <Typography variant="caption" className="font-semibold text-brand-primary">{entradaLabel(veiculo.data_entrada)}</Typography>
+      <div className="bg-white border border-slate-100 rounded-2xl p-5 space-y-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-black text-slate-900">Veículos que chegaram</h2>
+            <p className="text-sm text-slate-400 mt-1">Encontre clientes da carteira interessados nos veículos recém-entrados.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            className="flex h-10 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-50 shrink-0"
+          >
+            <Plus size={16} /> Registrar veículo
+          </button>
+        </div>
+
+        {loading ? (
+          <p className="text-sm text-slate-400">Carregando veículos...</p>
+        ) : veiculos.length === 0 ? (
+          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-10 text-center">
+            <Car className="mx-auto text-slate-300" size={28} />
+            <p className="mt-3 text-sm font-bold text-slate-600">Nenhum veículo recém-chegado registrado no momento.</p>
+            <button
+              type="button"
+              onClick={() => setModalOpen(true)}
+              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-[#005BFF] px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
+            >
+              <Plus size={16} /> Registrar veículo que chegou
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            {veiculos.map(veiculo => {
+              const compat = clientesCompativeis(clientes, oportunidadePorCliente, veiculo).length
+              return (
+                <div key={veiculo.id} className="bg-white border border-slate-100 rounded-2xl p-4 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <span className="w-10 h-10 shrink-0 grid place-items-center rounded-xl bg-blue-50 text-[#005BFF]">
+                      <Car size={20} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-black text-slate-900 truncate">{veiculo.marca} {veiculo.modelo} {veiculo.versao}</p>
+                      <p className="text-xs text-slate-400">
+                        {veiculo.ano}{veiculo.preco ? ` · ${veiculo.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}` : ''}
+                      </p>
+                      <p className="text-xs font-semibold text-[#005BFF]">{entradaLabel(veiculo.data_entrada)}</p>
+                    </div>
                   </div>
+                  <div className="flex items-center gap-1.5 pt-2 border-t border-slate-50">
+                    <Users size={14} className="text-slate-400" />
+                    <span className={`text-xs ${compat > 0 ? 'font-bold text-slate-600' : 'text-slate-400'}`}>
+                      {compat} cliente{compat !== 1 ? 's' : ''} compatível{compat !== 1 ? 'eis' : ''}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={compat === 0}
+                    onClick={() => setVeiculoAtaque(veiculo)}
+                    className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-[#005BFF] hover:bg-blue-700 text-white h-10 text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <Zap size={16} /> Iniciar ataque
+                  </button>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Users size={14} className="text-text-tertiary" />
-                  <Typography variant="caption" className={compat > 0 ? 'font-bold text-text-primary' : 'text-text-tertiary'}>
-                    {compat} cliente{compat !== 1 ? 's' : ''} compatível{compat !== 1 ? 'eis' : ''}
-                  </Typography>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      <div className="bg-gradient-to-r from-[#005BFF] to-blue-600 rounded-2xl p-5 text-white">
+        <p className="text-base font-bold leading-snug">
+          Olá, {vendedorNome}! Hoje existem <span className="text-blue-200 font-black">{totalOportunidades} oportunidades</span> na sua carteira.
+        </p>
+        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-blue-100">Comece pelas missões com maior prioridade.</p>
+          <button
+            type="button"
+            onClick={onIniciarModoAtaque}
+            className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-white px-4 text-sm font-black text-[#005BFF] shadow-sm transition-colors hover:bg-blue-50"
+          >
+            <Zap size={16} /> Iniciar modo ataque
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-3">Missões recomendadas</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          {missoesOrdenadas.map(missao => {
+            const count = missao.contextos.length
+            return (
+              <button
+                key={missao.id}
+                type="button"
+                onClick={() => count > 0 && setMissaoSelecionada(missao)}
+                className={`text-left p-4 rounded-2xl border bg-white transition-all border-slate-100 ${count > 0 ? 'hover:border-[#005BFF] hover:shadow-sm cursor-pointer' : 'opacity-40 cursor-not-allowed'}`}
+              >
+                <div className="flex items-start justify-between gap-2 mb-3">
+                  <span className="text-2xl">{missao.icone}</span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${prioridadeBadgeClass(missao.prioridade)}`}>{missao.prioridade}</span>
                 </div>
-                <Button className="w-full" disabled={compat === 0} onClick={() => setVeiculoAtaque(veiculo)}>
-                  <Zap size={16} /> Iniciar ataque
-                </Button>
-              </Card>
+                <p className="text-sm font-bold text-slate-900 leading-tight">{missao.nome}</p>
+                <p className="text-xs text-slate-400 mt-1 leading-snug">{missao.objetivo}</p>
+                <p className="text-[10px] text-slate-300 mt-1 leading-snug italic">{missao.porqueAgora}</p>
+                <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-50">
+                  <div className="flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="text-xs font-bold text-slate-600">{count} cliente{count !== 1 ? 's' : ''}</span>
+                  </div>
+                  <span className="text-[11px] text-[#005BFF] font-semibold">{missao.potencial}</span>
+                </div>
+              </button>
             )
           })}
+        </div>
+      </div>
+
+      {totalOportunidades === 0 && (
+        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
+          <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+          <p className="text-sm text-amber-800">Nenhuma missão recomendada no momento. Continue trabalhando a carteira normalmente.</p>
         </div>
       )}
 
@@ -206,27 +547,32 @@ function ModalRegistrarVeiculo({ onClose, onSalvar }: { onClose: () => void; onS
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4 backdrop-blur-[3px]" role="dialog" aria-modal="true" aria-label="Registrar veículo que chegou">
-      <div className="w-full max-w-[440px] space-y-mx-sm rounded-[18px] border border-border-subtle bg-white p-mx-lg shadow-[0_24px_80px_rgba(15,23,42,0.24)]">
+      <div className="w-full max-w-[440px] space-y-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.24)]">
         <div className="flex items-center justify-between">
-          <Typography variant="h3">Registrar veículo que chegou</Typography>
-          <button type="button" onClick={onClose} aria-label="Fechar"><X size={18} className="text-text-tertiary" /></button>
+          <p className="text-lg font-black text-slate-900">Registrar veículo que chegou</p>
+          <button type="button" onClick={onClose} aria-label="Fechar"><X size={18} className="text-slate-400" /></button>
         </div>
-        <div className="grid grid-cols-2 gap-mx-xs">
+        <div className="grid grid-cols-2 gap-3">
           <FormField label="Marca *" value={marca} onChange={e => setMarca(e.target.value)} placeholder="Honda" />
           <FormField label="Modelo *" value={modelo} onChange={e => setModelo(e.target.value)} placeholder="HR-V" />
           <FormField label="Versão" value={versao} onChange={e => setVersao(e.target.value)} placeholder="EXL" />
           <FormField label="Ano" value={ano} onChange={e => setAno(e.target.value)} placeholder="2024" />
         </div>
-        <div className="grid grid-cols-2 gap-mx-xs">
+        <div className="grid grid-cols-2 gap-3">
           <FormField label="Preço (opcional)" type="number" value={preco} onChange={e => setPreco(e.target.value)} placeholder="120000" />
           <FormField label="Data de entrada" type="date" value={dataEntrada} onChange={e => setDataEntrada(e.target.value)} />
         </div>
         <FormField label="Observação (opcional)" value={observacao} onChange={e => setObservacao(e.target.value)} placeholder="Baixo km, único dono..." />
-        <div className="flex gap-mx-xs pt-mx-xs">
-          <Button variant="outline" className="flex-1" onClick={onClose}>Cancelar</Button>
-          <Button className="flex-1" disabled={!marca.trim() || !modelo.trim() || saving} onClick={handleSalvar}>
+        <div className="flex gap-3 pt-2">
+          <button type="button" onClick={onClose} className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50">Cancelar</button>
+          <button
+            type="button"
+            disabled={!marca.trim() || !modelo.trim() || saving}
+            onClick={handleSalvar}
+            className="flex-1 rounded-xl bg-[#005BFF] px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50"
+          >
             {saving ? 'Salvando...' : 'Salvar veículo'}
-          </Button>
+          </button>
         </div>
       </div>
     </div>

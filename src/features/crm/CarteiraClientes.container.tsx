@@ -6,16 +6,18 @@ import {
   CheckCircle,
   ChevronDown,
   Copy,
+  Edit2,
   FileText,
-  Filter,
   Hourglass,
   MessageCircle,
   Phone,
   Plus,
   Search,
-  Sparkles,
+  SlidersHorizontal,
+  Star,
   Users,
   X,
+  Zap,
 } from 'lucide-react'
 import {
   calcularPrioridadeCliente,
@@ -32,13 +34,11 @@ import {
   type PrioridadeDia,
 } from '@/features/crm/lib/mentorComercial'
 import { Card } from '@/components/molecules/Card'
-import { PageHeading } from '@/components/molecules/PageHeading'
 import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
 import { Select } from '@/components/atoms/Select'
 import { Textarea } from '@/components/atoms/Textarea'
-import { EmptyState } from '@/components/atoms/EmptyState'
 import { FormField } from '@/components/molecules/FormField'
 import { Modal } from '@/components/organisms/Modal'
 import { PlanoAtaqueTab } from '@/features/crm/PlanoAtaqueTab'
@@ -67,9 +67,225 @@ import {
   type Cliente,
   type CrmCanal,
   type CrmClienteStatus,
+  type CrmRelacionamento,
 } from '@/lib/schemas/crm.schema'
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format
+
+function scoreBadgeClass(score: number): string {
+  if (score >= 90) return 'bg-green-50 text-green-600'
+  if (score >= 75) return 'bg-blue-50 text-blue-600'
+  if (score >= 50) return 'bg-amber-50 text-amber-600'
+  return 'bg-red-50 text-red-600'
+}
+
+type FiltroPrioridade = 'alta' | 'media' | 'baixa'
+type FiltroSituacao = 'sem_visita' | 'visita_agendada' | 'proposta_enviada' | 'recuperacao' | 'sem_proximo_passo' | 'proximo_passo_vencido'
+type FiltroPeriodo = 'hoje' | 'amanha' | 'proximos_7_dias' | 'vencidos' | 'sem_data'
+
+type FiltrosAvancados = {
+  veiculo?: string
+  origens?: CrmCanal[]
+  situacoes?: FiltroSituacao[]
+  periodos?: FiltroPeriodo[]
+  prioridades?: FiltroPrioridade[]
+}
+
+const ORIGENS_FILTRO: CrmCanal[] = ['internet', 'porta', 'carteira', 'showroom']
+const SITUACOES_FILTRO: Array<{ value: FiltroSituacao; label: string }> = [
+  { value: 'sem_visita', label: 'Sem visita' },
+  { value: 'visita_agendada', label: 'Visita agendada' },
+  { value: 'proposta_enviada', label: 'Proposta enviada' },
+  { value: 'recuperacao', label: 'Recuperação' },
+  { value: 'sem_proximo_passo', label: 'Sem próximo passo' },
+  { value: 'proximo_passo_vencido', label: 'Próximo passo vencido' },
+]
+const PERIODOS_FILTRO: Array<{ value: FiltroPeriodo; label: string }> = [
+  { value: 'hoje', label: 'Hoje' },
+  { value: 'amanha', label: 'Amanhã' },
+  { value: 'proximos_7_dias', label: 'Próximos 7 dias' },
+  { value: 'vencidos', label: 'Vencidos' },
+  { value: 'sem_data', label: 'Sem data' },
+]
+const PRIORIDADES_FILTRO: Array<{ value: FiltroPrioridade; label: string }> = [
+  { value: 'alta', label: 'Alta' },
+  { value: 'media', label: 'Média' },
+  { value: 'baixa', label: 'Baixa' },
+]
+
+function temFiltrosAtivos(filtros: FiltrosAvancados): boolean {
+  return Boolean(filtros.veiculo) || Boolean(filtros.origens?.length) || Boolean(filtros.situacoes?.length) || Boolean(filtros.periodos?.length) || Boolean(filtros.prioridades?.length)
+}
+
+function removerFiltro(key: string, setFiltros: (updater: (prev: FiltrosAvancados) => FiltrosAvancados) => void) {
+  const [campo, valor] = key.split(':')
+  setFiltros(prev => {
+    if (!valor) {
+      const next = { ...prev }
+      delete next[campo as keyof FiltrosAvancados]
+      return next
+    }
+    if (campo === 'origens') return { ...prev, origens: (prev.origens || []).filter(v => v !== valor) }
+    if (campo === 'situacoes') return { ...prev, situacoes: (prev.situacoes || []).filter(v => v !== valor) as FiltroSituacao[] }
+    if (campo === 'periodos') return { ...prev, periodos: (prev.periodos || []).filter(v => v !== valor) as FiltroPeriodo[] }
+    if (campo === 'prioridades') return { ...prev, prioridades: (prev.prioridades || []).filter(v => v !== valor) as FiltroPrioridade[] }
+    return prev
+  })
+}
+
+function ChipsFiltrosAtivos({ filtros, onRemover }: { filtros: FiltrosAvancados; onRemover: (key: string) => void }) {
+  const chips: Array<{ key: string; label: string }> = []
+  if (filtros.veiculo) chips.push({ key: 'veiculo', label: `Veículo: ${filtros.veiculo}` })
+  for (const origem of filtros.origens || []) chips.push({ key: `origens:${origem}`, label: CRM_CANAL_LABEL[origem] })
+  for (const situacao of filtros.situacoes || []) chips.push({ key: `situacoes:${situacao}`, label: SITUACOES_FILTRO.find(s => s.value === situacao)?.label || situacao })
+  for (const periodo of filtros.periodos || []) chips.push({ key: `periodos:${periodo}`, label: PERIODOS_FILTRO.find(p => p.value === periodo)?.label || periodo })
+  for (const prioridade of filtros.prioridades || []) chips.push({ key: `prioridades:${prioridade}`, label: `Prioridade: ${PRIORIDADES_FILTRO.find(p => p.value === prioridade)?.label || prioridade}` })
+  if (chips.length === 0) return null
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {chips.map(chip => (
+        <span key={chip.key} className="flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-[#005BFF]">
+          {chip.label}
+          <button type="button" onClick={() => onRemover(chip.key)}><X size={12} /></button>
+        </span>
+      ))}
+    </div>
+  )
+}
+
+function PainelFiltros({ filtrosAtivos, onAplicar, onFechar }: { filtrosAtivos: FiltrosAvancados; onAplicar: (filtros: FiltrosAvancados) => void; onFechar: () => void }) {
+  const [local, setLocal] = useState<FiltrosAvancados>({ ...filtrosAtivos })
+
+  function toggle<K extends 'origens' | 'situacoes' | 'periodos' | 'prioridades'>(campo: K, valor: NonNullable<FiltrosAvancados[K]>[number]) {
+    setLocal(prev => {
+      const arr = (prev[campo] as typeof valor[]) || []
+      return { ...prev, [campo]: arr.includes(valor) ? arr.filter(v => v !== valor) : [...arr, valor] }
+    })
+  }
+
+  function chipClass(ativo: boolean) {
+    return cn('cursor-pointer rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition-all', ativo ? 'border-[#005BFF] bg-[#005BFF] text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300')
+  }
+
+  return (
+    <div className="fixed inset-0 z-[220] flex">
+      <div className="flex-1 bg-black/30" onClick={onFechar} />
+      <div className="flex w-80 flex-col overflow-y-auto bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+          <p className="font-black text-[#031B3D]">Filtros</p>
+          <button type="button" onClick={onFechar}><X size={20} className="text-slate-400" /></button>
+        </div>
+
+        <div className="flex-1 space-y-5 px-5 py-4">
+          <div>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">Veículo de interesse</p>
+            <input
+              value={local.veiculo || ''}
+              onChange={event => setLocal(prev => ({ ...prev, veiculo: event.target.value }))}
+              placeholder="Ex: HR-V, Corolla..."
+              className="h-9 w-full rounded-xl border border-slate-200 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-[#005BFF]"
+            />
+          </div>
+
+          <div>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">Origem</p>
+            <div className="flex flex-wrap gap-1.5">
+              {ORIGENS_FILTRO.map(origem => (
+                <button key={origem} type="button" onClick={() => toggle('origens', origem)} className={chipClass((local.origens || []).includes(origem))}>{CRM_CANAL_LABEL[origem]}</button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">Situação</p>
+            <div className="flex flex-wrap gap-1.5">
+              {SITUACOES_FILTRO.map(situacao => (
+                <button key={situacao.value} type="button" onClick={() => toggle('situacoes', situacao.value)} className={chipClass((local.situacoes || []).includes(situacao.value))}>{situacao.label}</button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">Período</p>
+            <div className="flex flex-wrap gap-1.5">
+              {PERIODOS_FILTRO.map(periodo => (
+                <button key={periodo.value} type="button" onClick={() => toggle('periodos', periodo.value)} className={chipClass((local.periodos || []).includes(periodo.value))}>{periodo.label}</button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">Prioridade</p>
+            <div className="flex flex-wrap gap-1.5">
+              {PRIORIDADES_FILTRO.map(prioridade => (
+                <button key={prioridade.value} type="button" onClick={() => toggle('prioridades', prioridade.value)} className={chipClass((local.prioridades || []).includes(prioridade.value))}>{prioridade.label}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-2 border-t border-slate-100 px-5 py-4">
+          <Button variant="outline" className="flex-1 rounded-xl text-sm" onClick={() => { setLocal({}); onAplicar({}) }}>Limpar</Button>
+          <Button className="flex-1 rounded-xl bg-[#005BFF] text-sm text-white hover:bg-blue-700" onClick={() => onAplicar(local)}>Aplicar filtros</Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function aplicarFiltrosAvancados(
+  clientes: Cliente[],
+  filtros: FiltrosAvancados,
+  oportunidadePorCliente: Map<string, OportunidadeComCliente>,
+  prioridadePorCliente: Map<string, Prioridade>,
+  hoje: string,
+): Cliente[] {
+  let lista = clientes
+  if (filtros.veiculo) {
+    const termo = filtros.veiculo.toLowerCase()
+    lista = lista.filter(cliente => (oportunidadePorCliente.get(cliente.id)?.veiculo_interesse || '').toLowerCase().includes(termo))
+  }
+  if (filtros.origens?.length) {
+    lista = lista.filter(cliente => cliente.canal_origem && filtros.origens?.includes(cliente.canal_origem))
+  }
+  if (filtros.prioridades?.length) {
+    lista = lista.filter(cliente => {
+      const prioridade = prioridadePorCliente.get(cliente.id)
+      return prioridade === 'alta' || prioridade === 'media' || prioridade === 'baixa' ? filtros.prioridades?.includes(prioridade) : false
+    })
+  }
+  if (filtros.situacoes?.length) {
+    lista = lista.filter(cliente => {
+      const oportunidade = oportunidadePorCliente.get(cliente.id)
+      const etapa = oportunidade?.etapa
+      return filtros.situacoes?.some(situacao => {
+        if (situacao === 'sem_visita') return etapa === 'prospeccao' || etapa === 'qualificacao'
+        if (situacao === 'visita_agendada') return etapa === 'apresentacao'
+        if (situacao === 'proposta_enviada') return etapa === 'fechamento'
+        if (situacao === 'recuperacao') return etapa === 'perdido'
+        if (situacao === 'sem_proximo_passo') return !cliente.proxima_acao_em
+        if (situacao === 'proximo_passo_vencido') return Boolean(cliente.proxima_acao_em && cliente.proxima_acao_em.slice(0, 10) < hoje)
+        return false
+      })
+    })
+  }
+  if (filtros.periodos?.length) {
+    lista = lista.filter(cliente => {
+      const data = cliente.proxima_acao_em ? cliente.proxima_acao_em.slice(0, 10) : null
+      return filtros.periodos?.some(periodo => {
+        if (periodo === 'sem_data') return !data
+        if (!data) return false
+        if (periodo === 'hoje') return data === hoje
+        if (periodo === 'vencidos') return data < hoje
+        const dias = Math.round((new Date(`${data}T00:00:00`).getTime() - new Date(`${hoje}T00:00:00`).getTime()) / 86400000)
+        if (periodo === 'amanha') return dias === 1
+        if (periodo === 'proximos_7_dias') return dias >= 0 && dias <= 7
+        return false
+      })
+    })
+  }
+  return lista
+}
 
 const STATUS_CLIENTE_LABEL: Record<CrmClienteStatus, string> = {
   oportunidade: 'Em andamento',
@@ -133,10 +349,8 @@ export function CarteiraClientes() {
   const { oportunidades } = useOportunidades()
   const { agendamentos } = useAgendamentos()
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<CrmClienteStatus | 'todos'>('todos')
-  const [canalFilter, setCanalFilter] = useState<CrmCanal | 'todos'>('todos')
-  const [carroFilter, setCarroFilter] = useState<'todos' | 'sim' | 'nao'>('todos')
-  const [fichaFilter, setFichaFilter] = useState<'todos' | 'aprovada' | 'pendente' | 'recusada'>('todos')
+  const [filtrosPanelOpen, setFiltrosPanelOpen] = useState(false)
+  const [filtrosAvancados, setFiltrosAvancados] = useState<FiltrosAvancados>({})
   const [modalOpen, setModalOpen] = useState(false)
   const [form, setForm] = useState<ClienteInput>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
@@ -226,37 +440,21 @@ export function CarteiraClientes() {
     })
   }, [carteiraClientes, diaFiltro, diaPorCliente, hoje, prioridadePorCliente])
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    return carteiraClientes.filter(cliente => {
-      if (statusFilter !== 'todos' && cliente.status !== statusFilter) return false
-      if (canalFilter !== 'todos' && cliente.canal_origem !== canalFilter) return false
-      const oportunidade = oportunidadePorCliente.get(cliente.id)
-      if (carroFilter === 'sim' && !oportunidade?.carro_avaliado) return false
-      if (carroFilter === 'nao' && oportunidade?.carro_avaliado) return false
-      if (fichaFilter === 'aprovada' && oportunidade?.financiamento !== 'aprovado') return false
-      if (fichaFilter === 'pendente' && oportunidade?.financiamento !== 'pendente') return false
-      if (fichaFilter === 'recusada' && oportunidade?.financiamento !== 'reprovado') return false
-      if (!q) return true
-      return cliente.nome.toLowerCase().includes(q)
-        || (cliente.telefone || '').includes(q)
-        || (cliente.empresa || '').toLowerCase().includes(q)
-        || (oportunidade?.veiculo_interesse || '').toLowerCase().includes(q)
-    })
-  }, [canalFilter, carroFilter, carteiraClientes, fichaFilter, oportunidadePorCliente, search, statusFilter])
-
   const totalClientes = demoMode ? DEMO_KPIS.total : metrics.total
 
   const listaBuscada = useMemo(() => {
     const q = search.trim().toLowerCase()
-    if (!q) return clientesOrdenadosPorPrioridade
-    return clientesOrdenadosPorPrioridade.filter(cliente => {
-      const oportunidade = oportunidadePorCliente.get(cliente.id)
-      return cliente.nome.toLowerCase().includes(q)
-        || (cliente.telefone || '').includes(q)
-        || (oportunidade?.veiculo_interesse || cliente.empresa || '').toLowerCase().includes(q)
-    })
-  }, [clientesOrdenadosPorPrioridade, oportunidadePorCliente, search])
+    let lista = q
+      ? clientesOrdenadosPorPrioridade.filter(cliente => {
+        const oportunidade = oportunidadePorCliente.get(cliente.id)
+        return cliente.nome.toLowerCase().includes(q)
+          || (cliente.telefone || '').includes(q)
+          || (oportunidade?.veiculo_interesse || cliente.empresa || '').toLowerCase().includes(q)
+      })
+      : clientesOrdenadosPorPrioridade
+    lista = aplicarFiltrosAvancados(lista, filtrosAvancados, oportunidadePorCliente, prioridadePorCliente, hoje)
+    return lista
+  }, [clientesOrdenadosPorPrioridade, filtrosAvancados, hoje, oportunidadePorCliente, prioridadePorCliente, search])
 
   async function handleCreate() {
     if (!form.nome.trim()) {
@@ -322,61 +520,80 @@ export function CarteiraClientes() {
 
   if (activeTab === 'ataque') {
     return (
-      <main className="h-full w-full min-w-0 overflow-y-auto bg-surface-alt px-mx-sm pb-mx-sm pt-0 text-text-primary no-scrollbar sm:px-mx-md sm:pb-mx-md 2xl:px-mx-lg 2xl:pb-mx-lg">
-        <div className="flex w-full min-w-0 flex-col gap-mx-xs">
-          <header className="relative z-40 -mx-mx-sm shrink-0 border-b border-border-default/60 bg-surface-alt px-mx-sm pb-3 pt-2 shadow-[0_10px_24px_rgba(15,23,42,0.08)] sm:-mx-mx-md sm:px-mx-md md:sticky md:top-0 md:pt-3 2xl:-mx-mx-lg 2xl:px-mx-lg">
-            <PageHeading
-              title="Carteira de Clientes"
-              subtitle="Missões calculadas a partir das situações reais da sua carteira."
-            />
-            {tabNav}
-          </header>
-          <section className="min-w-0 py-mx-sm">
-            <PlanoAtaqueTab
-              clientes={carteiraClientes}
-              oportunidadePorCliente={oportunidadePorCliente}
-              onAbrirFicha={clienteId => {
-                setActiveTab('ativa')
-                setPanelClosed(false)
-                setSelectedId(clienteId)
-              }}
-            />
-          </section>
-        </div>
-      </main>
-    )
+      <main className="h-full w-full min-w-0 overflow-y-auto bg-slate-50 text-text-primary no-scrollbar">
+        <div className="mx-auto flex w-full max-w-[1440px] min-w-0 flex-col gap-5 px-4 py-6 sm:px-4 xl:px-8">
+          {tabNav}
+          <PlanoAtaqueTab
+            clientes={carteiraClientes}
+            oportunidadePorCliente={oportunidadePorCliente}
+            progressoPorCliente={progressoPorCliente}
+            agendamentos={agendamentos}
+          vendedorNome={(profile?.name || 'Vendedor').split(' ')[0]}
+          onIniciarModoAtaque={() => setModoAtaqueOpen(true)}
+          onAbrirFicha={clienteId => {
+            setActiveTab('ativa')
+            setPanelClosed(false)
+            setSelectedId(clienteId)
+          }}
+        />
+        {modoAtaqueOpen && (
+          <ModoAtaqueView
+            clientes={carteiraClientes}
+            oportunidadePorCliente={oportunidadePorCliente}
+            registrarStatusCadencia={registrarStatusCadencia}
+            onSair={() => setModoAtaqueOpen(false)}
+            onPlanoAtaque={() => setModoAtaqueOpen(false)}
+            onAbrirFicha={clienteId => {
+              setModoAtaqueOpen(false)
+              setActiveTab('ativa')
+              setPanelClosed(false)
+              setSelectedId(clienteId)
+            }}
+          />
+        )}
+      </div>
+    </main>
+  )
   }
 
   return (
-  <main className="h-full w-full min-w-0 overflow-y-auto bg-[#F8FAFC] text-text-primary no-scrollbar">
+  <main className="h-full w-full min-w-0 overflow-y-auto bg-slate-50 text-text-primary no-scrollbar">
     <div className="mx-auto flex w-full max-w-[1440px] min-w-0 flex-col gap-5 px-4 py-6 sm:px-4 xl:px-8">
         {tabNav}
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black text-[#0F172A]">Mentor Comercial</h1>
-            <p className="text-sm text-slate-500">Sua agenda comercial de hoje. Execute e registre resultados.</p>
+            <h1 className="text-2xl font-black text-[#031B3D]">Mentor Comercial</h1>
+            <p className="mt-1 text-sm text-slate-400">Sua agenda comercial de hoje. Execute e registre resultados.</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap gap-2">
             <span className="relative block">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 value={search}
                 onChange={event => setSearch(event.target.value)}
                 placeholder="Buscar cliente..."
-                className="h-10 w-56 rounded-xl border border-slate-200 pl-9 pr-3 text-sm focus:border-[#005BFF] focus:outline-none focus:ring-2 focus:ring-blue-100"
+                className="h-9 w-44 rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm focus:outline-none focus:ring-1 focus:ring-[#005BFF]"
               />
             </span>
-            <button type="button" onClick={() => setStatusFilter('todos')} className="flex h-10 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-50">
-              <Filter size={16} /> Filtros
+            <button
+              type="button"
+              onClick={() => setFiltrosPanelOpen(true)}
+              className={cn('flex h-9 items-center gap-1.5 rounded-xl border px-3.5 text-sm font-semibold transition-all', temFiltrosAtivos(filtrosAvancados) ? 'border-[#005BFF] bg-[#005BFF] text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300')}
+            >
+              <SlidersHorizontal size={16} /> Filtros
             </button>
-            <button type="button" onClick={() => setModalOpen(true)} className="flex h-10 items-center gap-1.5 rounded-xl bg-[#005BFF] px-4 text-sm font-bold text-white transition-colors hover:bg-blue-700">
+            <button type="button" onClick={() => setModalOpen(true)} className="flex h-9 items-center gap-1.5 whitespace-nowrap rounded-xl bg-[#005BFF] px-4 text-sm font-bold text-white transition-colors hover:bg-blue-700">
               <Plus size={16} /> Novo cliente
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+        {temFiltrosAtivos(filtrosAvancados) && (
+          <ChipsFiltrosAtivos filtros={filtrosAvancados} onRemover={key => removerFiltro(key, setFiltrosAvancados)} />
+        )}
+
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
           {([
             { id: 'hoje' as const, label: 'Prioridade Hoje', sub: 'pendentes agora', count: contagemPorDia.hoje },
             { id: 'amanha' as const, label: 'Prioridade Amanhã', sub: 'próximas ações', count: contagemPorDia.amanha },
@@ -387,40 +604,49 @@ export function CarteiraClientes() {
               key={tab.id}
               type="button"
               onClick={() => setDiaFiltro(tab.id)}
-              className={cn('rounded-2xl border p-4 text-left transition-colors', diaFiltro === tab.id ? 'border-[#005BFF] bg-[#005BFF] text-white shadow-sm' : 'border-slate-200 bg-white text-[#0F172A] hover:border-[#005BFF]/40')}
+              className={cn('rounded-2xl border p-3.5 text-left transition-all', diaFiltro === tab.id ? 'border-[#005BFF] bg-blue-50 shadow-sm' : 'border-slate-100 bg-white hover:border-blue-100 hover:bg-blue-50/30')}
             >
-              <p className="text-2xl font-black">{tab.count}</p>
-              <p className={cn('text-xs font-bold', diaFiltro === tab.id ? 'text-white' : 'text-[#0F172A]')}>{tab.label}</p>
-              <p className={cn('text-[11px]', diaFiltro === tab.id ? 'text-white/80' : 'text-slate-400')}>{tab.sub}</p>
+              <p className={cn('mb-0.5 text-2xl font-black', diaFiltro === tab.id ? 'text-[#005BFF]' : 'text-[#031B3D]')}>{tab.count}</p>
+              <p className={cn('text-xs font-bold leading-snug', diaFiltro === tab.id ? 'text-[#005BFF]' : 'text-slate-600')}>{tab.label}</p>
+              <p className="mt-0.5 text-[10px] text-slate-400">{tab.sub}</p>
             </button>
           ))}
           <button
             type="button"
             onClick={() => setDiaFiltro('todos')}
-            className={cn('rounded-2xl border p-4 text-left transition-colors', diaFiltro === 'todos' ? 'border-[#005BFF] bg-[#005BFF] text-white shadow-sm' : 'border-slate-200 bg-white text-[#0F172A] hover:border-[#005BFF]/40')}
+            className={cn('rounded-2xl border p-3.5 text-left transition-all', diaFiltro === 'todos' ? 'border-[#005BFF] bg-blue-50 shadow-sm' : 'border-slate-100 bg-white hover:border-blue-100 hover:bg-blue-50/30')}
           >
-            <p className="text-2xl font-black">{totalClientes}</p>
-            <p className={cn('text-xs font-bold', diaFiltro === 'todos' ? 'text-white' : 'text-[#0F172A]')}>Ver Todos</p>
-            <p className={cn('text-[11px]', diaFiltro === 'todos' ? 'text-white/80' : 'text-slate-400')}>lista por prioridade</p>
+            <p className={cn('mb-0.5 text-2xl font-black', diaFiltro === 'todos' ? 'text-[#005BFF]' : 'text-[#031B3D]')}>{totalClientes}</p>
+            <p className={cn('text-xs font-bold leading-snug', diaFiltro === 'todos' ? 'text-[#005BFF]' : 'text-slate-600')}>Ver Todos</p>
+            <p className="mt-0.5 text-[10px] text-slate-400">lista por prioridade</p>
           </button>
         </div>
 
-        <div className={cn('grid grid-cols-1 gap-4', selectedCliente && 'xl:grid-cols-[minmax(0,1fr)_440px] xl:items-start')}>
+        <div className="grid grid-cols-1 gap-4">
           <section className="min-w-0 space-y-3">
-            <p className="text-sm font-bold text-[#0F172A]">{listaBuscada.length} clientes · {diaFiltro === 'todos' ? 'Todos' : `Prioridade ${diaFiltro === 'hoje' ? 'Hoje' : diaFiltro === 'amanha' ? 'Amanhã' : diaFiltro === 'dia2' ? diaLabel.dia2 : diaLabel.dia3}`}</p>
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-slate-600">{listaBuscada.length} cliente{listaBuscada.length !== 1 ? 's' : ''} · {diaFiltro === 'todos' ? 'Ver Todos' : `Prioridade ${diaFiltro === 'hoje' ? 'Hoje' : diaFiltro === 'amanha' ? 'Amanhã' : diaFiltro === 'dia2' ? diaLabel.dia2 : diaLabel.dia3}`}</p>
+              {diaFiltro !== 'hoje' && (
+                <button type="button" onClick={() => setDiaFiltro('hoje')} className="text-xs text-[#005BFF] hover:underline">Prioridade hoje</button>
+              )}
+            </div>
 
             {error && <Typography tone="muted" className="text-status-error">{error}</Typography>}
             {loading ? (
               <Typography tone="muted">Carregando carteira...</Typography>
             ) : listaBuscada.length === 0 ? (
-              <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
-                <EmptyState
-                  title={carteiraClientes.length === 0 ? 'Sua carteira está vazia' : 'Nenhum cliente encontrado'}
-                  description={carteiraClientes.length === 0 ? 'Adicione seu primeiro cliente para iniciar cadência e próxima ação.' : 'Ajuste a busca ou o filtro de prioridade.'}
-                />
+              <div className="rounded-2xl border border-slate-100 bg-white p-12 text-center">
+                <p className="mb-3 text-4xl">{diaFiltro === 'hoje' ? '✅' : '📋'}</p>
+                <p className="text-sm font-semibold text-slate-500">
+                  {carteiraClientes.length === 0 ? 'Sua carteira está vazia.' : diaFiltro === 'hoje' ? 'Você concluiu as prioridades de hoje.' : 'Nenhum cliente encontrado para este filtro.'}
+                </p>
+                {diaFiltro === 'hoje' && (
+                  <button type="button" onClick={() => setDiaFiltro('todos')} className="mx-auto mt-2 block text-xs text-blue-700 hover:underline">Ver todos os clientes</button>
+                )}
               </div>
             ) : (
-              listaBuscada.map(cliente => {
+              <div className="flex flex-col gap-2">
+              {listaBuscada.map(cliente => {
                 const progresso = progressoPorCliente.get(cliente.id)
                 const oportunidade = oportunidadePorCliente.get(cliente.id)
                 const temperatura = derivarTemperatura(oportunidade)
@@ -431,44 +657,56 @@ export function CarteiraClientes() {
                 const { objetivo, mentorRecomenda } = derivarObjetivoEMentor(cliente, oportunidade, progresso?.etapaAtual.objetivo || 'Definir próximo passo')
                 const explicacao = explicacaoCliente(cliente, oportunidade, hoje, progresso?.etapaAtual.label)
                 return (
-                  <Card key={cliente.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                      <div className="flex min-w-0 flex-1 items-start gap-3">
+                  <div key={cliente.id} className={cn('overflow-hidden rounded-2xl border bg-white transition-all hover:shadow-sm', prioridade === 'maxima' ? 'border-red-200' : prioridade === 'alta' ? 'border-orange-100' : 'border-slate-100')}>
+                    <div className="flex flex-col lg:flex-row lg:items-stretch lg:divide-x lg:divide-slate-100">
+                      <div className="flex items-center gap-3 px-4 py-3.5 lg:w-52 lg:shrink-0">
                         <ClienteAvatar nome={cliente.nome} />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="font-bold text-[#0F172A]">{cliente.nome}</p>
-                            <span className={cn('rounded-full border px-2 py-0.5 text-[10px] font-bold', temperatura === 'quente' ? 'border-red-100 bg-red-50 text-red-600' : temperatura === 'morno' ? 'border-amber-100 bg-amber-50 text-amber-600' : 'border-slate-200 bg-slate-100 text-slate-500')}>{TEMPERATURA_LABEL[temperatura]}</span>
-                            <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold', prioridade === 'maxima' ? 'bg-red-100 text-red-700' : prioridade === 'alta' ? 'bg-red-50 text-red-600' : prioridade === 'media' ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-500')}>{PRIORIDADE_LABEL[prioridade]}</span>
-                          </div>
-                          <p className="text-xs font-bold text-slate-400">{cliente.canal_origem ? CRM_CANAL_LABEL[cliente.canal_origem] : 'Sem origem'}</p>
-                          <p className="text-xs text-slate-400">{oportunidade?.veiculo_interesse || cliente.empresa || 'Veículo não informado'}</p>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-bold text-slate-900">{cliente.nome}</p>
+                          <p className="truncate text-[11px] text-slate-400">{cliente.canal_origem ? CRM_CANAL_LABEL[cliente.canal_origem] : 'Sem origem'}</p>
+                          <p className="truncate text-[11px] text-slate-400">{oportunidade?.veiculo_interesse || cliente.empresa || 'Sem veículo'}</p>
                         </div>
                       </div>
 
-                      <div className="min-w-0 flex-1 lg:px-4">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Situação</p>
-                        <p className="text-sm font-bold text-[#0F172A]">{situacao}</p>
-                        <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Objetivo</p>
-                        <p className="text-sm text-slate-600">{objetivo}</p>
-                        <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Mentor recomenda</p>
-                        <p className="text-sm font-bold text-[#005BFF]">{mentorRecomenda}</p>
-                        <p className="mt-1 text-xs italic text-slate-400">{explicacao}</p>
-                        <p className="mt-1 text-xs font-bold text-amber-500">★ {score} · {classificacao.label}</p>
+                      <div className="space-y-1.5 px-4 py-3.5 lg:w-52 lg:shrink-0">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className={cn('rounded-full border px-1.5 py-0.5 text-[10px] font-bold', temperatura === 'quente' ? 'border-red-100 bg-red-50 text-red-600' : temperatura === 'morno' ? 'border-amber-100 bg-amber-50 text-amber-600' : 'border-slate-200 bg-slate-100 text-slate-500')}>{TEMPERATURA_LABEL[temperatura]}</span>
+                          <span className={cn('rounded-full px-1.5 py-0.5 text-[10px] font-bold', prioridade === 'maxima' ? 'bg-red-100 text-red-700' : prioridade === 'alta' ? 'bg-red-50 text-red-600' : prioridade === 'media' ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-500')}>{PRIORIDADE_LABEL[prioridade]}</span>
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-bold uppercase tracking-wide text-slate-400">Situação</p>
+                          <p className="mt-0.5 text-[11px] font-semibold leading-snug text-slate-700">{situacao}</p>
+                        </div>
+                        <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold', scoreBadgeClass(score))}>
+                          <Star size={10} /> {score} · {classificacao.label}
+                        </span>
                       </div>
 
-                      <div className="flex shrink-0 flex-col gap-2 lg:w-[180px]">
-                        <button type="button" onClick={() => executarProximoPasso(cliente)} className="flex items-center justify-center gap-1.5 rounded-xl bg-[#005BFF] px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-blue-700">
-                          <Sparkles size={14} /> Executar próximo passo
+                      <div className="flex-1 space-y-1.5 bg-blue-50/30 px-4 py-3.5">
+                        <div>
+                          <p className="text-[9px] font-bold uppercase tracking-wide text-slate-400">Objetivo</p>
+                          <p className="mt-0.5 text-[11px] font-semibold leading-snug text-slate-600">{objetivo}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-bold uppercase tracking-wide text-[#005BFF]">Mentor recomenda</p>
+                          <p className="mt-0.5 text-[11px] font-bold leading-snug text-[#031B3D]">{mentorRecomenda}</p>
+                        </div>
+                        <p className="text-[10px] italic leading-snug text-slate-400">{explicacao}</p>
+                      </div>
+
+                      <div className="flex shrink-0 flex-col justify-center gap-1.5 px-4 py-3.5 lg:w-40">
+                        <button type="button" onClick={() => executarProximoPasso(cliente)} className="flex items-center justify-center gap-1.5 rounded-xl bg-[#005BFF] px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-blue-700">
+                          <Zap size={14} /> Executar próximo passo
                         </button>
-                        <button type="button" onClick={() => { setPanelClosed(false); setSelectedId(cliente.id) }} className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50">
+                        <button type="button" onClick={() => { setPanelClosed(false); setSelectedId(cliente.id) }} className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50">
                           <FileText size={14} /> Abrir ficha
                         </button>
                       </div>
                     </div>
-                  </Card>
+                  </div>
                 )
-              })
+              })}
+              </div>
             )}
           </section>
 
@@ -478,11 +716,12 @@ export function CarteiraClientes() {
               oportunidade={oportunidadePorCliente.get(selectedCliente.id)}
                 progresso={progressoPorCliente.get(selectedCliente.id) || derivarProgresso(selectedCliente, carteiraOportunidades, agendamentos)}
                 vendedor={(profile?.name || 'vendedor').split(' ')[0]}
-                positionLabel={`${Math.max(1, filtered.findIndex(cliente => cliente.id === selectedCliente.id) + 1)} de ${demoMode ? totalClientes : filtered.length}`}
+                positionLabel={`${Math.max(1, listaBuscada.findIndex(cliente => cliente.id === selectedCliente.id) + 1)} de ${demoMode ? totalClientes : listaBuscada.length}`}
                 statusSaving={cadenciaSaving}
                 onStatus={handleRegistrarStatusCadencia}
                 onNaoRespondeu={cliente => setNaoRespondeuCliente(cliente)}
                 onEditarProximoPasso={cliente => setEditandoProximoPasso(cliente)}
+                onSalvarEdicao={(clienteId, patch) => updateCliente(clienteId, patch)}
               onClose={() => { setSelectedId(null); setPanelClosed(true) }}
             />
           )}
@@ -567,11 +806,20 @@ export function CarteiraClientes() {
           oportunidadePorCliente={oportunidadePorCliente}
           registrarStatusCadencia={registrarStatusCadencia}
           onSair={() => setModoAtaqueOpen(false)}
+          onPlanoAtaque={() => { setModoAtaqueOpen(false); setActiveTab('ataque') }}
           onAbrirFicha={clienteId => {
             setModoAtaqueOpen(false)
             setPanelClosed(false)
             setSelectedId(clienteId)
           }}
+        />
+      )}
+
+      {filtrosPanelOpen && (
+        <PainelFiltros
+          filtrosAtivos={filtrosAvancados}
+          onAplicar={filtros => { setFiltrosAvancados(filtros); setFiltrosPanelOpen(false) }}
+          onFechar={() => setFiltrosPanelOpen(false)}
         />
       )}
 
@@ -591,6 +839,55 @@ export function CarteiraClientes() {
   )
 }
 
+function calcularQualidadeFicha(oportunidade?: OportunidadeComCliente, cliente?: Cliente): { label: string; className: string } {
+  const etapa = oportunidade?.etapa
+  if (etapa === 'ganho' || etapa === 'perdido') {
+    return etapa === 'ganho'
+      ? { label: 'Excelente oportunidade', className: 'border-green-200 bg-green-50 text-green-700' }
+      : { label: 'Recuperação', className: 'border-red-200 bg-red-50 text-red-700' }
+  }
+  if (oportunidade?.financiamento === 'aprovado' || etapa === 'negociacao' || etapa === 'fechamento') {
+    return { label: 'Excelente oportunidade', className: 'border-green-200 bg-green-50 text-green-700' }
+  }
+  if (etapa === 'apresentacao') {
+    return { label: 'Boa oportunidade', className: 'border-blue-200 bg-blue-50 text-blue-700' }
+  }
+  const temVeiculo = Boolean(oportunidade?.veiculo_interesse || cliente?.empresa)
+  const temValor = Boolean(oportunidade?.valor_negociado || cliente?.potencial_negocio)
+  const temContato = Boolean(cliente?.ultima_interacao)
+  if (temVeiculo && (temValor || cliente?.proxima_acao_em)) {
+    return { label: 'Em desenvolvimento', className: 'border-amber-200 bg-amber-50 text-amber-700' }
+  }
+  if (temContato && temVeiculo) {
+    return { label: 'Precisa de informação', className: 'border-orange-200 bg-orange-50 text-orange-700' }
+  }
+  return { label: 'Nova oportunidade', className: 'border-slate-200 bg-slate-50 text-slate-600' }
+}
+
+function calcularUrgenciaFicha(cliente: Cliente, oportunidade: OportunidadeComCliente | undefined, hoje: string): { label: string; className: string } {
+  const proxData = cliente.proxima_acao_em ? cliente.proxima_acao_em.slice(0, 10) : null
+  if (cliente.status === 'aguardando_contato' || oportunidade?.financiamento === 'aprovado') {
+    return { label: 'Ação imediata', className: 'border-red-200 bg-red-50 text-red-700' }
+  }
+  if (proxData && proxData < hoje) {
+    return { label: 'Próximo passo vencido', className: 'border-red-200 bg-red-50 text-red-700' }
+  }
+  if (proxData === hoje) {
+    return { label: 'Ação para hoje', className: 'border-orange-200 bg-orange-50 text-orange-700' }
+  }
+  if (oportunidade?.etapa === 'apresentacao') {
+    return { label: 'Visita próxima', className: 'border-blue-200 bg-blue-50 text-blue-700' }
+  }
+  if (proxData) {
+    const amanha = new Date(`${hoje}T12:00:00`)
+    amanha.setDate(amanha.getDate() + 1)
+    if (proxData === toDateOnlyBR(amanha)) {
+      return { label: 'Acompanhar amanhã', className: 'border-amber-200 bg-amber-50 text-amber-700' }
+    }
+  }
+  return { label: 'Sem urgência imediata', className: 'border-slate-200 bg-slate-50 text-slate-500' }
+}
+
 function FluxoClientePanel({
   cliente,
   oportunidade,
@@ -601,6 +898,7 @@ function FluxoClientePanel({
   onStatus,
   onNaoRespondeu,
   onEditarProximoPasso,
+  onSalvarEdicao,
   onClose,
 }: {
   cliente: Cliente
@@ -612,13 +910,54 @@ function FluxoClientePanel({
   onStatus: (clienteId: string, status: CadenciaResultadoAcao) => void
   onNaoRespondeu: (cliente: Cliente) => void
   onEditarProximoPasso: (cliente: Cliente) => void
+  onSalvarEdicao: (clienteId: string, patch: Partial<ClienteInput>) => Promise<{ error: string | null }>
   onClose: () => void
 }) {
   const primeiroNome = cliente.nome.split(' ')[0]
   const script = progresso.etapaAtual.script({ cliente: primeiroNome, vendedor })
   const canalLabel = cliente.canal_origem ? CRM_CANAL_LABEL[cliente.canal_origem] : 'Sem origem'
+  const [editando, setEditando] = useState(false)
+  const [salvandoEdicao, setSalvandoEdicao] = useState(false)
+  const [form, setForm] = useState<ClienteInput>({
+    nome: cliente.nome,
+    telefone: cliente.telefone,
+    empresa: cliente.empresa,
+    canal_origem: cliente.canal_origem,
+    status: cliente.status,
+    relacionamento: cliente.relacionamento,
+    proxima_acao: cliente.proxima_acao,
+    proxima_acao_em: cliente.proxima_acao_em,
+    potencial_negocio: cliente.potencial_negocio,
+    observacoes: cliente.observacoes,
+  })
+
+  async function salvarEdicao() {
+    setSalvandoEdicao(true)
+    const { error } = await onSalvarEdicao(cliente.id, form)
+    setSalvandoEdicao(false)
+    if (error) {
+      toast.error(error)
+      return
+    }
+    toast.success('Ficha atualizada.')
+    setEditando(false)
+  }
   const whatsappHref = cliente.telefone ? `https://wa.me/55${cliente.telefone.replace(/\D/g, '')}` : null
   const tentativaAtual = Math.max(1, Math.min(3, Math.ceil(progresso.cadencia / 34) || 1))
+  const hojeFicha = toDateOnlyBR()
+  const [openKnow, setOpenKnow] = useState(false)
+  const [openHistory, setOpenHistory] = useState(false)
+  const pendencias = [
+    !oportunidade?.valor_negociado && 'Confirmar orçamento',
+    !oportunidade?.financiamento || oportunidade.financiamento === 'nao_aplica' ? 'Definir forma de pagamento' : null,
+    !oportunidade?.carro_avaliado && 'Entender se possui troca',
+    !cliente.proxima_acao_em && 'Agendar próximo contato',
+  ].filter(Boolean) as string[]
+  const qualidade = calcularQualidadeFicha(oportunidade, cliente)
+  const urgencia = calcularUrgenciaFicha(cliente, oportunidade, hojeFicha)
+  const temperatura = derivarTemperatura(oportunidade)
+  const situacaoAtual = derivarSituacao(cliente, oportunidade, progresso.etapaAtual.label)
+  const motivo = explicacaoCliente(cliente, oportunidade, hojeFicha, progresso.etapaAtual.label)
 
   async function copiarScript() {
     try {
@@ -630,159 +969,299 @@ function FluxoClientePanel({
   }
 
   return (
-    <Card className="rounded-mx-xl border border-border-subtle bg-white p-mx-sm shadow-mx-md xl:sticky xl:top-mx-xs" aria-label={`Fluxo do cliente ${cliente.nome}`}>
-      <div className="mb-mx-sm flex items-center justify-between border-b border-border-subtle pb-mx-xs">
-        <Typography variant="caption" className="font-black uppercase tracking-normal">Cliente selecionado</Typography>
-        <span className="flex items-center gap-mx-xs">
-          <Typography variant="caption" tone="muted">{positionLabel}</Typography>
-          <button type="button" aria-label="Fechar painel" onClick={onClose} className="rounded-mx-sm p-1 text-text-muted hover:bg-surface-alt">
-            <X size={14} />
+    <div className="fixed inset-0 z-[210] flex justify-end bg-slate-950/20" aria-label={`Fluxo do cliente ${cliente.nome}`}>
+      <aside className="flex h-full w-full max-w-[430px] flex-col bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-wide text-slate-400">Ficha do cliente</p>
+            <p className="text-[11px] text-slate-400">{positionLabel}</p>
+          </div>
+          <button type="button" aria-label="Fechar painel" onClick={onClose} className="rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600">
+            <X size={18} />
           </button>
-        </span>
-      </div>
-      <div className="flex items-start justify-between gap-mx-sm">
-        <div className="min-w-0">
-          <span className="flex items-center gap-mx-xs">
-            <ClienteAvatar nome={cliente.nome} />
-            <span className="min-w-0">
-              <Typography variant="h3" className="truncate text-lg">{cliente.nome}</Typography>
-              <Badge variant="info" className="mt-1 px-2 py-0.5 text-[10px]">{canalLabel}</Badge>
-            </span>
-          </span>
-          {cliente.telefone && (
-            <span className="mt-mx-tiny inline-flex items-center gap-1 text-sm text-text-secondary">
-              <Phone size={13} /> {cliente.telefone}
-              {whatsappHref && (
-                <a href={whatsappHref} target="_blank" rel="noreferrer" aria-label="Abrir WhatsApp" className="ml-1 text-status-success hover:opacity-80">
-                  <MessageCircle size={15} />
-                </a>
-              )}
-            </span>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          <div className="space-y-3 border-b border-slate-100 px-5 pb-4 pt-5">
+            <div className="flex items-start gap-3">
+              <ClienteAvatar nome={cliente.nome} size="lg" />
+              <div className="min-w-0 flex-1">
+                <h3 className="truncate text-[17px] font-black leading-tight text-mx-dark-2">{cliente.nome}</h3>
+                <p className="mt-0.5 text-xs text-slate-400">{canalLabel} · Cadastrado {formatDateBR(cliente.created_at.slice(0, 10))}</p>
+                {cliente.telefone && (
+                  <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
+                    📱 {cliente.telefone}
+                    {whatsappHref && (
+                      <a href={whatsappHref} target="_blank" rel="noreferrer" aria-label="Abrir WhatsApp" className="ml-1 text-green-600 hover:opacity-80">
+                        <MessageCircle size={14} />
+                      </a>
+                    )}
+                  </p>
+                )}
+                {(oportunidade?.veiculo_interesse || cliente.empresa) && (
+                  <p className="mt-1 text-xs font-semibold text-mx-dark">🚗 {oportunidade?.veiculo_interesse || cliente.empresa}</p>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              <span className={cn('rounded-full border px-2.5 py-1 text-[11px] font-bold', temperatura === 'quente' ? 'border-red-100 bg-red-50 text-red-600' : temperatura === 'morno' ? 'border-amber-100 bg-amber-50 text-amber-600' : 'border-slate-200 bg-slate-100 text-slate-500')}>{TEMPERATURA_LABEL[temperatura]}</span>
+              <span className="rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600">{situacaoAtual}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className={cn('rounded-xl border px-3 py-2', qualidade.className)}>
+                <p className="mb-0.5 text-[9px] font-bold uppercase tracking-wide opacity-60">Qualidade</p>
+                <p className="text-xs font-bold">{qualidade.label}</p>
+              </div>
+              <div className={cn('rounded-xl border px-3 py-2', urgencia.className)}>
+                <p className="mb-0.5 text-[9px] font-bold uppercase tracking-wide opacity-60">Urgência</p>
+                <p className="text-xs font-bold">{urgencia.label}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3 px-5 py-4">
+            {editando && (
+              <FormularioEdicaoFicha form={form} setForm={setForm} onSalvar={salvarEdicao} onCancelar={() => { setEditando(false); setForm({ nome: cliente.nome, telefone: cliente.telefone, empresa: cliente.empresa, canal_origem: cliente.canal_origem, status: cliente.status, relacionamento: cliente.relacionamento, proxima_acao: cliente.proxima_acao, proxima_acao_em: cliente.proxima_acao_em, potencial_negocio: cliente.potencial_negocio, observacoes: cliente.observacoes }) }} salvando={salvandoEdicao} />
+            )}
+
+            {!editando && (
+              <>
+                <section className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+                  <div className="flex items-center gap-2">
+                    <Zap size={16} className="text-status-info" />
+                    <p className="text-xs font-black uppercase tracking-wide text-status-info">Mentor Comercial</p>
+                  </div>
+                  <div className="mt-2 space-y-2">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Mentor recomenda</p>
+                      <p className="mt-0.5 text-sm font-bold text-mx-dark">{cliente.proxima_acao || progresso.etapaAtual.objetivo}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Objetivo</p>
+                      <p className="mt-0.5 text-sm font-semibold text-slate-600">{progresso.etapaAtual.objetivo}</p>
+                    </div>
+                    {motivo && (
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Motivo</p>
+                        <p className="mt-0.5 text-xs italic text-slate-500">{motivo}</p>
+                      </div>
+                    )}
+                    {cliente.proxima_acao_em && (
+                      <p className="flex items-center gap-1.5 text-xs text-slate-500"><CalendarDays size={13} /> Programado para {formatDateBR(cliente.proxima_acao_em)}</p>
+                    )}
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Button className="flex-1 rounded-xl bg-status-info text-sm text-white hover:opacity-90" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'feito')}>
+                      <Zap size={14} /> Executar
+                    </Button>
+                    <Button variant="outline" className="rounded-xl border-slate-200 text-sm text-slate-600" onClick={() => onEditarProximoPasso(cliente)}>
+                      <Edit2 size={13} /> Alterar próximo passo
+                    </Button>
+                  </div>
+                </section>
+
+                {pendencias.length > 0 ? (
+                  <BlocoFicha title="O que falta para evoluir" icon="⚠️">
+                    <div className="space-y-2">
+                      {pendencias.map(item => (
+                        <div key={item} className="flex items-center justify-between gap-2">
+                          <span className="text-sm text-slate-600">{item}</span>
+                          <button type="button" onClick={() => onEditarProximoPasso(cliente)} className="shrink-0 text-[11px] font-semibold text-blue-700 hover:underline">Definir →</button>
+                        </div>
+                      ))}
+                    </div>
+                  </BlocoFicha>
+                ) : (
+                  <div className="flex items-center gap-2 rounded-2xl border border-green-100 bg-green-50 px-4 py-3">
+                    <CheckCircle size={16} className="shrink-0 text-green-500" />
+                    <p className="text-sm font-medium text-green-700">Oportunidade bem qualificada. Execute o próximo passo.</p>
+                  </div>
+                )}
+
+                <BlocoFicha title="O que sabemos" icon="📋" open={openKnow} onToggle={() => setOpenKnow(v => !v)}>
+                  <div className="space-y-5">
+                    <FichaSection title="Interesse">
+                      <InfoItem label="Veículo" value={oportunidade?.veiculo_interesse || cliente.empresa || 'Não informado'} />
+                      <InfoItem label="Orçamento" value={oportunidade?.valor_negociado ? BRL(oportunidade.valor_negociado) : BRL(cliente.potencial_negocio || 0)} />
+                      {cliente.observacoes && <p className="col-span-2 rounded-xl bg-slate-50 p-2.5 text-xs text-slate-600">{cliente.observacoes}</p>}
+                    </FichaSection>
+                    <FichaSection title="Compra">
+                      <InfoItem label="Possui troca" value={oportunidade?.carro_avaliado ? 'Sim' : 'Não'} />
+                      <InfoItem label="Financiamento" value={getFichaLabel(oportunidade?.financiamento)} />
+                      <InfoItem label="Status do cliente" value={STATUS_CLIENTE_LABEL[cliente.status] || CRM_CLIENTE_STATUS_LABEL[cliente.status]} />
+                      <InfoItem label="Origem" value={canalLabel} />
+                    </FichaSection>
+                    <FichaSection title="Contato">
+                      <InfoItem label="WhatsApp" value={cliente.telefone || 'Não informado'} />
+                      <InfoItem label="Telefone" value={cliente.telefone || 'Não informado'} />
+                      <InfoItem label="Último contato" value={cliente.ultima_interacao ? formatDateBR(cliente.ultima_interacao) : 'Sem registro'} />
+                      <InfoItem label="Tentativa atual" value={`${tentativaAtual}/3`} />
+                    </FichaSection>
+                  </div>
+                </BlocoFicha>
+
+                <BlocoFicha title="Histórico da oportunidade" icon="🕐" open={openHistory} onToggle={() => setOpenHistory(v => !v)}>
+                  <div className="space-y-0">
+                    <TimelineItem title="Próxima ação gerada" detail={cliente.proxima_acao || 'Definir ação'} date={cliente.proxima_acao_em ? formatDateBR(cliente.proxima_acao_em) : 'Sem data'} />
+                    <TimelineItem title="Última interação" detail={cliente.observacoes || 'Histórico de cadastro e cadência'} date={cliente.ultima_interacao ? formatDateBR(cliente.ultima_interacao) : 'Sem registro'} />
+                  </div>
+                </BlocoFicha>
+
+                <section className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[10px] font-black uppercase tracking-wide text-slate-400">Script sugerido</p>
+                    <Button variant="ghost" size="icon" aria-label="Copiar script" onClick={copiarScript}><Copy size={14} /></Button>
+                  </div>
+                  <p className="mt-1 text-sm italic leading-snug text-slate-600">"{script}"</p>
+                </section>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="sticky bottom-0 flex gap-2 border-t border-slate-100 bg-white px-5 py-3">
+          <Button variant="outline" className="rounded-xl border-slate-200 text-sm" onClick={() => setEditando(v => !v)}>
+            <Edit2 size={14} /> {editando ? 'Cancelar edição' : 'Editar'}
+          </Button>
+          {!editando && (
+            <Button className="flex-1 rounded-xl bg-status-info text-sm text-white hover:opacity-90" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'feito')}>
+              <Zap size={14} /> Executar próximo passo
+            </Button>
           )}
+          <Button variant="ghost" size="icon" aria-label="Fechar ficha" className="text-slate-400 hover:text-slate-600" onClick={onClose}>
+            <X size={16} />
+          </Button>
         </div>
-      </div>
 
-      <div className="mt-mx-sm rounded-mx-lg border border-border-subtle bg-surface-alt p-mx-sm">
-        <Typography variant="caption" tone="muted" className="mb-mx-xs block font-bold uppercase tracking-normal">Resumo do cliente</Typography>
-        <div className="grid grid-cols-2 gap-mx-xs text-xs font-bold">
-          <InfoItem label="Veículo de interesse" value={oportunidade?.veiculo_interesse || cliente.empresa || 'Não informado'} />
-          <InfoItem label="Valor previsto" value={oportunidade?.valor_negociado ? BRL(oportunidade.valor_negociado) : BRL(cliente.potencial_negocio || 0)} />
-          <InfoItem label="Carro na troca" value={oportunidade?.carro_avaliado ? 'Sim' : 'Não'} />
-          <InfoItem label="Ficha do cliente" value={getFichaLabel(oportunidade?.financiamento)} />
-          <InfoItem label="Status do cliente" value={STATUS_CLIENTE_LABEL[cliente.status] || CRM_CLIENTE_STATUS_LABEL[cliente.status]} />
-          <InfoItem label="Origem" value={canalLabel} />
+        <div className="sr-only">
+          <button type="button" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'feito')}>Feito</button>
+          <button type="button" disabled={statusSaving} onClick={() => onNaoRespondeu(cliente)}>Não respondeu</button>
+          <button type="button" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'aguardando')}>Aguardando</button>
+          <button type="button" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'aguardando')}>Reagendar</button>
+          <button type="button" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'nao_feito')}>Não feito</button>
         </div>
-      </div>
+      </aside>
+    </div>
+  )
+}
 
-      <Typography variant="caption" tone="muted" className="mt-mx-sm block font-bold uppercase tracking-normal">Fluxo do Cliente</Typography>
-      <ol className="mt-mx-sm flex items-center gap-1" aria-label="Etapas da cadência">
-        {CLIENT_FLOW_STEPS.map((label, index) => {
-          const etapaAtualVisual = getVisualStageIndex(progresso.etapaAtual.label, cliente.status)
-          const concluida = index < etapaAtualVisual
-          const atual = index === etapaAtualVisual
-          return (
-            <li key={label} className="flex min-w-0 flex-1 flex-col items-center gap-1">
-              <span className={cn(
-                'flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold',
-                concluida ? 'bg-status-success text-white' : atual ? 'bg-brand-primary text-white ring-4 ring-brand-primary/20' : 'bg-surface-alt text-text-tertiary',
-              )}>
-                {concluida ? <Check size={13} /> : index + 1}
-              </span>
-              <span className={cn('w-full truncate text-center text-[9px] font-bold uppercase', atual ? 'text-brand-primary' : 'text-text-tertiary')}>{label}</span>
-            </li>
-          )
-        })}
-      </ol>
+function FormularioEdicaoFicha({
+  form,
+  setForm,
+  onSalvar,
+  onCancelar,
+  salvando,
+}: {
+  form: ClienteInput
+  setForm: (updater: (prev: ClienteInput) => ClienteInput) => void
+  onSalvar: () => void
+  onCancelar: () => void
+  salvando: boolean
+}) {
+  return (
+    <div className="space-y-4 rounded-2xl bg-slate-50 p-4">
+      <p className="text-xs font-black uppercase tracking-wider text-slate-500">Editar informações</p>
 
-      <div className="mt-mx-sm flex items-center justify-between gap-mx-sm">
-        <Typography variant="p" className="font-bold">
-          Etapa {getVisualStageIndex(progresso.etapaAtual.label, cliente.status) + 1} de {CLIENT_FLOW_STEPS.length} - {CLIENT_FLOW_STEPS[getVisualStageIndex(progresso.etapaAtual.label, cliente.status)]}
-        </Typography>
-        <Badge variant={progresso.cadencia >= 70 ? 'success' : 'info'}>{progresso.cadencia}%</Badge>
-      </div>
-
-      <div className="mt-mx-sm grid grid-cols-2 gap-mx-xs rounded-mx-lg bg-brand-primary/5 p-mx-sm">
-        <InfoItem label="Cadência" value="Fluxo ativo" />
-        <InfoItem label="Tentativa atual" value={`${tentativaAtual}/3`} />
-        <InfoItem label="Limite de tentativas" value="3" />
-        <InfoItem label="Próxima regra" value="Se não responder, criar ação futura" />
-      </div>
-
-      <div className="mt-mx-sm grid gap-mx-sm 2xl:grid-cols-2">
-        <div>
-          <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-normal">Objetivo da etapa</Typography>
-          <Typography variant="p" className="mt-mx-tiny text-sm">{progresso.etapaAtual.objetivo}</Typography>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="col-span-2">
+          <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Nome</label>
+          <input value={form.nome} onChange={event => setForm(prev => ({ ...prev, nome: event.target.value }))} className="h-8 w-full rounded-xl border border-slate-200 px-3 text-sm" />
         </div>
         <div>
-          <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-normal">O que fazer</Typography>
-          <ul className="mt-mx-tiny space-y-mx-tiny">
-            {progresso.etapaAtual.oQueFazer.map(item => (
-              <li key={item} className="flex items-start gap-mx-xs text-xs font-bold text-text-secondary">
-                <Check size={14} className="mt-0.5 shrink-0 text-status-success" /> {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="rounded-mx-lg border border-status-success/20 bg-status-success/5 p-mx-sm">
-          <div className="flex items-center justify-between gap-mx-sm">
-            <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-normal">Próxima Melhor Ação</Typography>
-            <Button variant="ghost" size="xs" onClick={() => onEditarProximoPasso(cliente)}>Editar</Button>
-          </div>
-          <Typography variant="p" className="mt-mx-tiny text-sm font-bold">{cliente.proxima_acao || progresso.etapaAtual.objetivo}</Typography>
-          <Typography variant="caption" tone="muted" className="block">Motivo: manter cliente no fluxo e alimentar a Central de Execução.</Typography>
-          <Typography variant="caption" tone="muted" className="block">Horário: {cliente.proxima_acao_em ? formatDateBR(cliente.proxima_acao_em) : 'Hoje - definir horário'}</Typography>
-          <Typography variant="caption" tone="muted" className="block">Origem: Central de Execução</Typography>
+          <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Telefone</label>
+          <input value={form.telefone || ''} onChange={event => setForm(prev => ({ ...prev, telefone: event.target.value }))} className="h-8 w-full rounded-xl border border-slate-200 px-3 text-sm" />
         </div>
         <div>
-          <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-normal">Resultado da ação</Typography>
-          <div className="mt-mx-sm grid grid-cols-2 gap-mx-xs">
-            <Button variant="outline" size="sm" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'feito')}>
-              <Check size={14} /> Feito
-            </Button>
-            <Button variant="outline" size="sm" disabled={statusSaving} onClick={() => onNaoRespondeu(cliente)}>
-              <Phone size={14} /> Não respondeu
-            </Button>
-            <Button variant="outline" size="sm" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'aguardando')}>
-              <Hourglass size={14} /> Aguardando
-            </Button>
-            <Button variant="outline" size="sm" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'aguardando')}>
-              <CalendarDays size={14} /> Reagendar
-            </Button>
-            <Button variant="outline" size="sm" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'nao_feito')}>
-              <X size={14} /> Não feito
-            </Button>
-          </div>
+          <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Potencial de negócio</label>
+          <input type="number" value={form.potencial_negocio ?? 0} onChange={event => setForm(prev => ({ ...prev, potencial_negocio: Number(event.target.value) }))} className="h-8 w-full rounded-xl border border-slate-200 px-3 text-sm" />
         </div>
-<div className="rounded-mx-lg border border-border-subtle bg-surface-alt p-mx-sm">
-          <div className="flex items-center justify-between gap-mx-sm">
-            <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-normal">Script sugerido</Typography>
-            <Button variant="ghost" size="icon" aria-label="Copiar script" onClick={copiarScript}><Copy size={14} /></Button>
-          </div>
-          <Typography variant="p" className="mt-mx-tiny text-sm italic text-text-secondary">"{script}"</Typography>
-        </div>
-<div className="grid grid-cols-1 gap-mx-sm">
-          <div className="rounded-mx-lg border border-border-subtle bg-white p-mx-sm">
-            <div className="flex items-center justify-between gap-mx-sm">
-              <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-normal">Histórico de interações</Typography>
-              <Button variant="ghost" size="xs">Ver todas</Button>
-            </div>
-            <TimelineItem title="Próxima ação gerada" detail={cliente.proxima_acao || 'Definir ação'} date={cliente.proxima_acao_em ? formatDateBR(cliente.proxima_acao_em) : 'Sem data'} />
-            <TimelineItem title="Última interação" detail={cliente.observacoes || 'Histórico de cadastro e cadência'} date={cliente.ultima_interacao ? formatDateBR(cliente.ultima_interacao) : 'Sem registro'} />
-          </div>
-          <div className="rounded-mx-lg border border-border-subtle bg-white p-mx-sm">
-            <Typography variant="caption" tone="muted" className="block font-bold uppercase tracking-normal">Orientações</Typography>
-            <div className="mt-mx-sm space-y-mx-xs">
-              {['Como negociar uma visita', 'Críticas do pós-venda: preservar', 'Objeções mais frequentes'].map(item => (
-                <button key={item} type="button" className="flex w-full items-center justify-between rounded-mx-md border border-border-subtle px-mx-sm py-mx-xs text-left text-xs font-bold text-text-secondary">
-                  {item}
-                  <ChevronDown size={13} />
-                </button>
-              ))}
-            </div>
-          </div>
+        <div className="col-span-2">
+          <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Veículo de interesse</label>
+          <input value={form.empresa || ''} onChange={event => setForm(prev => ({ ...prev, empresa: event.target.value }))} className="h-8 w-full rounded-xl border border-slate-200 px-3 text-sm" />
         </div>
       </div>
-    </Card>
+
+      <div>
+        <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Origem (canal)</label>
+        <select value={form.canal_origem || ''} onChange={event => setForm(prev => ({ ...prev, canal_origem: event.target.value as CrmCanal }))} className="h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm">
+          {CRM_CANAIS.map(canal => <option key={canal} value={canal}>{CRM_CANAL_LABEL[canal]}</option>)}
+        </select>
+      </div>
+      <div>
+        <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Status do cliente</label>
+        <select value={form.status || 'aguardando_contato'} onChange={event => setForm(prev => ({ ...prev, status: event.target.value as CrmClienteStatus }))} className="h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm">
+          {CRM_CLIENTE_STATUS.map(status => <option key={status} value={status}>{CRM_CLIENTE_STATUS_LABEL[status]}</option>)}
+        </select>
+      </div>
+      <div>
+        <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Relacionamento</label>
+        <select value={form.relacionamento || 'neutro'} onChange={event => setForm(prev => ({ ...prev, relacionamento: event.target.value as CrmRelacionamento }))} className="h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm">
+          {CRM_RELACIONAMENTO.map(relacionamento => <option key={relacionamento} value={relacionamento}>{CRM_RELACIONAMENTO_LABEL[relacionamento]}</option>)}
+        </select>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="col-span-2">
+          <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Próximo passo</label>
+          <input value={form.proxima_acao || ''} onChange={event => setForm(prev => ({ ...prev, proxima_acao: event.target.value }))} className="h-8 w-full rounded-xl border border-slate-200 px-3 text-sm" />
+        </div>
+        <div className="col-span-2">
+          <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Data do próximo passo</label>
+          <input type="datetime-local" value={form.proxima_acao_em ? form.proxima_acao_em.slice(0, 16) : ''} onChange={event => setForm(prev => ({ ...prev, proxima_acao_em: event.target.value }))} className="h-8 w-full rounded-xl border border-slate-200 px-3 text-sm" />
+        </div>
+      </div>
+
+      <div>
+        <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Observações</label>
+        <textarea value={form.observacoes || ''} onChange={event => setForm(prev => ({ ...prev, observacoes: event.target.value }))} rows={2} className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-status-info" />
+      </div>
+
+      <div className="flex gap-2 pt-1">
+        <Button variant="outline" onClick={onCancelar} className="flex-1 rounded-xl" disabled={salvando}>Cancelar</Button>
+        <Button onClick={onSalvar} className="flex-1 rounded-xl bg-status-info text-white hover:opacity-90" disabled={salvando}>{salvando ? 'Salvando...' : 'Salvar'}</Button>
+      </div>
+    </div>
+  )
+}
+
+function BlocoFicha({
+  title,
+  icon,
+  children,
+  open,
+  onToggle,
+}: {
+  title: string
+  icon: string
+  children: React.ReactNode
+  open?: boolean
+  onToggle?: () => void
+}) {
+  const controlled = typeof open === 'boolean'
+  const [internalOpen, setInternalOpen] = useState(true)
+  const isOpen = controlled ? open : internalOpen
+  const toggle = onToggle || (() => setInternalOpen(v => !v))
+
+  return (
+    <section className="overflow-hidden rounded-2xl border border-slate-100">
+      <button type="button" onClick={toggle} className="flex w-full items-center justify-between bg-slate-50 px-4 py-3 text-left transition-colors hover:bg-slate-100">
+        <span className="flex items-center gap-2">
+          <span className="text-base">{icon}</span>
+          <span className="text-xs font-black uppercase tracking-wide text-slate-600">{title}</span>
+        </span>
+        <ChevronDown size={16} className={cn('text-slate-400 transition-transform', isOpen && 'rotate-180')} />
+      </button>
+      {isOpen && <div className="px-4 py-4">{children}</div>}
+    </section>
+  )
+}
+
+function FichaSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="mb-2 text-[10px] font-black uppercase tracking-wide text-slate-400">{title}</p>
+      <div className="grid grid-cols-2 gap-3">{children}</div>
+    </div>
   )
 }
 
@@ -795,10 +1274,12 @@ function getInitials(name: string) {
     .join('') || 'MX'
 }
 
-function ClienteAvatar({ nome }: { nome: string }) {
-  const colors = ['bg-brand-primary', 'bg-status-success', 'bg-status-info', 'bg-status-warning', 'bg-status-error']
-  const color = colors[nome.length % colors.length]
-  return <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white', color)}>{getInitials(nome)}</span>
+function ClienteAvatar({ nome, size = 'md' }: { nome: string; size?: 'md' | 'lg' }) {
+  return (
+    <span className={cn('flex shrink-0 items-center justify-center rounded-full bg-blue-50 font-black text-status-info', size === 'lg' ? 'h-12 w-12 text-base' : 'h-10 w-10 text-sm')}>
+      {getInitials(nome)}
+    </span>
+  )
 }
 
 function InfoItem({ label, value }: { label: string; value: string }) {

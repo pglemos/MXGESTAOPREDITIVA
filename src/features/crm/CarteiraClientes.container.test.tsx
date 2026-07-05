@@ -165,6 +165,16 @@ afterEach(() => {
 })
 
 describe('CarteiraClientes', () => {
+  it('abre ficha com os blocos operacionais do Base44', () => {
+    render(<CarteiraClientes />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Abrir ficha/i }))
+
+    expect(screen.getAllByText('Mentor Comercial').length).toBeGreaterThan(0)
+    expect(screen.getByText('O que falta para evoluir')).toBeTruthy()
+    expect(screen.getByText('O que sabemos')).toBeTruthy()
+  })
+
   it('registra status Feito da acao de cadencia sem exigir observacao', async () => {
     render(<CarteiraClientes />)
 

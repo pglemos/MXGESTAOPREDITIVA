@@ -19,7 +19,7 @@ export function SuaPosicao({ posicao, total, atingimento, faltamValor }: Props) 
 
   return (
     <div className="relative bg-white rounded-2xl border border-slate-200 shadow-sm p-5 min-w-[220px] overflow-hidden flex flex-col justify-between">
-      <Trophy className="absolute right-2 top-2 opacity-[0.06]" style={{ width: 120, height: 120, color: '#00A896' }} />
+      <Trophy className="absolute right-2 top-2 opacity-[0.06]" style={{ width: 120, height: 120, color: 'var(--color-brand-primary)' }} />
       <div>
         <p className="text-[13px] font-semibold text-slate-500 mb-1">Sua posição</p>
         <p className="text-[32px] font-black text-slate-800 leading-tight">{posLabel}</p>

@@ -239,7 +239,7 @@ function OportunidadeCard({
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="truncate text-[14px] font-bold text-[#0F172A]">{item.clienteNome || 'Cliente sem nome'}</p>
+              <p className="truncate text-[14px] font-bold text-slate-900">{item.clienteNome || 'Cliente sem nome'}</p>
               <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold', TIPO_BADGE[tipo])}>{CRM_AGENDAMENTO_TIPO_LABEL[tipo]}</span>
               {isVencido && <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-500">Vencido</span>}
             </div>
@@ -256,10 +256,10 @@ function OportunidadeCard({
               <Phone size={16} />
             </a>
           )}
-          <Link to="/carteira-clientes" onClick={() => onAbrirCliente(item)} title="Abrir cliente" className="rounded-xl bg-blue-50 p-2 text-[#005BFF] transition-colors hover:bg-blue-100">
+          <Link to="/carteira-clientes" onClick={() => onAbrirCliente(item)} title="Abrir cliente" className="rounded-xl bg-blue-50 p-2 text-blue-700 transition-colors hover:bg-blue-100">
             <UserRound size={16} />
           </Link>
-          <button type="button" onClick={() => onResolver(item)} className="ml-1 flex items-center gap-1.5 rounded-xl bg-[#005BFF] px-4 py-2 text-[12px] font-bold text-white transition-colors hover:bg-blue-700">
+          <button type="button" onClick={() => onResolver(item)} className="ml-1 flex items-center gap-1.5 rounded-xl bg-blue-700 px-4 py-2 text-[12px] font-bold text-white transition-colors hover:bg-blue-700">
             Resolver
           </button>
         </div>
@@ -269,7 +269,7 @@ function OportunidadeCard({
 }
 
 function AtalhoButton({ atalho, onTabChange, onInfo }: { atalho: RoutineAtalho; onTabChange: (tab: CentralTab) => void; onInfo: (label: string) => void }) {
-  const secondaryClass = 'flex items-center gap-1.5 rounded-xl border border-[#005BFF] px-3.5 py-2 text-[12px] font-bold text-[#005BFF] transition-colors hover:bg-blue-50'
+  const secondaryClass = 'flex items-center gap-1.5 rounded-xl border border-blue-700 px-3.5 py-2 text-[12px] font-bold text-blue-700 transition-colors hover:bg-blue-50'
   if (atalho.type === 'tab') {
     return (
       <button type="button" className={secondaryClass} onClick={() => onTabChange(atalho.target as CentralTab)}>
@@ -546,27 +546,27 @@ export function CentralExecucao() {
   const dateFullLabel = hoje.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).replace(' de ', ' de ')
 
   return (
-    <main className="h-full w-full min-w-0 overflow-y-auto bg-[#F8FAFC] no-scrollbar">
+    <main className="h-full w-full min-w-0 overflow-y-auto bg-slate-50 no-scrollbar">
       <div className="mx-auto flex min-w-0 max-w-full flex-col pb-20">
         {/* Topbar — 1:1 com Base44 CentralExecucao.jsx */}
-        <div className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[#E5E7EB] bg-white px-6">
+        <div className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#005BFF] to-blue-400">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-blue-700 to-blue-400">
               <Target className="h-4 w-4 text-white" />
             </div>
             <div>
-              <h1 className="text-[20px] font-black leading-none tracking-tight text-[#0F172A]">Rotina do Dia</h1>
+              <h1 className="text-[20px] font-black leading-none tracking-tight text-slate-900">Rotina do Dia</h1>
               <p className="mt-0.5 text-[11px] font-medium text-slate-400">Organize e execute seu dia com foco</p>
             </div>
           </div>
           <div className="hidden text-right sm:block">
-            <p className="text-[13px] font-bold capitalize text-[#0F172A]">{weekdayLabel}</p>
+            <p className="text-[13px] font-bold capitalize text-slate-900">{weekdayLabel}</p>
             <p className="text-[12px] text-slate-400">{dateFullLabel}</p>
           </div>
         </div>
 
         {/* Tabs — 1:1 com Base44 */}
-        <div className="sticky top-16 z-20 border-b border-[#E5E7EB] bg-white px-6">
+        <div className="sticky top-16 z-20 border-b border-slate-200 bg-white px-6">
           <div className="flex gap-0">
             {CENTRAL_TABS.map(t => (
               <button
@@ -575,7 +575,7 @@ export function CentralExecucao() {
                 onClick={() => setTab(t.key)}
                 className={cn(
                   'border-b-2 px-5 py-3.5 text-[13px] font-bold transition-all',
-                  tab === t.key ? 'border-[#005BFF] bg-white text-[#005BFF]' : 'border-transparent text-slate-400 hover:text-slate-600',
+                  tab === t.key ? 'border-blue-700 bg-white text-blue-700' : 'border-transparent text-slate-400 hover:text-slate-600',
                 )}
               >
                 {t.label}
@@ -593,7 +593,7 @@ export function CentralExecucao() {
                 <p className="flex-1 text-[13px] font-semibold text-amber-800">
                   Você possui {pendenciasAnteriores.length} pendência{pendenciasAnteriores.length > 1 ? 's' : ''} de dias anteriores.
                 </p>
-                <button type="button" onClick={() => setPendenciasOpen(true)} className="shrink-0 text-[12px] font-bold text-[#005BFF] hover:underline">
+                <button type="button" onClick={() => setPendenciasOpen(true)} className="shrink-0 text-[12px] font-bold text-blue-700 hover:underline">
                   Ver pendências
                 </button>
               </div>
@@ -601,7 +601,7 @@ export function CentralExecucao() {
 
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <h3 className="text-[14px] font-black text-[#0F172A]">O que você não pode deixar de fazer hoje</h3>
+                <h3 className="text-[14px] font-black text-slate-900">O que você não pode deixar de fazer hoje</h3>
                 <p className="text-[12px] text-slate-400">Atividades vencidas ou previstas para hoje. Execute e registre o resultado.</p>
               </div>
               <div className="flex items-center gap-2">
@@ -611,7 +611,7 @@ export function CentralExecucao() {
                   <option value="tipo">Tipo</option>
                   <option value="cliente">Cliente</option>
                 </Select>
-                <button type="button" onClick={abrirNovaAtividade} className="flex items-center gap-1.5 rounded-xl bg-[#005BFF] px-4 py-2 text-[12px] font-bold text-white shadow-sm shadow-blue-100 transition-colors hover:bg-blue-700">
+                <button type="button" onClick={abrirNovaAtividade} className="flex items-center gap-1.5 rounded-xl bg-blue-700 px-4 py-2 text-[12px] font-bold text-white shadow-sm shadow-blue-100 transition-colors hover:bg-blue-700">
                   <Plus className="h-4 w-4" /> Nova atividade
                 </button>
               </div>
@@ -630,7 +630,7 @@ export function CentralExecucao() {
                       onClick={() => setFiltroTipo(f.id)}
                       className={cn(
                         'flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[12px] font-bold transition-colors',
-                        ativo ? 'border-[#005BFF] bg-[#005BFF] text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-[#005BFF] hover:text-[#005BFF]',
+                        ativo ? 'border-blue-700 bg-blue-700 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-700 hover:text-blue-700',
                       )}
                     >
                       {f.label}
@@ -645,18 +645,18 @@ export function CentralExecucao() {
               agendaHojeItems.length === 0 ? (
                 <div className="rounded-2xl border border-slate-200 bg-white p-14 text-center shadow-sm">
                   <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50">
-                    <CheckCircle2 className="h-7 w-7 text-[#005BFF]" />
+                    <CheckCircle2 className="h-7 w-7 text-blue-700" />
                   </div>
-                  <p className="mb-1 text-[16px] font-black text-[#0F172A]">Tela limpa por hoje.</p>
+                  <p className="mb-1 text-[16px] font-black text-slate-900">Tela limpa por hoje.</p>
                   <p className="mx-auto mb-5 max-w-sm text-[13px] text-slate-400">Você não possui oportunidades pendentes para executar agora.</p>
                   <div className="flex flex-wrap items-center justify-center gap-3">
-                    <button type="button" onClick={() => setTab('rotina')} className="flex items-center gap-1.5 rounded-xl border border-[#005BFF] px-4 py-2 text-[13px] font-bold text-[#005BFF] transition-colors hover:bg-blue-50">
+                    <button type="button" onClick={() => setTab('rotina')} className="flex items-center gap-1.5 rounded-xl border border-blue-700 px-4 py-2 text-[13px] font-bold text-blue-700 transition-colors hover:bg-blue-50">
                       <Sparkles className="h-4 w-4" /> Ver Rotina do Dia
                     </button>
                     <Link to="/carteira-clientes" className="flex items-center gap-1.5 rounded-xl border border-slate-200 px-4 py-2 text-[13px] font-bold text-slate-600 transition-colors hover:bg-slate-50">
                       <Users className="h-4 w-4" /> Abrir Carteira
                     </Link>
-                    <button type="button" onClick={abrirNovaAtividade} className="flex items-center gap-1.5 rounded-xl bg-[#005BFF] px-4 py-2 text-[13px] font-bold text-white transition-colors hover:bg-blue-700">
+                    <button type="button" onClick={abrirNovaAtividade} className="flex items-center gap-1.5 rounded-xl bg-blue-700 px-4 py-2 text-[13px] font-bold text-white transition-colors hover:bg-blue-700">
                       <Plus className="h-4 w-4" /> Nova atividade
                     </button>
                   </div>
@@ -665,7 +665,7 @@ export function CentralExecucao() {
                 <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
                   <Inbox className="mx-auto mb-3 h-10 w-10 text-slate-200" />
                   <p className="text-[13px] text-slate-400">Nenhuma oportunidade do tipo <strong>{filtroTipo !== 'todos' ? CRM_AGENDAMENTO_TIPO_LABEL[filtroTipo] : ''}</strong> para hoje.</p>
-                  <button type="button" onClick={() => setFiltroTipo('todos')} className="mt-2 text-[12px] font-bold text-[#005BFF] hover:underline">Ver todas</button>
+                  <button type="button" onClick={() => setFiltroTipo('todos')} className="mt-2 text-[12px] font-bold text-blue-700 hover:underline">Ver todas</button>
                 </div>
               )
             ) : (
@@ -698,23 +698,23 @@ export function CentralExecucao() {
                 const isPast = !slot.isCurrent && slotMinutes(slot.time) < nowMinutesForTimeline
                 const preview = slot.template?.objetivo || ''
                 return (
-                  <div key={slot.key} className={cn('rounded-2xl border bg-white shadow-sm transition-all', slot.isCurrent ? 'border-[#005BFF] shadow-blue-100' : 'border-slate-200')}>
+                  <div key={slot.key} className={cn('rounded-2xl border bg-white shadow-sm transition-all', slot.isCurrent ? 'border-blue-700 shadow-blue-100' : 'border-slate-200')}>
                     <button
                       type="button"
                       className="flex w-full items-center gap-4 px-5 py-4 text-left"
                       onClick={() => setExpandedStep(isExpanded ? null : slot.key)}
                     >
-                      <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', slot.isCurrent ? 'bg-[#005BFF] text-white' : isPast ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-400')}>
+                      <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', slot.isCurrent ? 'bg-blue-700 text-white' : isPast ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-400')}>
                         <StepIcon size={20} />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className={cn('rounded-lg px-2 py-0.5 text-[11px] font-bold', slot.isCurrent ? 'bg-[#005BFF] text-white' : 'bg-slate-100 text-slate-500')}>{slot.time}</span>
-                          <span className={cn('text-[14px] font-bold', slot.isCurrent ? 'text-[#0F172A]' : 'text-slate-600')}>{slot.template?.nome || slot.key}</span>
-                          {slot.isCurrent && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-[#005BFF]">Agora</span>}
+                          <span className={cn('rounded-lg px-2 py-0.5 text-[11px] font-bold', slot.isCurrent ? 'bg-blue-700 text-white' : 'bg-slate-100 text-slate-500')}>{slot.time}</span>
+                          <span className={cn('text-[14px] font-bold', slot.isCurrent ? 'text-slate-900' : 'text-slate-600')}>{slot.template?.nome || slot.key}</span>
+                          {slot.isCurrent && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-blue-700">Agora</span>}
                         </div>
                         {!isExpanded && preview && (
-                          <p className={cn('mt-0.5 truncate text-[12px]', slot.isCurrent ? 'font-semibold text-[#005BFF]' : 'text-slate-400')}>{preview}</p>
+                          <p className={cn('mt-0.5 truncate text-[12px]', slot.isCurrent ? 'font-semibold text-blue-700' : 'text-slate-400')}>{preview}</p>
                         )}
                       </div>
                       {isExpanded ? <ChevronDown size={16} className="shrink-0 text-slate-400" /> : <ChevronRight size={16} className="shrink-0 text-slate-400" />}
@@ -733,16 +733,16 @@ export function CentralExecucao() {
                               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                 {prospeccaoHoje.map((acao: ProspectingScheduleRow) => (
                                   <div key={acao.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                                    <p className="text-[13px] font-bold text-[#0F172A]">{TIPO_ACAO_LABEL[acao.tipo_acao] || acao.tipo_acao}</p>
+                                    <p className="text-[13px] font-bold text-slate-900">{TIPO_ACAO_LABEL[acao.tipo_acao] || acao.tipo_acao}</p>
                                     {acao.publico && <p className="text-[11px] text-slate-400">{acao.publico}</p>}
                                     {acao.objetivo && <p className="mt-1 text-[12px] text-slate-500">{acao.objetivo}</p>}
-                                    {acao.quantidade && <p className="mt-1.5 text-[11px] font-bold text-[#005BFF]">Meta: {acao.quantidade} {acao.periodicidade}</p>}
+                                    {acao.quantidade && <p className="mt-1.5 text-[11px] font-bold text-blue-700">Meta: {acao.quantidade} {acao.periodicidade}</p>}
                                   </div>
                                 ))}
                               </div>
                             )}
                             {storyIdeaHoje && (
-                              <button type="button" onClick={() => setVerComoFazerOpen(true)} className="mt-3 flex items-center gap-1.5 text-[12px] font-bold text-[#005BFF] hover:underline">
+                              <button type="button" onClick={() => setVerComoFazerOpen(true)} className="mt-3 flex items-center gap-1.5 text-[12px] font-bold text-blue-700 hover:underline">
                                 <BookOpen size={14} /> Ver como fazer
                               </button>
                             )}
@@ -765,7 +765,7 @@ export function CentralExecucao() {
 
                         {slot.template.meta_sugerida && (
                           <div className="mt-2 rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-2">
-                            <p className="text-[12px] font-bold text-[#005BFF]">{slot.template.meta_sugerida}</p>
+                            <p className="text-[12px] font-bold text-blue-700">{slot.template.meta_sugerida}</p>
                           </div>
                         )}
 
@@ -792,14 +792,14 @@ export function CentralExecucao() {
                   return (
                     <div key={slot.key} className="flex items-start gap-3">
                       <div className="flex flex-col items-center">
-                        <div className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-lg', slot.isCurrent ? 'bg-[#005BFF] text-white' : isPast ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-400')}>
+                        <div className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-lg', slot.isCurrent ? 'bg-blue-700 text-white' : isPast ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-400')}>
                           <StepIcon size={14} />
                         </div>
                         {idx < slots.length - 1 && <div className={cn('h-5 w-px', isPast ? 'bg-green-200' : 'bg-slate-100')} />}
                       </div>
                       <div className="pb-3 pt-0.5">
-                        <p className={cn('text-[11px] font-bold', slot.isCurrent ? 'text-[#005BFF]' : 'text-slate-400')}>{slot.time}</p>
-                        <p className={cn('text-[12px] font-semibold leading-tight', slot.isCurrent ? 'text-[#0F172A]' : 'text-slate-500')}>{slot.template?.nome || slot.key}</p>
+                        <p className={cn('text-[11px] font-bold', slot.isCurrent ? 'text-blue-700' : 'text-slate-400')}>{slot.time}</p>
+                        <p className={cn('text-[12px] font-semibold leading-tight', slot.isCurrent ? 'text-slate-900' : 'text-slate-500')}>{slot.template?.nome || slot.key}</p>
                       </div>
                     </div>
                   )
@@ -903,7 +903,7 @@ export function CentralExecucao() {
               type="button"
               onClick={confirmarNovaAtividade}
               disabled={saving || !novaAtividadeForm.data || !novaAtividadeForm.hora}
-              className="rounded-xl bg-[#005BFF] px-6 py-2.5 text-[13px] font-bold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-xl bg-blue-700 px-6 py-2.5 text-[13px] font-bold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
             >
               {saving ? 'Salvando...' : 'Salvar atividade'}
             </button>
@@ -918,7 +918,7 @@ export function CentralExecucao() {
                 key={tipo}
                 type="button"
                 onClick={() => escolherTipoNovaAtividade(tipo)}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-left text-[13px] font-semibold text-[#0F172A] transition-colors hover:border-[#005BFF] hover:bg-blue-50"
+                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-left text-[13px] font-semibold text-slate-900 transition-colors hover:border-blue-700 hover:bg-blue-50"
               >
                 {CRM_AGENDAMENTO_TIPO_LABEL[tipo]}
               </button>
@@ -927,7 +927,7 @@ export function CentralExecucao() {
         ) : (
           <div className="mt-3 space-y-4">
             <div className="flex items-center justify-between">
-              <span className="rounded-full bg-blue-50 px-3 py-1 text-[12px] font-bold text-[#005BFF]">{novaAtividadeTipo && CRM_AGENDAMENTO_TIPO_LABEL[novaAtividadeTipo]}</span>
+              <span className="rounded-full bg-blue-50 px-3 py-1 text-[12px] font-bold text-blue-700">{novaAtividadeTipo && CRM_AGENDAMENTO_TIPO_LABEL[novaAtividadeTipo]}</span>
               <button type="button" onClick={() => setNovaAtividadeStep('tipo')} className="text-[12px] text-slate-400 underline hover:text-slate-600">Mudar tipo</button>
             </div>
 
@@ -939,9 +939,9 @@ export function CentralExecucao() {
                   value={novaAtividadeTelefone}
                   onChange={event => { setNovaAtividadeTelefone(event.target.value); setClienteEncontrado(null); setClienteNaoEncontrado(false) }}
                   placeholder="(11) 98765-4321"
-                  className="h-10 flex-1 rounded-xl border border-slate-200 px-3 text-[13px] focus:border-[#005BFF] focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  className="h-10 flex-1 rounded-xl border border-slate-200 px-3 text-[13px] focus:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-100"
                 />
-                <button type="button" onClick={buscarClienteNovaAtividade} className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#005BFF] text-white transition-colors hover:bg-blue-700">
+                <button type="button" onClick={buscarClienteNovaAtividade} className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-700 text-white transition-colors hover:bg-blue-700">
                   <Search className="h-4 w-4" />
                 </button>
               </div>
@@ -958,7 +958,7 @@ export function CentralExecucao() {
                   <UserX className="h-4 w-4 shrink-0 text-amber-600" />
                   <div className="min-w-0 flex-1">
                     <p className="text-[12px] font-semibold text-amber-800">Cliente não encontrado.</p>
-                    <Link to="/carteira-clientes" onClick={fecharNovaAtividade} className="text-[11px] text-[#005BFF] underline">Abrir Carteira de Clientes para cadastrar</Link>
+                    <Link to="/carteira-clientes" onClick={fecharNovaAtividade} className="text-[11px] text-blue-700 underline">Abrir Carteira de Clientes para cadastrar</Link>
                   </div>
                 </div>
               )}
@@ -967,22 +967,22 @@ export function CentralExecucao() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label htmlFor="nova-atividade-data" className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Data</label>
-                <input id="nova-atividade-data" type="date" value={novaAtividadeForm.data} onChange={event => setNovaAtividadeForm(current => ({ ...current, data: event.target.value }))} className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 text-[13px] focus:border-[#005BFF] focus:outline-none focus:ring-2 focus:ring-blue-100" />
+                <input id="nova-atividade-data" type="date" value={novaAtividadeForm.data} onChange={event => setNovaAtividadeForm(current => ({ ...current, data: event.target.value }))} className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 text-[13px] focus:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
                 <label htmlFor="nova-atividade-hora" className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Hora</label>
-                <input id="nova-atividade-hora" type="time" value={novaAtividadeForm.hora} onChange={event => setNovaAtividadeForm(current => ({ ...current, hora: event.target.value }))} className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 text-[13px] focus:border-[#005BFF] focus:outline-none focus:ring-2 focus:ring-blue-100" />
+                <input id="nova-atividade-hora" type="time" value={novaAtividadeForm.hora} onChange={event => setNovaAtividadeForm(current => ({ ...current, hora: event.target.value }))} className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 text-[13px] focus:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-100" />
               </div>
             </div>
 
             <div>
               <label htmlFor="nova-atividade-veiculo" className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Veículo (opcional)</label>
-              <input id="nova-atividade-veiculo" value={novaAtividadeForm.veiculo} onChange={event => setNovaAtividadeForm(current => ({ ...current, veiculo: event.target.value }))} placeholder="Ex: HB20 1.0 Comfort" className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 text-[13px] focus:border-[#005BFF] focus:outline-none focus:ring-2 focus:ring-blue-100" />
+              <input id="nova-atividade-veiculo" value={novaAtividadeForm.veiculo} onChange={event => setNovaAtividadeForm(current => ({ ...current, veiculo: event.target.value }))} placeholder="Ex: HB20 1.0 Comfort" className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 text-[13px] focus:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-100" />
             </div>
 
             <div>
               <label htmlFor="nova-atividade-observacoes" className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Observação</label>
-              <input id="nova-atividade-observacoes" value={novaAtividadeForm.observacoes} onChange={event => setNovaAtividadeForm(current => ({ ...current, observacoes: event.target.value }))} placeholder="Descreva o objetivo desta atividade..." className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 text-[13px] focus:border-[#005BFF] focus:outline-none focus:ring-2 focus:ring-blue-100" />
+              <input id="nova-atividade-observacoes" value={novaAtividadeForm.observacoes} onChange={event => setNovaAtividadeForm(current => ({ ...current, observacoes: event.target.value }))} placeholder="Descreva o objetivo desta atividade..." className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 text-[13px] focus:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-100" />
             </div>
           </div>
         )}

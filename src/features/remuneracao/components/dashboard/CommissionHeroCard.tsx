@@ -13,7 +13,7 @@ export function CommissionHeroCard({ comissaoEstimada, qtdVendas, onVerCalculo, 
     <div
       className="relative overflow-hidden rounded-2xl p-6 lg:p-8"
       style={{
-        background: 'linear-gradient(135deg, #071A10 0%, #0A2918 40%, #0D3320 100%)',
+        background: 'linear-gradient(135deg, var(--color-seller-commission-bg-start) 0%, var(--color-seller-commission-bg-mid) 40%, var(--color-seller-commission-bg-end) 100%)',
         border: '1px solid rgba(34,197,94,0.25)',
         boxShadow: '0 0 40px rgba(34,197,94,0.08), inset 0 1px 0 rgba(34,197,94,0.1)',
         minHeight: '240px',
@@ -22,11 +22,11 @@ export function CommissionHeroCard({ comissaoEstimada, qtdVendas, onVerCalculo, 
       <div className="absolute inset-0 pointer-events-none">
         <div
           className="absolute top-0 right-0 w-72 h-72 rounded-full opacity-20"
-          style={{ background: 'radial-gradient(circle, #22c55e 0%, transparent 70%)', transform: 'translate(30%, -30%)' }}
+          style={{ background: 'radial-gradient(circle, var(--color-seller-green) 0%, transparent 70%)', transform: 'translate(30%, -30%)' }}
         />
         <div
           className="absolute bottom-0 left-0 w-48 h-48 rounded-full opacity-10"
-          style={{ background: 'radial-gradient(circle, #16a34a 0%, transparent 70%)', transform: 'translate(-30%, 30%)' }}
+          style={{ background: 'radial-gradient(circle, var(--color-seller-green-strong) 0%, transparent 70%)', transform: 'translate(-30%, 30%)' }}
         />
       </div>
 
@@ -48,7 +48,7 @@ export function CommissionHeroCard({ comissaoEstimada, qtdVendas, onVerCalculo, 
             <>
               <p
                 className="font-black leading-none tabular-nums"
-                style={{ fontSize: 'clamp(3rem, 8vw, 5.5rem)', color: '#39FF5A', textShadow: '0 0 30px rgba(57,255,90,0.4)' }}
+                style={{ fontSize: 'clamp(3rem, 8vw, 5.5rem)', color: 'var(--color-seller-money)', textShadow: '0 0 30px rgba(57,255,90,0.4)' }}
               >
                 {formatBRLWhole(comissaoEstimada)}
               </p>
@@ -70,23 +70,23 @@ export function CommissionHeroCard({ comissaoEstimada, qtdVendas, onVerCalculo, 
           <div className="relative flex items-center justify-center">
             <div
               className="absolute w-40 h-40 rounded-full opacity-20"
-              style={{ background: 'radial-gradient(circle, #22c55e, transparent)', filter: 'blur(20px)' }}
+              style={{ background: 'radial-gradient(circle, var(--color-seller-green), transparent)', filter: 'blur(20px)' }}
             />
             <div
               className="relative w-28 h-28 rounded-full flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #16a34a, #22c55e)', boxShadow: '0 0 30px rgba(34,197,94,0.4)' }}
+              style={{ background: 'linear-gradient(135deg, var(--color-seller-green-strong), var(--color-seller-green))', boxShadow: '0 0 30px rgba(34,197,94,0.4)' }}
             >
               <CircleDollarSign className="w-14 h-14 text-white" strokeWidth={1.5} />
             </div>
             <div
               className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full flex items-center justify-center"
-              style={{ background: '#15803d', border: '2px solid #22c55e' }}
+              style={{ background: 'var(--color-seller-green-dark)', border: '2px solid var(--color-seller-green)' }}
             >
               <Coins className="w-5 h-5 text-emerald-300" />
             </div>
             <div
               className="absolute -top-1 -left-2 w-7 h-7 rounded-full flex items-center justify-center"
-              style={{ background: '#166534', border: '2px solid #4ade80' }}
+              style={{ background: 'var(--color-seller-green-deep)', border: '2px solid var(--color-seller-green)' }}
             >
               <span className="text-emerald-300 text-xs font-bold">$</span>
             </div>

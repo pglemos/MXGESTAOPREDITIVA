@@ -11,7 +11,7 @@ export function PerformanceCard({ melhorMes, comissaoAtual }: Props) {
   const atualPct = melhorMes > 0 ? Math.min(100, Math.round((comissaoAtual / melhorMes) * 100)) : 0
 
   return (
-    <div className="rounded-2xl p-6" style={{ background: '#071525', border: '1px solid rgba(255,255,255,0.06)' }}>
+    <div className="rounded-2xl p-6" style={{ background: 'var(--color-seller-card-bg)', border: '1px solid rgba(255,255,255,0.06)' }}>
       <div className="flex items-center gap-2 mb-5">
         <span className="text-slate-300 text-xs font-bold uppercase tracking-widest">Seu Desempenho</span>
         <Info className="w-3.5 h-3.5 text-slate-600" />
@@ -28,7 +28,7 @@ export function PerformanceCard({ melhorMes, comissaoAtual }: Props) {
                 <span className="text-emerald-400 font-bold text-sm tabular-nums">{formatBRLWhole(melhorMes)}</span>
               </div>
               <div className="w-full rounded-full h-3" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                <div className="h-3 rounded-full" style={{ width: '100%', background: 'linear-gradient(90deg, #16a34a, #22c55e)', boxShadow: '0 0 8px rgba(34,197,94,0.3)' }} />
+                <div className="h-3 rounded-full" style={{ width: '100%', background: 'linear-gradient(90deg, var(--color-seller-green-strong), var(--color-seller-green))', boxShadow: '0 0 8px rgba(34,197,94,0.3)' }} />
               </div>
             </div>
 
@@ -38,7 +38,7 @@ export function PerformanceCard({ melhorMes, comissaoAtual }: Props) {
                 <span className="text-blue-400 font-bold text-sm tabular-nums">{formatBRLWhole(comissaoAtual)}</span>
               </div>
               <div className="w-full rounded-full h-3" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                <div className="h-3 rounded-full" style={{ width: `${atualPct}%`, background: 'linear-gradient(90deg, #1d4ed8, #3b82f6)', boxShadow: '0 0 8px rgba(59,130,246,0.3)' }} />
+                <div className="h-3 rounded-full" style={{ width: `${atualPct}%`, background: 'linear-gradient(90deg, var(--color-seller-blue-strong), var(--color-seller-blue))', boxShadow: '0 0 8px rgba(59,130,246,0.3)' }} />
               </div>
             </div>
           </div>

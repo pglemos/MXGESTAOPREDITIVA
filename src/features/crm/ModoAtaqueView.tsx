@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Copy, FileText, MessageCircle, Pause, Phone, Trophy, Zap } from 'lucide-react'
+import { Copy, FileText, MessageCircle, Pause, Phone, Target, Trophy, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/atoms/Button'
 import { Card } from '@/components/molecules/Card'
@@ -34,13 +34,13 @@ const RESULTADOS_CARDS: ResultadoCard[] = [
 ]
 
 const COR_MAP: Record<ResultadoCard['cor'], string> = {
-  green: 'bg-white border-status-success/20 hover:bg-status-success-surface hover:border-status-success/40',
-  red: 'bg-white border-status-error/20 hover:bg-status-error-surface hover:border-status-error/40',
-  slate: 'bg-white border-border-subtle hover:bg-surface-alt',
-  blue: 'bg-white border-status-info/20 hover:bg-status-info-surface hover:border-status-info/40',
-  orange: 'bg-white border-status-warning/20 hover:bg-status-warning-surface hover:border-status-warning/40',
-  teal: 'bg-white border-brand-primary/20 hover:bg-brand-primary/5 hover:border-brand-primary/40',
-  yellow: 'bg-white border-status-warning/20 hover:bg-status-warning-surface hover:border-status-warning/40',
+  green: 'bg-white border-green-200 hover:bg-green-50',
+  red: 'bg-white border-red-200 hover:bg-red-50',
+  slate: 'bg-white border-slate-200 hover:bg-slate-50',
+  blue: 'bg-white border-blue-200 hover:bg-blue-50',
+  orange: 'bg-white border-amber-200 hover:bg-amber-50',
+  teal: 'bg-white border-[#005BFF]/20 hover:bg-blue-50',
+  yellow: 'bg-white border-amber-200 hover:bg-amber-50',
 }
 
 interface ModoAtaqueViewProps {
@@ -49,6 +49,7 @@ interface ModoAtaqueViewProps {
   registrarStatusCadencia: (input: { clienteId: string; status: CadenciaResultadoAcao; observacao?: string | null }) => Promise<{ error: string | null }>
   onSair: () => void
   onAbrirFicha: (clienteId: string) => void
+  onPlanoAtaque: () => void
 }
 
 function phoneDigits(value: string | null | undefined): string {
@@ -82,7 +83,107 @@ function useCronometro() {
   return texto
 }
 
-export function ModoAtaqueView({ clientes, oportunidadePorCliente, registrarStatusCadencia, onSair, onAbrirFicha }: ModoAtaqueViewProps) {
+function objetivoDoAtaque(cliente: Cliente): { objetivo: string; proximoPasso: string; explicacao: string } {
+  const proximoPasso = cliente.proxima_acao || 'Definir próximo passo'
+  const acao = proximoPasso.toLowerCase()
+  if (acao.includes('visita')) {
+    return {
+      objetivo: 'Confirmar visita e preparar atendimento',
+      proximoPasso,
+      explicacao: 'Este cliente tem uma ação de visita no fluxo. Priorize confirmar presença e reduzir risco de perda.',
+    }
+  }
+  if (acao.includes('proposta')) {
+    return {
+      objetivo: 'Retomar proposta e criar compromisso',
+      proximoPasso,
+      explicacao: 'A oportunidade precisa de follow-up objetivo para transformar interesse em próximo compromisso.',
+    }
+  }
+  return {
+    objetivo: 'Avançar a oportunidade para o próximo passo',
+    proximoPasso,
+    explicacao: 'Execute a próxima ação recomendada para manter o cliente vivo na cadência comercial.',
+  }
+}
+
+function OportunidadeCard({
+  cliente,
+  veiculo,
+  onWhatsApp,
+  onFicha,
+  onExecutar,
+}: {
+  cliente: Cliente
+  veiculo: string | null | undefined
+  onWhatsApp: () => void
+  onFicha: () => void
+  onExecutar: () => void
+}) {
+  const { objetivo, proximoPasso, explicacao } = objetivoDoAtaque(cliente)
+  const canal = cliente.canal_origem || 'Sem origem'
+  const iniciais = (cliente.nome || '?').split(' ').slice(0, 2).map(part => part[0]).join('').toUpperCase()
+  const tel = phoneDigits(cliente.telefone)
+
+  return (
+    <div className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-xl">
+      <div className="bg-gradient-to-br from-[#005BFF] to-blue-700 p-6 text-white">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/20 text-xl font-black">
+            {iniciais}
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-xl font-black">{cliente.nome}</p>
+            <p className="mt-0.5 truncate text-sm text-blue-200">{canal} · {veiculo || cliente.empresa || 'Veículo não informado'}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-5 p-6">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-2xl bg-slate-50 p-4">
+            <p className="mb-1 text-[9px] font-bold uppercase tracking-wide text-slate-400">Objetivo</p>
+            <p className="text-sm font-bold text-slate-700">{objetivo}</p>
+          </div>
+          <div className="rounded-2xl bg-blue-50 p-4">
+            <p className="mb-1 text-[9px] font-bold uppercase tracking-wide text-[#005BFF]">Próximo passo</p>
+            <p className="text-sm font-bold text-slate-900">{proximoPasso}</p>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-2 rounded-2xl bg-amber-50 px-4 py-3">
+          <Target className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+          <p className="text-xs leading-snug text-amber-700">{explicacao}</p>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
+          {tel && (
+            <a href={`tel:+55${tel}`} className="flex flex-col items-center gap-1.5 rounded-2xl border border-slate-200 bg-white py-3 transition-colors hover:bg-slate-50">
+              <Phone className="h-4 w-4 text-slate-500" />
+              <span className="text-[11px] font-semibold text-slate-600">Ligar</span>
+            </a>
+          )}
+          {tel && (
+            <button type="button" onClick={onWhatsApp} className="flex flex-col items-center gap-1.5 rounded-2xl border border-green-200 bg-green-50 py-3 transition-colors hover:bg-green-100">
+              <MessageCircle className="h-4 w-4 text-green-600" />
+              <span className="text-[11px] font-semibold text-green-700">WhatsApp</span>
+            </button>
+          )}
+          <button type="button" onClick={onFicha} className="flex flex-col items-center gap-1.5 rounded-2xl border border-slate-200 bg-white py-3 transition-colors hover:bg-slate-50">
+            <FileText className="h-4 w-4 text-slate-500" />
+            <span className="text-[11px] font-semibold text-slate-600">Ficha</span>
+          </button>
+        </div>
+
+        <Button onClick={onExecutar} className="h-14 w-full rounded-2xl bg-[#005BFF] text-base font-black text-white shadow-lg shadow-blue-200 hover:bg-blue-700">
+          <Zap className="h-5 w-5" /> Executar próximo passo
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+export function ModoAtaqueView({ clientes, oportunidadePorCliente, registrarStatusCadencia, onSair, onAbrirFicha, onPlanoAtaque }: ModoAtaqueViewProps) {
   const fila = useMemo(
     () => clientes
       .filter(cliente => ['oportunidade', 'ativo'].includes(cliente.status))
@@ -96,7 +197,8 @@ export function ModoAtaqueView({ clientes, oportunidadePorCliente, registrarStat
     if (!saved) return 0
     try {
       const { indice: i } = JSON.parse(saved) as { indice: number }
-      return typeof i === 'number' ? i : 0
+      if (typeof i !== 'number') return 0
+      return Math.min(Math.max(i, 0), Math.max(fila.length - 1, 0))
     } catch {
       return 0
     }
@@ -108,6 +210,7 @@ export function ModoAtaqueView({ clientes, oportunidadePorCliente, registrarStat
   const [stats, setStats] = useState<StatsSessao>({ executadas: 0, visitas: 0, propostas: 0, recuperacoes: 0 })
   const [voltouDoWhatsApp, setVoltouDoWhatsApp] = useState(false)
   const [tom, setTom] = useState<ScriptTom>('consultivo')
+  const [executando, setExecutando] = useState(false)
   const tempo = useCronometro()
 
   const clienteAtual = fila[indice] || null
@@ -126,6 +229,7 @@ export function ModoAtaqueView({ clientes, oportunidadePorCliente, registrarStat
     setScriptEditado(null)
     setVoltouDoWhatsApp(false)
     setTom('consultivo')
+    setExecutando(false)
     setConcluidos(c => c + 1)
     setIndice(i => (i + 1 >= fila.length ? fila.length : i + 1))
   }
@@ -136,6 +240,7 @@ export function ModoAtaqueView({ clientes, oportunidadePorCliente, registrarStat
   }
 
   const handleAbrirWhatsApp = () => {
+    setExecutando(true)
     const onVisible = () => {
       if (document.visibilityState === 'visible') {
         setVoltouDoWhatsApp(true)
@@ -168,21 +273,26 @@ export function ModoAtaqueView({ clientes, oportunidadePorCliente, registrarStat
   if (concluido) {
     sessionStorage.removeItem(STORAGE_KEY)
     return (
-      <div className="fixed inset-0 z-[200] overflow-y-auto bg-surface-alt">
+      <div className="fixed inset-0 z-[200] overflow-y-auto bg-[#F8FAFC]">
         <div className="mx-auto flex max-w-xl flex-col items-center gap-mx-md px-mx-md py-mx-xl text-center">
-          <span className="grid h-16 w-16 place-items-center rounded-full bg-status-success/10 text-status-success">
+          <span className="grid h-16 w-16 place-items-center rounded-full bg-green-100 text-green-600">
             <Trophy size={32} />
           </span>
-          <Typography variant="h2">
-            {fila.length === 0 ? 'Nenhuma oportunidade ativa para atacar agora.' : 'Excelente! Você concluiu todas as oportunidades prioritárias de hoje.'}
-          </Typography>
+          {fila.length === 0 ? (
+            <Typography variant="h2">Nenhuma oportunidade ativa para atacar agora.</Typography>
+          ) : (
+            <div>
+              <p className="text-3xl font-black text-[#031B3D]">🎉 Excelente!</p>
+              <p className="mt-2 text-sm text-slate-500">Você concluiu todas as oportunidades prioritárias de hoje.</p>
+            </div>
+          )}
           {fila.length > 0 && (
             <div className="grid w-full max-w-lg grid-cols-2 gap-mx-sm sm:grid-cols-4">
               {[
-                { label: 'Executadas', value: stats.executadas, tone: 'bg-status-info-surface text-status-info' },
-                { label: 'Visitas geradas', value: stats.visitas, tone: 'bg-status-success-surface text-status-success' },
-                { label: 'Propostas enviadas', value: stats.propostas, tone: 'bg-status-warning-surface text-status-warning' },
-                { label: 'Remarcações', value: stats.recuperacoes, tone: 'bg-brand-primary/10 text-brand-primary' },
+                { label: 'Executadas', value: stats.executadas, tone: 'bg-blue-50 text-[#005BFF]' },
+                { label: 'Visitas geradas', value: stats.visitas, tone: 'bg-green-50 text-green-600' },
+                { label: 'Propostas enviadas', value: stats.propostas, tone: 'bg-amber-50 text-amber-600' },
+                { label: 'Recuperações', value: stats.recuperacoes, tone: 'bg-purple-50 text-purple-600' },
               ].map(s => (
                 <div key={s.label} className={`rounded-mx-2xl p-mx-md ${s.tone}`}>
                   <p className="text-2xl font-black">{s.value}</p>
@@ -192,7 +302,9 @@ export function ModoAtaqueView({ clientes, oportunidadePorCliente, registrarStat
             </div>
           )}
           <div className="flex w-full max-w-sm flex-col gap-mx-xs">
-            <Button className="w-full" onClick={onSair}>Voltar para a Carteira</Button>
+            <Button variant="outline" className="w-full" onClick={onPlanoAtaque}>Ir para Plano de Ataque</Button>
+            <Button className="w-full bg-[#005BFF] text-white hover:bg-blue-700" onClick={onSair}>Voltar para Carteira</Button>
+            <button type="button" onClick={onSair} className="mt-1 text-xs text-slate-400 hover:underline">Encerrar sessão</button>
           </div>
         </div>
       </div>
@@ -200,31 +312,44 @@ export function ModoAtaqueView({ clientes, oportunidadePorCliente, registrarStat
   }
 
   return (
-    <div className="fixed inset-0 z-[200] overflow-y-auto bg-[#0B1B2B]/95 backdrop-blur-sm">
-      <div className="sticky top-0 z-10 bg-[#102C37] px-mx-md py-mx-sm text-white shadow-lg">
-        <div className="mx-auto flex max-w-xl items-center gap-mx-sm">
-          <span className="flex shrink-0 items-center gap-mx-xs text-sm font-black tracking-wide">
-            <Zap size={16} className="text-brand-primary" /> MODO ATAQUE
+    <div className="fixed inset-0 z-[200] overflow-y-auto bg-[#F0F4FF]">
+      <div className="sticky top-0 z-10 bg-[#031B3D] px-mx-md py-mx-sm text-white shadow-lg">
+        <div className="mx-auto flex max-w-xl flex-wrap items-center gap-3 sm:flex-nowrap">
+          <span className="flex shrink-0 items-center gap-2 text-sm font-black tracking-wide">
+            <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#005BFF]">
+              <Zap size={16} className="text-white" />
+            </span>
+            MODO ATAQUE
           </span>
-          <div className="min-w-0 flex-1">
-            <div className="mb-1 flex items-center justify-between text-[11px] text-white/70">
-              <span>{indice + 1} de {fila.length} oportunidades</span>
-              <span className="font-mono">{tempo}</span>
+          <div className="order-3 w-full min-w-0 sm:order-none sm:flex-1">
+            <div className="mb-1 flex items-center justify-between text-[11px] text-slate-300">
+              <span>{concluidos} de {fila.length} oportunidades concluídas</span>
+              <span className="font-mono text-slate-400">{tempo}</span>
             </div>
             <div className="h-1.5 overflow-hidden rounded-full bg-white/20">
-              <div className="h-full rounded-full bg-brand-primary transition-all" style={{ width: `${Math.round((indice / fila.length) * 100)}%` }} />
+              <div className="h-full rounded-full bg-[#005BFF] transition-all duration-500" style={{ width: `${fila.length > 0 ? Math.round((concluidos / fila.length) * 100) : 0}%` }} />
             </div>
           </div>
-          <Button variant="ghost" className="shrink-0 text-white hover:bg-white/10" onClick={() => setPausarOpen(true)}>
+          <Button variant="ghost" className="ml-auto shrink-0 text-white hover:bg-white/10" onClick={() => setPausarOpen(true)}>
             <Pause size={16} /> Pausar
           </Button>
         </div>
       </div>
 
       <div className="mx-auto max-w-xl px-mx-md py-mx-lg">
-        {clienteAtual && (
+        {clienteAtual && !executando && (
+          <OportunidadeCard
+            cliente={clienteAtual}
+            veiculo={veiculo}
+            onWhatsApp={handleAbrirWhatsApp}
+            onFicha={() => onAbrirFicha(clienteAtual.id)}
+            onExecutar={() => setExecutando(true)}
+          />
+        )}
+
+        {clienteAtual && executando && (
           <Card className="overflow-hidden rounded-mx-2xl p-0">
-            <div className="bg-gradient-to-br from-brand-primary to-brand-primary/80 p-mx-lg text-white">
+            <div className="bg-gradient-to-br from-[#005BFF] to-blue-700 p-mx-lg text-white">
               <div className="flex items-center gap-mx-sm">
                 <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/20 text-xl font-black">
                   {(clienteAtual.nome || '?').split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase()}
@@ -237,8 +362,8 @@ export function ModoAtaqueView({ clientes, oportunidadePorCliente, registrarStat
             </div>
 
             <div className="space-y-mx-md p-mx-lg">
-              <div className="rounded-mx-lg border border-status-warning/20 bg-status-warning-surface p-mx-sm">
-                <Typography variant="caption" className="font-bold uppercase tracking-widest text-status-warning">Próxima ação</Typography>
+              <div className="rounded-mx-lg border border-amber-200 bg-amber-50 p-mx-sm">
+                <Typography variant="caption" className="font-bold uppercase tracking-widest text-amber-600">Próxima ação</Typography>
                 <Typography variant="p" className="mt-1 font-semibold text-text-primary">{clienteAtual.proxima_acao || 'Definir próximo passo'}</Typography>
               </div>
 
@@ -253,8 +378,8 @@ export function ModoAtaqueView({ clientes, oportunidadePorCliente, registrarStat
                       onClick={() => { setTom(t.id); setScriptEditado(null) }}
                       className={`rounded-mx-lg border px-2.5 py-1 text-[11px] font-semibold transition-all ${
                         tom === t.id
-                          ? 'border-brand-primary bg-brand-primary text-white'
-                          : 'border-border-subtle bg-white text-text-secondary hover:border-brand-primary/40 hover:text-brand-primary'
+                          ? 'border-[#005BFF] bg-[#005BFF] text-white'
+                          : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-[#005BFF]'
                       }`}
                     >
                       {t.label}
@@ -266,7 +391,7 @@ export function ModoAtaqueView({ clientes, oportunidadePorCliente, registrarStat
                   value={script}
                   onChange={event => setScriptEditado(event.target.value)}
                   rows={5}
-                  className="w-full resize-none rounded-mx-lg border border-border-subtle bg-surface-alt p-mx-sm text-sm text-text-primary outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/10"
+                  className="w-full resize-none rounded-mx-lg border border-slate-200 bg-slate-50 p-mx-sm text-sm text-slate-900 outline-none focus:border-[#005BFF] focus:ring-4 focus:ring-blue-100"
                 />
               </div>
 
@@ -295,7 +420,7 @@ export function ModoAtaqueView({ clientes, oportunidadePorCliente, registrarStat
                 </a>
               )}
 
-              <div className={voltouDoWhatsApp ? 'rounded-mx-lg ring-4 ring-brand-primary/20 transition-shadow' : ''}>
+              <div className={voltouDoWhatsApp ? 'rounded-mx-lg ring-4 ring-blue-100 transition-shadow' : ''}>
                 <Typography variant="caption" tone="muted" className="mb-mx-xs block font-semibold uppercase tracking-widest">
                   {voltouDoWhatsApp ? 'Como terminou esse contato?' : 'Resultado do contato'}
                 </Typography>
@@ -326,14 +451,14 @@ export function ModoAtaqueView({ clientes, oportunidadePorCliente, registrarStat
       {pausarOpen && (
         <div className="fixed inset-0 z-[210] grid place-items-center bg-black/50 p-4">
           <Card className="w-full max-w-xs space-y-mx-sm rounded-mx-2xl p-mx-lg text-center">
-            <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-status-warning/10 text-status-warning">
+            <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-amber-50 text-amber-600">
               <Pause size={20} />
             </span>
             <Typography variant="h3">Pausar o Modo Ataque?</Typography>
             <Typography variant="p" tone="muted">Sua posição na fila é salva. Você continua de onde parou.</Typography>
             <div className="flex flex-col gap-mx-xs pt-mx-xs">
-              <Button onClick={() => setPausarOpen(false)}>Continuar atacando</Button>
-              <Button variant="outline" onClick={onSair}>Sair do Modo Ataque</Button>
+              <Button className="bg-[#005BFF] text-white hover:bg-blue-700" onClick={() => setPausarOpen(false)}>Continuar atacando</Button>
+              <Button variant="outline" className="text-red-500 border-red-200 hover:bg-red-50" onClick={onSair}>Sair do Modo Ataque</Button>
             </div>
           </Card>
         </div>

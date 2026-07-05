@@ -36,6 +36,25 @@
 --color-mx-text: #0F172A;
 --color-mx-muted: #64748B;
 --color-mx-subtle: #94A3B8;
+--color-seller-screen-bg: #030B14;
+--color-seller-card-bg: #071525;
+--color-seller-money: #39FF5A;
+--color-seller-green: #22C55E;
+--color-seller-green-strong: #16A34A;
+--color-seller-green-dark: #15803D;
+--color-seller-green-deep: #166534;
+--color-seller-commission-bg-start: #071A10;
+--color-seller-commission-bg-mid: #0A2918;
+--color-seller-commission-bg-end: #0D3320;
+--color-seller-blue: #3B82F6;
+--color-seller-blue-soft: #60A5FA;
+--color-seller-blue-strong: #1D4ED8;
+--color-seller-blue-bg-start: #060F1F;
+--color-seller-blue-bg-mid: #0A1830;
+--color-seller-blue-bg-end: #0D1E3A;
+--color-seller-milestone-bg-start: #0F1A08;
+--color-seller-milestone-bg-mid: #1A2A0A;
+--color-seller-milestone-bg-end: #1F3010;
 --color-whatsapp: #25D366;
 
 /* shadcn/Base44 semantic tokens */
@@ -1846,10 +1865,3 @@ body {
   from { background-position: 0 0; }
   to { background-position: 72px 72px; }
 }
-
-/* CSS FORÇADO - Sobrescrevendo tokens quebrados */
-.grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
-.gap-6 { gap: 1.5rem !important; }
-.p-6 { padding: 1.5rem !important; }
-.rounded-2xl { border-radius: 1rem !important; }
-.shadow-md { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1) !important; }

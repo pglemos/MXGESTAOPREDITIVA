@@ -291,7 +291,7 @@ describe('VendedorTreinamentos', () => {
 
     const tabs = screen.getByRole('tablist', { name: /abas de treinamentos/i })
     expect(within(tabs).getByRole('tab', { name: 'Trilha' })).toHaveAttribute('aria-selected', 'true')
-    expect(within(tabs).getByRole('tab', { name: 'Provas' })).toBeInTheDocument()
+    expect(within(tabs).queryByRole('tab', { name: 'Provas' })).not.toBeInTheDocument()
 
     const actions = screen.getByLabelText('Ações obrigatórias da Trilha')
     expect(within(actions).getByText('Próxima ação obrigatória')).toBeInTheDocument()
@@ -385,25 +385,26 @@ describe('VendedorTreinamentos', () => {
     expect(screen.getByText('Confirmacao de visita')).toBeInTheDocument()
   })
 
-  it('preserva hierarquia final: abas, indicadores, obrigatorios, recomendados, lateral e banner', () => {
+  it('abre como Base44 na biblioteca com tres abas e indicadores visiveis', () => {
     renderPage()
 
     const tabs = screen.getByRole('tablist', { name: /abas de treinamentos/i })
     const summary = screen.getByLabelText('Resumo de treinamentos')
-    const mandatoryActions = screen.getByLabelText('Próximas ações obrigatórias')
-    const recommendations = screen.getByLabelText('Recomendado para você')
-    const requiredTrack = screen.getByLabelText('Trilha obrigatória')
+    const libraryMetrics = screen.getByLabelText('Indicadores da Biblioteca')
 
+    expect(within(tabs).getByRole('tab', { name: 'Biblioteca' })).toHaveAttribute('aria-selected', 'true')
+    expect(within(tabs).getByRole('tab', { name: 'Trilha' })).toBeInTheDocument()
+    expect(within(tabs).getByRole('tab', { name: 'Aulas ao Vivo' })).toBeInTheDocument()
+    expect(within(tabs).queryByRole('tab', { name: 'Visão Geral' })).not.toBeInTheDocument()
+    expect(within(tabs).queryByRole('tab', { name: 'Provas' })).not.toBeInTheDocument()
+
+    expect(within(summary).getByText('Minha Trilha')).toBeInTheDocument()
+    expect(within(summary).getByText('Progresso')).toBeInTheDocument()
+    expect(within(summary).getByText('Horas Estudadas')).toBeInTheDocument()
+    expect(within(summary).getByText('Média nas provas')).toBeInTheDocument()
+    expect(within(summary).getByText('Impacto no Score')).toBeInTheDocument()
     expect(Boolean(tabs.compareDocumentPosition(summary) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true)
-    expect(Boolean(summary.compareDocumentPosition(mandatoryActions) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true)
-    expect(Boolean(mandatoryActions.compareDocumentPosition(recommendations) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true)
-
-    expect(within(mandatoryActions).getByText('Próxima aula obrigatória')).toBeInTheDocument()
-    expect(within(mandatoryActions).getByText('Prova pendente')).toBeInTheDocument()
-    expect(within(mandatoryActions).getByText('Próxima aula ao vivo')).toBeInTheDocument()
-    expect(within(requiredTrack).getByText('Ciclo: Jun/2026 a Dez/2026')).toBeInTheDocument()
-    expect(within(requiredTrack).getByText('Prazo final: 31/12/2026')).toBeInTheDocument()
-    expect(screen.getByText('A prova é sua confirmação de presença!')).toBeInTheDocument()
+    expect(Boolean(summary.compareDocumentPosition(libraryMetrics) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true)
   })
 
   it('estrutura a aba Aulas ao Vivo com indicadores, prova, agenda, gravacoes e pontuacao proprios', () => {
@@ -413,8 +414,8 @@ describe('VendedorTreinamentos', () => {
     expect(within(tabs).getByRole('tab', { name: 'Aulas ao Vivo' })).toHaveAttribute('aria-selected', 'true')
     expect(within(tabs).getByRole('tab', { name: 'Trilha' })).toBeInTheDocument()
     expect(within(tabs).queryByRole('tab', { name: 'Trilhas' })).not.toBeInTheDocument()
-    expect(within(tabs).getByRole('tab', { name: 'Provas' })).toBeInTheDocument()
-    expect(screen.queryByLabelText('Resumo de treinamentos')).not.toBeInTheDocument()
+    expect(within(tabs).queryByRole('tab', { name: 'Provas' })).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Resumo de treinamentos')).toBeInTheDocument()
 
     const indicators = screen.getByLabelText('Indicadores de Aulas ao Vivo')
     expect(within(indicators).getByText('Próximas aulas')).toBeInTheDocument()
@@ -462,8 +463,8 @@ describe('VendedorTreinamentos', () => {
     const tabs = screen.getByRole('tablist', { name: /abas de treinamentos/i })
     expect(within(tabs).getByRole('tab', { name: 'Trilha' })).toBeInTheDocument()
     expect(within(tabs).queryByRole('tab', { name: 'Trilhas' })).not.toBeInTheDocument()
-    expect(within(tabs).getByRole('tab', { name: 'Provas', selected: true })).toBeInTheDocument()
-    expect(screen.queryByLabelText('Resumo de treinamentos')).not.toBeInTheDocument()
+    expect(within(tabs).queryByRole('tab', { name: 'Provas' })).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Resumo de treinamentos')).toBeInTheDocument()
 
     const indicators = screen.getByLabelText('Indicadores de Provas')
     expect(within(indicators).getByText('Provas pendentes')).toBeInTheDocument()
@@ -493,7 +494,7 @@ describe('VendedorTreinamentos', () => {
     expect(screen.getByText('1 tentativa por prova')).toBeInTheDocument()
     expect(screen.getByText('libera presença validada')).toBeInTheDocument()
     expect(screen.getByText('gera pontuação no Score MX')).toBeInTheDocument()
-    expect(screen.getByText('Impacto no Score')).toBeInTheDocument()
+    expect(screen.getAllByText('Impacto no Score').length).toBeGreaterThan(0)
     expect(screen.getByText('+20 pts')).toBeInTheDocument()
 
     const sidebar = screen.getByLabelText('Agenda e resultados de Provas')
@@ -537,7 +538,7 @@ describe('VendedorTreinamentos', () => {
 
     expect(banner).not.toBeNull()
     expect(Boolean(banner!.compareDocumentPosition(libraryMetrics) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true)
-    expect(screen.queryByLabelText('Resumo de treinamentos')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Resumo de treinamentos')).toBeInTheDocument()
 
     expect(within(libraryMetrics).getByText('Conteúdos disponíveis')).toBeInTheDocument()
     expect(within(libraryMetrics).getByText('Assistidos')).toBeInTheDocument()
@@ -575,16 +576,15 @@ describe('VendedorTreinamentos', () => {
   })
 
   it('abre a aba Provas ao clicar em Responder prova', () => {
-    renderPage()
+    renderPage('/vendedor/treinamentos?tab=overview')
 
     fireEvent.click(screen.getAllByRole('button', { name: /responder prova/i })[0])
 
-    const tabs = screen.getByRole('tablist', { name: /abas de treinamentos/i })
-    expect(within(tabs).getByRole('tab', { name: 'Provas', selected: true })).toBeInTheDocument()
+    expect(screen.getByLabelText('Indicadores de Provas')).toBeInTheDocument()
   })
 
   it('abre a aba Aulas ao Vivo ao confirmar presenca', () => {
-    renderPage()
+    renderPage('/vendedor/treinamentos?tab=overview')
 
     fireEvent.click(screen.getByRole('button', { name: /confirmar presença/i }))
 
@@ -597,10 +597,10 @@ describe('VendedorTreinamentos', () => {
     const open = mock(() => null)
     Object.defineProperty(window, 'open', { value: open, writable: true })
 
-    try {
-      renderPage()
+  try {
+    renderPage('/vendedor/treinamentos?tab=aulas')
 
-      fireEvent.click(screen.getByRole('button', { name: /adicionar à agenda/i }))
+    fireEvent.click(screen.getByRole('button', { name: /adicionar ao calendário/i }))
 
       expect(open).toHaveBeenCalled()
     } finally {

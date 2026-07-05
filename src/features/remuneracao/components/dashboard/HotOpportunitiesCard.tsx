@@ -11,7 +11,7 @@ export function HotOpportunitiesCard({ qtdOportunidades, comissaoPotencial }: Pr
     <div
       className="relative overflow-hidden rounded-2xl p-6 flex flex-col justify-between"
       style={{
-        background: 'linear-gradient(135deg, #060F1F 0%, #0A1830 50%, #0D1E3A 100%)',
+        background: 'linear-gradient(135deg, var(--color-seller-blue-bg-start) 0%, var(--color-seller-blue-bg-mid) 50%, var(--color-seller-blue-bg-end) 100%)',
         border: '1px solid rgba(59,130,246,0.2)',
         boxShadow: '0 0 30px rgba(59,130,246,0.05)',
         minHeight: '220px',
@@ -20,7 +20,7 @@ export function HotOpportunitiesCard({ qtdOportunidades, comissaoPotencial }: Pr
       <div className="absolute top-4 right-4 opacity-80">
         <div
           className="w-14 h-14 rounded-full flex items-center justify-center"
-          style={{ background: 'linear-gradient(135deg, #1d4ed8, #3b82f6)', boxShadow: '0 0 20px rgba(59,130,246,0.3)' }}
+          style={{ background: 'linear-gradient(135deg, var(--color-seller-blue-strong), var(--color-seller-blue))', boxShadow: '0 0 20px rgba(59,130,246,0.3)' }}
         >
           <Target className="w-7 h-7 text-white" />
         </div>
@@ -34,13 +34,13 @@ export function HotOpportunitiesCard({ qtdOportunidades, comissaoPotencial }: Pr
         ) : (
           <>
             <div className="flex items-baseline gap-2">
-              <span className="font-black" style={{ fontSize: '4rem', lineHeight: 1, color: '#3B82F6', textShadow: '0 0 20px rgba(59,130,246,0.4)' }}>
+              <span className="font-black" style={{ fontSize: '4rem', lineHeight: 1, color: 'var(--color-seller-blue)', textShadow: '0 0 20px rgba(59,130,246,0.4)' }}>
                 {qtdOportunidades}
               </span>
               <span className="text-blue-400 text-xl font-bold">oportunidades</span>
             </div>
             <p className="text-slate-400 text-sm mt-1">que podem gerar</p>
-            <p className="font-black mt-1" style={{ fontSize: '2rem', color: '#60A5FA', textShadow: '0 0 15px rgba(96,165,250,0.3)' }}>
+            <p className="font-black mt-1" style={{ fontSize: '2rem', color: 'var(--color-seller-blue-soft)', textShadow: '0 0 15px rgba(96,165,250,0.3)' }}>
               {formatBRLWhole(comissaoPotencial)}
             </p>
           </>

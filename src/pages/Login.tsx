@@ -14,7 +14,10 @@ type LoginMode = 'login' | 'forgot' | 'recovery'
 
 function getInitialMode(): LoginMode {
     if (typeof window === 'undefined') return 'login'
+    if (window.location.pathname === '/forgot-password') return 'forgot'
+    if (window.location.pathname === '/reset-password') return 'recovery'
     const params = new URLSearchParams(window.location.search)
+    if (params.get('mode') === 'forgot') return 'forgot'
     if (params.get('recovery') === '1') return 'recovery'
     if (params.has('code')) return 'recovery'
     if (window.location.hash.includes('type=recovery') || window.location.hash.includes('access_token=')) return 'recovery'

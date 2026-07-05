@@ -86,11 +86,9 @@ type TrackProgressRow = {
 }
 
 const TABS: Array<{ key: TrainingTab; label: string }> = [
-  { key: 'overview', label: 'Visão Geral' },
   { key: 'biblioteca', label: 'Biblioteca' },
   { key: 'trilha', label: 'Trilha' },
   { key: 'aulas', label: 'Aulas ao Vivo' },
-  { key: 'provas', label: 'Provas' },
 ]
 
 const REQUIRED_CONTENT_TOTAL = 14
@@ -203,8 +201,8 @@ function todayLabel() {
 }
 
 function activeTabFromSearch(value: string | null): TrainingTab {
-  if (value === 'biblioteca' || value === 'trilha' || value === 'aulas' || value === 'provas') return value
-  return 'overview'
+  if (value === 'overview' || value === 'biblioteca' || value === 'trilha' || value === 'aulas' || value === 'provas') return value
+  return 'biblioteca'
 }
 
 function getTrainingPoints(training: TrainingWithProgress | null, fallback = 30) {
@@ -234,7 +232,7 @@ function buildCalendarUrl() {
 }
 
 export default function VendedorTreinamentos() {
-  const { profile } = useAuth()
+  const { profile, storeId } = useAuth()
   const [params, setParams] = useSearchParams()
   const activeTab = activeTabFromSearch(params.get('tab'))
   const { treinamentos, loading, error, markWatched, rateTraining, suggestContent, refetch } = useTrainings()
@@ -258,6 +256,12 @@ export default function VendedorTreinamentos() {
   const [autoAssignRequested, setAutoAssignRequested] = useState(false)
 
   const watched = useMemo(() => treinamentos.filter((training) => training.watched).length, [treinamentos])
+  const totalHours = useMemo(() => {
+    const minutes = treinamentos
+      .filter((training) => training.watched)
+      .reduce((sum, training) => sum + (training.duration_minutes || 0), 0)
+    return (minutes / 60).toFixed(1)
+  }, [treinamentos])
   const requiredCompleted = Math.min(watched, REQUIRED_CONTENT_TOTAL)
   const requiredProgress = Math.round((requiredCompleted / REQUIRED_CONTENT_TOTAL) * 100)
   const filteredTrainings = useMemo(
@@ -309,7 +313,7 @@ export default function VendedorTreinamentos() {
   }
 
   useEffect(() => {
-    if (!profile?.id || tracksLoading || autoAssignRequested || anyActiveMaturityAssignment) return
+  if (!profile?.id || !storeId || tracksLoading || autoAssignRequested || anyActiveMaturityAssignment) return
 
     setAutoAssignRequested(true)
     void assignMaturityTrack({ sellerId: profile.id }).then((result: { error?: string | null }) => {
@@ -320,11 +324,11 @@ export default function VendedorTreinamentos() {
 
       void refetchTracks()
     })
-  }, [anyActiveMaturityAssignment, assignMaturityTrack, autoAssignRequested, profile?.id, refetchTracks, tracksLoading])
+  }, [anyActiveMaturityAssignment, assignMaturityTrack, autoAssignRequested, profile?.id, refetchTracks, storeId, tracksLoading])
 
   function setTab(tab: TrainingTab) {
     const next = new URLSearchParams(params)
-    if (tab === 'overview') next.delete('tab')
+    if (tab === 'biblioteca') next.delete('tab')
     else next.set('tab', tab)
     setParams(next, { replace: true })
   }
@@ -375,52 +379,43 @@ export default function VendedorTreinamentos() {
 
         <TrainingTabs activeTab={activeTab} onTab={setTab} />
 
-        {activeTab !== 'biblioteca' && activeTab !== 'aulas' && activeTab !== 'provas' && (
-          <section className="grid grid-cols-1 gap-mx-sm md:grid-cols-3 xl:grid-cols-6" aria-label="Resumo de treinamentos">
-            <SummaryCard
-              icon={<ShieldCheck size={22} />}
-              label="Trilha obrigatória"
-              value={maturityTrackName || MATURIDADE_VENDEDOR_LABEL[nivelMaturidade]}
-              hint="Sugerida pelo Meu Perfil"
-              tone="brand"
-            />
-            <SummaryCard
-              icon={<ProgressRing value={requiredProgress} />}
-              label="Progresso"
-              value={`${requiredProgress}%`}
-              hint={`${requiredCompleted} de ${REQUIRED_CONTENT_TOTAL} conteúdos`}
-              tone="info"
-            />
-            <SummaryCard
-              icon={<CheckCircle size={22} />}
-              label="Conteúdos concluídos"
-              value={String(requiredCompleted)}
-              hint="no total"
-              tone="info"
-            />
-            <SummaryCard
-              icon={<CalendarDays size={22} />}
-              label="Presenças em aulas"
-              value={String(aulasIndicadores.presencasValidadas)}
-              hint="validadas por prova"
-              tone="success"
-            />
-            <SummaryCard
-              icon={<Award size={22} />}
-              label="Média nas provas"
-              value={aulasIndicadores.mediaProvas === null ? '—' : `${aulasIndicadores.mediaProvas}%`}
-              hint={aulasIndicadores.mediaProvas === null ? 'nenhuma prova feita' : 'aproveitamento geral'}
-              tone="brand"
-            />
-            <SummaryCard
-              icon={<TrendingUp size={22} />}
-              label="Impacto no Score"
-              value={`${SCORE_IMPACT_PERCENT}%`}
-              hint="peso do Treinamento no Score"
-              tone="warning"
-            />
-          </section>
-        )}
+        <section className="grid grid-cols-1 gap-mx-sm md:grid-cols-3 xl:grid-cols-5" aria-label="Resumo de treinamentos">
+          <SummaryCard
+            icon={<ShieldCheck size={22} />}
+            label="Minha Trilha"
+            value={maturityTrackName || MATURIDADE_VENDEDOR_LABEL[nivelMaturidade]}
+            hint="Sugerida pelo Meu Perfil"
+            tone="brand"
+          />
+          <SummaryCard
+            icon={<ProgressRing value={requiredProgress} />}
+            label="Progresso"
+            value={`${requiredProgress}%`}
+            hint={`${requiredCompleted} de ${REQUIRED_CONTENT_TOTAL} conteúdos`}
+            tone="info"
+          />
+          <SummaryCard
+            icon={<Clock size={22} />}
+            label="Horas Estudadas"
+            value={totalHours}
+            hint={`${requiredCompleted} conteúdos concluídos`}
+            tone="warning"
+          />
+          <SummaryCard
+            icon={<Award size={22} />}
+            label="Média nas provas"
+            value={aulasIndicadores.mediaProvas === null ? '—' : `${aulasIndicadores.mediaProvas}%`}
+            hint={aulasIndicadores.mediaProvas === null ? 'nenhuma prova feita' : 'aproveitamento geral'}
+            tone="brand"
+          />
+          <SummaryCard
+            icon={<TrendingUp size={22} />}
+            label="Impacto no Score"
+            value={`${SCORE_IMPACT_PERCENT}%`}
+            hint="peso do Treinamento no Score"
+            tone="warning"
+          />
+        </section>
 
         {error && (
           <div className="rounded-mx-lg border border-status-error/20 bg-status-error-surface p-mx-sm">
@@ -519,14 +514,8 @@ export default function VendedorTreinamentos() {
 function TrainingHeader() {
   return (
     <PageHeading
-      title="Treinamento"
-      subtitle="Aprenda, aplique e evolua. Seu conhecimento move suas vendas."
-      actions={(
-        <span className="inline-flex items-center gap-mx-xs rounded-mx-md border border-border-default bg-white px-mx-sm py-mx-xs text-sm font-semibold text-text-primary">
-          <CalendarDays size={17} />
-          {todayLabel()}
-        </span>
-      )}
+      title="Treinamentos"
+      subtitle="Desenvolva suas habilidades de vendas"
     />
   )
 }

@@ -55,8 +55,8 @@ export function CorridaPeriodo({ vendedores, meta, meuId }: Props) {
                   nome={v.nome}
                   foto={v.foto}
                   size={36}
-                  gradient={isMe ? 'linear-gradient(135deg,#3b82f6,#2563eb)' : undefined}
-                  border={isMe ? '3px solid #3b82f6' : undefined}
+                  gradient={isMe ? 'linear-gradient(135deg,var(--color-chart-2),var(--color-chart-2))' : undefined}
+                  border={isMe ? '3px solid var(--color-chart-2)' : undefined}
                 />
                 {isMe && (
                   <span className="mt-0.5 text-[9px] font-black text-white bg-blue-500 px-1.5 py-0.5 rounded-full">VOCÊ</span>
