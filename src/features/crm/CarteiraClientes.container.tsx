@@ -641,7 +641,7 @@ export function CarteiraClientes() {
                   {carteiraClientes.length === 0 ? 'Sua carteira está vazia.' : diaFiltro === 'hoje' ? 'Você concluiu as prioridades de hoje.' : 'Nenhum cliente encontrado para este filtro.'}
                 </p>
                 {diaFiltro === 'hoje' && (
-                  <button type="button" onClick={() => setDiaFiltro('todos')} className="mx-auto mt-2 block text-xs text-blue-700 hover:underline">Ver todos os clientes</button>
+                  <button type="button" onClick={() => setDiaFiltro('todos')} className="mx-auto mt-2 block text-xs text-[#005BFF] hover:underline">Ver todos os clientes</button>
                 )}
               </div>
             ) : (
@@ -970,7 +970,7 @@ function FluxoClientePanel({
 
   return (
     <div className="fixed inset-0 z-[210] flex justify-end bg-slate-950/20" aria-label={`Fluxo do cliente ${cliente.nome}`}>
-      <aside className="flex h-full w-full max-w-[430px] flex-col bg-white shadow-2xl">
+      <aside className="flex h-full w-full max-w-xl flex-col bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
           <div>
             <p className="text-[11px] font-black uppercase tracking-wide text-slate-400">Ficha do cliente</p>
@@ -1066,7 +1066,7 @@ function FluxoClientePanel({
                       {pendencias.map(item => (
                         <div key={item} className="flex items-center justify-between gap-2">
                           <span className="text-sm text-slate-600">{item}</span>
-                          <button type="button" onClick={() => onEditarProximoPasso(cliente)} className="shrink-0 text-[11px] font-semibold text-blue-700 hover:underline">Definir →</button>
+                          <button type="button" onClick={() => onEditarProximoPasso(cliente)} className="shrink-0 text-[11px] font-semibold text-[#005BFF] hover:underline">Definir →</button>
                         </div>
                       ))}
                     </div>
