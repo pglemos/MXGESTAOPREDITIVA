@@ -17,7 +17,6 @@ interface PlanoAtaqueTabProps {
   agendamentos: AgendamentoComCliente[]
   vendedorNome: string
   onAbrirFicha: (clienteId: string) => void
-  onIniciarModoAtaque: () => void
 }
 
 function normalizar(str: string | null | undefined): string {
@@ -189,7 +188,7 @@ function temperaturaBadgeClass(t: Temperatura): string {
 
 const TEMPERATURA_LABEL: Record<Temperatura, string> = { quente: 'Quente', morno: 'Morno', frio: 'Frio' }
 
-export function PlanoAtaqueTab({ clientes, oportunidadePorCliente, progressoPorCliente, agendamentos, vendedorNome, onAbrirFicha, onIniciarModoAtaque }: PlanoAtaqueTabProps) {
+export function PlanoAtaqueTab({ clientes, oportunidadePorCliente, progressoPorCliente, agendamentos, vendedorNome, onAbrirFicha }: PlanoAtaqueTabProps) {
   const { veiculos, loading, createVeiculo } = useVeiculosEstoque()
   const [modalOpen, setModalOpen] = useState(false)
   const [veiculoAtaque, setVeiculoAtaque] = useState<VeiculoEstoque | null>(null)
@@ -456,16 +455,7 @@ export function PlanoAtaqueTab({ clientes, oportunidadePorCliente, progressoPorC
         <p className="text-base font-bold leading-snug">
           Olá, {vendedorNome}! Hoje existem <span className="text-blue-200 font-black">{totalOportunidades} oportunidades</span> na sua carteira.
         </p>
-        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-blue-100">Comece pelas missões com maior prioridade.</p>
-          <button
-            type="button"
-            onClick={onIniciarModoAtaque}
-            className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-white px-4 text-sm font-black text-[#005BFF] shadow-sm transition-colors hover:bg-blue-50"
-          >
-            <Zap size={16} /> Iniciar modo ataque
-          </button>
-        </div>
+        <p className="mt-1 text-sm text-blue-100">Comece pelas missões com maior prioridade.</p>
       </div>
 
       <div>

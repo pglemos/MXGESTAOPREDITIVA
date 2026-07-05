@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import {
   CalendarDays,
@@ -15,6 +15,7 @@ import {
   Search,
   SlidersHorizontal,
   Star,
+  Trophy,
   Users,
   X,
   Zap,
@@ -78,6 +79,10 @@ function scoreBadgeClass(score: number): string {
   if (score >= 50) return 'bg-amber-50 text-amber-600'
   return 'bg-red-50 text-red-600'
 }
+
+const MODO_ATAQUE_ACEITO_KEY = 'mx_modo_ataque_aceito'
+
+type ProximaInfo = { cliente: Cliente; nome: string; veiculo: string | null; proximoPasso: string; objetivo: string }
 
 type FiltroPrioridade = 'alta' | 'media' | 'baixa'
 type FiltroSituacao = 'sem_visita' | 'visita_agendada' | 'proposta_enviada' | 'recuperacao' | 'sem_proximo_passo' | 'proximo_passo_vencido'
@@ -362,6 +367,8 @@ export function CarteiraClientes() {
   const [modoAtaqueOpen, setModoAtaqueOpen] = useState(false)
   const [editandoProximoPasso, setEditandoProximoPasso] = useState<Cliente | null>(null)
   const [diaFiltro, setDiaFiltro] = useState<PrioridadeDia | 'todos'>('hoje')
+  const [proximaModalOpen, setProximaModalOpen] = useState(false)
+  const [proximaOportunidade, setProximaOportunidade] = useState<ProximaInfo | null>(null)
   const hoje = useMemo(() => toDateOnlyBR(), [])
   const runtimeUserAgent = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : ''
   const isAutomatedTest = (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') || runtimeUserAgent.includes('happy-dom') || runtimeUserAgent.includes('jsdom')
@@ -473,9 +480,34 @@ export function CarteiraClientes() {
     setModalOpen(false)
   }
 
+  function abrirProximaOportunidade(handledId: string) {
+    const ordem: Record<Prioridade, number> = { maxima: 0, alta: 1, media: 2, baixa: 3 }
+    const proxima = [...carteiraClientes]
+      .filter(cliente => cliente.id !== handledId)
+      .sort((a, b) => (ordem[prioridadePorCliente.get(a.id) || 'baixa']) - (ordem[prioridadePorCliente.get(b.id) || 'baixa']))[0]
+    if (proxima) {
+      const oport = oportunidadePorCliente.get(proxima.id)
+      const prog = progressoPorCliente.get(proxima.id)
+      const { objetivo, mentorRecomenda } = derivarObjetivoEMentor(proxima, oport, prog?.etapaAtual.objetivo || 'Definir próximo passo')
+      setProximaOportunidade({
+        cliente: proxima,
+        nome: proxima.nome,
+        veiculo: oport?.veiculo_interesse || proxima.empresa || null,
+        proximoPasso: proxima.proxima_acao || mentorRecomenda,
+        objetivo,
+      })
+    } else {
+      setProximaOportunidade(null)
+    }
+    setSelectedId(null)
+    setPanelClosed(true)
+    setProximaModalOpen(true)
+  }
+
   async function handleRegistrarStatusCadencia(clienteId: string, status: CadenciaResultadoAcao) {
     if (demoMode) {
       toast.success(status === 'nao_feito' ? 'Tentativa registrada e próxima ação enviada para a Central.' : 'Cadência atualizada no modo demonstração.')
+      abrirProximaOportunidade(clienteId)
       return
     }
     setCadenciaSaving(true)
@@ -486,6 +518,7 @@ export function CarteiraClientes() {
       return
     }
     toast.success(status === 'nao_feito' ? 'Tentativa registrada e próxima ação mantida no fluxo.' : 'Cadência atualizada.')
+    abrirProximaOportunidade(clienteId)
   }
 
   function executarProximoPasso(cliente: Cliente) {
@@ -529,7 +562,6 @@ export function CarteiraClientes() {
             progressoPorCliente={progressoPorCliente}
             agendamentos={agendamentos}
           vendedorNome={(profile?.name || 'Vendedor').split(' ')[0]}
-          onIniciarModoAtaque={() => setModoAtaqueOpen(true)}
           onAbrirFicha={clienteId => {
             setActiveTab('ativa')
             setPanelClosed(false)
@@ -834,6 +866,14 @@ export function CarteiraClientes() {
           toast.success('Próximo passo atualizado.')
           return { error: null }
         }}
+      />
+
+      <ProximaOportunidadeModal
+        open={proximaModalOpen}
+        proxima={proximaOportunidade}
+        onExecutar={cliente => { setProximaModalOpen(false); executarProximoPasso(cliente) }}
+        onVoltarCarteira={() => setProximaModalOpen(false)}
+        onEntrarModoAtaque={() => { setProximaModalOpen(false); setModoAtaqueOpen(true) }}
       />
     </main>
   )
@@ -1380,6 +1420,99 @@ function makeDemoOportunidade(
     closed_at: etapa === 'ganho' ? '2026-06-16T18:00:00Z' : null,
     cliente: { nome: cliente.nome, telefone: cliente.telefone },
   }
+}
+
+function ProximaOportunidadeModal({
+  open,
+  proxima,
+  onExecutar,
+  onVoltarCarteira,
+  onEntrarModoAtaque,
+}: {
+  open: boolean
+  proxima: ProximaInfo | null
+  onExecutar: (cliente: Cliente) => void
+  onVoltarCarteira: () => void
+  onEntrarModoAtaque: () => void
+}) {
+  if (!open) return null
+
+  const modoAtaqueAceito = typeof window !== 'undefined' && sessionStorage.getItem(MODO_ATAQUE_ACEITO_KEY) === 'true'
+
+  const overlay = (children: ReactNode) => (
+    <div className="fixed inset-0 z-[220] grid place-items-center bg-black/40 p-4 backdrop-blur-[2px]" role="dialog" aria-modal="true" onClick={onVoltarCarteira}>
+      <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.24)]" onClick={event => event.stopPropagation()}>
+        {children}
+      </div>
+    </div>
+  )
+
+  if (!proxima) {
+    return overlay(
+      <div className="flex flex-col items-center gap-4 py-4 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
+          <Trophy className="h-7 w-7 text-green-600" />
+        </div>
+        <div>
+          <p className="text-lg font-black text-[#031B3D]">🎉 Excelente!</p>
+          <p className="mt-1 text-sm text-slate-500">Você concluiu todas as oportunidades prioritárias de hoje.</p>
+        </div>
+        <button type="button" onClick={onVoltarCarteira} className="w-full rounded-xl bg-[#005BFF] py-2.5 text-sm font-bold text-white transition-colors hover:bg-blue-700">Voltar para Carteira</button>
+      </div>,
+    )
+  }
+
+  if (modoAtaqueAceito) {
+    return overlay(
+      <div className="flex flex-col gap-4 py-2">
+        <div className="flex items-center gap-2 text-green-600">
+          <CheckCircle className="h-5 w-5 shrink-0" />
+          <span className="text-sm font-bold">Resultado registrado</span>
+        </div>
+        <hr className="border-slate-100" />
+        <div>
+          <p className="mb-3 text-[10px] font-bold uppercase tracking-wide text-slate-400">Próxima oportunidade</p>
+          <div className="space-y-3 rounded-xl bg-blue-50 p-4">
+            <div>
+              <p className="text-base font-black text-[#031B3D]">{proxima.nome}</p>
+              {proxima.veiculo && <p className="mt-0.5 text-xs text-slate-500">{proxima.veiculo}</p>}
+            </div>
+            <div>
+              <p className="text-[9px] font-bold uppercase tracking-wide text-[#005BFF]">Próximo passo</p>
+              <p className="text-sm font-bold text-[#031B3D]">{proxima.proximoPasso}</p>
+              {proxima.objetivo && <p className="mt-0.5 text-[11px] text-slate-400">{proxima.objetivo}</p>}
+            </div>
+          </div>
+        </div>
+        <div className="mt-1 flex gap-2">
+          <button type="button" onClick={onVoltarCarteira} className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-50">Voltar</button>
+          <button type="button" onClick={() => onExecutar(proxima.cliente)} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#005BFF] py-2.5 text-sm font-bold text-white transition-colors hover:bg-blue-700"><Zap className="h-4 w-4" /> Executar</button>
+        </div>
+      </div>,
+    )
+  }
+
+  return overlay(
+    <div className="flex flex-col gap-4 py-2">
+      <div className="flex items-center gap-2 text-green-600">
+        <CheckCircle className="h-5 w-5 shrink-0" />
+        <span className="text-sm font-bold">Resultado registrado</span>
+      </div>
+      <hr className="border-slate-100" />
+      <div className="space-y-3 rounded-2xl bg-gradient-to-br from-[#031B3D] to-[#005BFF] p-5 text-white">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/20"><Zap className="h-4 w-4 text-white" /></div>
+          <p className="text-base font-black">🎯 Deseja entrar no Modo Ataque?</p>
+        </div>
+        <p className="text-sm leading-snug text-blue-100">No Modo Ataque o sistema entrega automaticamente a próxima oportunidade. Você apenas executa e registra o resultado.</p>
+        <p className="text-[11px] text-blue-300">Próxima: <span className="font-bold text-white">{proxima.nome}</span></p>
+      </div>
+      <div className="flex flex-col gap-2">
+        <button type="button" onClick={() => { sessionStorage.setItem(MODO_ATAQUE_ACEITO_KEY, 'true'); onEntrarModoAtaque() }} className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#005BFF] text-sm font-bold text-white transition-colors hover:bg-blue-700"><Zap className="h-4 w-4" /> Entrar no Modo Ataque</button>
+        <button type="button" onClick={onVoltarCarteira} className="w-full rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-50">Voltar para Carteira</button>
+      </div>
+    </div>,
+  )
 }
 
 export default CarteiraClientes
