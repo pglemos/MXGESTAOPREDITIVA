@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AlertTriangle, RefreshCw } from 'lucide-react'
+import { AlertTriangle, Calendar, ChevronDown, RefreshCw } from 'lucide-react'
 import { useMinhaRemuneracaoDashboard } from './hooks/useMinhaRemuneracaoDashboard'
 import { CommissionHeroCard } from './components/dashboard/CommissionHeroCard'
 import { MilestoneCard } from './components/dashboard/MilestoneCard'
@@ -61,6 +61,11 @@ export default function MinhaRemuneracaoPage() {
             <p className="text-slate-400 text-sm mt-0.5">Foque no que importa. Venda mais e ganhe mais.</p>
           </div>
           <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
+              <Calendar className="w-4 h-4 text-slate-400" />
+              Este mês
+              <ChevronDown className="w-4 h-4 text-slate-400" />
+            </div>
             <div className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
               {data.profile?.avatar_url ? (
                 <img src={data.profile.avatar_url} alt={userFullName} className="w-8 h-8 rounded-full object-cover" />
