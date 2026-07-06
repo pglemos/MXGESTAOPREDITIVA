@@ -748,7 +748,6 @@ export function CarteiraClientes() {
               oportunidade={oportunidadePorCliente.get(selectedCliente.id)}
                 progresso={progressoPorCliente.get(selectedCliente.id) || derivarProgresso(selectedCliente, carteiraOportunidades, agendamentos)}
                 vendedor={(profile?.name || 'vendedor').split(' ')[0]}
-                positionLabel={`${Math.max(1, listaBuscada.findIndex(cliente => cliente.id === selectedCliente.id) + 1)} de ${demoMode ? totalClientes : listaBuscada.length}`}
                 statusSaving={cadenciaSaving}
                 onStatus={handleRegistrarStatusCadencia}
                 onNaoRespondeu={cliente => setNaoRespondeuCliente(cliente)}
@@ -933,7 +932,6 @@ function FluxoClientePanel({
   oportunidade,
   progresso,
   vendedor,
-  positionLabel,
   statusSaving,
   onStatus,
   onNaoRespondeu,
@@ -945,7 +943,6 @@ function FluxoClientePanel({
   oportunidade?: OportunidadeComCliente
   progresso: ProgressoCadencia
   vendedor: string
-  positionLabel: string
   statusSaving: boolean
   onStatus: (clienteId: string, status: CadenciaResultadoAcao) => void
   onNaoRespondeu: (cliente: Cliente) => void
@@ -1010,16 +1007,10 @@ function FluxoClientePanel({
 
   return (
     <div className="fixed inset-0 z-[210] flex justify-end bg-slate-950/20" aria-label={`Fluxo do cliente ${cliente.nome}`}>
-      <aside className="flex h-full w-full max-w-xl flex-col bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
-          <div>
-            <p className="text-[11px] font-black uppercase tracking-wide text-slate-400">Ficha do cliente</p>
-            <p className="text-[11px] text-slate-400">{positionLabel}</p>
-          </div>
-          <button type="button" aria-label="Fechar painel" onClick={onClose} className="rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600">
-            <X size={18} />
-          </button>
-        </div>
+      <aside className="relative flex h-full w-full max-w-xl flex-col bg-white shadow-2xl">
+        <button type="button" aria-label="Fechar painel" onClick={onClose} className="absolute right-3 top-3 z-10 rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600">
+          <X size={18} />
+        </button>
 
         <div className="flex-1 overflow-y-auto">
           <div className="space-y-3 border-b border-slate-100 px-5 pb-4 pt-5">
