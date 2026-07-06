@@ -397,7 +397,6 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
             {!isCollapsed && (
               <div className="min-w-0">
                 <p className="truncate text-[12px] font-bold leading-tight text-white">MX PERFORMANCE</p>
-                <p className="mt-0.5 truncate text-[11px] font-medium leading-tight text-[#E0EBEA]">Gestão Preditiva</p>
               </div>
             )}
           </div>
