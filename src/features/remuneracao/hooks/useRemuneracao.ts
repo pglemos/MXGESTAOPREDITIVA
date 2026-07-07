@@ -125,6 +125,8 @@ export function useRemuneracaoEstimadaVendedor(params: {
   faturamentoProjetado?: number
   vinculoTipo?: RemuneracaoVinculoTipo
   atingimentoLojaPercentual?: number
+  carrosVendidosLoja?: number
+  nivelCarreira?: 'junior' | 'pleno' | 'lider'
 }) {
   const cargo = params.cargo || 'Vendedor'
   const [plano, setPlano] = useState<RemuneracaoPlano | null>(null)
@@ -195,6 +197,8 @@ export function useRemuneracaoEstimadaVendedor(params: {
     faturamentoProjetado: params.faturamentoProjetado,
     vinculoTipo: params.vinculoTipo,
     atingimentoLojaPercentual: params.atingimentoLojaPercentual,
+    carrosVendidosLoja: params.carrosVendidosLoja,
+    nivelCarreira: params.nivelCarreira,
   }), [
     plano,
     regras,
@@ -205,6 +209,8 @@ export function useRemuneracaoEstimadaVendedor(params: {
     params.faturamentoProjetado,
     params.vinculoTipo,
     params.atingimentoLojaPercentual,
+    params.carrosVendidosLoja,
+    params.nivelCarreira,
   ])
 
   return {
@@ -217,6 +223,71 @@ export function useRemuneracaoEstimadaVendedor(params: {
     loading,
     error,
   }
+}
+
+export type NivelCarreira = 'junior' | 'pleno' | 'lider'
+
+/** Nível de carreira de todos os vendedores de uma loja + mutation (dono/gerente). */
+export function useVendedoresNivelCarreira(lojaId: string | null) {
+  const [niveis, setNiveis] = useState<Record<string, NivelCarreira>>({})
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const reload = useCallback(async () => {
+    if (!lojaId) { setNiveis({}); return }
+    setLoading(true)
+    setError(null)
+    const { data, error } = await supabase
+      .from('vendedor_nivel_carreira')
+      .select('seller_user_id, nivel_carreira')
+      .eq('loja_id', lojaId)
+    if (error) setError(error.message)
+    else {
+      const map: Record<string, NivelCarreira> = {}
+      for (const row of data ?? []) map[row.seller_user_id] = row.nivel_carreira as NivelCarreira
+      setNiveis(map)
+    }
+    setLoading(false)
+  }, [lojaId])
+
+  useEffect(() => { void reload() }, [reload])
+
+  const salvarNivel = useCallback(async (sellerUserId: string, nivel: NivelCarreira) => {
+    if (!lojaId) return { error: 'Loja não selecionada.' }
+    const { error } = await supabase
+      .from('vendedor_nivel_carreira')
+      .upsert({ seller_user_id: sellerUserId, loja_id: lojaId, nivel_carreira: nivel }, { onConflict: 'seller_user_id' })
+    if (error) return { error: error.message }
+    await reload()
+    return { error: null }
+  }, [lojaId, reload])
+
+  return { niveis, loading, error, salvarNivel }
+}
+
+/** Nível de carreira do próprio vendedor (leitura). */
+export function useMeuNivelCarreira(sellerUserId: string | null) {
+  const [nivel, setNivel] = useState<NivelCarreira>('junior')
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      if (!sellerUserId) { setNivel('junior'); return }
+      setLoading(true)
+      const { data } = await supabase
+        .from('vendedor_nivel_carreira')
+        .select('nivel_carreira')
+        .eq('seller_user_id', sellerUserId)
+        .maybeSingle()
+      if (!alive) return
+      setNivel((data?.nivel_carreira as NivelCarreira) || 'junior')
+      setLoading(false)
+    })()
+    return () => { alive = false }
+  }, [sellerUserId])
+
+  return { nivel, loading }
 }
 
 /** Benchmark de mercado filtrado por parâmetros (região/tamanho/meta). */
