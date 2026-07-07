@@ -274,6 +274,120 @@ describe('calcularRemuneracaoEstimada', () => {
     expect(autonomo.comissaoEquipe).toBe(0)
     expect(autonomo.comissao).toBe(0)
   })
+
+  test('bonus_meta por unidade: aplica quando vendas >= unidade_meta_min, ignora meta em R$', () => {
+    const resultado = calcularRemuneracaoEstimada({
+      plano: plano('Vendedor', 1500, 0, 0),
+      regras: [regra('bonus_meta', { id: 'bonus-8-carros', valor: 1000, unidade_meta_min: 8 } as Partial<RemuneracaoRegra>)],
+      vendasConsideradas: 8,
+      meta: 0,
+    })
+
+    expect(resultado.bonus).toBe(1000)
+    expect(resultado.regraBonusAplicada?.id).toBe('bonus-8-carros')
+  })
+
+  test('bonus_meta por unidade: não aplica com um carro a menos', () => {
+    const resultado = calcularRemuneracaoEstimada({
+      plano: plano('Vendedor', 1500, 0, 0),
+      regras: [regra('bonus_meta', { id: 'bonus-8-carros', valor: 1000, unidade_meta_min: 8 } as Partial<RemuneracaoRegra>)],
+      vendasConsideradas: 7,
+      meta: 0,
+    })
+
+    expect(resultado.bonus).toBe(0)
+    expect(resultado.regraBonusAplicada).toBeNull()
+  })
+
+  test('comissao_equipe cumulativa por unidade: soma faixas atingidas, respeita valor_por_unidade e trava individual', () => {
+    const regrasEquipe = [
+      regra('comissao_equipe' as unknown as RemuneracaoRegra['tipo'], {
+        id: 'faixa-35', valor: 100, unidade_meta_min: 35, cumulativo: true, valor_por_unidade: true, requer_bonus_individual: true,
+      } as Partial<RemuneracaoRegra>),
+      regra('comissao_equipe' as unknown as RemuneracaoRegra['tipo'], {
+        id: 'faixa-40', valor: 1000, unidade_meta_min: 40, cumulativo: true, requer_bonus_individual: true,
+      } as Partial<RemuneracaoRegra>),
+      regra('comissao_equipe' as unknown as RemuneracaoRegra['tipo'], {
+        id: 'faixa-45', valor: 1000, unidade_meta_min: 45, cumulativo: true, requer_bonus_individual: true,
+      } as Partial<RemuneracaoRegra>),
+      regra('comissao_equipe' as unknown as RemuneracaoRegra['tipo'], {
+        id: 'faixa-50', valor: 1000, unidade_meta_min: 50, cumulativo: true, requer_bonus_individual: true,
+      } as Partial<RemuneracaoRegra>),
+      regra('bonus_meta', { id: 'bonus-8-carros', valor: 1000, unidade_meta_min: 8 } as Partial<RemuneracaoRegra>),
+      regra('comissao_por_venda', { id: 'comissao-500', valor: 500 }),
+    ]
+
+    const resultadoCompleto = calcularRemuneracaoEstimada({
+      plano: plano('Vendedor', 1500, 0, 0),
+      regras: regrasEquipe,
+      vendasConsideradas: 8,
+      meta: 0,
+      vinculoTipo: 'loja',
+      carrosVendidosLoja: 50,
+    })
+
+    // 1500 fixo + 4000 comissao (8x500) + 1000 bonus individual + 800 (8x100 faixa 35) + 1000 (faixa 40) + 1000 (faixa 45) + 1000 (faixa 50) = 10300
+    expect(resultadoCompleto.total).toBe(10300)
+    expect(resultadoCompleto.comissaoEquipe).toBe(3800)
+
+    const resultadoSemMinimoIndividual = calcularRemuneracaoEstimada({
+      plano: plano('Vendedor', 1500, 0, 0),
+      regras: regrasEquipe,
+      vendasConsideradas: 5, // abaixo do minimo individual de 8
+      meta: 0,
+      vinculoTipo: 'loja',
+      carrosVendidosLoja: 50,
+    })
+
+    // loja bateu tudo, mas vendedor nao bateu o proprio minimo -> nenhum bonus coletivo
+    expect(resultadoSemMinimoIndividual.comissaoEquipe).toBe(0)
+    expect(resultadoSemMinimoIndividual.bonus).toBe(0)
+    expect(resultadoSemMinimoIndividual.total).toBe(1500 + 5 * 500)
+
+    const resultadoLojaAbaixoDe40 = calcularRemuneracaoEstimada({
+      plano: plano('Vendedor', 1500, 0, 0),
+      regras: regrasEquipe,
+      vendasConsideradas: 8,
+      meta: 0,
+      vinculoTipo: 'loja',
+      carrosVendidosLoja: 37,
+    })
+
+    // so a faixa 35 foi atingida (37 >= 35, mas < 40)
+    expect(resultadoLojaAbaixoDe40.comissaoEquipe).toBe(800)
+  })
+
+  test('comissao_equipe legado (percentual, nao-cumulativo) continua igual quando campos novos nao sao usados', () => {
+    const regraEquipe = regra('comissao_equipe' as unknown as RemuneracaoRegra['tipo'], { id: 'equipe-100', valor: 700, percentual_meta_min: 100 })
+
+    const resultado = calcularRemuneracaoEstimada({
+      plano: plano('Vendedor', 2000, 0, 0),
+      regras: [regraEquipe],
+      vendasConsideradas: 4,
+      meta: 10,
+      vinculoTipo: 'loja',
+      atingimentoLojaPercentual: 110,
+    })
+
+    expect(resultado.comissaoEquipe).toBe(700)
+  })
+
+  test('bonus de carreira soma dentro de bonus e aparece em bonusCarreira', () => {
+    const resultado = calcularRemuneracaoEstimada({
+      plano: plano('Vendedor', 1500, 0, 0),
+      regras: [
+        regra('bonus_carreira' as unknown as RemuneracaoRegra['tipo'], { id: 'carreira-pleno', valor: 800, nivel_carreira: 'pleno' } as Partial<RemuneracaoRegra>),
+        regra('bonus_carreira' as unknown as RemuneracaoRegra['tipo'], { id: 'carreira-lider', valor: 800, nivel_carreira: 'lider' } as Partial<RemuneracaoRegra>),
+      ],
+      vendasConsideradas: 0,
+      meta: 0,
+      nivelCarreira: 'lider',
+    })
+
+    expect(resultado.bonusCarreira).toBe(800)
+    expect(resultado.bonus).toBe(800)
+    expect(resultado.total).toBe(2300)
+  })
 })
 
 describe('calcularResumoRemuneracaoVendedor', () => {

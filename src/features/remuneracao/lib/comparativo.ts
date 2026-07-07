@@ -27,6 +27,8 @@ export interface RemuneracaoEstimadaInput {
   faturamentoConsiderado?: number
   vinculoTipo?: RemuneracaoVinculoTipo
   atingimentoLojaPercentual?: number
+  carrosVendidosLoja?: number
+  nivelCarreira?: 'junior' | 'pleno' | 'lider'
 }
 
 export interface RemuneracaoVenda {
@@ -43,7 +45,7 @@ export interface RemuneracaoBonusPatamarDetalhe {
 }
 
 export interface RemuneracaoFormulaItem {
-  chave: 'salario_fixo' | 'salario_variavel' | 'beneficios' | 'comissao' | 'bonus'
+  chave: 'salario_fixo' | 'salario_variavel' | 'beneficios' | 'comissao' | 'bonus' | 'bonus_carreira'
   label: string
   descricao: string
   valor: number
@@ -63,6 +65,7 @@ export interface RemuneracaoEstimadaResultado {
   comissaoEquipe: number
   comissao: number
   bonus: number
+  bonusCarreira: number
   total: number
   vendasConsideradas: number
   faturamentoConsiderado: number
@@ -87,6 +90,8 @@ export interface RemuneracaoResumoVendedorInput {
   faturamentoProjetado?: number
   vinculoTipo?: RemuneracaoVinculoTipo
   atingimentoLojaPercentual?: number
+  carrosVendidosLoja?: number
+  nivelCarreira?: 'junior' | 'pleno' | 'lider'
 }
 
 export interface RemuneracaoResumoVendedor {
@@ -131,6 +136,8 @@ export function calcularRemuneracaoEstimada({
   faturamentoConsiderado,
   vinculoTipo = 'loja',
   atingimentoLojaPercentual,
+  carrosVendidosLoja,
+  nivelCarreira,
 }: RemuneracaoEstimadaInput): RemuneracaoEstimadaResultado {
   const vendas = Math.max(Number(vendasConsideradas || 0), 0)
   const metaMensal = Math.max(Number(meta || 0), 0)
@@ -156,6 +163,7 @@ export function calcularRemuneracaoEstimada({
       comissaoEquipe: 0,
       comissao: 0,
       bonus: 0,
+      bonusCarreira: 0,
       total: 0,
       vendasConsideradas: vendas,
       faturamentoConsiderado: faturamento,
@@ -196,37 +204,17 @@ export function calcularRemuneracaoEstimada({
     return acc + Number(regraCategoria?.valor || 0)
   }, 0)
 
-  const regrasEquipe = selecionarBonusMaisRecentePorPatamar(
-    regrasAtivas.filter((regra) => regra.tipo === 'comissao_equipe'),
-  )
-  const regraEquipeAplicada = vinculoTipo === 'loja' && Number.isFinite(Number(atingimentoLojaPercentual))
-    ? [...regrasEquipe]
-        .filter((regra) => Number(atingimentoLojaPercentual) >= percentualMinimo(regra))
-        .sort((a, b) => percentualMinimo(b) - percentualMinimo(a))[0] || null
-    : null
-  const comissaoEquipe = Number(regraEquipeAplicada?.valor || 0)
-  const comissao = comissaoFixa + comissaoPercentual + comissaoCategoria + comissaoEquipe
-  const regrasComissaoAplicadas = [
-    regraComissaoAplicada,
-    regraPercentualAplicada,
-    ...Array.from(new Set(vendasValidas.map(venda => venda.tipo_veiculo).filter(Boolean)))
-      .map(tipoVeiculo => regrasCategoria.get(String(tipoVeiculo)))
-      .filter((regra): regra is RemuneracaoRegra => Boolean(regra)),
-    regraEquipeAplicada,
-  ].filter((regra): regra is RemuneracaoRegra => Boolean(regra))
-
+  // Bônus individual (bonus_meta) calculado ANTES de comissao_equipe porque
+  // requer_bonus_individual precisa saber se o vendedor já bateu o próprio mínimo.
   const bonusPorPatamar = selecionarBonusMaisRecentePorPatamar(
     regrasAtivas.filter((regra) => regra.tipo === 'bonus_meta'),
   )
-  const metaValida = metaMensal > 0
-  const regraBonusAplicada = metaValida
-    ? [...bonusPorPatamar]
-        .filter((regra) => atingimentoPercentual >= percentualMinimo(regra))
-        .sort((a, b) => percentualMinimo(b) - percentualMinimo(a))[0] || null
-    : null
-  const bonus = Number(regraBonusAplicada?.valor || 0)
+  const regraBonusAplicada = [...bonusPorPatamar]
+    .filter((regra) => atingiuPatamarIndividual(regra, { vendas, metaValida: metaMensal > 0, atingimentoPercentual }))
+    .sort((a, b) => patamarChave(b) - patamarChave(a))[0] || null
+  const valorBonusIndividual = Number(regraBonusAplicada?.valor || 0)
   const bonusPatamares = bonusPorPatamar.map((regra) => {
-    const atingido = metaValida && atingimentoPercentual >= percentualMinimo(regra)
+    const atingido = atingiuPatamarIndividual(regra, { vendas, metaValida: metaMensal > 0, atingimentoPercentual })
     return {
       regra,
       percentualMetaMin: percentualMinimo(regra),
@@ -235,8 +223,46 @@ export function calcularRemuneracaoEstimada({
       aplicado: regra.id === regraBonusAplicada?.id,
     }
   })
+
+  const regrasEquipePorPatamar = selecionarBonusMaisRecentePorPatamar(
+    regrasAtivas.filter((regra) => regra.tipo === 'comissao_equipe'),
+  )
+  const individualAtingiu = regraBonusAplicada !== null
+  const regrasEquipeElegiveis = vinculoTipo === 'loja'
+    ? regrasEquipePorPatamar.filter((regra) => atingiuPatamarEquipe(regra, {
+        carrosVendidosLoja, atingimentoLojaPercentual, individualAtingiu,
+      }))
+    : []
+  const regrasEquipeCumulativas = regrasEquipeElegiveis.filter((regra) => regra.cumulativo)
+  const regrasEquipeNaoCumulativas = regrasEquipeElegiveis.filter((regra) => !regra.cumulativo)
+  const melhorNaoCumulativa = [...regrasEquipeNaoCumulativas].sort((a, b) => patamarChave(b) - patamarChave(a))[0] || null
+  const regrasEquipeAplicadas = melhorNaoCumulativa
+    ? [...regrasEquipeCumulativas, melhorNaoCumulativa]
+    : regrasEquipeCumulativas
+  const comissaoEquipe = regrasEquipeAplicadas.reduce(
+    (acc, regra) => acc + (regra.valor_por_unidade ? Number(regra.valor || 0) * vendas : Number(regra.valor || 0)),
+    0,
+  )
+
+  const comissao = comissaoFixa + comissaoPercentual + comissaoCategoria + comissaoEquipe
+  const regrasComissaoAplicadas = [
+    regraComissaoAplicada,
+    regraPercentualAplicada,
+    ...Array.from(new Set(vendasValidas.map(venda => venda.tipo_veiculo).filter(Boolean)))
+      .map(tipoVeiculo => regrasCategoria.get(String(tipoVeiculo)))
+      .filter((regra): regra is RemuneracaoRegra => Boolean(regra)),
+    ...regrasEquipeAplicadas,
+  ].filter((regra): regra is RemuneracaoRegra => Boolean(regra))
+
+  const regrasCarreira = selecionarRegraMaisRecentePorNivelCarreira(
+    regrasAtivas.filter((regra) => regra.tipo === 'bonus_carreira'),
+  )
+  const regraCarreiraAplicada = nivelCarreira ? regrasCarreira.get(nivelCarreira) || null : null
+  const bonusCarreira = Number(regraCarreiraAplicada?.valor || 0)
+
+  const bonus = valorBonusIndividual + bonusCarreira
   const total = base + comissao + bonus
-  const regrasAplicadas = [...regrasComissaoAplicadas, regraBonusAplicada].filter(
+  const regrasAplicadas = [...regrasComissaoAplicadas, regraBonusAplicada, regraCarreiraAplicada].filter(
     (regra): regra is RemuneracaoRegra => Boolean(regra),
   )
   const regrasNaoAtingidas = bonusPatamares.filter((patamar) => !patamar.atingido).map((patamar) => patamar.regra)
@@ -271,11 +297,19 @@ export function calcularRemuneracaoEstimada({
       chave: 'bonus',
       label: 'Bônus de meta',
       descricao: regraBonusAplicada
-        ? `Maior patamar atingido: ${percentualMinimo(regraBonusAplicada)}% da meta.`
-        : metaValida
-          ? 'Nenhum patamar de bônus foi atingido.'
-          : 'Bônus não aplicado porque a meta mensal não está cadastrada.',
-      valor: bonus,
+        ? (regraBonusAplicada.unidade_meta_min != null
+            ? `Mínimo individual atingido: ${regraBonusAplicada.unidade_meta_min} carro(s).`
+            : `Maior patamar atingido: ${percentualMinimo(regraBonusAplicada)}% da meta.`)
+        : 'Nenhum patamar de bônus foi atingido.',
+      valor: valorBonusIndividual,
+    },
+    {
+      chave: 'bonus_carreira',
+      label: 'Bônus de carreira',
+      descricao: regraCarreiraAplicada
+        ? `Nível de carreira: ${nivelCarreira}.`
+        : 'Nenhum nível de carreira atribuído.',
+      valor: bonusCarreira,
     },
   ]
 
@@ -293,6 +327,7 @@ export function calcularRemuneracaoEstimada({
     comissaoEquipe,
     comissao,
     bonus,
+    bonusCarreira,
     total,
     vendasConsideradas: vendas,
     faturamentoConsiderado: faturamento,
@@ -318,6 +353,8 @@ export function calcularResumoRemuneracaoVendedor({
   faturamentoProjetado,
   vinculoTipo,
   atingimentoLojaPercentual,
+  carrosVendidosLoja,
+  nivelCarreira,
 }: RemuneracaoResumoVendedorInput): RemuneracaoResumoVendedor {
   const realizadas = Math.max(Number(vendasRealizadas || 0), 0)
   const projetadas = Math.max(Number(vendasProjetadas || 0), realizadas)
@@ -333,6 +370,8 @@ export function calcularResumoRemuneracaoVendedor({
       vendasDetalhadas: vendasDetalhadasRealizadas,
       vinculoTipo,
       atingimentoLojaPercentual,
+      carrosVendidosLoja,
+      nivelCarreira,
     }),
     projetado: calcularRemuneracaoEstimada({
       plano,
@@ -343,6 +382,8 @@ export function calcularResumoRemuneracaoVendedor({
       faturamentoConsiderado: faturamentoProjetado ?? ticketMedio * projetadas,
       vinculoTipo,
       atingimentoLojaPercentual,
+      carrosVendidosLoja,
+      nivelCarreira,
     }),
   }
 }
@@ -351,13 +392,18 @@ function selecionarRegraMaisRecente(regras: RemuneracaoRegra[]): RemuneracaoRegr
   return [...regras].sort(compararRegraMaisRecente)[0] || null
 }
 
+/** Chave de patamar: usa unidade_meta_min quando preenchido, senão percentual_meta_min. */
+function patamarChave(regra: RemuneracaoRegra): number {
+  return regra.unidade_meta_min != null ? Number(regra.unidade_meta_min) : percentualMinimo(regra)
+}
+
 function selecionarBonusMaisRecentePorPatamar(regras: RemuneracaoRegra[]): RemuneracaoRegra[] {
   const porPatamar = new Map<number, RemuneracaoRegra>()
   for (const regra of [...regras].sort(compararRegraMaisRecente)) {
-    const patamar = percentualMinimo(regra)
+    const patamar = patamarChave(regra)
     if (!porPatamar.has(patamar)) porPatamar.set(patamar, regra)
   }
-  return [...porPatamar.values()].sort((a, b) => percentualMinimo(a) - percentualMinimo(b))
+  return [...porPatamar.values()].sort((a, b) => patamarChave(a) - patamarChave(b))
 }
 
 function selecionarRegraMaisRecentePorTipoVeiculo(regras: RemuneracaoRegra[]): Map<string, RemuneracaoRegra> {
@@ -367,6 +413,15 @@ function selecionarRegraMaisRecentePorTipoVeiculo(regras: RemuneracaoRegra[]): M
     if (tipoVeiculo && !porTipo.has(tipoVeiculo)) porTipo.set(tipoVeiculo, regra)
   }
   return porTipo
+}
+
+function selecionarRegraMaisRecentePorNivelCarreira(regras: RemuneracaoRegra[]): Map<string, RemuneracaoRegra> {
+  const porNivel = new Map<string, RemuneracaoRegra>()
+  for (const regra of [...regras].sort(compararRegraMaisRecente)) {
+    const nivel = regra.nivel_carreira
+    if (nivel && !porNivel.has(nivel)) porNivel.set(nivel, regra)
+  }
+  return porNivel
 }
 
 function compararRegraMaisRecente(a: RemuneracaoRegra, b: RemuneracaoRegra): number {
@@ -379,6 +434,31 @@ function compararRegraMaisRecente(a: RemuneracaoRegra, b: RemuneracaoRegra): num
 
 function percentualMinimo(regra: RemuneracaoRegra): number {
   return Math.max(Number(regra.percentual_meta_min || 0), 0)
+}
+
+/** bonus_meta: unidade_meta_min compara contra vendas do próprio vendedor; senão, percentual contra a meta em R$. */
+function atingiuPatamarIndividual(
+  regra: RemuneracaoRegra,
+  { vendas, metaValida, atingimentoPercentual }: { vendas: number; metaValida: boolean; atingimentoPercentual: number },
+): boolean {
+  if (regra.unidade_meta_min != null) return vendas >= Number(regra.unidade_meta_min)
+  return metaValida && atingimentoPercentual >= percentualMinimo(regra)
+}
+
+/** comissao_equipe: unidade_meta_min compara contra carros da loja; senão, percentual contra atingimento da loja. Trava por requer_bonus_individual. */
+function atingiuPatamarEquipe(
+  regra: RemuneracaoRegra,
+  { carrosVendidosLoja, atingimentoLojaPercentual, individualAtingiu }: {
+    carrosVendidosLoja?: number
+    atingimentoLojaPercentual?: number
+    individualAtingiu: boolean
+  },
+): boolean {
+  if (regra.requer_bonus_individual && !individualAtingiu) return false
+  if (regra.unidade_meta_min != null) {
+    return carrosVendidosLoja != null && Number(carrosVendidosLoja) >= Number(regra.unidade_meta_min)
+  }
+  return atingimentoLojaPercentual != null && Number(atingimentoLojaPercentual) >= percentualMinimo(regra)
 }
 
 function formatCurrency(value: number): string {
