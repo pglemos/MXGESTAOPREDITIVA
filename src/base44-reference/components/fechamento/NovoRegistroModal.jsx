@@ -107,11 +107,12 @@ function buildClientePayload(form, tipo, closingDate, agora) {
 
   if (tipo === "agendamento") {
     const dtHora = form.data_hora_agendamento || "";
-    return {
-      ...base,
-      veiculo_interesse: form.veiculo_texto,
-      possui_troca: form.possui_troca === "Sim",
-      interesse_troca: form.possui_troca === "Sim",
+      return {
+        ...base,
+        veiculo_interesse: form.veiculo_texto,
+        valor_negociado: form.valor_negociado || "",
+        possui_troca: form.possui_troca === "Sim",
+        interesse_troca: form.possui_troca === "Sim",
       interesse_financiamento: form.financiamento === "Aprovado",
       status_oportunidade: "Ativa",
       situacao_oportunidade: "Compromisso",
@@ -704,17 +705,28 @@ export default function NovoRegistroModal({ open, onClose, closingDate, dailyClo
   const handleVoltar = () => { setTipo(null); setClienteEncontrado(null); setSaveError(null); };
   const handleClose = () => { setTipo(null); setFormState({}); setClienteEncontrado(null); setSaveError(null); onClose(); };
 
-  const handleSave = async () => {
+  const handleSave = async (event) => {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
     setSaveError(null);
     setSaving(true);
     try {
       const { cliente, isNovo } = await buscarOuCriarCliente({ form, tipo, currentUser, closingDate });
-      await criarEventos({ tipo, form, cliente, currentUser, closingDate, dailyCloseId });
+      await criarEventos({ tipo, form, cliente, currentUser, closingDate, dailyCloseId }).catch((eventErr) => {
+        console.warn("[NovoRegistroModal] Registro principal salvo, mas evento auxiliar falhou:", eventErr);
+      });
       toast({ title: `${tipo.charAt(0).toUpperCase() + tipo.slice(1)} salvo com sucesso.` });
       onSaved && onSaved({ cliente, tipo, isNovo });
       handleClose();
     } catch (err) {
-      setSaveError("Não foi possível salvar. Tente novamente.");
+      console.error("[NovoRegistroModal] Erro ao salvar registro do fechamento:", err);
+      const message = err?.message || "Não foi possível salvar. Tente novamente.";
+      setSaveError(message);
+      toast({
+        title: "Não foi possível salvar.",
+        description: message,
+        variant: "destructive",
+      });
     } finally {
       setSaving(false);
     }
@@ -729,7 +741,7 @@ export default function NovoRegistroModal({ open, onClose, closingDate, dailyClo
         <DialogHeader>
           <DialogTitle className="text-[#0F172A] font-bold text-[17px] flex items-center gap-2">
             {tipo && (
-              <button onClick={handleVoltar} className="p-1 rounded-lg hover:bg-slate-100 transition-colors mr-1">
+              <button type="button" onClick={handleVoltar} className="p-1 rounded-lg hover:bg-slate-100 transition-colors mr-1">
                 <ArrowLeft className="w-4 h-4 text-slate-400" />
               </button>
             )}
@@ -765,11 +777,11 @@ export default function NovoRegistroModal({ open, onClose, closingDate, dailyClo
 
         {tipo && (
           <div className="flex items-center justify-end gap-3 mt-5 pt-4 border-t border-slate-100">
-            <button onClick={handleClose} disabled={saving}
+            <button type="button" onClick={handleClose} disabled={saving}
               className="px-5 py-2.5 text-[13px] font-semibold text-[#64748B] border border-[#E5E7EB] rounded-xl hover:bg-slate-50 transition-colors">
               Cancelar
             </button>
-            <button onClick={handleSave} disabled={!ok || saving}
+            <button type="button" onClick={handleSave} disabled={!ok || saving}
               className="px-6 py-2.5 text-[13px] font-bold text-white bg-[#6D28D9] hover:bg-purple-700 disabled:opacity-50 rounded-xl transition-colors">
               {saving ? "Salvando…" : `Salvar ${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`}
             </button>

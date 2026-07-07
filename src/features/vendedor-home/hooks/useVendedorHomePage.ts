@@ -42,7 +42,7 @@ export function useVendedorHomePage() {
   const { treinamentos, loading: trainingsLoading, refetch: refetchTrainings } = useTrainings()
   const { devolutivas, loading: feedbacksLoading, refetch: refetchFeedbacks } = useFeedbacks()
   const { oportunidades, loading: oportunidadesLoading, refetch: refetchOportunidades } = useOportunidades()
-  const { vinculoTipo, loading: perfilVendedorLoading } = useVendedorPerfil()
+  const { perfil: vendedorPerfil, vinculoTipo, loading: perfilVendedorLoading } = useVendedorPerfil()
   const [isRefetching, setIsRefetching] = useState(false)
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null)
 
@@ -85,7 +85,8 @@ export function useVendedorHomePage() {
     error: remunerationError,
   } = useRemuneracaoEstimadaVendedor({
     lojaId: storeId,
-    cargo: 'Vendedor',
+    planoId: vendedorPerfil.remuneracao_plano_id,
+    cargo: vendedorPerfil.cargo_atual || 'Vendedor',
     vendasRealizadas: metrics?.vendasMes || 0,
     vendasProjetadas: Math.max(metrics?.projecao || 0, metrics?.vendasMes || 0),
     meta: metrics?.meta || 0,

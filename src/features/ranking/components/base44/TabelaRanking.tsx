@@ -36,7 +36,8 @@ export function TabelaRanking({ vendedores, meta, meuId }: Props) {
           <tbody>
             {vendedores.map((v, i) => {
               const isMe = v.id === meuId
-              const pct = meta > 0 ? Math.round((v.vendas / meta) * 100) : 0
+const vendedorMeta = v.meta || meta
+const pct = vendedorMeta > 0 ? Math.round((v.vendas / vendedorMeta) * 100) : 0
               const medal = MEDAL[i] || null
               return (
                 <tr
@@ -66,7 +67,7 @@ export function TabelaRanking({ vendedores, meta, meuId }: Props) {
                   <td className="px-4 py-3">
                     <span className={`text-[14px] font-bold ${isMe ? 'text-blue-600' : 'text-green-600'}`}>{v.vendas}</span>
                   </td>
-                  <td className="px-4 py-3 text-[13px] text-slate-500">{meta}</td>
+<td className="px-4 py-3 text-[13px] text-slate-500">{vendedorMeta}</td>
                   <td className="px-4 py-3">
                     <span className={`text-[14px] font-bold ${pct >= 100 ? 'text-green-600' : pct >= 80 ? 'text-amber-600' : pct >= 50 ? 'text-blue-500' : 'text-red-500'}`}>
                       {pct}%

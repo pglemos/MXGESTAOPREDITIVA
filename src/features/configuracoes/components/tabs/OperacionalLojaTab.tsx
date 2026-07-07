@@ -128,11 +128,16 @@ export function OperacionalLojaTab({ isReadOnly }: TabContext) {
                 <>
                     {/* Políticas operacionais */}
                     <Card className="p-mx-lg md:p-mx-xl border-none shadow-mx-lg bg-white">
-                        <header className="border-b border-border-default pb-mx-md mb-mx-lg">
-                            <Typography variant="h3" className="uppercase tracking-tight">Políticas Operacionais</Typography>
-                            <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black">Regras de negócio mandatárias</Typography>
+                        <header className="border-b border-border-default pb-mx-md mb-mx-lg flex items-center justify-between gap-mx-sm">
+                            <div>
+                                <Typography variant="h3" className="uppercase tracking-tight">Políticas Operacionais</Typography>
+                                <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black">Regras de negócio mandatárias</Typography>
+                            </div>
+                            <Badge variant="outline" className="text-mx-micro font-black uppercase shrink-0">Persistência em breve</Badge>
                         </header>
                         <div className="space-y-mx-md">
+                            {/* Estes 3 toggles ainda não têm coluna correspondente no banco (regras_entrega_loja) —
+                                desabilitados até a persistência real ser implementada, para não fingir que a escolha foi salva. */}
                             {[
                                 { label: 'Diagnóstico detalhado', desc: 'Registro ampliado de eventos operacionais para suporte técnico', field: 'audit_mode' },
                                 { label: 'Fechamento Diário Estrito', desc: 'Bloquear cockpit sem Fechamento Diário obrigatório', field: 'strict_checkin' },
@@ -144,7 +149,7 @@ export function OperacionalLojaTab({ isReadOnly }: TabContext) {
                                     desc={s.desc}
                                     value={Boolean(settings[s.field as keyof typeof settings])}
                                     onChange={() => setSettings(p => ({ ...p, [s.field]: !p[s.field as keyof typeof settings] }))}
-                                    disabled={isReadOnly}
+                                    disabled
                                 />
                             ))}
 
@@ -184,7 +189,8 @@ export function OperacionalLojaTab({ isReadOnly }: TabContext) {
                                         type="time"
                                         value={settings.morning_report_time}
                                         onChange={e => setSettings(p => ({ ...p, morning_report_time: e.target.value }))}
-                                        className="h-mx-xl pl-9 pr-4 bg-white border border-border-default rounded-mx-xl font-mono-numbers font-black text-sm focus:border-brand-primary outline-none"
+                                        disabled
+                                        className="h-mx-xl pl-9 pr-4 bg-white border border-border-default rounded-mx-xl font-mono-numbers font-black text-sm focus:border-brand-primary outline-none disabled:opacity-50"
                                     />
                                 </div>
                             </div>

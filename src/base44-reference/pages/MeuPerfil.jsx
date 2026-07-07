@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,24 +12,122 @@ import { UserCircle, Briefcase, Clock, Target, GraduationCap, DollarSign, Save }
 export default function MeuPerfil() {
   const { toast } = useToast();
   const [profile, setProfile] = useState({
-    full_name: "", phone: "", birth_date: "", dealership: "", brand: "",
-    role: "", experience_years: 0, work_start: "08:00", work_end: "18:00",
-    monthly_goal: 10, commission_per_unit: 500, avg_sales_year: 0,
-    salary_goal: 0, education: "", job_interest: "Não", avatar_url: ""
+    full_name: "",
+    phone: "",
+    birth_date: "",
+    dealership: "",
+    brand: "",
+    role: "",
+    remuneracao_plano_id: "",
+    available_plans: [],
+    experience_years: 0,
+    work_schedule_id: "08:00-18:00",
+    work_schedule_options: [],
+    work_start: "08:00",
+    work_end: "18:00",
+    monthly_goal: 10,
+    commission_per_unit: 500,
+    avg_sales_year: 0,
+    salary_goal: 0,
+    education: "",
+    job_interest: "Não",
+    avatar_url: "",
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profileId, setProfileId] = useState(null);
 
   useEffect(() => {
-    base44.entities.UserProfile.list().then(profiles => {
-      if (profiles[0]) {
-        setProfile(profiles[0]);
-        setProfileId(profiles[0].id);
+    const loadProfile = async () => {
+      try {
+        const profiles = await base44.entities.UserProfile.list().catch(() => []);
+        const legacyProfile = profiles[0] || {};
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Unauthorized");
+
+        const [{ data: usuario }, { data: vendedorPerfil }, { data: vinculos }] = await Promise.all([
+          supabase.from("usuarios").select("name,phone,avatar_url").eq("id", user.id).maybeSingle(),
+          supabase.from("vendedor_perfil").select("*").eq("seller_user_id", user.id).maybeSingle(),
+          supabase.from("vinculos_loja").select("store_id").eq("user_id", user.id).eq("is_active", true).limit(1),
+        ]);
+
+        const storeId = vendedorPerfil?.loja_id || vinculos?.[0]?.store_id || legacyProfile.dealership || "";
+        const workStart = vendedorPerfil?.hora_entrada ? vendedorPerfil.hora_entrada.slice(0, 5) : legacyProfile.work_start || legacyProfile.start_hour || "08:00";
+        const workEnd = vendedorPerfil?.hora_saida ? vendedorPerfil.hora_saida.slice(0, 5) : legacyProfile.work_end || legacyProfile.end_hour || "18:00";
+        const { data: planos } = storeId
+          ? await supabase
+            .from("remuneracao_planos")
+            .select("id,cargo,salario_fixo,salario_variavel,beneficios,vigencia_inicio")
+            .eq("loja_id", storeId)
+            .order("cargo")
+            .order("vigencia_inicio", { ascending: false })
+          : { data: [] };
+        const { data: jornadas } = storeId
+          ? await supabase
+            .from("vendedor_perfil")
+            .select("hora_entrada,hora_saida")
+            .eq("loja_id", storeId)
+            .not("hora_entrada", "is", null)
+            .not("hora_saida", "is", null)
+          : { data: [] };
+
+        const availablePlans = (planos || []).map(plano => ({
+          id: plano.id,
+          cargo: plano.cargo,
+          label: `${plano.cargo} - R$ ${Number(plano.salario_fixo || 0).toLocaleString("pt-BR")} fixo`,
+          salary_goal: Number(plano.salario_fixo || 0) + Number(plano.salario_variavel || 0) + Number(plano.beneficios || 0),
+          commission_per_unit: Number(plano.salario_variavel || 0),
+        }));
+        const selectedPlan = availablePlans.find(plan => plan.id === vendedorPerfil?.remuneracao_plano_id)
+          || availablePlans.find(plan => plan.cargo?.toLowerCase() === vendedorPerfil?.cargo_atual?.toLowerCase())
+          || (availablePlans.length === 1 ? availablePlans[0] : null);
+        const scheduleByKey = new Map();
+        [...(jornadas || []), { hora_entrada: workStart, hora_saida: workEnd }].forEach(jornada => {
+          const start = jornada?.hora_entrada ? jornada.hora_entrada.slice(0, 5) : "";
+          const end = jornada?.hora_saida ? jornada.hora_saida.slice(0, 5) : "";
+          if (!start || !end) return;
+          scheduleByKey.set(`${start}-${end}`, { id: `${start}-${end}`, label: `${start} - ${end}`, work_start: start, work_end: end });
+        });
+
+        setProfile(prev => ({
+          ...prev,
+          ...legacyProfile,
+          id: vendedorPerfil?.id || legacyProfile.id || user.id,
+          full_name: usuario?.name || legacyProfile.full_name || legacyProfile.name || "",
+          phone: usuario?.phone || legacyProfile.phone || "",
+          dealership: storeId,
+          role: selectedPlan?.cargo || vendedorPerfil?.cargo_atual || legacyProfile.role || "Vendedor",
+          remuneracao_plano_id: vendedorPerfil?.remuneracao_plano_id || selectedPlan?.id || "",
+          available_plans: availablePlans,
+          experience_years: vendedorPerfil?.tempo_mercado_anos || legacyProfile.experience_years || 0,
+          work_schedule_id: `${workStart}-${workEnd}`,
+          work_schedule_options: Array.from(scheduleByKey.values()),
+          work_start: workStart,
+          work_end: workEnd,
+          commission_per_unit: selectedPlan?.commission_per_unit ?? legacyProfile.commission_per_unit ?? 500,
+          salary_goal: selectedPlan?.salary_goal ?? vendedorPerfil?.pretensao_min ?? legacyProfile.salary_goal ?? legacyProfile.target_salary ?? 0,
+          job_interest: vendedorPerfil?.carreira_interesse === "disponivel" ? "Disponível para o mercado" : vendedorPerfil?.carreira_interesse === "confidencial" ? "Confidencial" : "Não",
+          avatar_url: usuario?.avatar_url || legacyProfile.avatar_url || "",
+        }));
+        setProfileId(vendedorPerfil?.id || legacyProfile.id || user.id);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }).catch(() => setLoading(false));
+    };
+
+    loadProfile();
   }, []);
+
+  const handlePlanChange = (planId) => {
+    const selectedPlan = profile.available_plans?.find(plan => plan.id === planId);
+    setProfile({
+      ...profile,
+      remuneracao_plano_id: planId,
+      role: selectedPlan?.cargo || profile.role,
+      commission_per_unit: selectedPlan?.commission_per_unit ?? profile.commission_per_unit,
+      salary_goal: selectedPlan?.salary_goal ?? profile.salary_goal,
+    });
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -37,15 +136,59 @@ export default function MeuPerfil() {
     delete data.created_date;
     delete data.updated_date;
     delete data.created_by_id;
+    delete data.available_plans;
+    delete data.work_schedule_options;
+    delete data.work_schedule_id;
 
-    if (profileId) {
-      await base44.entities.UserProfile.update(profileId, data);
-    } else {
-      const created = await base44.entities.UserProfile.create(data);
-      setProfileId(created.id);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Unauthorized");
+      const { data: vinculos } = await supabase
+        .from("vinculos_loja")
+        .select("store_id")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .limit(1);
+      const storeId = data.dealership || vinculos?.[0]?.store_id || null;
+      let selectedPlan = null;
+      if (storeId && data.remuneracao_plano_id) {
+        const { data: plano } = await supabase
+          .from("remuneracao_planos")
+          .select("id,cargo")
+          .eq("loja_id", storeId)
+          .eq("id", data.remuneracao_plano_id)
+          .maybeSingle();
+        selectedPlan = plano;
+      }
+
+      await supabase
+        .from("usuarios")
+        .update({ name: data.full_name, phone: data.phone, avatar_url: data.avatar_url })
+        .eq("id", user.id);
+
+      const { data: savedProfile, error } = await supabase
+        .from("vendedor_perfil")
+        .upsert({
+          seller_user_id: user.id,
+          loja_id: storeId,
+          hora_entrada: data.work_start ? `${data.work_start}:00` : null,
+          hora_saida: data.work_end ? `${data.work_end}:00` : null,
+          tempo_mercado_anos: data.experience_years,
+          cargo_atual: selectedPlan?.cargo || data.role || "Vendedor",
+          remuneracao_plano_id: selectedPlan?.id || data.remuneracao_plano_id || null,
+          carreira_interesse: data.job_interest === "Disponível para o mercado" ? "disponivel" : data.job_interest === "Confidencial" ? "confidencial" : "nao",
+          pretensao_min: data.salary_goal,
+        }, { onConflict: "seller_user_id" })
+        .select()
+        .single();
+      if (error) throw error;
+      setProfileId(savedProfile.id);
+      toast({ title: "Perfil salvo!", description: "Suas informações foram atualizadas." });
+    } catch (e) {
+      toast({ title: "Erro ao salvar perfil", variant: "destructive" });
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    toast({ title: "Perfil salvo!", description: "Suas informações foram atualizadas." });
   };
 
   if (loading) {
@@ -111,7 +254,20 @@ export default function MeuPerfil() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <Field label="Cargo">
-                <Input value={profile.role} onChange={e => setProfile({ ...profile, role: e.target.value })} className="rounded-xl" />
+                {profile.available_plans?.length > 0 ? (
+                  <Select value={profile.remuneracao_plano_id || ""} onValueChange={handlePlanChange}>
+                    <SelectTrigger className="rounded-xl">
+                      <SelectValue placeholder={profile.role || "Selecione"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {profile.available_plans.map(plan => (
+                        <SelectItem key={plan.id} value={plan.id}>{plan.cargo}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input value={profile.role} onChange={e => setProfile({ ...profile, role: e.target.value })} className="rounded-xl" />
+                )}
               </Field>
               <Field label="Anos de Experiência">
                 <Input type="number" value={profile.experience_years} onChange={e => setProfile({ ...profile, experience_years: parseInt(e.target.value) || 0 })} className="rounded-xl" />
@@ -124,10 +280,20 @@ export default function MeuPerfil() {
         <Section title="Horário de Trabalho" icon={Clock}>
           <div className="grid grid-cols-2 gap-4">
             <Field label="Início do Expediente">
-              <Input type="time" value={profile.work_start} onChange={e => setProfile({ ...profile, work_start: e.target.value })} className="rounded-xl" />
+              <Input list="work-start-options" type="time" value={profile.work_start} onChange={e => setProfile({ ...profile, work_start: e.target.value })} className="rounded-xl" />
+              <datalist id="work-start-options">
+                {profile.work_schedule_options?.map(option => (
+                  <option key={option.id} value={option.work_start}>{option.label}</option>
+                ))}
+              </datalist>
             </Field>
             <Field label="Fim do Expediente">
-              <Input type="time" value={profile.work_end} onChange={e => setProfile({ ...profile, work_end: e.target.value })} className="rounded-xl" />
+              <Input list="work-end-options" type="time" value={profile.work_end} onChange={e => setProfile({ ...profile, work_end: e.target.value })} className="rounded-xl" />
+              <datalist id="work-end-options">
+                {profile.work_schedule_options?.map(option => (
+                  <option key={option.id} value={option.work_end}>{option.label}</option>
+                ))}
+              </datalist>
             </Field>
           </div>
         </Section>

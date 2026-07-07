@@ -40,6 +40,7 @@ export type VendedorPerfil = {
   tempo_mercado_anos: number | null
   experiencia_declarada: VendedorExperienciaDeclarada | null
   cargo_atual: string | null
+  remuneracao_plano_id: string | null
   vinculo_tipo: VendedorVinculoTipo | null
   mix_canal_internet_pct: number | null
   mix_canal_carteira_pct: number | null
@@ -64,6 +65,7 @@ const DEFAULT_PERFIL: VendedorPerfil = {
   carreira_interesse: 'nao', pretensao_min: null, pretensao_max: null,
   cargos_interesse: null, cidades_interesse: null,
   tempo_mercado_anos: null, experiencia_declarada: null, cargo_atual: null,
+  remuneracao_plano_id: null,
   vinculo_tipo: null,
   mix_canal_internet_pct: null, mix_canal_carteira_pct: null, mix_canal_porta_pct: null,
 }
@@ -99,6 +101,7 @@ export function useVendedorPerfil() {
         cargos_interesse: data.cargos_interesse, cidades_interesse: data.cidades_interesse,
         tempo_mercado_anos: data.tempo_mercado_anos, experiencia_declarada: data.experiencia_declarada,
         cargo_atual: data.cargo_atual,
+        remuneracao_plano_id: data.remuneracao_plano_id || null,
         vinculo_tipo: data.vinculo_tipo,
         mix_canal_internet_pct: data.mix_canal_internet_pct,
         mix_canal_carteira_pct: data.mix_canal_carteira_pct,
@@ -145,6 +148,7 @@ export function useVendedorPerfil() {
       tempo_mercado_anos: merged.tempo_mercado_anos ?? null,
       experiencia_declarada: merged.experiencia_declarada || null,
       cargo_atual: merged.cargo_atual?.trim() || null,
+      remuneracao_plano_id: merged.remuneracao_plano_id || null,
       vinculo_tipo: mergedVinculoTipo,
       mix_canal_internet_pct: merged.mix_canal_internet_pct ?? null,
       mix_canal_carteira_pct: merged.mix_canal_carteira_pct ?? null,
@@ -154,10 +158,11 @@ export function useVendedorPerfil() {
       .from('vendedor_perfil')
       .upsert(nextPayload, { onConflict: 'seller_user_id' })
     let { error: upErr } = await upsertPerfil(payload)
-    if (isVendedorPerfilNotificationSchemaError(upErr)) {
+    if (isVendedorPerfilNotificationSchemaError(upErr) || upErr?.message?.includes('remuneracao_plano_id')) {
       const {
         fechar_dia_notificacao_ativa: _fecharDiaNotificacaoAtiva,
         fechar_dia_notificacao_hora: _fecharDiaNotificacaoHora,
+        remuneracao_plano_id: _remuneracaoPlanoId,
         ...legacyPayload
       } = payload
       ;({ error: upErr } = await upsertPerfil(legacyPayload))

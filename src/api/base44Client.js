@@ -36,6 +36,33 @@ function sortRows(rows, order) {
   });
 }
 
+function toCrmCanal(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (normalized === 'showroom') return 'showroom';
+  if (normalized === 'internet') return 'internet';
+  if (normalized === 'porta') return 'porta';
+  return 'carteira';
+}
+
+function toCrmFinanciamento(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (normalized === 'aprovado') return 'aprovado';
+  if (normalized === 'recusado') return 'recusado';
+  return 'nao_aplica';
+}
+
+function toNumberValue(value) {
+  if (typeof value === 'number') return value;
+  const raw = String(value || '').trim();
+  if (!raw) return 0;
+  const normalized = raw
+    .replace(/[^\d,.-]/g, '')
+    .replace(/\./g, '')
+    .replace(',', '.');
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 // LocalStorage helpers for virtual tables
 const getLocal = (key, userId = '') => {
   const raw = localStorage.getItem(`mx_b44_${key}`);
@@ -170,38 +197,120 @@ export const base44 = {
   },
 
   entities: {
-    UserProfile: {
-      list: async () => {
-        const me = await base44.auth.me();
-        const { data: perf } = await supabase
-          .from('vendedor_perfil')
+      UserProfile: {
+        list: async () => {
+          const me = await base44.auth.me();
+          const { data: perf } = await supabase
+            .from('vendedor_perfil')
           .select('*')
-          .eq('seller_user_id', me.id)
-          .maybeSingle();
+            .eq('seller_user_id', me.id)
+            .maybeSingle();
 
-        return [{
-          id: perf?.id || me.id,
-          full_name: me.full_name,
-          phone: me.phone,
-          birth_date: '',
-          dealership: perf?.loja_id || '',
-          brand: '',
-          role: perf?.cargo_atual || 'Vendedor',
-          experience_years: perf?.tempo_mercado_anos || 0,
-          work_start: perf?.hora_entrada ? perf.hora_entrada.slice(0, 5) : '08:00',
-          work_end: perf?.hora_saida ? perf.hora_saida.slice(0, 5) : '18:00',
-          monthly_goal: 10,
-          commission_per_unit: 500,
-          avg_sales_year: 0,
-          salary_goal: perf?.pretensao_min || 0,
-          education: '',
-          job_interest: perf?.carreira_interesse === 'disponivel' ? 'Disponível para o mercado' : perf?.carreira_interesse === 'confidencial' ? 'Confidencial' : 'Não',
-          avatar_url: me.avatar_url
-        }];
+          const { data: vinculos } = await supabase
+            .from('vinculos_loja')
+            .select('store_id')
+            .eq('user_id', me.id)
+            .eq('is_active', true)
+            .limit(1);
+
+          const storeId = perf?.loja_id || vinculos?.[0]?.store_id || null;
+          const [{ data: planos }, { data: jornadas }] = await Promise.all([
+            storeId
+              ? supabase
+                .from('remuneracao_planos')
+                .select('id,cargo,salario_fixo,salario_variavel,beneficios,vigencia_inicio')
+                .eq('loja_id', storeId)
+                .order('cargo')
+                .order('vigencia_inicio', { ascending: false })
+              : { data: [] },
+            storeId
+              ? supabase
+                .from('vendedor_perfil')
+                .select('hora_entrada,hora_saida')
+                .eq('loja_id', storeId)
+                .not('hora_entrada', 'is', null)
+                .not('hora_saida', 'is', null)
+              : { data: [] },
+          ]);
+
+          const currentWorkStart = perf?.hora_entrada ? perf.hora_entrada.slice(0, 5) : '08:00';
+          const currentWorkEnd = perf?.hora_saida ? perf.hora_saida.slice(0, 5) : '18:00';
+          const scheduleByKey = new Map();
+          [...(jornadas || []), { hora_entrada: currentWorkStart, hora_saida: currentWorkEnd }].forEach((jornada) => {
+            const workStart = jornada?.hora_entrada ? jornada.hora_entrada.slice(0, 5) : '';
+            const workEnd = jornada?.hora_saida ? jornada.hora_saida.slice(0, 5) : '';
+            if (!workStart || !workEnd) return;
+            const key = `${workStart}-${workEnd}`;
+            scheduleByKey.set(key, { id: key, label: `${workStart} - ${workEnd}`, work_start: workStart, work_end: workEnd });
+          });
+
+          const availablePlans = (planos || []).map((plano) => ({
+            id: plano.id,
+            cargo: plano.cargo,
+            label: `${plano.cargo} - R$ ${Number(plano.salario_fixo || 0).toLocaleString('pt-BR')} fixo`,
+            salary_goal: Number(plano.salario_fixo || 0) + Number(plano.salario_variavel || 0) + Number(plano.beneficios || 0),
+            commission_per_unit: Number(plano.salario_variavel || 0),
+          }));
+          const selectedPlan = availablePlans.find((plano) => plano.id === perf?.remuneracao_plano_id)
+            || availablePlans.find((plano) => plano.cargo?.toLowerCase() === perf?.cargo_atual?.toLowerCase());
+
+          return [{
+            id: perf?.id || me.id,
+            full_name: me.full_name,
+            phone: me.phone,
+            birth_date: '',
+            dealership: storeId || '',
+            brand: '',
+            role: selectedPlan?.cargo || perf?.cargo_atual || 'Vendedor',
+            remuneracao_plano_id: perf?.remuneracao_plano_id || selectedPlan?.id || '',
+            available_plans: availablePlans,
+            experience_years: perf?.tempo_mercado_anos || 0,
+            work_schedule_id: `${currentWorkStart}-${currentWorkEnd}`,
+            work_schedule_options: Array.from(scheduleByKey.values()),
+            work_start: currentWorkStart,
+            work_end: currentWorkEnd,
+            monthly_goal: 10,
+            commission_per_unit: selectedPlan?.commission_per_unit || 500,
+            avg_sales_year: 0,
+            salary_goal: selectedPlan?.salary_goal || perf?.pretensao_min || 0,
+            education: '',
+            job_interest: perf?.carreira_interesse === 'disponivel' ? 'Disponível para o mercado' : perf?.carreira_interesse === 'confidencial' ? 'Confidencial' : 'Não',
+            avatar_url: me.avatar_url
+          }];
       },
-      update: async (id, data) => {
-        const me = await base44.auth.me();
-        
+        update: async (id, data) => {
+          const me = await base44.auth.me();
+          const { data: vinculos } = await supabase
+            .from('vinculos_loja')
+          .select('store_id')
+          .eq('user_id', me.id)
+            .eq('is_active', true)
+            .limit(1);
+          const storeId = data.dealership || vinculos?.[0]?.store_id || null;
+          const cargoAtual = data.role || 'Vendedor';
+          let plano = null;
+          if (storeId && data.remuneracao_plano_id) {
+            const { data: selectedPlano } = await supabase
+              .from('remuneracao_planos')
+              .select('id,cargo')
+              .eq('loja_id', storeId)
+              .eq('id', data.remuneracao_plano_id)
+              .maybeSingle();
+            plano = selectedPlano;
+          }
+          if (!plano && storeId) {
+            const { data: matchedPlano } = await supabase
+              .from('remuneracao_planos')
+              .select('id,cargo')
+              .eq('loja_id', storeId)
+              .ilike('cargo', cargoAtual)
+              .lte('vigencia_inicio', new Date().toISOString().slice(0, 10))
+              .order('vigencia_inicio', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            plano = matchedPlano;
+          }
+
         // Update usuarios
         if (data.full_name || data.phone || data.avatar_url) {
           await supabase.from('usuarios').update({
@@ -214,19 +323,33 @@ export const base44 = {
         // Update vendedor_perfil
         const profilePayload = {
           seller_user_id: me.id,
+          loja_id: storeId,
           hora_entrada: data.work_start ? `${data.work_start}:00` : null,
           hora_saida: data.work_end ? `${data.work_end}:00` : null,
           tempo_mercado_anos: data.experience_years,
-          cargo_atual: data.role,
+          cargo_atual: plano?.cargo || cargoAtual,
+          remuneracao_plano_id: plano?.id || null,
           carreira_interesse: data.job_interest === 'Disponível para o mercado' ? 'disponivel' : data.job_interest === 'Confidencial' ? 'confidencial' : 'nao',
           pretensao_min: data.salary_goal,
         };
 
-        const { data: upserted } = await supabase
+        let { data: upserted, error: upsertError } = await supabase
           .from('vendedor_perfil')
           .upsert(profilePayload, { onConflict: 'seller_user_id' })
           .select()
           .single();
+
+        if (upsertError?.message?.includes('remuneracao_plano_id')) {
+          const { remuneracao_plano_id: _remuneracaoPlanoId, ...legacyPayload } = profilePayload;
+          const retry = await supabase
+            .from('vendedor_perfil')
+            .upsert(legacyPayload, { onConflict: 'seller_user_id' })
+            .select()
+            .single();
+          upserted = retry.data;
+          upsertError = retry.error;
+        }
+        if (upsertError) throw upsertError;
 
         return upserted;
       },
@@ -305,11 +428,35 @@ export const base44 = {
           .rpc('submit_checkin', { p_payload: payload });
 
         if (error) throw error;
+        if (created?.ok === false) {
+          throw new Error(created.error || 'Não foi possível registrar o fechamento diário.');
+        }
         return created;
       },
       update: async (id, data) => {
-        // Map updates to submit_checkin
-        return base44.entities.DailyClose.create({ ...data, id });
+        const me = await base44.auth.me();
+        const { data: existing, error } = await supabase
+          .from('lancamentos_diarios')
+          .select('*')
+          .eq('id', id)
+          .eq('seller_user_id', me.id)
+          .maybeSingle();
+
+        if (error) throw error;
+        if (!existing) throw new Error('Fechamento diário não encontrado.');
+
+        return base44.entities.DailyClose.create({
+          date: existing.reference_date || existing.date,
+          leads_carteira: existing.leads_prev_day ?? existing.leads ?? 0,
+          atendimentos_showroom: existing.visit_prev_day ?? existing.visitas ?? 0,
+          atendimentos_carteira: existing.vnd_cart_prev_day ?? existing.vnd_cart ?? 0,
+          atendimentos_internet: existing.vnd_net_prev_day ?? existing.vnd_net ?? 0,
+          agendamentos_carteira: existing.agd_cart_today ?? existing.agd_cart_prev_day ?? existing.agd_cart ?? 0,
+          agendamentos_internet: existing.agd_net_today ?? existing.agd_net_prev_day ?? existing.agd_net ?? 0,
+          observacao_geral: existing.note || '',
+          ...data,
+          id,
+        });
       }
     },
 
@@ -379,12 +526,14 @@ export const base44 = {
           .limit(1);
         const storeId = vinculos?.[0]?.store_id;
 
+        const canalOrigem = toCrmCanal(data.canal_comercial || data.canal_entrada);
+
         const { data: client, error: clErr } = await supabase
           .from('clientes')
           .insert({
             nome: data.nome,
             telefone: data.telefone || data.whatsapp || '',
-            canal_origem: data.canal_comercial || 'Carteira',
+            canal_origem: canalOrigem,
             status: data.ativo === false ? 'inativo' : 'oportunidade',
             loja_id: storeId,
             seller_user_id: me.id,
@@ -400,12 +549,12 @@ export const base44 = {
           .insert({
             cliente_id: client.id,
             veiculo_interesse: data.veiculo_interesse || '',
-            valor_negociado: data.valor_negociado || 0,
+            valor_negociado: toNumberValue(data.valor_negociado),
             etapa: data.status_comercial === 'Vendido' ? 'ganho' : data.status_comercial === 'Perdido' ? 'perdido' : 'prospeccao',
             loja_id: storeId,
             seller_user_id: me.id,
-            sinal: data.sinal || 0,
-            financiamento: data.financiamento || 'nao_aplica',
+            sinal: toNumberValue(data.sinal),
+            financiamento: toCrmFinanciamento(data.financiamento),
             carro_avaliado: data.carro_avaliado === 'Sim'
           })
           .select()
@@ -414,15 +563,18 @@ export const base44 = {
         if (opErr) throw opErr;
 
         if (data.visita_agendada_em) {
-          await supabase.from('agendamentos').insert({
+          const { error: agErr } = await supabase.from('agendamentos').insert({
             cliente_id: client.id,
             oportunidade_id: op.id,
             data_hora: data.visita_agendada_em,
             loja_id: storeId,
             seller_user_id: me.id,
             tipo: 'visita',
-            status: 'confirmado'
+            status: 'confirmado',
+            proxima_acao: data.modalidade || 'Visita agendada',
+            observacoes: data.observacoes || data.observacao || data.origem_detalhada || ''
           });
+          if (agErr) throw agErr;
         }
 
         return { ...data, id: client.id };
@@ -444,14 +596,14 @@ export const base44 = {
         // Update opportunity
         const opPayload = {};
         if (data.veiculo_interesse !== undefined) opPayload.veiculo_interesse = data.veiculo_interesse;
-        if (data.valor_negociado !== undefined) opPayload.valor_negociado = data.valor_negociado;
+        if (data.valor_negociado !== undefined) opPayload.valor_negociado = toNumberValue(data.valor_negociado);
         if (data.status_comercial !== undefined) {
           opPayload.etapa = data.status_comercial === 'Vendido' ? 'ganho' : data.status_comercial === 'Perdido' ? 'perdido' : 'prospeccao';
           if (data.status_comercial === 'Vendido') opPayload.closed_at = new Date().toISOString();
         }
         if (data.situacao_atual !== undefined) opPayload.etapa = data.situacao_atual;
-        if (data.sinal !== undefined) opPayload.sinal = data.sinal;
-        if (data.financiamento !== undefined) opPayload.financiamento = data.financiamento;
+        if (data.sinal !== undefined) opPayload.sinal = toNumberValue(data.sinal);
+        if (data.financiamento !== undefined) opPayload.financiamento = toCrmFinanciamento(data.financiamento);
         if (data.carro_avaliado !== undefined) opPayload.carro_avaliado = data.carro_avaliado === 'Sim';
 
         if (Object.keys(opPayload).length > 0) {

@@ -166,11 +166,16 @@ export default function OperationalSettings() {
 
                 <section className="lg:col-span-8">
                     <Card className="p-mx-lg md:p-14 md:p-14 border-none shadow-mx-xl bg-white space-y-mx-xl">
-                        <header className="border-b border-border-default pb-8">
-                            <Typography variant="h2" className="uppercase tracking-tighter">Políticas Operacionais</Typography>
-                            <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black font-black">REGRAS DE NEGÓCIO MANDATÁRIAS</Typography>
+                        <header className="border-b border-border-default pb-8 flex items-center justify-between gap-mx-sm">
+                            <div>
+                                <Typography variant="h2" className="uppercase tracking-tighter">Políticas Operacionais</Typography>
+                                <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black font-black">REGRAS DE NEGÓCIO MANDATÁRIAS</Typography>
+                            </div>
+                            <Badge variant="outline" className="text-mx-micro font-black uppercase shrink-0">Persistência em breve</Badge>
                         </header>
 
+                        {/* Estes 3 toggles + horário ainda não têm coluna correspondente no banco (regras_entrega_loja) —
+                            desabilitados até a persistência real ser implementada, para não fingir que a escolha foi salva. */}
                         <div className="space-y-mx-10" role="group" aria-label="Lista de políticas operacionais">
                             {[
                                 { label: 'Diagnóstico detalhado', desc: 'Habilitar registro ampliado de eventos operacionais para suporte técnico', field: 'audit_mode' },
@@ -182,9 +187,10 @@ export default function OperationalSettings() {
                                         <Typography variant="h3" className="text-base group-hover:text-brand-primary transition-colors uppercase tracking-tight font-black">{s.label}</Typography>
                                         <Typography variant="caption" tone="muted" className="text-mx-tiny font-black uppercase opacity-60">{s.desc}</Typography>
                                     </div>
-                                    <Button 
+                                    <Button
                                         variant={settings[s.field as keyof typeof settings] ? 'secondary' : 'outline'}
                                         onClick={() => setSettings(p => ({ ...p, [s.field]: !p[s.field as keyof typeof settings] }))}
+                                        disabled
                                         className="w-mx-3xl h-mx-xl rounded-mx-full font-black text-mx-tiny shadow-sm bg-white"
                                         aria-pressed={!!settings[s.field as keyof typeof settings]}
                                     >
@@ -224,11 +230,12 @@ export default function OperationalSettings() {
                                 <div className="relative">
                                     <History size={14} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" aria-hidden="true" />
                                     <label htmlFor="morning-time" className="sr-only">Escolher horário limite</label>
-                                    <input aria-label="Escolher horário limite" 
+                                    <input aria-label="Escolher horário limite"
                                         id="morning-time"
-                                        type="time" value={settings.morning_report_time} 
+                                        type="time" value={settings.morning_report_time}
                                         onChange={e => setSettings(p => ({ ...p, morning_report_time: e.target.value }))}
-                                        className="h-mx-xl pl-10 pr-6 bg-white border border-border-default rounded-mx-xl font-mono-numbers font-black text-sm text-text-primary focus:border-brand-primary outline-none shadow-mx-inner transition-all"
+                                        disabled
+                                        className="h-mx-xl pl-10 pr-6 bg-white border border-border-default rounded-mx-xl font-mono-numbers font-black text-sm text-text-primary focus:border-brand-primary outline-none shadow-mx-inner transition-all disabled:opacity-50"
                                     />
                                 </div>
                             </div>

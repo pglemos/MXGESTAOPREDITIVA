@@ -304,9 +304,7 @@ export default function App() {
             <Route path="vendedor/treinamentos" element={<RedirectWithSearch to="/treinamentos" />} />
             <Route path="universidade-mx" element={<RedirectWithSearch to="/treinamentos" />} />
             <Route path="vendedor/universidade-mx" element={<RedirectWithSearch to="/treinamentos" />} />
-            <Route path="vendedor/configuracoes" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<VendedorConfiguracoes />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
-            </Suspense>} />
+            <Route path="vendedor/configuracoes" element={<RedirectWithSearch to="/configuracoes" />} />
             <Route path="funil-vendas" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<ForbiddenRoute />} gerente={<FunilVendasGerente />} dono={<FunilVendasGerente />} admin={<ForbiddenRoute />} />
             </Suspense>} />

@@ -116,6 +116,7 @@ export function useRegrasRemuneracao(lojaId: string | null) {
 
 export function useRemuneracaoEstimadaVendedor(params: {
   lojaId: string | null
+  planoId?: string | null
   cargo?: string
   vendasRealizadas: number
   vendasProjetadas: number
@@ -144,15 +145,21 @@ export function useRemuneracaoEstimadaVendedor(params: {
       setLoading(true)
       setError(null)
       const today = new Date().toISOString().slice(0, 10)
-      const [planosRes, regrasRes] = await Promise.all([
-        supabase
-          .from('remuneracao_planos')
-          .select('*')
-          .eq('loja_id', params.lojaId)
-          .ilike('cargo', cargo)
+      let planosQuery = supabase
+        .from('remuneracao_planos')
+        .select('*')
+        .eq('loja_id', params.lojaId)
+
+      planosQuery = params.planoId
+        ? planosQuery.eq('id', params.planoId).limit(1)
+        : planosQuery
           .lte('vigencia_inicio', today)
           .order('vigencia_inicio', { ascending: false })
-          .limit(1),
+          .limit(1)
+          .ilike('cargo', cargo)
+
+      const [planosRes, regrasRes] = await Promise.all([
+        planosQuery,
         supabase
           .from('remuneracao_regras')
           .select('*')
@@ -176,7 +183,7 @@ export function useRemuneracaoEstimadaVendedor(params: {
       setLoading(false)
     })()
     return () => { alive = false }
-  }, [cargo, params.lojaId])
+  }, [cargo, params.lojaId, params.planoId])
 
   const resumo = useMemo(() => calcularResumoRemuneracaoVendedor({
     plano,

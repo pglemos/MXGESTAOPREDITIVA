@@ -9116,6 +9116,7 @@ export type Database = {
           objetivo_medio: string | null
           pretensao_max: number | null
           pretensao_min: number | null
+          remuneracao_plano_id: string | null
           seller_user_id: string
           tempo_mercado_anos: number | null
           updated_at: string
@@ -9148,6 +9149,7 @@ export type Database = {
           objetivo_medio?: string | null
           pretensao_max?: number | null
           pretensao_min?: number | null
+          remuneracao_plano_id?: string | null
           seller_user_id: string
           tempo_mercado_anos?: number | null
           updated_at?: string
@@ -9180,6 +9182,7 @@ export type Database = {
           objetivo_medio?: string | null
           pretensao_max?: number | null
           pretensao_min?: number | null
+          remuneracao_plano_id?: string | null
           seller_user_id?: string
           tempo_mercado_anos?: number | null
           updated_at?: string
@@ -9187,6 +9190,13 @@ export type Database = {
           vinculo_tipo?: Database["public"]["Enums"]["vendedor_vinculo_tipo"]
         }
         Relationships: [
+          {
+            foreignKeyName: "vendedor_perfil_remuneracao_plano_id_fkey"
+            columns: ["remuneracao_plano_id"]
+            isOneToOne: false
+            referencedRelation: "remuneracao_planos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "vendedor_perfil_loja_id_fkey"
             columns: ["loja_id"]

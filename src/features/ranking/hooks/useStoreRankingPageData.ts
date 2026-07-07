@@ -45,6 +45,7 @@ export type RankedVendedor = {
   unidade?: string
   vendas: number
   meta: number
+  planoRemuneracao?: string | null
 }
 
 /**
@@ -83,7 +84,8 @@ export function useStoreRankingPageData() {
         foto: r.avatar_url,
         unidade: r.store_name,
         vendas: r.vnd_total,
-        meta: metaPeriodo || r.meta,
+      meta: r.meta || metaPeriodo,
+      planoRemuneracao: r.remuneracao_plano_cargo,
       }))
       .sort((a, b) => (b.vendas !== a.vendas ? b.vendas - a.vendas : a.nome.localeCompare(b.nome)))
   }, [ranking, metaPeriodo])

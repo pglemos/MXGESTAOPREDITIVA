@@ -108,7 +108,7 @@ const sellerSections: SellerLayoutNavSection[] = [
   {
     label: 'SISTEMA',
     items: [
-      { label: 'Configurações', path: '/configuracoes', icon: Settings, activePaths: ['/configuracoes', '/vendedor/configuracoes'] },
+      { label: 'Configurações', path: '/configuracoes', icon: Settings, activePaths: ['/configuracoes'] },
     ],
   },
 ]

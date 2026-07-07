@@ -214,7 +214,7 @@ const navConfig: Record<string, NavCategory[]> = {
       category: 'CONTA', icon: <User size={22} />,
       items: [
         { label: 'Meu Perfil', path: '/perfil', icon: <User size={16} /> },
-        { label: 'Configurações', path: '/vendedor/configuracoes', icon: <Settings size={16} /> },
+        { label: 'Configurações', path: '/configuracoes', icon: <Settings size={16} /> },
       ]
     }
   ]
@@ -303,7 +303,7 @@ export default function Layout() {
       avatarUrl={profile.avatar_url}
       navSections={sidebarSections}
       onSignOut={signOut}
-      settingsPath={role === 'vendedor' ? '/vendedor/configuracoes' : '/configuracoes'}
+      settingsPath="/configuracoes"
       sidebarLabel={`Menu principal do ${perfilVisivel}`}
       isSimulating={isSimulating}
       simulationLabel={simulationRole ? rotulosPerfil[simulationRole] : 'MX'}
