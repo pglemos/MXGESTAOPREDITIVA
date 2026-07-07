@@ -34,6 +34,7 @@ export default function NovaAtividadeModal({ open, onClose, clients, onCriada, v
   const [telefone, setTelefone] = useState("");
   const [clienteEncontrado, setClienteEncontrado] = useState(null);
   const [naoEncontrado, setNaoEncontrado] = useState(false);
+  const [nomeManual, setNomeManual] = useState("");
   const [form, setForm] = useState({
     data: moment().format("YYYY-MM-DD"),
     hora: moment().format("HH:mm"),
@@ -49,6 +50,7 @@ export default function NovaAtividadeModal({ open, onClose, clients, onCriada, v
     setTelefone("");
     setClienteEncontrado(null);
     setNaoEncontrado(false);
+    setNomeManual("");
     setForm({ data: moment().format("YYYY-MM-DD"), hora: moment().format("HH:mm"), prioridade: 5, descricao: "", veiculo: "" });
   };
 
@@ -93,7 +95,7 @@ export default function NovaAtividadeModal({ open, onClose, clients, onCriada, v
         prioridade: form.prioridade,
         status: "Pendente",
         telefone_snapshot: clienteEncontrado?.phone || telefone,
-        nome_cliente_snapshot: clienteEncontrado?.name || (telefone ? "Cliente avulso" : "Atividade interna"),
+        nome_cliente_snapshot: clienteEncontrado?.name || nomeManual.trim() || (telefone ? "Cliente avulso" : "Atividade interna"),
         veiculo_snapshot: form.veiculo || clienteEncontrado?.vehicle_sought || "",
         criado_automaticamente: false,
         ativo: true,
@@ -103,12 +105,12 @@ export default function NovaAtividadeModal({ open, onClose, clients, onCriada, v
       handleClose();
     } catch (e) {
       console.error(e);
-      toast({ title: "Erro ao criar. Tente novamente." });
+      toast({ title: "Não foi possível criar a atividade.", description: e?.message || "Tente novamente." });
     }
     setSaving(false);
   };
 
-  const podesSalvar = tipo && form.data && form.hora;
+  const podesSalvar = tipo && form.data && form.hora && (!!clienteEncontrado || !naoEncontrado || nomeManual.trim().length > 0);
 
   return (
     <Dialog open={open} onOpenChange={v => { if (!saving) handleClose(); }}>
@@ -162,13 +164,24 @@ export default function NovaAtividadeModal({ open, onClose, clients, onCriada, v
                 </div>
               )}
               {naoEncontrado && (
-                <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl">
-                  <UserX className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[12px] font-semibold text-amber-800">Cliente não encontrado.</p>
-                    <Link to="/carteira" onClick={handleClose} className="text-[11px] text-[#005BFF] underline">
-                      Abrir Carteira de Clientes para cadastrar
-                    </Link>
+                <div className="mt-2 space-y-2">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl">
+                    <UserX className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[12px] font-semibold text-amber-800">Cliente não encontrado.</p>
+                      <Link to="/carteira" onClick={handleClose} className="text-[11px] text-[#005BFF] underline">
+                        Abrir Carteira de Clientes para cadastrar depois
+                      </Link>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Nome do cliente</label>
+                    <Input
+                      value={nomeManual}
+                      onChange={e => setNomeManual(e.target.value)}
+                      placeholder="Nome de quem você vai atender"
+                      className="mt-1.5"
+                    />
                   </div>
                 </div>
               )}
