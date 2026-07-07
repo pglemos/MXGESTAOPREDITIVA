@@ -1428,7 +1428,8 @@ function ProximaOportunidadeModal({
 }) {
   if (!open) return null
 
-  const modoAtaqueAceito = typeof window !== 'undefined' && sessionStorage.getItem(MODO_ATAQUE_ACEITO_KEY) === 'true'
+  const session = typeof window !== 'undefined' ? window.sessionStorage : null
+  const modoAtaqueAceito = session?.getItem(MODO_ATAQUE_ACEITO_KEY) === 'true'
 
   const overlay = (children: ReactNode) => (
     <div className="fixed inset-0 z-[220] grid place-items-center bg-black/40 p-4 backdrop-blur-[2px]" role="dialog" aria-modal="true" onClick={onVoltarCarteira}>
