@@ -171,8 +171,8 @@ export default function GerenteTreinamentos() {
     }, [teamProgress, searchTerm])
 
     if (isLoading && !isRefetching) return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg bg-surface-alt animate-in fade-in duration-500">
-            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg bg-surface-alt animate-in fade-in duration-500">
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-mx-lg">
                 <div className="space-y-mx-xs">
                     <div className="h-mx-10 w-mx-64 bg-border-default rounded animate-pulse" />
                     <div className="h-mx-xs w-mx-48 bg-border-default rounded animate-pulse" />
@@ -190,9 +190,9 @@ export default function GerenteTreinamentos() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
-            <header className="flex flex-col xl:flex-row xl:items-end justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
+            <header className="flex flex-col xl:flex-row xl:items-end justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
                 <div className="flex flex-col gap-mx-tiny min-w-0">
                     <div className="flex items-center gap-mx-sm">
                         <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" />

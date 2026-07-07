@@ -327,9 +327,9 @@ export default function App() {
             </Suspense>} />
             <Route path="ranking" element={<Suspense fallback={<Spinner />}><Ranking /></Suspense>} />
             <Route path="classificacao" element={<Suspense fallback={<Spinner />}><Ranking /></Suspense>} />
-<Route path="treinamentos" element={<Suspense fallback={<Spinner />}>
-<RoleSwitch vendedor={<VendedorTreinamentos />} gerente={<GerenteTreinamentos />} dono={<GerenteTreinamentos />} admin={<ConsultorTreinamentos />} />
-</Suspense>} />
+            <Route path="treinamentos" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={withLegacyShell(<VendedorTreinamentos />)} gerente={<GerenteTreinamentos />} dono={<GerenteTreinamentos />} admin={<ConsultorTreinamentos />} />
+            </Suspense>} />
 <Route path="desenvolvimento" element={<Suspense fallback={<Spinner />}>
 <RoleSwitch vendedor={<VendedorDesenvolvimento />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
 </Suspense>} />
@@ -340,7 +340,7 @@ export default function App() {
               <RoleSwitch vendedor={<Notificacoes />} gerente={<Notificacoes />} dono={<Notificacoes />} admin={<Notificacoes />} />
             </Suspense>} />
             <Route path="perfil" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<MeuPerfilVendedor />} gerente={<Perfil />} dono={<Perfil />} admin={<Perfil />} />
+              <RoleSwitch vendedor={withLegacyShell(<MeuPerfilVendedor />)} gerente={<Perfil />} dono={<Perfil />} admin={<Perfil />} />
             </Suspense>} />
             <Route path="meu-perfil" element={<RedirectWithSearch to="/perfil" />} />
             <Route path="meu-perfil-vendedor" element={<RedirectWithSearch to="/perfil" />} />
