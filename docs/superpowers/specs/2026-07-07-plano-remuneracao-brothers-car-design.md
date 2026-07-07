@@ -77,14 +77,13 @@ Todas as colunas novas são opcionais/têm default — zero impacto em planos/re
 - `remuneracao_planos`: sobrescrever a linha existente → `salario_fixo=1500, salario_variavel=0, beneficios=0`.
 - `remuneracao_regras` (todas `ativo=true`, `vigencia_inicio` = hoje):
   - `comissao_por_venda`, `valor=500`
-  - `bonus_meta`, `percentual_meta_min=100`, `valor=1000`
+  - `bonus_meta`, `unidade_meta_min=8`, `valor=1000`
   - `comissao_equipe`, `unidade_meta_min=35`, `cumulativo=true`, `valor_por_unidade=true`, `valor=100`, `requer_bonus_individual=true`
   - `comissao_equipe`, `unidade_meta_min=40`, `cumulativo=true`, `valor=1000`, `requer_bonus_individual=true`
   - `comissao_equipe`, `unidade_meta_min=45`, `cumulativo=true`, `valor=1000`, `requer_bonus_individual=true`
   - `comissao_equipe`, `unidade_meta_min=50`, `cumulativo=true`, `valor=1000`, `requer_bonus_individual=true`
   - `bonus_carreira`, `nivel_carreira='pleno'`, `valor=800`
   - `bonus_carreira`, `nivel_carreira='lider'`, `valor=800`
-- Meta individual mensal (carros) dos 4 vendedores = 8 (via tabela de metas por vendedor já existente — não `store_meta_rules`, que é em R$).
 - `vendedor_nivel_carreira` (uma linha por vendedor):
   - `vendedor@mxgestaopreditiva.com.br` → `lider`
   - `mari.vendedor@mxgestaopreditiva.com.br` → `pleno`
