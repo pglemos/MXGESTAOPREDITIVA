@@ -2226,6 +2226,53 @@ export type Database = {
           },
         ]
       }
+      d1_audit_log: {
+        Row: {
+          cliente_id: string | null
+          created_at: string
+          data_hora_alteracao: string
+          fechamento_id: string | null
+          id: string
+          tipo_alteracao: string
+          usuario_id: string
+          usuario_nome: string | null
+          valor_anterior: string | null
+          valor_novo: string | null
+        }
+        Insert: {
+          cliente_id?: string | null
+          created_at?: string
+          data_hora_alteracao?: string
+          fechamento_id?: string | null
+          id?: string
+          tipo_alteracao: string
+          usuario_id: string
+          usuario_nome?: string | null
+          valor_anterior?: string | null
+          valor_novo?: string | null
+        }
+        Update: {
+          cliente_id?: string | null
+          created_at?: string
+          data_hora_alteracao?: string
+          fechamento_id?: string | null
+          id?: string
+          tipo_alteracao?: string
+          usuario_id?: string
+          usuario_nome?: string | null
+          valor_anterior?: string | null
+          valor_novo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "d1_audit_log_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_lead_volumes: {
         Row: {
           agency_id: string | null
@@ -4445,6 +4492,8 @@ export type Database = {
           finalizado_apos_prazo: boolean
           id: string
           leads: number
+          leads_net: number
+          leads_net_prev_day: number
           leads_prev_day: number
           liberado_por_id: string | null
           liberado_por_nome: string | null
@@ -4488,6 +4537,8 @@ export type Database = {
           finalizado_apos_prazo?: boolean
           id?: string
           leads?: number
+          leads_net?: number
+          leads_net_prev_day?: number
           leads_prev_day?: number
           liberado_por_id?: string | null
           liberado_por_nome?: string | null
@@ -4531,6 +4582,8 @@ export type Database = {
           finalizado_apos_prazo?: boolean
           id?: string
           leads?: number
+          leads_net?: number
+          leads_net_prev_day?: number
           leads_prev_day?: number
           liberado_por_id?: string | null
           liberado_por_nome?: string | null
@@ -7404,6 +7457,99 @@ export type Database = {
           {
             foreignKeyName: "store_meta_rules_updated_by_fkey"
             columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      regularizacao_fechamento: {
+        Row: {
+          agendamentos_carteira: number
+          agendamentos_internet: number
+          atendimentos_carteira: number
+          atendimentos_internet: number
+          atendimentos_showroom: number
+          contabilizar_no_sistema: boolean
+          created_at: string
+          data_competencia: string
+          data_hora_envio: string
+          enviado_para_aprovacao: boolean
+          id: string
+          leads_carteira: number
+          leads_internet: number
+          loja_id: string
+          motivo_recusa: string | null
+          pontuacao_disciplina_calculada: number | null
+          pontuacao_disciplina_com_penalizacao: number | null
+          regularizado_fora_do_prazo: boolean
+          status_solicitacao: string
+          tipo_solicitacao: string
+          updated_at: string
+          vendedor_id: string
+          vendedor_nome: string | null
+        }
+        Insert: {
+          agendamentos_carteira?: number
+          agendamentos_internet?: number
+          atendimentos_carteira?: number
+          atendimentos_internet?: number
+          atendimentos_showroom?: number
+          contabilizar_no_sistema?: boolean
+          created_at?: string
+          data_competencia: string
+          data_hora_envio?: string
+          enviado_para_aprovacao?: boolean
+          id?: string
+          leads_carteira?: number
+          leads_internet?: number
+          loja_id: string
+          motivo_recusa?: string | null
+          pontuacao_disciplina_calculada?: number | null
+          pontuacao_disciplina_com_penalizacao?: number | null
+          regularizado_fora_do_prazo?: boolean
+          status_solicitacao?: string
+          tipo_solicitacao?: string
+          updated_at?: string
+          vendedor_id: string
+          vendedor_nome?: string | null
+        }
+        Update: {
+          agendamentos_carteira?: number
+          agendamentos_internet?: number
+          atendimentos_carteira?: number
+          atendimentos_internet?: number
+          atendimentos_showroom?: number
+          contabilizar_no_sistema?: boolean
+          created_at?: string
+          data_competencia?: string
+          data_hora_envio?: string
+          enviado_para_aprovacao?: boolean
+          id?: string
+          leads_carteira?: number
+          leads_internet?: number
+          loja_id?: string
+          motivo_recusa?: string | null
+          pontuacao_disciplina_calculada?: number | null
+          pontuacao_disciplina_com_penalizacao?: number | null
+          regularizado_fora_do_prazo?: boolean
+          status_solicitacao?: string
+          tipo_solicitacao?: string
+          updated_at?: string
+          vendedor_id?: string
+          vendedor_nome?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "regularizacao_fechamento_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "regularizacao_fechamento_vendedor_id_fkey"
+            columns: ["vendedor_id"]
             isOneToOne: false
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
@@ -10302,6 +10448,8 @@ export type Database = {
           finalizado_apos_prazo: boolean
           id: string
           leads: number
+          leads_net: number
+          leads_net_prev_day: number
           leads_prev_day: number
           liberado_por_id: string | null
           liberado_por_nome: string | null
@@ -10359,6 +10507,8 @@ export type Database = {
           finalizado_apos_prazo: boolean
           id: string
           leads: number
+          leads_net: number
+          leads_net_prev_day: number
           leads_prev_day: number
           liberado_por_id: string | null
           liberado_por_nome: string | null
@@ -10417,6 +10567,8 @@ export type Database = {
           finalizado_apos_prazo: boolean
           id: string
           leads: number
+          leads_net: number
+          leads_net_prev_day: number
           leads_prev_day: number
           liberado_por_id: string | null
           liberado_por_nome: string | null
@@ -10469,6 +10621,8 @@ export type Database = {
           finalizado_apos_prazo: boolean
           id: string
           leads: number
+          leads_net: number
+          leads_net_prev_day: number
           leads_prev_day: number
           liberado_por_id: string | null
           liberado_por_nome: string | null
@@ -10521,6 +10675,8 @@ export type Database = {
           finalizado_apos_prazo: boolean
           id: string
           leads: number
+          leads_net: number
+          leads_net_prev_day: number
           leads_prev_day: number
           liberado_por_id: string | null
           liberado_por_nome: string | null
