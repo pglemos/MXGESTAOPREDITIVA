@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import moment from 'moment';
+import { resolveStoreId } from './resolveStoreId';
 
 // Helper to filter items in Javascript (MongoDB-like selector)
 function matchQuery(row, filter) {
@@ -392,14 +393,7 @@ export const base44 = {
       create: async (data) => {
         const me = await base44.auth.me();
         
-        // Fetch active store for vendor
-        const { data: vinculos } = await supabase
-          .from('vinculos_loja')
-          .select('store_id')
-          .eq('user_id', me.id)
-          .eq('is_active', true)
-          .limit(1);
-        const storeId = vinculos?.[0]?.store_id;
+        const storeId = await resolveStoreId(supabase, me.id);
 
         const payload = {
           metric_scope: 'daily',
@@ -517,14 +511,7 @@ export const base44 = {
       create: async (data) => {
         const me = await base44.auth.me();
         
-        // Fetch active store for vendor
-        const { data: vinculos } = await supabase
-          .from('vinculos_loja')
-          .select('store_id')
-          .eq('user_id', me.id)
-          .eq('is_active', true)
-          .limit(1);
-        const storeId = vinculos?.[0]?.store_id;
+        const storeId = await resolveStoreId(supabase, me.id);
 
         const canalOrigem = toCrmCanal(data.canal_comercial || data.canal_entrada);
 
@@ -1421,13 +1408,7 @@ export const base44 = {
       create: async (data) => {
         const me = await base44.auth.me();
         
-        const { data: vinculos } = await supabase
-          .from('vinculos_loja')
-          .select('store_id')
-          .eq('user_id', me.id)
-          .eq('is_active', true)
-          .limit(1);
-        const storeId = vinculos?.[0]?.store_id;
+        const storeId = await resolveStoreId(supabase, me.id);
 
         const payload = {
           cliente_id: data.cliente_id,
