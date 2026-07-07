@@ -2,7 +2,8 @@ import { useCallback, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { useAuth } from '@/hooks/useAuth'
 import { useCheckins } from '@/hooks/useCheckins'
-import { useGoals } from '@/hooks/useGoals'
+import { useGoals, useStoreMetaRules } from '@/hooks/useGoals'
+import { useStoreSales } from '@/hooks/useStoreSales'
 import { useRanking } from '@/hooks/useRanking'
 import { useFeedbacks, useTrainings } from '@/hooks/useData'
 import { useTacticalPrescription } from '@/hooks/useTacticalPrescription'
@@ -13,6 +14,7 @@ import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
 import { useVendedorPerfil } from '@/features/crm/hooks/useVendedorPerfil'
 import {
   useRemuneracaoEstimadaVendedor,
+  useMeuNivelCarreira,
   type RemuneracaoVenda,
 } from '@/features/remuneracao/hooks/useRemuneracao'
 
@@ -39,6 +41,9 @@ export function useVendedorHomePage() {
     fetchGoals: refetchGoals,
   } = useGoals()
   const { ranking, loading: rankingLoading, refetch: refetchRanking } = useRanking()
+  const { metaRules } = useStoreMetaRules(storeId || undefined)
+  const storeSales = useStoreSales({ checkins, ranking, rules: metaRules })
+  const { nivel: nivelCarreira } = useMeuNivelCarreira(profile?.id || null)
   const { treinamentos, loading: trainingsLoading, refetch: refetchTrainings } = useTrainings()
   const { devolutivas, loading: feedbacksLoading, refetch: refetchFeedbacks } = useFeedbacks()
   const { oportunidades, loading: oportunidadesLoading, refetch: refetchOportunidades } = useOportunidades()
@@ -93,6 +98,8 @@ export function useVendedorHomePage() {
     vendasDetalhadasRealizadas: vendasDetalhadasRemuneracao,
     vinculoTipo,
     atingimentoLojaPercentual: metrics?.atingimento || 0,
+    carrosVendidosLoja: storeSales.storeTotalVendas,
+    nivelCarreira,
   })
 
   const referenceDateLabel = useMemo(() => {
