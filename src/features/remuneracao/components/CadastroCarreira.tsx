@@ -1,0 +1,82 @@
+import { useState } from 'react'
+import { toast } from 'sonner'
+import { useTeam } from '@/hooks/useTeam'
+import { Typography } from '@/components/atoms/Typography'
+import { Button } from '@/components/atoms/Button'
+import { EmptyState } from '@/components/atoms/EmptyState'
+import { useVendedoresNivelCarreira, type NivelCarreira } from '../hooks/useRemuneracao'
+
+const NIVEL_LABEL: Record<NivelCarreira, string> = {
+  junior: 'Júnior',
+  pleno: 'Pleno',
+  lider: 'Líder',
+}
+
+export function CadastroCarreira({ lojaId }: { lojaId: string }) {
+  const { sellers, loading: sellersLoading } = useTeam(lojaId)
+  const { niveis, loading: niveisLoading, error, salvarNivel } = useVendedoresNivelCarreira(lojaId)
+  const [savingId, setSavingId] = useState<string | null>(null)
+
+  const vendedores = sellers.filter(seller => seller.role === 'vendedor')
+
+  const handleChange = async (sellerUserId: string, nivel: NivelCarreira) => {
+    setSavingId(sellerUserId)
+    const { error } = await salvarNivel(sellerUserId, nivel)
+    setSavingId(null)
+    if (error) toast.error(error)
+    else toast.success('Nível de carreira atualizado.')
+  }
+
+  const loading = sellersLoading || niveisLoading
+
+  return (
+    <div className="space-y-mx-lg">
+      <div>
+        <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">
+          Nível de carreira
+        </Typography>
+        <Typography variant="tiny" tone="muted" className="mt-1">
+          Mérito atribuído por dono/gerente (tempo de casa, comportamento, volume). Libera o bônus de carreira do plano.
+        </Typography>
+      </div>
+
+      {error && <p className="text-sm font-bold text-status-error">Erro ao carregar: {error}</p>}
+
+      {loading ? (
+        <p className="text-sm font-bold text-text-tertiary">Carregando vendedores…</p>
+      ) : vendedores.length === 0 ? (
+        <EmptyState title="Nenhum vendedor nesta loja" description="Cadastre vendedores em Equipe & Usuários primeiro." />
+      ) : (
+        <div className="overflow-x-auto rounded-mx-xl border border-border-default">
+          <table className="w-full text-sm">
+            <thead className="bg-surface-alt text-text-secondary">
+              <tr className="text-left uppercase tracking-widest text-xs font-black">
+                <th className="px-mx-md py-mx-sm">Vendedor</th>
+                <th className="px-mx-md py-mx-sm">Nível</th>
+              </tr>
+            </thead>
+            <tbody>
+              {vendedores.map(vendedor => (
+                <tr key={vendedor.id} className="border-t border-border-default">
+                  <td className="px-mx-md py-mx-sm font-black">{vendedor.name}</td>
+                  <td className="px-mx-md py-mx-sm">
+                    <select
+                      value={niveis[vendedor.id] || 'junior'}
+                      disabled={savingId === vendedor.id}
+                      onChange={e => handleChange(vendedor.id, e.target.value as NivelCarreira)}
+                      className="h-mx-12 px-mx-sm bg-white border border-border-default rounded-mx-xl font-black uppercase text-xs focus:outline-none focus:border-brand-primary appearance-none cursor-pointer"
+                    >
+                      {(Object.keys(NIVEL_LABEL) as NivelCarreira[]).map(nivel => (
+                        <option key={nivel} value={nivel}>{NIVEL_LABEL[nivel]}</option>
+                      ))}
+                    </select>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}

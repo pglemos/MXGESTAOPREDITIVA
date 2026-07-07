@@ -5,14 +5,16 @@ import { TabNav, type TabNavItem } from '@/components/molecules/TabNav'
 import { EmptyState } from '@/components/atoms/EmptyState'
 import { CadastroPlanos } from './components/CadastroPlanos'
 import { CadastroRegras } from './components/CadastroRegras'
+import { CadastroCarreira } from './components/CadastroCarreira'
 import { ComparativoMercado } from './components/ComparativoMercado'
 import { useLojasDoUsuario } from './hooks/useRemuneracao'
 
-type TabKey = 'cadastro' | 'regras' | 'comparativo'
+type TabKey = 'cadastro' | 'regras' | 'carreira' | 'comparativo'
 
 const TABS: TabNavItem<TabKey>[] = [
   { key: 'cadastro', label: 'Plano atual' },
   { key: 'regras', label: 'Regras e bônus' },
+  { key: 'carreira', label: 'Nível de carreira' },
   { key: 'comparativo', label: 'Comparativo de mercado' },
 ]
 
@@ -56,6 +58,7 @@ export default function RemuneracaoPage() {
 <section id={`${tab}-panel`} role="tabpanel" aria-labelledby={`${tab}-tab`}>
 {tab === 'cadastro' && <CadastroPlanos lojaId={lojaSelecionada} />}
 {tab === 'regras' && <CadastroRegras lojaId={lojaSelecionada} />}
+{tab === 'carreira' && <CadastroCarreira lojaId={lojaSelecionada} />}
 {tab === 'comparativo' && <ComparativoMercado lojaId={lojaSelecionada} />}
 </section>
 </>
