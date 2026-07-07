@@ -171,6 +171,13 @@ export type Database = {
             foreignKeyName: "agendamentos_oportunidade_id_fkey"
             columns: ["oportunidade_id"]
             isOneToOne: false
+            referencedRelation: "clientes_oportunidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agendamentos_oportunidade_id_fkey"
+            columns: ["oportunidade_id"]
+            isOneToOne: false
             referencedRelation: "oportunidades"
             referencedColumns: ["id"]
           },
@@ -1599,6 +1606,7 @@ export type Database = {
           seller_user_id: string
           status: Database["public"]["Enums"]["crm_cliente_status"]
           telefone: string | null
+          telefone_normalizado: string | null
           ultima_interacao: string | null
           updated_at: string
           updated_by: string | null
@@ -1618,6 +1626,7 @@ export type Database = {
           seller_user_id: string
           status?: Database["public"]["Enums"]["crm_cliente_status"]
           telefone?: string | null
+          telefone_normalizado?: string | null
           ultima_interacao?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -1637,6 +1646,7 @@ export type Database = {
           seller_user_id?: string
           status?: Database["public"]["Enums"]["crm_cliente_status"]
           telefone?: string | null
+          telefone_normalizado?: string | null
           ultima_interacao?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -3308,6 +3318,103 @@ export type Database = {
             columns: ["visita_id"]
             isOneToOne: false
             referencedRelation: "visitas_consultoria"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eventos_comerciais: {
+        Row: {
+          agendamento_id: string | null
+          canal: Database["public"]["Enums"]["crm_canal"] | null
+          cliente_id: string
+          created_at: string
+          data_evento: string
+          id: string
+          loja_id: string
+          modalidade:
+            | Database["public"]["Enums"]["crm_evento_modalidade"]
+            | null
+          observacao: string | null
+          oportunidade_id: string | null
+          origem_modulo: string
+          seller_user_id: string
+          tipo_evento: Database["public"]["Enums"]["crm_evento_tipo"]
+        }
+        Insert: {
+          agendamento_id?: string | null
+          canal?: Database["public"]["Enums"]["crm_canal"] | null
+          cliente_id: string
+          created_at?: string
+          data_evento?: string
+          id?: string
+          loja_id: string
+          modalidade?:
+            | Database["public"]["Enums"]["crm_evento_modalidade"]
+            | null
+          observacao?: string | null
+          oportunidade_id?: string | null
+          origem_modulo?: string
+          seller_user_id: string
+          tipo_evento: Database["public"]["Enums"]["crm_evento_tipo"]
+        }
+        Update: {
+          agendamento_id?: string | null
+          canal?: Database["public"]["Enums"]["crm_canal"] | null
+          cliente_id?: string
+          created_at?: string
+          data_evento?: string
+          id?: string
+          loja_id?: string
+          modalidade?:
+            | Database["public"]["Enums"]["crm_evento_modalidade"]
+            | null
+          observacao?: string | null
+          oportunidade_id?: string | null
+          origem_modulo?: string
+          seller_user_id?: string
+          tipo_evento?: Database["public"]["Enums"]["crm_evento_tipo"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eventos_comerciais_agendamento_id_fkey"
+            columns: ["agendamento_id"]
+            isOneToOne: false
+            referencedRelation: "agendamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_comerciais_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_comerciais_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_comerciais_oportunidade_id_fkey"
+            columns: ["oportunidade_id"]
+            isOneToOne: false
+            referencedRelation: "clientes_oportunidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_comerciais_oportunidade_id_fkey"
+            columns: ["oportunidade_id"]
+            isOneToOne: false
+            referencedRelation: "oportunidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_comerciais_seller_user_id_fkey"
+            columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -5554,11 +5661,13 @@ export type Database = {
           cliente_id: string
           closed_at: string | null
           created_at: string
+          data_entrega_prevista: string | null
           etapa: Database["public"]["Enums"]["crm_etapa_funil"]
           financiamento: Database["public"]["Enums"]["crm_financiamento"]
           id: string
           loja_id: string
           motivo_perda: string | null
+          placa_veiculo: string | null
           seller_user_id: string
           sinal: number
           tipo_veiculo: Database["public"]["Enums"]["crm_tipo_veiculo"] | null
@@ -5573,11 +5682,13 @@ export type Database = {
           cliente_id: string
           closed_at?: string | null
           created_at?: string
+          data_entrega_prevista?: string | null
           etapa?: Database["public"]["Enums"]["crm_etapa_funil"]
           financiamento?: Database["public"]["Enums"]["crm_financiamento"]
           id?: string
           loja_id: string
           motivo_perda?: string | null
+          placa_veiculo?: string | null
           seller_user_id: string
           sinal?: number
           tipo_veiculo?: Database["public"]["Enums"]["crm_tipo_veiculo"] | null
@@ -5592,11 +5703,13 @@ export type Database = {
           cliente_id?: string
           closed_at?: string | null
           created_at?: string
+          data_entrega_prevista?: string | null
           etapa?: Database["public"]["Enums"]["crm_etapa_funil"]
           financiamento?: Database["public"]["Enums"]["crm_financiamento"]
           id?: string
           loja_id?: string
           motivo_perda?: string | null
+          placa_veiculo?: string | null
           seller_user_id?: string
           sinal?: number
           tipo_veiculo?: Database["public"]["Enums"]["crm_tipo_veiculo"] | null
@@ -7464,14 +7577,19 @@ export type Database = {
           cargo: string
           created_at: string
           created_by: string | null
+          cumulativo: boolean
           id: string
           loja_id: string
+          nivel_carreira: string | null
           observacoes: string | null
           percentual_meta_min: number | null
+          requer_bonus_individual: boolean
           tipo: Database["public"]["Enums"]["remuneracao_regra_tipo"]
           tipo_veiculo: string | null
+          unidade_meta_min: number | null
           updated_at: string
           valor: number
+          valor_por_unidade: boolean
           vigencia_inicio: string
         }
         Insert: {
@@ -7479,14 +7597,19 @@ export type Database = {
           cargo: string
           created_at?: string
           created_by?: string | null
+          cumulativo?: boolean
           id?: string
           loja_id: string
+          nivel_carreira?: string | null
           observacoes?: string | null
           percentual_meta_min?: number | null
+          requer_bonus_individual?: boolean
           tipo: Database["public"]["Enums"]["remuneracao_regra_tipo"]
           tipo_veiculo?: string | null
+          unidade_meta_min?: number | null
           updated_at?: string
           valor?: number
+          valor_por_unidade?: boolean
           vigencia_inicio?: string
         }
         Update: {
@@ -7494,14 +7617,19 @@ export type Database = {
           cargo?: string
           created_at?: string
           created_by?: string | null
+          cumulativo?: boolean
           id?: string
           loja_id?: string
+          nivel_carreira?: string | null
           observacoes?: string | null
           percentual_meta_min?: number | null
+          requer_bonus_individual?: boolean
           tipo?: Database["public"]["Enums"]["remuneracao_regra_tipo"]
           tipo_veiculo?: string | null
+          unidade_meta_min?: number | null
           updated_at?: string
           valor?: number
+          valor_por_unidade?: boolean
           vigencia_inicio?: string
         }
         Relationships: [
@@ -9089,6 +9217,121 @@ export type Database = {
           },
         ]
       }
+      veiculos_estoque: {
+        Row: {
+          ano: string | null
+          created_at: string
+          created_by: string
+          data_entrada: string
+          id: string
+          loja_id: string
+          marca: string
+          modelo: string
+          observacao: string | null
+          preco: number | null
+          status: string
+          updated_at: string
+          versao: string | null
+        }
+        Insert: {
+          ano?: string | null
+          created_at?: string
+          created_by: string
+          data_entrada?: string
+          id?: string
+          loja_id: string
+          marca: string
+          modelo: string
+          observacao?: string | null
+          preco?: number | null
+          status?: string
+          updated_at?: string
+          versao?: string | null
+        }
+        Update: {
+          ano?: string | null
+          created_at?: string
+          created_by?: string
+          data_entrada?: string
+          id?: string
+          loja_id?: string
+          marca?: string
+          modelo?: string
+          observacao?: string | null
+          preco?: number | null
+          status?: string
+          updated_at?: string
+          versao?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "veiculos_estoque_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "veiculos_estoque_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendedor_nivel_carreira: {
+        Row: {
+          created_at: string
+          id: string
+          loja_id: string | null
+          nivel_carreira: string
+          seller_user_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          loja_id?: string | null
+          nivel_carreira?: string
+          seller_user_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          loja_id?: string | null
+          nivel_carreira?: string
+          seller_user_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendedor_nivel_carreira_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendedor_nivel_carreira_seller_user_id_fkey"
+            columns: ["seller_user_id"]
+            isOneToOne: true
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendedor_nivel_carreira_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendedor_perfil: {
         Row: {
           cargo_atual: string | null
@@ -9191,17 +9434,17 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "vendedor_perfil_remuneracao_plano_id_fkey"
-            columns: ["remuneracao_plano_id"]
-            isOneToOne: false
-            referencedRelation: "remuneracao_planos"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "vendedor_perfil_loja_id_fkey"
             columns: ["loja_id"]
             isOneToOne: false
             referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendedor_perfil_remuneracao_plano_id_fkey"
+            columns: ["remuneracao_plano_id"]
+            isOneToOne: false
+            referencedRelation: "remuneracao_planos"
             referencedColumns: ["id"]
           },
           {
@@ -9467,6 +9710,73 @@ export type Database = {
       }
     }
     Views: {
+      clientes_oportunidades: {
+        Row: {
+          canal: Database["public"]["Enums"]["crm_canal"] | null
+          cliente_id: string | null
+          created_at: string | null
+          data_venda: string | null
+          etapa: Database["public"]["Enums"]["crm_etapa_funil"] | null
+          id: string | null
+          loja_id: string | null
+          seller_user_id: string | null
+          status_oportunidade: string | null
+          updated_at: string | null
+          valor_negociado: number | null
+          vendido: boolean | null
+        }
+        Insert: {
+          canal?: Database["public"]["Enums"]["crm_canal"] | null
+          cliente_id?: string | null
+          created_at?: string | null
+          data_venda?: string | null
+          etapa?: Database["public"]["Enums"]["crm_etapa_funil"] | null
+          id?: string | null
+          loja_id?: string | null
+          seller_user_id?: string | null
+          status_oportunidade?: never
+          updated_at?: string | null
+          valor_negociado?: number | null
+          vendido?: never
+        }
+        Update: {
+          canal?: Database["public"]["Enums"]["crm_canal"] | null
+          cliente_id?: string | null
+          created_at?: string | null
+          data_venda?: string | null
+          etapa?: Database["public"]["Enums"]["crm_etapa_funil"] | null
+          id?: string | null
+          loja_id?: string | null
+          seller_user_id?: string | null
+          status_oportunidade?: never
+          updated_at?: string | null
+          valor_negociado?: number | null
+          vendido?: never
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oportunidades_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oportunidades_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oportunidades_seller_user_id_fkey"
+            columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       indice_felicidade_agregado: {
         Row: {
           ciclo: string | null
@@ -9836,6 +10146,10 @@ export type Database = {
           rule_code: string
           solucao_id: string
         }[]
+      }
+      contar_vendedores_ativos_loja: {
+        Args: { p_store_id: string }
+        Returns: number
       }
       create_pdi_session_bundle: { Args: { p_payload: Json }; Returns: string }
       criar_plano_acao: {
@@ -10608,6 +10922,8 @@ export type Database = {
         | "test_drive"
         | "entrega"
         | "negociacao"
+        | "garantia"
+        | "pos_venda"
       crm_canal: "carteira" | "internet" | "showroom" | "porta"
       crm_cliente_status:
         | "oportunidade"
@@ -10623,6 +10939,21 @@ export type Database = {
         | "fechamento"
         | "ganho"
         | "perdido"
+      crm_evento_modalidade:
+        | "visita_loja"
+        | "atendimento_externo"
+        | "videochamada"
+      crm_evento_tipo:
+        | "oportunidade_registrada"
+        | "cliente_qualificado"
+        | "agendamento_criado"
+        | "atendimento_comercial_realizado"
+        | "venda_realizada"
+        | "proposta_enviada"
+        | "retorno_realizado"
+        | "entrega_realizada"
+        | "garantia_registrada"
+        | "pos_venda_realizado"
       crm_financiamento: "aprovado" | "reprovado" | "nao_aplica" | "pendente"
       crm_relacionamento: "excelente" | "bom" | "neutro" | "ruim" | "critico"
       crm_tipo_veiculo: "carro" | "moto" | "caminhao"
@@ -10648,6 +10979,7 @@ export type Database = {
         | "percentual_faturamento"
         | "comissao_categoria"
         | "comissao_equipe"
+        | "bonus_carreira"
       score_band: "elite" | "excellent" | "good" | "attention" | "critical"
       score_dimension: "resultado" | "processo" | "disciplina"
       score_scope_type: "store" | "department" | "individual" | "process"
@@ -10820,6 +11152,8 @@ export const Constants = {
         "test_drive",
         "entrega",
         "negociacao",
+        "garantia",
+        "pos_venda",
       ],
       crm_canal: ["carteira", "internet", "showroom", "porta"],
       crm_cliente_status: [
@@ -10837,6 +11171,23 @@ export const Constants = {
         "fechamento",
         "ganho",
         "perdido",
+      ],
+      crm_evento_modalidade: [
+        "visita_loja",
+        "atendimento_externo",
+        "videochamada",
+      ],
+      crm_evento_tipo: [
+        "oportunidade_registrada",
+        "cliente_qualificado",
+        "agendamento_criado",
+        "atendimento_comercial_realizado",
+        "venda_realizada",
+        "proposta_enviada",
+        "retorno_realizado",
+        "entrega_realizada",
+        "garantia_registrada",
+        "pos_venda_realizado",
       ],
       crm_financiamento: ["aprovado", "reprovado", "nao_aplica", "pendente"],
       crm_relacionamento: ["excelente", "bom", "neutro", "ruim", "critico"],
@@ -10866,6 +11217,7 @@ export const Constants = {
         "percentual_faturamento",
         "comissao_categoria",
         "comissao_equipe",
+        "bonus_carreira",
       ],
       score_band: ["elite", "excellent", "good", "attention", "critical"],
       score_dimension: ["resultado", "processo", "disciplina"],
