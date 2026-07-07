@@ -952,23 +952,90 @@ export const base44 = {
 
     RegularizacaoFechamento: {
       filter: async (filter) => {
-        const items = getLocal('RegularizacaoFechamento');
-        return items.filter(r => matchQuery(r, filter));
+        const me = await base44.auth.me();
+        const { data: rows, error } = await supabase
+          .from('regularizacao_fechamento')
+          .select('*')
+          .eq('vendedor_id', me.id);
+        if (error) { console.error('Error fetching regularizacoes:', error); return []; }
+        return (rows || []).filter(r => matchQuery(r, filter));
       },
       create: async (data) => {
-        const items = getLocal('RegularizacaoFechamento');
-        const newItem = { id: Math.random().toString(36).slice(2), ...data, status_solicitacao: 'Solicitado', created_date: new Date().toISOString() };
-        setLocal('RegularizacaoFechamento', [...items, newItem]);
-        return newItem;
+        const me = await base44.auth.me();
+        const storeId = await resolveStoreId(supabase, me.id);
+        if (!storeId) throw new Error('Você não possui vínculo ativo com nenhuma loja.');
+
+        const { data: created, error } = await supabase
+          .from('regularizacao_fechamento')
+          .insert({
+            loja_id: storeId,
+            vendedor_id: me.id,
+            vendedor_nome: data.vendedor_nome || me.full_name || '',
+            data_competencia: data.data_competencia,
+            data_hora_envio: data.data_hora_envio || new Date().toISOString(),
+            status_solicitacao: 'Pendente',
+            tipo_solicitacao: data.tipo_solicitacao || 'Regularização de Fechamento',
+            contabilizar_no_sistema: data.contabilizar_no_sistema ?? false,
+            regularizado_fora_do_prazo: data.regularizado_fora_do_prazo ?? true,
+            enviado_para_aprovacao: data.enviado_para_aprovacao ?? true,
+            pontuacao_disciplina_calculada: data.pontuacao_disciplina_calculada ?? null,
+            pontuacao_disciplina_com_penalizacao: data.pontuacao_disciplina_com_penalizacao ?? null,
+            leads_carteira: data.leads_carteira || 0,
+            leads_internet: data.leads_internet || 0,
+            atendimentos_showroom: data.atendimentos_showroom || 0,
+            atendimentos_carteira: data.atendimentos_carteira || 0,
+            atendimentos_internet: data.atendimentos_internet || 0,
+            agendamentos_carteira: data.agendamentos_carteira || 0,
+            agendamentos_internet: data.agendamentos_internet || 0,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        return created;
+      },
+      update: async (id, data) => {
+        const payload = {};
+        ['leads_carteira', 'leads_internet', 'atendimentos_showroom', 'atendimentos_carteira',
+         'atendimentos_internet', 'agendamentos_carteira', 'agendamentos_internet',
+         'pontuacao_disciplina_calculada', 'pontuacao_disciplina_com_penalizacao',
+         'data_hora_envio', 'status_solicitacao', 'motivo_recusa'].forEach(key => {
+          if (data[key] !== undefined) payload[key] = data[key];
+        });
+        // Reenvio após recusa volta para "Pendente"
+        if (data.status_solicitacao === undefined) payload.status_solicitacao = 'Pendente';
+
+        const { data: updated, error } = await supabase
+          .from('regularizacao_fechamento')
+          .update(payload)
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return updated;
       }
     },
 
     D1AuditLog: {
       create: async (data) => {
-        const items = getLocal('D1AuditLog');
-        const newItem = { id: Math.random().toString(36).slice(2), ...data, created_date: new Date().toISOString() };
-        setLocal('D1AuditLog', [...items, newItem]);
-        return newItem;
+        const { data: created, error } = await supabase
+          .from('d1_audit_log')
+          .insert({
+            usuario_id: data.usuario_id,
+            usuario_nome: data.usuario_nome || '',
+            fechamento_id: data.fechamento_id || null,
+            cliente_id: data.cliente_id || '',
+            data_hora_alteracao: data.data_hora_alteracao || new Date().toISOString(),
+            tipo_alteracao: data.tipo_alteracao,
+            valor_anterior: data.valor_anterior || '',
+            valor_novo: data.valor_novo || '',
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        return created;
       }
     },
 
