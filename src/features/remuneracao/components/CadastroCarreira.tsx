@@ -15,16 +15,23 @@ const NIVEL_LABEL: Record<NivelCarreira, string> = {
 export function CadastroCarreira({ lojaId }: { lojaId: string }) {
   const { sellers, loading: sellersLoading } = useTeam(lojaId)
   const { niveis, loading: niveisLoading, error, salvarNivel } = useVendedoresNivelCarreira(lojaId)
-  const [savingId, setSavingId] = useState<string | null>(null)
+  const [savingIds, setSavingIds] = useState<Set<string>>(new Set())
 
   const vendedores = sellers.filter(seller => seller.role === 'vendedor')
 
   const handleChange = async (sellerUserId: string, nivel: NivelCarreira) => {
-    setSavingId(sellerUserId)
-    const { error } = await salvarNivel(sellerUserId, nivel)
-    setSavingId(null)
-    if (error) toast.error(error)
-    else toast.success('Nível de carreira atualizado.')
+    setSavingIds(prev => new Set([...prev, sellerUserId]))
+    try {
+      const { error } = await salvarNivel(sellerUserId, nivel)
+      if (error) toast.error(error)
+      else toast.success('Nível de carreira atualizado.')
+    } finally {
+      setSavingIds(prev => {
+        const next = new Set(prev)
+        next.delete(sellerUserId)
+        return next
+      })
+    }
   }
 
   const loading = sellersLoading || niveisLoading
@@ -62,7 +69,7 @@ export function CadastroCarreira({ lojaId }: { lojaId: string }) {
                   <td className="px-mx-md py-mx-sm">
                     <select
                       value={niveis[vendedor.id] || 'junior'}
-                      disabled={savingId === vendedor.id}
+                      disabled={savingIds.has(vendedor.id)}
                       onChange={e => handleChange(vendedor.id, e.target.value as NivelCarreira)}
                       className="h-mx-12 px-mx-sm bg-white border border-border-default rounded-mx-xl font-black uppercase text-xs focus:outline-none focus:border-brand-primary appearance-none cursor-pointer"
                     >
