@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
+import { useNotifications } from "@/hooks/useNotifications";
 import { CalendarDays, History, Bell, AlertTriangle } from "lucide-react";
 import moment from "moment/min/moment-with-locales";
 import FluxoFechamento from "@/components/fechamento/FluxoFechamento";
@@ -31,6 +33,8 @@ function checkYesterdayStatus() {
 
 export default function FechamentoDiario() {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { unreadCount } = useNotifications();
   const now = nowBrasilia();
   const todayStr = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-${String(now.getUTCDate()).padStart(2, "0")}`;
   const yesterdayStr = moment(todayStr).subtract(1, "day").format("YYYY-MM-DD");
@@ -286,10 +290,19 @@ export default function FechamentoDiario() {
             )}
           </button>
           {/* Sino — apenas desktop */}
-          <div className="relative cursor-pointer hidden sm:block">
+          <button
+            type="button"
+            onClick={() => navigate("/notificacoes")}
+            aria-label="Abrir notificações"
+            className="relative hidden sm:flex items-center justify-center w-9 h-9 rounded-xl hover:bg-slate-50 transition-colors"
+          >
             <Bell className="w-5 h-5 text-[#64748B]" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#EF4444] text-white text-[9px] font-black rounded-full flex items-center justify-center">3</span>
-          </div>
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 bg-[#EF4444] text-white text-[9px] font-black rounded-full flex items-center justify-center">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </button>
         </div>
       </div>
 
