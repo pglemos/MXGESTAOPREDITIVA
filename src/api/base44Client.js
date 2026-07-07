@@ -673,7 +673,9 @@ export const base44 = {
       },
       create: async (data) => {
         const me = await base44.auth.me();
-        
+        const storeId = await resolveStoreId(supabase, me.id);
+        if (!storeId) throw new Error('Você não possui vínculo ativo com nenhuma loja. Fale com seu gerente antes de criar atividades.');
+
         let dbStatus = 'confirmado';
         if (data.status === 'Resolvida') dbStatus = 'compareceu';
         else if (data.status === 'Cancelada') dbStatus = 'nao_compareceu';
@@ -682,7 +684,7 @@ export const base44 = {
           .from('agendamentos')
           .insert({
             cliente_id: data.cliente_id || null,
-            loja_id: me.loja_id || null,
+            loja_id: storeId,
             seller_user_id: me.id,
             data_hora: data.data_hora_execucao || new Date().toISOString(),
             tipo: 'negociacao',
@@ -797,10 +799,13 @@ export const base44 = {
       },
       create: async (data) => {
         const me = await base44.auth.me();
-        
+        const sellerId = data.vendedor_id || me.id;
+        const storeId = data.loja_id || await resolveStoreId(supabase, sellerId);
+        if (!storeId) throw new Error('Vendedor sem vínculo ativo com loja — não é possível registrar a atividade.');
+
         let dbTipo = data.tipo_atividade;
         if (dbTipo === 'agendamento') dbTipo = 'visita';
-        
+
         let dbStatus = 'aguardando';
         if (data.status_atividade === 'Resolvida') dbStatus = 'compareceu';
         else if (data.status_atividade === 'Pendente') dbStatus = 'confirmado';
@@ -810,8 +815,8 @@ export const base44 = {
           .insert({
             cliente_id: data.cliente_id || null,
             oportunidade_id: data.oportunidade_id || null,
-            loja_id: data.loja_id || me.loja_id || null,
-            seller_user_id: data.vendedor_id || me.id,
+            loja_id: storeId,
+            seller_user_id: sellerId,
             data_hora: data.data_hora_execucao || new Date().toISOString(),
             tipo: dbTipo,
             status: dbStatus,
