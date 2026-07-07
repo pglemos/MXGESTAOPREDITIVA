@@ -155,12 +155,21 @@ export default function FechamentoDiario() {
     const data = { ...current, [field]: safeVal };
     delete data.id; delete data.created_date; delete data.updated_date; delete data.created_by_id;
 
-    if (dailyClose?.id) {
-      const updated = await base44.entities.DailyClose.update(dailyClose.id, { [field]: safeVal });
-      setDailyClose(updated);
-    } else {
-      const created = await base44.entities.DailyClose.create(data);
-      setDailyClose(created);
+    try {
+      if (dailyClose?.id) {
+        const updated = await base44.entities.DailyClose.update(dailyClose.id, { [field]: safeVal });
+        setDailyClose(updated);
+      } else {
+        const created = await base44.entities.DailyClose.create(data);
+        setDailyClose(created);
+      }
+    } catch (err) {
+      console.error("[FechamentoDiario] Falha ao salvar contador:", err);
+      toast({
+        title: "Não foi possível salvar esse valor.",
+        description: err?.message || "Tente novamente em alguns segundos.",
+        variant: "destructive",
+      });
     }
   };
 
