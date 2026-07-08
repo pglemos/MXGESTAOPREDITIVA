@@ -4,19 +4,12 @@ import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Badge } from '@/components/atoms/Badge'
+import { SellerPageHeader } from '@/components/seller/SellerPageHeader'
 
 export default function VendedorAjuda() {
   return (
     <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
-      <header className="flex flex-col gap-mx-tiny border-b border-border-default pb-10 shrink-0">
-        <div className="flex items-center gap-mx-sm">
-          <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-          <Typography variant="h1">Ajuda do <span className="text-mx-green-700">Ritual</span></Typography>
-        </div>
-        <Typography variant="caption" className="pl-mx-md uppercase tracking-mx-wide font-black">
-          Suporte operacional para o vendedor
-        </Typography>
-      </header>
+<SellerPageHeader icon={LifeBuoy} title="Ajuda" subtitle="Suporte operacional para o vendedor" />
 
       <section className="grid grid-cols-1 gap-mx-lg lg:grid-cols-3 pb-32">
         <Card className="border-none bg-white p-mx-lg shadow-mx-lg lg:col-span-2">

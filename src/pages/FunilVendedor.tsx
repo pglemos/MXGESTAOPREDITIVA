@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import { CheckCircle, ChevronDown, ChevronUp, Target, TrendingUp } from 'lucide-react'
 import { Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Link } from 'react-router-dom'
+import { SellerPageHeader } from '@/components/seller/SellerPageHeader'
 import { useAuth } from '@/hooks/useAuth'
 import { chartTokens } from '@/lib/charts/tokens'
 import { supabase } from '@/lib/supabase'
@@ -196,12 +197,8 @@ export default function FunilVendedor() {
   return (
     <main className="min-h-full bg-surface-alt px-mx-sm py-mx-md sm:px-mx-md lg:px-mx-lg">
       <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-4">
-        <div className="flex h-16 items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 sm:px-6">
-          <div className="flex items-center gap-3">
-            <TrendingUp className="h-5 w-5 text-blue-700" />
-            <h1 className="text-[18px] font-black uppercase tracking-tight text-slate-900 sm:text-[22px]">Minha Meta</h1>
-          </div>
-          <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1">
+<SellerPageHeader icon={TrendingUp} title="Minha Meta" actions={(
+<div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1">
             {Object.entries(periodLabels).map(([value, label]) => (
               <button
                 key={value}
@@ -212,8 +209,8 @@ export default function FunilVendedor() {
                 {label}
               </button>
             ))}
-          </div>
-        </div>
+</div>
+)} />
 
         {errors.length > 0 && (
           <div role="status" className="rounded-mx-2xl border border-status-warning/20 bg-status-warning-surface p-mx-md text-sm font-semibold text-status-warning">

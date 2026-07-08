@@ -4,7 +4,7 @@ import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
-import { PageHeading } from '@/components/molecules/PageHeading'
+import { SellerPageHeader } from '@/components/seller/SellerPageHeader'
 import { useAuth } from '@/hooks/useAuth'
 
 const SETTINGS = [
@@ -44,10 +44,11 @@ export default function VendedorConfiguracoes() {
   return (
     <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
       <div className="flex flex-col gap-mx-lg pb-28">
-        <PageHeading
-        title="Configurações do Vendedor"
-          subtitle="Preferências e atalhos operacionais do vendedor."
-          actions={
+<SellerPageHeader 
+icon={ShieldCheck}
+title="Configurações" 
+subtitle="Preferências e atalhos operacionais do vendedor." 
+actions={ 
             <Badge variant="brand" className="rounded-mx-full px-mx-md py-mx-sm uppercase">
               {role || 'vendedor'}
             </Badge>

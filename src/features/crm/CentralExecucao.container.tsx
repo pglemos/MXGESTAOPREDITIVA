@@ -42,7 +42,7 @@ import { Select } from '@/components/atoms/Select'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
 import { FormField } from '@/components/molecules/FormField'
-import { PageHeading } from '@/components/molecules/PageHeading'
+import { SellerPageHeader } from '@/components/seller/SellerPageHeader'
 import { TabNav } from '@/components/molecules/TabNav'
 import { Modal } from '@/components/organisms/Modal'
 import { cn } from '@/lib/utils'
@@ -317,6 +317,7 @@ export function CentralExecucao() {
   const [novaAtividadeTelefone, setNovaAtividadeTelefone] = useState('')
   const [clienteEncontrado, setClienteEncontrado] = useState<Cliente | null>(null)
   const [clienteNaoEncontrado, setClienteNaoEncontrado] = useState(false)
+  const [novaAtividadeNome, setNovaAtividadeNome] = useState('')
   const [novaAtividadeForm, setNovaAtividadeForm] = useState({
     data: '',
     hora: '',
@@ -387,6 +388,7 @@ export function CentralExecucao() {
     setNovaAtividadeTelefone('')
     setClienteEncontrado(null)
     setClienteNaoEncontrado(false)
+    setNovaAtividadeNome('')
     setNovaAtividadeForm({ data: toDateOnlyBR(), hora: new Date().toTimeString().slice(0, 5), veiculo: '', observacoes: '' })
   }
 
@@ -406,15 +408,27 @@ export function CentralExecucao() {
   }
 
   function buscarClienteNovaAtividade() {
-    const tel = normalizarTelefone(novaAtividadeTelefone)
-    if (!tel) return
-    const found = clientes.find(c => normalizarTelefone(c.telefone) === tel)
+    const termo = novaAtividadeTelefone.trim()
+    const tel = normalizarTelefone(termo)
+    const normalizarNomeBusca = (valor: string) => valor
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+    const nomeBusca = normalizarNomeBusca(termo)
+    if (!termo) return
+    const found = clientes.find(c => {
+      const clienteTelefone = normalizarTelefone(c.telefone)
+      const clienteNome = normalizarNomeBusca(c.nome)
+      return (tel && clienteTelefone === tel) || clienteNome.includes(nomeBusca)
+    })
     if (found) {
       setClienteEncontrado(found)
       setClienteNaoEncontrado(false)
+      setNovaAtividadeNome('')
     } else {
       setClienteEncontrado(null)
       setClienteNaoEncontrado(true)
+      if (!tel) setNovaAtividadeNome(termo)
     }
   }
 
@@ -423,10 +437,23 @@ export function CentralExecucao() {
       toast.error('Selecione o tipo, a data e o horário.')
       return
     }
+    const nomeAvulso = novaAtividadeNome.trim()
+    const telefoneAvulso = novaAtividadeTelefone.trim()
+    if (telefoneAvulso && !clienteEncontrado && !nomeAvulso) {
+      setClienteNaoEncontrado(true)
+      toast.error('Informe o nome do cliente para salvar uma atividade avulsa.')
+      return
+    }
     setSaving(true)
-    const observacoes = novaAtividadeForm.veiculo
+    // Sem cliente na base, agendamentos não tem nome_snapshot — preserva nome/telefone
+    // na observação para o registro não virar "atividade sem dono".
+    const clientePrefix = !clienteEncontrado && (nomeAvulso || telefoneAvulso)
+      ? `Cliente: ${nomeAvulso || 'Sem nome'}${telefoneAvulso ? ` (${telefoneAvulso})` : ''}.`
+      : ''
+    const detalhes = novaAtividadeForm.veiculo
       ? `Veículo: ${novaAtividadeForm.veiculo}.${novaAtividadeForm.observacoes ? ` ${novaAtividadeForm.observacoes}` : ''}`
-      : novaAtividadeForm.observacoes || null
+      : novaAtividadeForm.observacoes || ''
+    const observacoes = [clientePrefix, detalhes].filter(Boolean).join(' ').trim() || null
     const { error } = await createAgendamento({
       cliente_id: clienteEncontrado?.id || null,
       data_hora: `${novaAtividadeForm.data}T${novaAtividadeForm.hora}`,
@@ -546,27 +573,17 @@ export function CentralExecucao() {
   const dateFullLabel = hoje.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).replace(' de ', ' de ')
 
   return (
-    <main className="h-full w-full min-w-0 overflow-y-auto bg-slate-50 no-scrollbar">
-      <div className="mx-auto flex min-w-0 max-w-full flex-col pb-20">
-        {/* Topbar — 1:1 com Base44 CentralExecucao.jsx */}
-        <div className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-blue-700 to-blue-400">
-              <Target className="h-4 w-4 text-white" />
-            </div>
-            <div>
-              <h1 className="text-[20px] font-black leading-none tracking-tight text-slate-900">Rotina do Dia</h1>
-              <p className="mt-0.5 text-[11px] font-medium text-slate-400">Organize e execute seu dia com foco</p>
-            </div>
-          </div>
-          <div className="hidden text-right sm:block">
-            <p className="text-[13px] font-bold capitalize text-slate-900">{weekdayLabel}</p>
-            <p className="text-[12px] text-slate-400">{dateFullLabel}</p>
-          </div>
-        </div>
+<main className="h-full w-full min-w-0 overflow-y-auto bg-slate-50 p-4 no-scrollbar sm:p-6">
+<div className="mx-auto flex min-w-0 max-w-full flex-col pb-20">
+<SellerPageHeader icon={Target} title="Rotina do Dia" subtitle="Organize e execute seu dia com foco" actions={(
+<div className="hidden rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-right sm:block">
+<p className="text-[13px] font-bold capitalize text-slate-900">{weekdayLabel}</p>
+<p className="text-[12px] text-slate-400">{dateFullLabel}</p>
+</div>
+)} />
 
         {/* Tabs — 1:1 com Base44 */}
-        <div className="sticky top-16 z-20 border-b border-slate-200 bg-white px-6">
+<div className="mt-4 rounded-2xl border border-slate-200 bg-white px-6 shadow-sm">
           <div className="flex gap-0">
             {CENTRAL_TABS.map(t => (
               <button
@@ -902,7 +919,7 @@ export function CentralExecucao() {
             <button
               type="button"
               onClick={confirmarNovaAtividade}
-              disabled={saving || !novaAtividadeForm.data || !novaAtividadeForm.hora}
+              disabled={saving || !novaAtividadeForm.data || !novaAtividadeForm.hora || (!!novaAtividadeTelefone.trim() && !clienteEncontrado && !novaAtividadeNome.trim())}
               className="rounded-xl bg-blue-700 px-6 py-2.5 text-[13px] font-bold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
             >
               {saving ? 'Salvando...' : 'Salvar atividade'}
@@ -937,8 +954,9 @@ export function CentralExecucao() {
                 <input
                   id="nova-atividade-telefone"
                   value={novaAtividadeTelefone}
-                  onChange={event => { setNovaAtividadeTelefone(event.target.value); setClienteEncontrado(null); setClienteNaoEncontrado(false) }}
-                  placeholder="(11) 98765-4321"
+                        onChange={event => { setNovaAtividadeTelefone(event.target.value); setClienteEncontrado(null); setClienteNaoEncontrado(false) }}
+                        onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); buscarClienteNovaAtividade() } }}
+                        placeholder="Nome ou telefone"
                   className="h-10 flex-1 rounded-xl border border-slate-200 px-3 text-[13px] focus:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-100"
                 />
                 <button type="button" onClick={buscarClienteNovaAtividade} className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-700 text-white transition-colors hover:bg-blue-700">
@@ -954,11 +972,23 @@ export function CentralExecucao() {
                 </div>
               )}
               {clienteNaoEncontrado && (
-                <div className="mt-2 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">
-                  <UserX className="h-4 w-4 shrink-0 text-amber-600" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[12px] font-semibold text-amber-800">Cliente não encontrado.</p>
-                    <Link to="/carteira-clientes" onClick={fecharNovaAtividade} className="text-[11px] text-blue-700 underline">Abrir Carteira de Clientes para cadastrar</Link>
+                <div className="mt-2 space-y-2">
+                  <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">
+                    <UserX className="h-4 w-4 shrink-0 text-amber-600" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[12px] font-semibold text-amber-800">Cliente não encontrado.</p>
+                      <Link to="/carteira-clientes" onClick={fecharNovaAtividade} className="text-[11px] text-blue-700 underline">Abrir Carteira de Clientes para cadastrar</Link>
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="nova-atividade-nome" className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Nome do cliente</label>
+                    <input
+                      id="nova-atividade-nome"
+                      value={novaAtividadeNome}
+                      onChange={event => setNovaAtividadeNome(event.target.value)}
+                      placeholder="Nome de quem você vai atender"
+                      className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 px-3 text-[13px] focus:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                    />
                   </div>
                 </div>
               )}

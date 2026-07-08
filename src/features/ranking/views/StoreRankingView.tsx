@@ -1,4 +1,5 @@
 import { Info, Trophy } from 'lucide-react'
+import { SellerPageHeader } from '@/components/seller/SellerPageHeader'
 import { RankingErrorBoundary } from '@/features/ranking/components/RankingErrorBoundary'
 import { PodioRanking } from '@/features/ranking/components/base44/PodioRanking'
 import { SuaPosicao } from '@/features/ranking/components/base44/SuaPosicao'
@@ -27,30 +28,13 @@ export function StoreRankingView() {
 
   return (
     <RankingErrorBoundary sectionName="Ranking da Loja">
-      <div className="min-h-screen bg-slate-50 font-body">
-        <div className="bg-white border-b border-slate-200 px-4 sm:px-6 h-[64px] flex items-center justify-between sticky top-0 z-30">
-          <div className="flex items-center gap-3">
-            <Trophy className="w-5 h-5 text-green-600" fill="currentColor" />
-            <div>
-              <h1 className="text-[18px] sm:text-[20px] font-black text-slate-900 leading-tight">Ranking</h1>
-              <p className="text-[11px] text-slate-400 hidden sm:block">Acompanhe sua posição, a corrida do período e as bonificações da loja.</p>
-            </div>
-          </div>
-          {me && (
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white text-[13px] font-bold">
-                {(me.name || 'U').split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase()}
-              </div>
-              <div className="hidden sm:block text-right">
-                <p className="text-[12px] font-semibold text-slate-800 leading-tight">{me.name}</p>
-                <p className="text-[10px] text-slate-400">Vendedor</p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="p-4 sm:p-6 space-y-5">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <div className="min-h-screen bg-slate-50 p-4 font-body sm:p-6">
+        <SellerPageHeader
+          icon={Trophy}
+          title="Ranking"
+          subtitle="Acompanhe sua posição, a corrida do período e as bonificações da loja."
+          actions={(
+            <>
             <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-1 flex-wrap">
               {RANKING_PERIODOS.map(p => (
                 <button
@@ -86,7 +70,22 @@ export function StoreRankingView() {
                 ))}
               </select>
             </div>
-          </div>
+            {me && (
+              <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-700 text-[13px] font-bold text-white">
+                  {(me.name || 'U').split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase()}
+                </div>
+                <div className="hidden text-right sm:block">
+                  <p className="text-[12px] font-semibold leading-tight text-slate-800">{me.name}</p>
+                  <p className="text-[10px] text-slate-400">Vendedor</p>
+                </div>
+              </div>
+            )}
+            </>
+          )}
+        />
+
+        <div className="space-y-5 pt-4">
 
           <div className="flex items-center gap-2 bg-green-50 border border-green-100 rounded-xl px-4 py-2">
             <Info className="w-4 h-4 text-green-600 flex-shrink-0" />

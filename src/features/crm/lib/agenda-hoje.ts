@@ -69,6 +69,18 @@ export interface AgendaHojeItem {
 
 const STATUS_TRATADO = new Set(['compareceu', 'nao_compareceu'])
 
+function parseAvulsoFromObservacoes(observacoes: string | null | undefined) {
+  const texto = observacoes || ''
+  const clienteMatch = texto.match(/^Cliente:\s*(.+?)(?:\s*\(([^)]*)\))?\./i)
+  const veiculoMatch = texto.match(/(?:^|\s)Ve[ií]culo:\s*(.+?)(?:\.|$)/i)
+
+  return {
+    nome: clienteMatch?.[1]?.trim() || '',
+    telefone: clienteMatch?.[2]?.trim() || null,
+    veiculo: veiculoMatch?.[1]?.trim() || null,
+  }
+}
+
 function isAtrasadoNaoTratado(horarioIso: string, status: string | undefined, now: Date): boolean {
   if (STATUS_TRATADO.has(status || '')) return false
   const horario = new Date(horarioIso)
@@ -99,8 +111,9 @@ export function deriveAgendaHojeFromCrm(
     if (!timestampMatchesDateOnly(agendamento.data_hora, hojeStr)) continue
 
     const op = agendamento.oportunidade_id ? oportunidadePorId.get(agendamento.oportunidade_id) ?? null : null
-    const clienteNome = op?.cliente?.nome ?? agendamento.cliente?.nome ?? ''
-    const clienteTelefone = op?.cliente?.telefone ?? agendamento.cliente?.telefone ?? null
+    const avulso = parseAvulsoFromObservacoes(agendamento.observacoes)
+    const clienteNome = op?.cliente?.nome ?? agendamento.cliente?.nome ?? avulso.nome
+    const clienteTelefone = op?.cliente?.telefone ?? agendamento.cliente?.telefone ?? avulso.telefone
 
     items.push({
       id: agendamento.id,
@@ -109,7 +122,7 @@ export function deriveAgendaHojeFromCrm(
       clienteId: op?.cliente_id ?? agendamento.cliente_id ?? '',
       clienteNome,
       clienteTelefone,
-      veiculoInteresse: op?.veiculo_interesse ?? null,
+      veiculoInteresse: op?.veiculo_interesse ?? avulso.veiculo,
       valorNegociado: op?.valor_negociado || null,
       canal: CANAL_LABEL[(agendamento.canal ?? op?.canal) ?? ''] ?? 'Showroom',
       compareceu: compareceuFromStatus(agendamento.status),

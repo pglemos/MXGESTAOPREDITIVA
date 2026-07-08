@@ -256,12 +256,13 @@ export default function FechamentoDiario() {
   const displayDow = moment(displayDate).format("dddd");
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-body">
+ <div className="min-h-screen bg-[#F8FAFC] p-3 font-body sm:p-6">
       {/* ── Topbar ── */}
-      <div className="bg-white border-b border-[#E5E7EB] px-4 sm:px-6 h-[56px] sm:h-[64px] flex items-center justify-between sticky top-0 z-30">
+ <div className="flex min-h-16 w-full flex-col justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm sm:px-6 lg:flex-row lg:items-center lg:justify-between">
         {/* Lado esquerdo: título + data */}
         <div className="flex items-center gap-2 sm:gap-5 min-w-0 flex-1 overflow-hidden">
-          <h1 className="text-[14px] sm:text-[22px] font-black text-[#0F172A] tracking-tight uppercase flex-shrink-0">Fechamento</h1>
+ <CalendarDays className="h-5 w-5 shrink-0 text-blue-700" />
+ <h1 className="text-[18px] sm:text-[22px] font-black text-slate-900 tracking-tight uppercase flex-shrink-0">Fechamento</h1>
           <div className="hidden sm:flex items-center gap-1.5 text-[13px] bg-slate-50 border border-[#E5E7EB] rounded-lg px-3 py-1.5">
             <CalendarDays className="w-4 h-4 text-[#005BFF]" />
             <span className="font-semibold text-[#0F172A]">{displayLabel}</span>
@@ -306,7 +307,7 @@ export default function FechamentoDiario() {
         </div>
       </div>
 
-      <div className="p-3 sm:p-6 space-y-4 sm:space-y-5">
+<div className="space-y-4 pt-4 sm:space-y-5">
         {/* Alerta discreto: fechamento anterior pendente após 12h01 — apenas desktop */}
         {yesterdayStatus === "expired" && (
           <div className="hidden sm:flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">

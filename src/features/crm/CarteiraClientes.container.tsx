@@ -48,6 +48,7 @@ import { AlterarProximoPasso } from '@/features/crm/AlterarProximoPasso'
 import { useClientes, type ClienteInput } from '@/features/crm/hooks/useClientes'
 import { useOportunidades, type OportunidadeComCliente } from '@/features/crm/hooks/useOportunidades'
 import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
+import { SellerPageHeader } from '@/components/seller/SellerPageHeader'
 import { useAuth } from '@/hooks/useAuth'
 import {
   calcularPersistencia,
@@ -555,7 +556,7 @@ export function CarteiraClientes() {
     return (
       <main className="h-full w-full min-w-0 overflow-y-auto bg-slate-50 text-text-primary no-scrollbar">
         <div className="mx-auto flex w-full max-w-[1440px] min-w-0 flex-col gap-5 px-4 py-6 sm:px-4 xl:px-8">
-          {tabNav}
+<SellerPageHeader icon={Users} title="Mentor Comercial" subtitle="Plano de ataque da carteira" actions={tabNav} />
           <PlanoAtaqueTab
             clientes={carteiraClientes}
             oportunidadePorCliente={oportunidadePorCliente}
@@ -591,14 +592,9 @@ export function CarteiraClientes() {
   return (
   <main className="h-full w-full min-w-0 overflow-y-auto bg-slate-50 text-text-primary no-scrollbar">
     <div className="mx-auto flex w-full max-w-[1440px] min-w-0 flex-col gap-5 px-4 py-6 sm:px-4 xl:px-8">
-        {tabNav}
+        <SellerPageHeader icon={Users} title="Mentor Comercial" subtitle="Plano de ataque da carteira" actions={tabNav} />
 
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-black text-[#031B3D]">Mentor Comercial</h1>
-            <p className="mt-1 text-sm text-slate-400">Sua agenda comercial de hoje. Execute e registre resultados.</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
+<div className="flex flex-wrap justify-end gap-2">
             <span className="relative block">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -617,11 +613,10 @@ export function CarteiraClientes() {
             </button>
             <button type="button" onClick={() => setModalOpen(true)} className="flex h-9 items-center gap-1.5 whitespace-nowrap rounded-xl bg-[#005BFF] px-4 text-sm font-bold text-white transition-colors hover:bg-blue-700">
               <Plus size={16} /> Novo cliente
-            </button>
-          </div>
-        </div>
+</button>
+</div>
 
-        {temFiltrosAtivos(filtrosAvancados) && (
+{temFiltrosAtivos(filtrosAvancados) && (
           <ChipsFiltrosAtivos filtros={filtrosAvancados} onRemover={key => removerFiltro(key, setFiltrosAvancados)} />
         )}
 

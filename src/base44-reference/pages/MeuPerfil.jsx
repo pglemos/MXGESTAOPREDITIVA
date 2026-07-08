@@ -6,20 +6,39 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { UserCircle, Briefcase, Clock, Target, GraduationCap, DollarSign, Save } from "lucide-react";
 
 const formatBRL = (value) =>
   `R$ ${Number(value || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+const Section = ({ title, icon: Icon, children }) => (
+  <div className="scroll-mb-28 bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+    <div className="flex items-center gap-2 mb-6">
+      <div className="w-8 h-8 rounded-lg bg-mx-blue-light flex items-center justify-center">
+        <Icon className="w-4 h-4 text-mx-blue" />
+      </div>
+      <h3 className="text-base font-semibold text-mx-navy">{title}</h3>
+    </div>
+    {children}
+  </div>
+);
+
+const Field = ({ label, children }) => (
+  <div>
+    <Label className="text-xs text-slate-500 uppercase tracking-wider">{label}</Label>
+    <div className="mt-1.5">{children}</div>
+  </div>
+);
+
 export default function MeuPerfil() {
-  const { toast } = useToast();
-  const [profile, setProfile] = useState({
+ const [profile, setProfile] = useState({
     full_name: "",
     phone: "",
-    birth_date: "",
-    dealership: "",
-    brand: "",
+ birth_date: "",
+ dealership: "",
+ dealership_name: "",
+ brand: "",
     role: "",
     remuneracao_plano_id: "",
     available_plans: [],
@@ -54,7 +73,10 @@ export default function MeuPerfil() {
           supabase.from("vinculos_loja").select("store_id").eq("user_id", user.id).eq("is_active", true).limit(1),
         ]);
 
-        const storeId = vendedorPerfil?.loja_id || vinculos?.[0]?.store_id || legacyProfile.dealership || "";
+ const storeId = vendedorPerfil?.loja_id || vinculos?.[0]?.store_id || legacyProfile.dealership || "";
+ const { data: loja } = storeId
+ ? await supabase.from("lojas").select("name").eq("id", storeId).maybeSingle()
+ : { data: null };
         const workStart = vendedorPerfil?.hora_entrada ? vendedorPerfil.hora_entrada.slice(0, 5) : legacyProfile.work_start || legacyProfile.start_hour || "08:00";
         const workEnd = vendedorPerfil?.hora_saida ? vendedorPerfil.hora_saida.slice(0, 5) : legacyProfile.work_end || legacyProfile.end_hour || "18:00";
         const { data: planos } = storeId
@@ -97,9 +119,10 @@ export default function MeuPerfil() {
           ...legacyProfile,
           id: vendedorPerfil?.id || legacyProfile.id || user.id,
           full_name: usuario?.name || legacyProfile.full_name || legacyProfile.name || "",
-          phone: usuario?.phone || legacyProfile.phone || "",
-          dealership: storeId,
-          role: selectedPlan?.cargo || vendedorPerfil?.cargo_atual || legacyProfile.role || "Vendedor",
+ phone: usuario?.phone || legacyProfile.phone || "",
+ dealership: storeId,
+ dealership_name: loja?.name || legacyProfile.dealership_name || "",
+ role: selectedPlan?.cargo || vendedorPerfil?.cargo_atual || legacyProfile.role || "Vendedor",
           remuneracao_plano_id: vendedorPerfil?.remuneracao_plano_id || selectedPlan?.id || "",
           available_plans: availablePlans,
           experience_years: vendedorPerfil?.tempo_mercado_anos || legacyProfile.experience_years || 0,
@@ -128,9 +151,10 @@ export default function MeuPerfil() {
     delete data.created_date;
     delete data.updated_date;
     delete data.created_by_id;
-    delete data.available_plans;
-    delete data.work_schedule_options;
-    delete data.work_schedule_id;
+ delete data.available_plans;
+ delete data.work_schedule_options;
+ delete data.work_schedule_id;
+ delete data.dealership_name;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -165,9 +189,9 @@ export default function MeuPerfil() {
         .single();
       if (error) throw error;
       setProfileId(savedProfile.id);
-      toast({ title: "Perfil salvo!", description: "Suas informações foram atualizadas." });
+ toast.success("Perfil salvo", { description: "Suas informações foram atualizadas." });
     } catch (e) {
-      toast({ title: "Erro ao salvar perfil", variant: "destructive" });
+ toast.error("Erro ao salvar perfil", { description: e?.message || "Tente novamente." });
     } finally {
       setSaving(false);
     }
@@ -177,27 +201,8 @@ export default function MeuPerfil() {
     return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-4 border-slate-200 border-t-mx-blue rounded-full animate-spin" /></div>;
   }
 
-  const Section = ({ title, icon: Icon, children }) => (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-      <div className="flex items-center gap-2 mb-6">
-        <div className="w-8 h-8 rounded-lg bg-mx-blue-light flex items-center justify-center">
-          <Icon className="w-4 h-4 text-mx-blue" />
-        </div>
-        <h3 className="text-base font-semibold text-mx-navy">{title}</h3>
-      </div>
-      {children}
-    </div>
-  );
-
-  const Field = ({ label, children }) => (
-    <div>
-      <Label className="text-xs text-slate-500 uppercase tracking-wider">{label}</Label>
-      <div className="mt-1.5">{children}</div>
-    </div>
-  );
-
   return (
-    <div className="space-y-8">
+ <div className="space-y-8 pb-28 md:pb-0">
       <PageHeader title="Meu Perfil" subtitle="Gerencie suas informações pessoais e profissionais">
         <Button onClick={handleSave} disabled={saving} className="bg-mx-blue hover:bg-blue-600 rounded-xl gap-2">
           <Save className="w-4 h-4" />
@@ -217,7 +222,7 @@ export default function MeuPerfil() {
                 <Input value={profile.phone} onChange={e => setProfile({ ...profile, phone: e.target.value })} placeholder="(00) 00000-0000" className="rounded-xl" />
               </Field>
               <Field label="Data de Nascimento">
-                <Input type="date" value={profile.birth_date} onChange={e => setProfile({ ...profile, birth_date: e.target.value })} className="rounded-xl" />
+                <Input type="date" value={profile.birth_date || ""} readOnly aria-readonly="true" className="rounded-xl bg-slate-50 text-slate-500 cursor-default" />
               </Field>
             </div>
           </div>
@@ -228,10 +233,10 @@ export default function MeuPerfil() {
           <div className="grid gap-4">
             <div className="grid grid-cols-2 gap-4">
               <Field label="Concessionária">
-                <Input value={profile.dealership} onChange={e => setProfile({ ...profile, dealership: e.target.value })} className="rounded-xl" />
+                <Input value={profile.dealership_name || profile.dealership || ""} readOnly aria-readonly="true" className="rounded-xl bg-slate-50 text-slate-500 cursor-default" />
               </Field>
               <Field label="Marca">
-                <Input value={profile.brand} onChange={e => setProfile({ ...profile, brand: e.target.value })} className="rounded-xl" />
+                <Input value={profile.brand || ""} placeholder="Definida pela loja" readOnly aria-readonly="true" className="rounded-xl bg-slate-50 text-slate-500 cursor-default" />
               </Field>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -274,10 +279,10 @@ export default function MeuPerfil() {
           <div className="grid gap-4">
             <div className="grid grid-cols-2 gap-4">
               <Field label="Meta Mensal (unidades)">
-                <Input type="number" value={profile.monthly_goal} onChange={e => setProfile({ ...profile, monthly_goal: parseInt(e.target.value) || 0 })} className="rounded-xl" />
+                <Input type="number" value={profile.monthly_goal} readOnly aria-readonly="true" className="rounded-xl bg-slate-50 text-slate-500 cursor-default" />
               </Field>
               <Field label="Média de Vendas Ano">
-                <Input type="number" value={profile.avg_sales_year} onChange={e => setProfile({ ...profile, avg_sales_year: parseInt(e.target.value) || 0 })} className="rounded-xl" />
+                <Input type="number" value={profile.avg_sales_year} readOnly aria-readonly="true" className="rounded-xl bg-slate-50 text-slate-500 cursor-default" />
               </Field>
             </div>
           </div>
@@ -286,7 +291,7 @@ export default function MeuPerfil() {
         {/* Education */}
         <Section title="Formação" icon={GraduationCap}>
           <Field label="Formação Acadêmica">
-            <Input value={profile.education} onChange={e => setProfile({ ...profile, education: e.target.value })} placeholder="Ex: Administração de Empresas" className="rounded-xl" />
+            <Input value={profile.education || ""} placeholder="Não cadastrado" readOnly aria-readonly="true" className="rounded-xl bg-slate-50 text-slate-500 cursor-default" />
           </Field>
         </Section>
 
