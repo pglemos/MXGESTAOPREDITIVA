@@ -17,6 +17,7 @@ export function buildStoreSalesRules({ storeId, monthlyGoal, metaRules }: StoreS
     bench_agd_visita: metaRules?.bench_agd_visita ?? 60,
     bench_visita_vnd: metaRules?.bench_visita_vnd ?? 33,
     projection_mode: metaRules?.projection_mode || 'calendar',
+    remuneracao_detalhes_visivel: metaRules?.remuneracao_detalhes_visivel ?? true,
     updated_by: metaRules?.updated_by ?? null,
     updated_at: metaRules?.updated_at || new Date(0).toISOString(),
   }

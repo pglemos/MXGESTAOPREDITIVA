@@ -7416,6 +7416,7 @@ export type Database = {
           individual_goal_mode: string
           monthly_goal: number
           projection_mode: string | null
+          remuneracao_detalhes_visivel: boolean
           store_id: string
           updated_at: string | null
           updated_by: string | null
@@ -7429,6 +7430,7 @@ export type Database = {
           individual_goal_mode?: string
           monthly_goal?: number
           projection_mode?: string | null
+          remuneracao_detalhes_visivel?: boolean
           store_id: string
           updated_at?: string | null
           updated_by?: string | null
@@ -7442,6 +7444,7 @@ export type Database = {
           individual_goal_mode?: string
           monthly_goal?: number
           projection_mode?: string | null
+          remuneracao_detalhes_visivel?: boolean
           store_id?: string
           updated_at?: string | null
           updated_by?: string | null

@@ -150,6 +150,8 @@ export interface StoreMetaRules {
     bench_agd_visita: number
     bench_visita_vnd: number
     projection_mode: ProjectionMode
+    /** Quando false, o vendedor vê o total de comissão mas o drawer de detalhamento fica oculto. Padrão true. */
+    remuneracao_detalhes_visivel: boolean
     updated_by: string | null
     updated_at: string
 }
