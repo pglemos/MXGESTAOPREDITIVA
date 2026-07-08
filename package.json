@@ -19,7 +19,7 @@
     "lint:tokens:legacy": "node scripts/lint-tokens.legacy.js",
     "lint:a11y": "eslint 'src/**/*.{ts,tsx}'",
     "typecheck": "tsc --noEmit",
-    "test": "bun test src/lib src/benchmarks src/hooks src/components src/features src/pages src/test",
+    "test": "bun test src/lib src/benchmarks src/hooks src/components src/features src/pages src/test src/api",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "sync:ide": "node .aiox-core/infrastructure/scripts/ide-sync/index.js sync",
