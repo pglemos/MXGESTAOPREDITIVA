@@ -9,6 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast";
 import { UserCircle, Briefcase, Clock, Target, GraduationCap, DollarSign, Save } from "lucide-react";
 
+const formatBRL = (value) =>
+  `R$ ${Number(value || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
 export default function MeuPerfil() {
   const { toast } = useToast();
   const [profile, setProfile] = useState({
@@ -118,17 +121,6 @@ export default function MeuPerfil() {
     loadProfile();
   }, []);
 
-  const handlePlanChange = (planId) => {
-    const selectedPlan = profile.available_plans?.find(plan => plan.id === planId);
-    setProfile({
-      ...profile,
-      remuneracao_plano_id: planId,
-      role: selectedPlan?.cargo || profile.role,
-      commission_per_unit: selectedPlan?.commission_per_unit ?? profile.commission_per_unit,
-      salary_goal: selectedPlan?.salary_goal ?? profile.salary_goal,
-    });
-  };
-
   const handleSave = async () => {
     setSaving(true);
     const data = { ...profile };
@@ -150,22 +142,15 @@ export default function MeuPerfil() {
         .eq("is_active", true)
         .limit(1);
       const storeId = data.dealership || vinculos?.[0]?.store_id || null;
-      let selectedPlan = null;
-      if (storeId && data.remuneracao_plano_id) {
-        const { data: plano } = await supabase
-          .from("remuneracao_planos")
-          .select("id,cargo")
-          .eq("loja_id", storeId)
-          .eq("id", data.remuneracao_plano_id)
-          .maybeSingle();
-        selectedPlan = plano;
-      }
 
       await supabase
         .from("usuarios")
         .update({ name: data.full_name, phone: data.phone, avatar_url: data.avatar_url })
         .eq("id", user.id);
 
+      // Remuneração (cargo_atual, remuneracao_plano_id, pretensao_min) é controlada
+      // exclusivamente pelo dono via CadastroCarreira/EquipeUsuariosTab — o vendedor
+      // não altera esses campos por aqui. Este upsert grava apenas dados pessoais/jornada/carreira.
       const { data: savedProfile, error } = await supabase
         .from("vendedor_perfil")
         .upsert({
@@ -174,10 +159,7 @@ export default function MeuPerfil() {
           hora_entrada: data.work_start ? `${data.work_start}:00` : null,
           hora_saida: data.work_end ? `${data.work_end}:00` : null,
           tempo_mercado_anos: data.experience_years,
-          cargo_atual: selectedPlan?.cargo || data.role || "Vendedor",
-          remuneracao_plano_id: selectedPlan?.id || data.remuneracao_plano_id || null,
           carreira_interesse: data.job_interest === "Disponível para o mercado" ? "disponivel" : data.job_interest === "Confidencial" ? "confidencial" : "nao",
-          pretensao_min: data.salary_goal,
         }, { onConflict: "seller_user_id" })
         .select()
         .single();
@@ -254,20 +236,9 @@ export default function MeuPerfil() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <Field label="Cargo">
-                {profile.available_plans?.length > 0 ? (
-                  <Select value={profile.remuneracao_plano_id || ""} onValueChange={handlePlanChange}>
-                    <SelectTrigger className="rounded-xl">
-                      <SelectValue placeholder={profile.role || "Selecione"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {profile.available_plans.map(plan => (
-                        <SelectItem key={plan.id} value={plan.id}>{plan.cargo}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <Input value={profile.role} onChange={e => setProfile({ ...profile, role: e.target.value })} className="rounded-xl" />
-                )}
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-mx-navy min-h-[38px] flex items-center">
+                  {profile.role || "Vendedor"}
+                </div>
               </Field>
               <Field label="Anos de Experiência">
                 <Input type="number" value={profile.experience_years} onChange={e => setProfile({ ...profile, experience_years: parseInt(e.target.value) || 0 })} className="rounded-xl" />
@@ -322,12 +293,18 @@ export default function MeuPerfil() {
         {/* Compensation */}
         <Section title="Remuneração" icon={DollarSign}>
           <div className="grid gap-4">
+            {/* Somente leitura — a remuneração é definida pelo plano/cargo atribuído
+                pelo dono; o vendedor não edita comissão ou meta de remuneração aqui. */}
             <div className="grid grid-cols-2 gap-4">
-              <Field label="Comissão por Unidade (R$)">
-                <Input type="number" value={profile.commission_per_unit} onChange={e => setProfile({ ...profile, commission_per_unit: parseInt(e.target.value) || 0 })} className="rounded-xl" />
+              <Field label="Comissão por Unidade">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-mx-navy min-h-[38px] flex items-center">
+                  {formatBRL(profile.commission_per_unit)}
+                </div>
               </Field>
-              <Field label="Meta de Remuneração (R$)">
-                <Input type="number" value={profile.salary_goal} onChange={e => setProfile({ ...profile, salary_goal: parseInt(e.target.value) || 0 })} className="rounded-xl" />
+              <Field label="Meta de Remuneração">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-mx-navy min-h-[38px] flex items-center">
+                  {formatBRL(profile.salary_goal)}
+                </div>
               </Field>
             </div>
             <Field label="Interesse em Oportunidades">
