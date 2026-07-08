@@ -47,3 +47,6 @@ storybook-static
 
 # Extração/scratch local (cópia bruta de zips etc.)
 tmp/
+
+# Tool session artifacts
+.zcode/
