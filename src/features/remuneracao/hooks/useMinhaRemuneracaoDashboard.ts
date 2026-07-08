@@ -114,6 +114,7 @@ export function useMinhaRemuneracaoDashboard() {
     melhorMes,
     historico6Meses,
     calculo,
+    detalhesVisiveis: home.remuneracaoDetalhesVisiveis ?? true,
   }
 }
 

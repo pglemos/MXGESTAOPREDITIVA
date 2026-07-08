@@ -209,6 +209,7 @@ export function useVendedorHomePage() {
     remuneracaoResumo,
     remuneracaoPlano,
     remuneracaoRegras,
+    remuneracaoDetalhesVisiveis: metaRules?.remuneracao_detalhes_visivel ?? true,
     remunerationError,
     isLancamentoGateLocked,
     tacticalPrescription,

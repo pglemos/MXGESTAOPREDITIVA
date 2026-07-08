@@ -92,6 +92,7 @@ export default function MinhaRemuneracaoPage() {
           qtdVendas={data.qtdVendas}
           onVerCalculo={() => setShowCalcDrawer(true)}
           semPolitica={!data.disponivel}
+          detalhesVisiveis={data.detalhesVisiveis}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -119,7 +120,9 @@ export default function MinhaRemuneracaoPage() {
         </div>
       </div>
 
-      <CalculationDetailsDrawer open={showCalcDrawer} onClose={() => setShowCalcDrawer(false)} calculo={data.calculo} />
+      {data.detalhesVisiveis && (
+        <CalculationDetailsDrawer open={showCalcDrawer} onClose={() => setShowCalcDrawer(false)} calculo={data.calculo} />
+      )}
     </div>
   )
 }
