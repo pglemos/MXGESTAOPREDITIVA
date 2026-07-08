@@ -243,6 +243,24 @@ export function OperacionalLojaTab({ isReadOnly }: TabContext) {
                         </div>
                     </Card>
 
+                    {/* Privacidade da Remuneração */}
+                    <Card className="p-mx-lg md:p-mx-xl border-none shadow-mx-lg bg-white">
+                        <header className="border-b border-border-default pb-mx-md mb-mx-lg flex items-center gap-mx-sm">
+                            <ShieldCheck size={20} className="text-brand-primary" />
+                            <div>
+                                <Typography variant="h3" className="uppercase tracking-tight">Privacidade da Remuneração</Typography>
+                                <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black">Visibilidade do detalhamento ao vendedor</Typography>
+                            </div>
+                        </header>
+                        <ToggleRow
+                            label="Divulgar detalhamento ao vendedor"
+                            desc="Quando desligado, o vendedor vê o total de comissão mas o cálculo detalhado (regras/bônus/fórmula) fica oculto"
+                            value={metaRules?.remuneracao_detalhes_visivel ?? true}
+                            onChange={() => updateMetaRules({ remuneracao_detalhes_visivel: !(metaRules?.remuneracao_detalhes_visivel ?? true) })}
+                            disabled={isReadOnly}
+                        />
+                    </Card>
+
                     {/* Destinatários de e-mail */}
                     <Card className="p-mx-lg md:p-mx-xl border-none shadow-mx-lg bg-white">
                         <header className="border-b border-border-default pb-mx-md mb-mx-lg flex items-center gap-mx-sm">
