@@ -18,7 +18,7 @@ const NotFound = lazy(() => import('@/pages/NotFound'))
 const StorePreRegistration = lazy(() => import('@/pages/StorePreRegistration'))
 
 // Vendedor — Real MX implementations (Supabase-powered, not Base44 reference)
-const Checkin = lazy(() => import('@/base44-reference/pages/FechamentoDiario'))
+const Checkin = lazy(() => import('@/features/checkin/Checkin.container'))
 const LiberacaoFechamento = lazy(() => import('@/pages/LiberacaoFechamento'))
 const Ranking = lazy(() => import('@/pages/Ranking'))
 const VendedorDesenvolvimento = lazy(() => import('@/pages/VendedorDesenvolvimento'))

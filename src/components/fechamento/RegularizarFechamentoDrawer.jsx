@@ -74,26 +74,26 @@ function NumStepper({ value, onChange }) {
     setInputVal(null);
   };
   return (
-    <div className="flex items-center border border-slate-200 rounded-xl shadow-sm h-11 focus-within:border-blue-400 transition-all bg-white">
-      <button onClick={() => onChange(Math.max(0, value - 1))} className="w-11 h-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-50 border-r border-slate-200 rounded-l-xl transition-colors text-[20px] font-light">−</button>
+ <div className="grid grid-cols-[44px_minmax(44px,1fr)_44px] items-center border border-slate-200 rounded-xl shadow-sm h-11 focus-within:border-blue-400 transition-all bg-white overflow-hidden">
+ <button type="button" onClick={() => onChange(Math.max(0, value - 1))} className="w-11 h-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-50 border-r border-slate-200 transition-colors text-[20px] font-light">−</button>
       <input
         type="text" inputMode="numeric" pattern="[0-9]*"
         value={inputVal !== null ? inputVal : String(value)}
         onFocus={handleFocus} onChange={handleChange} onBlur={commit}
         onKeyDown={e => (e.key === "Enter" || e.key === "Tab") && commit()}
-        className="flex-1 text-center font-bold text-[16px] text-slate-700 bg-transparent border-none outline-none h-full tabular-nums"
+ className="w-full min-w-0 text-center font-bold text-[16px] text-slate-700 bg-transparent border-none outline-none h-full tabular-nums"
         style={{ boxShadow: "none" }}
       />
-      <button onClick={() => onChange(Math.min(999, value + 1))} className="w-11 h-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-50 border-l border-slate-200 rounded-r-xl transition-colors text-[20px] font-light">+</button>
+ <button type="button" onClick={() => onChange(Math.min(999, value + 1))} className="w-11 h-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-50 border-l border-slate-200 transition-colors text-[20px] font-light">+</button>
     </div>
   );
 }
 
 function FieldRow({ label, value, onChange }) {
   return (
-    <div className="flex items-center justify-between gap-3">
-      <span className="text-[13px] font-semibold leading-tight text-slate-600 flex-1 min-w-0">{label}</span>
-      <div className="w-[140px] flex-shrink-0">
+ <div className="grid grid-cols-[minmax(0,1fr)_144px] items-center gap-3">
+ <span className="text-[13px] font-semibold leading-tight text-slate-600 min-w-0">{label}</span>
+ <div className="w-36 min-w-36">
         <NumStepper value={value} onChange={onChange} />
       </div>
     </div>

@@ -380,7 +380,7 @@ export const base44 = {
           agendamentos_carteira: r.agd_cart_today || r.agd_cart_prev_day || 0,
           agendamentos_internet: r.agd_net_today || r.agd_net_prev_day || 0,
           status_fechamento: r.submission_status === 'on_time' || r.submission_status === 'late' ? 'Fechado' : 'Aberto',
-          finalizado: r.submission_status === 'on_time' || r.submission_status === 'late' || r.fechamento_liberado,
+          finalizado: r.submission_status === 'on_time' || r.submission_status === 'late',
           data_hora_finalizacao: r.submitted_at,
           observacao_geral: r.note,
           status_regularizacao: r.submission_status === 'late' ? 'Aprovado' : null
@@ -395,6 +395,7 @@ export const base44 = {
         
         const storeId = await resolveStoreId(supabase, me.id);
 
+        const shouldFinalize = data.finalizado === true;
         const payload = {
           metric_scope: 'daily',
           store_id: storeId,
@@ -414,8 +415,8 @@ export const base44 = {
           agd_cart_prev_day: data.agendamentos_carteira || 0,
           agd_net_today: data.agendamentos_internet || 0,
           agd_net_prev_day: data.agendamentos_internet || 0,
-          submission_status: data.finalizado ? 'on_time' : 'draft',
-          submitted_at: new Date().toISOString(),
+          submission_status: shouldFinalize ? 'on_time' : 'draft',
+          submitted_at: shouldFinalize ? (data.data_hora_finalizacao || new Date().toISOString()) : null,
           note: data.observacao_geral || ''
         };
 
@@ -440,6 +441,7 @@ export const base44 = {
         if (error) throw error;
         if (!existing) throw new Error('Fechamento diário não encontrado.');
 
+        const existingFinalizado = existing.submission_status === 'on_time' || existing.submission_status === 'late';
         return base44.entities.DailyClose.create({
           date: existing.reference_date || existing.date,
           leads_carteira: existing.leads_prev_day ?? existing.leads ?? 0,
@@ -452,6 +454,8 @@ export const base44 = {
           observacao_geral: existing.note || '',
           ...data,
           id,
+          finalizado: data.finalizado === undefined ? existingFinalizado : data.finalizado,
+          data_hora_finalizacao: data.data_hora_finalizacao || existing.submitted_at || undefined,
         });
       }
     },
@@ -632,6 +636,15 @@ export const base44 = {
         await supabase.from('clientes').delete().eq('id', id);
         return { success: true };
       }
+    },
+
+    CarteiraHistorico: {
+      filter: async () => [],
+      create: async (data) => ({
+        id: `hist_${Date.now()}`,
+        created_date: new Date().toISOString(),
+        ...data,
+      }),
     },
 
     ExecutionOpportunity: {

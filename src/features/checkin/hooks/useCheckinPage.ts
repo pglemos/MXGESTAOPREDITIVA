@@ -282,13 +282,15 @@ export function useCheckinPage() {
     const yesterdaySP = addDaysDateOnly(todaySP, -1)
 
     // Deadline check (Brasília time)
-    const isPastDeadline = useMemo(() => {
+    const rawIsPastDeadline = useMemo(() => {
         if (selectedDate >= todaySP) return false // today's closing is always unlocked
         if (selectedDate === yesterdaySP) {
             return spTime.hours > 9 || (spTime.hours === 9 && spTime.minutes > 30)
         }
         return true // older than yesterday is always past deadline
     }, [selectedDate, todaySP, yesterdaySP, spTime])
+
+    const isPastDeadline = rawIsPastDeadline
 
     // Janela em 3 estágios (Especificação Funcional, §3.1-3.3): 'on_time' até
     // 09h30; 'blocked' 09h31-12h00 (bloqueio destacado + avisar gerente);

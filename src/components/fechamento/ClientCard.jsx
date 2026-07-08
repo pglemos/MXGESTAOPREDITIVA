@@ -520,16 +520,23 @@ export default function ClientCard({ onClientsChange, closingDate, bloqueado = f
         if (d1Editavel && onAuditLog && isClienteD1(created, closingDate)) {
           onAuditLog({ tipo_alteracao: "Agendamento adicionado", cliente_id: created.id, valor_anterior: "", valor_novo: `${created.nome} – ${created.canal_comercial}` });
         }
-        const next = [...clientes, clienteParaExibicao(created)];
-        syncClientes(next);
+        try {
+          const next = [...clientes, clienteParaExibicao(created)];
+          syncClientes(next);
+        } catch (syncErr) {
+          console.warn("[ClientCard] Registro salvo, mas a atualização local falhou. Recarregando lista:", syncErr);
+          await loadClientes();
+        }
         toast({ title: d1Editavel ? "Agendamento salvo." : `${form.nome} cadastrado na Carteira.` });
       }
       setSaving(false);
       setDialogOpen(false);
       setReagendConfirm(null);
     } catch (err) {
+      console.error("[ClientCard] Falha ao salvar registro:", err);
       setSaving(false);
-      setSaveError("Não foi possível salvar. Tente novamente.");
+      const message = err?.message || err?.details || err?.hint || "Não foi possível salvar. Tente novamente.";
+      setSaveError(message);
     }
   };
 
