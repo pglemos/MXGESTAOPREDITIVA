@@ -2,9 +2,12 @@ import type { DailyCheckin, CheckinWithTotals } from '@/types/database'
 import { calcularTotais } from '@/lib/calculations'
 
 export const CHECKIN_DEADLINE_MINUTES = 9 * 60 + 30
-export const CHECKIN_EDIT_LIMIT_MINUTES = 9 * 60 + 45
+// Fim da janela de liberação do gerente (dia operacional rola às 12h00 —
+// ver calculateReferenceDate). Mantido com o nome antigo por compatibilidade
+// de import, mas o valor agora é 12h00, não mais 09h45.
+export const CHECKIN_EDIT_LIMIT_MINUTES = 12 * 60
 export const CHECKIN_DEADLINE_LABEL = '09:30'
-export const CHECKIN_EDIT_LIMIT_LABEL = '09:45'
+export const CHECKIN_EDIT_LIMIT_LABEL = '12:00'
 export const MX_TIMEZONE = 'America/Sao_Paulo'
 export const CHECKIN_ZERO_REASONS = ['Folga', 'Treinamento', 'Feriado', 'Dia administrativo', 'Outro'] as const
 export const CHECKIN_MAX_INPUT_VALUE = 999
@@ -61,8 +64,13 @@ export function isCheckinLate(baseDate = new Date()): boolean {
 }
 
 export function canEditCurrentCheckin(baseDate = new Date()): boolean {
-    // Edição/envio diário é permitido até 09:45 inclusive; 09:46 bloqueia.
-    return minutesSinceSaoPauloStartOfDay(baseDate) <= CHECKIN_EDIT_LIMIT_MINUTES
+    // Só bloqueia dentro da janela 09h31-12h00 (fechamento do dia anterior
+    // ainda em aberto, atrasado, aguardando liberação do gerente). Antes das
+    // 09h30 está livre; a partir das 12h00 o dia operacional já rolou
+    // (calculateReferenceDate) e a edição passa a ser a de um dia novo —
+    // não pode continuar bloqueada só por causa da hora do relógio.
+    const minutes = minutesSinceSaoPauloStartOfDay(baseDate)
+    return !(minutes > CHECKIN_DEADLINE_MINUTES && minutes < CHECKIN_EDIT_LIMIT_MINUTES)
 }
 
 export function getCheckinEditLockedAt(baseDate = new Date()): string {

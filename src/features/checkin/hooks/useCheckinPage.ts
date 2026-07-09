@@ -8,7 +8,6 @@ import {
     CHECKIN_MAX_INPUT_VALUE,
     MX_TIMEZONE,
     canEditCurrentCheckin,
-    isCheckinLate,
     useCheckins,
 } from '@/hooks/useCheckins'
 import { validarFunil, calcularTotais } from '@/lib/calculations'
@@ -505,7 +504,11 @@ ${linkSeguro}`
         return CHECKIN_EDIT_LIMIT_MINUTES - currentMinutes
     }, [spTime])
 
-    const isLate = isCheckinLate(currentTime)
+    // isCheckinLate() é hora-relógio pura (só sabe "já passou das 09h30
+    // hoje?"); isPastDeadline já sabe se o dia operacional selecionado
+    // rolou (calculateReferenceDate) — usar isPastDeadline evita marcar
+    // como atrasado um dia novo que acabou de abrir às 12h00.
+    const isLate = isPastDeadline
     const canEditExisting = canEditCurrentCheckin(currentTime)
 
     const deadlineMessage = useMemo(() => {

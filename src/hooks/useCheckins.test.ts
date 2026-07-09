@@ -36,14 +36,18 @@ describe('Check-in Validation Logic', () => {
     expect(isCheckinLate(onTime)).toBe(false)
   })
 
-  it('should block editing after 09:45', () => {
-    const blockedTime = new Date('2025-05-15T12:46:00.000Z')
-    const exactLimit = new Date('2025-05-15T12:45:00.000Z')
-    const allowedTime = new Date('2025-05-15T12:44:00.000Z')
-    
-    expect(canEditCurrentCheckin(blockedTime)).toBe(false)
-    expect(canEditCurrentCheckin(exactLimit)).toBe(true)
-    expect(canEditCurrentCheckin(allowedTime)).toBe(true)
+  it('should require liberação only within the 09h31-11h59 window, not all afternoon', () => {
+    const onTime = new Date('2025-05-15T12:30:00.000Z') // 09h30 em São Paulo — livre
+    const justAfterDeadline = new Date('2025-05-15T12:31:00.000Z') // 09h31 — bloqueado
+    const stillBlocked = new Date('2025-05-15T14:59:00.000Z') // 11h59 — bloqueado
+    const rolledOver = new Date('2025-05-15T15:00:00.000Z') // 12h00 — dia novo, livre
+    const freshAfternoon = new Date('2025-05-15T18:29:00.000Z') // 15h29 — dia novo, livre (regressão real corrigida)
+
+    expect(canEditCurrentCheckin(onTime)).toBe(true)
+    expect(canEditCurrentCheckin(justAfterDeadline)).toBe(false)
+    expect(canEditCurrentCheckin(stillBlocked)).toBe(false)
+    expect(canEditCurrentCheckin(rolledOver)).toBe(true)
+    expect(canEditCurrentCheckin(freshAfternoon)).toBe(true)
   })
 
   it('should expose the edit lock timestamp as the Sao Paulo cutoff instant', () => {
