@@ -280,18 +280,15 @@ updateField(field, Math.max(0, Math.min(CHECKIN_MAX_INPUT_VALUE, next)))
 <form onSubmit={onFormSubmit} className="mt-mx-xs grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-mx-sm pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-16">
       {/* Aviso discreto (após 12h01, sem liberação — Especificação Funcional §3.3) */}
       {showDiscreetPendingBanner && (
-        <div className="rounded-lg border border-status-warning/20 bg-status-warning-surface px-4 py-2.5 text-xs font-bold text-status-warning flex items-center justify-between gap-2 shadow-sm">
-          <div className="flex items-center gap-2">
-            <AlertTriangle size={14} className="shrink-0" />
-            <span>Existe um fechamento anterior pendente.</span>
-          </div>
-          <button
-            type="button"
-            onClick={onOpenHistory}
-            className="underline hover:text-status-warning/80 transition-colors cursor-pointer shrink-0 ml-2 font-black"
-          >
-            Clique aqui para regularizar no Histórico
-          </button>
+        <div className="hidden items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 sm:flex">
+          <AlertTriangle size={16} className="shrink-0 text-[#F59E0B]" />
+          <p className="text-[13px] font-medium text-[#92400E]">
+            Existe um fechamento anterior pendente.{' '}
+            <button type="button" onClick={onOpenHistory} className="font-semibold underline transition-colors hover:text-amber-900">
+              Acesse o Histórico de Fechamentos
+            </button>{' '}
+            para regularizar.
+          </p>
         </div>
       )}
 
@@ -515,7 +512,7 @@ Confirmar Internet
             </div>
             <div className="flex flex-col items-center gap-1 px-2 sm:flex-1 sm:px-4">
               <span className="text-[28px] font-black leading-none tabular-nums text-[#F59E0B]">{display.agd}</span>
-              <span className="mt-1 text-[11px] font-semibold text-[#526B7A] text-center leading-tight">Agend. p/ Amanhã</span>
+              <span className="mt-1 text-[11px] font-semibold text-[#526B7A] text-center leading-tight">Agendamentos D+1</span>
             </div>
             <div className="flex flex-col items-center gap-1 px-2 sm:flex-1 sm:px-4 sm:last:pr-0">
               <span className="text-[28px] font-black leading-none tabular-nums text-[#EF4343]">{realSalesCount}</span>
@@ -581,11 +578,11 @@ Confirmar Internet
 
                 <button
                   type="button"
-                  className="flex items-center gap-1 text-[12px] font-semibold text-[#00A89D] hover:text-[#00A89D] transition-colors w-fit p-0 bg-transparent border-none cursor-pointer"
+                  className="flex w-fit cursor-pointer items-center gap-1 border-none bg-transparent p-0 text-[12px] font-semibold text-[#005BFF] transition-colors hover:underline"
                   onClick={() => setDisciplineModalOpen(true)}
                 >
                   Saiba mais
-                  <Info size={13} className="shrink-0 text-[#526B7A]" />
+                  <Info size={13} className="shrink-0" />
                 </button>
               </div>
             </div>
