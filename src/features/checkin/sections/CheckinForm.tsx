@@ -211,7 +211,7 @@ numberDrafts,
     updateNumberField,
     commitNumberField,
     readValue,
-disabled: isPastDeadline && !fechamentoLiberado,
+disabled: fechamentoConcluido,
 }
 
 const mobileInternetRows: Array<{ label: string; field: NumericCheckinField }> = [
@@ -221,7 +221,7 @@ const mobileInternetRows: Array<{ label: string; field: NumericCheckinField }> =
 ]
 
 const setMobileCounter = (field: NumericCheckinField, next: number) => {
-if (isPastDeadline && !fechamentoLiberado) return
+if (fechamentoConcluido) return
 updateField(field, Math.max(0, Math.min(CHECKIN_MAX_INPUT_VALUE, next)))
 }
 
@@ -229,9 +229,6 @@ updateField(field, Math.max(0, Math.min(CHECKIN_MAX_INPUT_VALUE, next)))
   const disciplineMessage = useMemo(() => {
     if (fechamentoConcluido) {
       return 'Fechamento concluído. Envio realizado com sucesso — as informações foram enviadas para sua liderança.'
-    }
-    if (isPastDeadline && !fechamentoLiberado) {
-      return 'Dados preenchidos. Para finalizar este fechamento, solicite a liberação do gerente.'
     }
     if (finalizadoAposPrazo) {
       return 'Fechamento realizado fora do prazo. Penalização de 10% aplicada.'
@@ -276,11 +273,14 @@ updateField(field, Math.max(0, Math.min(CHECKIN_MAX_INPUT_VALUE, next)))
     void submitCheckin()
   }
 
-  const submitBlockedByDeadline = isPastDeadline && !fechamentoLiberado
-  // 09h45 é o lock de edição "normal"; quando há liberação, esse lock não
-  // se aplica mais — senão a liberação nunca teria efeito real (mesmo bug
-  // que existia no backend, corrigido em checkin_validation_kit/EV-1.6).
-  const editLockedWithoutLiberacao = !canEditExisting && metricScope === 'daily' && !fechamentoLiberado
+  // Bloqueio de horário desativado por decisão do produto (09/07/2026): o
+  // vendedor pode enviar/editar o fechamento diário a qualquer horário, em
+  // qualquer dia. isPastDeadline/isLate seguem calculados (dia operacional
+  // correto, texto informativo), mas não bloqueiam mais nada aqui. A única
+  // trava real que resta é fechamentoConcluido — depois de finalizado, só
+  // dá pra ajustar via Histórico/Regularização.
+  const submitBlockedByDeadline = false
+  const editLockedWithoutLiberacao = false
 
   return (
 <form onSubmit={onFormSubmit} className="mt-mx-xs grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-mx-sm pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-16">
@@ -332,7 +332,7 @@ Info
 {mobileInternetRows.map(({ label, field }) => {
 const value = readActualValue(field)
 const draftValue = numberDrafts[field] ?? String(value)
-const disabled = isPastDeadline && !fechamentoLiberado
+const disabled = fechamentoConcluido
 return (
 <div key={field} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
 <label htmlFor={`mobile-${field}`} className="min-w-0 text-[14px] font-bold leading-tight text-[#071822]">
@@ -373,7 +373,7 @@ className="h-10 min-w-0 rounded-[10px] border border-[#DFE0E1] bg-white text-cen
 <button
 type="button"
 onClick={() => mobileInternetRows.forEach(({ field }) => commitNumberField(field))}
- disabled={(isPastDeadline && !fechamentoLiberado) || fechamentoConcluido}
+ disabled={fechamentoConcluido}
 className="h-11 w-full rounded-[12px] bg-[#00A89D] text-[14px] font-black text-white shadow-[0_12px_30px_rgba(0,168,157,0.25)] transition-colors hover:bg-[#00A89D] disabled:cursor-not-allowed disabled:bg-[#526B7A]"
 >
 Confirmar Internet
@@ -385,7 +385,7 @@ Confirmar Internet
         <FluxoFechamento
           readValue={readValue}
           updateField={updateField}
- disabled={(isPastDeadline && !fechamentoLiberado) || fechamentoConcluido}
+ disabled={fechamentoConcluido}
  finalized={fechamentoConcluido}
           agdCartAtivos={creditosCarteira}
           agdNetAtivos={creditosInternet}
@@ -422,7 +422,7 @@ Confirmar Internet
                     name="zero_reason"
                     value={form.zero_reason}
                     onChange={event => updateField('zero_reason', event.target.value)}
-                    disabled={isPastDeadline && !fechamentoLiberado}
+                    disabled={fechamentoConcluido}
                     aria-invalid={Boolean(fieldErrors.zero_reason)}
                     aria-describedby={fieldErrors.zero_reason ? 'checkin-error-zero-reason' : undefined}
                     className="h-11 w-full rounded-xl border border-[#fcd34d] bg-white px-4 text-sm font-semibold uppercase tracking-wide text-[#92400e] outline-none focus:border-[#F59F0A]"
@@ -475,7 +475,7 @@ Confirmar Internet
                 name="note"
                 value={form.note}
                 onChange={event => updateField('note', event.target.value)}
-                disabled={isPastDeadline && !fechamentoLiberado}
+                disabled={fechamentoConcluido}
                 maxLength={300}
                 aria-invalid={Boolean(fieldErrors.note)}
                 aria-describedby={fieldErrors.note ? 'checkin-error-note' : undefined}
@@ -924,7 +924,7 @@ saving || submitBlockedByDeadline || editLockedWithoutLiberacao || fechamentoCon
         {/* Hidden Salvar rascunho — mantém contrato de teste (CheckinForm.test.ts) */}
         <button
           type="button"
-          disabled={saving || (isPastDeadline && !fechamentoLiberado) || editLockedWithoutLiberacao}
+          disabled={saving || fechamentoConcluido}
           onClick={() => void handleSaveDraft()}
           style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0 }}
         >

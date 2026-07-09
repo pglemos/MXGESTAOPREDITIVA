@@ -626,11 +626,6 @@ ${linkSeguro}`
             toast.error('Preencha os campos numéricos vazios antes de salvar.')
             return
         }
-        if (isPastDeadline && !fechamentoLiberado && metricScope === 'daily') {
-            setInputError(`Prazo encerrado às 09h30. Solicite liberação ao seu gerente para finalizar este fechamento.`)
-            toast.error(`Prazo encerrado às 09h30. Solicite liberação ao seu gerente para finalizar este fechamento.`)
-            return
-        }
         if (allZero && !form.zero_reason) {
             setFieldError('zero_reason', 'Selecione o motivo da produção zero.')
             setInputError('Justificativa obrigatória para produção zero.')
