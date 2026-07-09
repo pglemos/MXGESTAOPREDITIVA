@@ -42,11 +42,16 @@ function minutesSinceSaoPauloStartOfDay(date: Date) {
     return parts.hour * 60 + parts.minute
 }
 
-// Regra MX: envio acontece hoje, mas a produção declarada se refere sempre ao dia anterior.
+// Regra MX (dia operacional): o fechamento de um dia D fica aberto de
+// D 12h00 até D+1 09h30 (com liberação do gerente até D+1 12h00). O dia
+// operacional avança às 12h00 — não à meia-noite. Antes das 12h00 ainda é
+// o fechamento do dia anterior; a partir das 12h00 já é o novo dia.
 export function calculateReferenceDate(baseDate = new Date()): string {
     const parts = getSaoPauloParts(baseDate)
     const saoPauloCalendarDate = new Date(Date.UTC(parts.year, parts.month - 1, parts.day))
-    saoPauloCalendarDate.setUTCDate(saoPauloCalendarDate.getUTCDate() - 1)
+    if (parts.hour < 12) {
+        saoPauloCalendarDate.setUTCDate(saoPauloCalendarDate.getUTCDate() - 1)
+    }
     return saoPauloCalendarDate.toISOString().split('T')[0]
 }
 

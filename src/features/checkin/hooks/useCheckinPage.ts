@@ -281,11 +281,17 @@ export function useCheckinPage() {
     const todaySP = getSPDateOnly(currentTime)
     const yesterdaySP = addDaysDateOnly(todaySP, -1)
 
-    // Bloqueio de horário desativado (MX: vendedor pode enviar a qualquer
-    // horário, em qualquer dia, em tempo real). Mantido como constante para
-    // não remover toda a UI condicional de liberação/atraso — apenas nunca
-    // dispara.
-    const rawIsPastDeadline = false
+    // Deadline check (Brasília time) — dia operacional D fica aberto até
+    // D+1 09h30 sem liberação; D+1 09h31-12h00 depende de liberação do
+    // gerente (calcularLockStage); a partir de D+1 12h00 o dia operacional
+    // já rolou (calculateReferenceDate), então "hoje" é outro dia.
+    const rawIsPastDeadline = useMemo(() => {
+        if (selectedDate >= todaySP) return false // today's closing is always unlocked
+        if (selectedDate === yesterdaySP) {
+            return spTime.hours > 9 || (spTime.hours === 9 && spTime.minutes > 30)
+        }
+        return true // older than yesterday is always past deadline
+    }, [selectedDate, todaySP, yesterdaySP, spTime])
 
     const isPastDeadline = rawIsPastDeadline
 
@@ -494,26 +500,27 @@ ${linkSeguro}`
         return clientesList.filter(c => c.vendaRealizada === 'Sim').reduce((acc, c) => acc + (c.valorNegociado || 0), 0)
     }, [clientesList])
 
-    // Fixo bem acima do limiar de aviso (15 min) — bloqueio de horário
-    // desativado, o banner de contagem regressiva nunca deve aparecer.
-    const minutesUntilEditLock = CHECKIN_EDIT_LIMIT_MINUTES
+    const minutesUntilEditLock = useMemo(() => {
+        const currentMinutes = spTime.hours * 60 + spTime.minutes
+        return CHECKIN_EDIT_LIMIT_MINUTES - currentMinutes
+    }, [spTime])
 
-    // Informativo apenas — não bloqueia mais nada (bloqueio de horário
-    // desativado). canEditExisting fixo em true para não travar o submit
-    // via editLockedWithoutLiberacao em CheckinForm.tsx.
     const isLate = isCheckinLate(currentTime)
-    const canEditExisting = true
+    const canEditExisting = canEditCurrentCheckin(currentTime)
 
     const deadlineMessage = useMemo(() => {
+        if (minutesUntilEditLock < 0) return `Bloqueado desde ${CHECKIN_EDIT_LIMIT_LABEL}.`
+        const lockText = minutesUntilEditLock === 0 ? 'menos de 1 min' : `${minutesUntilEditLock} min`
         return isLate
-            ? `Prazo oficial passou às ${CHECKIN_DEADLINE_LABEL}. Envio liberado a qualquer horário.`
-            : 'No prazo.'
-    }, [isLate])
+            ? `Prazo oficial passou às ${CHECKIN_DEADLINE_LABEL}. Edição bloqueia em ${lockText}.`
+            : `No prazo. Edição bloqueia em ${lockText}.`
+    }, [isLate, minutesUntilEditLock])
 
-    const allZero = useMemo(
-        () => effectiveTotals.leads === 0 && effectiveTotals.agd === 0 && effectiveTotals.visitas === 0 && effectiveTotals.vendas === 0,
-        [effectiveTotals],
-    )
+  const allZero = useMemo(
+    () => effectiveTotals.leads === 0 && effectiveTotals.agd === 0 && effectiveTotals.visitas === 0 && effectiveTotals.vendas === 0,
+    [effectiveTotals],
+  )
+  const fechamentoConcluido = Boolean(historicalCheckin && metricScope === 'daily')
     const funnelError = useMemo(() => {
         try { return validarFunil(form) } catch { return 'Erro de validação' }
     }, [form])
@@ -599,9 +606,15 @@ ${linkSeguro}`
         navigate('/home')
     }
 
-    const submitCheckin = async () => {
-        if (saving) return
-        if (Object.values(numberDrafts).some(value => value === '')) {
+  const submitCheckin = async () => {
+    if (saving) return
+    if (fechamentoConcluido) {
+      const message = 'Fechamento já concluído para esta data. Para alterar, use o histórico e solicite correção.'
+      setInputError(message)
+      toast.error(message)
+      return
+    }
+    if (Object.values(numberDrafts).some(value => value === '')) {
             const emptyFields = Object.entries(numberDrafts)
                 .filter(([, value]) => value === '')
                 .map(([field]) => field as NumericCheckinField)
@@ -652,7 +665,8 @@ ${linkSeguro}`
             return
         }
 
-        setSaving(true)
+ setSaving(true)
+ try {
 
         // Save the checkin to Supabase — disciplina base (antes da penalidade) e o
         // flag de liberação vão no payload; o servidor deriva a penalidade e o
@@ -662,8 +676,8 @@ ${linkSeguro}`
             pontuacao_disciplina_base: rawDiscipline,
             fechamento_liberado: fechamentoLiberado,
         }
-        const { error } = await saveCheckin(checkinPayload, metricScope, selectedDate)
-        if (error) { setSaving(false); toast.error(error); return }
+ const { error } = await saveCheckin(checkinPayload, metricScope, selectedDate)
+ if (error) { toast.error(error); return }
 
         // Score/penalidade/liberação agora são persistidos pelo servidor
         // (lancamentos_diarios, EV-1.5/EV-1.6) — nada para gravar em localStorage.
@@ -673,11 +687,10 @@ ${linkSeguro}`
                 feedbackActionLock.actionIdsToJustify,
                 form.note,
             )
-            if (feedbackActionError) {
-                setSaving(false)
-                toast.error(feedbackActionError)
-                return
-            }
+ if (feedbackActionError) {
+ toast.error(feedbackActionError)
+ return
+ }
         }
         setChangedFields(new Set())
         setFieldErrors({})
@@ -687,10 +700,14 @@ ${linkSeguro}`
             detail: 'Você pode revisar os números, abrir o histórico ou voltar para o início sem espera automática.',
         })
         if (realSalesCount > 0) setShowConfetti(true)
-        toast.success(realSalesCount > 0 ? `${realSalesCount} vendas consolidadas.` : 'Fechamento finalizado com sucesso.')
-        timerRef.current = setTimeout(() => setShowConfetti(false), 1200)
-        setSaving(false)
-    }
+ toast.success(realSalesCount > 0 ? `${realSalesCount} vendas consolidadas.` : 'Fechamento finalizado com sucesso.')
+ timerRef.current = setTimeout(() => setShowConfetti(false), 1200)
+ } catch {
+ toast.error('Não foi possível finalizar o fechamento. Tente novamente.')
+ } finally {
+ setSaving(false)
+ }
+ }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -814,8 +831,9 @@ ${linkSeguro}`
         supabaseUser,
         disciplinePercent,
         completedItems,
-        pendingItems,
-        temAgendamentoDataDiferente,
+      pendingItems,
+      fechamentoConcluido,
+      temAgendamentoDataDiferente,
         realSalesCount,
         realFaturamento,
         totalAgendamentosD1,

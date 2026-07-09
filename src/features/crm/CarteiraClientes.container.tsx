@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import {
   CalendarDays,
@@ -294,7 +294,7 @@ function aplicarFiltrosAvancados(
 }
 
 const STATUS_CLIENTE_LABEL: Record<CrmClienteStatus, string> = {
-  oportunidade: 'Em andamento',
+  oportunidade: 'Oportunidade',
   ativo: 'Em andamento',
   aguardando_contato: 'Aguardando cliente',
   pos_venda: 'Vendido',
@@ -359,6 +359,12 @@ export function CarteiraClientes() {
   const [filtrosAvancados, setFiltrosAvancados] = useState<FiltrosAvancados>({})
   const [modalOpen, setModalOpen] = useState(false)
   const [form, setForm] = useState<ClienteInput>(EMPTY_FORM)
+
+  useEffect(() => {
+    const params = new URLSearchParams(typeof window === 'undefined' ? '' : window.location.search)
+    const busca = params.get('busca')
+    if (busca) setSearch(busca)
+  }, [])
   const [saving, setSaving] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [panelClosed, setPanelClosed] = useState(false)

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import {
   AlarmClock,
@@ -190,6 +190,24 @@ function fmtHora(iso: string) {
   return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 }
 
+function toDateTimeLocalInput(value?: string | null) {
+  if (!value) return ''
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) return value
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(date)
+  const byType = new Map(parts.map(part => [part.type, part.value]))
+  return `${byType.get('year')}-${byType.get('month')}-${byType.get('day')}T${byType.get('hour')}:${byType.get('minute')}`
+}
+
 function slotMinutes(time: string) {
   const [hours, minutes] = time.split(':').map(Number)
   return (hours || 0) * 60 + (minutes || 0)
@@ -211,11 +229,13 @@ function OportunidadeCard({
   onWhatsApp,
   onAbrirCliente,
   onResolver,
+  onReagendar,
 }: {
   item: AgendaHojeItem
   onWhatsApp: (item: AgendaHojeItem) => void
   onAbrirCliente: (item: AgendaHojeItem) => void
   onResolver: (item: AgendaHojeItem) => void
+  onReagendar: (item: AgendaHojeItem) => void
 }) {
   const tipo = item.agendamento.tipo as CrmAgendamentoTipo
   const Icon = TIPO_ICON[tipo] || Calendar
@@ -226,12 +246,12 @@ function OportunidadeCard({
     <div className={cn('group flex overflow-hidden rounded-2xl border bg-white shadow-sm transition-shadow hover:shadow-md', isVencido ? 'border-red-200' : 'border-slate-200')}>
       <div className={cn('w-1.5 shrink-0', TIPO_BAR[tipo])} />
       <div className="flex min-w-0 flex-1 items-center gap-4 px-5 py-4">
-        <div className="w-12 shrink-0 text-center">
+        <button type="button" onClick={() => onReagendar(item)} className="w-12 shrink-0 text-center outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-brand-primary/30" aria-label={`Alterar horário de ${item.clienteNome || 'cliente'}`}>
           <div className={cn('mx-auto mb-1 flex h-9 w-9 items-center justify-center rounded-xl', TIPO_BADGE[tipo])}>
             <Icon size={16} />
           </div>
           <p className={cn('text-[10px] font-bold', isVencido ? 'text-red-500' : 'text-slate-400')}>{fmtHora(item.horario)}</p>
-        </div>
+        </button>
 
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[12px] font-black text-slate-500">
@@ -239,7 +259,9 @@ function OportunidadeCard({
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="truncate text-[14px] font-bold text-slate-900">{item.clienteNome || 'Cliente sem nome'}</p>
+              <button type="button" onClick={() => onAbrirCliente(item)} className="truncate text-left text-[14px] font-bold text-slate-900 underline-offset-2 outline-none hover:text-brand-primary hover:underline focus-visible:ring-2 focus-visible:ring-brand-primary/30">
+                {item.clienteNome || 'Cliente sem nome'}
+              </button>
               <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold', TIPO_BADGE[tipo])}>{CRM_AGENDAMENTO_TIPO_LABEL[tipo]}</span>
               {isVencido && <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-500">Vencido</span>}
             </div>
@@ -292,6 +314,7 @@ function AtalhoButton({ atalho, onTabChange, onInfo }: { atalho: RoutineAtalho; 
 }
 
 export function CentralExecucao() {
+  const navigate = useNavigate()
   const { oportunidades, updateOportunidade } = useOportunidades()
   const { agendamentos, createAgendamento, updateAgendamento, updateStatus } = useAgendamentos()
   const { clientes } = useClientes()
@@ -469,7 +492,7 @@ export function CentralExecucao() {
 
   function openReagendar(item: AgendaHojeItem) {
     setReagendarItem(item)
-    setReagendarValor(new Date(item.horario).toISOString().slice(0, 16))
+ setReagendarValor(toDateTimeLocalInput(item.horario))
   }
 
   async function confirmReagendar() {
@@ -690,11 +713,12 @@ export function CentralExecucao() {
                 {listaFiltrada.map(item => (
                   <OportunidadeCard
                     key={item.id}
-                    item={item}
-                    onWhatsApp={openWhatsApp}
-                    onAbrirCliente={() => {}}
-                    onResolver={setMaisAcoesItem}
-                  />
+ item={item}
+ onWhatsApp={openWhatsApp}
+ onAbrirCliente={(clienteItem) => navigate(`/carteira-clientes?busca=${encodeURIComponent(clienteItem.clienteNome || '')}`)}
+ onResolver={setMaisAcoesItem}
+ onReagendar={openReagendar}
+ />
                 ))}
               </div>
             )}

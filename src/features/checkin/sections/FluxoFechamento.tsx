@@ -170,12 +170,13 @@ interface FluxoFechamentoProps {
   readValue: (field: NumericCheckinField) => number
   updateField: (field: NumericCheckinField, value: number) => void
   disabled: boolean
+  finalized?: boolean
   agdCartAtivos: number
   agdNetAtivos: number
   temClientesCadastrados: boolean
 }
 
-export function FluxoFechamento({ readValue, updateField, disabled, agdCartAtivos, agdNetAtivos, temClientesCadastrados }: FluxoFechamentoProps) {
+export function FluxoFechamento({ readValue, updateField, disabled, finalized = false, agdCartAtivos, agdNetAtivos, temClientesCadastrados }: FluxoFechamentoProps) {
   const [currentStep, setCurrentStep] = useState<StepId>('showroom')
   const [completedSteps, setCompletedSteps] = useState<Set<StepId>>(new Set())
 
@@ -188,6 +189,11 @@ export function FluxoFechamento({ readValue, updateField, disabled, agdCartAtivo
   const agdNet = readValue('agd_net')
 
   useEffect(() => {
+    if (finalized) {
+      setCompletedSteps(new Set(STEPS.map(step => step.id)))
+      setCurrentStep('vendas')
+      return
+    }
     setCompletedSteps(prev => {
       const done = new Set(prev)
       if (visitasPorta > 0) done.add('showroom')
@@ -195,16 +201,20 @@ export function FluxoFechamento({ readValue, updateField, disabled, agdCartAtivo
       if (leadsNet + visitasNet + agdNet > 0) done.add('internet')
       return done
     })
-  }, [visitasPorta, leadsCart, visitasCart, agdCart, leadsNet, visitasNet, agdNet])
+  }, [finalized, visitasPorta, leadsCart, visitasCart, agdCart, leadsNet, visitasNet, agdNet])
 
   useEffect(() => {
+    if (finalized) {
+      setCompletedSteps(new Set(STEPS.map(step => step.id)))
+      return
+    }
     setCompletedSteps(prev => {
       const done = new Set(prev)
       if (temClientesCadastrados) done.add('vendas')
       else done.delete('vendas')
       return done
     })
-  }, [temClientesCadastrados])
+  }, [finalized, temClientesCadastrados])
 
   const handleConfirm = (stepId: StepId) => {
     const nextMap: Record<StepId, StepId> = { showroom: 'carteira', carteira: 'internet', internet: 'vendas', vendas: 'vendas' }
@@ -233,6 +243,9 @@ export function FluxoFechamento({ readValue, updateField, disabled, agdCartAtivo
     if (agdCart > 0) partes.push(`${agdCart} de carteira`)
     if (agdNet > 0) partes.push(`${agdNet} de internet`)
     vendasMsg = `Cadastre suas vendas e seus ${totalAgend} agendamento${totalAgend > 1 ? 's' : ''}, sendo ${partes.join(' e ')} para ganhar pontos. A seguir, finalize o fechamento.`
+  }
+  if (finalized) {
+    vendasMsg = 'Fechamento concluído. Envio realizado com sucesso — as informações foram enviadas para sua liderança.'
   }
 
   return (

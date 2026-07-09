@@ -2,6 +2,8 @@ import { supabase } from '@/lib/supabase'
 import type { CheckinFormData, CheckinScope } from '@/types/database'
 import { canCreateAdjustment } from '@/lib/auth/capabilities'
 import {
+    CHECKIN_EDIT_LIMIT_LABEL,
+    canEditCurrentCheckin,
     getCheckinEditLockedAt,
     isCheckinLate,
     validateCheckinSubmissionDate,
@@ -37,6 +39,11 @@ export function useCheckinsSubmit(args: UseCheckinsSubmitArgs) {
         if (dateError) return { error: dateError }
 
         const isDaily = scope === 'daily' && finalDate === referenceDate
+        const liberado = Boolean(formData.fechamento_liberado)
+
+        if (isDaily && !liberado && !canEditCurrentCheckin()) {
+            return { error: `Fechamentos diários ficam disponíveis somente até ${CHECKIN_EDIT_LIMIT_LABEL}. Solicite liberação ao seu gerente.` }
+        }
 
         const normalizeText = (str?: string | null) => {
             const trimmed = str?.trim()

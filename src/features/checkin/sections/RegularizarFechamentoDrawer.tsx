@@ -183,7 +183,7 @@ export function RegularizarFechamentoDrawer({
 
       {/* Drawer */}
       <div className="fixed inset-0 z-[145] flex items-stretch justify-end pointer-events-none">
-        <div className="pointer-events-auto flex h-full w-full flex-col overflow-hidden bg-[#F8FAFC] shadow-2xl sm:w-[720px] sm:rounded-l-2xl">
+ <div className="pointer-events-auto flex h-full w-full flex-col overflow-hidden bg-[#F8FAFC] shadow-2xl sm:w-[760px] lg:w-[840px] xl:w-[920px] sm:rounded-l-2xl">
           {/* Header */}
           <div className="flex flex-shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-5 py-4">
             <CalendarDays className="h-5 w-5 shrink-0 text-[#005BFF]" />
@@ -202,7 +202,7 @@ export function RegularizarFechamentoDrawer({
           </div>
 
           {/* Body */}
-          <div className="flex-1 space-y-5 overflow-y-auto p-4 sm:p-6">
+ <div className="min-w-0 flex-1 space-y-5 overflow-y-auto overflow-x-hidden p-4 sm:p-6">
             {!finalized && (
               regularizacaoBloqueada ? (
                 <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
@@ -220,7 +220,7 @@ export function RegularizarFechamentoDrawer({
             )}
 
             {/* Movimento do Dia */}
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+ <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-100 px-5 py-4">
                 <h3 className="text-[14px] font-black uppercase tracking-wide text-[#0F172A]">Movimento do Dia</h3>
                 <p className="mt-0.5 text-[12px] text-slate-400">Informe os atendimentos realizados neste dia</p>
@@ -271,7 +271,7 @@ export function RegularizarFechamentoDrawer({
             <CheckinCrmSection ctx={crmCtx} />
 
             {/* Resumo do Dia */}
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+ <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-100 px-5 py-4">
                 <h3 className="text-[14px] font-black uppercase tracking-wide text-[#0F172A]">Resumo do Dia</h3>
               </div>
@@ -292,7 +292,7 @@ export function RegularizarFechamentoDrawer({
             </div>
 
             {/* Disciplina */}
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+ <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-100 px-5 py-4">
                 <h3 className="text-[14px] font-black uppercase tracking-wide text-[#0F172A]">Disciplina — Fechamento Diário</h3>
                 <p className="mt-0.5 text-[12px] text-slate-400">Estimativa com penalização de -10% por atraso</p>
@@ -374,7 +374,7 @@ export function RegularizarFechamentoDrawer({
               type="button"
               disabled={saving || !canSubmit}
               onClick={onSubmit}
-              className="flex items-center gap-2 rounded-xl bg-[#005BFF] px-6 py-2.5 text-[13px] font-bold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+ className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#005BFF] px-5 py-2.5 text-center text-[13px] font-bold leading-snug text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 sm:px-6"
             >
               <Send className="h-4 w-4" /> {saving ? 'Enviando...' : 'Enviar Regularização'}
             </button>

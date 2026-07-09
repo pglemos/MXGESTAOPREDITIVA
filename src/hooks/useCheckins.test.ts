@@ -9,14 +9,21 @@ import {
 import { canCreateAdjustment } from '@/lib/auth/capabilities'
 
 describe('Check-in Validation Logic', () => {
-  it('should calculate reference date as yesterday', () => {
-    const today = new Date('2025-05-15T13:00:00.000Z')
+  it('should calculate reference date as yesterday before the 12h00 operational rollover', () => {
+    const today = new Date('2025-05-15T13:00:00.000Z') // 10h00 em São Paulo
     expect(calculateReferenceDate(today)).toBe('2025-05-14')
   })
 
   it('should calculate reference date using Sao Paulo calendar day near UTC midnight', () => {
-    const utcMidnightBeforeSaoPauloDayChanges = new Date('2025-05-15T02:30:00.000Z')
-    expect(calculateReferenceDate(utcMidnightBeforeSaoPauloDayChanges)).toBe('2025-05-13')
+    const utcMidnightBeforeSaoPauloDayChanges = new Date('2025-05-15T02:30:00.000Z') // 23h30 em São Paulo (dia 14, já depois das 12h)
+    expect(calculateReferenceDate(utcMidnightBeforeSaoPauloDayChanges)).toBe('2025-05-14')
+  })
+
+  it('should roll the operational day forward at 12h00 São Paulo, not at midnight', () => {
+    const beforeNoon = new Date('2025-05-15T14:59:00.000Z') // 11h59 em São Paulo
+    const atNoon = new Date('2025-05-15T15:00:00.000Z') // 12h00 em São Paulo
+    expect(calculateReferenceDate(beforeNoon)).toBe('2025-05-14')
+    expect(calculateReferenceDate(atNoon)).toBe('2025-05-15')
   })
 
   it('should mark check-in as late after 09:30', () => {

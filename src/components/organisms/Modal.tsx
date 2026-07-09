@@ -6,7 +6,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { X } from 'lucide-react'
 
 const modalSizeVariants = cva(
-  'w-auto sm:w-full bg-white shadow-mx-lg rounded-mx-2xl sm:rounded-mx-3xl overflow-hidden flex flex-col',
+  'w-auto sm:w-full bg-white shadow-mx-lg rounded-mx-2xl sm:rounded-mx-3xl overflow-hidden flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)]',
   {
     variants: {
       size: {

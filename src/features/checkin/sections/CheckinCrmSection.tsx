@@ -124,6 +124,42 @@ const formatAgendamentoDateTime = (dateStr: string | null | undefined): string =
 
 const toClosedAt = (dateOnly: string) => `${dateOnly.split('T')[0]}T12:00:00-03:00`
 
+const STATUS_NEGOCIACAO_OPTIONS = [
+  'Visita agendada',
+  'Entrega agendada',
+  'Retorno combinado',
+  'Sinal recebido',
+  'Aguardando aprovação de ficha',
+  'Aguardando avaliação do usado',
+  'Cliente não compareceu',
+  'Preço/condição',
+  'Comprou em outra marca',
+  'Desistiu da compra',
+  'Falta de estoque',
+  'Outro',
+]
+
+const toDateTimeLocalInput = (value?: string | null) => {
+  if (!value) return ''
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) return value
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return `${value}T12:00`
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(date)
+  const byType = new Map(parts.map(part => [part.type, part.value]))
+  return `${byType.get('year')}-${byType.get('month')}-${byType.get('day')}T${byType.get('hour')}:${byType.get('minute')}`
+}
+
 const parseCurrencyToNumber = (val: string): number => {
   if (!val) return 0
   if (/^\d+(\.\d+)?$/.test(val)) {
@@ -204,15 +240,13 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
     })
   }
 
-  // Inline edit drafts for the expanded row (Data novo agendamento / Motivo da perda / Observações)
-  type InlineDraft = { dataNovoAgendamento: string; motivoPerda: string; observacoes: string }
+  // Inline edit drafts for the expanded row (Data novo agendamento / Status da negociação / Observações)
+ type InlineDraft = { dataNovoAgendamento: string; motivoPerda: string; observacoes: string }
   const [inlineDrafts, setInlineDrafts] = useState<Record<string, InlineDraft>>({})
 
   const getInlineDraft = (row: ClienteRow): InlineDraft => {
     let rawNovo = inlineDrafts[row.id]?.dataNovoAgendamento ?? row.dataNovoAgendamento ?? row.dataAgendamento ?? ''
-    if (rawNovo && !rawNovo.includes('T')) {
-      rawNovo = `${rawNovo}T12:00`
-    }
+  rawNovo = toDateTimeLocalInput(rawNovo)
     return {
       dataNovoAgendamento: rawNovo,
       motivoPerda: inlineDrafts[row.id]?.motivoPerda ?? row.motivoPerda ?? '',
@@ -301,7 +335,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
     setCarroAvaliado(row.carroAvaliado === 'Sim' ? 'sim' : 'nao')
     setCompareceu(row.compareceu || 'Sim')
     setVendaRealizada(row.vendaRealizada)
-    setDataFechamento(row.dataAgendamento ? (row.dataAgendamento.includes('T') ? row.dataAgendamento : `${row.dataAgendamento}T12:00`) : '')
+  setDataFechamento(toDateTimeLocalInput(row.dataAgendamento))
     setMotivoPerda(row.motivoPerda || '')
     setObservacoes(row.observacoes || '')
     setDrawerOpen(true)
@@ -383,7 +417,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
         return
       }
       if ((vendaRealizada === 'Não' || (vendaRealizada as string) === 'perdido') && !motivoPerda.trim()) {
-        toast.error('Informe o motivo da perda.')
+ toast.error('Selecione o status da negociação.')
         return
       }
     } else {
@@ -408,7 +442,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
         return
       }
       if (vendaRealizada === 'Não' && !motivoPerda.trim()) {
-        toast.error('Informe o motivo da perda.')
+        toast.error('Selecione o status da negociação.')
         return
       }
     }
@@ -482,7 +516,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
         sinal: parsedSinal || 0,
         financiamento,
         carro_avaliado: carroAvaliado === 'sim',
-        motivo_perda: normalizedVendaRealizada === 'Não' ? motivoPerda.trim() : null,
+        motivo_perda: motivoPerda.trim() || null,
         closed_at: normalizedVendaRealizada !== 'Em Negociação' ? toClosedAt(dateOnly) : null,
         ...(!editingClientId ? { created_at: createdAtOverride } : {}),
       }
@@ -797,7 +831,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
                                     htmlFor={`inline-motivo-${row.id}`}
                                     className="text-[10px] font-extrabold uppercase tracking-wider text-[#526B7A]"
                                   >
-                                    Motivo da perda
+ Status da negociação
                                   </label>
                                   <div className="relative">
                                     <select
@@ -806,13 +840,10 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
                                       onChange={event => updateInlineDraft(row, { motivoPerda: event.target.value })}
                                       className="h-10 w-full appearance-none rounded-lg border border-[#DFE0E1] bg-white px-3 pr-9 text-[13px] font-semibold text-[#071822] outline-none transition focus:border-[#00A89D] focus:ring-4 focus:ring-[#00A89D]/10"
                                     >
-                                      <option value="">Não selecionado</option>
-                                      <option value="Não compareceu">Não compareceu</option>
-                                      <option value="Preço/Condição">Preço/Condição</option>
-                                      <option value="Comprou em outra marca">Comprou em outra marca</option>
-                                      <option value="Desistiu da compra">Desistiu da compra</option>
-                                      <option value="Falta de estoque">Falta de estoque</option>
-                                      <option value="Outro">Outro</option>
+ <option value="">Não selecionado</option>
+ {STATUS_NEGOCIACAO_OPTIONS.map(status => (
+ <option key={status} value={status}>{status}</option>
+ ))}
                                     </select>
                                     <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#526B7A] pointer-events-none" />
                                   </div>
@@ -1217,32 +1248,27 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
                 </div>
               </div>
 
-              {/* Condicional: Motivo da Perda */}
-              {(vendaRealizada === 'Não' || (vendaRealizada as string) === 'perdido') && (
-                <div className="flex flex-col gap-1.5 mt-3">
+              {/* Status da negociação */}
+ <div className="flex flex-col gap-1.5 mt-3">
                   <label htmlFor="modal-motivo-perda" className="text-[11px] font-extrabold text-[#526B7A] uppercase tracking-wider">
-                    Motivo da perda <span className="text-[#EF4343]">*</span>
+ Status da negociação {(vendaRealizada === 'Não' || (vendaRealizada as string) === 'perdido') && <span className="text-[#EF4343]">*</span>}
                   </label>
                   <div className="relative">
                     <select
                       id="modal-motivo-perda"
                       value={motivoPerda}
                       onChange={event => setMotivoPerda(event.target.value)}
-                      required
+ required={vendaRealizada === 'Não' || (vendaRealizada as string) === 'perdido'}
                       className="h-11 w-full appearance-none rounded-xl border border-[#DFE0E1] bg-white px-4 pr-10 text-sm font-semibold text-[#071822] outline-none transition focus:border-[#00A89D] focus:ring-4 focus:ring-[#00A89D]/10"
                     >
-                      <option value="">Selecione...</option>
-                      <option value="Não compareceu">Não compareceu</option>
-                      <option value="Preço/Condição">Preço/Condição</option>
-                      <option value="Comprou em outra marca">Comprou em outra marca</option>
-                      <option value="Desistiu da compra">Desistiu da compra</option>
-                      <option value="Falta de estoque">Falta de estoque</option>
-                      <option value="Outro">Outro</option>
+ <option value="">Selecione...</option>
+ {STATUS_NEGOCIACAO_OPTIONS.map(status => (
+ <option key={status} value={status}>{status}</option>
+ ))}
                     </select>
                     <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#526B7A] pointer-events-none" />
                   </div>
                 </div>
-              )}
             </div>
 
             {/* Footer */}

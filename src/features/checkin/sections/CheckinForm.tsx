@@ -167,10 +167,11 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
     isPastDeadline,
     lockStage,
     avisarGerenteWhatsapp,
-    disciplinePercent,
-    completedItems,
-    pendingItems,
-    temAgendamentoDataDiferente,
+  disciplinePercent,
+  completedItems,
+  pendingItems,
+  fechamentoConcluido,
+  temAgendamentoDataDiferente,
     realSalesCount,
     realFaturamento,
     totalAgendamentosD1,
@@ -226,6 +227,9 @@ updateField(field, Math.max(0, Math.min(CHECKIN_MAX_INPUT_VALUE, next)))
 
   // Visual messages for discipline card
   const disciplineMessage = useMemo(() => {
+    if (fechamentoConcluido) {
+      return 'Fechamento concluído. Envio realizado com sucesso — as informações foram enviadas para sua liderança.'
+    }
     if (isPastDeadline && !fechamentoLiberado) {
       return 'Dados preenchidos. Para finalizar este fechamento, solicite a liberação do gerente.'
     }
@@ -248,7 +252,7 @@ updateField(field, Math.max(0, Math.min(CHECKIN_MAX_INPUT_VALUE, next)))
       return 'Fechamento completo. Todos os agendamentos para amanhã foram detalhados corretamente.'
     }
     return ''
-  }, [disciplinePercent, fechamentoLiberado, finalizadoAposPrazo, isPastDeadline, temAgendamentoDataDiferente])
+  }, [disciplinePercent, fechamentoConcluido, fechamentoLiberado, finalizadoAposPrazo, isPastDeadline, temAgendamentoDataDiferente])
 
   // Spec §20: se o vendedor informou Agendamentos D+1 e não detalhou todos,
   // abre modal de confirmação em vez de finalizar direto. D+1 zerado ou
@@ -369,7 +373,7 @@ className="h-10 min-w-0 rounded-[10px] border border-[#DFE0E1] bg-white text-cen
 <button
 type="button"
 onClick={() => mobileInternetRows.forEach(({ field }) => commitNumberField(field))}
-disabled={isPastDeadline && !fechamentoLiberado}
+ disabled={(isPastDeadline && !fechamentoLiberado) || fechamentoConcluido}
 className="h-11 w-full rounded-[12px] bg-[#00A89D] text-[14px] font-black text-white shadow-[0_12px_30px_rgba(0,168,157,0.25)] transition-colors hover:bg-[#00A89D] disabled:cursor-not-allowed disabled:bg-[#526B7A]"
 >
 Confirmar Internet
@@ -381,7 +385,8 @@ Confirmar Internet
         <FluxoFechamento
           readValue={readValue}
           updateField={updateField}
-          disabled={isPastDeadline && !fechamentoLiberado}
+ disabled={(isPastDeadline && !fechamentoLiberado) || fechamentoConcluido}
+ finalized={fechamentoConcluido}
           agdCartAtivos={creditosCarteira}
           agdNetAtivos={creditosInternet}
           temClientesCadastrados={clientesList.length > 0}
@@ -824,18 +829,18 @@ Confirmar Internet
                 <li>Pontuação estimada de disciplina: {disciplinePercent}%</li>
               </ul>
             </div>
-            <footer className="px-6 py-4 border-t border-[#DFE0E1] flex flex-col-reverse gap-2 sm:flex-row sm:justify-end bg-[#F7F8F8]">
+ <footer className="flex flex-col-reverse gap-3 border-t border-[#DFE0E1] bg-[#F7F8F8] px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
               <button
                 type="button"
                 onClick={handleVoltarECadastrar}
-                className="h-10 px-6 font-bold text-[#526B7A] hover:bg-[#F7F8F8] rounded-xl transition-colors"
+ className="min-h-11 w-full rounded-xl px-5 py-2 text-sm font-bold leading-snug text-[#526B7A] transition-colors hover:bg-[#F7F8F8] sm:w-auto"
               >
                 Voltar e cadastrar
               </button>
               <button
                 type="button"
                 onClick={handleFinalizarMesmoAssim}
-                className="h-10 px-6 font-bold bg-[#00A89D] hover:bg-[#00A89D] text-white rounded-xl shadow-sm transition-colors"
+className="min-h-11 w-full rounded-xl bg-[#00A89D] px-5 py-2 text-sm font-bold leading-snug text-white shadow-sm transition-colors hover:bg-[#00A89D] sm:w-auto sm:min-w-[190px]"
               >
                 Finalizar mesmo assim
               </button>
@@ -888,10 +893,10 @@ Confirmar Internet
           {/* Green pill button */}
           <button
             type="submit"
-          disabled={saving || submitBlockedByDeadline || editLockedWithoutLiberacao}
+ disabled={saving || submitBlockedByDeadline || editLockedWithoutLiberacao || fechamentoConcluido}
           className={cn(
             "inline-flex w-full shrink-0 items-center justify-center gap-2.5 rounded-full px-6 py-3.5 text-center text-[12px] font-extrabold uppercase tracking-[0.06em] text-white shadow-[0_8px_20px_rgba(22,163,74,0.28)] transition-all sm:w-auto sm:px-8 sm:text-[13px] sm:tracking-[0.08em]",
-            saving || submitBlockedByDeadline || editLockedWithoutLiberacao
+saving || submitBlockedByDeadline || editLockedWithoutLiberacao || fechamentoConcluido
               ? "bg-[#526B7A] cursor-not-allowed shadow-none"
               : "bg-[#00A89D] hover:bg-[#00A89D] active:scale-[0.98]"
           )}
@@ -901,13 +906,19 @@ Confirmar Internet
             ) : (
               <LockKeyhole size={15} className="shrink-0" />
             )}
-            <span>{saving ? 'Salvando...' : submitBlockedByDeadline ? 'AGUARDANDO LIBERAÇÃO DO GERENTE' : 'FINALIZAR FECHAMENTO DO DIA'}</span>
+ <span>{saving ? 'Salvando...' : fechamentoConcluido ? 'FECHAMENTO CONCLUÍDO' : submitBlockedByDeadline ? 'AGUARDANDO LIBERAÇÃO DO GERENTE' : 'FINALIZAR FECHAMENTO DO DIA'}</span>
           </button>
 
           {/* Warning text */}
           <p className="text-[13px] font-semibold text-[#526B7A] leading-snug">
-            Após finalizar, as informações serão enviadas para sua liderança e{' '}
-            <strong className="font-extrabold text-[#071822]">não poderão mais ser editadas.</strong>
+            {fechamentoConcluido ? (
+              'Este fechamento já foi enviado. Para ajustes, use o histórico e solicite correção.'
+            ) : (
+              <>
+                Após finalizar, as informações serão enviadas para sua liderança e{' '}
+                <strong className="font-extrabold text-[#071822]">não poderão mais ser editadas.</strong>
+              </>
+            )}
           </p>
         </div>
         {/* Hidden Salvar rascunho — mantém contrato de teste (CheckinForm.test.ts) */}

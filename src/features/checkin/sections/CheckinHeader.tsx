@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { CalendarDays, History, X, CalendarClock, Bell } from 'lucide-react'
 import { Button } from '@/components/atoms/Button'
 import { supabase } from '@/lib/supabase'
@@ -8,6 +9,7 @@ import type { DailyCheckin } from '@/types/database'
 import { addDaysDateOnly } from '../lib/crm-derived-totals'
 import { isRegularizacaoBloqueada } from '../lib/regularizacao-lock'
 import { RegularizarFechamentoDrawer } from './RegularizarFechamentoDrawer'
+import { useNotifications } from '@/hooks/useNotifications'
 
 interface PillarProgress {
   key: string
@@ -46,7 +48,9 @@ setHistoryOpen,
   saveCheckin,
   ..._props
 }: CheckinHeaderProps) {
-  const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
+const navigate = useNavigate()
+const { unreadCount } = useNotifications()
+const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
 
   const [activeView, setActiveView] = useState<'list' | 'form'>('list')
   const [selectedRow, setSelectedRow] = useState<any | null>(null)
@@ -378,10 +382,10 @@ return (
             <History size={14} />
             Histórico de Fechamentos
           </button>
-          <span className="relative hidden cursor-pointer sm:block">
-            <Bell size={20} className="text-[#64748B]" />
-            <span className="absolute -right-1 -top-1 grid h-4 w-4 place-items-center rounded-full bg-[#EF4444] text-[9px] font-black text-white">3</span>
-          </span>
+ <button type="button" onClick={() => navigate('/notificacoes')} className="relative hidden h-10 w-10 place-items-center rounded-xl text-[#64748B] transition-colors hover:bg-slate-100 hover:text-[#005BFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#005BFF]/30 sm:grid" aria-label="Abrir notificações">
+ <Bell size={20} />
+ {unreadCount > 0 && <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-[#EF4444] px-1 text-[9px] font-black text-white">{Math.min(unreadCount, 9)}</span>}
+ </button>
         </div>
       </div>
 

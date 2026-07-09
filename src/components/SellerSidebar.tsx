@@ -295,7 +295,7 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
         aria-current={active ? 'page' : undefined}
         onClick={closeMobile}
         className={cn(
-          'group relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-400 hover:text-white hover:bg-white/8 outline-none focus-visible:ring-2 focus-visible:ring-primary/45',
+          'group relative flex min-h-12 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all duration-200 text-slate-400 hover:text-white hover:bg-white/8 outline-none focus-visible:ring-2 focus-visible:ring-primary/45',
           active && 'bg-primary text-white shadow-lg shadow-primary/25 hover:bg-primary',
           isCollapsed && 'justify-center px-0'
         )}
@@ -470,11 +470,27 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
               .map((part) => part[0])
               .join('') || 'MX'}
           </button>
-        </div>
-      </header>
+      </div>
+    </header>
 
-      <aside
-        className={cn(
+    {location.pathname !== notificationsPath && (
+      <button
+        type="button"
+        aria-label="Abrir notificações"
+        onClick={() => goTo(notificationsPath)}
+        className="fixed right-[calc(1.5rem+152px)] top-6 z-[70] hidden h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-[0_12px_28px_rgba(15,23,42,0.10)] outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-[#00A896]/45 md:flex"
+      >
+        <Bell size={21} aria-hidden="true" />
+        {unreadCount > 0 && (
+          <span className="absolute right-0 top-0 grid h-5 min-w-5 place-items-center rounded-full bg-destructive px-1 text-[10px] font-black leading-none text-white">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
+        )}
+      </button>
+    )}
+
+    <aside
+      className={cn(
           'fixed left-0 top-0 z-[80] hidden h-screen flex-col border-r border-white/10 bg-[#051923] transition-all duration-300 ease-in-out md:flex',
           collapsed ? 'w-[72px] px-3 py-4' : 'w-[260px] p-4'
         )}
@@ -547,7 +563,7 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
               aria-label={item.label}
               aria-current={active ? 'page' : undefined}
               className={cn(
-                'flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-1 text-[11px] font-semibold text-slate-400 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#00A896]/45',
+                'flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1 text-[11px] font-semibold text-slate-400 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[#00A896]/45',
                 active && 'text-primary'
               )}
             >
