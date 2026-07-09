@@ -732,7 +732,7 @@ export function CarteiraClientes() {
                           <Zap size={14} /> Executar próximo passo
                         </button>
                         <button type="button" onClick={() => { setPanelClosed(false); setSelectedId(cliente.id) }} className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50">
-                          <FileText size={14} /> Abrir ficha
+                          <FileText size={14} /> Ver cliente
                         </button>
                       </div>
                     </div>

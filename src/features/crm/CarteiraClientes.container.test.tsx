@@ -168,7 +168,7 @@ describe('CarteiraClientes', () => {
   it('abre ficha com os blocos operacionais do Base44', () => {
     render(<CarteiraClientes />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Abrir ficha/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Ver cliente/i }))
 
     expect(screen.getAllByText('Mentor Comercial').length).toBeGreaterThan(0)
     expect(screen.getByText('O que falta para evoluir')).toBeTruthy()
@@ -179,7 +179,7 @@ describe('CarteiraClientes', () => {
     render(<CarteiraClientes />)
 
     expect(screen.getAllByText('Ana Souza').length).toBeGreaterThan(0)
-    fireEvent.click(screen.getByRole('button', { name: /Abrir ficha/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Ver cliente/i }))
     fireEvent.click(screen.getByRole('button', { name: 'Feito' }))
 
     await waitFor(() => {
@@ -191,7 +191,7 @@ describe('CarteiraClientes', () => {
   it('registra tentativa nao respondeu como status nao_feito', async () => {
     render(<CarteiraClientes />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Abrir ficha/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Ver cliente/i }))
     fireEvent.click(screen.getByRole('button', { name: 'Não respondeu' }))
     expect(screen.getByRole('heading', { name: 'Cliente não respondeu' })).toBeTruthy()
     expect(screen.getByText('Amanhã às 10:00 - Tentativa 2/3')).toBeTruthy()
