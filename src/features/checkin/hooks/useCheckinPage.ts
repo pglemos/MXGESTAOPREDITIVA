@@ -281,14 +281,11 @@ export function useCheckinPage() {
     const todaySP = getSPDateOnly(currentTime)
     const yesterdaySP = addDaysDateOnly(todaySP, -1)
 
-    // Deadline check (Brasília time)
-    const rawIsPastDeadline = useMemo(() => {
-        if (selectedDate >= todaySP) return false // today's closing is always unlocked
-        if (selectedDate === yesterdaySP) {
-            return spTime.hours > 9 || (spTime.hours === 9 && spTime.minutes > 30)
-        }
-        return true // older than yesterday is always past deadline
-    }, [selectedDate, todaySP, yesterdaySP, spTime])
+    // Bloqueio de horário desativado (MX: vendedor pode enviar a qualquer
+    // horário, em qualquer dia, em tempo real). Mantido como constante para
+    // não remover toda a UI condicional de liberação/atraso — apenas nunca
+    // dispara.
+    const rawIsPastDeadline = false
 
     const isPastDeadline = rawIsPastDeadline
 
@@ -497,21 +494,21 @@ ${linkSeguro}`
         return clientesList.filter(c => c.vendaRealizada === 'Sim').reduce((acc, c) => acc + (c.valorNegociado || 0), 0)
     }, [clientesList])
 
-    const minutesUntilEditLock = useMemo(() => {
-        const currentMinutes = spTime.hours * 60 + spTime.minutes
-        return CHECKIN_EDIT_LIMIT_MINUTES - currentMinutes
-    }, [spTime])
+    // Fixo bem acima do limiar de aviso (15 min) — bloqueio de horário
+    // desativado, o banner de contagem regressiva nunca deve aparecer.
+    const minutesUntilEditLock = CHECKIN_EDIT_LIMIT_MINUTES
 
+    // Informativo apenas — não bloqueia mais nada (bloqueio de horário
+    // desativado). canEditExisting fixo em true para não travar o submit
+    // via editLockedWithoutLiberacao em CheckinForm.tsx.
     const isLate = isCheckinLate(currentTime)
-    const canEditExisting = canEditCurrentCheckin(currentTime)
+    const canEditExisting = true
 
     const deadlineMessage = useMemo(() => {
-        if (minutesUntilEditLock < 0) return `Bloqueado desde ${CHECKIN_EDIT_LIMIT_LABEL}.`
-        const lockText = minutesUntilEditLock === 0 ? 'menos de 1 min' : `${minutesUntilEditLock} min`
         return isLate
-            ? `Prazo oficial passou às ${CHECKIN_DEADLINE_LABEL}. Edição bloqueia em ${lockText}.`
-            : `No prazo. Edição bloqueia em ${lockText}.`
-    }, [isLate, minutesUntilEditLock])
+            ? `Prazo oficial passou às ${CHECKIN_DEADLINE_LABEL}. Envio liberado a qualquer horário.`
+            : 'No prazo.'
+    }, [isLate])
 
     const allZero = useMemo(
         () => effectiveTotals.leads === 0 && effectiveTotals.agd === 0 && effectiveTotals.visitas === 0 && effectiveTotals.vendas === 0,
