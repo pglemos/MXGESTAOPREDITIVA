@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   BarChart3,
-  Bell,
   BookOpen,
   Brain,
   CalendarCheck,
@@ -29,8 +28,8 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
-import { useNotifications } from '@/hooks/useNotifications'
 import { Avatar } from './atoms/Avatar'
+import { NotificationBellButton } from './NotificationBellButton'
 import MxLogo from '@/assets/mx-logo.png'
 
 export type SellerLayoutNavItem = {
@@ -192,7 +191,6 @@ export default function SellerLayoutShell({
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
-  const { unreadCount } = useNotifications()
   const drawerRef = useRef<HTMLDivElement>(null)
   const userMenuRef = useRef<HTMLDivElement>(null)
 
@@ -453,14 +451,7 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
           {mobileTitle}
         </div>
         <div className="flex items-center gap-3">
-          <button type="button" aria-label="Abrir notificações" onClick={() => navigate(notificationsPath)} className="relative flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-[#00A896]/45">
-            <Bell size={22} aria-hidden="true" />
-            {unreadCount > 0 && (
-              <span className="absolute right-1 top-0 grid h-5 min-w-5 place-items-center rounded-full bg-destructive px-1 text-[10px] font-black leading-none text-white">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            )}
-          </button>
+          <NotificationBellButton variant="light" />
           <button type="button" aria-label={`Abrir perfil de ${displayName}`} onClick={() => goTo(profilePath)} className="grid h-10 w-10 place-items-center rounded-full bg-primary text-[13px] font-black uppercase text-white shadow-[0_10px_24px_rgba(0,168,150,0.22)] outline-none focus-visible:ring-2 focus-visible:ring-[#00A896]/45">
             {displayName
               .split(/\s+/)
@@ -472,21 +463,9 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
       </div>
     </header>
 
-    {location.pathname !== notificationsPath && (
-      <button
-        type="button"
-        aria-label="Abrir notificações"
-        onClick={() => goTo(notificationsPath)}
-        className="fixed right-[calc(1.5rem+152px)] top-6 z-[70] hidden h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-[0_12px_28px_rgba(15,23,42,0.10)] outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-[#00A896]/45 md:flex"
-      >
-        <Bell size={21} aria-hidden="true" />
-        {unreadCount > 0 && (
-          <span className="absolute right-0 top-0 grid h-5 min-w-5 place-items-center rounded-full bg-destructive px-1 text-[10px] font-black leading-none text-white">
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
-        )}
-      </button>
-    )}
+    <div className="fixed right-[calc(1.5rem+152px)] top-6 z-[70] hidden md:block">
+      <NotificationBellButton variant="light" className="[&>button]:h-11 [&>button]:w-11 [&>button]:rounded-full [&>button]:border [&>button]:border-border [&>button]:bg-card [&>button]:shadow-[0_12px_28px_rgba(15,23,42,0.10)]" />
+    </div>
 
     <aside
       className={cn(

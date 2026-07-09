@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { CalendarDays, History, X, CalendarClock, Bell } from 'lucide-react'
+import { CalendarDays, History, X, CalendarClock } from 'lucide-react'
 import { Button } from '@/components/atoms/Button'
 import { supabase } from '@/lib/supabase'
 import { useCheckinAuditor } from '@/hooks/useCheckinAuditor'
@@ -9,7 +8,7 @@ import type { DailyCheckin } from '@/types/database'
 import { addDaysDateOnly } from '../lib/crm-derived-totals'
 import { isRegularizacaoBloqueada } from '../lib/regularizacao-lock'
 import { RegularizarFechamentoDrawer } from './RegularizarFechamentoDrawer'
-import { useNotifications } from '@/hooks/useNotifications'
+import { NotificationBellButton } from '@/components/NotificationBellButton'
 
 interface PillarProgress {
   key: string
@@ -48,8 +47,6 @@ setHistoryOpen,
   saveCheckin,
   ..._props
 }: CheckinHeaderProps) {
-const navigate = useNavigate()
-const { unreadCount } = useNotifications()
 const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
 
   const [activeView, setActiveView] = useState<'list' | 'form'>('list')
@@ -382,10 +379,9 @@ return (
             <History size={14} />
             Histórico de Fechamentos
           </button>
- <button type="button" onClick={() => navigate('/notificacoes')} className="relative hidden h-10 w-10 place-items-center rounded-xl text-[#64748B] transition-colors hover:bg-slate-100 hover:text-[#005BFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#005BFF]/30 sm:grid" aria-label="Abrir notificações">
- <Bell size={20} />
- {unreadCount > 0 && <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-[#EF4444] px-1 text-[9px] font-black text-white">{Math.min(unreadCount, 9)}</span>}
- </button>
+ <div className="hidden sm:block">
+   <NotificationBellButton variant="light" />
+ </div>
         </div>
       </div>
 
