@@ -175,6 +175,8 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
     realFaturamento,
     totalAgendamentosD1,
     creditosValidos,
+    creditosCarteira,
+    creditosInternet,
     customReferenceDate,
     effectiveForm,
     effectiveTotals,
@@ -380,8 +382,8 @@ Confirmar Internet
           readValue={readValue}
           updateField={updateField}
           disabled={isPastDeadline && !fechamentoLiberado}
-          agdCartAtivos={crmDerived.agd_cart}
-          agdNetAtivos={crmDerived.agd_net}
+          agdCartAtivos={creditosCarteira}
+          agdNetAtivos={creditosInternet}
           temClientesCadastrados={clientesList.length > 0}
         />
       </section>

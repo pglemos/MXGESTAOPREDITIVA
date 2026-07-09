@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowLeft, CalendarCheck, ShieldCheck, ShoppingCart, UserCheck, X } from 'lucide-react'
+import { ArrowLeft, CalendarCheck, HelpCircle, ShieldCheck, ShoppingCart, UserCheck, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/atoms/Button'
 import { Select } from '@/components/atoms/Select'
@@ -23,10 +23,30 @@ const CANAIS_UI = ['Showroom', 'Internet', 'Carteira'] as const
 const CANAL_UI_TO_DB: Record<string, CrmCanal> = { Showroom: 'showroom', Internet: 'internet', Carteira: 'carteira' }
 const MODALIDADES = ['Visita na loja', 'Atendimento externo', 'Videochamada'] as const
 const SITUACOES_OPORTUNIDADE = ['Nova', 'Validação', 'Construção', 'Compromisso', 'Decisão', 'Recuperação'] as const
+const SITUACAO_OPORTUNIDADE_DESCRICAO: Record<string, string> = {
+  Nova: 'Oportunidade recém identificada, ainda sem contato qualificado com o cliente.',
+  Validação: 'Interesse e necessidade do cliente já foram confirmados.',
+  Construção: 'Proposta e condições comerciais estão sendo estruturadas com o cliente.',
+  Compromisso: 'Cliente sinalizou intenção clara de fechar negócio.',
+  Decisão: 'Cliente está decidindo entre finalizar ou não a compra.',
+  Recuperação: 'Oportunidade esfriada que está sendo retrabalhada pelo vendedor.',
+}
+const SITUACOES_OPORTUNIDADE_TITLE = SITUACOES_OPORTUNIDADE
+  .map(s => `${s}: ${SITUACAO_OPORTUNIDADE_DESCRICAO[s]}`)
+  .join('\n')
 const PASSO_TO_ETAPA: Record<string, CrmEtapaFunil> = {
   Nova: 'prospeccao', Validação: 'qualificacao', Construção: 'apresentacao', Compromisso: 'negociacao', Decisão: 'fechamento', Recuperação: 'prospeccao',
 }
 const MOTIVOS_GARANTIA = ['Mecânica', 'Documentação', 'Acessório', 'Acabamento', 'Promessa comercial', 'Outro'] as const
+const RESPONSAVEIS_TRATATIVA = ['Vendedor', 'Gerente de Vendas', 'Pós-venda', 'Oficina/Mecânica', 'Gerência Geral', 'Outro'] as const
+const DESCRICOES_GARANTIA_POR_MOTIVO: Record<string, readonly string[]> = {
+  'Mecânica': ['Barulho no motor', 'Problema elétrico', 'Vazamento de óleo', 'Freios', 'Suspensão', 'Ar-condicionado', 'Outro'],
+  'Documentação': ['Pendência de transferência', 'Nota fiscal', 'IPVA/Licenciamento', 'Contrato/Financiamento', 'Outro'],
+  'Acessório': ['Item não instalado', 'Item com defeito', 'Item faltante', 'Outro'],
+  'Acabamento': ['Risco/Amassado', 'Pintura', 'Estofado', 'Peça solta', 'Outro'],
+  'Promessa comercial': ['Item prometido não entregue', 'Condição comercial não cumprida', 'Bônus/Brinde pendente', 'Outro'],
+  'Outro': ['Outro'],
+}
 const URGENCIAS = ['Imediato', '30 dias', '60 dias', '90 dias', 'Sem prazo'] as const
 const FINANCIAMENTO_OPTS = ['Aprovado', 'Recusado', 'Não se aplica'] as const
 const FINANCIAMENTO_UI_TO_DB: Record<string, 'aprovado' | 'reprovado' | 'nao_aplica'> = {
@@ -186,14 +206,43 @@ function FormGarantia({ form, setF, clienteEncontrado, clienteJaVendido, onPhone
       </div>
       <FormField label="Veículo (texto)" value={form.veiculo_texto || ''} onChange={e => setF('veiculo_texto', e.target.value.toUpperCase())} placeholder="Ex: HB20 1.0 COMFORT 2024" />
       <FormField label="Data da Garantia *" type="date" value={form.data_garantia || ''} onChange={e => setF('data_garantia', e.target.value)} />
-      <Select label="Motivo da Garantia *" value={form.motivo_garantia || ''} onChange={e => setF('motivo_garantia', e.target.value)}>
+      <Select
+        label="Motivo da Garantia *"
+        value={form.motivo_garantia || ''}
+        onChange={e => {
+          setF('motivo_garantia', e.target.value)
+          setF('descricao_garantia', '')
+          setF('descricao_garantia_outro', '')
+        }}
+      >
         <option value="">Selecione o motivo</option>
         {MOTIVOS_GARANTIA.map(m => <option key={m} value={m}>{m}</option>)}
       </Select>
-      <FormField label="Descrição da Garantia *" value={form.descricao_garantia || ''} onChange={e => setF('descricao_garantia', e.target.value)} placeholder="Descreva o problema relatado" />
+      <Select
+        label="Descrição da Garantia *"
+        value={form.descricao_garantia || ''}
+        onChange={e => setF('descricao_garantia', e.target.value)}
+        disabled={!form.motivo_garantia}
+      >
+        <option value="">{form.motivo_garantia ? 'Selecione a descrição' : 'Selecione o motivo primeiro'}</option>
+        {(DESCRICOES_GARANTIA_POR_MOTIVO[form.motivo_garantia || ''] || []).map(d => <option key={d} value={d}>{d}</option>)}
+      </Select>
+      {form.descricao_garantia === 'Outro' && (
+        <FormField label="Descreva a Garantia *" value={form.descricao_garantia_outro || ''} onChange={e => setF('descricao_garantia_outro', e.target.value)} placeholder="Descreva o problema relatado" />
+      )}
       <FormField label="Data para Posicionar Cliente *" type="date" value={form.data_posicionamento || ''} onChange={e => setF('data_posicionamento', e.target.value)} />
       <FormField label="Hora para Posicionar" type="time" value={form.hora_posicionamento || ''} onChange={e => setF('hora_posicionamento', e.target.value)} />
-      <FormField label="Responsável pela Tratativa" value={form.responsavel || ''} onChange={e => setF('responsavel', e.target.value)} placeholder="Ex: João / Gerência / Oficina" />
+      <Select
+        label="Responsável pela Tratativa"
+        value={form.responsavel || ''}
+        onChange={e => setF('responsavel', e.target.value)}
+      >
+        <option value="">Selecione o responsável</option>
+        {RESPONSAVEIS_TRATATIVA.map(r => <option key={r} value={r}>{r}</option>)}
+      </Select>
+      {form.responsavel === 'Outro' && (
+        <FormField label="Qual responsável? *" value={form.responsavel_outro || ''} onChange={e => setF('responsavel_outro', e.target.value)} placeholder="Ex: João / Terceirizado" />
+      )}
       <FormField label="Observação" value={form.observacao || ''} onChange={e => setF('observacao', e.target.value)} placeholder="Observações adicionais" />
     </div>
   )
@@ -234,10 +283,18 @@ function FormQualificado({ form, setF, clienteEncontrado, clienteJaVendido, onPh
       <Select label="Preferência de Modalidade" value={form.modalidade || 'Não informado'} onChange={e => setF('modalidade', e.target.value)}>
         {[...MODALIDADES, 'Não informado'].map(m => <option key={m} value={m}>{m}</option>)}
       </Select>
-      <Select label="Passo Atual da Oportunidade *" value={form.passo_atual || ''} onChange={e => setF('passo_atual', e.target.value)}>
-        <option value="">Selecione</option>
-        {SITUACOES_OPORTUNIDADE.map(s => <option key={s} value={s}>{s}</option>)}
-      </Select>
+      <div className="space-y-1">
+        <div className="ml-2 flex items-center gap-1">
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Passo Atual da Oportunidade *</span>
+          <span title={SITUACOES_OPORTUNIDADE_TITLE} className="shrink-0 cursor-help">
+            <HelpCircle size={13} className="text-slate-400" />
+          </span>
+        </div>
+        <Select value={form.passo_atual || ''} onChange={e => setF('passo_atual', e.target.value)}>
+          <option value="">Selecione</option>
+          {SITUACOES_OPORTUNIDADE.map(s => <option key={s} value={s}>{s}</option>)}
+        </Select>
+      </div>
       <div className="sm:col-span-2">
         <FormField label="Observação" value={form.observacao || ''} onChange={e => setF('observacao', e.target.value)} placeholder="Observações adicionais" />
       </div>
@@ -254,11 +311,12 @@ function canSaveForm(tipo: RegistroTipo, form: FormState, clienteEncontrado: boo
     return Boolean(form.canal && form.data_hora_agendamento && form.modalidade && form.veiculo_texto?.trim() && form.financiamento)
   }
   if (tipo === 'venda') {
-    return Boolean(form.canal && form.placa_veiculo?.trim() && form.veiculo_texto?.trim() && form.data_venda && form.valor_venda && form.financiamento
-      && (form.possui_troca !== 'Sim'))
+    return Boolean(form.canal && form.placa_veiculo?.trim() && form.veiculo_texto?.trim() && form.data_venda && form.valor_venda && form.financiamento)
   }
   if (tipo === 'garantia') {
-    return Boolean(form.data_garantia && form.motivo_garantia && form.descricao_garantia?.trim())
+    const descricaoOk = form.descricao_garantia === 'Outro' ? Boolean(form.descricao_garantia_outro?.trim()) : Boolean(form.descricao_garantia?.trim())
+    const responsavelOk = form.responsavel !== 'Outro' || Boolean(form.responsavel_outro?.trim())
+    return Boolean(form.data_garantia && form.motivo_garantia && descricaoOk && responsavelOk)
   }
   if (tipo === 'qualificado') {
     return Boolean(form.canal && form.veiculo_texto?.trim() && form.financiamento && form.passo_atual
@@ -307,7 +365,7 @@ export function NovoRegistroModal({ open, onClose, onSaved, defaultDate }: NovoR
 
   const handleSelectTipo = (t: RegistroTipo) => {
     setTipo(t)
-    const defaults: FormState = { data_venda: hoje, data_garantia: hoje, data_posicionamento: hoje }
+    const defaults: FormState = { data_venda: hoje, data_garantia: hoje, data_posicionamento: amanha, hora_posicionamento: '09:00' }
     if (t === 'agendamento') defaults.data_hora_agendamento = `${amanha}T09:00`
     setFormState(defaults)
     setClienteEncontradoId(null)
@@ -401,13 +459,15 @@ export function NovoRegistroModal({ open, onClose, onSaved, defaultDate }: NovoR
       }
 
       if (tipo === 'garantia') {
-        const dataPos = form.data_posicionamento || hoje
+        const dataPos = form.data_posicionamento || amanha
         const horaPos = form.hora_posicionamento || '09:00'
+        const descricaoFinal = form.descricao_garantia === 'Outro' ? form.descricao_garantia_outro : form.descricao_garantia
+        const responsavelFinal = form.responsavel === 'Outro' ? form.responsavel_outro : form.responsavel
         const observacoes = [
           `Motivo: ${form.motivo_garantia}`,
           form.veiculo_texto ? `Veículo: ${form.veiculo_texto}` : null,
-          form.descricao_garantia,
-          form.responsavel ? `Responsável: ${form.responsavel}` : null,
+          descricaoFinal,
+          responsavelFinal ? `Responsável: ${responsavelFinal}` : null,
           form.observacao || null,
         ].filter(Boolean).join(' — ')
         const { error: agError } = await createAgendamento({

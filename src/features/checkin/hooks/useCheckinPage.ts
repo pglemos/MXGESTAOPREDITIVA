@@ -823,6 +823,8 @@ ${linkSeguro}`
         realFaturamento,
         totalAgendamentosD1,
         creditosValidos,
+        creditosCarteira,
+        creditosInternet,
         checkins,
         saveCheckin,
     }
