@@ -102,6 +102,18 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     if (import.meta.env.DEV) console.error('[ErrorBoundary]', error, info)
+
+    // Fallback para "Failed to fetch dynamically imported module" que não passou
+    // pelo listener de vite:preloadError em main.tsx (ex.: navegadores/edge cases
+    // que lançam a rejeição direto na árvore React). Mesmo guard de 10s.
+    if (/dynamically imported module|Importing a module script failed/i.test(error.message)) {
+      const key = 'mx-chunk-reload-at'
+      const last = Number(sessionStorage.getItem(key) || 0)
+      if (Date.now() - last > 10_000) {
+        sessionStorage.setItem(key, String(Date.now()))
+        window.location.reload()
+      }
+    }
   }
 
   render() {
