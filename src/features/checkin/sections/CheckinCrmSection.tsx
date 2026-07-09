@@ -692,7 +692,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
 </div>
 
 <div className="hidden max-w-full overflow-x-auto md:block">
-  <table className="w-full min-w-[1280px] table-fixed text-left text-[13px]">
+  <table className="w-full min-w-[1180px] table-fixed text-left text-[13px]">
             <colgroup>
               <col className="w-[14%]" />
               <col className="w-[11%]" />
@@ -723,7 +723,11 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
                     scope="col"
                     key={column}
                     className={`px-4 py-3.5 font-extrabold whitespace-nowrap truncate ${
-                      column === 'Nome do Cliente' ? 'sticky left-0 aggression-z z-10 bg-[#F7F8F8] shadow-[6px_0_10px_-10px_rgba(15,23,42,0.15)]' : ''
+                      column === 'Nome do Cliente'
+                        ? 'sticky left-0 aggression-z z-10 bg-[#F7F8F8] shadow-[6px_0_10px_-10px_rgba(15,23,42,0.15)]'
+                        : column === 'Ações'
+                          ? 'sticky right-0 z-10 bg-[#F7F8F8] shadow-[-6px_0_10px_-10px_rgba(15,23,42,0.15)]'
+                          : ''
                     }`}
                     title={column}
                   >
@@ -784,7 +788,7 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
                         <td className="px-4 py-3">
                           <VendaBadge value={row.vendaRealizada} />
                         </td>
-                        <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                        <td className="sticky right-0 z-10 bg-inherit px-4 py-3 shadow-[-6px_0_10px_-10px_rgba(15,23,42,0.15)]" onClick={e => e.stopPropagation()}>
                           <div className="flex items-center gap-2">
                             <button
                               type="button"

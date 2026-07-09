@@ -382,7 +382,6 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
         { label: 'Ranking', path: '/ranking', icon: Trophy, activePaths: ['/ranking', '/classificacao'] },
         { label: 'Universidade MX', path: '/treinamentos', icon: GraduationCap, activePaths: ['/treinamentos'] },
         { label: 'Desenvolvimento', path: '/desenvolvimento', icon: BookOpen, activePaths: ['/desenvolvimento', '/feedbacks', '/devolutivas', '/pdi'] },
-        { label: 'Meu Perfil', path: '/perfil', icon: User, activePaths: ['/perfil', '/meu-perfil-vendedor', '/vendedor/perfil'] },
       ],
     },
   ]
