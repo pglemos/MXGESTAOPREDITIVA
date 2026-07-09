@@ -23,6 +23,14 @@ import {
   type CrmTipoVeiculo,
 } from '@/lib/schemas/crm.schema'
 import type { CheckinPageContext, ClienteRow } from '../hooks/useCheckinPage'
+
+/** Subconjunto de CheckinPageContext realmente usado por este componente —
+ * permite montar um contexto "sob medida" (ex.: regularização de dia
+ * passado) sem precisar simular o hook inteiro de useCheckinPage. */
+export type CheckinCrmSectionCtx = Pick<
+  CheckinPageContext,
+  'clientesList' | 'refetchClientesList' | 'selectedDate' | 'supabaseUser' | 'finalizadoAposPrazo' | 'effectiveForm'
+>
 import { addDaysDateOnly } from '../lib/crm-derived-totals'
 import { parseDateOnly } from '../hooks/useCheckinPage'
 import { NovoRegistroModal } from './NovoRegistroModal'
@@ -58,7 +66,7 @@ function VendaTipoBadge({ vendaRealizada }: { vendaRealizada: string }) {
 }
 
 interface CheckinCrmSectionProps {
-  ctx?: CheckinPageContext
+  ctx?: CheckinCrmSectionCtx
 }
 
 const srOnlyStyle: CSSProperties = {

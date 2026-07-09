@@ -1,0 +1,386 @@
+import { useMemo, useState } from 'react'
+import { AlertTriangle, ArrowLeft, CalendarClock, CalendarDays, CheckCircle2, DollarSign, Globe, Send, ShoppingCart, Store, Users, X } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
+import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
+import { deriveClientesListFromCrm } from '../lib/clientes-list-from-crm'
+import { calcularDisciplina } from '../lib/disciplina'
+import { CheckinCrmSection } from './CheckinCrmSection'
+
+const ADJUSTMENT_REASONS = [
+  'Correção de registro',
+  'Inclusão de dado',
+  'Ajuste de contagem',
+  'Erro operacional',
+  'Duplicidade removida',
+  'Fechamento esquecido',
+  'Outro',
+]
+
+const BRL = (value: number) =>
+  value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 })
+
+export interface RegularizarFormValues {
+  leads_cart: number
+  leads_net: number
+  visitas_porta: number
+  visitas_cart: number
+  visitas_net: number
+  agd_cart: number
+  agd_net: number
+  vnd_porta: number
+  vnd_cart: number
+  vnd_net: number
+  reason: string
+  note: string
+}
+
+interface RegularizarFechamentoDrawerProps {
+  date: string
+  finalized: boolean
+  formValues: RegularizarFormValues
+  onFieldChange: (field: keyof Omit<RegularizarFormValues, 'reason' | 'note'>, value: number) => void
+  onReasonChange: (value: string) => void
+  onNoteChange: (value: string) => void
+  regularizacaoBloqueada: boolean
+  liberado: boolean
+  saving: boolean
+  onVoltar: () => void
+  onClose: () => void
+  onSubmit: () => void
+}
+
+/** Stepper numérico — mesmo padrão visual do StepperInput em FluxoFechamento.tsx. */
+function NumStepper({ value, onChange, disabled }: { value: number; onChange: (v: number) => void; disabled?: boolean }) {
+  const [inputVal, setInputVal] = useState<string | null>(null)
+
+  const commit = () => {
+    if (disabled) return
+    const num = inputVal === '' || inputVal === null ? 0 : parseInt(inputVal, 10)
+    onChange(Math.min(999, Math.max(0, Number.isNaN(num) ? 0 : num)))
+    setInputVal(null)
+  }
+
+  return (
+    <div className={`flex h-10 items-center rounded-xl border bg-white shadow-sm transition-all ${disabled ? 'border-slate-100 opacity-60' : 'border-slate-200 focus-within:border-blue-400'}`}>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => onChange(Math.max(0, value - 1))}
+        className="flex h-full w-9 shrink-0 items-center justify-center rounded-l-xl border-r border-slate-200 text-[18px] font-light text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700 disabled:cursor-not-allowed"
+      >
+        −
+      </button>
+      <input
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        disabled={disabled}
+        value={inputVal !== null ? inputVal : String(value)}
+        onFocus={(e) => { setInputVal(String(value)); setTimeout(() => e.target.select(), 0) }}
+        onChange={(e) => setInputVal(e.target.value.replace(/\D/g, ''))}
+        onBlur={commit}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === 'Tab') commit() }}
+        className="h-full min-w-0 flex-1 border-none bg-transparent text-center text-[14px] font-bold tabular-nums text-slate-700 outline-none disabled:text-slate-400"
+      />
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => onChange(Math.min(999, value + 1))}
+        className="flex h-full w-9 shrink-0 items-center justify-center rounded-r-xl border-l border-slate-200 text-[18px] font-light text-slate-400 transition-colors hover:bg-slate-50 hover:text-slate-700 disabled:cursor-not-allowed"
+      >
+        +
+      </button>
+    </div>
+  )
+}
+
+function FieldRow({ label, value, onChange, disabled }: { label: string; value: number; onChange: (v: number) => void; disabled?: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <span className={`min-w-0 flex-1 text-[12px] font-semibold leading-tight ${disabled ? 'text-slate-300' : 'text-slate-600'}`}>{label}</span>
+      <div className="w-[110px] shrink-0">
+        <NumStepper value={value} onChange={onChange} disabled={disabled} />
+      </div>
+    </div>
+  )
+}
+
+export function RegularizarFechamentoDrawer({
+  date,
+  finalized,
+  formValues,
+  onFieldChange,
+  onReasonChange,
+  onNoteChange,
+  regularizacaoBloqueada,
+  liberado,
+  saving,
+  onVoltar,
+  onClose,
+  onSubmit,
+}: RegularizarFechamentoDrawerProps) {
+  const { supabaseUser } = useAuth()
+  const { oportunidades, refetch: refetchOportunidades } = useOportunidades()
+  const { agendamentos, refetch: refetchAgendamentos } = useAgendamentos()
+
+  const clientesList = useMemo(
+    () => deriveClientesListFromCrm(oportunidades, agendamentos, date),
+    [oportunidades, agendamentos, date],
+  )
+  const refetchClientesList = async () => { await Promise.all([refetchOportunidades(), refetchAgendamentos()]) }
+
+  const totalLeads = formValues.leads_cart + formValues.leads_net
+  const totalAtendimentos = formValues.visitas_porta + formValues.visitas_cart + formValues.visitas_net
+  const totalAgendamentosD1 = formValues.agd_cart + formValues.agd_net
+  const totalVendas = formValues.vnd_porta + formValues.vnd_cart + formValues.vnd_net
+  const totalFaturamento = clientesList
+    .filter((c) => c.vendaRealizada === 'Sim')
+    .reduce((acc, c) => acc + (c.valorNegociado || 0), 0)
+
+  const creditosValidos = clientesList.filter((c) => c.vendaRealizada === 'Em Negociação' && c.dataAgendamento).length
+  const disciplina = calcularDisciplina({ totalAgendamentosD1, creditosValidos, finalizadoAposPrazo: true })
+
+  const dataObj = new Date(`${date}T12:00:00`)
+  const dataFormatada = dataObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const weekday = dataObj.toLocaleDateString('pt-BR', { weekday: 'long' })
+
+  const ringColor = disciplina.pontuacaoDisciplinaFinal >= 80 ? '#22C55E' : disciplina.pontuacaoDisciplinaFinal >= 50 ? '#F59E0B' : '#EF4444'
+  const ringColorClass = disciplina.pontuacaoDisciplinaFinal >= 80 ? 'text-[#22C55E]' : disciplina.pontuacaoDisciplinaFinal >= 50 ? 'text-[#F59E0B]' : 'text-[#EF4444]'
+
+  const canSubmit = !regularizacaoBloqueada && !!formValues.reason && formValues.note.trim().length > 0
+
+  const crmCtx = {
+    clientesList,
+    refetchClientesList,
+    selectedDate: date,
+    supabaseUser,
+    finalizadoAposPrazo: false,
+    effectiveForm: {
+      leads: totalLeads,
+      leads_cart: formValues.leads_cart,
+      leads_net: formValues.leads_net,
+      agd_cart_prev: 0,
+      agd_net_prev: 0,
+      agd_cart: formValues.agd_cart,
+      agd_net: formValues.agd_net,
+      vnd_porta: formValues.vnd_porta,
+      vnd_cart: formValues.vnd_cart,
+      vnd_net: formValues.vnd_net,
+      visitas: totalAtendimentos,
+      visitas_porta: formValues.visitas_porta,
+      visitas_cart: formValues.visitas_cart,
+      visitas_net: formValues.visitas_net,
+      note: '',
+      zero_reason: '',
+    },
+  }
+
+  return (
+    <>
+      {/* Overlay */}
+      <div className="fixed inset-0 z-[140] bg-black/50" onClick={onClose} />
+
+      {/* Drawer */}
+      <div className="fixed inset-0 z-[145] flex items-stretch justify-end pointer-events-none">
+        <div className="pointer-events-auto flex h-full w-full flex-col overflow-hidden bg-[#F8FAFC] shadow-2xl sm:w-[720px] sm:rounded-l-2xl">
+          {/* Header */}
+          <div className="flex flex-shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-5 py-4">
+            <CalendarDays className="h-5 w-5 shrink-0 text-[#005BFF]" />
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-[16px] font-black text-[#0F172A]">Regularizar Fechamento</h2>
+                <span className="rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-600">Fechamento atrasado</span>
+              </div>
+              <p className="mt-0.5 text-[13px] text-slate-500">
+                {dataFormatada} — <span className="capitalize">{weekday}</span>
+              </p>
+            </div>
+            <button type="button" onClick={onClose} className="rounded-xl p-2 text-slate-400 transition-colors hover:bg-slate-100" aria-label="Fechar">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Body */}
+          <div className="flex-1 space-y-5 overflow-y-auto p-4 sm:p-6">
+            {!finalized && (
+              regularizacaoBloqueada ? (
+                <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                  <p className="text-[13px] font-bold text-amber-800">
+                    Prazo encerrado às 09h30. Solicite liberação ao seu gerente para finalizar este fechamento. Os campos abaixo ficam bloqueados até a liberação.
+                  </p>
+                </div>
+              ) : liberado ? (
+                <div className="flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
+                  <p className="text-[13px] font-bold text-green-800">Fechamento liberado pelo gerente. Ao enviar, será aplicada penalização de 10% por atraso.</p>
+                </div>
+              ) : null
+            )}
+
+            {/* Movimento do Dia */}
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <div className="border-b border-slate-100 px-5 py-4">
+                <h3 className="text-[14px] font-black uppercase tracking-wide text-[#0F172A]">Movimento do Dia</h3>
+                <p className="mt-0.5 text-[12px] text-slate-400">Informe os atendimentos realizados neste dia</p>
+              </div>
+              <div className="space-y-4 p-5">
+                <div className="space-y-3 rounded-xl border border-orange-200 bg-orange-50 p-4">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-500"><Store className="h-4 w-4 text-white" /></div>
+                    <span className="text-[13px] font-black uppercase tracking-wide text-orange-700">Showroom</span>
+                  </div>
+                  <FieldRow label="Atendimentos" value={formValues.visitas_porta} onChange={(v) => onFieldChange('visitas_porta', v)} disabled={regularizacaoBloqueada} />
+                </div>
+
+                <div className="space-y-3 rounded-xl border border-green-200 bg-green-50 p-4">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-500"><Users className="h-4 w-4 text-white" /></div>
+                    <span className="text-[13px] font-black uppercase tracking-wide text-green-700">Carteira</span>
+                  </div>
+                  <FieldRow label="Leads recebidos" value={formValues.leads_cart} onChange={(v) => onFieldChange('leads_cart', v)} disabled={regularizacaoBloqueada} />
+                  <FieldRow label="Atendimentos" value={formValues.visitas_cart} onChange={(v) => onFieldChange('visitas_cart', v)} disabled={regularizacaoBloqueada} />
+                  <FieldRow label="Agendamentos D+1" value={formValues.agd_cart} onChange={(v) => onFieldChange('agd_cart', v)} disabled={regularizacaoBloqueada} />
+                </div>
+
+                <div className="space-y-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600"><Globe className="h-4 w-4 text-white" /></div>
+                    <span className="text-[13px] font-black uppercase tracking-wide text-blue-700">Internet</span>
+                  </div>
+                  <FieldRow label="Leads recebidos" value={formValues.leads_net} onChange={(v) => onFieldChange('leads_net', v)} disabled={regularizacaoBloqueada} />
+                  <FieldRow label="Atendimentos" value={formValues.visitas_net} onChange={(v) => onFieldChange('visitas_net', v)} disabled={regularizacaoBloqueada} />
+                  <FieldRow label="Agendamentos D+1" value={formValues.agd_net} onChange={(v) => onFieldChange('agd_net', v)} disabled={regularizacaoBloqueada} />
+                </div>
+
+                <div className="space-y-3 rounded-xl border border-purple-200 bg-purple-50 p-4">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-purple-600"><ShoppingCart className="h-4 w-4 text-white" /></div>
+                    <span className="text-[13px] font-black uppercase tracking-wide text-purple-700">Vendas</span>
+                  </div>
+                  <FieldRow label="Porta" value={formValues.vnd_porta} onChange={(v) => onFieldChange('vnd_porta', v)} disabled={regularizacaoBloqueada} />
+                  <FieldRow label="Carteira" value={formValues.vnd_cart} onChange={(v) => onFieldChange('vnd_cart', v)} disabled={regularizacaoBloqueada} />
+                  <FieldRow label="Internet" value={formValues.vnd_net} onChange={(v) => onFieldChange('vnd_net', v)} disabled={regularizacaoBloqueada} />
+                </div>
+              </div>
+            </div>
+
+            {/* Cadastrar Venda/Agendamentos — reaproveita o mesmo CRUD real da tela principal,
+                apontando para a data que está sendo regularizada. */}
+            <CheckinCrmSection ctx={crmCtx} />
+
+            {/* Resumo do Dia */}
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <div className="border-b border-slate-100 px-5 py-4">
+                <h3 className="text-[14px] font-black uppercase tracking-wide text-[#0F172A]">Resumo do Dia</h3>
+              </div>
+              <div className="grid grid-cols-2 divide-y divide-slate-100 sm:grid-cols-5 sm:divide-x sm:divide-y-0">
+                {[
+                  { label: 'Leads', value: totalLeads, color: 'text-blue-600' },
+                  { label: 'Atendimentos', value: totalAtendimentos, color: 'text-purple-600' },
+                  { label: 'Agendamentos D+1', value: totalAgendamentosD1, color: 'text-amber-600' },
+                  { label: 'Vendas', value: totalVendas, color: 'text-green-600' },
+                  { label: 'Faturamento', value: totalFaturamento > 0 ? BRL(totalFaturamento) : '—', color: 'text-green-700' },
+                ].map((s) => (
+                  <div key={s.label} className="p-4 text-center">
+                    <p className={`text-[20px] font-black tabular-nums ${s.color}`}>{s.value}</p>
+                    <p className="mt-0.5 text-[11px] font-medium text-slate-400">{s.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Disciplina */}
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <div className="border-b border-slate-100 px-5 py-4">
+                <h3 className="text-[14px] font-black uppercase tracking-wide text-[#0F172A]">Disciplina — Fechamento Diário</h3>
+                <p className="mt-0.5 text-[12px] text-slate-400">Estimativa com penalização de -10% por atraso</p>
+              </div>
+              <div className="flex items-center gap-6 p-5">
+                <div className="relative h-20 w-20 shrink-0">
+                  <svg className="h-20 w-20 -rotate-90" viewBox="0 0 80 80">
+                    <circle cx="40" cy="40" r="32" fill="none" stroke="#E5E7EB" strokeWidth="8" />
+                    <circle
+                      cx="40" cy="40" r="32" fill="none" stroke={ringColor} strokeWidth="8"
+                      strokeDasharray={`${(Math.PI * 64 * disciplina.pontuacaoDisciplinaFinal) / 100} ${Math.PI * 64}`}
+                      strokeLinecap="round" className="transition-all duration-700"
+                    />
+                  </svg>
+                  <span className={`absolute inset-0 flex items-center justify-center text-[18px] font-black tabular-nums ${ringColorClass}`}>
+                    {disciplina.pontuacaoDisciplinaFinal}%
+                  </span>
+                </div>
+                <div className="flex-1 space-y-2">
+                  <div className="flex justify-between text-[13px]">
+                    <span className="text-slate-500">Pontuação base</span>
+                    <span className="font-bold text-[#0F172A]">{disciplina.pontuacaoDisciplinaBase}%</span>
+                  </div>
+                  <div className="flex justify-between text-[13px]">
+                    <span className="font-medium text-red-500">Penalização por atraso</span>
+                    <span className="font-bold text-red-500">-10%</span>
+                  </div>
+                  <div className="flex justify-between border-t border-slate-100 pt-2 text-[13px]">
+                    <span className="font-bold text-[#0F172A]">Estimativa após aprovação</span>
+                    <span className={`text-[15px] font-black ${ringColorClass}`}>{disciplina.pontuacaoDisciplinaFinal}%</span>
+                  </div>
+                  <div className="flex justify-between text-[12px]">
+                    <span className="text-slate-400">Agendamentos D+1</span>
+                    <span className="font-semibold text-slate-600">{creditosValidos} de {totalAgendamentosD1} detalhados</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Motivo e observações */}
+            <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="adjustment-reason" className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Motivo do Ajuste</label>
+                <select
+                  id="adjustment-reason"
+                  value={formValues.reason}
+                  disabled={regularizacaoBloqueada}
+                  onChange={(e) => onReasonChange(e.target.value)}
+                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-[#071822] outline-none focus:border-[#005BFF] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                >
+                  <option value="">Selecione o motivo...</option>
+                  {ADJUSTMENT_REASONS.map((reason) => <option key={reason} value={reason}>{reason}</option>)}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="adjustment-note" className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Observações Operacionais (Justificativa)</label>
+                <textarea
+                  id="adjustment-note"
+                  value={formValues.note}
+                  disabled={regularizacaoBloqueada}
+                  onChange={(e) => onNoteChange(e.target.value)}
+                  placeholder="Descreva detalhadamente o motivo deste ajuste retroativo..."
+                  className="min-h-[80px] w-full resize-none rounded-xl border border-slate-200 bg-white p-3 text-xs text-[#071822] outline-none placeholder:text-slate-400 focus:border-[#005BFF] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                  maxLength={250}
+                />
+                <span className="text-right text-[10px] font-mono text-slate-400">{formValues.note.length}/250 caracteres</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex flex-shrink-0 items-center justify-end gap-3 border-t border-slate-200 bg-white px-5 py-4">
+            <button type="button" onClick={onVoltar} className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-[13px] font-bold text-slate-600 transition-colors hover:bg-slate-50">
+              <ArrowLeft className="h-3.5 w-3.5" /> Voltar
+            </button>
+            <button
+              type="button"
+              disabled={saving || !canSubmit}
+              onClick={onSubmit}
+              className="flex items-center gap-2 rounded-xl bg-[#005BFF] px-6 py-2.5 text-[13px] font-bold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Send className="h-4 w-4" /> {saving ? 'Enviando...' : 'Enviar Regularização'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+export default RegularizarFechamentoDrawer
