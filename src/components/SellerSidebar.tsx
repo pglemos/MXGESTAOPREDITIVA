@@ -418,7 +418,7 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
           {mainSections.map((section, sectionIndex) => (
             <section key={section.label} className={cn('space-y-1', sectionIndex > 0 && 'border-t border-white/[0.06] pt-1.5')} aria-label={section.label}>
               {!isCollapsed && <p className="px-2.5 text-[10px] font-semibold uppercase text-[#E0EBEA]/50">{section.label}</p>}
-              <div className="space-y-0.5">{section.items.map((item) => renderNavItem(item, isCollapsed))}</div>
+              <div className="space-y-0">{section.items.map((item) => renderNavItem(item, isCollapsed))}</div>
             </section>
           ))}
         </nav>
@@ -426,7 +426,7 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
         {bottomSections.map((section) => (
           <section key={section.label} className="mt-1.5 space-y-1 border-t border-white/[0.06] pt-1.5" aria-label={section.label}>
             {!isCollapsed && <p className="px-2.5 text-[10px] font-semibold uppercase text-[#E0EBEA]/50">{section.label}</p>}
-            <div className="space-y-0.5">{section.items.map((item) => renderNavItem(item, isCollapsed))}</div>
+            <div className="space-y-0">{section.items.map((item) => renderNavItem(item, isCollapsed))}</div>
           </section>
         ))}
 

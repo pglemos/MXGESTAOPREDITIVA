@@ -1,15 +1,13 @@
-// Especificação Funcional — Tela Fechamento Diário, §22 / EV-1.9. Um item
-// "Pendente de Fechamento" no Histórico só fica editável depois que o
-// gerente liberar (mesma fonte de `fechamento_liberacoes` que o fluxo
-// principal usa) — um dia já finalizado não precisa de liberação.
-export function isRegularizacaoBloqueada({
-    rowSelected,
-    rowFinalized,
-    liberacaoStatus,
-}: {
+// Bloqueio de liberação do gerente desativado por decisão de produto
+// (09/07/2026, mesma decisão aplicada ao Fechamento Diário ao vivo em
+// useCheckinPage.ts/CheckinForm.tsx): o vendedor pode regularizar um dia
+// pendente a qualquer momento, sem depender de liberação prévia. Mantida
+// a assinatura da função (parâmetros ainda usados/tipados nos chamadores)
+// para não precisar tocar em todos os call sites.
+export function isRegularizacaoBloqueada(_params: {
     rowSelected: boolean
     rowFinalized: boolean
     liberacaoStatus: 'none' | 'pendente' | 'liberado'
 }): boolean {
-    return rowSelected && !rowFinalized && liberacaoStatus !== 'liberado'
+    return false
 }
