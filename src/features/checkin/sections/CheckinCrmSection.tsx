@@ -1,5 +1,6 @@
 import React, { useMemo, useState, type CSSProperties } from 'react'
-import { Star, UserPlus, X, Edit, Trash2, ChevronDown, ChevronUp, AlertCircle, HelpCircle, Users } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Star, UserPlus, X, Edit, Trash2, ChevronDown, ChevronUp, AlertCircle, HelpCircle, Users, CalendarClock } from 'lucide-react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
@@ -67,6 +68,13 @@ function VendaTipoBadge({ vendaRealizada }: { vendaRealizada: string }) {
 
 interface CheckinCrmSectionProps {
   ctx?: CheckinCrmSectionCtx
+  /** Reunião 09/07/2026: no Fechamento Diário ao vivo, a edição rápida
+   * (data/status/observação) abaixo do cliente foi removida — o fluxo
+   * correto passou a ser Rotina do Dia (reagendar/status) ou Histórico
+   * (regularização, se o dia já estiver concluído). A Regularização de
+   * Fechamento (dia passado) continua usando a edição inline normalmente,
+   * por isso o default é `true`. */
+  allowInlineQuickEdit?: boolean
 }
 
 const srOnlyStyle: CSSProperties = {
@@ -179,7 +187,8 @@ const formatCurrencyLive = (raw: string): string => {
   })
 }
 
-export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
+export function CheckinCrmSection({ ctx, allowInlineQuickEdit = true }: CheckinCrmSectionProps) {
+  const navigate = useNavigate()
   const { clientes, createCliente, updateCliente } = useClientes()
   const { createOportunidade, updateOportunidade, updateMotivoPerda, deleteOportunidade } = useOportunidades()
   const { agendamentos, createAgendamento, updateAgendamento, deleteAgendamento } = useAgendamentos()
@@ -809,7 +818,29 @@ export function CheckinCrmSection({ ctx }: CheckinCrmSectionProps) {
                           </div>
                         </td>
                       </tr>
-                      {isExpanded && (() => {
+                      {isExpanded && !allowInlineQuickEdit && (
+                        <tr className="bg-[#F7F8F8]/40 border-t border-[#DFE0E1]" onClick={e => e.stopPropagation()}>
+                          <td colSpan={10} className="px-6 py-4 text-xs leading-relaxed text-[#526B7A]">
+                            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#DFE0E1] bg-white/65 p-4 shadow-sm">
+                              <p className="max-w-[520px] font-semibold">
+                                Reagendar, mudar o status da negociação ou registrar observação agora é feito pela{' '}
+                                <span className="font-extrabold text-[#071822]">Rotina do Dia</span>. Se o fechamento deste dia já foi enviado, solicite o ajuste pelo{' '}
+                                <span className="font-extrabold text-[#071822]">Histórico de Fechamentos</span>.
+                              </p>
+                              <div className="flex shrink-0 items-center gap-2">
+                                <Button type="button" onClick={() => handleEdit(row)} className="h-9 bg-white text-[#071822] shadow-none ring-1 ring-inset ring-[#DFE0E1] hover:bg-[#F7F8F8]">
+                                  Ver cliente
+                                </Button>
+                                <Button type="button" onClick={() => navigate('/central-execucao')} className="h-9 bg-[#00A89D] text-white shadow-none hover:bg-[#00A89D]">
+                                  <CalendarClock size={14} className="mr-1.5" />
+                                  Rotina do Dia
+                                </Button>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                      {isExpanded && allowInlineQuickEdit && (() => {
                         const draft = getInlineDraft(row)
                         return (
                           <tr className="bg-[#F7F8F8]/40 border-t border-[#DFE0E1]" onClick={e => e.stopPropagation()}>

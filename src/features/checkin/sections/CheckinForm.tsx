@@ -444,7 +444,7 @@ Confirmar Internet
             )}
           </AnimatePresence>
 
-          <CheckinCrmSection ctx={ctx} />
+          <CheckinCrmSection ctx={ctx} allowInlineQuickEdit={false} />
 
           {mandatoryFeedbackActionsCount > 0 && metricScope === 'daily' && (
             <Card className="rounded-mx-xl border border-status-error/20 bg-status-error-surface p-mx-md shadow-mx-sm">
