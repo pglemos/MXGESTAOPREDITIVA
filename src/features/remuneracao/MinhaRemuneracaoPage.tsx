@@ -50,37 +50,11 @@ export default function MinhaRemuneracaoPage() {
   }
 
   const userName = data.profile?.name?.split(' ')[0] || 'Vendedor'
-  const userFullName = data.profile?.name || 'Vendedor'
-  const userInitials = userFullName.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
 
   return (
     <div className="pb-10 -m-6 lg:-m-8 min-h-screen" style={{ background: 'var(--color-seller-screen-bg)' }}>
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 space-y-5">
-<SellerPageHeader className="border-white/10 bg-[#071723] shadow-none [&_h1]:text-white [&_p]:text-slate-400 [&>div>svg]:text-emerald-400" icon={TrendingUp} title="Início" subtitle={`${saudacaoPorHora()}, ${userName}. Foque no que importa. Venda mais e ganhe mais.`} actions={(<><div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white"><Calendar className="w-4 h-4 text-emerald-400" />Este mês<ChevronDown className="w-4 h-4 text-slate-400" /></div><div className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2">{data.profile?.avatar_url ? <img src={data.profile.avatar_url} alt={userFullName} className="w-8 h-8 rounded-full object-cover" /> : <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white text-xs font-bold">{userInitials}</div>}<div className="hidden sm:block"><p className="text-white text-sm font-semibold leading-tight">{userFullName}</p><p className="text-slate-400 text-xs">Vendedor</p></div></div></>)} />
-        <div className="hidden">
-          <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-white">{saudacaoPorHora()}, {userName}! 🚀</h1>
-            <p className="text-slate-400 text-sm mt-0.5">Foque no que importa. Venda mais e ganhe mais.</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white">
-              <Calendar className="w-4 h-4 text-slate-400" />
-              Este mês
-              <ChevronDown className="w-4 h-4 text-slate-400" />
-            </div>
-            <div className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
-              {data.profile?.avatar_url ? (
-                <img src={data.profile.avatar_url} alt={userFullName} className="w-8 h-8 rounded-full object-cover" />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white text-xs font-bold">{userInitials}</div>
-              )}
-              <div className="hidden sm:block">
-                <p className="text-white text-sm font-medium leading-tight">{userFullName}</p>
-                <p className="text-slate-400 text-xs">Vendedor</p>
-              </div>
-            </div>
-          </div>
-        </div>
+<SellerPageHeader className="border-white/10 bg-[#071723] shadow-none [&_h1]:text-white [&_p]:text-slate-400 [&>div>svg]:text-emerald-400" icon={TrendingUp} title="Início" subtitle={`${saudacaoPorHora()}, ${userName}. Foque no que importa. Venda mais e ganhe mais.`} actions={(<div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white"><Calendar className="w-4 h-4 text-emerald-400" />Este mês<ChevronDown className="w-4 h-4 text-slate-400" /></div>)} />
 
         {!data.disponivel && (
           <div className="flex items-center gap-2 rounded-xl px-4 py-3" style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}>
