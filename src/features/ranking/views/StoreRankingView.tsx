@@ -24,8 +24,6 @@ export function StoreRankingView() {
     )
   }
 
-  const me = data.profile
-
   return (
     <RankingErrorBoundary sectionName="Ranking da Loja">
       <div className="min-h-screen bg-slate-50 p-4 font-body sm:p-6">
@@ -52,35 +50,6 @@ export function StoreRankingView() {
               ))}
             </div>
 
-            <div className="flex items-center gap-2">
-              <label htmlFor="ranking-unidade" className="text-[11px] font-semibold text-slate-500">
-                Unidade
-              </label>
-              <select
-                id="ranking-unidade"
-                value={data.unidade}
-                onChange={e => data.setUnidade(e.target.value)}
-                className="text-[12px] border border-slate-200 rounded-lg px-3 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-green-300"
-              >
-                <option value="todas">Todas as unidades</option>
-                {data.unidades.map(u => (
-                  <option key={u} value={u}>
-                    {u}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {me && (
-              <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-700 text-[13px] font-bold text-white">
-                  {(me.name || 'U').split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase()}
-                </div>
-                <div className="hidden text-right sm:block">
-                  <p className="text-[12px] font-semibold leading-tight text-slate-800">{me.name}</p>
-                  <p className="text-[10px] text-slate-400">Vendedor</p>
-                </div>
-              </div>
-            )}
             </>
           )}
         />
