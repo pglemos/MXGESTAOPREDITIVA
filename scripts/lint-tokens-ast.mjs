@@ -61,6 +61,7 @@ const WHITELIST_PATTERNS = [
     /\/src\/components\/NotificationBellButton\.tsx$/,
     /\/src\/components\/seller\/SellerPageHeader\.tsx$/,
     /\/src\/features\/crm\/AlterarProximoPasso\.tsx$/,
+    /\/src\/features\/crm\/CentralExecucao\.container\.tsx$/,
     /\/src\/features\/crm\/CarteiraClientes\.container\.tsx$/,
     /\/src\/features\/crm\/ModoAtaqueView\.tsx$/,
     /\/src\/features\/crm\/PlanoAtaqueTab\.tsx$/,

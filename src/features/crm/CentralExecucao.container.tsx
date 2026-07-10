@@ -7,6 +7,7 @@ import {
   BookOpen,
   Brain,
   Calendar,
+  CalendarDays,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
@@ -593,15 +594,16 @@ export function CentralExecucao() {
   }
 
   const weekdayLabel = hoje.toLocaleDateString('pt-BR', { weekday: 'long' })
-  const dateFullLabel = hoje.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).replace(' de ', ' de ')
+  const dayAndMonthLabel = hoje.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })
+  const dateFormatted = `Hoje · ${weekdayLabel.toLowerCase()}, ${dayAndMonthLabel}`
 
   return (
     <main className="h-full w-full min-w-0 overflow-y-auto bg-surface-alt no-scrollbar px-mx-sm py-mx-md sm:px-mx-md lg:px-mx-lg">
       <div className="mx-auto flex min-w-0 max-w-[1500px] w-full flex-col pb-20 gap-4">
 <SellerPageHeader icon={Target} title="Rotina do Dia" subtitle="Organize e execute seu dia com foco" actions={(
-<div className="hidden rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-right sm:block">
-<p className="text-[13px] font-bold capitalize text-slate-900">{weekdayLabel}</p>
-<p className="text-[12px] text-slate-400">{dateFullLabel}</p>
+<div className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 text-[13px] sm:h-9">
+  <CalendarDays size={14} className="text-[#005BFF]" />
+  <span className="truncate font-semibold text-slate-900">{dateFormatted}</span>
 </div>
 )} />
 
