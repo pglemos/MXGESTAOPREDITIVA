@@ -62,7 +62,7 @@ Verificado ao vivo no ambiente real (login `jose.vendedor@...`): página carrega
 
 1. Consolidar taxonomia comercial fragmentada (etapa do funil, situação da oportunidade, status/tipo de atividade, resultado de interação, motivo de perda, próxima ação — hoje misturados em conceitos sobrepostos).
 2. Resolver modal sobre modal (clicar no cliente abre modal que trava outro modal).
-3. Permitir escolha do canal de contato em "Executar Próximo Passo" (WhatsApp/ligação/presencial) — hoje força WhatsApp.
+3. ✅ Permitir escolha do canal de contato em "Executar Próximo Passo". Feito (migration `20260710230000`, aplicada em prod): RPC `registrar_status_acao_cadencia` ganhou `p_canal_contato` (whatsapp/ligacao/presencial, validado) gravado como `canalContato` no histórico da cadência. Ficha do cliente pergunta o canal antes de executar (WhatsApp abre wa.me com script, Ligação abre tel:, Presencial só registra); Modo Ataque registra o canal efetivamente usado. Teste de UI cobrindo o seletor.
 4. Provar as transições da Rotina e Mentor com teste automatizado (contador de pendências, atividade vencida sai da lista, reagendamento não duplica competência, venda encerra a atividade certa, garantia não reabre venda).
 5. Garantir que a previsão de entrega (corrigida no Sprint P0) também aparece corretamente na Rotina como atividade `entrega`.
 6. Testar idempotência da venda direta (`registrar_venda_direta`).
@@ -94,14 +94,14 @@ Verificado ao vivo no ambiente real (login `jose.vendedor@...`): página carrega
 | 6 | Sino não clicável | Corrigido |
 | 7 | Progresso inicia em 70% sem ação | Corrigido |
 | 8 | Regularização deveria ser preenchida antes da aprovação | Implementado; E2E completo ainda não provado |
-| 9 | Próximo passo força WhatsApp | Não comprovado como encerrado (ver 2.2.3) |
+| 9 | Próximo passo força WhatsApp | ✅ Encerrado em 2026-07-10 — seletor de canal (WhatsApp/ligação/presencial) com registro auditável no histórico da cadência (ver 2.2.3) |
 
 ---
 
 ## 3. Estado técnico atual
 
-- **Testes:** 755 pass / 0 fail (`npm test`), typecheck limpo (`npm run typecheck`), lint sem erros, build de produção OK.
-- **Migrations aplicadas em produção nesta sessão:** `20260710180000`, `20260710190000`, `20260710200000`, `20260710210000` (quiz oficial), `20260710220000` (import ADR-MX-004) — todas confirmadas via `supabase migration list`/`inspect db table-stats` e `database.generated.ts` regenerado.
+- **Testes:** 756 pass / 0 fail (`npm test`), typecheck limpo (`npm run typecheck`), lint sem erros, build de produção OK.
+- **Migrations aplicadas em produção nesta sessão:** `20260710180000`, `20260710190000`, `20260710200000`, `20260710210000` (quiz oficial), `20260710220000` (import ADR-MX-004), `20260710230000` (canal de contato na cadência) — todas confirmadas via `supabase migration list`/`inspect db table-stats` e `database.generated.ts` regenerado.
 - **Commits enviados ao `main`:** `732b577c` (Sprint P0), `53950404` (Sprint Universidade — fundação).
 - **CI:** ainda faltam jobs de Playwright E2E e smoke pós-deploy autenticado (dependem de secrets de ambiente live não configurados nesta sessão).
 
