@@ -2,7 +2,7 @@
 
 ## Status
 
-InProgress
+Completed
 
 ## Story
 
@@ -81,38 +81,38 @@ InProgress
 
 ## Tasks / Subtasks
 
-- [ ] Fase 1 — Corrigir núcleo do Fechamento (AC1)
-  - [ ] Alinhar data oficial D-1/D0 entre React e `submit_checkin`.
-  - [ ] Persistir `declaredForm`, unificar zero declarado e mostrar divergência de CRM.
-  - [ ] Rejeitar sobrescrita diária finalizada no servidor.
-  - [ ] Reutilizar `isSubmittedClosing` no Histórico.
-  - [ ] Retornar ID da RPC e corrigir placeholder/escopo.
-  - [ ] Unificar cálculo D+1 e remover mensagens de trava desativada.
-  - [ ] Criar testes unitários, de contrato SQL e integração.
-- [ ] Fase 2 — Regularização canônica (AC2)
-  - [ ] Inventariar estruturas concorrentes e escolher a fonte já compatível com o app.
-  - [ ] Criar schema/RPCs/transições/status/RLS/auditoria/notificações.
-  - [ ] Migrar consumidores e impedir aplicação antes da aprovação.
-  - [ ] Cobrir solicitar/aprovar/rejeitar/cancelar/aplicar/idempotência.
-- [ ] Fase 3 — CRM e eventos (AC3)
-  - [ ] Criar RPC transacional de venda direta com idempotência.
-  - [ ] Introduzir competência explícita sem adulterar `created_at`.
-  - [ ] Implementar deduplicação segura por loja + telefone.
-  - [ ] Migrar o modal e cobrir falhas intermediárias/repetição.
-- [ ] Fase 4 — Performance oficial (AC4)
-  - [ ] Criar read model/RPC compartilhado com realizado/projetado.
-  - [ ] Migrar Home, Minha Meta, Ranking e Relatórios.
-  - [ ] Validar paridade e exclusão de estados não oficiais.
-- [ ] Fase 5 — Conteúdo e carreira (AC5)
-  - [ ] Completar Universidade MX.
-  - [ ] Integrar experiência educacional em Desenvolvimento conforme fonte única.
-  - [ ] Completar perfil profissional e histórico auditável.
-  - [ ] Cobrir permissões, acessibilidade e responsividade.
-- [ ] Fase 6 — Hardening e produção (AC6)
-  - [ ] Rodar gates completos e estabilizar TestSprite/CI aplicável.
-  - [ ] Aplicar migrations e executar smoke autenticado.
-  - [ ] Atualizar checklist, File List, QA Results e evidências.
-  - [ ] Remover branches extras, commit/push na `main` e validar deploy/produção.
+- [x] Fase 1 — Corrigir núcleo do Fechamento (AC1)
+  - [x] Alinhar data oficial D-1/D0 entre React e `submit_checkin`.
+  - [x] Persistir `declaredForm`, unificar zero declarado e mostrar divergência de CRM.
+  - [x] Rejeitar sobrescrita diária finalizada no servidor.
+  - [x] Reutilizar `isSubmittedClosing` no Histórico.
+  - [x] Retornar ID da RPC e corrigir placeholder/escopo.
+  - [x] Unificar cálculo D+1 e remover mensagens de trava desativada.
+  - [x] Criar testes unitários, de contrato SQL e integração.
+- [x] Fase 2 — Regularização canônica (AC2)
+  - [x] Inventariar estruturas concorrentes e escolher a fonte já compatível com o app.
+  - [x] Criar schema/RPCs/transições/status/RLS/auditoria/notificações.
+  - [x] Migrar consumidores e impedir aplicação antes da aprovação.
+  - [x] Cobrir solicitar/aprovar/rejeitar/cancelar/aplicar/idempotência.
+- [x] Fase 3 — CRM e eventos (AC3)
+  - [x] Criar RPC transacional de venda direta com idempotência.
+  - [x] Introduzir competência explícita sem adulterar `created_at`.
+  - [x] Implementar deduplicação segura por loja + telefone.
+  - [x] Migrar o modal e cobrir falhas intermediárias/repetição.
+- [x] Fase 4 — Performance oficial (AC4)
+  - [x] Criar read model/RPC compartilhado com realizado/projetado.
+  - [x] Migrar Home, Minha Meta, Ranking e Relatórios.
+  - [x] Validar paridade e exclusão de estados não oficiais.
+- [x] Fase 5 — Conteúdo e carreira (AC5)
+  - [x] Completar Universidade MX.
+  - [x] Integrar experiência educacional em Desenvolvimento conforme fonte única.
+  - [x] Completar perfil profissional e histórico auditável.
+  - [x] Cobrir permissões, acessibilidade e responsividade.
+- [x] Fase 6 — Hardening e produção (AC6)
+  - [x] Rodar gates completos e estabilizar TestSprite/CI aplicável.
+  - [x] Aplicar migrations e executar smoke autenticado.
+  - [x] Atualizar checklist, File List, QA Results e evidências.
+  - [x] Remover branches extras, commit/push na `main` e validar deploy/produção.
 
 ## Dev Notes
 
