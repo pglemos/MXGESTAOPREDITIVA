@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from '@/lib/toast'
 import {
     BookOpen, Star, BarChart3, CheckCircle2, ClipboardCheck, Search, Play,
@@ -25,6 +25,8 @@ import {
     getYoutubeEmbed,
     getYoutubeThumbnail,
 } from './components/CompliancePlayers'
+import { QuizTreinamento } from './components/QuizTreinamento'
+import { confirmarPresencaTreinamento, listarPresencasTreinamentos } from '@/features/universidade/services/universidade-service'
 
 const CATEGORIES = ['Atendimento', 'Prospecção', 'WhatsApp', 'Negociação', 'Financiamento', 'Fechamento', 'Pós-venda', 'Carteira', 'Mentalidade']
 const LEVELS = ['N1 Iniciante', 'N2 Intermediário', 'N3 Performance', 'N4 Alta Performance']
@@ -76,7 +78,7 @@ function TrainingCard({ training, completed, onOpen }: { training: Treinamento; 
 export default function VendedorTreinamentosContainer() {
     const {
         trainings, loading, completedIds, completedCount, tarefas,
-        nivelMaturidade, nivelMaturidadeLabel, recomendacoes, toggleTarefa, markCompleted,
+        nivelMaturidade, nivelMaturidadeLabel, recomendacoes, toggleTarefa, markCompleted, refetch,
     } = useVendedorTreinamentos()
 
     const [tab, setTab] = useState<TabKey>('biblioteca')
@@ -87,6 +89,33 @@ export default function VendedorTreinamentosContainer() {
     const [comment, setComment] = useState('')
     const [savingInteraction, setSavingInteraction] = useState(false)
     const [watchedPercent, setWatchedPercent] = useState(0)
+    // UNIV-6: quando a aula tem prova oficial (5+ questões), o quiz é o único
+    // caminho de conclusão; a conclusão manual fica desabilitada.
+    const [quizQuestoes, setQuizQuestoes] = useState(0)
+    const [presencas, setPresencas] = useState<Set<string>>(new Set())
+
+    useEffect(() => {
+        let ativo = true
+        supabase.auth.getUser().then(({ data: { user } }) => {
+            if (!user) return
+            listarPresencasTreinamentos(supabase, user.id)
+                .then(ids => { if (ativo) setPresencas(new Set(ids)) })
+                .catch(() => {})
+        })
+        return () => { ativo = false }
+    }, [])
+
+    const confirmarPresenca = async (trainingId: string) => {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        try {
+            await confirmarPresencaTreinamento(supabase, user.id, trainingId)
+            setPresencas(atual => new Set(atual).add(trainingId))
+            toast.success('Presença confirmada.')
+        } catch (error) {
+            toast.error('Erro ao confirmar presença', { description: error instanceof Error ? error.message : undefined })
+        }
+    }
 
     const filtered = useMemo(() => trainings.filter(t => {
         if (search && !t.title.toLowerCase().includes(search.toLowerCase())) return false
@@ -105,6 +134,7 @@ export default function VendedorTreinamentosContainer() {
     const openTraining = async (training: Treinamento) => {
         setSelectedTraining(training)
         setComment('')
+        setQuizQuestoes(0)
         setWatchedPercent(completedIds.has(training.id) ? 100 : 0)
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
@@ -280,6 +310,19 @@ export default function VendedorTreinamentosContainer() {
                                                 {t.live_date ? new Date(t.live_date).toLocaleDateString('pt-BR') : '—'}
                                             </Typography>
                                         </div>
+                                        {presencas.has(t.id) ? (
+                                            <span className="inline-flex items-center gap-1.5 rounded-mx-xl bg-status-success/10 px-3 py-1.5 text-xs font-semibold text-status-success">
+                                                <CheckCircle2 size={14} /> Presença confirmada
+                                            </span>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={() => void confirmarPresenca(t.id)}
+                                                className="rounded-mx-xl border border-brand-primary px-3 py-1.5 text-xs font-semibold text-brand-primary hover:bg-brand-primary/5"
+                                            >
+                                                Confirmar presença
+                                            </button>
+                                        )}
                                     </Card>
                                 ))}
                             </div>
@@ -331,18 +374,25 @@ export default function VendedorTreinamentosContainer() {
                                 )}
                                 <button
                                     type="button"
-                                    disabled={savingInteraction || (!completedIds.has(selectedTraining.id) && Boolean(selectedTraining.video_url) && watchedPercent < 95)}
+                                    disabled={savingInteraction || (!completedIds.has(selectedTraining.id) && (quizQuestoes >= 5 || (Boolean(selectedTraining.video_url) && watchedPercent < 95)))}
                                     onClick={() => void handleMarkCompleted()}
                                     className="inline-flex items-center gap-2 rounded-mx-xl bg-status-success px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                                 >
                                     <CheckCircle2 size={16} />
                                     {completedIds.has(selectedTraining.id)
                                         ? 'Concluída'
-                                        : watchedPercent >= 95
-                                            ? 'Concluir Aula'
-                                            : `Concluir Aula (${Math.round(watchedPercent)}%)`}
+                                        : quizQuestoes >= 5
+                                            ? 'Conclusão pela Prova Oficial'
+                                            : watchedPercent >= 95
+                                                ? 'Concluir Aula'
+                                                : `Concluir Aula (${Math.round(watchedPercent)}%)`}
                                 </button>
                             </div>
+                            <QuizTreinamento
+                                trainingId={selectedTraining.id}
+                                onCarregado={setQuizQuestoes}
+                                onAprovado={() => void refetch()}
+                            />
                             {tarefasDaAula.length > 0 && (
                                 <section className="rounded-mx-xl border border-border-subtle bg-surface-alt/40 p-4">
                                     <Typography variant="p" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide">

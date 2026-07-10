@@ -45,7 +45,7 @@ export function LojasHeader({
       title={isOwner ? 'Visão Executiva da Rede' : <>Gestão de <span className="text-brand-primary">Lojas</span></>}
       subtitle={isOwner ? 'COMPARE LOJAS, PRIORIZE DECISÕES E ACOMPANHE EXECUÇÃO' : 'CONTROLE DE UNIDADES & GOVERNANÇA MX'}
       actions={(
-        <div className="flex flex-wrap items-center justify-center lg:justify-end gap-mx-sm shrink-0 w-full lg:w-auto">
+        <>
           <LastUpdated value={lastUpdatedAt} className="hidden xl:inline-flex" />
           <Button
             variant="outline"
@@ -56,7 +56,7 @@ export function LojasHeader({
             <RefreshCw size={20} className={cn(isRefetching && 'animate-spin')} aria-hidden="true" />
             {OPERATIONAL_ACTION_LABELS.refresh}
           </Button>
-          <div className="relative group w-full sm:w-mx-sidebar-expanded order-2 sm:order-none">
+          <div className="relative group w-full sm:w-mx-sidebar-expanded">
             <Search
               size={16}
               className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors"
@@ -74,7 +74,7 @@ export function LojasHeader({
             />
           </div>
           {isAdminMx && (
-            <div className="flex w-full sm:w-auto gap-mx-sm order-1 sm:order-none">
+            <>
               <TabNavPill
                 tabs={[
                   { key: 'ativas', label: `Ativas (${storeStatusCounts.active})` },
@@ -82,17 +82,17 @@ export function LojasHeader({
                 ]}
                 activeTab={filterActive ? 'ativas' : 'arquivadas'}
                 onTabChange={k => onFilterChange(k === 'ativas')}
-                className="flex-1 sm:flex-none mr-0 sm:mr-2"
+                className="mr-0 sm:mr-2 w-full sm:w-auto"
               />
               <Button
                 onClick={onOpenCreate}
-                className="flex-1 sm:flex-none h-mx-xl px-8 shadow-mx-lg bg-brand-primary hover:bg-brand-primary-hover text-white rounded-mx-lg uppercase font-black tracking-widest text-xs"
+                className="h-mx-xl px-8 shadow-mx-lg bg-brand-primary hover:bg-brand-primary-hover text-white rounded-mx-lg uppercase font-black tracking-widest text-xs w-full sm:w-auto"
               >
                 <Plus size={18} className="mr-2" aria-hidden="true" /> NOVA LOJA
               </Button>
-            </div>
+            </>
           )}
-        </div>
+        </>
       )}
     />
   )

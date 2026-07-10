@@ -36,8 +36,8 @@ Commit: `53950404` (push `732b577c..53950404`).
 | UNIV-7 — Migrar página para feature real, retirar shell legado | ✅ Feito para Treinamentos (`src/features/vendedor-treinamentos/`) **e para Meu Perfil** (`src/features/vendedor-perfil/`, rodada posterior desta mesma sessão). Nenhuma rota ativa do vendedor usa mais `withLegacyShell`/`base44-reference`; `LegacyModuleShell` foi removido do código (zero consumidores) |
 | UNIV-4 — Motor de recomendação (Funil/Feedback/PDI) | ✅ Feito. `recomendacao.ts` puro e testado: lacuna de competência do PDI (nota < 6 na escala 0–10), gargalo do funil (≥3 oportunidades abertas paradas na etapa), ações de devolutiva pendentes e maturidade como desempate. Cada recomendação carrega motivos legíveis exibidos como badges; **sem sinal real, não recomenda nada** (fim do "primeiros 4") |
 | UNIV-5 — Consolidar acesso a dados em serviço único tipado | ✅ Feito. `universidade-service` centraliza conteúdo, progresso e tarefas; `useVendedorTreinamentos` e `useTrainings` delegam a ele, sem alteração de RLS/schema. |
-| UNIV-6 — Quiz oficial (5–10 questões, nota mínima 70%, tentativas, presença, auditoria) | ⬜ Não iniciado |
-| UNIV-8 — Rota canônica `/universidade-mx` | 🟡 Parcial. Título da página já é "Universidade MX"; a URL continua em `/treinamentos` (redirect de `/universidade-mx` → `/treinamentos` já existia e segue funcionando) |
+| UNIV-6 — Quiz oficial (5–10 questões, nota mínima 70%, tentativas, presença, auditoria) | ✅ Feito (migration `20260710210000`, aplicada em prod). Gabarito em tabela separada invisível ao vendedor; tentativas append-only gravadas só pelo RPC `submeter_quiz_treinamento` (SECURITY DEFINER, exige 5–10 questões ativas, aprova ≥70% e conclui o progresso oficial); `treinamento_presencas` para aula ao vivo. UI: prova no modal da aula (conclusão manual bloqueada quando há prova) + botão de presença. **Sem seed de questões** — conteúdo de prova é editorial (Artigo IV) |
+| UNIV-8 — Rota canônica `/universidade-mx` | ✅ Feito. `/universidade-mx` é a rota canônica do vendedor (menus, sidebar, banners e links internos atualizados); `/treinamentos` redireciona o vendedor e segue canônica para gerente/dono/admin. Aliases antigos (`/vendedor/treinamentos`, `/vendedor/universidade-mx`) apontam para a nova canônica |
 
 Verificado ao vivo no ambiente real (login `jose.vendedor@...`): página carrega, 4 stats reais (sem dado fabricado), tarefa marcada como concluída sobrevive a reload de página, zero erros de console/rede.
 
@@ -53,10 +53,10 @@ Verificado ao vivo no ambiente real (login `jose.vendedor@...`): página carrega
 
 1. ✅ UNIV-4 — Motor de recomendação explicável. Feito em `src/features/universidade/services/recomendacao.ts` (puro, 6 testes) + seção "Recomendado para Você" na aba Biblioteca com motivo em badge. Sinais: PDI (`pdis.comp_*`), funil (`clientes_oportunidades` abertas por etapa), devolutiva (`devolutiva_acoes` pendentes), maturidade/cargo (função canônica). Cargo já era filtro de audiência na listagem.
 2. ✅ UNIV-5 — Consolidar list/progresso de treinamentos em um único serviço Supabase tipado.
-3. UNIV-6 — Quiz oficial: 5–10 questões, nota mínima 70%, tentativas, presença, auditoria.
+3. ✅ UNIV-6 — Quiz oficial. Feito (ver tabela 1.2). Falta apenas a área interna cadastrar as questões de cada aula — a UI só exibe a prova quando existem 5+ questões ativas.
 4. ✅ Migrar `MeuPerfilVendedor` para fora de `base44-reference`. Feito: `src/features/vendedor-perfil/` (mapper puro testado + hook + container MX). Removidos os dados fabricados do shim (`monthly_goal=10`, `avg_sales_year=0`) — Meta Mensal e média agora vêm da RPC oficial de performance; campos estruturalmente vazios do protótipo (Data de Nascimento, Marca) foram retirados por não existirem no schema. `LegacyModuleShell` deletado (P2-02 parcial). **Pendente: verificação visual ao vivo logada** — exige login, não executada nesta rodada.
-5. UNIV-8 completo — decidir se a URL migra para `/universidade-mx` como canônica (hoje é o inverso: `/universidade-mx` redireciona para `/treinamentos`).
-6. ✅ Decisão de arquitetura sobre os dois sistemas de treinamento paralelos: `treinamentos` é canônico; executar a migração faseada prevista no ADR-MX-004.
+5. ✅ UNIV-8 completo — `/universidade-mx` é a canônica do vendedor (decisão autônoma autorizada em 2026-07-10; `/treinamentos` segue para gestão).
+6. ✅ ADR-MX-004 fases 2–3 executadas (migration `20260710220000`, aplicada em prod): tabela de proveniência `universidade_conteudo_migracao` + import idempotente do catálogo `universidade_*`. **Achado:** `universidade_aulas`/`universidade_trilhas` estão vazias em produção — o catálogo paralelo nunca recebeu dados; a consolidação foi estrutural, sem migração de dados. Certificações não convertidas (critério do ADR). Conversão de trilhas → `trilhas_desenvolvimento` fica para quando houver sequência pedagógica real.
 
 ### 2.2 Sprint de CRM e execução — não iniciado
 
@@ -100,8 +100,8 @@ Verificado ao vivo no ambiente real (login `jose.vendedor@...`): página carrega
 
 ## 3. Estado técnico atual
 
-- **Testes:** 753 pass / 0 fail (`npm test`), typecheck limpo (`npm run typecheck`), lint sem erros, build de produção OK.
-- **Migrations aplicadas em produção nesta sessão:** `20260710180000`, `20260710190000`, `20260710200000` — todas confirmadas via `supabase migration list` e `database.generated.ts` regenerado.
+- **Testes:** 755 pass / 0 fail (`npm test`), typecheck limpo (`npm run typecheck`), lint sem erros, build de produção OK.
+- **Migrations aplicadas em produção nesta sessão:** `20260710180000`, `20260710190000`, `20260710200000`, `20260710210000` (quiz oficial), `20260710220000` (import ADR-MX-004) — todas confirmadas via `supabase migration list`/`inspect db table-stats` e `database.generated.ts` regenerado.
 - **Commits enviados ao `main`:** `732b577c` (Sprint P0), `53950404` (Sprint Universidade — fundação).
 - **CI:** ainda faltam jobs de Playwright E2E e smoke pós-deploy autenticado (dependem de secrets de ambiente live não configurados nesta sessão).
 

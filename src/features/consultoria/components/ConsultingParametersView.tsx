@@ -8,6 +8,7 @@ import { Select } from '@/components/atoms/Select'
 import { Textarea } from '@/components/atoms/Textarea'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
+import { PageHeading } from '@/components/molecules/PageHeading'
 import { useConsultingParameters } from '@/hooks/useConsultingParameters'
 
 function toInputValue(value?: number | null) {
@@ -112,17 +113,15 @@ export function ConsultingParametersView() {
 
   return (
     <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar flex flex-col gap-mx-lg">
-      <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-mx-md border-b border-border-default pb-10">
-        <div className="space-y-mx-sm">
-          <Typography variant="h1">Parametros PMR</Typography>
-          <Typography variant="caption">
-            Indicadores, benchmarks, limites de cor e formulas editaveis da consultoria.
-          </Typography>
-        </div>
-        <Badge variant="outline" className="rounded-mx-full px-4 py-1">
-          {activeSet ? `${activeSet.name} ${activeSet.version}` : 'SEM CONJUNTO ATIVO'}
-        </Badge>
-      </header>
+      <PageHeading
+        title="Parâmetros PMR"
+        subtitle="INDICADORES, BENCHMARKS, LIMITES DE COR E FÓRMULAS EDITÁVEIS DA CONSULTORIA"
+        actions={
+          <Badge variant="outline" className="rounded-mx-full px-4 py-1">
+            {activeSet ? `${activeSet.name} ${activeSet.version}` : 'SEM CONJUNTO ATIVO'}
+          </Badge>
+        }
+      />
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-mx-lg">
         <Card className="p-mx-lg border-none shadow-mx-md bg-white xl:col-span-2">

@@ -31,7 +31,7 @@ export function PageHeading({ title, subtitle, actions, breadcrumb }: PageHeadin
         )}
       </div>
       {actions && (
-        <div className="flex w-full min-w-0 flex-col items-center gap-mx-sm sm:flex-row sm:flex-wrap lg:w-auto lg:max-w-[70%] lg:shrink-0 lg:justify-end xl:flex-nowrap">
+        <div className="flex w-full min-w-0 flex-col items-center gap-mx-sm sm:flex-row sm:flex-wrap lg:w-auto lg:max-w-[70%] lg:shrink-0 lg:justify-end xl:flex-wrap">
           {actions}
         </div>
       )}

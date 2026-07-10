@@ -200,7 +200,7 @@ const navConfig: Record<string, NavCategory[]> = {
       items: [
         { label: 'Feedback', path: '/devolutivas', icon: <MessageSquare size={16} /> },
         { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
-        { label: 'Treinamento', path: '/treinamentos', icon: <GraduationCap size={16} /> },
+        { label: 'Universidade MX', path: '/universidade-mx', icon: <GraduationCap size={16} /> },
         { label: 'Ranking', path: '/classificacao', icon: <Trophy size={16} /> },
       ]
     },

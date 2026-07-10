@@ -70,7 +70,7 @@ export function TacticalPrescriptionBanner({ prescription }: TacticalPrescriptio
               <Button
                 size="lg"
                 variant="secondary"
-                onClick={() => navigate('/treinamentos')}
+                onClick={() => navigate('/universidade-mx')}
                 className="rounded-mx-full px-12 h-mx-16 shadow-mx-xl font-bold uppercase tracking-mx-wide text-xs w-full lg:w-auto bg-white text-mx-black hover:bg-brand-primary hover:text-white transition-all border-none"
               >
                 <Play size={16} className="fill-current mr-2" /> TREINAR AGORA

@@ -360,7 +360,7 @@ export function useDevelopmentTracks() {
         target_type: 'all',
         type: 'training',
         priority: 'high',
-        link: '/treinamentos',
+        link: '/universidade-mx',
         read: false,
       })
       return { error: null }

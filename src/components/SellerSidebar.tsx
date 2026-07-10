@@ -87,7 +87,7 @@ const sellerSections: SellerLayoutNavSection[] = [
     items: [
       { label: 'Feedback', path: '/feedbacks', icon: MessageCircle, badge: '4', activePaths: ['/feedbacks', '/devolutivas'] },
       { label: 'PDI', path: '/pdi', icon: Target },
-      { label: 'Treinamento', path: '/treinamentos', icon: GraduationCap, badge: 'Novo' },
+      { label: 'Treinamento', path: '/universidade-mx', icon: GraduationCap, badge: 'Novo' },
       { label: 'Ranking', path: '/ranking', icon: Trophy, activePaths: ['/ranking', '/classificacao'] },
     ],
   },
@@ -391,7 +391,7 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
         { label: 'Mentor Comercial', path: '/carteira-clientes', icon: Users, activePaths: ['/carteira-clientes'] },
         { label: 'Minha Meta', path: '/meu-funil', icon: Filter, activePaths: ['/meu-funil', '/funil-comercial', '/funil'] },
         { label: 'Ranking', path: '/ranking', icon: Trophy, activePaths: ['/ranking', '/classificacao'] },
-        { label: 'Universidade MX', path: '/treinamentos', icon: GraduationCap, activePaths: ['/treinamentos'] },
+        { label: 'Universidade MX', path: '/universidade-mx', icon: GraduationCap, activePaths: ['/universidade-mx'] },
         { label: 'Desenvolvimento', path: '/desenvolvimento', icon: BookOpen, activePaths: ['/desenvolvimento', '/feedbacks', '/devolutivas', '/pdi'] },
       ],
     },

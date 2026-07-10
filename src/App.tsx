@@ -308,9 +308,8 @@ export default function App() {
             <Route path="vendedor/feedback" element={<RedirectWithSearch to="/desenvolvimento?tab=feedback" />} />
             <Route path="vendedor/devolutivas" element={<RedirectWithSearch to="/desenvolvimento?tab=feedback" />} />
             <Route path="vendedor/desenvolvimento" element={<RedirectWithSearch to="/desenvolvimento" />} />
-            <Route path="vendedor/treinamentos" element={<RedirectWithSearch to="/treinamentos" />} />
-            <Route path="universidade-mx" element={<RedirectWithSearch to="/treinamentos" />} />
-            <Route path="vendedor/universidade-mx" element={<RedirectWithSearch to="/treinamentos" />} />
+            <Route path="vendedor/treinamentos" element={<RedirectWithSearch to="/universidade-mx" />} />
+            <Route path="vendedor/universidade-mx" element={<RedirectWithSearch to="/universidade-mx" />} />
             <Route path="vendedor/configuracoes" element={<RedirectWithSearch to="/configuracoes" />} />
             <Route path="funil-vendas" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<ForbiddenRoute />} gerente={<FunilVendasGerente />} dono={<FunilVendasGerente />} admin={<ForbiddenRoute />} />
@@ -332,8 +331,13 @@ export default function App() {
             </Suspense>} />
             <Route path="ranking" element={<Suspense fallback={<Spinner />}><Ranking /></Suspense>} />
             <Route path="classificacao" element={<Suspense fallback={<Spinner />}><Ranking /></Suspense>} />
+            {/* UNIV-8: /universidade-mx é a rota canônica do vendedor; /treinamentos
+                segue canônica para gerente/dono/admin e redireciona o vendedor. */}
+            <Route path="universidade-mx" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<VendedorTreinamentos />} gerente={<RedirectWithSearch to="/treinamentos" />} dono={<RedirectWithSearch to="/treinamentos" />} admin={<RedirectWithSearch to="/treinamentos" />} />
+            </Suspense>} />
             <Route path="treinamentos" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={<VendedorTreinamentos />} gerente={<GerenteTreinamentos />} dono={<GerenteTreinamentos />} admin={<ConsultorTreinamentos />} />
+              <RoleSwitch vendedor={<RedirectWithSearch to="/universidade-mx" />} gerente={<GerenteTreinamentos />} dono={<GerenteTreinamentos />} admin={<ConsultorTreinamentos />} />
             </Suspense>} />
 <Route path="desenvolvimento" element={<Suspense fallback={<Spinner />}>
 <RoleSwitch vendedor={<VendedorDesenvolvimento />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />

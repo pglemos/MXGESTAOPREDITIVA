@@ -25,7 +25,7 @@ const SETTINGS = [
   {
     title: 'Treinamento',
     description: 'Trilhas, aulas, biblioteca e provas.',
-    to: '/treinamentos',
+    to: '/universidade-mx',
     cta: 'Abrir treinamento',
     icon: GraduationCap,
   },

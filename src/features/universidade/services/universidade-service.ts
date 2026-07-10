@@ -81,3 +81,70 @@ export async function atualizarTarefaTreinamento(client: SupabaseClient<Database
   const { error } = await client.from('treinamento_tarefa_respostas').upsert({ id: task.respostaId ?? undefined, tarefa_id: task.id, seller_user_id: userId, concluida, concluida_em: concluida ? new Date().toISOString() : null, updated_at: new Date().toISOString() }, { onConflict: 'tarefa_id,seller_user_id' })
   if (error) throw error
 }
+
+// ----------------------------------------------------------------------------
+// Quiz oficial (UNIV-6): questões sem gabarito no cliente; correção e registro
+// de tentativa acontecem no servidor (RPC submeter_quiz_treinamento).
+// ----------------------------------------------------------------------------
+
+export type QuizQuestao = { id: string; ordem: number; pergunta: string; opcoes: string[] }
+
+type QuizQuestaoRow = { id: string; ordem: number; pergunta: string; opcoes: unknown }
+
+export function mapQuizQuestoes(rows: QuizQuestaoRow[]): QuizQuestao[] {
+  return rows
+    .map(row => ({
+      id: row.id,
+      ordem: row.ordem,
+      pergunta: row.pergunta,
+      opcoes: Array.isArray(row.opcoes) ? row.opcoes.filter((opcao): opcao is string => typeof opcao === 'string') : [],
+    }))
+    .filter(questao => questao.opcoes.length >= 2)
+    .sort((a, b) => a.ordem - b.ordem)
+}
+
+export async function listarQuizTreinamento(client: SupabaseClient<Database>, trainingId: string): Promise<QuizQuestao[]> {
+  const result = await client
+    .from('treinamento_quiz_questoes')
+    .select('id, ordem, pergunta, opcoes')
+    .eq('training_id', trainingId)
+    .eq('active', true)
+    .order('ordem')
+  if (result.error) throw result.error
+  return mapQuizQuestoes((result.data || []) as QuizQuestaoRow[])
+}
+
+export type ResultadoQuiz = { tentativa_id: string; acertos: number; total_questoes: number; nota: number; aprovado: boolean }
+
+export async function submeterQuizTreinamento(
+  client: SupabaseClient<Database>,
+  trainingId: string,
+  respostas: Record<string, number>,
+): Promise<ResultadoQuiz> {
+  const { data, error } = await client.rpc('submeter_quiz_treinamento', {
+    p_training_id: trainingId,
+    p_respostas: respostas,
+  })
+  if (error) throw error
+  return data as unknown as ResultadoQuiz
+}
+
+// ----------------------------------------------------------------------------
+// Presença em aula ao vivo (UNIV-6)
+// ----------------------------------------------------------------------------
+
+export async function listarPresencasTreinamentos(client: SupabaseClient<Database>, userId: string): Promise<string[]> {
+  const result = await client
+    .from('treinamento_presencas')
+    .select('training_id')
+    .eq('seller_user_id', userId)
+  if (result.error) throw result.error
+  return (result.data || []).map(row => row.training_id)
+}
+
+export async function confirmarPresencaTreinamento(client: SupabaseClient<Database>, userId: string, trainingId: string) {
+  const { error } = await client
+    .from('treinamento_presencas')
+    .upsert({ training_id: trainingId, seller_user_id: userId }, { onConflict: 'training_id,seller_user_id' })
+  if (error) throw error
+}
