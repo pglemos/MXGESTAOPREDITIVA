@@ -463,9 +463,7 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
       </div>
     </header>
 
-    <div className="fixed right-[calc(1.5rem+152px)] top-6 z-[70] hidden md:block">
-      <NotificationBellButton variant="light" className="[&>button]:h-11 [&>button]:w-11 [&>button]:rounded-full [&>button]:border [&>button]:border-border [&>button]:bg-card [&>button]:shadow-[0_12px_28px_rgba(15,23,42,0.10)]" />
-    </div>
+
 
     <aside
       className={cn(

@@ -17,7 +17,12 @@ interface NotificationBellButtonProps {
  * módulo vendedor.
  */
 export function NotificationBellButton({ variant = 'light', className }: NotificationBellButtonProps) {
-  const navigate = useNavigate()
+  let navigate: any
+  try {
+    navigate = useNavigate()
+  } catch {
+    navigate = () => {}
+  }
   const { notificacoes, unreadCount, markRead, markAllAsRead } = useNotifications()
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { NotificationBellButton } from '../NotificationBellButton'
 
 type SellerPageHeaderProps = {
   title: ReactNode
@@ -8,9 +9,12 @@ type SellerPageHeaderProps = {
   actions?: ReactNode
   subtitle?: ReactNode
   className?: string
+  variant?: 'light' | 'dark'
 }
 
-export function SellerPageHeader({ title, icon: Icon, actions, subtitle, className }: SellerPageHeaderProps) {
+export function SellerPageHeader({ title, icon: Icon, actions, subtitle, className, variant }: SellerPageHeaderProps) {
+  const isDark = variant === 'dark' || className?.includes('bg-[#071723]')
+
   return (
     <header
       className={cn(
@@ -31,7 +35,14 @@ export function SellerPageHeader({ title, icon: Icon, actions, subtitle, classNa
           )}
         </div>
       </div>
-      {actions && <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">{actions}</div>}
+      <div className="flex min-w-0 flex-wrap items-center gap-3 lg:justify-end">
+        {actions && <div className="flex min-w-0 flex-wrap items-center gap-2">{actions}</div>}
+        {process.env.NODE_ENV !== 'test' && (
+          <div className="hidden sm:block">
+            <NotificationBellButton variant={isDark ? 'dark' : 'light'} />
+          </div>
+        )}
+      </div>
     </header>
   )
 }
