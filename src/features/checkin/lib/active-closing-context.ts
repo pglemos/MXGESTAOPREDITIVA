@@ -26,7 +26,7 @@ interface ResolveActiveClosingContextArgs {
   todayClosing: DailyCheckin | null
 }
 
-function isSubmittedClosing(checkin: DailyCheckin | null) {
+export function isSubmittedClosing(checkin: DailyCheckin | null) {
   if (!checkin?.submitted_at) return false
   const hasDeclaredMovement = [
     checkin.leads_prev_day,

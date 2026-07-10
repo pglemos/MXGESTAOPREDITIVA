@@ -84,7 +84,7 @@ const previousCard = ctx.activeClosingContext.previousCard
     ]
 
   return (
-    <main className="h-full w-full min-w-0 bg-surface-alt px-mx-sm py-mx-md sm:px-mx-md lg:px-mx-lg no-scrollbar pb-12">
+    <main className="min-h-full w-full min-w-0 bg-surface-alt px-mx-sm py-mx-md sm:px-mx-md lg:px-mx-lg no-scrollbar pb-12">
       <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-4">
             {checkinLoadError && (
                 <div role="alert" className="rounded-mx-2xl border border-status-error/20 bg-status-error-surface px-mx-md py-mx-sm text-sm font-bold text-status-error">
