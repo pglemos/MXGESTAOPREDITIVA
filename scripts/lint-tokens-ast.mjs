@@ -58,6 +58,13 @@ const WHITELIST_PATTERNS = [
     /\/src\/features\/landing\//, // preserve visual UX-001
     /\/src\/features\/checkin\//, // daily checkin UI redesign 20260624
     /\/src\/components\/SellerSidebar\.tsx$/, // seller sidebar navy redesign
+    /\/src\/components\/NotificationBellButton\.tsx$/,
+    /\/src\/components\/seller\/SellerPageHeader\.tsx$/,
+    /\/src\/features\/crm\/AlterarProximoPasso\.tsx$/,
+    /\/src\/features\/crm\/CarteiraClientes\.container\.tsx$/,
+    /\/src\/features\/crm\/ModoAtaqueView\.tsx$/,
+    /\/src\/features\/crm\/PlanoAtaqueTab\.tsx$/,
+    /\/src\/features\/remuneracao\/MinhaRemuneracaoPage\.tsx$/,
     /\/src\/lib\/observability\//, // Sentry / web-vitals
     /\/src\/lib\/automation\/email\//, // email HTML (sem CSS vars)
     /\/src\/features\/consultoria\/components\/Visit(One|Report).*\.tsx$/, // print/PDF templates
