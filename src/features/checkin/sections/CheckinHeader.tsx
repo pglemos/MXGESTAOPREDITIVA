@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AlertTriangle, CalendarDays, CheckCircle2, History, X, CalendarClock } from 'lucide-react'
+import { AlertTriangle, CalendarDays, CheckCircle2, History, X, CalendarClock, CheckSquare } from 'lucide-react'
 import { Button } from '@/components/atoms/Button'
 import { supabase } from '@/lib/supabase'
 import { useCheckinAuditor } from '@/hooks/useCheckinAuditor'
@@ -10,6 +10,7 @@ import { isRegularizacaoBloqueada } from '../lib/regularizacao-lock'
 import { RegularizarFechamentoDrawer } from './RegularizarFechamentoDrawer'
 import { NotificationBellButton } from '@/components/NotificationBellButton'
 import type { PreviousClosingCard } from '../lib/active-closing-context'
+import { SellerPageHeader } from '@/components/seller/SellerPageHeader'
 
 interface PillarProgress {
   key: string
@@ -356,37 +357,37 @@ const stepItems = [
 const activeStepLabel = stepItems.find((item) => item.step === activeStep)?.label ?? 'Internet'
 
 return (
-<header className="relative z-40 -mx-mx-sm shrink-0 space-y-3 border-b border-border-default/60 bg-surface-alt px-mx-sm pb-3 pt-2 shadow-[0_10px_24px_rgba(15,23,42,0.08)] sm:-mx-mx-md sm:px-mx-md md:sticky md:top-0 md:pt-3 2xl:-mx-mx-lg 2xl:px-mx-lg">
-      {/* Top Header Row */}
-<div className="hidden flex-wrap items-center justify-between gap-2 md:flex md:gap-4">
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:gap-5">
-          <h1 className="min-w-0 truncate text-[20px] font-black uppercase tracking-tight text-[#0F172A] sm:text-[22px]">
-            Fechamento
-          </h1>
-
-          <div className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-lg border border-[#E5E7EB] bg-slate-50 px-3 text-[13px] sm:h-9">
-            <CalendarDays size={14} className="text-[#005BFF]" />
-            <span className="truncate font-semibold text-[#0F172A]">{dateStr}</span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              setActiveView('list')
-              setHistoryOpen(true)
-            }}
-            className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#E5E7EB] bg-white px-4 text-[13px] font-semibold text-[#64748B] shadow-sm transition-all hover:border-[#005BFF] hover:text-[#005BFF] sm:h-10 sm:px-5"
-          >
-            <History size={14} />
-            Histórico de Fechamentos
-          </button>
- <div className="hidden sm:block">
-   <NotificationBellButton variant="light" />
- </div>
-        </div>
-</div>
+<header className="relative z-40 shrink-0 space-y-4 md:sticky md:top-0 md:pt-3 border-none bg-transparent shadow-none pb-1 w-full">
+      {/* Top Header Row (Desktop only, centered rounded card matching meu-funil) */}
+      <div className="hidden md:block w-full">
+        <SellerPageHeader
+          icon={CheckSquare}
+          title={
+            <div className="flex items-center gap-2 sm:gap-5">
+              <span className="truncate">Fechamento</span>
+              <div className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 text-[13px] sm:h-9">
+                <CalendarDays size={14} className="text-[#005BFF]" />
+                <span className="truncate font-semibold text-slate-900">{dateStr}</span>
+              </div>
+            </div>
+          }
+          actions={
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveView('list')
+                  setHistoryOpen(true)
+                }}
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 text-[13px] font-semibold text-slate-500 shadow-sm transition-all hover:border-[#005BFF] hover:text-[#005BFF] sm:h-10 sm:px-5"
+              >
+                <History size={14} />
+                Histórico de Fechamentos
+              </button>
+            </div>
+          }
+        />
+      </div>
 
 {previousCard && (
 <section className={`rounded-[14px] border bg-white px-3 py-2 shadow-[0_8px_22px_rgba(15,23,42,0.05)] ${
