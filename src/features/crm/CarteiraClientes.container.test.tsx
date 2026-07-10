@@ -154,9 +154,23 @@ describe('CarteiraClientes', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Feito' }))
 
     await waitFor(() => {
-      expect(registrarStatusCadencia).toHaveBeenCalledWith({ clienteId: 'cliente-1', status: 'feito' })
+      expect(registrarStatusCadencia).toHaveBeenCalledWith({ clienteId: 'cliente-1', status: 'feito', canalContato: null })
     })
     expect(toastSuccess).toHaveBeenCalledWith('Cadência atualizada.', { duration: 3000 })
+  })
+
+  it('executar proximo passo pede canal e registra o canal escolhido (planilha #9)', async () => {
+    render(<CarteiraClientes />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Ver cliente/i }))
+    fireEvent.click(screen.getAllByRole('button', { name: /Executar próximo passo/i }).at(-1)!)
+
+    expect(screen.getByText('Por qual canal você vai executar?')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: /Presencial/i }))
+
+    await waitFor(() => {
+      expect(registrarStatusCadencia).toHaveBeenCalledWith({ clienteId: 'cliente-1', status: 'feito', canalContato: 'presencial' })
+    })
   })
 
   it('registra tentativa nao respondeu como status nao_feito', async () => {
@@ -169,7 +183,7 @@ describe('CarteiraClientes', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Confirmar reagendamento' }))
 
     await waitFor(() => {
-      expect(registrarStatusCadencia).toHaveBeenCalledWith({ clienteId: 'cliente-1', status: 'nao_feito' })
+      expect(registrarStatusCadencia).toHaveBeenCalledWith({ clienteId: 'cliente-1', status: 'nao_feito', canalContato: null })
     })
     expect(toastSuccess).toHaveBeenCalledWith('Tentativa registrada e próxima ação mantida no fluxo.', { duration: 3000 })
   })

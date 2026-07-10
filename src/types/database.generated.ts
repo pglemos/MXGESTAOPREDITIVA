@@ -11490,7 +11490,12 @@ export type Database = {
         Returns: string
       }
       registrar_status_acao_cadencia: {
-        Args: { p_cliente_id: string; p_observacao?: string; p_status: string }
+        Args: {
+          p_canal_contato?: string
+          p_cliente_id: string
+          p_observacao?: string
+          p_status: string
+        }
         Returns: string
       }
       registrar_venda_direta: { Args: { p_payload: Json }; Returns: Json }

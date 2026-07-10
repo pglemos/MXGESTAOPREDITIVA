@@ -46,7 +46,7 @@ const COR_MAP: Record<ResultadoCard['cor'], string> = {
 interface ModoAtaqueViewProps {
   clientes: Cliente[]
   oportunidadePorCliente: Map<string, OportunidadeComCliente>
-  registrarStatusCadencia: (input: { clienteId: string; status: CadenciaResultadoAcao; observacao?: string | null }) => Promise<{ error: string | null }>
+  registrarStatusCadencia: (input: { clienteId: string; status: CadenciaResultadoAcao; observacao?: string | null; canalContato?: 'whatsapp' | 'ligacao' | 'presencial' | null }) => Promise<{ error: string | null }>
   onSair: () => void
   onAbrirFicha: (clienteId: string) => void
   onPlanoAtaque: () => void
@@ -111,12 +111,14 @@ function OportunidadeCard({
   cliente,
   veiculo,
   onWhatsApp,
+  onLigar,
   onFicha,
   onExecutar,
 }: {
   cliente: Cliente
   veiculo: string | null | undefined
   onWhatsApp: () => void
+  onLigar: () => void
   onFicha: () => void
   onExecutar: () => void
 }) {
@@ -158,7 +160,7 @@ function OportunidadeCard({
 
         <div className="grid grid-cols-3 gap-2">
           {tel && (
-            <a href={`tel:+55${tel}`} className="flex flex-col items-center gap-1.5 rounded-2xl border border-slate-200 bg-white py-3 transition-colors hover:bg-slate-50">
+            <a href={`tel:+55${tel}`} onClick={onLigar} className="flex flex-col items-center gap-1.5 rounded-2xl border border-slate-200 bg-white py-3 transition-colors hover:bg-slate-50">
               <Phone className="h-4 w-4 text-slate-500" />
               <span className="text-[11px] font-semibold text-slate-600">Ligar</span>
             </a>
@@ -209,6 +211,9 @@ export function ModoAtaqueView({ clientes, oportunidadePorCliente, registrarStat
   const [salvando, setSalvando] = useState(false)
   const [stats, setStats] = useState<StatsSessao>({ executadas: 0, visitas: 0, propostas: 0, recuperacoes: 0 })
   const [voltouDoWhatsApp, setVoltouDoWhatsApp] = useState(false)
+  // Canal efetivamente usado nesta oportunidade (planilha #9) — vai para o
+  // histórico da cadência ao registrar o resultado.
+  const [canalUsado, setCanalUsado] = useState<'whatsapp' | 'ligacao' | 'presencial' | null>(null)
   const [tom, setTom] = useState<ScriptTom>('consultivo')
   const [executando, setExecutando] = useState(false)
   const tempo = useCronometro()
@@ -228,6 +233,7 @@ export function ModoAtaqueView({ clientes, oportunidadePorCliente, registrarStat
   const avancar = () => {
     setScriptEditado(null)
     setVoltouDoWhatsApp(false)
+    setCanalUsado(null)
     setTom('consultivo')
     setExecutando(false)
     setConcluidos(c => c + 1)
@@ -241,6 +247,7 @@ export function ModoAtaqueView({ clientes, oportunidadePorCliente, registrarStat
 
   const handleAbrirWhatsApp = () => {
     setExecutando(true)
+    setCanalUsado('whatsapp')
     const onVisible = () => {
       if (document.visibilityState === 'visible') {
         setVoltouDoWhatsApp(true)
@@ -253,7 +260,7 @@ export function ModoAtaqueView({ clientes, oportunidadePorCliente, registrarStat
   const handleResultado = async (card: ResultadoCard) => {
     if (!clienteAtual) return
     setSalvando(true)
-    const { error } = await registrarStatusCadencia({ clienteId: clienteAtual.id, status: card.status })
+    const { error } = await registrarStatusCadencia({ clienteId: clienteAtual.id, status: card.status, canalContato: canalUsado })
     setSalvando(false)
     if (error) {
       toast.error(error)
@@ -342,6 +349,7 @@ export function ModoAtaqueView({ clientes, oportunidadePorCliente, registrarStat
             cliente={clienteAtual}
             veiculo={veiculo}
             onWhatsApp={handleAbrirWhatsApp}
+            onLigar={() => setCanalUsado('ligacao')}
             onFicha={() => onAbrirFicha(clienteAtual.id)}
             onExecutar={() => setExecutando(true)}
           />

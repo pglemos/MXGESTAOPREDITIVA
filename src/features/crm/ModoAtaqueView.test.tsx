@@ -122,7 +122,7 @@ describe('ModoAtaqueView', () => {
     fireEvent.click(screen.getByRole('button', { name: /Executado/i }))
 
     await waitFor(() => {
-      expect(registrarStatusCadencia).toHaveBeenCalledWith({ clienteId: cliente.id, status: 'feito' })
+      expect(registrarStatusCadencia).toHaveBeenCalledWith({ clienteId: cliente.id, status: 'feito', canalContato: null })
     })
   })
 })

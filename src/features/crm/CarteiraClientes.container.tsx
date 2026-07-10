@@ -89,6 +89,9 @@ const MODO_ATAQUE_ACEITO_KEY = 'mx_modo_ataque_aceito'
 
 type ProximaInfo = { cliente: Cliente; nome: string; veiculo: string | null; proximoPasso: string; objetivo: string }
 
+/** Canal usado ao executar o próximo passo (planilha #9 — não força mais WhatsApp). */
+type CanalContato = 'whatsapp' | 'ligacao' | 'presencial'
+
 type FiltroPrioridade = 'alta' | 'media' | 'baixa'
 type FiltroSituacao = 'sem_visita' | 'visita_agendada' | 'proposta_enviada' | 'recuperacao' | 'sem_proximo_passo' | 'proximo_passo_vencido'
 type FiltroPeriodo = 'hoje' | 'amanha' | 'proximos_7_dias' | 'vencidos' | 'sem_data'
@@ -519,14 +522,14 @@ export function CarteiraClientes() {
     setProximaModalOpen(true)
   }
 
-  async function handleRegistrarStatusCadencia(clienteId: string, status: CadenciaResultadoAcao) {
+  async function handleRegistrarStatusCadencia(clienteId: string, status: CadenciaResultadoAcao, canalContato?: CanalContato) {
     if (demoMode) {
       toast.success(status === 'nao_feito' ? 'Tentativa registrada e próxima ação enviada para a Central.' : 'Cadência atualizada no modo demonstração.')
       abrirProximaOportunidade(clienteId)
       return
     }
     setCadenciaSaving(true)
-    const { error: statusError } = await registrarStatusCadencia({ clienteId, status })
+    const { error: statusError } = await registrarStatusCadencia({ clienteId, status, canalContato: canalContato ?? null })
     setCadenciaSaving(false)
     if (statusError) {
       toast.error(statusError)
@@ -946,7 +949,7 @@ function FluxoClientePanel({
   progresso: ProgressoCadencia
   vendedor: string
   statusSaving: boolean
-  onStatus: (clienteId: string, status: CadenciaResultadoAcao) => void
+  onStatus: (clienteId: string, status: CadenciaResultadoAcao, canalContato?: CanalContato) => void
   onNaoRespondeu: (cliente: Cliente) => void
   onEditarProximoPasso: (cliente: Cliente) => void
   onSalvarEdicao: (clienteId: string, patch: Partial<ClienteInput>) => Promise<{ error: string | null }>
@@ -982,6 +985,17 @@ function FluxoClientePanel({
     setEditando(false)
   }
   const whatsappHref = cliente.telefone ? `https://wa.me/55${cliente.telefone.replace(/\D/g, '')}` : null
+  const telefoneHref = cliente.telefone ? `tel:+55${cliente.telefone.replace(/\D/g, '')}` : null
+  // Planilha #9: executar o próximo passo pede o canal (WhatsApp/ligação/presencial)
+  // em vez de forçar WhatsApp. O canal escolhido é registrado no histórico da cadência.
+  const [escolhendoCanal, setEscolhendoCanal] = useState(false)
+
+  function executarComCanal(canal: CanalContato) {
+    if (canal === 'whatsapp' && whatsappHref) window.open(`${whatsappHref}?text=${encodeURIComponent(script)}`, '_blank', 'noopener,noreferrer')
+    if (canal === 'ligacao' && telefoneHref) window.open(telefoneHref, '_self')
+    setEscolhendoCanal(false)
+    onStatus(cliente.id, 'feito', canal)
+  }
   const tentativaAtual = Math.max(1, Math.min(3, Math.ceil(progresso.cadencia / 34) || 1))
   const hojeFicha = toDateOnlyBR()
   const [openKnow, setOpenKnow] = useState(false)
@@ -1084,13 +1098,30 @@ function FluxoClientePanel({
                     )}
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <Button className="flex-1 rounded-xl bg-status-info text-sm text-white hover:opacity-90" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'feito')}>
+                    <Button className="flex-1 rounded-xl bg-status-info text-sm text-white hover:opacity-90" disabled={statusSaving} onClick={() => setEscolhendoCanal(true)}>
                       <Zap size={14} /> Executar
                     </Button>
                     <Button variant="outline" className="rounded-xl border-slate-200 text-sm text-slate-600" onClick={() => onEditarProximoPasso(cliente)}>
                       <Edit2 size={13} /> Alterar próximo passo
                     </Button>
                   </div>
+                  {escolhendoCanal && (
+                    <div className="mt-3 rounded-xl border border-blue-200 bg-white p-3" role="group" aria-label="Escolher canal de contato">
+                      <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">Por qual canal você vai executar?</p>
+                      <div className="grid grid-cols-3 gap-2">
+                        <button type="button" disabled={statusSaving || !whatsappHref} onClick={() => executarComCanal('whatsapp')} className="flex flex-col items-center gap-1 rounded-xl border border-green-200 bg-green-50 py-2.5 text-[11px] font-semibold text-green-700 transition-colors hover:bg-green-100 disabled:opacity-40">
+                          <MessageCircle size={16} /> WhatsApp
+                        </button>
+                        <button type="button" disabled={statusSaving || !telefoneHref} onClick={() => executarComCanal('ligacao')} className="flex flex-col items-center gap-1 rounded-xl border border-blue-200 bg-blue-50 py-2.5 text-[11px] font-semibold text-blue-700 transition-colors hover:bg-blue-100 disabled:opacity-40">
+                          <Phone size={16} /> Ligação
+                        </button>
+                        <button type="button" disabled={statusSaving} onClick={() => executarComCanal('presencial')} className="flex flex-col items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 py-2.5 text-[11px] font-semibold text-slate-700 transition-colors hover:bg-slate-100">
+                          <Users size={16} /> Presencial
+                        </button>
+                      </div>
+                      <button type="button" onClick={() => setEscolhendoCanal(false)} className="mt-2 w-full text-center text-[11px] font-semibold text-slate-400 hover:text-slate-600">Cancelar</button>
+                    </div>
+                  )}
                 </section>
 
                 {pendencias.length > 0 ? (
@@ -1157,7 +1188,7 @@ function FluxoClientePanel({
             <Edit2 size={14} /> {editando ? 'Cancelar edição' : 'Editar'}
           </Button>
           {!editando && (
-            <Button className="flex-1 rounded-xl bg-status-info text-sm text-white hover:opacity-90" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'feito')}>
+            <Button className="flex-1 rounded-xl bg-status-info text-sm text-white hover:opacity-90" disabled={statusSaving} onClick={() => setEscolhendoCanal(true)}>
               <Zap size={14} /> Executar próximo passo
             </Button>
           )}

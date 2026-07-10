@@ -158,12 +158,15 @@ export function useClientes() {
     clienteId: string
     status: CadenciaResultadoAcao
     observacao?: string | null
+    /** Canal usado na execução (planilha #9): whatsapp, ligacao ou presencial. */
+    canalContato?: 'whatsapp' | 'ligacao' | 'presencial' | null
   }): Promise<{ error: string | null }> => {
     if (!supabaseUser) return { error: 'Sessão inválida.' }
     const { error: rpcError } = await supabase.rpc('registrar_status_acao_cadencia', {
       p_cliente_id: input.clienteId,
       p_status: input.status,
       p_observacao: input.observacao?.trim() || null,
+      p_canal_contato: input.canalContato ?? null,
     })
     if (rpcError) return { error: rpcError.message }
     await fetchClientes()
