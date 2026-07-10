@@ -177,13 +177,8 @@ export function RegularizarFechamentoDrawer({
   }
 
   return (
-    <>
-      {/* Overlay */}
-      <div className="fixed inset-0 z-[140] bg-black/50" onClick={onClose} />
-
-      {/* Drawer */}
-      <div className="fixed inset-0 z-[145] flex items-stretch justify-end pointer-events-none">
- <div className="pointer-events-auto flex h-full w-full flex-col overflow-hidden bg-[#F8FAFC] shadow-2xl sm:w-[760px] lg:w-[840px] xl:w-[920px] sm:rounded-l-2xl">
+    <div className="fixed inset-0 z-[140] grid place-items-center bg-black/40 p-4 backdrop-blur-[2px]" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
+      <div className="flex w-full max-w-4xl max-h-[90vh] flex-col overflow-hidden rounded-2xl bg-[#F8FAFC] shadow-2xl">
           {/* Header */}
           <div className="flex flex-shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-5 py-4">
             <CalendarDays className="h-5 w-5 shrink-0 text-[#005BFF]" />
@@ -379,9 +374,8 @@ export function RegularizarFechamentoDrawer({
               <Send className="h-4 w-4" /> {saving ? 'Enviando...' : 'Enviar Regularização'}
             </button>
           </div>
-        </div>
       </div>
-    </>
+    </div>
   )
 }
 
