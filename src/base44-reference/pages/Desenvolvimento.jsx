@@ -40,8 +40,8 @@ tab === t.key
 )} />
 
 <div className="pt-4">
-        {tab === "feedback" && <FeedbackPage />}
-        {tab === "pdi" && <PDIPage />}
+        {tab === "feedback" && <FeedbackPage hideHeader />}
+        {tab === "pdi" && <PDIPage hideHeader />}
       </div>
     </div>
   );

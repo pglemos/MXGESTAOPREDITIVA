@@ -8,7 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { MessageSquare, ThumbsUp, TrendingUp, Clock, CheckCircle2 } from "lucide-react";
 import moment from "moment";
 
-export default function FeedbackPage() {
+export default function FeedbackPage({ hideHeader = false }) {
   const { toast } = useToast();
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +39,7 @@ export default function FeedbackPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader title="Feedback" subtitle="Comunicação entre líder e liderado" />
+      {!hideHeader && <PageHeader title="Feedback" subtitle="Comunicação entre líder e liderado" />}
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

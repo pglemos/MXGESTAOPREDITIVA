@@ -37,7 +37,7 @@ const behavCompetencies = [
   { key: "behav_resiliencia", label: "Resiliência" },
 ];
 
-export default function PDIPage() {
+export default function PDIPage({ hideHeader = false }) {
   const { toast } = useToast();
   const [pdi, setPdi] = useState(null);
   const [actions, setActions] = useState([]);
@@ -117,7 +117,7 @@ export default function PDIPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader title="PDI" subtitle="Plano de Desenvolvimento Individual" />
+      {!hideHeader && <PageHeader title="PDI" subtitle="Plano de Desenvolvimento Individual" />}
 
       {/* Goals */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
