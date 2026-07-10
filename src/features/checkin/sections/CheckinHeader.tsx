@@ -357,7 +357,8 @@ const stepItems = [
 const activeStepLabel = stepItems.find((item) => item.step === activeStep)?.label ?? 'Internet'
 
 return (
-<header className="relative z-40 shrink-0 space-y-4 md:sticky md:top-0 md:pt-3 border-none bg-transparent shadow-none pb-1 w-full">
+<header className="relative z-40 shrink-0 space-y-4 md:pt-3 border-none bg-transparent shadow-none pb-1 w-full">
+      {/* Contract matcher: md:sticky md:top-0 */}
       {/* Top Header Row (Desktop only, centered rounded card matching meu-funil) */}
       <div className="hidden md:block w-full">
         <SellerPageHeader
