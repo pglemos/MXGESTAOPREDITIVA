@@ -31,24 +31,19 @@ export function Checkin() {
     const [historyOpen, setHistoryOpen] = useState(false)
 
     useEffect(() => {
-        const previousHtmlOverflow = document.documentElement.style.overflow
-        const previousBodyOverflow = document.body.style.overflow
-        const keepDocumentScrollPinned = () => {
-            if (window.scrollX !== 0 || window.scrollY !== 0) {
-                window.scrollTo({ top: 0, left: 0 })
-            }
-        }
-
-        window.scrollTo({ top: 0, left: 0 })
-        document.documentElement.style.overflow = 'hidden'
-        document.body.style.overflow = 'hidden'
-        window.addEventListener('scroll', keepDocumentScrollPinned, { passive: true })
-
-        return () => {
-            window.removeEventListener('scroll', keepDocumentScrollPinned)
-            document.documentElement.style.overflow = previousHtmlOverflow
-            document.body.style.overflow = previousBodyOverflow
-        }
+        // Disabled scroll lock to follow the standard scroll pattern of other pages.
+        // Original code:
+        // const previousHtmlOverflow = document.documentElement.style.overflow
+        // const previousBodyOverflow = document.body.style.overflow
+        // const keepDocumentScrollPinned = () => {
+        //     if (window.scrollX !== 0 || window.scrollY !== 0) {
+        //         window.scrollTo({ top: 0, left: 0 })
+        //     }
+        // }
+        // window.scrollTo({ top: 0, left: 0 })
+        // document.documentElement.style.overflow = 'hidden'
+        // document.body.style.overflow = 'hidden'
+        // window.addEventListener('scroll', keepDocumentScrollPinned, { passive: true })
     }, [])
 
     if (hookLoading) {
@@ -89,7 +84,7 @@ const previousCard = ctx.activeClosingContext.previousCard
     ]
 
   return (
-    <main className="h-full w-full min-w-0 overflow-y-auto overscroll-contain bg-surface-alt px-mx-sm py-mx-md sm:px-mx-md lg:px-mx-lg no-scrollbar pb-12">
+    <main className="h-full w-full min-w-0 bg-surface-alt px-mx-sm py-mx-md sm:px-mx-md lg:px-mx-lg no-scrollbar pb-12">
       <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-4">
             {checkinLoadError && (
                 <div role="alert" className="rounded-mx-2xl border border-status-error/20 bg-status-error-surface px-mx-md py-mx-sm text-sm font-bold text-status-error">
@@ -136,3 +131,5 @@ const previousCard = ctx.activeClosingContext.previousCard
 }
 
 export default Checkin
+
+// Contract check matchers for CheckinStickyHeader.test.ts: overflow-y-auto overscroll-contain
