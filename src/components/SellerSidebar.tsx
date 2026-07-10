@@ -247,7 +247,20 @@ const mobileNavItems: SellerLayoutNavItem[] = [
   { label: 'Perfil', path: profilePath, icon: User, activePaths: [profilePath, '/meu-perfil', '/meu-perfil-vendedor', '/vendedor/perfil'] },
 ]
 
-const mobileTitle = isNavItemActive(mobileNavItems[1], location) ? 'Fechamento Diário' : 'MX Performance'
+const getMobileTitle = (pathname: string) => {
+  if (pathname === '/home' || pathname === '/meu-dia') return 'Início'
+  if (pathname.includes('terminal-mx') || pathname.includes('fechamento') || pathname.includes('lancamento')) return 'Fechamento Diário'
+  if (pathname.includes('central-execucao') || pathname.includes('rotina')) return 'Rotina do Dia'
+  if (pathname.includes('carteira-clientes') || pathname.includes('mentor-comercial')) return 'Mentor Comercial'
+  if (pathname.includes('meu-funil') || pathname.includes('funil') || pathname.includes('meta')) return 'Minha Meta'
+  if (pathname.includes('ranking') || pathname.includes('classificacao')) return 'Ranking'
+  if (pathname.includes('treinamentos') || pathname.includes('universidade')) return 'Universidade MX'
+  if (pathname.includes('desenvolvimento')) return 'Desenvolvimento'
+  if (pathname.includes('perfil')) return 'Meu Perfil'
+  return 'MX Performance'
+}
+
+const mobileTitle = getMobileTitle(location.pathname)
 
 const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
     const active = isNavItemActive(item, location)
