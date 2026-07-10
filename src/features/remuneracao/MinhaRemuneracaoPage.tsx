@@ -51,8 +51,8 @@ export default function MinhaRemuneracaoPage() {
   const userName = data.profile?.name?.split(' ')[0] || 'Vendedor'
 
   return (
-    <div className="h-full w-full overflow-y-auto p-mx-lg no-scrollbar" style={{ background: 'var(--color-seller-screen-bg)' }}>
-      <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-4 pb-20">
+    <main className="h-full w-full min-w-0 overflow-y-auto bg-[#030B14] text-text-primary no-scrollbar px-mx-sm py-mx-md sm:px-mx-md lg:px-mx-lg">
+      <div className="mx-auto flex w-full max-w-[1500px] min-w-0 flex-col gap-4 pb-20">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4">
           <div>
             <h1 className="text-2xl lg:text-3xl font-bold text-white">{saudacaoPorHora()}, {userName}! 🚀</h1>
@@ -112,6 +112,6 @@ export default function MinhaRemuneracaoPage() {
       {data.detalhesVisiveis && (
         <CalculationDetailsDrawer open={showCalcDrawer} onClose={() => setShowCalcDrawer(false)} calculo={data.calculo} />
       )}
-    </div>
+    </main>
   )
 }
