@@ -30,7 +30,7 @@ export default function MinhaRemuneracaoPage() {
 
   if (data.isLoading) {
     return (
-      <div className="-m-6 lg:-m-8 min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: 'var(--color-seller-screen-bg)' }}>
+      <div className="h-full w-full flex flex-col items-center justify-center gap-4" style={{ background: 'var(--color-seller-screen-bg)' }}>
         <div className="w-10 h-10 border-4 border-emerald-900 border-t-emerald-400 rounded-full animate-spin" />
         <p className="text-slate-400 font-medium">Calculando sua comissão do mês...</p>
       </div>
@@ -39,7 +39,7 @@ export default function MinhaRemuneracaoPage() {
 
   if (data.error) {
     return (
-      <div className="-m-6 lg:-m-8 min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: 'var(--color-seller-screen-bg)' }}>
+      <div className="h-full w-full flex flex-col items-center justify-center gap-4" style={{ background: 'var(--color-seller-screen-bg)' }}>
         <p className="text-slate-400 font-medium">{data.error}</p>
         <button type="button" className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-semibold">
           <RefreshCw className="w-4 h-4" /> Tentar novamente
@@ -51,8 +51,8 @@ export default function MinhaRemuneracaoPage() {
   const userName = data.profile?.name?.split(' ')[0] || 'Vendedor'
 
   return (
-    <div className="pb-10 -m-6 lg:-m-8 min-h-screen" style={{ background: 'var(--color-seller-screen-bg)' }}>
-      <div className="max-w-[1500px] mx-auto px-mx-sm py-mx-md sm:px-mx-md lg:px-mx-lg space-y-4">
+    <div className="h-full w-full overflow-y-auto p-mx-lg no-scrollbar" style={{ background: 'var(--color-seller-screen-bg)' }}>
+      <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-4 pb-20">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4">
           <div>
             <h1 className="text-2xl lg:text-3xl font-bold text-white">{saudacaoPorHora()}, {userName}! 🚀</h1>
