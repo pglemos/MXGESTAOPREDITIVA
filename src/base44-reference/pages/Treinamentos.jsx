@@ -271,28 +271,42 @@ export default function Treinamentos() {
     return match ? `https://www.youtube-nocookie.com/embed/${match[1]}` : null;
   };
 
-  const TrainingCard = ({ training, large = false }) => (
-    <button type="button" onClick={() => void openTraining(training)} className={`bg-white rounded-2xl text-left shadow-sm border border-slate-100 overflow-hidden group hover:shadow-md focus:outline-none focus:ring-2 focus:ring-mx-blue transition-all duration-300 ${large ? "col-span-1" : ""}`}>
-      <div className={`${large ? "h-40" : "h-28"} bg-gradient-to-br from-mx-navy to-mx-blue relative overflow-hidden`}>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Play className="w-10 h-10 text-white/30 group-hover:text-white/60 transition-colors" />
-        </div>
-        {completedIds.has(training.id) && (
-          <div className="absolute top-3 right-3">
-            <CheckCircle2 className="w-6 h-6 text-mx-green" />
+  const getYoutubeThumbnail = (url) => {
+    if (!url) return null;
+    const match = url.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?v=|embed\/))([\w-]{6,})/);
+    return match ? `https://img.youtube.com/vi/${match[1]}/mqdefault.jpg` : null;
+  };
+
+  const TrainingCard = ({ training, large = false }) => {
+    const thumbUrl = getYoutubeThumbnail(training.video_url) || training.thumbnail_url;
+    return (
+      <button type="button" onClick={() => void openTraining(training)} className={`bg-white rounded-2xl text-left shadow-sm border border-slate-100 overflow-hidden group hover:shadow-md focus:outline-none focus:ring-2 focus:ring-mx-blue transition-all duration-300 ${large ? "col-span-1" : ""}`}>
+        <div className={`${large ? "h-40" : "h-28"} bg-slate-900 relative overflow-hidden`}>
+          {thumbUrl ? (
+            <img src={thumbUrl} alt={training.title} className="absolute inset-0 h-full w-full object-cover opacity-75 group-hover:scale-105 group-hover:opacity-90 transition-all duration-300" />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-mx-navy to-mx-blue" />
+          )}
+          <div className="absolute inset-0 flex items-center justify-center bg-black/25">
+            <Play className="w-10 h-10 text-white/80 group-hover:text-white group-hover:scale-110 transition-all duration-300" />
           </div>
-        )}
-      </div>
-      <div className="p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${levelColors[training.level] || "bg-slate-100 text-slate-500"}`}>{training.level}</span>
-          <span className="text-[10px] text-slate-400">{training.duration_minutes || 30} min</span>
+          {completedIds.has(training.id) && (
+            <div className="absolute top-3 right-3 z-10">
+              <CheckCircle2 className="w-6 h-6 text-mx-green fill-white" />
+            </div>
+          )}
         </div>
-        <h4 className="text-sm font-semibold text-mx-navy line-clamp-2">{training.title}</h4>
-        <p className="text-xs text-slate-400 mt-1">{training.category}</p>
-      </div>
-    </button>
-  );
+        <div className="p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${levelColors[training.level] || "bg-slate-100 text-slate-500"}`}>{training.level}</span>
+            <span className="text-[10px] text-slate-400">{training.duration_minutes || 30} min</span>
+          </div>
+          <h4 className="text-sm font-semibold text-mx-navy line-clamp-2">{training.title}</h4>
+          <p className="text-xs text-slate-400 mt-1">{training.category}</p>
+        </div>
+      </button>
+    );
+  };
 
   return (
     <div className="space-y-8">
