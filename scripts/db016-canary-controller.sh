@@ -19,6 +19,19 @@ mkdir -p .canary-state
 : "${VERCEL_PROJECT_ID:?defina VERCEL_PROJECT_ID}"
 : "${VERCEL_TOKEN:?defina VERCEL_TOKEN}"
 : "${SUPABASE_PROJECT_REF:?defina SUPABASE_PROJECT_REF}"
+: "${SUPABASE_DB_PASSWORD:?defina SUPABASE_DB_PASSWORD}"
+
+MANUAL_SQL_DIR="supabase/migrations/_archived"
+
+run_manual_sql() {
+    local file="$1"
+    PGPASSWORD="$SUPABASE_DB_PASSWORD" psql \
+        --host="db.${SUPABASE_PROJECT_REF}.supabase.co" \
+        --username=postgres \
+        --dbname=postgres \
+        --set=ON_ERROR_STOP=1 \
+        --file="${MANUAL_SQL_DIR}/${file}"
+}
 
 ACTION="${1:-status}"
 
@@ -65,11 +78,11 @@ case "$ACTION" in
             echo "❌ Bloqueio: stage atual ≠ 100%. Subir flag a 100% antes do REVOKE."
             exit 1
         fi
-        echo "▶ Aplicando migration REVOKE em produção via supabase CLI"
+        echo "▶ Aplicando SQL manual REVOKE em produção"
         echo "⚠️  IRREVERSÍVEL sem migration rollback. Confirmar (y/N):"
         read -r CONFIRM
         [ "$CONFIRM" = "y" ] || exit 1
-        supabase db push --linked --db-url "postgresql://postgres:${SUPABASE_DB_PASSWORD}@db.${SUPABASE_PROJECT_REF}.supabase.co:5432/postgres"
+        run_manual_sql "20260521130000_db016_revoke_lancamentos_diarios.sql"
         echo "REVOKED" > "$STAGE_FILE"
         echo "✓ REVOKE aplicado. Monitorar Sentry/smoke 24h."
         ;;
@@ -78,8 +91,8 @@ case "$ACTION" in
         echo "▶ ROLLBACK — restaurando GRANTs + flag 0%"
         set_vercel_flag "0"
         if [ -f "$STAGE_FILE" ] && [ "$(cat $STAGE_FILE)" = "REVOKED" ]; then
-            echo "⚠️  Aplicando migration rollback (REVOKE foi feito)"
-            supabase db push --linked --include 20260521131000_db016_revoke_rollback.sql
+            echo "⚠️  Aplicando SQL manual de rollback (REVOKE foi feito)"
+            run_manual_sql "20260521131000_db016_revoke_rollback.sql"
         fi
         echo "0" > "$STAGE_FILE"
         health_check

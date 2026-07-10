@@ -3,7 +3,7 @@
 **Autor:** @data-engineer (Dara)
 **Sprint:** 1
 **Débito:** DB-013 (Crítico, LGPD)
-**Migration:** `supabase/migrations/20260521120000_drop_migration_backups_pii.sql`
+**SQL manual:** `supabase/migrations/_archived/20260521120000_drop_migration_backups_pii.sql`
 **Status:** PREPARADO — aguarda aprovação DPO antes da execução em produção
 
 ---
@@ -49,7 +49,7 @@ Padrão: **encrypt-then-drop** — export offline criptografado é o rollback. M
 ### Fase 1 — Staging
 1. `git checkout main && git pull`
 2. Linkar staging: `supabase link --project-ref <STAGING_REF>`
-3. Aplicar migration: `supabase db push`
+3. Executar o SQL manual arquivado com `psql --set=ON_ERROR_STOP=1 --file=supabase/migrations/_archived/20260521120000_drop_migration_backups_pii.sql`
 4. Validar auditoria:
    ```sql
    SELECT action, entity, details_json
@@ -68,7 +68,7 @@ Padrão: **encrypt-then-drop** — export offline criptografado é o rollback. M
 ### Fase 2 — Produção
 1. **GATE final:** confirmar DPO approval + snapshot PITR + export offline (todos os 3).
 2. Linkar prod: `supabase link --project-ref <PROD_REF>`
-3. Aplicar: `supabase db push --linked`
+3. Executar o SQL manual arquivado com `psql --set=ON_ERROR_STOP=1 --file=supabase/migrations/_archived/20260521120000_drop_migration_backups_pii.sql`
 4. Validar auditoria em prod (mesma query da fase 1, item 4)
 5. Confirmar DROP em prod (mesma query da fase 1, item 5)
 6. Comunicar DPO **post-execution** com:
@@ -125,7 +125,7 @@ Padrão: **encrypt-then-drop** — export offline criptografado é o rollback. M
 
 ## Referências
 - Story: `docs/stories/sprint-1/story-1.7-drop-migration-backups-pii.md`
-- Migration: `supabase/migrations/20260521120000_drop_migration_backups_pii.sql`
+- SQL manual: `supabase/migrations/_archived/20260521120000_drop_migration_backups_pii.sql`
 - Template DPO: `docs/runbooks/lgpd-dpo-approval-template.md`
 - Débito: `docs/reviews/db-specialist-review.md` §DB-013
 - LGPD: Art. 5º X (tratamento), Art. 16 (eliminação após cumprimento da finalidade)

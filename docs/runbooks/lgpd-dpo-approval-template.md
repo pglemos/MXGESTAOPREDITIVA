@@ -62,7 +62,7 @@
 6. **Rollback:** PITR Supabase (janela 7 dias) + export offline (RTO ~2h).
 
 Detalhes completos: `docs/runbooks/sprint-1-story-1.7-drop-pii-backups.md`
-Migration técnica: `supabase/migrations/20260521120000_drop_migration_backups_pii.sql`
+SQL manual técnico: `supabase/migrations/_archived/20260521120000_drop_migration_backups_pii.sql`
 
 ---
 

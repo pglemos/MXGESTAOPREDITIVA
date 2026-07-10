@@ -2,7 +2,7 @@
 
 ## Status
 
-Completed
+InProgress
 
 ## Story
 
@@ -108,11 +108,11 @@ Completed
   - [x] Integrar experiência educacional em Desenvolvimento conforme fonte única.
   - [x] Completar perfil profissional e histórico auditável.
   - [x] Cobrir permissões, acessibilidade e responsividade.
-- [x] Fase 6 — Hardening e produção (AC6)
-  - [x] Rodar gates completos e estabilizar TestSprite/CI aplicável.
+- [ ] Fase 6 — Hardening e produção (AC6)
+  - [ ] Rodar gates completos e estabilizar TestSprite/CI aplicável.
   - [x] Aplicar migrations e executar smoke autenticado.
-  - [x] Atualizar checklist, File List, QA Results e evidências.
-  - [x] Remover branches extras, commit/push na `main` e validar deploy/produção.
+  - [ ] Atualizar checklist, File List, QA Results e evidências.
+  - [ ] Remover branches extras, commit/push na `main` e validar deploy/produção.
 
 ## Dev Notes
 
@@ -144,6 +144,7 @@ Completed
 | Date | Version | Description | Author |
 |---|---:|---|---|
 | 2026-07-10 | 0.1 | Story criada a partir da auditoria consolidada e do handoff do Claude Code | River (SM) |
+| 2026-07-10 | 0.2 | Story reaberta após validação encontrar CI externo vermelho e rastreabilidade incompleta | Dex (Dev) |
 
 ## Dev Agent Record
 
@@ -155,14 +156,91 @@ Codex GPT-5
 
 - Auditoria fonte: `/Users/pedroguilherme/Downloads/auditoria_consolidada_modulo_vendedor_6_contextos_github_2026-07-10.md`
 - Plano herdado: `~/.claude/plans/wondrous-nibbling-nova.md`
+- Gates locais: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run validate:structure`, `npm run validate:agents`, `npm run sync:ide:check`, `git diff --check`.
+- Banco: `supabase migration list --linked` e `supabase db push --linked --dry-run` no projeto `fbhcmzzgwjdgkctlfvbo`.
+- Produção: smoke autenticado em `https://mxperformance.vercel.app` para vendedor, gerente e dono; desktop e mobile nas rotas sensíveis.
+- CI externo: check `Supabase Preview` reproduzido pelo script manual fora da cadeia; TestSprite reproduzido com 35 casos legados gerados.
 
 ### Completion Notes List
 
-- Em andamento.
+- Fases 1–5 implementadas e migrations `20260710120000` a `20260710170000` confirmadas no banco remoto.
+- Payload declarado, zero declarado, D-1/D0, imutabilidade, regularização canônica, venda transacional, competência, performance oficial, Universidade e perfil profissional cobertos por código e contratos.
+- Suíte local concluída com `712 pass, 0 fail`; lint sem erros, typecheck, build, estrutura, agentes, sync IDE e diff verdes.
+- Smoke de produção passou em 23 rotas desktop e 4 rotas mobile, sem overflow horizontal no Terminal MX; RPCs e tabelas novas foram exercitadas sem mutação funcional.
+- Três SQLs manuais/rollback de maio foram movidos para `_archived`, removendo-os da cadeia automática; dry-run Supabase passou como `Remote database is up to date`.
+- TestSprite legado (rotas/tabelas antigas e credenciais-placeholder) foi removido; Playwright nativo permanece como suíte canônica.
+- CodeRabbit CLI instalado, porém sem autenticação; a story já declara a integração desabilitada. Nenhum resultado manual foi atribuído ao CodeRabbit.
+- Entrega remota/CI final permanece sob autoridade AIOX DevOps.
 
 ### File List
 
+- `.testsprite/` (removido)
+- `testsprite_tests/` (artefatos gerados removidos)
+- `docs/audit/admin-master-full-e2e-20260710055611.md`
+- `docs/audit/admin-master-full-e2e-20260710055707.md`
+- `docs/runbooks/lgpd-dpo-approval-template.md`
+- `docs/runbooks/sprint-1-story-1.3-1.4-db016-canary.md`
+- `docs/runbooks/sprint-1-story-1.7-drop-pii-backups.md`
+- `docs/stories/sprint-1/story-1.3-db016-C-revoke-canary-1pct.md`
+- `docs/stories/sprint-1/story-1.7-drop-migration-backups-pii.md`
 - `docs/stories/story-MX-AUDIT-20260710-remediacao-integral-vendedor.md`
+- `scripts/db016-canary-controller.sh`
+- `scripts/lint-tokens-ast.mjs`
+- `src/api/base44Client.js`
+- `src/base44-reference/api/base44Client.js`
+- `src/base44-reference/pages/Desenvolvimento.jsx`
+- `src/base44-reference/pages/FeedbackPage.jsx`
+- `src/base44-reference/pages/MeuPerfil.jsx`
+- `src/base44-reference/pages/PDIPage.jsx`
+- `src/base44-reference/pages/Treinamentos.jsx`
+- `src/features/checkin/Checkin.container.tsx`
+- `src/features/checkin/CheckinStickyHeader.test.ts`
+- `src/features/checkin/hooks/useCheckinPage.ts`
+- `src/features/checkin/hooks/useCrmDerivedTotals.ts`
+- `src/features/checkin/lib/active-closing-context.ts`
+- `src/features/checkin/lib/clientes-list-from-crm.test.ts`
+- `src/features/checkin/lib/clientes-list-from-crm.ts`
+- `src/features/checkin/lib/crm-derived-totals.ts`
+- `src/features/checkin/sections/CheckinCrmSection.tsx`
+- `src/features/checkin/sections/CheckinForm.tsx`
+- `src/features/checkin/sections/CheckinHeader.tsx`
+- `src/features/checkin/sections/NovoRegistroModal.tsx`
+- `src/features/checkin/sections/RegularizarFechamentoDrawer.tsx`
+- `src/features/crm/CentralExecucao.container.tsx`
+- `src/features/crm/RelatoriosVendedor.container.tsx`
+- `src/features/crm/hooks/useClientes.ts`
+- `src/features/crm/hooks/useOportunidades.ts`
+- `src/features/ranking/views/StoreRankingView.test.tsx`
+- `src/features/ranking/views/StoreRankingView.tsx`
+- `src/features/remuneracao/MinhaRemuneracaoPage.tsx`
+- `src/features/vendedor-home/hooks/useVendedorHomePage.ts`
+- `src/hooks/checkins/types.test.ts`
+- `src/hooks/checkins/types.ts`
+- `src/hooks/checkins/useCheckinsSubmit.ts`
+- `src/hooks/useCheckinAuditor.ts`
+- `src/hooks/useOfficialSellerPerformance.ts`
+- `src/hooks/useRanking.ts`
+- `src/lib/checkin-regularization-migration.test.ts`
+- `src/lib/legacy-testsprite-artifacts.test.ts`
+- `src/lib/official-seller-performance-migration.test.ts`
+- `src/lib/regularization-notification-target-migration.test.ts`
+- `src/lib/schemas/crm.schema.ts`
+- `src/lib/submit-checkin-operational-date-migration.test.ts`
+- `src/lib/supabase-migration-directory.test.ts`
+- `src/lib/transactional-direct-sale-migration.test.ts`
+- `src/lib/university-profile-migration.test.ts`
+- `src/pages/FunilVendedor.tsx`
+- `src/types/database.generated.ts`
+- `src/types/database.ts`
+- `supabase/migrations/_archived/20260521120000_drop_migration_backups_pii.sql`
+- `supabase/migrations/_archived/20260521130000_db016_revoke_lancamentos_diarios.sql`
+- `supabase/migrations/_archived/20260521131000_db016_revoke_rollback.sql`
+- `supabase/migrations/20260710120000_harden_submit_checkin_operational_date.sql`
+- `supabase/migrations/20260710130000_canonical_checkin_regularization.sql`
+- `supabase/migrations/20260710140000_transactional_direct_sale_and_competence.sql`
+- `supabase/migrations/20260710150000_official_seller_performance.sql`
+- `supabase/migrations/20260710160000_university_and_professional_profile.sql`
+- `supabase/migrations/20260710170000_fix_regularization_notification_targets.sql`
 
 ## QA Results
 

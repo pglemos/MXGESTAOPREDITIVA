@@ -15,8 +15,8 @@
 - [ ] Sentry FE + Edge Functions ativos (Story 0.3) — dashboard de error rate disponível
 - [ ] Correlation ID FE→RPC ativo (Story 0.9)
 - [ ] Snapshot Supabase PITR confirmado
-- [ ] Migration `20260521130000_db016_revoke_lancamentos_diarios.sql` em `main`
-- [ ] Migration rollback `20260521131000_db016_revoke_rollback.sql` em `main`
+- [ ] SQL manual `supabase/migrations/_archived/20260521130000_db016_revoke_lancamentos_diarios.sql` em `main`
+- [ ] SQL manual de rollback `supabase/migrations/_archived/20260521131000_db016_revoke_rollback.sql` em `main`
 - [ ] Script `scripts/db016-canary-controller.sh` testado em staging
 - [ ] Janela operacional de 7 dias contínuos sem deploy concorrente
 - [ ] @devops disponível para on-call durante D1-D7
@@ -101,7 +101,7 @@ Se Day 6 verde:
 ./scripts/db016-canary-controller.sh revoke
 ```
 
-Isso aplica migration `20260521130000_db016_revoke_lancamentos_diarios.sql` que:
+Isso aplica o SQL manual arquivado `20260521130000_db016_revoke_lancamentos_diarios.sql` que:
 - REVOKE INSERT/UPDATE/DELETE de `authenticated` em `lancamentos_diarios`
 - Mantém SELECT (policy via `tem_papel_loja`)
 - Mantém GRANT EXECUTE em `submit_checkin` RPC
@@ -152,8 +152,8 @@ Sequência interna:
 
 ## Referências
 
-- `supabase/migrations/20260521130000_db016_revoke_lancamentos_diarios.sql`
-- `supabase/migrations/20260521131000_db016_revoke_rollback.sql`
+- `supabase/migrations/_archived/20260521130000_db016_revoke_lancamentos_diarios.sql`
+- `supabase/migrations/_archived/20260521131000_db016_revoke_rollback.sql`
 - `scripts/db016-canary-controller.sh`
 - `docs/reviews/db016-vector-analysis.md`
 - `docs/reviews/qa-review.md` §4.1

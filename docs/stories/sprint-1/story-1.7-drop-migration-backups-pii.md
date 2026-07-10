@@ -12,7 +12,7 @@
 - 2026-05-21 | @data-engineer (Dara) | Status: Ready → InReview | Migration técnica + runbook + template DPO PRONTOS. **Não aplicado em produção** — aguarda DPO approval externo (template anexo) + export offline encrypted validado + snapshot PITR. Migration usa padrão encrypt-then-drop com gate `eh_administrador_mx()`, auditoria pré/pós-DROP em `logs_auditoria` e idempotência via `IF EXISTS`.
 
 ## File List
-- `supabase/migrations/20260521120000_drop_migration_backups_pii.sql` (criado) — Migration drop com gate admin + auditoria + idempotente
+- `supabase/migrations/_archived/20260521120000_drop_migration_backups_pii.sql` (criado) — SQL manual de drop com gate admin + auditoria + idempotente
 - `docs/runbooks/sprint-1-story-1.7-drop-pii-backups.md` (criado) — Runbook execução staging→prod + rollback PITR
 - `docs/runbooks/lgpd-dpo-approval-template.md` (criado) — Template formal aprovação DPO (LGPD Art. 16)
 **Esforço estimado:** 8h
