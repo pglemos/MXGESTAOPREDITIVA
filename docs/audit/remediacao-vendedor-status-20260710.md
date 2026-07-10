@@ -35,13 +35,15 @@ Commit: `53950404` (push `732b577c..53950404`).
 | UNIV-3 — Maturidade por regra configurável | ✅ Feito. Reaproveitada a função canônica `derivarNivelMaturidadeVendedor` (tempo de mercado + experiência + cargo) que já existia em `src/features/crm/lib/maturidade.ts`, usada em Meu Perfil — não foi preciso criar do zero |
 | UNIV-7 — Migrar página para feature real, retirar shell legado | ✅ Feito **só para Treinamentos/Universidade** (`src/features/vendedor-treinamentos/`). Rota `/treinamentos` do vendedor não usa mais `withLegacyShell` nem `base44-reference`. **`MeuPerfilVendedor` continua no protótipo Base44** — não migrado nesta rodada |
 | UNIV-4 — Motor de recomendação (Funil/Feedback/PDI) | ⬜ Não iniciado |
-| UNIV-5 — Consolidar acesso a dados em serviço único tipado | ⬜ Não iniciado |
+| UNIV-5 — Consolidar acesso a dados em serviço único tipado | ✅ Feito. `universidade-service` centraliza conteúdo, progresso e tarefas; `useVendedorTreinamentos` e `useTrainings` delegam a ele, sem alteração de RLS/schema. |
 | UNIV-6 — Quiz oficial (5–10 questões, nota mínima 70%, tentativas, presença, auditoria) | ⬜ Não iniciado |
 | UNIV-8 — Rota canônica `/universidade-mx` | 🟡 Parcial. Título da página já é "Universidade MX"; a URL continua em `/treinamentos` (redirect de `/universidade-mx` → `/treinamentos` já existia e segue funcionando) |
 
 Verificado ao vivo no ambiente real (login `jose.vendedor@...`): página carrega, 4 stats reais (sem dado fabricado), tarefa marcada como concluída sobrevive a reload de página, zero erros de console/rede.
 
 **Achado não previsto pela auditoria original:** existe um **segundo sistema de treinamentos**, paralelo e desconectado — `universidade_trilhas`/`universidade_aulas`/`universidade_certificacoes` (schema + `src/features/universidade/*`), usado hoje pelas telas de **gerente/dono/consultor** (`GerenteTreinamentos.tsx`, `ConsultorTreinamentos.tsx`, widget em `OwnerExecutiveCockpit.tsx`). O vendedor usa o schema `treinamentos`/`progresso_treinamentos`. São dois sistemas de conteúdo de treinamento diferentes, sem ligação entre si. Isso é uma decisão de arquitetura (qual sistema vira o canônico, como migrar o outro) — não foi resolvido, só documentado aqui para não ser esquecido.
+
+**Decisão de arquitetura (2026-07-10):** `treinamentos`/`progresso_treinamentos` é a fonte canônica de conteúdo e progresso. É o único modelo já integrado com segmentação, publicação, avaliações, recomendações de Funil/Feedback/PDI e trilhas de desenvolvimento. `universidade_*` ficará em compatibilidade enquanto seu catálogo é importado de modo idempotente e rastreável; não haverá remoção nem conversão automática de certificados sem regra auditável. Detalhes e critérios em `docs/adr/ADR-MX-004-universidade-fonte-canonica.md`.
 
 ---
 
@@ -50,11 +52,11 @@ Verificado ao vivo no ambiente real (login `jose.vendedor@...`): página carrega
 ### 2.1 Sprint de Universidade e Perfil — o que falta
 
 1. UNIV-4 — Motor de recomendação explicável (lacuna no funil, feedback pendente, competência do PDI, maturidade e cargo).
-2. UNIV-5 — Consolidar list/progresso de treinamentos em um único serviço Supabase tipado (hoje mistura leitura direta com o que sobrou do shim).
+2. ✅ UNIV-5 — Consolidar list/progresso de treinamentos em um único serviço Supabase tipado.
 3. UNIV-6 — Quiz oficial: 5–10 questões, nota mínima 70%, tentativas, presença, auditoria.
 4. Migrar `MeuPerfilVendedor` para fora de `base44-reference` (mesmo padrão aplicado em Treinamentos).
 5. UNIV-8 completo — decidir se a URL migra para `/universidade-mx` como canônica (hoje é o inverso: `/universidade-mx` redireciona para `/treinamentos`).
-6. Decisão de arquitetura sobre os dois sistemas de treinamento paralelos (achado da seção 1.2 acima).
+6. ✅ Decisão de arquitetura sobre os dois sistemas de treinamento paralelos: `treinamentos` é canônico; executar a migração faseada prevista no ADR-MX-004.
 
 ### 2.2 Sprint de CRM e execução — não iniciado
 

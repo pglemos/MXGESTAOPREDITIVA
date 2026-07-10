@@ -7,6 +7,7 @@ import {
     type NivelMaturidadeVendedor,
     type VendedorExperienciaDeclarada,
 } from '@/features/crm/lib/maturidade'
+import { atualizarTarefaTreinamento, categoriaDoTreinamento, concluirTreinamento, listarTarefasTreinamento, listarTreinamentosVendedor, type TarefaTreinamento as TarefaServico } from '@/features/universidade/services/universidade-service'
 
 /**
  * Dados reais da Universidade MX (aulas do vendedor). Substitui:
@@ -18,23 +19,7 @@ import {
  *   experiência declarada, cargo).
  */
 
-const CATEGORY_BY_TYPE: Record<string, string> = {
-    prospeccao: 'Prospecção',
-    atendimento: 'Atendimento',
-    agendamento: 'WhatsApp',
-    apresentacao: 'Atendimento',
-    financiamento: 'Financiamento',
-    carro_de_troca: 'Negociação',
-    fechamento: 'Fechamento',
-    funil: 'Mentalidade',
-    rotina_diaria: 'Mentalidade',
-    crm: 'Carteira',
-    institucional: 'Mentalidade',
-}
-
-export function categoriaDoTreinamento(type: string | null | undefined): string {
-    return CATEGORY_BY_TYPE[(type || '').toLowerCase()] || 'Atendimento'
-}
+export { categoriaDoTreinamento }
 
 export interface Treinamento {
     id: string
@@ -80,15 +65,8 @@ export function useVendedorTreinamentos() {
         if (!supabaseUser?.id) { setLoading(false); return }
         setLoading(true)
 
-        const [treinamentosRes, progressoRes, perfilRes] = await Promise.all([
-            supabase
-                .from('treinamentos')
-                .select('id, title, description, type, curation_notes, target_audience, duration_minutes, video_url, material_url, published_at')
-                .eq('active', true),
-            supabase
-                .from('progresso_treinamentos')
-                .select('id, training_id, status, progress_percent, completed_at')
-                .eq('user_id', supabaseUser.id),
+        const [trainingsResult, perfilRes] = await Promise.all([
+            listarTreinamentosVendedor(supabase, supabaseUser.id),
             supabase
                 .from('vendedor_perfil')
                 .select('tempo_mercado_anos, experiencia_declarada, cargo_atual')
@@ -96,45 +74,9 @@ export function useVendedorTreinamentos() {
                 .maybeSingle(),
         ])
 
-        const trainingRows = (treinamentosRes.data || []) as Array<{
-            id: string
-            title: string
-            description: string | null
-            type: string
-            curation_notes: string | null
-            target_audience: string
-            duration_minutes: number
-            video_url: string
-            material_url: string | null
-            published_at: string | null
-        }>
-
-        const mappedTrainings: Treinamento[] = trainingRows.map(t => ({
-            id: t.id,
-            title: t.title,
-            description: t.description,
-            type: t.type,
-            category: categoriaDoTreinamento(t.type),
-            level: t.curation_notes && t.curation_notes.startsWith('N') ? t.curation_notes : (t.target_audience || 'N1 Iniciante'),
-            duration_minutes: t.duration_minutes || 10,
-            video_url: t.video_url || '',
-            material_url: t.material_url,
-            is_live: t.type === 'live',
-            live_date: t.published_at,
-        }))
+        const mappedTrainings: Treinamento[] = trainingsResult
         setTrainings(mappedTrainings)
-
-        const progressRows = (progressoRes.data || []) as Array<{
-            id: string
-            training_id: string
-            status: string
-            progress_percent: number
-            completed_at: string | null
-        }>
-        setProgress(progressRows.map(p => ({
-            ...p,
-            completed: p.status === 'completed' || p.status === 'watched' || p.status === 'concluido' || Boolean(p.completed_at),
-        })))
+        setProgress(trainingsResult.map(p => ({ id: p.id, training_id: p.id, status: p.completed ? 'concluido' : 'pendente', progress_percent: p.progress_percent, completed_at: p.completed_at, completed: p.completed })))
 
         const perfil = perfilRes.data as {
             tempo_mercado_anos: number | null
@@ -148,27 +90,7 @@ export function useVendedorTreinamentos() {
         }))
 
         if (mappedTrainings.length > 0) {
-            const [tarefasRes, respostasRes] = await Promise.all([
-                supabase
-                    .from('treinamento_tarefas')
-                    .select('id, training_id, descricao, ordem')
-                    .in('training_id', mappedTrainings.map(t => t.id))
-                    .eq('active', true)
-                    .order('ordem'),
-                supabase
-                    .from('treinamento_tarefa_respostas')
-                    .select('id, tarefa_id, concluida')
-                    .eq('seller_user_id', supabaseUser.id),
-            ])
-            const tarefaRows = (tarefasRes.data || []) as Array<{ id: string; training_id: string; descricao: string; ordem: number }>
-            const respostaByTarefa = new Map(
-                ((respostasRes.data || []) as Array<{ id: string; tarefa_id: string; concluida: boolean }>)
-                    .map(r => [r.tarefa_id, r]),
-            )
-            setTarefas(tarefaRows.map(t => {
-                const resposta = respostaByTarefa.get(t.id)
-                return { ...t, concluida: resposta?.concluida ?? false, respostaId: resposta?.id ?? null }
-            }))
+            setTarefas(await listarTarefasTreinamento(supabase, supabaseUser.id, mappedTrainings.map(t => t.id)) as TarefaServico[])
         } else {
             setTarefas([])
         }
@@ -180,38 +102,21 @@ export function useVendedorTreinamentos() {
 
     const toggleTarefa = useCallback(async (tarefa: TarefaTreinamento, concluida: boolean) => {
         if (!supabaseUser?.id) return { error: 'Sessão inválida.' }
-        const { error } = await supabase.from('treinamento_tarefa_respostas').upsert({
-            id: tarefa.respostaId ?? undefined,
-            tarefa_id: tarefa.id,
-            seller_user_id: supabaseUser.id,
-            concluida,
-            concluida_em: concluida ? new Date().toISOString() : null,
-            updated_at: new Date().toISOString(),
-        }, { onConflict: 'tarefa_id,seller_user_id' })
-        if (error) return { error: error.message }
+        try { await atualizarTarefaTreinamento(supabase, supabaseUser.id, tarefa, concluida) } catch (error) { return { error: error instanceof Error ? error.message : 'Falha ao atualizar tarefa.' } }
         setTarefas(current => current.map(t => t.id === tarefa.id ? { ...t, concluida } : t))
         return { error: null }
     }, [supabaseUser?.id])
 
     const markCompleted = useCallback(async (trainingId: string) => {
         if (!supabaseUser?.id) return { error: 'Sessão inválida.' }
-        const now = new Date().toISOString()
-        const { error } = await supabase.from('progresso_treinamentos').upsert({
-            training_id: trainingId,
-            user_id: supabaseUser.id,
-            status: 'concluido',
-            progress_percent: 100,
-            watched_at: now,
-            completed_at: now,
-            source_context: 'universidade_mx',
-        }, { onConflict: 'training_id,user_id' })
-        if (!error) {
+        try {
+            const now = await concluirTreinamento(supabase, supabaseUser.id, trainingId)
             setProgress(current => [
                 ...current.filter(p => p.training_id !== trainingId),
                 { id: '', training_id: trainingId, status: 'concluido', progress_percent: 100, completed_at: now, completed: true },
             ])
-        }
-        return { error: error?.message ?? null }
+        } catch (error) { return { error: error instanceof Error ? error.message : 'Falha ao concluir treinamento.' } }
+        return { error: null }
     }, [supabaseUser?.id])
 
     const completedIds = useMemo(() => new Set(progress.filter(p => p.completed).map(p => p.training_id)), [progress])

@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import type { Training } from '@/types/database'
 import { calculateAverageRating, shouldReviewContent, type DevelopmentContentSuggestion } from '@/lib/development-content'
+import { concluirTreinamento, listarConteudoTreinamentos, listarProgressoTreinamentos } from '@/features/universidade/services/universidade-service'
 
 export type TrainingWithProgress = Training & {
   watched: boolean
@@ -63,18 +64,10 @@ export function useTrainings() {
     queryFn: async () => {
       if (!profile) return []
 
-      const { data: all, error: allErr } = await supabase
-        .from('treinamentos')
-        .select(TRAINING_SELECT)
-        .eq('active', true)
-        .order('created_at', { ascending: false })
-      if (allErr) throw allErr
-
-      const { data: progress, error: progErr } = await supabase
-        .from('progresso_treinamentos')
-        .select('training_id,status,completed_at,watched_at')
-        .eq('user_id', profile.id)
-      if (progErr) throw progErr
+      const [all, progress] = await Promise.all([
+        listarConteudoTreinamentos(supabase),
+        listarProgressoTreinamentos(supabase, profile.id),
+      ])
 
       const trainingIds = (all || []).map(item => item.id)
       const { data: ratings, error: ratingsErr } = trainingIds.length
@@ -129,13 +122,7 @@ export function useTrainings() {
   const markWatchedMut = useMutation({
     mutationFn: async (trainingId: string) => {
       if (!profile) return
-      await supabase.from('progresso_treinamentos').upsert({
-        user_id: profile.id,
-        training_id: trainingId,
-        status: 'concluido',
-        progress_percent: 100,
-        completed_at: new Date().toISOString(),
-      }, { onConflict: 'user_id,training_id' })
+      await concluirTreinamento(supabase, profile.id, trainingId)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['treinamentos'] })
