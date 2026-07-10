@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
+import { useSearchParams } from "react-router-dom";
 import { BookOpen } from "lucide-react";
 import { SellerPageHeader } from "@/components/seller/SellerPageHeader";
 import FeedbackPage from "./FeedbackPage";
@@ -10,11 +11,17 @@ const TABS = [
 ];
 
 export default function Desenvolvimento() {
-  const [tab, setTab] = useState("feedback");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const rawTab = searchParams.get("tab") || "feedback";
+  const tab = TABS.some(t => t.key === rawTab) ? rawTab : "feedback";
+
+  const setTab = (newTab) => {
+    setSearchParams({ tab: newTab });
+  };
 
   return (
 <div className="min-h-screen bg-[#F8FAFC] p-4 sm:p-6">
-<SellerPageHeader icon={BookOpen} title="Desenvolvimento" actions={(
+<SellerPageHeader icon={BookOpen} title={tab === "feedback" ? "FEEDBACK" : "PDI"} actions={(
 <div className="flex flex-wrap gap-1 rounded-xl bg-slate-100 p-1">
 {TABS.map(t => (
 <button
