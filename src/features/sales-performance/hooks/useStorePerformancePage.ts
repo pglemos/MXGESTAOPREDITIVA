@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { format } from 'date-fns'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { useCheckins } from '@/hooks/useCheckins'
 import { useGoals, useStoreMetaRules } from '@/hooks/useGoals'
 import {

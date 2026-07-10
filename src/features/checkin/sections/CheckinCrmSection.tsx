@@ -1,7 +1,7 @@
 import React, { useMemo, useState, type CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Star, UserPlus, X, Edit, Trash2, ChevronDown, ChevronUp, AlertCircle, HelpCircle, Users, CalendarClock } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
 import { Select } from '@/components/atoms/Select'

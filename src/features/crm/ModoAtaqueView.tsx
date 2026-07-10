@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Copy, FileText, MessageCircle, Pause, Phone, Target, Trophy, Zap } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { Button } from '@/components/atoms/Button'
 import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'

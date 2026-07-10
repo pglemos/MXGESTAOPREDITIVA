@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import {
   Award,
   BarChart3,

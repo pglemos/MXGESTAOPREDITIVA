@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Calendar, RefreshCw, Save, Target, Trash2, TrendingUp, Users, Zap } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 
 import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'

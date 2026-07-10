@@ -1,5 +1,5 @@
 import { RefreshCw, CheckCheck } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
 import { cn } from '@/lib/utils'

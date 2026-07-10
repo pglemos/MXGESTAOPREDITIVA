@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { format, parseISO, startOfMonth } from 'date-fns'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { supabase } from '@/lib/supabase'
 import { useSellersByStore } from '@/hooks/useStores'
 import { calculateReferenceDate, useCheckinsByDateRange } from '@/hooks/useCheckins'

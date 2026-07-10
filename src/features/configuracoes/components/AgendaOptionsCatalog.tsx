@@ -1,5 +1,5 @@
 import { useMemo, useState, type FormEvent } from 'react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { Archive, Edit3, ListChecks, Plus, RefreshCw, Search, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'

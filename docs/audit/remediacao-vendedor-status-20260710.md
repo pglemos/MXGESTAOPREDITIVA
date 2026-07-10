@@ -76,7 +76,7 @@ Verificado ao vivo no ambiente real (login `jose.vendedor@...`): página carrega
 
 ### 2.4 Sprint de acabamento — não iniciado
 
-1. Reduzir duração dos toasts (`Toaster` global hoje em 8s; meta: sucesso 2,5–3s, info 4s, warning 6s, erro crítico 8s/persistente).
+1. ✅ Reduzir duração dos toasts (P1-09). Feito: wrapper `src/lib/toast.ts` com durações por tipo (sucesso 3s, info 4s, warning 6s, erro 8s; chamador pode sobrescrever, ex.: `duration: Infinity`); codemod nos 93 arquivos que importavam `toast` de `sonner`; `Toaster` global caiu de 8s para 4s de default.
 2. Consolidar rotas e nomenclaturas (aliases antigos vs novos coexistindo).
 3. Remover arquitetura Base44 ativa remanescente (Perfil, e qualquer outro ponto ainda não migrado).
 4. Consolidar design tokens (tokens MX vs Tailwind cru vs cores hex diretas vs componentes Base44 antigos — remover `LegacyModuleShell` quando não houver mais consumidor).
@@ -100,7 +100,7 @@ Verificado ao vivo no ambiente real (login `jose.vendedor@...`): página carrega
 
 ## 3. Estado técnico atual
 
-- **Testes:** 751 pass / 0 fail (`npm test`), typecheck limpo (`npm run typecheck`), lint sem erros, build de produção OK.
+- **Testes:** 753 pass / 0 fail (`npm test`), typecheck limpo (`npm run typecheck`), lint sem erros, build de produção OK.
 - **Migrations aplicadas em produção nesta sessão:** `20260710180000`, `20260710190000`, `20260710200000` — todas confirmadas via `supabase migration list` e `database.generated.ts` regenerado.
 - **Commits enviados ao `main`:** `732b577c` (Sprint P0), `53950404` (Sprint Universidade — fundação).
 - **CI:** ainda faltam jobs de Playwright E2E e smoke pós-deploy autenticado (dependem de secrets de ambiente live não configurados nesta sessão).

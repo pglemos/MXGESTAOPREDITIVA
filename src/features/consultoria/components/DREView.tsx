@@ -8,7 +8,7 @@ import { DREForm, type DREFormSection } from '@/components/organisms/DREForm'
 import { fmt, pct } from '@/lib/format'
 import type { DREFinancial, DREComputed } from '@/features/consultoria/types'
 import { Plus, TrendingUp, TrendingDown } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 
 interface DREViewProps {
   clientId: string

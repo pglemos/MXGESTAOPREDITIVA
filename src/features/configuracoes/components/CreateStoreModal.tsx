@@ -4,7 +4,7 @@ import { Modal } from '@/components/organisms/Modal'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Typography } from '@/components/atoms/Typography'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 
 interface CreateStoreModalProps {
     open: boolean

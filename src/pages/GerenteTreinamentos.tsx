@@ -14,7 +14,7 @@ import { Input } from '@/components/atoms/Input'
 import { Avatar } from '@/components/atoms/Avatar'
 import { Card, CardHeader } from '@/components/molecules/Card'
 import { PageHeading } from '@/components/molecules/PageHeading'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { useAuth } from '@/hooks/useAuth'
 import { AulasAoVivoSection } from '@/features/universidade/sections/AulasAoVivoSection'
 

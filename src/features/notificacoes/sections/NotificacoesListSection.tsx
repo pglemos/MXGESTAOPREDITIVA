@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { format } from 'date-fns'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import {
   AlertTriangle,
   Bell,

@@ -1,7 +1,7 @@
 import { useContentSuggestions, useTrainings } from '@/hooks/useData'
 import { useStores } from '@/hooks/useTeam'
 import { useState } from 'react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import {
     GraduationCap, Plus, X, Save, ExternalLink, CheckCircle, 
     Play, Filter, Sparkles, BookOpen, Clock, Target, 

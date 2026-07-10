@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { Briefcase, Clock, DollarSign, GraduationCap, Save, Target, UserCircle } from 'lucide-react'
 import { PageHeading } from '@/components/molecules/PageHeading'
 import { Card } from '@/components/molecules/Card'

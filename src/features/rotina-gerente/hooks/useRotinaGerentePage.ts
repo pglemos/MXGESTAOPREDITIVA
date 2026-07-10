@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { useTeam, useStores } from '@/hooks/useTeam'
 import { calculateReferenceDate, useCheckins } from '@/hooks/useCheckins'
 import { useGoals, useStoreMetaRules } from '@/hooks/useGoals'

@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { format } from 'date-fns'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useNetworkPerformance } from '@/hooks/useNetworkPerformance'

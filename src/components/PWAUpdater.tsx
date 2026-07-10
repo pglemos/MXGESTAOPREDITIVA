@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 
 async function clearPreRegistrationCaches() {
   const registrations = await navigator.serviceWorker.getRegistrations()

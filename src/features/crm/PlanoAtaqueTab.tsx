@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { AlertTriangle, ArrowLeft, Car, MessageCircle, Plus, Users, X, Zap } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { FormField } from '@/components/molecules/FormField'
 import type { Cliente } from '@/lib/schemas/crm.schema'
 import { toDateOnlyBR } from '@/lib/schemas/crm.schema'

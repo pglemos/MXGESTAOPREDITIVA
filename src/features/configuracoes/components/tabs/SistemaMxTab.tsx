@@ -8,7 +8,7 @@ import { Badge } from '@/components/atoms/Badge'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Link } from 'react-router-dom'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { buildTeamContactsWorkbook, type TeamContactRow } from '@/lib/team-contacts-export'
 
 interface AuditEntry {

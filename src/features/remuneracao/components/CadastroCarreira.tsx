@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { useTeam } from '@/hooks/useTeam'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'

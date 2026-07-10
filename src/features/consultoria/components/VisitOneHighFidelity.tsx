@@ -8,7 +8,7 @@ import {
   ArrowRight, MousePointer2, LayoutDashboard
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { Card, CardContent } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'

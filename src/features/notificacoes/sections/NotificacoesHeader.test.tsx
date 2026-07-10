@@ -36,6 +36,6 @@ describe('NotificacoesHeader', () => {
         fireEvent.click(screen.getByRole('button', { name: /marcar tudo/i }))
 
         expect(markAllAsRead).toHaveBeenCalled()
-        expect(toastSuccess).toHaveBeenCalledWith('Tudo lido!')
+        expect(toastSuccess).toHaveBeenCalledWith('Tudo lido!', { duration: 3000 })
     })
 })

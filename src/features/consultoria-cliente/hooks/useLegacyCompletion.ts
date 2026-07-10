@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import {
   getRecommendedLegacyVisitSelection,
   LEGACY_PMR_VISITS,

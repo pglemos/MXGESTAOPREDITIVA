@@ -7,7 +7,7 @@ import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardContent } from '@/components/molecules/Card'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from '@/lib/auth/passwordPolicy'
 import { getAvatarDisplayUrl, uploadUserAvatar } from '@/lib/avatar'
 

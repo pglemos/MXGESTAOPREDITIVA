@@ -5,7 +5,7 @@ import { UserPlus, Mail, Lock, User, Shield, Phone, X, RefreshCw, CheckCircle2, 
 import { Card } from '@/components/molecules/Card'
 import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from '@/lib/auth/passwordPolicy'

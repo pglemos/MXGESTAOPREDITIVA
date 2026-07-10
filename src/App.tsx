@@ -405,7 +405,9 @@ export default function App() {
           </Route>
         </Routes>
       </Router>
-      <Toaster richColors closeButton expand visibleToasts={5} position="top-right" toastOptions={{ duration: 8000 }} />
+      {/* Durações por tipo vêm de src/lib/toast.ts (P1-09): sucesso 3s, info 4s,
+          warning 6s, erro 8s. Este default cobre apenas chamadas fora do wrapper. */}
+      <Toaster richColors closeButton expand visibleToasts={5} position="top-right" toastOptions={{ duration: 4000 }} />
       </MotionConfig>
       </ErrorBoundary>
     </AuthProvider>

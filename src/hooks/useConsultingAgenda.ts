@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getSupabaseFunctionUrl, supabase } from '@/lib/supabase'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 
 export interface ConsultingAgendaEvent {
   id: string

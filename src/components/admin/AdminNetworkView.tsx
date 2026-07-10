@@ -6,7 +6,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
 import { Button } from '@/components/atoms/Button'
 import { useNetworkHierarchy } from '@/hooks/useNetworkHierarchy'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { requestToastConfirmation } from '@/lib/ui/confirmAction'
 
 type NetworkMember = {

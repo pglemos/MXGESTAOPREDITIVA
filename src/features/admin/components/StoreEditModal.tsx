@@ -9,7 +9,7 @@ import type { Store } from '@/types/database'
 import type { StoreUpdateFields } from '@/hooks/useTeam'
 import { getPreRegistrationLink } from '@/lib/utils'
 import { requestToastConfirmation } from '@/lib/ui/confirmAction'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 
 interface StoreEditModalProps {
   open: boolean

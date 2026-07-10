@@ -4,7 +4,7 @@ import { Card } from '@/components/molecules/Card'
 import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { useAuth } from '@/hooks/useAuth'
 
 type Theme = 'light' | 'dark' | 'system'

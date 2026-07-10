@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { isSameWeek, parseISO, startOfWeek } from 'date-fns'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { useFeedbacks, useWeeklyFeedbackReports } from '@/hooks/useData'
 import { useAuth } from '@/hooks/useAuth'
 import { useTeam } from '@/hooks/useTeam'

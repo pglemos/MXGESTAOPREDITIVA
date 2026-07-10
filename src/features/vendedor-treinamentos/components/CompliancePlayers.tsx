@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 
 // Players de vídeo com restrição de avanço (não deixa "pular" a aula) e teto
 // de velocidade 1.5x — Especificação Funcional da Universidade MX.
@@ -50,8 +50,15 @@ export function YouTubeCompliancePlayer({ videoUrl, onProgressUpdate, onComplete
     const playerRef = useRef<YtPlayer | null>(null)
     const highestTimeRef = useRef(0)
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+    const onProgressUpdateRef = useRef(onProgressUpdate)
+    const onCompletedRef = useRef(onCompleted)
 
     const videoId = getYoutubeId(videoUrl)
+
+    // O pai atualiza o percentual assistido em cada tick. Guardar os callbacks
+    // em refs evita recriar o player por causa de callbacks inline do modal.
+    onProgressUpdateRef.current = onProgressUpdate
+    onCompletedRef.current = onCompleted
 
     useEffect(() => {
         if (!videoId) return
@@ -92,10 +99,10 @@ export function YouTubeCompliancePlayer({ videoUrl, onProgressUpdate, onComplete
                 }
 
                 const percent = duration > 0 ? (highestTimeRef.current / duration) * 100 : 0
-                onProgressUpdate(percent)
+                onProgressUpdateRef.current(percent)
 
                 if (duration > 0 && highestTimeRef.current >= duration * 0.95) {
-                    onCompleted()
+                    onCompletedRef.current()
                 }
             }, 500)
         }
@@ -146,7 +153,7 @@ export function YouTubeCompliancePlayer({ videoUrl, onProgressUpdate, onComplete
             stopTracking()
             playerRef.current?.destroy()
         }
-    }, [videoId, onProgressUpdate, onCompleted])
+    }, [videoId])
 
     return <div className="h-full w-full"><div id={containerId.current} className="h-full w-full" /></div>
 }

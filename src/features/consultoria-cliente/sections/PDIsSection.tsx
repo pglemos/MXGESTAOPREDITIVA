@@ -1,6 +1,6 @@
 import { format } from 'date-fns'
 import { Download, Eye, FileText, ShieldCheck } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { Button } from '@/components/atoms/Button'
 import { Card } from '@/components/molecules/Card'
 import { Badge } from '@/components/atoms/Badge'

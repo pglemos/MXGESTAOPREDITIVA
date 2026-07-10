@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { endOfWeek, format, parseISO, startOfWeek } from 'date-fns'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { useFeedbacks, useWeeklyFeedbackReports } from '@/hooks/useData'
 import { useAllSellers, useStores } from '@/hooks/useTeam'
 import { formatStructuredWhatsAppFeedback } from '@/lib/calculations'

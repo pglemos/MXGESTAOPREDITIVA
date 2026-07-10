@@ -8,7 +8,7 @@ import {
     Search, RefreshCw, Printer, ChevronRight
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { format, parseISO } from 'date-fns'
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/atoms/Badge"

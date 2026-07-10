@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { format, parseISO, startOfMonth, startOfWeek, endOfWeek, endOfMonth, startOfDay, subDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { useCheckins, calculateReferenceDate } from '@/hooks/useCheckins'

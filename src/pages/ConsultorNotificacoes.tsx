@@ -1,7 +1,7 @@
 import { useNotifications, useSystemBroadcasts } from '@/hooks/useData';
 import { useStores } from '@/hooks/useTeam'
 import { useState, useCallback } from 'react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { 
     Bell, Plus, X, Send, Building2, Globe, AlertCircle, 
     Calendar, RefreshCw, Zap, ShieldCheck, Mail, Users

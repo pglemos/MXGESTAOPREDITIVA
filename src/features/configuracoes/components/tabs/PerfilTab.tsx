@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { Camera, RefreshCw, Save, User as UserIcon, Mail, Phone, Shield, Info, Upload } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { getAvatarDisplayUrl, uploadUserAvatar } from '@/lib/avatar'
 import { Card } from '@/components/molecules/Card'
 import { Button } from '@/components/atoms/Button'

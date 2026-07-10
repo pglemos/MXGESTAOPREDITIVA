@@ -18,7 +18,7 @@ import { useStores } from '@/hooks/useTeam'
 import { useStoreDeliveryRules } from '@/hooks/useData'
 import { useStoreMetaRules } from '@/hooks/useGoals'
 import { supabase } from '@/lib/supabase'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 
 export default function OperationalSettings() {
     const { role } = useAuth()

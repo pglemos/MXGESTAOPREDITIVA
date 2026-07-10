@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { format, parseISO } from 'date-fns'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { buildSaoPauloDateTime, type AgendaScheduleEvent, type AgendaVisit, type AgendaConsultant } from '@/hooks/agenda'
 import { isPmrSchedulableVisitNumber } from '@/lib/consultoria/pmr-visit-rules'
 import type { ScheduleForm } from '../modals/VisitaModal'

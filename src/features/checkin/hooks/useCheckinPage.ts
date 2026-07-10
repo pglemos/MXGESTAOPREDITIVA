@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import {
     CHECKIN_EDIT_LIMIT_MINUTES,
     CHECKIN_MAX_INPUT_VALUE,

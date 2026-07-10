@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import {
     BookOpen, Star, BarChart3, CheckCircle2, ClipboardCheck, Search, Play,
     Video, Calendar, Download, MessageSquare, X,

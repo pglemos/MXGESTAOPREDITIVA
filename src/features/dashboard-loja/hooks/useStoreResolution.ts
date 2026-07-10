@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { slugify } from '@/lib/utils'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import type { Store } from '@/types/database'

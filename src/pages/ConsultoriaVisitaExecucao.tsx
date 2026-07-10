@@ -10,7 +10,7 @@ import {
   Smartphone, Eye, Printer, Share2, Calculator, PieChart, ShieldCheck,
   BarChart, LineChart, TrendingDown, Layers, MapPin, Gauge
 } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { Button } from '@/components/atoms/Button'
 import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'

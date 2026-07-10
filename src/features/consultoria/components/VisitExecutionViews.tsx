@@ -4,7 +4,7 @@ import {
   Clock, TrendingUp, Award, Rocket,
   ShieldAlert, Presentation
 } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
 import { Badge } from '@/components/atoms/Badge'

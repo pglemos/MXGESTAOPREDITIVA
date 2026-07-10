@@ -156,7 +156,7 @@ describe('CarteiraClientes', () => {
     await waitFor(() => {
       expect(registrarStatusCadencia).toHaveBeenCalledWith({ clienteId: 'cliente-1', status: 'feito' })
     })
-    expect(toastSuccess).toHaveBeenCalledWith('Cadência atualizada.')
+    expect(toastSuccess).toHaveBeenCalledWith('Cadência atualizada.', { duration: 3000 })
   })
 
   it('registra tentativa nao respondeu como status nao_feito', async () => {
@@ -171,7 +171,7 @@ describe('CarteiraClientes', () => {
     await waitFor(() => {
       expect(registrarStatusCadencia).toHaveBeenCalledWith({ clienteId: 'cliente-1', status: 'nao_feito' })
     })
-    expect(toastSuccess).toHaveBeenCalledWith('Tentativa registrada e próxima ação mantida no fluxo.')
+    expect(toastSuccess).toHaveBeenCalledWith('Tentativa registrada e próxima ação mantida no fluxo.', { duration: 3000 })
   })
 
   it('formata telefone e moeda, mantendo opções de status sem duplicidade', () => {

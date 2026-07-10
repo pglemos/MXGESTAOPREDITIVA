@@ -4,7 +4,7 @@ import { Lock, ShieldCheck, RefreshCw, CheckCircle2, Eye, EyeOff, LogOut, Shield
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Typography } from '@/components/atoms/Typography'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from '@/lib/auth/passwordPolicy'

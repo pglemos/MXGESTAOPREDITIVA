@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { scopeToDb, type ScopeDb } from '@/features/dashboard-loja/lib/scopeType'
 import { supabase } from '@/lib/supabase'
 
