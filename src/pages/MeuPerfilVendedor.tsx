@@ -1,5 +1,4 @@
-// @ts-nocheck
-// Paridade 1:1 com Base44: renderiza o Meu Perfil do protótipo (form de informações
-// pessoais/profissionais/horário/metas/formação/remuneração) via shim base44Client.
-export { default } from '@/base44-reference/pages/MeuPerfil.jsx'
-
+// Meu Perfil do vendedor — implementação real (P0-04, auditoria 2026-07-10).
+// Antes reexportava src/base44-reference/pages/MeuPerfil.jsx (protótipo Base44,
+// @ts-nocheck, shim base44Client com monthly_goal=10 fabricado e campos vazios).
+export { default } from '@/features/vendedor-perfil/MeuPerfilVendedor.container'

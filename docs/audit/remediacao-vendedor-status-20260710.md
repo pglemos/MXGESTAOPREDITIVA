@@ -33,7 +33,7 @@ Commit: `53950404` (push `732b577c..53950404`).
 | UNIV-1 — Migrar tarefas de localStorage para Supabase | ✅ Feito. Tabelas `treinamento_tarefas`/`treinamento_tarefa_respostas` (migration `20260710200000`), seed do conteúdo existente casado por título real |
 | UNIV-2 — Remover "Impacto no Score +12" hardcoded | ✅ Feito. Removidas também as métricas fabricadas `quiz_score:100`/`hours_studied:0.5`/`attended_live:true` do shim `base44Client` — nenhuma delas tinha coluna real no banco |
 | UNIV-3 — Maturidade por regra configurável | ✅ Feito. Reaproveitada a função canônica `derivarNivelMaturidadeVendedor` (tempo de mercado + experiência + cargo) que já existia em `src/features/crm/lib/maturidade.ts`, usada em Meu Perfil — não foi preciso criar do zero |
-| UNIV-7 — Migrar página para feature real, retirar shell legado | ✅ Feito **só para Treinamentos/Universidade** (`src/features/vendedor-treinamentos/`). Rota `/treinamentos` do vendedor não usa mais `withLegacyShell` nem `base44-reference`. **`MeuPerfilVendedor` continua no protótipo Base44** — não migrado nesta rodada |
+| UNIV-7 — Migrar página para feature real, retirar shell legado | ✅ Feito para Treinamentos (`src/features/vendedor-treinamentos/`) **e para Meu Perfil** (`src/features/vendedor-perfil/`, rodada posterior desta mesma sessão). Nenhuma rota ativa do vendedor usa mais `withLegacyShell`/`base44-reference`; `LegacyModuleShell` foi removido do código (zero consumidores) |
 | UNIV-4 — Motor de recomendação (Funil/Feedback/PDI) | ⬜ Não iniciado |
 | UNIV-5 — Consolidar acesso a dados em serviço único tipado | ✅ Feito. `universidade-service` centraliza conteúdo, progresso e tarefas; `useVendedorTreinamentos` e `useTrainings` delegam a ele, sem alteração de RLS/schema. |
 | UNIV-6 — Quiz oficial (5–10 questões, nota mínima 70%, tentativas, presença, auditoria) | ⬜ Não iniciado |
@@ -54,7 +54,7 @@ Verificado ao vivo no ambiente real (login `jose.vendedor@...`): página carrega
 1. UNIV-4 — Motor de recomendação explicável (lacuna no funil, feedback pendente, competência do PDI, maturidade e cargo).
 2. ✅ UNIV-5 — Consolidar list/progresso de treinamentos em um único serviço Supabase tipado.
 3. UNIV-6 — Quiz oficial: 5–10 questões, nota mínima 70%, tentativas, presença, auditoria.
-4. Migrar `MeuPerfilVendedor` para fora de `base44-reference` (mesmo padrão aplicado em Treinamentos).
+4. ✅ Migrar `MeuPerfilVendedor` para fora de `base44-reference`. Feito: `src/features/vendedor-perfil/` (mapper puro testado + hook + container MX). Removidos os dados fabricados do shim (`monthly_goal=10`, `avg_sales_year=0`) — Meta Mensal e média agora vêm da RPC oficial de performance; campos estruturalmente vazios do protótipo (Data de Nascimento, Marca) foram retirados por não existirem no schema. `LegacyModuleShell` deletado (P2-02 parcial). **Pendente: verificação visual ao vivo logada** — exige login, não executada nesta rodada.
 5. UNIV-8 completo — decidir se a URL migra para `/universidade-mx` como canônica (hoje é o inverso: `/universidade-mx` redireciona para `/treinamentos`).
 6. ✅ Decisão de arquitetura sobre os dois sistemas de treinamento paralelos: `treinamentos` é canônico; executar a migração faseada prevista no ADR-MX-004.
 
@@ -100,7 +100,7 @@ Verificado ao vivo no ambiente real (login `jose.vendedor@...`): página carrega
 
 ## 3. Estado técnico atual
 
-- **Testes:** 734 pass / 0 fail (`npm test`), typecheck limpo (`npm run typecheck`).
+- **Testes:** 745 pass / 0 fail (`npm test`), typecheck limpo (`npm run typecheck`), lint sem erros, build de produção OK.
 - **Migrations aplicadas em produção nesta sessão:** `20260710180000`, `20260710190000`, `20260710200000` — todas confirmadas via `supabase migration list` e `database.generated.ts` regenerado.
 - **Commits enviados ao `main`:** `732b577c` (Sprint P0), `53950404` (Sprint Universidade — fundação).
 - **CI:** ainda faltam jobs de Playwright E2E e smoke pós-deploy autenticado (dependem de secrets de ambiente live não configurados nesta sessão).

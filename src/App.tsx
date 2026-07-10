@@ -4,7 +4,6 @@ import { AuthProvider, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { Toaster } from 'sonner'
 import { MotionConfig } from 'motion/react'
 import Layout from '@/components/Layout'
-import LegacyModuleShell from '@/components/LegacyModuleShell'
 import { slugify } from '@/lib/utils'
 import { canAccessPath } from '@/lib/auth/routeAccess'
 
@@ -29,8 +28,6 @@ const MinhaRemuneracao = lazy(() => import('@/pages/MinhaRemuneracao'))
 const CarteiraClientes = lazy(() => import('@/pages/CarteiraClientes'))
 const FunilVendedor = lazy(() => import('@/pages/FunilVendedor'))
 const CentralExecucao = lazy(() => import('@/pages/CentralExecucao'))
-// P0-04 (auditoria 2026-07-10): ainda reexporta src/base44-reference — não é
-// implementação real. Migração pendente (fora do escopo desta rodada).
 const MeuPerfilVendedor = lazy(() => import('@/pages/MeuPerfilVendedor'))
 const RelatoriosVendedor = lazy(() => import('@/pages/RelatoriosVendedor'))
 const FunilVendasGerente = lazy(() => import('@/features/gerente/FunilVendasGerente'))
@@ -142,10 +139,6 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
     )
   }
 }
-
-const withLegacyShell = (node: React.ReactNode) => (
-  <LegacyModuleShell>{node}</LegacyModuleShell>
-)
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { profile, loading, initialized, role, baseRole } = useAuth()
@@ -352,7 +345,7 @@ export default function App() {
               <RoleSwitch vendedor={<Notificacoes />} gerente={<Notificacoes />} dono={<Notificacoes />} admin={<Notificacoes />} />
             </Suspense>} />
             <Route path="perfil" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={withLegacyShell(<MeuPerfilVendedor />)} gerente={<Perfil />} dono={<Perfil />} admin={<Perfil />} />
+              <RoleSwitch vendedor={<MeuPerfilVendedor />} gerente={<Perfil />} dono={<Perfil />} admin={<Perfil />} />
             </Suspense>} />
             <Route path="meu-perfil" element={<RedirectWithSearch to="/perfil" />} />
             <Route path="meu-perfil-vendedor" element={<RedirectWithSearch to="/perfil" />} />
