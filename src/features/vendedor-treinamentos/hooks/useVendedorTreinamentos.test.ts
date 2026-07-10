@@ -42,3 +42,16 @@ describe('VendedorTreinamentos — sem dados fabricados (P0-03)', () => {
         expect(containerSource).not.toMatch(/Math\.floor\(completedCount/)
     })
 })
+
+describe('VendedorTreinamentos — contrato visual anterior', () => {
+    const containerSource = readFileSync(new URL('../VendedorTreinamentos.container.tsx', import.meta.url), 'utf8')
+
+    test('preserva cabeçalho, cinco indicadores compactos, abas pill e recomendados do layout original', () => {
+        expect(containerSource).toContain('<PageHeader title="Treinamentos"')
+        expect(containerSource).toContain('grid grid-cols-2 lg:grid-cols-5 gap-4')
+        expect(containerSource).toContain('TabsList className="bg-white border border-slate-100 rounded-xl p-1"')
+        expect(containerSource).toContain('Recomendado para Você')
+        expect(containerSource).not.toContain('<PageHeading title="Universidade MX"')
+        expect(containerSource).not.toContain('<TabNavPill')
+    })
+})

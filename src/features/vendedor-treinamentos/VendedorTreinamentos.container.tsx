@@ -1,19 +1,20 @@
-import { useEffect, useMemo, useState } from 'react'
+import {
+    useEffect, useMemo, useState,
+    type ComponentType, type InputHTMLAttributes, type PropsWithChildren, type ReactNode,
+} from 'react'
 import { toast } from '@/lib/toast'
 import {
     BookOpen, Star, BarChart3, CheckCircle2, ClipboardCheck, Search, Play,
     Video, Calendar, Download, MessageSquare, X,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { PageHeading } from '@/components/molecules/PageHeading'
-import { StatCard } from '@/components/molecules/StatCard'
 import { Card } from '@/components/molecules/Card'
-import { TabNavPill } from '@/components/molecules/TabNavPill'
-import { EmptyState } from '@/components/atoms/EmptyState'
-import { Input } from '@/components/atoms/Input'
-import { Select } from '@/components/atoms/Select'
-import { Badge } from '@/components/atoms/Badge'
 import { Typography } from '@/components/atoms/Typography'
+import PageHeaderBase from '@/components/ui/PageHeader'
+import LegacyStatCardBase from '@/components/ui/StatCard'
+import { Tabs, TabsContent as TabsContentBase, TabsList as TabsListBase, TabsTrigger as TabsTriggerBase } from '@/components/ui/tabs'
+import { Input as InputBase } from '@/components/ui/input'
+import { Select, SelectContent as SelectContentBase, SelectItem as SelectItemBase, SelectTrigger as SelectTriggerBase, SelectValue as SelectValueBase } from '@/components/ui/select'
 import {
     useVendedorTreinamentos,
     type Treinamento,
@@ -31,45 +32,65 @@ import { confirmarPresencaTreinamento, listarPresencasTreinamentos } from '@/fea
 const CATEGORIES = ['Atendimento', 'Prospecção', 'WhatsApp', 'Negociação', 'Financiamento', 'Fechamento', 'Pós-venda', 'Carteira', 'Mentalidade']
 const LEVELS = ['N1 Iniciante', 'N2 Intermediário', 'N3 Performance', 'N4 Alta Performance']
 
-const LEVEL_TONE: Record<string, 'brand' | 'blue' | 'orange'> = {
-    'N1 Iniciante': 'brand',
-    'N2 Intermediário': 'blue',
-    'N3 Performance': 'orange',
-    'N4 Alta Performance': 'brand',
+const LEVEL_COLORS: Record<string, string> = {
+    'N1 Iniciante': 'bg-mx-green-light text-mx-green',
+    'N2 Intermediário': 'bg-mx-blue-light text-mx-blue',
+    'N3 Performance': 'bg-mx-amber-light text-mx-amber',
+    'N4 Alta Performance': 'bg-purple-100 text-purple-700',
 }
+
+// Os componentes visuais legados são JavaScript e não expõem props TypeScript.
+// Os aliases mantêm o layout anterior tipado sem alterar os componentes globais.
+const PageHeader = PageHeaderBase as ComponentType<{ title: string; subtitle?: string; children?: ReactNode }>
+const LegacyStatCard = LegacyStatCardBase as ComponentType<{
+    label: string
+    value: ReactNode
+    sublabel?: string
+    icon?: ComponentType<{ className?: string }>
+    color?: string
+    children?: ReactNode
+}>
+const TabsList = TabsListBase as ComponentType<PropsWithChildren<{ className?: string }>>
+const TabsTrigger = TabsTriggerBase as ComponentType<PropsWithChildren<{ value: string; className?: string }>>
+const TabsContent = TabsContentBase as ComponentType<PropsWithChildren<{ value: string; className?: string }>>
+const Input = InputBase as ComponentType<InputHTMLAttributes<HTMLInputElement>>
+const SelectTrigger = SelectTriggerBase as ComponentType<PropsWithChildren<{ className?: string }>>
+const SelectContent = SelectContentBase as ComponentType<PropsWithChildren>
+const SelectItem = SelectItemBase as ComponentType<PropsWithChildren<{ value: string }>>
+const SelectValue = SelectValueBase as ComponentType<{ placeholder?: string }>
 
 type TabKey = 'biblioteca' | 'trilha' | 'aovivo'
 
-function TrainingCard({ training, completed, onOpen }: { training: Treinamento; completed: boolean; onOpen: () => void }) {
+function TrainingCard({ training, completed, onOpen, large = false }: { training: Treinamento; completed: boolean; onOpen: () => void; large?: boolean }) {
     const thumbUrl = getYoutubeThumbnail(training.video_url)
     return (
         <button
             type="button"
             onClick={onOpen}
-            className="group overflow-hidden rounded-mx-2xl border border-border-subtle bg-white text-left shadow-mx-sm transition-all hover:shadow-mx-md focus:outline-none focus:ring-4 focus:ring-brand-primary/20"
+            className="group overflow-hidden rounded-2xl border border-slate-100 bg-white text-left shadow-sm transition-all duration-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-mx-blue"
         >
-            <div className="relative h-28 overflow-hidden bg-pure-black">
+            <div className={`relative overflow-hidden bg-slate-900 ${large ? 'h-40' : 'h-28'}`}>
                 {thumbUrl ? (
-                    <img src={thumbUrl} alt={training.title} className="absolute inset-0 h-full w-full object-cover opacity-75 transition-all group-hover:scale-105 group-hover:opacity-90" />
+                    <img src={thumbUrl} alt={training.title} className="absolute inset-0 h-full w-full object-cover opacity-75 transition-all duration-300 group-hover:scale-105 group-hover:opacity-90" />
                 ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-brand-secondary to-brand-primary" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-mx-navy to-mx-blue" />
                 )}
-                <div className="absolute inset-0 flex items-center justify-center bg-pure-black/25">
-                    <Play className="h-10 w-10 text-white/80 transition-all group-hover:scale-110 group-hover:text-white" />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/25">
+                    <Play className="h-10 w-10 text-white/80 transition-all duration-300 group-hover:scale-110 group-hover:text-white" />
                 </div>
                 {completed && (
                     <div className="absolute right-3 top-3 z-10">
-                        <CheckCircle2 className="h-6 w-6 fill-white text-status-success" />
+                        <CheckCircle2 className="h-6 w-6 fill-white text-mx-green" />
                     </div>
                 )}
             </div>
-            <div className="p-mx-md">
+            <div className="p-4">
                 <div className="mb-2 flex items-center gap-2">
-                    <Badge variant="outline" className="text-[10px]">{training.level}</Badge>
-                    <span className="text-[10px] text-text-tertiary">{training.duration_minutes} min</span>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${LEVEL_COLORS[training.level] || 'bg-slate-100 text-slate-500'}`}>{training.level}</span>
+                    <span className="text-[10px] text-slate-400">{training.duration_minutes} min</span>
                 </div>
-                <Typography variant="p" className="line-clamp-2 text-sm font-semibold">{training.title}</Typography>
-                <Typography variant="caption" tone="muted" className="mt-1 block">{training.category}</Typography>
+                <h4 className="line-clamp-2 text-sm font-semibold text-mx-navy">{training.title}</h4>
+                <p className="mt-1 text-xs text-slate-400">{training.category}</p>
             </div>
         </button>
     )
@@ -130,6 +151,9 @@ export default function VendedorTreinamentosContainer() {
 
     const tarefasDaAula = selectedTraining ? tarefas.filter(t => t.training_id === selectedTraining.id) : []
     const totalTarefasConcluidas = tarefas.filter(t => t.concluida).length
+    const recommendedTrainings = recomendacoes.length > 0
+        ? recomendacoes.map(item => item.training)
+        : trainings.filter(item => !completedIds.has(item.id)).slice(0, 4)
 
     const openTraining = async (training: Treinamento) => {
         setSelectedTraining(training)
@@ -182,44 +206,30 @@ export default function VendedorTreinamentosContainer() {
 
     return (
         <div className="space-y-8">
-            <PageHeading title="Universidade MX" subtitle="Desenvolva suas habilidades de vendas" />
+            <PageHeader title="Treinamentos" subtitle="Desenvolva suas habilidades de vendas" />
 
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <StatCard icon={<Star size={20} />} label="Minha Trilha" value={nivelMaturidade} detail={nivelMaturidadeLabel} tone="blue" />
-                <StatCard icon={<BarChart3 size={20} />} label="Progresso" value={`${progressoPercent}%`} tone="green" />
-                <StatCard icon={<CheckCircle2 size={20} />} label="Aulas Concluídas" value={completedCount} tone="brand" />
-                <StatCard icon={<ClipboardCheck size={20} />} label="Tarefas Práticas Concluídas" value={totalTarefasConcluidas} tone="orange" />
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                <LegacyStatCard label="Minha Trilha" value={nivelMaturidade} sublabel={nivelMaturidadeLabel} icon={Star} color="blue" />
+                <LegacyStatCard label="Progresso" value={`${progressoPercent}%`} icon={BarChart3} color="green" />
+                <LegacyStatCard label="Aulas Concluídas" value={completedCount} icon={CheckCircle2} color="blue" />
+                <LegacyStatCard label="Tarefas Concluídas" value={totalTarefasConcluidas} icon={ClipboardCheck} color="amber" />
+                <LegacyStatCard label="Conteúdos Disponíveis" value={trainings.length} icon={BookOpen} color="navy" />
             </div>
 
-            <TabNavPill<TabKey>
-                tabs={[
-                    { key: 'biblioteca', label: 'Biblioteca' },
-                    { key: 'trilha', label: 'Trilha' },
-                    { key: 'aovivo', label: 'Aulas ao Vivo' },
-                ]}
-                activeTab={tab}
-                onTabChange={setTab}
-                aria-label="Seções da Universidade MX"
-            />
+            <Tabs value={tab} onValueChange={value => setTab(value as TabKey)} className="w-full">
+                <TabsList className="bg-white border border-slate-100 rounded-xl p-1">
+                    <TabsTrigger value="biblioteca" className="rounded-lg data-[state=active]:bg-mx-blue data-[state=active]:text-white">Biblioteca</TabsTrigger>
+                    <TabsTrigger value="trilha" className="rounded-lg data-[state=active]:bg-mx-blue data-[state=active]:text-white">Trilha</TabsTrigger>
+                    <TabsTrigger value="aovivo" className="rounded-lg data-[state=active]:bg-mx-blue data-[state=active]:text-white">Aulas ao Vivo</TabsTrigger>
+                </TabsList>
 
-            {tab === 'biblioteca' && (
-                <div className="space-y-6">
-                    {recomendacoes.length > 0 && (
+                <TabsContent value="biblioteca" className="mt-6 space-y-6">
+                    {recommendedTrainings.length > 0 && (
                         <section aria-label="Recomendado para você">
-                            <div className="mb-3 flex items-center gap-2">
-                                <Star className="h-4 w-4 text-brand-primary" aria-hidden="true" />
-                                <Typography variant="h3">Recomendado para Você</Typography>
-                            </div>
+                            <h3 className="mb-4 text-base font-semibold text-mx-navy">Recomendado para Você</h3>
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                                {recomendacoes.map(rec => (
-                                    <div key={rec.id} className="flex flex-col gap-2">
-                                        <TrainingCard training={rec.training} completed={false} onOpen={() => void openTraining(rec.training)} />
-                                        <div className="flex flex-wrap gap-1 px-1">
-                                            {rec.motivos.map(motivo => (
-                                                <Badge key={motivo} variant="outline" className="text-[10px] font-medium normal-case">{motivo}</Badge>
-                                            ))}
-                                        </div>
-                                    </div>
+                                {recommendedTrainings.slice(0, 4).map(training => (
+                                    <TrainingCard key={training.id} training={training} completed={completedIds.has(training.id)} large onOpen={() => void openTraining(training)} />
                                 ))}
                             </div>
                         </section>
@@ -227,73 +237,73 @@ export default function VendedorTreinamentosContainer() {
 
                     <div className="flex flex-wrap gap-3">
                         <div className="relative min-w-[200px] flex-1">
-                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
-                            <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar treinamento..." className="pl-9" />
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                            <Input value={search} onChange={event => setSearch(event.target.value)} placeholder="Buscar treinamento..." className="rounded-xl bg-white pl-9" />
                         </div>
-                        <Select value={filterCat} onChange={e => setFilterCat(e.target.value)} className="w-auto min-w-[160px]">
-                            <option value="all">Todas as categorias</option>
-                            {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                        <Select value={filterCat} onValueChange={setFilterCat}>
+                            <SelectTrigger className="w-[160px] rounded-xl bg-white"><SelectValue placeholder="Categoria" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Todas</SelectItem>
+                                {CATEGORIES.map(category => <SelectItem key={category} value={category}>{category}</SelectItem>)}
+                            </SelectContent>
                         </Select>
-                        <Select value={filterLevel} onChange={e => setFilterLevel(e.target.value)} className="w-auto min-w-[180px]">
-                            <option value="all">Todos os níveis</option>
-                            {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+                        <Select value={filterLevel} onValueChange={setFilterLevel}>
+                            <SelectTrigger className="w-[180px] rounded-xl bg-white"><SelectValue placeholder="Nível" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Todos</SelectItem>
+                                {LEVELS.map(level => <SelectItem key={level} value={level}>{level}</SelectItem>)}
+                            </SelectContent>
                         </Select>
                     </div>
 
                     {filtered.length === 0 ? (
-                        <Card>
-                            <EmptyState icon={<BookOpen />} title="Nenhum treinamento encontrado." size="lg" />
-                        </Card>
+                        <div className="rounded-2xl border border-slate-100 bg-white p-12 text-center">
+                            <BookOpen className="mx-auto mb-3 h-10 w-10 text-slate-300" />
+                            <p className="text-sm text-slate-400">Nenhum treinamento encontrado.</p>
+                        </div>
                     ) : (
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                            {filtered.map(t => <TrainingCard key={t.id} training={t} completed={completedIds.has(t.id)} onOpen={() => void openTraining(t)} />)}
+                            {filtered.map(training => <TrainingCard key={training.id} training={training} completed={completedIds.has(training.id)} onOpen={() => void openTraining(training)} />)}
                         </div>
                     )}
-                </div>
-            )}
+                </TabsContent>
 
-            {tab === 'trilha' && (
-                <div className="space-y-6">
-                    <Card className="p-mx-lg">
-                        <Typography variant="h3" className="mb-1">Sua Maturidade Profissional</Typography>
-                        <Typography variant="caption" tone="muted" className="mb-6 block">
+                <TabsContent value="trilha" className="mt-6 space-y-6">
+                    <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+                        <h3 className="mb-2 text-base font-semibold text-mx-navy">Sua Maturidade Profissional</h3>
+                        <p className="mb-6 text-xs text-slate-400">
                             A trilha reflete tempo de mercado, experiência declarada e cargo — não apenas quantas aulas você assistiu.
-                        </Typography>
+                        </p>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
                             {LEVELS.map((level, idx) => {
                                 const isActive = level.startsWith(nivelMaturidade)
                                 return (
-                                    <div key={level} className={`rounded-mx-xl border-2 p-4 text-center transition-all ${isActive ? 'border-brand-primary bg-brand-primary/5' : 'border-border-subtle'}`}>
-                                        <div className={`mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full text-lg font-bold ${isActive ? 'bg-brand-primary text-white' : 'bg-surface-alt text-text-tertiary'}`}>
+                                    <div key={level} className={`rounded-xl border-2 p-4 text-center transition-all ${isActive ? 'border-mx-blue bg-mx-blue-light/50' : 'border-slate-100'}`}>
+                                        <div className={`mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full text-lg font-bold ${isActive ? 'bg-mx-blue text-white' : 'bg-slate-100 text-slate-400'}`}>
                                             {idx + 1}
                                         </div>
-                                        <Typography variant="p" className={`text-sm font-semibold ${isActive ? '' : 'text-text-tertiary'}`}>{level}</Typography>
+                                        <p className={`text-sm font-semibold ${isActive ? 'text-mx-navy' : 'text-slate-400'}`}>{level}</p>
                                     </div>
                                 )
                             })}
                         </div>
-                    </Card>
+                    </div>
 
                     {LEVELS.map(level => {
                         const levelTrainings = trainings.filter(t => t.level === level)
                         if (levelTrainings.length === 0) return null
                         return (
                             <div key={level}>
-                                <div className="mb-3 flex items-center gap-2">
-                                    <Typography variant="h3">{level}</Typography>
-                                    <Badge variant={LEVEL_TONE[level] === 'brand' ? 'brand' : 'outline'}>{levelTrainings.length}</Badge>
-                                </div>
+                                <h3 className="mb-3 text-sm font-semibold text-mx-navy">{level}</h3>
                                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                                     {levelTrainings.map(t => <TrainingCard key={t.id} training={t} completed={completedIds.has(t.id)} onOpen={() => void openTraining(t)} />)}
                                 </div>
                             </div>
                         )
                     })}
-                </div>
-            )}
+                </TabsContent>
 
-            {tab === 'aovivo' && (
-                <div className="space-y-6">
+                <TabsContent value="aovivo" className="mt-6 space-y-6">
                     {upcomingLive.length > 0 && (
                         <div>
                             <Typography variant="h3" className="mb-3">Próximas Aulas</Typography>
@@ -339,25 +349,26 @@ export default function VendedorTreinamentosContainer() {
                     )}
 
                     {liveTrainings.length === 0 && (
-                        <Card>
-                            <EmptyState icon={<Video />} title="Nenhuma aula ao vivo agendada." size="lg" />
-                        </Card>
+                        <div className="rounded-2xl border border-slate-100 bg-white p-12 text-center">
+                            <Video className="mx-auto mb-3 h-10 w-10 text-slate-300" />
+                            <p className="text-sm text-slate-400">Nenhuma aula ao vivo agendada.</p>
+                        </div>
                     )}
-                </div>
-            )}
+                </TabsContent>
+            </Tabs>
 
             {selectedTraining && (
-                <div className="fixed inset-0 z-[160] grid place-items-center bg-pure-black/55 p-4" onClick={(event) => { if (event.target === event.currentTarget) setSelectedTraining(null) }}>
-                    <div role="dialog" aria-modal="true" aria-labelledby="training-detail-title" className="flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-mx-2xl bg-white shadow-mx-lg">
-                        <header className="flex items-start justify-between border-b border-border-subtle p-5">
+                <div className="fixed inset-0 z-[160] grid place-items-center bg-black/55 p-4" onClick={(event) => { if (event.target === event.currentTarget) setSelectedTraining(null) }}>
+                    <div role="dialog" aria-modal="true" aria-labelledby="training-detail-title" className="flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+                        <header className="flex items-start justify-between border-b border-slate-200 p-5">
                             <div>
-                                <Typography variant="h2" id="training-detail-title">{selectedTraining.title}</Typography>
-                                {selectedTraining.description && <Typography variant="p" tone="muted" className="mt-1">{selectedTraining.description}</Typography>}
+                                <h2 id="training-detail-title" className="text-xl font-bold text-mx-navy">{selectedTraining.title}</h2>
+                                {selectedTraining.description && <p className="mt-1 text-sm text-slate-500">{selectedTraining.description}</p>}
                             </div>
-                            <button type="button" onClick={() => setSelectedTraining(null)} aria-label="Fechar aula" className="rounded-mx-md p-2 hover:bg-surface-alt"><X /></button>
+                            <button type="button" onClick={() => setSelectedTraining(null)} aria-label="Fechar aula" className="rounded-lg p-2 hover:bg-slate-100"><X /></button>
                         </header>
                         <div className="space-y-5 overflow-y-auto p-5">
-                            <div className="aspect-video overflow-hidden rounded-mx-xl bg-pure-black">
+                            <div className="aspect-video overflow-hidden rounded-xl bg-slate-950">
                                 {getYoutubeEmbed(selectedTraining.video_url) ? (
                                     <YouTubeCompliancePlayer videoUrl={selectedTraining.video_url} onProgressUpdate={setWatchedPercent} onCompleted={() => setWatchedPercent(100)} />
                                 ) : selectedTraining.video_url ? (
@@ -368,7 +379,7 @@ export default function VendedorTreinamentosContainer() {
                             </div>
                             <div className="flex flex-wrap gap-3">
                                 {selectedTraining.material_url && (
-                                    <a href={selectedTraining.material_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-mx-xl border border-border-subtle px-4 py-2 text-sm font-semibold text-brand-primary">
+                                    <a href={selectedTraining.material_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-mx-blue">
                                         <Download size={16} /> Abrir material complementar
                                     </a>
                                 )}
@@ -376,7 +387,7 @@ export default function VendedorTreinamentosContainer() {
                                     type="button"
                                     disabled={savingInteraction || (!completedIds.has(selectedTraining.id) && (quizQuestoes >= 5 || (Boolean(selectedTraining.video_url) && watchedPercent < 95)))}
                                     onClick={() => void handleMarkCompleted()}
-                                    className="inline-flex items-center gap-2 rounded-mx-xl bg-status-success px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                                    className="inline-flex items-center gap-2 rounded-xl bg-mx-green px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                                 >
                                     <CheckCircle2 size={16} />
                                     {completedIds.has(selectedTraining.id)
@@ -394,9 +405,9 @@ export default function VendedorTreinamentosContainer() {
                                 onAprovado={() => void refetch()}
                             />
                             {tarefasDaAula.length > 0 && (
-                                <section className="rounded-mx-xl border border-border-subtle bg-surface-alt/40 p-4">
-                                    <Typography variant="p" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide">
-                                        <CheckCircle2 size={16} className="text-brand-primary" />
+                                <section className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                    <Typography variant="p" className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-mx-navy">
+                                        <CheckCircle2 size={16} className="text-mx-blue" />
                                         Plano de Ação — Tarefa Prática da Aula
                                     </Typography>
                                     <Typography variant="caption" tone="muted" className="mb-3 mt-1 block">
@@ -404,12 +415,12 @@ export default function VendedorTreinamentosContainer() {
                                     </Typography>
                                     <div className="space-y-2">
                                         {tarefasDaAula.map(tarefa => (
-                                            <label key={tarefa.id} className="flex cursor-pointer select-none items-start gap-2.5 rounded-mx-md border border-border-subtle bg-white p-2.5 transition-colors hover:border-border-strong">
+                                            <label key={tarefa.id} className="flex cursor-pointer select-none items-start gap-2.5 rounded-lg border border-slate-100 bg-white p-2.5 transition-colors hover:border-slate-200">
                                                 <input
                                                     type="checkbox"
                                                     checked={tarefa.concluida}
                                                     onChange={e => void handleToggleTask(tarefa, e.target.checked)}
-                                                    className="mt-0.5 h-4 w-4 rounded border-border-strong text-brand-primary focus:ring-brand-primary"
+                                                    className="mt-0.5 h-4 w-4 rounded border-slate-300 text-mx-blue focus:ring-mx-blue"
                                                 />
                                                 <span className={`text-xs ${tarefa.concluida ? 'font-medium text-text-tertiary line-through' : 'font-semibold text-text-primary'}`}>
                                                     {tarefa.descricao}
@@ -419,18 +430,18 @@ export default function VendedorTreinamentosContainer() {
                                     </div>
                                 </section>
                             )}
-                            <section className="rounded-mx-xl border border-border-subtle p-4">
-                                <Typography variant="p" className="flex items-center gap-2 font-semibold"><MessageSquare size={16} /> Comentário ou sugestão</Typography>
+                            <section className="rounded-xl border border-slate-200 p-4">
+                                <Typography variant="p" className="flex items-center gap-2 font-semibold text-mx-navy"><MessageSquare size={16} /> Comentário ou sugestão</Typography>
                                 <textarea
                                     value={comment}
                                     onChange={event => setComment(event.target.value)}
                                     maxLength={1000}
                                     rows={4}
-                                    className="mt-3 w-full rounded-mx-xl border border-border-subtle p-3 text-sm outline-none focus:ring-4 focus:ring-brand-primary/20"
+                                    className="mt-3 w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:ring-2 focus:ring-mx-blue"
                                     placeholder="Compartilhe uma dúvida, comentário ou sugestão de conteúdo."
                                 />
                                 <div className="mt-3 flex justify-end">
-                                    <button type="button" disabled={savingInteraction || !comment.trim()} onClick={() => void saveComment()} className="rounded-mx-xl bg-brand-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                                    <button type="button" disabled={savingInteraction || !comment.trim()} onClick={() => void saveComment()} className="rounded-xl bg-mx-blue px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
                                         Salvar comentário
                                     </button>
                                 </div>
