@@ -196,9 +196,9 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
     if (!previousCard) return
     const date = previousCard.date
     const finalized = previousCard.type === 'previous_done'
-    
-    const checkin = checkins.find(c => c.reference_date === date)
-    
+
+    const checkin = checkins.find(c => c.reference_date === date && c.metric_scope === 'daily')
+
     const row = {
       date,
       finalized,
@@ -211,7 +211,7 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
       agend: checkin ? (checkin.agd_cart_today || 0) + (checkin.agd_net_today || 0) : 0,
       vendas: checkin ? (checkin.vnd_porta_prev_day || 0) + (checkin.vnd_cart_prev_day || 0) + (checkin.vnd_net_prev_day || 0) : 0,
     }
-    
+
     handleSelectRow(row)
     setHistoryOpen(true)
   }
@@ -436,9 +436,6 @@ previousCard.type === 'previous_done' ? 'text-emerald-700' : 'text-amber-800'
 </div>
 </div>
 <div className="flex shrink-0 gap-2">
-<button type="button" onClick={() => { setActiveView('list'); setHistoryOpen(true) }} className="inline-flex h-8 items-center justify-center rounded-lg border border-[#DFE0E1] bg-white px-3 text-[11px] font-bold text-[#334155] shadow-sm transition-colors hover:border-[#005BFF] hover:text-[#005BFF]">
-Histórico
-</button>
 <button type="button" onClick={handleAdjustPrevious} className={`inline-flex h-8 items-center justify-center rounded-lg px-3 text-[11px] font-black text-white shadow-sm ${
 previousCard.type === 'previous_done' ? 'bg-[#00A89D]' : 'bg-amber-600'
 }`}>

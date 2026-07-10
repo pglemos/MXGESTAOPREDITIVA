@@ -55,4 +55,3 @@ export function useOfficialSellerPerformance(startDate: string, endDate: string,
   useEffect(() => { void fetchPerformance() }, [fetchPerformance, profile?.id])
   return { rows, performance: rows[0] || null, loading, error, refetch: fetchPerformance }
 }
-
