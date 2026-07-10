@@ -2,7 +2,7 @@
 
 ## Status
 
-Ready for Review
+Done
 
 ## Source
 
@@ -26,6 +26,7 @@ Relatos de produção enviados pela usuária em 10/07/2026, referentes a Cadastr
 - Produção com perfil vendedor: `/carteira-clientes` e `/terminal-mx`.
 - Reproduções: corpo do modal sem `min-h-0`; sobreposição da ficha interceptando o modal `Alterar próximo passo`; confirmação de etapa vazia persistindo progresso no estado local.
 - A política de regularização já permite a solicitação antes da aprovação: os valores seguem como `requested_values` para a RPC e só são aplicados pelo gestor.
+- Produção após deploy `69ff6fdc`: modal de cadastro validado em `390x700` com footer visível; máscara de telefone, BRL e uma única opção `Em andamento` confirmadas. `Executar próximo passo` abriu a ficha; a sugestão `Enviar WhatsApp` alterou o campo no modal ativo. Em `/terminal-mx`, sino abriu o menu, etapa vazia preservou `0%` e a regularização expôs inputs editáveis sem submissão.
 
 ### File List
 
@@ -48,8 +49,10 @@ Relatos de produção enviados pela usuária em 10/07/2026, referentes a Cadastr
 - Regressões focadas: 27 testes passaram.
 - Gates completos: `npm test` (719 testes), `npm run lint` (sem erros; 19 avisos preexistentes), `npm run typecheck` e `npm run build` passaram.
 - Revisão local: `git diff --check` passou. O CodeRabbit está instalado, mas não aceita revisão não interativa sem chave própria; nenhuma credencial foi adicionada.
-- Pendente apenas publicar a `main` e executar o smoke autenticado no deploy de produção.
+- Publicado em `main` no commit `69ff6fdc`; os checks Gitleaks, Atomic Design e ESLint a11y concluíram com sucesso e o deploy Vercel de produção ficou pronto.
+- Smoke autenticado concluído sem salvar alterações nos dados reais.
 
 ### Change Log
 
 - 2026-07-10: Corrige cadastro, mentor comercial e fluxo de fechamento relatados por Mariana; adiciona cobertura de regressão.
+- 2026-07-10: Validação de produção concluída e story encerrada.
