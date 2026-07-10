@@ -120,7 +120,11 @@ export default function VendedorTreinamentosContainer() {
             training_id: selectedTraining.id, user_id: user.id, rating: 5, comment: comment.trim(), updated_at: new Date().toISOString(),
         }, { onConflict: 'training_id,user_id' })
         setSavingInteraction(false)
-        error ? toast.error(error.message) : toast.success('Comentário e sugestão salvos.')
+        if (error) {
+            toast.error(error.message)
+        } else {
+            toast.success('Comentário e sugestão salvos.')
+        }
     }
 
     const handleMarkCompleted = async () => {
@@ -128,7 +132,11 @@ export default function VendedorTreinamentosContainer() {
         setSavingInteraction(true)
         const { error } = await markCompleted(selectedTraining.id)
         setSavingInteraction(false)
-        error ? toast.error(error) : toast.success('Aula concluída e progresso atualizado.')
+        if (error) {
+            toast.error(error)
+        } else {
+            toast.success('Aula concluída e progresso atualizado.')
+        }
     }
 
     const handleToggleTask = async (tarefa: TarefaTreinamento, checked: boolean) => {

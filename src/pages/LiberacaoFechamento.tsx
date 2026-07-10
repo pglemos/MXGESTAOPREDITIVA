@@ -74,7 +74,7 @@ export function LiberacaoFechamento() {
 
   if (!hasPermission) {
     return (
-      <main className="h-screen w-screen flex flex-col items-center justify-center text-center p-6 bg-background">
+      <main className="h-screen w-screen flex flex-col items-center justify-center text-center p-6 bg-surface-alt">
         <ShieldCheck size={64} className="text-status-error/20 mb-6" />
         <Typography variant="h2" className="mb-2 text-status-error font-extrabold uppercase">
           Acesso Restrito
@@ -82,7 +82,7 @@ export function LiberacaoFechamento() {
         <Typography variant="p" tone="muted" className="max-w-md mx-auto text-xs font-semibold leading-relaxed">
           Apenas gestores, supervisores, administradores ou donos de loja podem aprovar a liberação de fechamentos diários atrasados.
         </Typography>
-        <Button onClick={() => navigate('/home')} className="mt-6 bg-brand-primary text-white font-bold">
+        <Button onClick={() => navigate('/home')} className="mt-6 bg-brand-primary hover:bg-brand-primary-hover text-white font-bold rounded-mx-lg">
           Voltar para Início
         </Button>
       </main>
@@ -91,7 +91,7 @@ export function LiberacaoFechamento() {
 
   if (!loading && (!solicitacao || loadError)) {
     return (
-      <main className="h-screen w-screen flex flex-col items-center justify-center text-center p-6 bg-background">
+      <main className="h-screen w-screen flex flex-col items-center justify-center text-center p-6 bg-surface-alt">
         <AlertTriangle size={64} className="text-status-warning/20 mb-6" />
         <Typography variant="h2" className="mb-2 text-text-primary font-extrabold uppercase">
           Solicitação Não Encontrada
@@ -99,7 +99,7 @@ export function LiberacaoFechamento() {
         <Typography variant="p" tone="muted" className="max-w-md mx-auto text-xs font-semibold leading-relaxed">
           {loadError || 'O link de liberação é inválido ou a solicitação expirou. Confirme o link enviado pelo vendedor.'}
         </Typography>
-        <Button onClick={() => navigate('/home')} className="mt-6 bg-brand-primary text-white font-bold">
+        <Button onClick={() => navigate('/home')} className="mt-6 bg-brand-primary hover:bg-brand-primary-hover text-white font-bold rounded-mx-lg">
           Voltar para Início
         </Button>
       </main>
@@ -108,16 +108,16 @@ export function LiberacaoFechamento() {
 
   if (loading || !solicitacao) {
     return (
-      <main className="h-screen w-screen flex items-center justify-center bg-background">
+      <main className="h-screen w-screen flex items-center justify-center bg-surface-alt">
         <Typography variant="p" tone="muted" className="text-xs font-semibold">Carregando solicitação...</Typography>
       </main>
     )
   }
 
   return (
-    <main className="min-h-screen w-full bg-background flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 font-sans">
-      <Card className="w-full max-w-lg bg-white rounded-2xl border border-border-default p-6 shadow-xl space-y-6">
-        <header className="border-b border-border-default pb-4 flex items-center justify-between">
+    <main className="min-h-screen w-full bg-surface-alt flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 font-sans">
+      <Card className="w-full max-w-lg bg-white rounded-mx-lg border border-border-subtle p-mx-md shadow-mx-sm space-y-mx-md">
+        <header className="border-b border-border-subtle pb-4 flex items-center justify-between">
           <div>
             <Typography variant="h1" className="!text-lg !font-black text-brand-primary uppercase">
               Liberação de Fechamento
@@ -131,7 +131,7 @@ export function LiberacaoFechamento() {
 
         <div className="space-y-4 text-xs leading-relaxed text-text-secondary">
           {/* Details */}
-          <div className="bg-background p-4 rounded-xl border border-border-subtle space-y-3 shadow-inner">
+          <div className="bg-surface-alt p-4 rounded-mx-lg border border-border-subtle space-y-3 shadow-inner">
             <div className="flex items-center gap-2">
               <User size={15} className="text-brand-primary" />
               <span className="font-bold text-text-primary">Vendedor:</span>
@@ -154,10 +154,10 @@ export function LiberacaoFechamento() {
             <div className="flex items-center gap-2">
               <CheckCircle2 size={15} className="text-brand-primary" />
               <span className="font-bold text-text-primary">Status:</span>
-              <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+              <span className={`inline-block px-2 py-0.5 rounded-mx-lg text-[10px] font-extrabold ${
                 solicitacao.status === 'liberado'
-                  ? 'bg-secondary text-brand-primary border border-brand-primary'
-                  : 'bg-status-warning-surface text-status-warning border border-status-warning animate-pulse'
+                  ? 'bg-status-success-surface text-status-success border border-status-success/20'
+                  : 'bg-status-warning-surface text-status-warning border border-status-warning/20 animate-pulse'
               }`}>
                 {solicitacao.status.toUpperCase()}
               </span>
@@ -175,14 +175,14 @@ export function LiberacaoFechamento() {
                 value={motivo}
                 onChange={e => setMotivo(e.target.value)}
                 placeholder="Ex: Vendedor teve problemas com a conexão ou ausência justificada..."
-                className="h-20 w-full resize-none rounded-xl border border-border-default p-3 text-xs text-text-primary outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all"
+                className="h-20 w-full resize-none rounded-mx-lg border border-border-subtle p-3 text-xs text-text-primary outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all"
               />
             </div>
           ) : (
-            <div className="bg-secondary text-brand-primary border border-brand-primary p-4 rounded-xl flex items-start gap-2.5 shadow-sm">
-              <CheckCircle2 size={18} className="shrink-0 text-brand-primary mt-0.5" />
+            <div className="bg-status-success-surface text-status-success border border-status-success/20 p-mx-md rounded-mx-lg flex items-start gap-2.5 shadow-sm">
+              <CheckCircle2 size={18} className="shrink-0 text-status-success mt-0.5" />
               <div>
-                <p className="font-black text-xs uppercase">Fechamento Liberado</p>
+                <p className="font-black text-xs uppercase text-status-success">Fechamento Liberado</p>
                 <p className="font-semibold mt-1">
                   Este fechamento já foi liberado e o vendedor já pode preencher e finalizar os dados.
                 </p>
@@ -191,11 +191,11 @@ export function LiberacaoFechamento() {
           )}
         </div>
 
-        <footer className="flex items-center justify-between pt-4 border-t border-border-default">
+        <footer className="flex items-center justify-between pt-4 border-t border-border-subtle">
           <Button
             onClick={() => navigate('/home')}
             variant="outline"
-            className="h-9 px-4 text-xs font-bold border-border-default text-text-secondary hover:bg-background flex items-center gap-1.5"
+            className="h-9 px-4 text-xs font-bold border-border-subtle text-text-secondary hover:bg-background flex items-center gap-1.5 rounded-mx-lg"
           >
             <ArrowLeft size={13} /> Cockpit
           </Button>
@@ -203,7 +203,7 @@ export function LiberacaoFechamento() {
             <Button
               onClick={handleLiberar}
               disabled={liberando}
-              className="h-9 px-6 text-xs font-bold bg-brand-primary text-white hover:bg-brand-primary/90 rounded-lg shadow-md"
+              className="h-9 px-6 text-xs font-bold bg-brand-primary hover:bg-brand-primary-hover text-white rounded-mx-lg shadow-sm"
             >
               {liberando ? 'Processando...' : 'Liberar Fechamento'}
             </Button>

@@ -12,6 +12,7 @@ import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
+import { PageHeading } from '@/components/molecules/PageHeading'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { useStores } from '@/hooks/useTeam'
 import { useStoreDeliveryRules } from '@/hooks/useData'
@@ -105,30 +106,26 @@ export default function OperationalSettings() {
     return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt" id="main-content">
             
-            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0" role="banner">
-                <div className="flex flex-col gap-mx-tiny">
-                    <div className="flex items-center gap-mx-sm">
-                        <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-                        <Typography variant="h1">Parâmetros <span className="text-mx-green-700">MX</span></Typography>
+            <PageHeading
+                title={<span>Parâmetros <span className="text-brand-primary">MX</span></span>}
+                subtitle="CONFIGURAÇÕES DE HARDENING & GOVERNANÇA"
+                actions={
+                    <div className="flex items-center gap-mx-sm shrink-0">
+                        <Button variant="outline" size="icon" onClick={fetchSettings} disabled={isRefetching} className="w-mx-xl h-mx-xl rounded-mx-lg shadow-mx-sm bg-white border border-border-subtle hover:bg-surface-alt text-text-secondary" aria-label="Recarregar configurações">
+                            <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
+                        </Button>
+                        <Button onClick={handleSave} disabled={saving || !selectedStoreId} className="h-mx-xl px-10 rounded-mx-lg shadow-mx-lg bg-brand-primary hover:bg-brand-primary-hover text-white font-black uppercase text-xs tracking-widest">
+                            {saving ? <RefreshCw className="animate-spin mr-2" aria-hidden="true" /> : <ShieldCheck size={18} className="mr-2" aria-hidden="true" />} FIRMAR PROTOCOLOS
+                        </Button>
                     </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">CONFIGURAÇÕES DE HARDENING & GOVERNANÇA</Typography>
-                </div>
-
-                <div className="flex items-center gap-mx-sm shrink-0">
-                    <Button variant="outline" size="icon" onClick={fetchSettings} disabled={isRefetching} className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-sm bg-white" aria-label="Recarregar configurações">
-                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} aria-hidden="true" />
-                    </Button>
-                    <Button onClick={handleSave} disabled={saving || !selectedStoreId} className="h-mx-xl px-10 rounded-mx-full shadow-mx-lg bg-brand-secondary font-black uppercase text-xs tracking-widest">
-                        {saving ? <RefreshCw className="animate-spin mr-2" aria-hidden="true" /> : <ShieldCheck size={18} className="mr-2" aria-hidden="true" />} FIRMAR PROTOCOLOS
-                    </Button>
-                </div>
-            </header>
+                }
+            />
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg pb-32">
                 <aside className="lg:col-span-4 flex flex-col gap-mx-lg">
-                    <Card className="p-mx-lg md:p-14 space-y-mx-10 border-none shadow-mx-lg bg-white">
-                        <header className="flex items-center gap-mx-sm border-b border-border-default pb-8">
-                            <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center text-brand-primary shadow-inner" aria-hidden="true"><Settings2 size={28} /></div>
+                    <Card className="rounded-mx-lg border border-border-subtle p-mx-md space-y-mx-md bg-white shadow-mx-sm">
+                        <header className="flex items-center gap-mx-sm border-b border-border-subtle pb-4">
+                            <div className="w-mx-14 h-mx-14 rounded-mx-lg bg-surface-alt border border-border-subtle flex items-center justify-center text-brand-primary shadow-inner" aria-hidden="true"><Settings2 size={28} /></div>
                             <Typography variant="h3" className="uppercase tracking-tight font-black">Unidade Alvo</Typography>
                         </header>
                         
@@ -138,7 +135,7 @@ export default function OperationalSettings() {
                                 <select
                                     id="store-select"
                                     value={selectedStoreId} onChange={(e) => handleStoreChange(e.target.value)}
-                                    className="w-full h-mx-14 px-6 bg-surface-alt border border-border-default rounded-mx-xl text-sm font-bold text-text-primary outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all appearance-none cursor-pointer shadow-inner uppercase"
+                                    className="w-full h-mx-14 px-6 bg-surface-alt border border-border-subtle rounded-mx-lg text-sm font-bold text-text-primary outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all appearance-none cursor-pointer shadow-inner uppercase"
                                 >
                                     <option value="">Selecione a unidade...</option>
                                     {lojas.map(s => <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>)}
@@ -148,14 +145,14 @@ export default function OperationalSettings() {
                         </div>
 
                         {selectedStoreId && (
-                            <div className="p-mx-md bg-mx-indigo-50 border border-mx-indigo-100 shadow-inner flex items-center gap-mx-sm rounded-mx-xl" role="status">
+                            <div className="p-mx-md bg-mx-indigo-50 border border-mx-indigo-100 shadow-inner flex items-center gap-mx-sm rounded-mx-lg" role="status">
                                 <div className="w-2.5 h-2.5 rounded-mx-full bg-brand-primary animate-pulse" aria-hidden="true" />
                                 <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest">Unidade Indexada para Configuração</Typography>
                             </div>
                         )}
                     </Card>
 
-                    <Card className="p-mx-lg md:p-14 bg-brand-secondary text-white border-none shadow-mx-xl relative overflow-hidden group">
+                    <Card className="rounded-mx-lg bg-brand-primary text-white border-none p-mx-md shadow-mx-sm relative overflow-hidden group">
                         <div className="absolute -right-4 -bottom-4 opacity-10 rotate-12 group-hover:rotate-0 transition-transform duration-700" aria-hidden="true"><Shield size={160} /></div>
                         <Typography variant="h3" tone="white" className="mb-6 uppercase tracking-tight font-black">Nível de Hardening</Typography>
                         <Typography variant="p" tone="white" className="text-xs font-bold leading-relaxed italic opacity-60 uppercase tracking-tight">
@@ -165,11 +162,11 @@ export default function OperationalSettings() {
                 </aside>
 
                 <section className="lg:col-span-8">
-                    <Card className="p-mx-lg md:p-14 md:p-14 border-none shadow-mx-xl bg-white space-y-mx-xl">
-                        <header className="border-b border-border-default pb-8 flex items-center justify-between gap-mx-sm">
+                    <Card className="rounded-mx-lg border border-border-subtle p-mx-md bg-white space-y-mx-md shadow-mx-sm">
+                        <header className="border-b border-border-subtle pb-4 flex items-center justify-between gap-mx-sm">
                             <div>
                                 <Typography variant="h2" className="uppercase tracking-tighter">Políticas Operacionais</Typography>
-                                <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black font-black">REGRAS DE NEGÓCIO MANDATÁRIAS</Typography>
+                                <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black">REGRAS DE NEGÓCIO MANDATÁRIAS</Typography>
                             </div>
                             <Badge variant="outline" className="text-mx-micro font-black uppercase shrink-0">Persistência em breve</Badge>
                         </header>
@@ -180,9 +177,9 @@ export default function OperationalSettings() {
                             {[
                                 { label: 'Diagnóstico detalhado', desc: 'Habilitar registro ampliado de eventos operacionais para suporte técnico', field: 'audit_mode' },
                                 { label: 'Fechamento Diário Estrito', desc: 'Bloquear acesso ao cockpit sem o Fechamento Diário obrigatório', field: 'strict_checkin' },
-                           { label: 'Fechamento Retroativo', desc: 'Autorizar gerência a retroagir dados em caso de falha sistêmica', field: 'allow_manual_retro' }
+                                { label: 'Fechamento Retroativo', desc: 'Autorizar gerência a retroagir dados em caso de falha sistêmica', field: 'allow_manual_retro' }
                             ].map((s) => (
-                                <div key={s.field} className="flex items-center justify-between group p-mx-md rounded-mx-2xl hover:bg-surface-alt transition-all">
+                                <div key={s.field} className="flex items-center justify-between group p-mx-md rounded-mx-lg hover:bg-surface-alt transition-all">
                                     <div className="space-y-mx-tiny">
                                         <Typography variant="h3" className="text-base group-hover:text-brand-primary transition-colors uppercase tracking-tight font-black">{s.label}</Typography>
                                         <Typography variant="caption" tone="muted" className="text-mx-tiny font-black uppercase opacity-60">{s.desc}</Typography>
@@ -191,7 +188,7 @@ export default function OperationalSettings() {
                                         variant={settings[s.field as keyof typeof settings] ? 'secondary' : 'outline'}
                                         onClick={() => setSettings(p => ({ ...p, [s.field]: !p[s.field as keyof typeof settings] }))}
                                         disabled
-                                        className="w-mx-3xl h-mx-xl rounded-mx-full font-black text-mx-tiny shadow-sm bg-white"
+                                        className="w-mx-3xl h-mx-xl rounded-mx-lg font-black text-mx-tiny shadow-sm bg-white border border-border-subtle"
                                         aria-pressed={!!settings[s.field as keyof typeof settings]}
                                     >
                                         {settings[s.field as keyof typeof settings] ? 'ATIVADO' : 'OFF'}
@@ -199,30 +196,30 @@ export default function OperationalSettings() {
                                 </div>
                             ))}
 
-                                <div className="flex items-center justify-between group p-mx-md rounded-mx-2xl hover:bg-surface-alt transition-all">
+                                <div className="flex items-center justify-between group p-mx-md rounded-mx-lg hover:bg-surface-alt transition-all">
                                     <div className="space-y-mx-tiny">
                                         <Typography variant="h3" className="text-base group-hover:text-brand-primary transition-colors uppercase tracking-tight font-black">Justiça Matemática (v1.1)</Typography>
                                         <Typography variant="caption" tone="muted" className="text-mx-tiny font-black uppercase opacity-60">Base de cálculo da projeção e ritmo diário</Typography>
                                     </div>
-                                    <div className="flex p-mx-tiny bg-white border border-border-default rounded-mx-full shadow-mx-sm" role="radiogroup">
+                                    <div className="flex p-mx-tiny bg-white border border-border-subtle rounded-mx-lg shadow-mx-sm" role="radiogroup">
                                         <Button 
-                                            variant={metaRules?.projection_mode === 'calendar' ? 'secondary' : 'ghost'} size="sm"
+                                            variant={metaRules?.projection_mode === 'calendar' ? 'brand' : 'ghost'} size="sm"
                                             onClick={() => updateMetaRules({ projection_mode: 'calendar' })}
-                                            className="h-mx-9 px-6 rounded-mx-full text-mx-tiny uppercase font-black"
+                                            className="h-mx-9 px-6 rounded-mx-lg text-mx-tiny uppercase font-black"
                                         >
                                             CALENDÁRIO
                                         </Button>
                                         <Button 
-                                            variant={metaRules?.projection_mode === 'business' ? 'secondary' : 'ghost'} size="sm"
+                                            variant={metaRules?.projection_mode === 'business' ? 'brand' : 'ghost'} size="sm"
                                             onClick={() => updateMetaRules({ projection_mode: 'business' })}
-                                            className="h-mx-9 px-6 rounded-mx-full text-mx-tiny uppercase font-black"
+                                            className="h-mx-9 px-6 rounded-mx-lg text-mx-tiny uppercase font-black"
                                         >
                                             DIAS ÚTEIS
                                         </Button>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-between group p-mx-md rounded-mx-2xl hover:bg-surface-alt transition-all">
+                                <div className="flex items-center justify-between group p-mx-md rounded-mx-lg hover:bg-surface-alt transition-all">
                                     <div className="space-y-mx-tiny">
                                         <Typography variant="h3" className="text-base group-hover:text-brand-primary transition-colors uppercase tracking-tight font-black">Horário Limite Matinal</Typography>
                                     <Typography variant="caption" tone="muted" className="text-mx-tiny font-black uppercase opacity-60">Deadline para disparo de relatórios automáticos de rede</Typography>
@@ -235,13 +232,13 @@ export default function OperationalSettings() {
                                         type="time" value={settings.morning_report_time}
                                         onChange={e => setSettings(p => ({ ...p, morning_report_time: e.target.value }))}
                                         disabled
-                                        className="h-mx-xl pl-10 pr-6 bg-white border border-border-default rounded-mx-xl font-mono-numbers font-black text-sm text-text-primary focus:border-brand-primary outline-none shadow-mx-inner transition-all disabled:opacity-50"
+                                        className="h-mx-xl pl-10 pr-6 bg-white border border-border-subtle rounded-mx-lg font-mono-numbers font-black text-sm text-text-primary focus:border-brand-primary outline-none shadow-mx-inner transition-all disabled:opacity-50"
                                     />
                                 </div>
                             </div>
                         </div>
 
-                        <footer className="pt-12 border-t border-border-default flex items-start gap-mx-sm">
+                        <footer className="pt-12 border-t border-border-subtle flex items-start gap-mx-sm">
                             <ShieldAlert size={20} className="text-status-warning shrink-0 mt-0.5" aria-hidden="true" />
                             <Typography variant="tiny" tone="muted" className="leading-relaxed uppercase font-black">Qualquer alteração nestes parâmetros será registrada no log de auditoria global com timestamp imutável e ID do administrador responsável.</Typography>
                         </footer>
@@ -249,8 +246,8 @@ export default function OperationalSettings() {
 
                     {/* Email Recipients Section */}
                     {selectedStoreId && (
-                        <Card className="mt-mx-lg p-mx-10 md:p-14 border-none shadow-mx-xl bg-white space-y-mx-xl">
-                            <header className="border-b border-border-default pb-8 flex items-center justify-between">
+                        <Card className="mt-mx-lg p-mx-md border border-border-subtle shadow-mx-sm bg-white space-y-mx-md rounded-mx-lg">
+                            <header className="border-b border-border-subtle pb-4 flex items-center justify-between">
                                 <div>
                                     <Typography variant="h2" className="uppercase tracking-tighter">Destinatários Oficiais</Typography>
                                     <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black">DISTRIBUIÇÃO AUTOMÁTICA DE RELATÓRIOS</Typography>
@@ -270,7 +267,7 @@ export default function OperationalSettings() {
                                                 <Typography variant="caption" className="font-black uppercase tracking-widest">{list.label}</Typography>
                                                 <Typography variant="tiny" tone="muted" className="uppercase font-black">{list.desc}</Typography>
                                             </div>
-                                            <Badge variant="outline" className="text-mx-micro font-black border-border-strong uppercase">{emailLists[list.key as keyof typeof emailLists].split(',').filter(Boolean).length} E-mails</Badge>
+                                            <Badge variant="outline" className="text-mx-micro font-black border-border-subtle uppercase">{emailLists[list.key as keyof typeof emailLists].split(',').filter(Boolean).length} E-mails</Badge>
                                         </div>
                                         <label htmlFor={`emails-${list.key}`} className="sr-only">{list.label} - Lista de emails</label>
                                         <textarea 
@@ -278,13 +275,13 @@ export default function OperationalSettings() {
                                             value={emailLists[list.key as keyof typeof emailLists]}
                                             onChange={e => setEmailLists(prev => ({ ...prev, [list.key]: e.target.value }))}
                                             placeholder="email1@empresa.com, email2@empresa.com..."
-                                            className="w-full h-mx-3xl p-mx-md bg-surface-alt border border-border-default rounded-mx-2xl text-xs font-bold focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all outline-none resize-none shadow-mx-inner"
+                                            className="w-full h-mx-3xl p-mx-md bg-surface-alt border border-border-subtle rounded-mx-lg text-xs font-bold focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all outline-none resize-none shadow-mx-inner"
                                         />
                                     </div>
                                 ))}
                             </div>
 
-                            <div className="bg-mx-indigo-50 p-mx-md rounded-mx-2xl border border-mx-indigo-100 flex items-center gap-mx-sm">
+                            <div className="bg-mx-indigo-50 p-mx-md rounded-mx-lg border border-border-subtle flex items-center gap-mx-sm">
                                 <Info size={18} className="text-brand-primary shrink-0" aria-hidden="true" />
                                 <Typography variant="tiny" tone="brand" className="font-black uppercase leading-tight">
                                     Separe os e-mails por vírgula. O sistema validará a sintaxe antes de disparar as automações de rede.
