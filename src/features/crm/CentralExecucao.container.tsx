@@ -596,8 +596,8 @@ export function CentralExecucao() {
   const dateFullLabel = hoje.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).replace(' de ', ' de ')
 
   return (
-<main className="h-full w-full min-w-0 overflow-y-auto bg-slate-50 p-4 no-scrollbar sm:p-6">
-<div className="mx-auto flex min-w-0 max-w-full flex-col pb-20">
+    <main className="h-full w-full min-w-0 overflow-y-auto bg-surface-alt no-scrollbar px-mx-sm py-mx-md sm:px-mx-md lg:px-mx-lg">
+      <div className="mx-auto flex min-w-0 max-w-[1500px] w-full flex-col pb-20 gap-4">
 <SellerPageHeader icon={Target} title="Rotina do Dia" subtitle="Organize e execute seu dia com foco" actions={(
 <div className="hidden rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-right sm:block">
 <p className="text-[13px] font-bold capitalize text-slate-900">{weekdayLabel}</p>

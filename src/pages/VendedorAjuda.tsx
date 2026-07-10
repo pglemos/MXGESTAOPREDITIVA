@@ -8,10 +8,11 @@ import { SellerPageHeader } from '@/components/seller/SellerPageHeader'
 
 export default function VendedorAjuda() {
   return (
-    <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
-<SellerPageHeader icon={LifeBuoy} title="Ajuda" subtitle="Suporte operacional para o vendedor" />
+    <main className="w-full h-full flex flex-col overflow-y-auto no-scrollbar bg-surface-alt px-mx-sm py-mx-md sm:px-mx-md lg:px-mx-lg">
+      <div className="mx-auto w-full max-w-[1500px] flex flex-col gap-4 pb-32">
+        <SellerPageHeader icon={LifeBuoy} title="Ajuda" subtitle="Suporte operacional para o vendedor" />
 
-      <section className="grid grid-cols-1 gap-mx-lg lg:grid-cols-3 pb-32">
+        <section className="grid grid-cols-1 gap-mx-lg lg:grid-cols-3">
         <Card className="border-none bg-white p-mx-lg shadow-mx-lg lg:col-span-2">
           <div className="flex items-start gap-mx-md">
             <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
@@ -67,6 +68,7 @@ export default function VendedorAjuda() {
           </div>
         </Card>
       </section>
-    </main>
-  )
+    </div>
+  </main>
+)
 }

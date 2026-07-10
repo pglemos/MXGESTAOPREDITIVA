@@ -42,8 +42,8 @@ export default function VendedorConfiguracoes() {
   const { membership, profile, role } = useAuth()
 
   return (
-    <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
-      <div className="flex flex-col gap-mx-lg pb-28">
+    <main className="h-full w-full overflow-y-auto bg-surface-alt px-mx-sm py-mx-md sm:px-mx-md lg:px-mx-lg no-scrollbar">
+      <div className="mx-auto w-full max-w-[1500px] flex flex-col gap-4 pb-28">
 <SellerPageHeader 
 icon={ShieldCheck}
 title="Configurações" 

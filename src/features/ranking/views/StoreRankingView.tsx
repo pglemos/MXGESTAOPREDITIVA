@@ -26,53 +26,52 @@ export function StoreRankingView() {
 
   return (
     <RankingErrorBoundary sectionName="Ranking da Loja">
-      <div className="min-h-screen bg-slate-50 p-4 font-body sm:p-6">
-        <SellerPageHeader
-          icon={Trophy}
-          title="Ranking"
-          subtitle="Acompanhe sua posição, a corrida do período e as bonificações da loja."
-          actions={(
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-1 flex-wrap">
-                {RANKING_PERIODOS.map(p => (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => data.setPeriodo(p)}
-                    className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all ${
-                      data.periodo === p
-                        ? 'bg-white text-green-700 shadow-sm border border-green-200'
-                        : 'text-slate-500 hover:text-slate-700'
-                    }`}
-                  >
-                    {p}
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <label htmlFor="ranking-unidade" className="text-[11px] font-semibold text-slate-500">
-                  Unidade
-                </label>
-                <select
-                  id="ranking-unidade"
-                  value={data.unidade}
-                  onChange={e => data.setUnidade(e.target.value)}
-                  className="text-[12px] border border-slate-200 rounded-lg px-3 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-green-300"
-                >
-                  <option value="todas">Todas as unidades</option>
-                  {data.unidades.map(u => (
-                    <option key={u} value={u}>
-                      {u}
-                    </option>
+      <main className="h-full w-full min-w-0 overflow-y-auto bg-surface-alt font-body no-scrollbar px-mx-sm py-mx-md sm:px-mx-md lg:px-mx-lg pb-12">
+        <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-4">
+          <SellerPageHeader
+            icon={Trophy}
+            title="Ranking"
+            subtitle="Acompanhe sua posição, a corrida do período e as bonificações da loja."
+            actions={(
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-1 flex-wrap">
+                  {RANKING_PERIODOS.map(p => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => data.setPeriodo(p)}
+                      className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all ${
+                        data.periodo === p
+                          ? 'bg-white text-green-700 shadow-sm border border-green-200'
+                          : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                    >
+                      {p}
+                    </button>
                   ))}
-                </select>
-              </div>
-            </div>
-          )}
-        />
+                </div>
 
-        <div className="space-y-5 pt-4">
+                <div className="flex items-center gap-2">
+                  <label htmlFor="ranking-unidade" className="text-[11px] font-semibold text-slate-500">
+                    Unidade
+                  </label>
+                  <select
+                    id="ranking-unidade"
+                    value={data.unidade}
+                    onChange={e => data.setUnidade(e.target.value)}
+                    className="text-[12px] border border-slate-200 rounded-lg px-3 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-green-300"
+                  >
+                    <option value="todas">Todas as unidades</option>
+                    {data.unidades.map(u => (
+                      <option key={u} value={u}>
+                        {u}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+          />
 
           <div className="flex items-center gap-2 bg-green-50 border border-green-100 rounded-xl px-4 py-2">
             <Info className="w-4 h-4 text-green-600 flex-shrink-0" />
@@ -107,7 +106,7 @@ export function StoreRankingView() {
 
           <TabelaRanking vendedores={data.vendedores} meta={data.metaPeriodo} meuId={data.meuId} />
         </div>
-      </div>
+      </main>
     </RankingErrorBoundary>
   )
 }

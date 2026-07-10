@@ -53,8 +53,8 @@ export default function MinhaRemuneracaoPage() {
 
   return (
     <div className="pb-10 -m-6 lg:-m-8 min-h-screen" style={{ background: 'var(--color-seller-screen-bg)' }}>
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 space-y-5">
-<SellerPageHeader className="border-white/10 bg-[#071723] shadow-none [&_h1]:text-white [&_p]:text-slate-400 [&>div>svg]:text-emerald-400" icon={TrendingUp} title="Início" subtitle={`${saudacaoPorHora()}, ${userName}. Foque no que importa. Venda mais e ganhe mais.`} actions={(<div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white"><Calendar className="w-4 h-4 text-emerald-400" />Este mês<ChevronDown className="w-4 h-4 text-slate-400" /></div>)} />
+      <div className="max-w-[1500px] mx-auto px-mx-sm py-mx-md sm:px-mx-md lg:px-mx-lg space-y-4">
+        <SellerPageHeader className="border-white/10 bg-[#071723] shadow-none [&_h1]:text-white [&_p]:text-slate-400 [&>div>svg]:text-emerald-400" icon={TrendingUp} title="Início" subtitle={`${saudacaoPorHora()}, ${userName}. Foque no que importa. Venda mais e ganhe mais.`} actions={(<div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white"><Calendar className="w-4 h-4 text-emerald-400" />Este mês<ChevronDown className="w-4 h-4 text-slate-400" /></div>)} />
 
         {!data.disponivel && (
           <div className="flex items-center gap-2 rounded-xl px-4 py-3" style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}>

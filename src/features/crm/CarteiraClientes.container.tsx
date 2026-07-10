@@ -560,8 +560,8 @@ export function CarteiraClientes() {
 
   if (activeTab === 'ataque') {
     return (
-      <main className="h-full w-full min-w-0 overflow-y-auto bg-slate-50 text-text-primary no-scrollbar">
-        <div className="mx-auto flex w-full max-w-[1440px] min-w-0 flex-col gap-5 px-4 py-6 sm:px-4 xl:px-8">
+      <main className="h-full w-full min-w-0 overflow-y-auto bg-surface-alt text-text-primary no-scrollbar px-mx-sm py-mx-md sm:px-mx-md lg:px-mx-lg">
+        <div className="mx-auto flex w-full max-w-[1500px] min-w-0 flex-col gap-4">
 <SellerPageHeader icon={Users} title="Mentor Comercial" subtitle="Plano de ataque da carteira" actions={tabNav} />
           <PlanoAtaqueTab
             clientes={carteiraClientes}
@@ -596,8 +596,8 @@ export function CarteiraClientes() {
   }
 
   return (
-  <main className="h-full w-full min-w-0 overflow-y-auto bg-slate-50 text-text-primary no-scrollbar">
-    <div className="mx-auto flex w-full max-w-[1440px] min-w-0 flex-col gap-5 px-4 py-6 sm:px-4 xl:px-8">
+  <main className="h-full w-full min-w-0 overflow-y-auto bg-surface-alt text-text-primary no-scrollbar px-mx-sm py-mx-md sm:px-mx-md lg:px-mx-lg">
+    <div className="mx-auto flex w-full max-w-[1500px] min-w-0 flex-col gap-4">
         <SellerPageHeader icon={Users} title="Mentor Comercial" subtitle="Plano de ataque da carteira" actions={tabNav} />
 
 <div className="flex flex-wrap justify-end gap-2">

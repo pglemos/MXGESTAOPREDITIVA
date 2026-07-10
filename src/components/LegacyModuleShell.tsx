@@ -12,8 +12,8 @@ export default function LegacyModuleShell({ children }: PropsWithChildren) {
       {/* Content Layer */}
       <div className="relative z-10 w-full min-h-full">
         <div className={cn(
-          "p-mx-sm sm:p-6 md:p-8 lg:p-10",
-          "max-w-7xl mx-auto w-full",
+          "px-mx-sm py-mx-md sm:px-mx-md lg:px-mx-lg",
+          "max-w-[1500px] mx-auto w-full",
           "transition-all duration-500 ease-in-out"
         )}>
           {children}
