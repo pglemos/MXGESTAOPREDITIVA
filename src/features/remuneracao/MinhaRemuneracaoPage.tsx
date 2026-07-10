@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { AlertTriangle, Calendar, ChevronDown, RefreshCw, TrendingUp } from 'lucide-react'
-import { SellerPageHeader } from '@/components/seller/SellerPageHeader'
+import { AlertTriangle, Calendar, ChevronDown, RefreshCw } from 'lucide-react'
 import { useMinhaRemuneracaoDashboard } from './hooks/useMinhaRemuneracaoDashboard'
 import { CommissionHeroCard } from './components/dashboard/CommissionHeroCard'
 import { MilestoneCard } from './components/dashboard/MilestoneCard'
@@ -54,7 +53,21 @@ export default function MinhaRemuneracaoPage() {
   return (
     <div className="pb-10 -m-6 lg:-m-8 min-h-screen" style={{ background: 'var(--color-seller-screen-bg)' }}>
       <div className="max-w-[1500px] mx-auto px-mx-sm py-mx-md sm:px-mx-md lg:px-mx-lg space-y-4">
-        <SellerPageHeader className="border-white/10 bg-[#071723] shadow-none [&_h1]:text-white [&_p]:text-slate-400 [&>div>svg]:text-emerald-400" icon={TrendingUp} title="Início" subtitle={`${saudacaoPorHora()}, ${userName}. Foque no que importa. Venda mais e ganhe mais.`} actions={(<div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white"><Calendar className="w-4 h-4 text-emerald-400" />Este mês<ChevronDown className="w-4 h-4 text-slate-400" /></div>)} />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-white">{saudacaoPorHora()}, {userName}! 🚀</h1>
+            <p className="text-slate-400 text-sm mt-0.5">Foque no que importa. Venda mais e ganhe mais.</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <button className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors shadow-sm bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10">
+                <Calendar className="w-4 h-4 text-slate-400" />
+                Este mês
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 transition-transform" />
+              </button>
+            </div>
+          </div>
+        </div>
 
         {!data.disponivel && (
           <div className="flex items-center gap-2 rounded-xl px-4 py-3" style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}>
