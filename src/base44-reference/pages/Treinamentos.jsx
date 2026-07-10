@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -20,6 +20,178 @@ const levelColors = {
   "N4 Alta Performance": "bg-purple-100 text-purple-700",
 };
 
+const YouTubeCompliancePlayer = ({ videoUrl, onProgressUpdate, onCompleted }) => {
+  const containerId = useRef(`yt-player-${Math.random().toString(36).substr(2, 9)}`);
+  const playerRef = useRef(null);
+  const highestTimeRef = useRef(0);
+  const intervalRef = useRef(null);
+
+  const getYoutubeId = (url) => {
+    if (!url) return null;
+    const match = url.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?v=|embed\/))([\w-]{6,})/);
+    return match ? match[1] : null;
+  };
+
+  const videoId = getYoutubeId(videoUrl);
+
+  useEffect(() => {
+    if (!videoId) return;
+
+    highestTimeRef.current = 0;
+
+    // Setup YouTube Iframe API if not present
+    if (!window.YT) {
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      const firstScriptTag = document.getElementsByTagName("script")[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    }
+
+    const initPlayer = () => {
+      playerRef.current = new window.YT.Player(containerId.current, {
+        height: "100%",
+        width: "100%",
+        videoId: videoId,
+        playerVars: {
+          autoplay: 0,
+          controls: 1,
+          disablekb: 1,
+          fs: 1,
+          modestbranding: 1,
+          rel: 0,
+          showinfo: 0,
+          iv_load_policy: 3,
+        },
+        events: {
+          onStateChange: (event) => {
+            if (event.data === 1) {
+              startTracking();
+            } else {
+              stopTracking();
+            }
+          },
+        },
+      });
+    };
+
+    if (window.YT && window.YT.Player) {
+      initPlayer();
+    } else {
+      const prevCallback = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => {
+        if (prevCallback) prevCallback();
+        initPlayer();
+      };
+    }
+
+    return () => {
+      stopTracking();
+      if (playerRef.current && typeof playerRef.current.destroy === "function") {
+        playerRef.current.destroy();
+      }
+    };
+  }, [videoId]);
+
+  const startTracking = () => {
+    if (intervalRef.current) return;
+    intervalRef.current = setInterval(() => {
+      if (!playerRef.current || typeof playerRef.current.getCurrentTime !== "function") return;
+
+      const currentTime = playerRef.current.getCurrentTime();
+      const duration = playerRef.current.getDuration() || 0;
+
+      try {
+        const rate = playerRef.current.getPlaybackRate();
+        if (rate > 1.5) {
+          playerRef.current.setPlaybackRate(1.5);
+          toast.warning("A velocidade máxima permitida para este treinamento é 1.5x.");
+        }
+      } catch (e) {}
+
+      // Block scrubbing forward
+      if (currentTime > highestTimeRef.current + 2.5) {
+        playerRef.current.seekTo(highestTimeRef.current, true);
+        toast.warning("Não é permitido avançar o vídeo para burlar o progresso da aula.");
+      } else {
+        if (currentTime > highestTimeRef.current) {
+          highestTimeRef.current = currentTime;
+        }
+      }
+
+      const percent = duration > 0 ? (highestTimeRef.current / duration) * 100 : 0;
+      onProgressUpdate(percent);
+
+      if (duration > 0 && highestTimeRef.current >= duration * 0.95) {
+        onCompleted();
+      }
+    }, 500);
+  };
+
+  const stopTracking = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+
+  return <div className="h-full w-full"><div id={containerId.current} className="h-full w-full" /></div>;
+};
+
+const HTML5CompliancePlayer = ({ videoUrl, onProgressUpdate, onCompleted }) => {
+  const videoRef = useRef(null);
+  const highestTimeRef = useRef(0);
+
+  useEffect(() => {
+    highestTimeRef.current = 0;
+  }, [videoUrl]);
+
+  const handleTimeUpdate = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const currentTime = video.currentTime;
+    const duration = video.duration || 0;
+
+    if (currentTime > highestTimeRef.current + 2.5) {
+      video.currentTime = highestTimeRef.current;
+      toast.warning("Não é permitido avançar o vídeo para burlar o progresso da aula.");
+    } else {
+      if (currentTime > highestTimeRef.current) {
+        highestTimeRef.current = currentTime;
+      }
+    }
+
+    const percent = duration > 0 ? (highestTimeRef.current / duration) * 100 : 0;
+    onProgressUpdate(percent);
+
+    if (duration > 0 && highestTimeRef.current >= duration * 0.95) {
+      onCompleted();
+    }
+  };
+
+  const handleRateChange = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.playbackRate > 1.5) {
+      video.playbackRate = 1.5;
+      toast.warning("A velocidade máxima permitida para este treinamento é 1.5x.");
+    }
+  };
+
+  return (
+    <video
+      ref={videoRef}
+      className="h-full w-full"
+      controls
+      preload="metadata"
+      src={videoUrl}
+      onTimeUpdate={handleTimeUpdate}
+      onRateChange={handleRateChange}
+      controlsList="nodownload"
+    />
+  );
+};
+
 export default function Treinamentos() {
   const [trainings, setTrainings] = useState([]);
   const [progress, setProgress] = useState([]);
@@ -30,6 +202,7 @@ export default function Treinamentos() {
   const [selectedTraining, setSelectedTraining] = useState(null);
   const [comment, setComment] = useState("");
   const [savingInteraction, setSavingInteraction] = useState(false);
+  const [watchedPercent, setWatchedPercent] = useState(0);
 
   useEffect(() => {
     Promise.all([
@@ -65,6 +238,7 @@ export default function Treinamentos() {
   const openTraining = async (training) => {
     setSelectedTraining(training);
     setComment("");
+    setWatchedPercent(progress.some(p => p.training_id === training.id && p.completed) ? 100 : 0);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const { data } = await supabase.from("treinamento_avaliacoes").select("comment").eq("training_id", training.id).eq("user_id", user.id).maybeSingle();
@@ -288,14 +462,34 @@ export default function Treinamentos() {
             <div className="space-y-5 overflow-y-auto p-5">
               <div className="aspect-video overflow-hidden rounded-xl bg-slate-950">
                 {youtubeEmbed(selectedTraining.video_url) ? (
-                  <iframe className="h-full w-full" src={youtubeEmbed(selectedTraining.video_url)} title={selectedTraining.title} allow="accelerometer; autoplay; encrypted-media; picture-in-picture" allowFullScreen />
+                  <YouTubeCompliancePlayer
+                    videoUrl={selectedTraining.video_url}
+                    onProgressUpdate={setWatchedPercent}
+                    onCompleted={() => setWatchedPercent(100)}
+                  />
                 ) : selectedTraining.video_url ? (
-                  <video className="h-full w-full" controls preload="metadata" src={selectedTraining.video_url} />
+                  <HTML5CompliancePlayer
+                    videoUrl={selectedTraining.video_url}
+                    onProgressUpdate={setWatchedPercent}
+                    onCompleted={() => setWatchedPercent(100)}
+                  />
                 ) : <div className="grid h-full place-items-center text-sm text-white/70">Vídeo ainda não publicado.</div>}
               </div>
               <div className="flex flex-wrap gap-3">
                 {selectedTraining.material_url && <a href={selectedTraining.material_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-mx-blue"><Download size={16} /> Abrir material complementar</a>}
-                <button type="button" disabled={savingInteraction} onClick={() => void markCompleted()} className="inline-flex items-center gap-2 rounded-xl bg-mx-green px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"><CheckCircle2 size={16} /> Marcar como concluída</button>
+                <button
+                  type="button"
+                  disabled={savingInteraction || (!completedIds.has(selectedTraining.id) && selectedTraining.video_url && watchedPercent < 95)}
+                  onClick={() => void markCompleted()}
+                  className="inline-flex items-center gap-2 rounded-xl bg-mx-green px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                >
+                  <CheckCircle2 size={16} />
+                  {completedIds.has(selectedTraining.id)
+                    ? "Concluída"
+                    : watchedPercent >= 95
+                    ? "Concluir Aula"
+                    : `Concluir Aula (${Math.round(watchedPercent)}%)`}
+                </button>
               </div>
               <section className="rounded-xl border border-slate-200 p-4">
                 <h3 className="flex items-center gap-2 font-semibold text-mx-navy"><MessageSquare size={16} /> Comentário ou sugestão</h3>

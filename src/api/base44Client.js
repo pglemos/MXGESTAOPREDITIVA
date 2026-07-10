@@ -1145,8 +1145,22 @@ export const base44 = {
           id: r.id,
           title: r.title,
           description: r.description || '',
-          category: r.type || 'Atendimento',
-          level: r.target_audience || 'N1 Iniciante',
+          category: (() => {
+            const t = (r.type || '').toLowerCase();
+            if (t === 'prospeccao') return 'Prospecção';
+            if (t === 'atendimento') return 'Atendimento';
+            if (t === 'agendamento') return 'WhatsApp';
+            if (t === 'apresentacao') return 'Atendimento';
+            if (t === 'financiamento') return 'Financiamento';
+            if (t === 'carro_de_troca') return 'Negociação';
+            if (t === 'fechamento') return 'Fechamento';
+            if (t === 'funil') return 'Mentalidade';
+            if (t === 'rotina_diaria') return 'Mentalidade';
+            if (t === 'crm') return 'Carteira';
+            if (t === 'institucional') return 'Mentalidade';
+            return 'Atendimento';
+          })(),
+          level: (r.curation_notes && r.curation_notes.startsWith('N')) ? r.curation_notes : (r.target_audience || 'N1 Iniciante'),
           duration_minutes: r.duration_minutes || 10,
           content_url: r.video_url || '',
           video_url: r.video_url || '',
