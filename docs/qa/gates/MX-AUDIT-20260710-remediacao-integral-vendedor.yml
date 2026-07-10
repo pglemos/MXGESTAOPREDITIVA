@@ -1,0 +1,35 @@
+schema: 1
+story: 'MX-AUDIT-20260710'
+story_title: 'Remediacao integral do modulo do vendedor'
+gate: PASS
+status_reason: 'AC1-AC6 validados por contratos, 712 testes, dry-run Supabase, checks remotos verdes e smoke autenticado pos-deploy nos tres papeis.'
+reviewer: 'Quinn (Test Architect)'
+updated: '2026-07-10T09:48:38Z'
+top_issues: []
+waiver:
+  active: false
+quality_score: 100
+evidence:
+  tests_reviewed: 712
+  risks_identified: 0
+  trace:
+    ac_covered: [1, 2, 3, 4, 5, 6]
+    ac_gaps: []
+nfr_validation:
+  security:
+    status: PASS
+    notes: 'RLS, SECURITY DEFINER com grants restritos, imutabilidade e varredura de segredos validadas.'
+  performance:
+    status: PASS
+    notes: 'Build concluido e read model oficial centraliza as agregacoes das superficies do vendedor.'
+  reliability:
+    status: PASS
+    notes: 'Idempotencia, transacoes, auditoria, dry-run limpo, Supabase Preview e Vercel verdes.'
+  maintainability:
+    status: PASS
+    notes: 'Contratos SQL co-localizados, File List atualizada e artefatos TestSprite obsoletos removidos.'
+recommendations:
+  immediate: []
+  future:
+    - action: 'Autenticar o CodeRabbit CLI caso a integracao seja reativada; a story atual a declara desabilitada.'
+      refs: ['docs/stories/story-MX-AUDIT-20260710-remediacao-integral-vendedor.md']
