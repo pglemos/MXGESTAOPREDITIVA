@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { AlertTriangle, ArrowLeft, CalendarClock, CalendarDays, CheckCircle2, DollarSign, Globe, Send, ShoppingCart, Store, Users, X } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, CalendarClock, CalendarDays, DollarSign, Globe, Send, ShoppingCart, Store, Users, X } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
 import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
@@ -42,8 +42,6 @@ interface RegularizarFechamentoDrawerProps {
   onFieldChange: (field: keyof Omit<RegularizarFormValues, 'reason' | 'note'>, value: number) => void
   onReasonChange: (value: string) => void
   onNoteChange: (value: string) => void
-  regularizacaoBloqueada: boolean
-  liberado: boolean
   saving: boolean
   onVoltar: () => void
   onClose: () => void
@@ -113,8 +111,6 @@ export function RegularizarFechamentoDrawer({
   onFieldChange,
   onReasonChange,
   onNoteChange,
-  regularizacaoBloqueada,
-  liberado,
   saving,
   onVoltar,
   onClose,
@@ -148,7 +144,7 @@ export function RegularizarFechamentoDrawer({
   const ringColor = disciplina.pontuacaoDisciplinaFinal >= 80 ? '#22C55E' : disciplina.pontuacaoDisciplinaFinal >= 50 ? '#F59E0B' : '#EF4444'
   const ringColorClass = disciplina.pontuacaoDisciplinaFinal >= 80 ? 'text-[#22C55E]' : disciplina.pontuacaoDisciplinaFinal >= 50 ? 'text-[#F59E0B]' : 'text-[#EF4444]'
 
-  const canSubmit = !regularizacaoBloqueada && !!formValues.reason && formValues.note.trim().length > 0
+  const canSubmit = !!formValues.reason && formValues.note.trim().length > 0
 
   const crmCtx = {
     clientesList,
@@ -199,19 +195,12 @@ export function RegularizarFechamentoDrawer({
           {/* Body */}
  <div className="min-w-0 flex-1 space-y-5 overflow-y-auto overflow-x-hidden p-4 sm:p-6">
             {!finalized && (
-              regularizacaoBloqueada ? (
-                <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-                  <p className="text-[13px] font-bold text-amber-800">
-                    Preencha os dados e envie a solicitação para aprovação do gestor. O lançamento só será aplicado após a aprovação.
-                  </p>
-                </div>
-              ) : liberado ? (
-                <div className="flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-                  <p className="text-[13px] font-bold text-green-800">Autorização histórica registrada. A solicitação seguirá o fluxo normal de regularização.</p>
-                </div>
-              ) : null
+              <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                <p className="text-[13px] font-bold text-amber-800">
+                  Preencha os dados e solicite a aprovação do gerente. Nenhum lançamento será aplicado antes da aprovação.
+                </p>
+              </div>
             )}
 
             {/* Movimento do Dia */}
@@ -369,7 +358,7 @@ export function RegularizarFechamentoDrawer({
               onClick={onSubmit}
  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#005BFF] px-5 py-2.5 text-center text-[13px] font-bold leading-snug text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 sm:px-6"
             >
-              <Send className="h-4 w-4" /> {saving ? 'Enviando...' : 'Enviar Regularização'}
+              <Send className="h-4 w-4" /> {saving ? 'Enviando...' : 'Solicitar aprovação do gerente'}
             </button>
           </div>
       </div>

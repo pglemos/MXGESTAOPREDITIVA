@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AlertTriangle, CalendarDays, CheckCircle2, History, X, CalendarClock, CheckSquare } from 'lucide-react'
 import { Button } from '@/components/atoms/Button'
-import { supabase } from '@/lib/supabase'
 import { useCheckinAuditor } from '@/hooks/useCheckinAuditor'
 import { toast } from 'sonner'
 import type { DailyCheckin } from '@/types/database'
 import { addDaysDateOnly } from '../lib/crm-derived-totals'
-import { isRegularizacaoBloqueada } from '../lib/regularizacao-lock'
 import { RegularizarFechamentoDrawer } from './RegularizarFechamentoDrawer'
 import { NotificationBellButton } from '@/components/NotificationBellButton'
 import { isSubmittedClosing, type PreviousClosingCard } from '../lib/active-closing-context'
@@ -55,10 +53,6 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
 
   const [activeView, setActiveView] = useState<'list' | 'form'>('list')
   const [selectedRow, setSelectedRow] = useState<any | null>(null)
-  // Trava de regularização (Especificação Funcional §22 / EV-1.9): um
-  // "Pendente de Fechamento" só fica editável depois que o gerente liberar
-  // — mesma fonte (`fechamento_liberacoes`) que o fluxo principal usa.
-  const [liberacaoStatus, setLiberacaoStatus] = useState<'none' | 'pendente' | 'liberado'>('none')
   const [formValues, setFormValues] = useState({
     leads_cart: 0,
     leads_net: 0,
@@ -216,36 +210,6 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
     setHistoryOpen(true)
   }
 
-  // Busca a liberação real (EV-1.6) para o dia selecionado — só importa
-  // quando o item é "Pendente de Fechamento" (row.finalized === false);
-  // um dia já finalizado não precisa de liberação para ser corrigido.
-  useEffect(() => {
-    if (!selectedRow || selectedRow.finalized) {
-      setLiberacaoStatus('none')
-      return
-    }
-    let cancelled = false
-    supabase
-      .from('fechamento_liberacoes')
-      .select('status')
-      .eq('vendedor_id', userId)
-      .eq('data_fechamento', selectedRow.date)
-      .order('data_hora_solicitacao', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (cancelled) return
-        setLiberacaoStatus(data?.status === 'liberado' ? 'liberado' : data?.status === 'pendente' ? 'pendente' : 'none')
-      })
-    return () => { cancelled = true }
-  }, [selectedRow, userId])
-
-  const regularizacaoBloqueada = isRegularizacaoBloqueada({
-    rowSelected: Boolean(selectedRow),
-    rowFinalized: Boolean(selectedRow?.finalized),
-    liberacaoStatus,
-  })
-
   const handleFieldChange = (field: string, val: number) => {
     setFormValues(prev => ({
       ...prev,
@@ -344,7 +308,7 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
       if (res.error) {
         toast.error(`Erro ao enviar solicitação: ${res.error}`)
       } else {
-        toast.success(selectedRow.finalized ? 'Solicitação de correção enviada ao gestor!' : 'Lançamento retroativo enviado para aprovação do gestor!')
+        toast.success('Solicitação enviada ao gestor. Os dados serão aplicados após a aprovação.')
         setActiveView('list')
       }
 } catch (err) {
@@ -642,8 +606,6 @@ return (
           onFieldChange={handleFieldChange}
           onReasonChange={(value) => setFormValues((prev) => ({ ...prev, reason: value }))}
           onNoteChange={(value) => setFormValues((prev) => ({ ...prev, note: value }))}
-          regularizacaoBloqueada={regularizacaoBloqueada}
-          liberado={liberacaoStatus === 'liberado'}
           saving={auditorLoading}
           onVoltar={() => setActiveView('list')}
           onClose={() => { setHistoryOpen(false); setActiveView('list') }}

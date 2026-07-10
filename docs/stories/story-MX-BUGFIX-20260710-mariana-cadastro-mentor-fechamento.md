@@ -2,7 +2,7 @@
 
 ## Status
 
-Done
+Ready for Review
 
 ## Source
 
@@ -39,6 +39,7 @@ Relatos de produção enviados pela usuária em 10/07/2026, referentes a Cadastr
 - `src/lib/schemas/crm.schema.ts`
 - `src/test/organisms/Modal.test.tsx`
 - `src/features/checkin/sections/FluxoFechamento.test.tsx`
+- `src/features/checkin/sections/RegularizarFechamentoDrawer.test.tsx`
 - `src/features/crm/AlterarProximoPasso.test.tsx`
 - `src/features/crm/CarteiraClientes.container.test.tsx`
 - `src/lib/schemas/crm.schema.test.ts`
@@ -51,8 +52,10 @@ Relatos de produção enviados pela usuária em 10/07/2026, referentes a Cadastr
 - Revisão local: `git diff --check` passou. O CodeRabbit está instalado, mas não aceita revisão não interativa sem chave própria; nenhuma credencial foi adicionada.
 - Publicado em `main` no commit `69ff6fdc`; os checks Gitleaks, Atomic Design e ESLint a11y concluíram com sucesso e o deploy Vercel de produção ficou pronto.
 - Smoke autenticado concluído sem salvar alterações nos dados reais.
+- 2026-07-10 (revalidação): o fluxo foi conferido com dados preenchidos antes do envio; o botão ficou habilitado sem liberação prévia. A interface agora explicita a aprovação pelo gerente e remove a consulta residual que não interferia mais no fluxo canônico.
 
 ### Change Log
 
 - 2026-07-10: Corrige cadastro, mentor comercial e fluxo de fechamento relatados por Mariana; adiciona cobertura de regressão.
 - 2026-07-10: Validação de produção concluída e story encerrada.
+- 2026-07-10: Clarifica e protege o fluxo de solicitação ao gerente com dados já preenchidos; aguarda publicação e novo smoke de produção.
