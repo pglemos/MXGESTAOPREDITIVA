@@ -255,10 +255,6 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
 
   const handleSubmitCorrection = async () => {
     if (!selectedRow) return
-    if (regularizacaoBloqueada) {
-      toast.error('Solicite a liberação do gerente antes de regularizar este fechamento.')
-      return
-    }
     if (!formValues.reason) {
       toast.error('Por favor, selecione o motivo da alteração.')
       return

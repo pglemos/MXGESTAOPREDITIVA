@@ -203,7 +203,7 @@ export function RegularizarFechamentoDrawer({
                 <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
                   <p className="text-[13px] font-bold text-amber-800">
-                    Este registro não está disponível para edição. Volte ao Histórico e atualize a página antes de tentar novamente.
+                    Preencha os dados e envie a solicitação para aprovação do gestor. O lançamento só será aplicado após a aprovação.
                   </p>
                 </div>
               ) : liberado ? (
@@ -226,7 +226,7 @@ export function RegularizarFechamentoDrawer({
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-500"><Store className="h-4 w-4 text-white" /></div>
                     <span className="text-[13px] font-black uppercase tracking-wide text-orange-700">Showroom</span>
                   </div>
-                  <FieldRow label="Atendimentos" value={formValues.visitas_porta} onChange={(v) => onFieldChange('visitas_porta', v)} disabled={regularizacaoBloqueada} />
+                  <FieldRow label="Atendimentos" value={formValues.visitas_porta} onChange={(v) => onFieldChange('visitas_porta', v)} disabled={false} />
                 </div>
 
                 <div className="space-y-3 rounded-xl border border-green-200 bg-green-50 p-4">
@@ -234,9 +234,9 @@ export function RegularizarFechamentoDrawer({
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-500"><Users className="h-4 w-4 text-white" /></div>
                     <span className="text-[13px] font-black uppercase tracking-wide text-green-700">Carteira</span>
                   </div>
-                  <FieldRow label="Leads recebidos" value={formValues.leads_cart} onChange={(v) => onFieldChange('leads_cart', v)} disabled={regularizacaoBloqueada} />
-                  <FieldRow label="Atendimentos" value={formValues.visitas_cart} onChange={(v) => onFieldChange('visitas_cart', v)} disabled={regularizacaoBloqueada} />
-                  <FieldRow label="Agendamentos D+1" value={formValues.agd_cart} onChange={(v) => onFieldChange('agd_cart', v)} disabled={regularizacaoBloqueada} />
+                  <FieldRow label="Leads recebidos" value={formValues.leads_cart} onChange={(v) => onFieldChange('leads_cart', v)} disabled={false} />
+                  <FieldRow label="Atendimentos" value={formValues.visitas_cart} onChange={(v) => onFieldChange('visitas_cart', v)} disabled={false} />
+                  <FieldRow label="Agendamentos D+1" value={formValues.agd_cart} onChange={(v) => onFieldChange('agd_cart', v)} disabled={false} />
                 </div>
 
                 <div className="space-y-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
@@ -244,9 +244,9 @@ export function RegularizarFechamentoDrawer({
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600"><Globe className="h-4 w-4 text-white" /></div>
                     <span className="text-[13px] font-black uppercase tracking-wide text-blue-700">Internet</span>
                   </div>
-                  <FieldRow label="Leads recebidos" value={formValues.leads_net} onChange={(v) => onFieldChange('leads_net', v)} disabled={regularizacaoBloqueada} />
-                  <FieldRow label="Atendimentos" value={formValues.visitas_net} onChange={(v) => onFieldChange('visitas_net', v)} disabled={regularizacaoBloqueada} />
-                  <FieldRow label="Agendamentos D+1" value={formValues.agd_net} onChange={(v) => onFieldChange('agd_net', v)} disabled={regularizacaoBloqueada} />
+                  <FieldRow label="Leads recebidos" value={formValues.leads_net} onChange={(v) => onFieldChange('leads_net', v)} disabled={false} />
+                  <FieldRow label="Atendimentos" value={formValues.visitas_net} onChange={(v) => onFieldChange('visitas_net', v)} disabled={false} />
+                  <FieldRow label="Agendamentos D+1" value={formValues.agd_net} onChange={(v) => onFieldChange('agd_net', v)} disabled={false} />
                 </div>
 
                 <div className="space-y-3 rounded-xl border border-purple-200 bg-purple-50 p-4">
@@ -254,9 +254,9 @@ export function RegularizarFechamentoDrawer({
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-purple-600"><ShoppingCart className="h-4 w-4 text-white" /></div>
                     <span className="text-[13px] font-black uppercase tracking-wide text-purple-700">Vendas</span>
                   </div>
-                  <FieldRow label="Porta" value={formValues.vnd_porta} onChange={(v) => onFieldChange('vnd_porta', v)} disabled={regularizacaoBloqueada} />
-                  <FieldRow label="Carteira" value={formValues.vnd_cart} onChange={(v) => onFieldChange('vnd_cart', v)} disabled={regularizacaoBloqueada} />
-                  <FieldRow label="Internet" value={formValues.vnd_net} onChange={(v) => onFieldChange('vnd_net', v)} disabled={regularizacaoBloqueada} />
+                  <FieldRow label="Porta" value={formValues.vnd_porta} onChange={(v) => onFieldChange('vnd_porta', v)} disabled={false} />
+                  <FieldRow label="Carteira" value={formValues.vnd_cart} onChange={(v) => onFieldChange('vnd_cart', v)} disabled={false} />
+                  <FieldRow label="Internet" value={formValues.vnd_net} onChange={(v) => onFieldChange('vnd_net', v)} disabled={false} />
                 </div>
               </div>
             </div>
@@ -334,7 +334,6 @@ export function RegularizarFechamentoDrawer({
                 <select
                   id="adjustment-reason"
                   value={formValues.reason}
-                  disabled={regularizacaoBloqueada}
                   onChange={(e) => onReasonChange(e.target.value)}
                   className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-[#071822] outline-none focus:border-[#005BFF] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
                 >
@@ -348,7 +347,6 @@ export function RegularizarFechamentoDrawer({
                   <textarea
                     id="adjustment-note"
                     value={formValues.note}
-                    disabled={regularizacaoBloqueada}
                     onChange={(e) => onNoteChange(e.target.value)}
                     placeholder="Descreva detalhadamente o motivo deste ajuste retroativo..."
                     className="min-h-[80px] w-full resize-none rounded-xl border border-slate-200 bg-white p-3 text-xs text-[#071822] outline-none placeholder:text-slate-400 focus:border-[#005BFF] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"

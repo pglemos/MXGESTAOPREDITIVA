@@ -64,6 +64,10 @@ import {
   CRM_CLIENTE_STATUS_LABEL,
   CRM_RELACIONAMENTO,
   CRM_RELACIONAMENTO_LABEL,
+  formatarMoedaBRInput,
+  formatarTelefoneBR,
+  isTelefoneBRValido,
+  moedaBRParaNumero,
   formatDateBR,
   toDateOnlyBR,
   type Cliente,
@@ -475,6 +479,10 @@ export function CarteiraClientes() {
       toast.error('Informe o nome do cliente.')
       return
     }
+    if (form.telefone && !isTelefoneBRValido(form.telefone)) {
+      toast.error('Informe um telefone brasileiro válido com DDD.')
+      return
+    }
     setSaving(true)
     const { error: createError } = await createCliente(form)
     setSaving(false)
@@ -529,13 +537,6 @@ export function CarteiraClientes() {
   }
 
   function executarProximoPasso(cliente: Cliente) {
-    const progresso = progressoPorCliente.get(cliente.id)
-    if (cliente.telefone && progresso) {
-      const vendedorNome = (profile?.name || 'vendedor').split(' ')[0]
-      const script = progresso.etapaAtual.script({ cliente: cliente.nome.split(' ')[0], vendedor: vendedorNome })
-      const tel = cliente.telefone.replace(/\D/g, '')
-      window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(script)}`, '_blank', 'noopener')
-    }
     setPanelClosed(false)
     setSelectedId(cliente.id)
   }
@@ -774,7 +775,7 @@ export function CarteiraClientes() {
       >
         <div className="grid grid-cols-1 gap-mx-md sm:grid-cols-2">
           <FormField label="Nome *" value={form.nome} onChange={event => setForm(current => ({ ...current, nome: event.target.value }))} placeholder="Nome do cliente" />
-          <FormField label="Telefone" value={form.telefone || ''} onChange={event => setForm(current => ({ ...current, telefone: event.target.value }))} placeholder="(00) 00000-0000" />
+          <FormField label="Telefone" value={formatarTelefoneBR(form.telefone)} onChange={event => setForm(current => ({ ...current, telefone: formatarTelefoneBR(event.target.value) }))} inputMode="tel" maxLength={15} placeholder="(00) 00000-0000" />
           <FormField label="Veículo procurado" value={form.empresa || ''} onChange={event => setForm(current => ({ ...current, empresa: event.target.value }))} placeholder="Modelo de interesse" />
           <Select label="Canal de origem" value={form.canal_origem || ''} onChange={event => setForm(current => ({ ...current, canal_origem: (event.target.value || null) as ClienteInput['canal_origem'] }))}>
             <option value="">Selecione</option>
@@ -788,7 +789,7 @@ export function CarteiraClientes() {
           </Select>
           <FormField label="Próxima ação" value={form.proxima_acao || ''} onChange={event => setForm(current => ({ ...current, proxima_acao: event.target.value }))} placeholder="Ex: Confirmar visita" />
           <FormField type="date" label="Data da próxima ação" value={form.proxima_acao_em || ''} onChange={event => setForm(current => ({ ...current, proxima_acao_em: event.target.value }))} />
-          <FormField type="number" label="Valor previsto (R$)" value={String(form.potencial_negocio ?? 0)} onChange={event => setForm(current => ({ ...current, potencial_negocio: Number(event.target.value) || 0 }))} />
+          <FormField type="text" inputMode="numeric" label="Valor previsto (R$)" value={formatarMoedaBRInput(Math.round((form.potencial_negocio ?? 0) * 100))} onChange={event => setForm(current => ({ ...current, potencial_negocio: moedaBRParaNumero(event.target.value) }))} />
           <div className="space-y-mx-xs sm:col-span-2">
             <label htmlFor="crm-cliente-obs" className="ml-2 block"><Typography variant="caption" tone="muted">Histórico / observações</Typography></label>
             <Textarea id="crm-cliente-obs" value={form.observacoes || ''} onChange={event => setForm(current => ({ ...current, observacoes: event.target.value }))} placeholder="Notas, histórico inicial e contexto da próxima tentativa..." />

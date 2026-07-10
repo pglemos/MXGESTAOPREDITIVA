@@ -38,6 +38,35 @@ export type CrmAgendamentoStatus = (typeof CRM_AGENDAMENTO_STATUS)[number]
 export type CrmEventoTipo = (typeof CRM_EVENTO_TIPO)[number]
 export type CrmEventoModalidade = (typeof CRM_EVENTO_MODALIDADE)[number]
 
+export function somenteDigitos(value: string | null | undefined): string {
+  return (value || '').replace(/\D/g, '')
+}
+
+export function isTelefoneBRValido(value: string | null | undefined): boolean {
+  const digits = somenteDigitos(value)
+  return digits.length === 10 || digits.length === 11
+}
+
+export function formatarTelefoneBR(value: string | null | undefined): string {
+  const digits = somenteDigitos(value).slice(0, 11)
+  if (digits.length <= 2) return digits ? `(${digits}` : ''
+  const ddd = digits.slice(0, 2)
+  const local = digits.slice(2)
+  if (local.length <= 4) return `(${ddd}) ${local}`
+  const splitAt = local.length > 8 ? 5 : 4
+  return `(${ddd}) ${local.slice(0, splitAt)}-${local.slice(splitAt)}`
+}
+
+export function formatarMoedaBRInput(value: string | number | null | undefined): string {
+  const digits = somenteDigitos(String(value ?? ''))
+  const centavos = Number(digits || '0')
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(centavos / 100)
+}
+
+export function moedaBRParaNumero(value: string | number | null | undefined): number {
+  return Number(somenteDigitos(String(value ?? '')) || '0') / 100
+}
+
 // Etapas que compõem o funil "vivo" (exclui terminais ganho/perdido)
 export const CRM_ETAPAS_ATIVAS: CrmEtapaFunil[] = ['prospeccao', 'qualificacao', 'apresentacao', 'negociacao', 'fechamento']
 

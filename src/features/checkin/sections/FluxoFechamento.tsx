@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { CheckCircle2, ChevronRight, Globe, ShoppingCart, Store, Users } from 'lucide-react'
 import type { NumericCheckinField } from '../hooks/useCheckinPage'
 
@@ -178,7 +178,6 @@ interface FluxoFechamentoProps {
 
 export function FluxoFechamento({ readValue, updateField, disabled, finalized = false, agdCartAtivos, agdNetAtivos, temClientesCadastrados }: FluxoFechamentoProps) {
   const [currentStep, setCurrentStep] = useState<StepId>('showroom')
-  const [completedSteps, setCompletedSteps] = useState<Set<StepId>>(new Set())
 
   const visitasPorta = readValue('visitas_porta')
   const leadsCart = readValue('leads_cart')
@@ -188,37 +187,18 @@ export function FluxoFechamento({ readValue, updateField, disabled, finalized = 
   const visitasNet = readValue('visitas_net')
   const agdNet = readValue('agd_net')
 
-  useEffect(() => {
-    if (finalized) {
-      setCompletedSteps(new Set(STEPS.map(step => step.id)))
-      setCurrentStep('vendas')
-      return
-    }
-    setCompletedSteps(prev => {
-      const done = new Set(prev)
-      if (visitasPorta > 0) done.add('showroom')
-      if (leadsCart + visitasCart + agdCart > 0) done.add('carteira')
-      if (leadsNet + visitasNet + agdNet > 0) done.add('internet')
-      return done
-    })
-  }, [finalized, visitasPorta, leadsCart, visitasCart, agdCart, leadsNet, visitasNet, agdNet])
-
-  useEffect(() => {
-    if (finalized) {
-      setCompletedSteps(new Set(STEPS.map(step => step.id)))
-      return
-    }
-    setCompletedSteps(prev => {
-      const done = new Set(prev)
-      if (temClientesCadastrados) done.add('vendas')
-      else done.delete('vendas')
-      return done
-    })
-  }, [finalized, temClientesCadastrados])
+  const completedSteps = useMemo(() => {
+    if (finalized) return new Set(STEPS.map(step => step.id))
+    const done = new Set<StepId>()
+    if (visitasPorta > 0) done.add('showroom')
+    if (leadsCart + visitasCart + agdCart > 0) done.add('carteira')
+    if (leadsNet + visitasNet + agdNet > 0) done.add('internet')
+    if (temClientesCadastrados) done.add('vendas')
+    return done
+  }, [finalized, visitasPorta, leadsCart, visitasCart, agdCart, leadsNet, visitasNet, agdNet, temClientesCadastrados])
 
   const handleConfirm = (stepId: StepId) => {
     const nextMap: Record<StepId, StepId> = { showroom: 'carteira', carteira: 'internet', internet: 'vendas', vendas: 'vendas' }
-    setCompletedSteps(prev => new Set([...prev, stepId]))
     setCurrentStep(nextMap[stepId])
   }
 

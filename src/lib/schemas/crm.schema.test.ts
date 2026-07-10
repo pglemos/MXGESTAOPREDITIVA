@@ -3,6 +3,9 @@ import {
   CRM_TIPO_VEICULO_LABEL,
   EventoComercialSchema,
   OportunidadeSchema,
+  formatarMoedaBRInput,
+  formatarTelefoneBR,
+  isTelefoneBRValido,
   normalizarTelefone,
 } from './crm.schema'
 
@@ -68,6 +71,18 @@ describe('normalizarTelefone', () => {
     const a = normalizarTelefone('31 99999-0000')
     const b = normalizarTelefone('(31)999990000')
     expect(a).toBe(b)
+  })
+})
+
+describe('entrada comercial brasileira', () => {
+  it('formata telefone brasileiro e rejeita quantidade de dígitos inválida', () => {
+    expect(formatarTelefoneBR('31999990000')).toBe('(31) 99999-0000')
+    expect(isTelefoneBRValido('31999990000')).toBe(true)
+    expect(isTelefoneBRValido('319999900000')).toBe(false)
+  })
+
+  it('formata o valor previsto como moeda sem alterar o valor numérico', () => {
+    expect(formatarMoedaBRInput('1234567')).toBe('R$ 12.345,67')
   })
 })
 

@@ -202,4 +202,33 @@ describe('CarteiraClientes', () => {
     })
     expect(toastSuccess).toHaveBeenCalledWith('Tentativa registrada e próxima ação mantida no fluxo.')
   })
+
+  it('formata telefone e moeda, mantendo opções de status sem duplicidade', () => {
+    render(<CarteiraClientes />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Novo cliente/i }))
+    const telefone = screen.getByLabelText('Telefone') as HTMLInputElement
+    const valor = screen.getByLabelText('Valor previsto (R$)') as HTMLInputElement
+    const status = screen.getByLabelText('Status do cliente') as HTMLSelectElement
+
+    fireEvent.change(telefone, { target: { value: '31999990000' } })
+    fireEvent.change(valor, { target: { value: '1234567' } })
+
+    expect(telefone.value).toBe('(31) 99999-0000')
+    expect(valor.value).toBe('R$ 12.345,67')
+    expect(Array.from(status.options).filter(option => option.text === 'Em andamento')).toHaveLength(1)
+  })
+
+  it('abre a ficha para o vendedor escolher a ação sem abrir WhatsApp automaticamente', () => {
+    const openSpy = mock(() => null)
+    const previousOpen = window.open
+    window.open = openSpy as typeof window.open
+
+    render(<CarteiraClientes />)
+    fireEvent.click(screen.getByRole('button', { name: /Executar próximo passo/i }))
+
+    expect(openSpy).not.toHaveBeenCalled()
+    expect(screen.getByRole('heading', { name: 'Ana Souza' })).toBeTruthy()
+    window.open = previousOpen
+  })
 })

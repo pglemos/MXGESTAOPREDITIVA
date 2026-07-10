@@ -93,6 +93,17 @@ describe("Modal", () => {
     expect(screen.getByRole("button", { name: /save changes/i })).toBeDefined();
   });
 
+  test("permite que o corpo interno encolha e role sem esconder o footer", () => {
+    render(
+      <Modal open={true} onClose={() => {}} title="T" footer={<button>Salvar</button>}>
+        Conteúdo alto
+      </Modal>
+    );
+    const body = screen.getByText('Conteúdo alto');
+    expect(body.className).toContain('min-h-0');
+    expect(body.className).toContain('overflow-y-auto');
+  });
+
   test("applies sm size variant", () => {
     render(
       <Modal open={true} onClose={() => {}} title="T" size="sm">
