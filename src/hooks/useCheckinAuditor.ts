@@ -13,16 +13,15 @@ export function useCheckinAuditor(storeIdOverride?: string) {
         if (!profile?.id || !storeId) return { error: 'Sessão inválida' }
         
         setLoading(true)
-        const { error } = await supabase.from('solicitacoes_correcao_lancamento').insert({
-            checkin_id: checkinId,
-            seller_id: profile.id,
-            store_id: storeId,
-            requested_values: requestedValues,
-            reason,
-            status: 'pending'
+        const { data, error } = await supabase.rpc('solicitar_regularizacao_fechamento', {
+            p_checkin_id: checkinId,
+            p_requested_values: requestedValues,
+            p_reason: reason,
+            p_idempotency_key: null,
         })
         setLoading(false)
-        return { error: error?.message || null }
+        const result = data as { ok?: boolean; error?: string; data?: { id?: string } } | null
+        return { error: error?.message || result?.error || null, id: result?.data?.id }
     }
 
     /** Gerente busca solicitações pendentes da sua loja */
@@ -43,11 +42,13 @@ export function useCheckinAuditor(storeIdOverride?: string) {
         setLoading(true)
 
         try {
-            const { error } = await supabase.rpc('approve_correction_request', { 
-                request_id: request.id 
+            const { data, error } = await supabase.rpc('aplicar_regularizacao_fechamento', {
+                p_request_id: request.id,
             })
 
             if (error) throw error
+            const result = data as { ok?: boolean; error?: string } | null
+            if (!result?.ok) throw new Error(result?.error || 'Não foi possível aplicar a regularização.')
             return { error: null }
         } catch (err: unknown) {
             console.error('Audit Error [useCheckinAuditor]: approveRequest fail ->', err)
@@ -58,14 +59,17 @@ export function useCheckinAuditor(storeIdOverride?: string) {
     }
 
     /** Gerente rejeita a solicitação via RPC Segura */
-    const rejectRequest = async (requestId: string) => {
+    const rejectRequest = async (requestId: string, reason?: string) => {
         if (!profile?.id) return { error: 'Não autorizado' }
         setLoading(true)
         try {
-            const { error } = await supabase.rpc('reject_correction_request', { 
-                request_id: requestId 
+            const { data, error } = await supabase.rpc('rejeitar_regularizacao_fechamento', {
+                p_request_id: requestId,
+                p_reason: reason || null,
             })
             if (error) throw error
+            const result = data as { ok?: boolean; error?: string } | null
+            if (!result?.ok) throw new Error(result?.error || 'Não foi possível rejeitar a regularização.')
             return { error: null }
         } catch (err: unknown) {
             console.error('Audit Error [useCheckinAuditor]: rejectRequest fail ->', err)
@@ -75,5 +79,11 @@ export function useCheckinAuditor(storeIdOverride?: string) {
         }
     }
 
-    return { loading, requestCorrection, fetchPendingRequests, approveRequest, rejectRequest }
+    const cancelRequest = async (requestId: string) => {
+        const { data, error } = await supabase.rpc('cancelar_regularizacao_fechamento', { p_request_id: requestId })
+        const result = data as { ok?: boolean; error?: string } | null
+        return { error: error?.message || result?.error || null }
+    }
+
+    return { loading, requestCorrection, fetchPendingRequests, approveRequest, rejectRequest, cancelRequest }
 }

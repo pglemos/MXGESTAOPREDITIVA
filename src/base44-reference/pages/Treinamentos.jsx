@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 import PageHeader from "@/components/ui/PageHeader";
 import StatCard from "@/components/ui/StatCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Clock, Award, BarChart3, Zap, Search, Play, Video, Star, CheckCircle2, Calendar } from "lucide-react";
+import { BookOpen, Clock, Award, BarChart3, Zap, Search, Play, Video, Star, CheckCircle2, Calendar, Download, MessageSquare, X } from "lucide-react";
 
 const categories = ["Atendimento", "Prospecção", "WhatsApp", "Negociação", "Financiamento", "Fechamento", "Pós-venda", "Carteira", "Mentalidade"];
 const levels = ["N1 Iniciante", "N2 Intermediário", "N3 Performance", "N4 Alta Performance"];
@@ -25,6 +27,9 @@ export default function Treinamentos() {
   const [search, setSearch] = useState("");
   const [filterCat, setFilterCat] = useState("all");
   const [filterLevel, setFilterLevel] = useState("all");
+  const [selectedTraining, setSelectedTraining] = useState(null);
+  const [comment, setComment] = useState("");
+  const [savingInteraction, setSavingInteraction] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -57,8 +62,43 @@ export default function Treinamentos() {
   const upcomingLive = liveTrainings.filter(t => t.live_date && new Date(t.live_date) > new Date());
   const pastLive = liveTrainings.filter(t => t.live_date && new Date(t.live_date) <= new Date());
 
+  const openTraining = async (training) => {
+    setSelectedTraining(training);
+    setComment("");
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from("treinamento_avaliacoes").select("comment").eq("training_id", training.id).eq("user_id", user.id).maybeSingle();
+    setComment(data?.comment || "");
+  };
+
+  const saveComment = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || !selectedTraining || !comment.trim()) return;
+    setSavingInteraction(true);
+    const { error } = await supabase.from("treinamento_avaliacoes").upsert({ training_id: selectedTraining.id, user_id: user.id, rating: 5, comment: comment.trim(), updated_at: new Date().toISOString() }, { onConflict: "training_id,user_id" });
+    setSavingInteraction(false);
+    error ? toast.error(error.message) : toast.success("Comentário e sugestão salvos.");
+  };
+
+  const markCompleted = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || !selectedTraining) return;
+    setSavingInteraction(true);
+    const now = new Date().toISOString();
+    const { error } = await supabase.from("progresso_treinamentos").upsert({ training_id: selectedTraining.id, user_id: user.id, status: "concluido", progress_percent: 100, watched_at: now, completed_at: now, source_context: "universidade_mx" }, { onConflict: "training_id,user_id" });
+    if (!error) setProgress(current => [...current.filter(item => item.training_id !== selectedTraining.id), { training_id: selectedTraining.id, completed: true, status: "concluido", progress_percent: 100 }]);
+    setSavingInteraction(false);
+    error ? toast.error(error.message) : toast.success("Aula concluída e progresso atualizado.");
+  };
+
+  const youtubeEmbed = (url) => {
+    if (!url) return null;
+    const match = url.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?v=|embed\/))([\w-]{6,})/);
+    return match ? `https://www.youtube-nocookie.com/embed/${match[1]}` : null;
+  };
+
   const TrainingCard = ({ training, large = false }) => (
-    <div className={`bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden group hover:shadow-md transition-all duration-300 ${large ? "col-span-1" : ""}`}>
+    <button type="button" onClick={() => void openTraining(training)} className={`bg-white rounded-2xl text-left shadow-sm border border-slate-100 overflow-hidden group hover:shadow-md focus:outline-none focus:ring-2 focus:ring-mx-blue transition-all duration-300 ${large ? "col-span-1" : ""}`}>
       <div className={`${large ? "h-40" : "h-28"} bg-gradient-to-br from-mx-navy to-mx-blue relative overflow-hidden`}>
         <div className="absolute inset-0 flex items-center justify-center">
           <Play className="w-10 h-10 text-white/30 group-hover:text-white/60 transition-colors" />
@@ -77,7 +117,7 @@ export default function Treinamentos() {
         <h4 className="text-sm font-semibold text-mx-navy line-clamp-2">{training.title}</h4>
         <p className="text-xs text-slate-400 mt-1">{training.category}</p>
       </div>
-    </div>
+    </button>
   );
 
   return (
@@ -237,6 +277,35 @@ export default function Treinamentos() {
           )}
         </TabsContent>
       </Tabs>
+
+      {selectedTraining && (
+        <div className="fixed inset-0 z-[160] grid place-items-center bg-black/55 p-4" onClick={(event) => { if (event.target === event.currentTarget) setSelectedTraining(null); }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="training-detail-title" className="flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <header className="flex items-start justify-between border-b border-slate-200 p-5">
+              <div><h2 id="training-detail-title" className="text-xl font-bold text-mx-navy">{selectedTraining.title}</h2><p className="mt-1 text-sm text-slate-500">{selectedTraining.description}</p></div>
+              <button type="button" onClick={() => setSelectedTraining(null)} aria-label="Fechar aula" className="rounded-lg p-2 hover:bg-slate-100"><X /></button>
+            </header>
+            <div className="space-y-5 overflow-y-auto p-5">
+              <div className="aspect-video overflow-hidden rounded-xl bg-slate-950">
+                {youtubeEmbed(selectedTraining.video_url) ? (
+                  <iframe className="h-full w-full" src={youtubeEmbed(selectedTraining.video_url)} title={selectedTraining.title} allow="accelerometer; autoplay; encrypted-media; picture-in-picture" allowFullScreen />
+                ) : selectedTraining.video_url ? (
+                  <video className="h-full w-full" controls preload="metadata" src={selectedTraining.video_url} />
+                ) : <div className="grid h-full place-items-center text-sm text-white/70">Vídeo ainda não publicado.</div>}
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {selectedTraining.material_url && <a href={selectedTraining.material_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-mx-blue"><Download size={16} /> Abrir material complementar</a>}
+                <button type="button" disabled={savingInteraction} onClick={() => void markCompleted()} className="inline-flex items-center gap-2 rounded-xl bg-mx-green px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"><CheckCircle2 size={16} /> Marcar como concluída</button>
+              </div>
+              <section className="rounded-xl border border-slate-200 p-4">
+                <h3 className="flex items-center gap-2 font-semibold text-mx-navy"><MessageSquare size={16} /> Comentário ou sugestão</h3>
+                <textarea value={comment} onChange={event => setComment(event.target.value)} maxLength={1000} rows={4} className="mt-3 w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:ring-2 focus:ring-mx-blue" placeholder="Compartilhe uma dúvida, comentário ou sugestão de conteúdo." />
+                <div className="mt-3 flex justify-end"><button type="button" disabled={savingInteraction || !comment.trim()} onClick={() => void saveComment()} className="rounded-xl bg-mx-blue px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Salvar comentário</button></div>
+              </section>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

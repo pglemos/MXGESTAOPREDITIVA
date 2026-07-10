@@ -8,6 +8,7 @@ import { useRanking } from '@/hooks/useRanking'
 import { useFeedbacks, useTrainings } from '@/hooks/useData'
 import { useTacticalPrescription } from '@/hooks/useTacticalPrescription'
 import { useSellerMetrics } from '@/hooks/useSellerMetrics'
+import { useOfficialSellerPerformance } from '@/hooks/useOfficialSellerPerformance'
 import { formatWhatsAppMorningReport } from '@/lib/calculations'
 import { calculateDailyRoutineDiscipline } from '@/lib/daily-routine'
 import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
@@ -51,12 +52,22 @@ export function useVendedorHomePage() {
   const [isRefetching, setIsRefetching] = useState(false)
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null)
 
+  const officialPeriod = useMemo(() => {
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
+    return { start: `${today.slice(0, 7)}-01`, end: today }
+  }, [])
+  const {
+    performance: officialPerformance,
+    loading: officialPerformanceLoading,
+    refetch: refetchOfficialPerformance,
+  } = useOfficialSellerPerformance(officialPeriod.start, officialPeriod.end, profile?.id, storeId)
+
   const tacticalPrescription = useTacticalPrescription({
     checkins,
     treinamentos,
     userId: profile?.id,
   })
-  const metrics = useSellerMetrics({
+  const legacyMetrics = useSellerMetrics({
     checkins,
     todayCheckin,
     profile,
@@ -65,6 +76,18 @@ export function useVendedorHomePage() {
     ranking,
     projectionMode: storeGoal?.projection_mode,
   })
+  const metrics = useMemo(() => {
+    if (!legacyMetrics || !officialPerformance) return legacyMetrics
+    return {
+      ...legacyMetrics,
+      vendasMes: officialPerformance.vendas_realizadas,
+      projecao: officialPerformance.vendas_projetadas,
+      meta: officialPerformance.meta,
+      atingimento: officialPerformance.atingimento,
+      faltaX: Math.max(officialPerformance.meta - officialPerformance.vendas_realizadas, 0),
+      vendasOntem: officialPerformance.vendas_ultimo_dia,
+    }
+  }, [legacyMetrics, officialPerformance])
   const vendasDetalhadasRemuneracao = useMemo<RemuneracaoVenda[]>(() => {
     const now = new Date()
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime()
@@ -148,6 +171,7 @@ export function useVendedorHomePage() {
         refetchTrainings?.() || Promise.resolve(),
         refetchFeedbacks?.() || Promise.resolve(),
         refetchOportunidades?.() || Promise.resolve(),
+        refetchOfficialPerformance(),
       ])
       setLastUpdatedAt(new Date())
       toast.success('Cockpit de performance atualizado!')
@@ -156,7 +180,7 @@ export function useVendedorHomePage() {
     } finally {
       setIsRefetching(false)
     }
-  }, [refetchCheckins, refetchFeedbacks, refetchGoals, refetchOportunidades, refetchRanking, refetchTrainings])
+  }, [refetchCheckins, refetchFeedbacks, refetchGoals, refetchOfficialPerformance, refetchOportunidades, refetchRanking, refetchTrainings])
 
   const handleShareWhatsApp = useCallback(() => {
     if (!metrics || !profile) return
@@ -194,6 +218,7 @@ export function useVendedorHomePage() {
     oportunidadesLoading ||
     perfilVendedorLoading ||
     remunerationLoading ||
+    officialPerformanceLoading ||
     !metrics
 
   return {

@@ -9,7 +9,7 @@ import { addDaysDateOnly } from '../lib/crm-derived-totals'
 import { isRegularizacaoBloqueada } from '../lib/regularizacao-lock'
 import { RegularizarFechamentoDrawer } from './RegularizarFechamentoDrawer'
 import { NotificationBellButton } from '@/components/NotificationBellButton'
-import type { PreviousClosingCard } from '../lib/active-closing-context'
+import { isSubmittedClosing, type PreviousClosingCard } from '../lib/active-closing-context'
 import { SellerPageHeader } from '@/components/seller/SellerPageHeader'
 
 interface PillarProgress {
@@ -30,11 +30,11 @@ historyOpen: boolean
  checkins?: DailyCheckin[]
  userId?: string
  previousCard?: PreviousClosingCard | null
- saveCheckin: (
+  saveCheckin: (
     formData: any,
     scope?: any,
     customDate?: string
-  ) => Promise<{ error: string | null }>
+  ) => Promise<{ error: string | null; id?: string }>
 }
 
 export function CheckinHeader({
@@ -87,7 +87,7 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
 
     for (let i = 1; i <= 7; i++) {
       const date = addDaysDateOnly(todaySP, -i)
-      const checkin = checkins.find(c => c.reference_date === date)
+      const checkin = checkins.find(c => c.reference_date === date && c.metric_scope === 'daily')
 
       if (checkin) {
         // Read sales count (merge localStorage & DB)
@@ -112,10 +112,11 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
           : localStorage.getItem(`mx-checkin-score:${userId}:${date}`) || '70'
 
         // Formatted time
-        const formattedTime = new Date(checkin.submitted_at).toLocaleTimeString('pt-BR', {
+        const finalized = isSubmittedClosing(checkin)
+        const formattedTime = finalized ? new Date(checkin.submitted_at).toLocaleTimeString('pt-BR', {
           hour: '2-digit',
           minute: '2-digit',
-        })
+        }) : '—'
 
         const leads = checkin.leads_prev_day || 0
         const atend = checkin.visit_prev_day || 0
@@ -123,9 +124,9 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
 
         list.push({
           date,
-          finalized: true,
-          status: 'Finalizado',
-          score: score.includes('%') ? score : `${score}%`,
+          finalized,
+          status: finalized ? 'Finalizado' : 'Pendente de Fechamento',
+          score: finalized ? (score.includes('%') ? score : `${score}%`) : '—',
           time: formattedTime,
           sales: salesCount,
           leads,
@@ -191,6 +192,30 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
     setActiveView('form')
   }
 
+  const handleAdjustPrevious = () => {
+    if (!previousCard) return
+    const date = previousCard.date
+    const finalized = previousCard.type === 'previous_done'
+    
+    const checkin = checkins.find(c => c.reference_date === date)
+    
+    const row = {
+      date,
+      finalized,
+      status: finalized ? 'Finalizado' : 'Pendente de Fechamento',
+      score: '—',
+      time: '—',
+      sales: checkin ? (checkin.vnd_porta_prev_day || 0) + (checkin.vnd_cart_prev_day || 0) + (checkin.vnd_net_prev_day || 0) : 0,
+      leads: checkin ? checkin.leads_prev_day || 0 : 0,
+      atend: checkin ? checkin.visit_prev_day || 0 : 0,
+      agend: checkin ? (checkin.agd_cart_today || 0) + (checkin.agd_net_today || 0) : 0,
+      vendas: checkin ? (checkin.vnd_porta_prev_day || 0) + (checkin.vnd_cart_prev_day || 0) + (checkin.vnd_net_prev_day || 0) : 0,
+    }
+    
+    handleSelectRow(row)
+    setHistoryOpen(true)
+  }
+
   // Busca a liberação real (EV-1.6) para o dia selecionado — só importa
   // quando o item é "Pendente de Fechamento" (row.finalized === false);
   // um dia já finalizado não precisa de liberação para ser corrigido.
@@ -251,7 +276,11 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
       let checkinId = ''
       
       if (selectedRow.finalized) {
-        const existing = checkins.find(c => c.reference_date === selectedRow.date)
+        const existing = checkins.find(c =>
+          c.reference_date === selectedRow.date
+          && c.metric_scope === 'daily'
+          && isSubmittedClosing(c),
+        )
         if (existing) {
           checkinId = existing.id
         }
@@ -284,19 +313,11 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
           return
         }
         
-        // Fetch newly created checkin ID
-        const { data: checkinData, error: fetchError } = await supabase
-          .from('lancamentos_diarios')
-          .select('id')
-          .eq('seller_user_id', userId)
-          .eq('reference_date', selectedRow.date)
-          .single()
-          
-        if (fetchError || !checkinData) {
+        if (!res.id) {
           toast.error('Erro ao buscar identificador do fechamento.')
           return
         }
-        checkinId = checkinData.id
+        checkinId = res.id
       }
       
       // Build the requested values payload
@@ -405,12 +426,12 @@ previousCard.type === 'previous_done' ? 'bg-emerald-50 text-emerald-700' : 'bg-a
 <p className={`text-[11px] font-black uppercase tracking-[0.08em] ${
 previousCard.type === 'previous_done' ? 'text-emerald-700' : 'text-amber-800'
 }`}>
-{previousCard.type === 'previous_done' ? 'Anterior concluído' : 'Anterior pendente'}
+{previousCard.type === 'previous_done' ? 'Fechamento anterior enviado' : 'Fechamento anterior pendente'}
 </p>
 <p className="truncate text-[12px] font-semibold text-[#526B7A]">
 {previousCard.type === 'previous_done'
-? `Fechamento de ${previousCard.date.split('-').reverse().join('/')} enviado. Ajustes ficam no histórico.`
-: `Fechamento de ${previousCard.date.split('-').reverse().join('/')} pendente. Regularize pelo histórico.`}
+? `O fechamento de ${previousCard.date.split('-').reverse().join('/')} foi enviado. Se precisar alterar algum dado, clique em Ajustar.`
+: `O fechamento de ${previousCard.date.split('-').reverse().join('/')} ainda não foi enviado. Clique em Regularizar.`}
 </p>
 </div>
 </div>
@@ -418,7 +439,7 @@ previousCard.type === 'previous_done' ? 'text-emerald-700' : 'text-amber-800'
 <button type="button" onClick={() => { setActiveView('list'); setHistoryOpen(true) }} className="inline-flex h-8 items-center justify-center rounded-lg border border-[#DFE0E1] bg-white px-3 text-[11px] font-bold text-[#334155] shadow-sm transition-colors hover:border-[#005BFF] hover:text-[#005BFF]">
 Histórico
 </button>
-<button type="button" onClick={() => { setActiveView('list'); setHistoryOpen(true) }} className={`inline-flex h-8 items-center justify-center rounded-lg px-3 text-[11px] font-black text-white shadow-sm ${
+<button type="button" onClick={handleAdjustPrevious} className={`inline-flex h-8 items-center justify-center rounded-lg px-3 text-[11px] font-black text-white shadow-sm ${
 previousCard.type === 'previous_done' ? 'bg-[#00A89D]' : 'bg-amber-600'
 }`}>
 {previousCard.type === 'previous_done' ? 'Ajustar' : `Regularizar ${previousCard.date.slice(8, 10)}/${previousCard.date.slice(5, 7)}`}

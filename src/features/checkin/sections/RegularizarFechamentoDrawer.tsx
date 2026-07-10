@@ -138,7 +138,7 @@ export function RegularizarFechamentoDrawer({
     .filter((c) => c.vendaRealizada === 'Sim')
     .reduce((acc, c) => acc + (c.valorNegociado || 0), 0)
 
-  const creditosValidos = clientesList.filter((c) => c.vendaRealizada === 'Em Negociação' && c.dataAgendamento).length
+  const creditosValidos = clientesList.filter((c) => c.tipoRegistroCalculado === 'Agendamento D+1').length
   const disciplina = calcularDisciplina({ totalAgendamentosD1, creditosValidos, finalizadoAposPrazo: true })
 
   const dataObj = new Date(`${date}T12:00:00`)
@@ -203,13 +203,13 @@ export function RegularizarFechamentoDrawer({
                 <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
                   <p className="text-[13px] font-bold text-amber-800">
-                    Prazo encerrado às 09h30. Solicite liberação ao seu gerente para finalizar este fechamento. Os campos abaixo ficam bloqueados até a liberação.
+                    Este registro não está disponível para edição. Volte ao Histórico e atualize a página antes de tentar novamente.
                   </p>
                 </div>
               ) : liberado ? (
                 <div className="flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-                  <p className="text-[13px] font-bold text-green-800">Fechamento liberado pelo gerente. Ao enviar, será aplicada penalização de 10% por atraso.</p>
+                  <p className="text-[13px] font-bold text-green-800">Autorização histórica registrada. A solicitação seguirá o fluxo normal de regularização.</p>
                 </div>
               ) : null
             )}

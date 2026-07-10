@@ -22,6 +22,7 @@ export interface OportunidadeForClienteRow {
   carro_avaliado: boolean
   motivo_perda: string | null
   created_at: string
+  data_competencia?: string | null
   cliente?: { nome: string; telefone: string | null } | null
 }
 
@@ -81,7 +82,7 @@ export function deriveClientesListFromCrm(
   }
 
   return oportunidades
-    .filter(op => timestampMatchesDateOnly(op.created_at, selectedDate))
+    .filter(op => op.data_competencia === selectedDate || (!op.data_competencia && timestampMatchesDateOnly(op.created_at, selectedDate)))
     .map(op => {
       const agendamento = agendamentoPorOportunidade.get(op.id)
       const vendaRealizada = vendaRealizadaFromEtapa(op.etapa)

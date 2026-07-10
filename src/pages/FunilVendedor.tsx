@@ -6,6 +6,7 @@ import { SellerPageHeader } from '@/components/seller/SellerPageHeader'
 import { useAuth } from '@/hooks/useAuth'
 import { chartTokens } from '@/lib/charts/tokens'
 import { supabase } from '@/lib/supabase'
+import { useOfficialSellerPerformance } from '@/hooks/useOfficialSellerPerformance'
 import {
   buildCurrentMonthRange,
   buildFunnelDashboard,
@@ -168,6 +169,9 @@ export default function FunilVendedor() {
   }, [effectiveStoreId])
 
   const period = useMemo(() => resolvePeriod(periodKey), [periodKey])
+  const periodStart = period.start.toISOString().slice(0, 10)
+  const periodEnd = period.end.toISOString().slice(0, 10)
+  const { performance: officialPerformance } = useOfficialSellerPerformance(periodStart, periodEnd, profile?.id, effectiveStoreId)
   const dashboard = useMemo(
     () => buildDashboard(rows, sellerIds, effectiveStoreId, period, activeSellersCount),
     [effectiveStoreId, period, rows, sellerIds, activeSellersCount],
@@ -177,6 +181,19 @@ export default function FunilVendedor() {
     () => buildDashboard(rows, sellerIds, effectiveStoreId, rollingPeriod, activeSellersCount),
     [effectiveStoreId, rollingPeriod, rows, sellerIds, activeSellersCount],
   )
+  const officialKpis = useMemo<FunnelKpis>(() => {
+    if (!officialPerformance) return dashboard.kpis
+    const meta = officialPerformance.meta
+    const realizado = officialPerformance.vendas_realizadas
+    return {
+      ...dashboard.kpis,
+      meta,
+      realizado,
+      faltam: Math.max(meta - realizado, 0),
+      metaBatida: meta > 0 && realizado >= meta,
+      probabilidade: meta > 0 ? Math.min(100, (officialPerformance.vendas_projetadas / meta) * 100) : null,
+    }
+  }, [dashboard.kpis, officialPerformance])
 
   if (loading) {
     return (
@@ -218,7 +235,7 @@ export default function FunilVendedor() {
           </div>
         )}
 
-        <StatusMetaCard kpis={dashboard.kpis} periodKey={periodKey} />
+        <StatusMetaCard kpis={officialKpis} periodKey={periodKey} />
 
         {showEmptyState && (
           <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">

@@ -9,6 +9,8 @@ import { useAtendimentos } from '@/features/crm/hooks/useAtendimentos'
 import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
 import { useCadenciaAnalytics } from '@/features/crm/hooks/useCadenciaAnalytics'
 import { CRM_ETAPA_LABEL, CRM_CANAL_LABEL } from '@/lib/schemas/crm.schema'
+import { useAuth } from '@/hooks/useAuth'
+import { useOfficialSellerPerformance } from '@/hooks/useOfficialSellerPerformance'
 
 const BRL = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
 const CADENCIA_ETAPA_LABEL: Record<string, string> = {
@@ -41,6 +43,9 @@ function BarRow({ label, value, max, valueLabel }: { label: string; value: numbe
 }
 
 export function RelatoriosVendedor() {
+  const { profile, storeId } = useAuth()
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
+  const { performance: officialPerformance } = useOfficialSellerPerformance(`${today.slice(0, 7)}-01`, today, profile?.id, storeId)
   const { metrics: clienteMetrics, clientes } = useClientes()
   const { funil, oportunidades } = useOportunidades()
   const { porCanal } = useAtendimentos()
@@ -62,7 +67,8 @@ export function RelatoriosVendedor() {
           <StatCard tone="brand" icon={<Target size={22} />} label="Oportunidades" value={String(funil.totalOportunidades)} />
           <StatCard tone="green" icon={<TrendingUp size={22} />} label="Taxa Conversão" value={`${funil.taxaConversaoGeral}%`} />
           <StatCard tone="green" icon={<DollarSign size={22} />} label="Ticket Médio" value={BRL(funil.ticketMedio)} />
-          <StatCard tone="green" icon={<ShoppingBag size={22} />} label="Vendas" value={String(funil.ganhos.quantidade)} detail={BRL(funil.ganhos.valor)} />
+          <StatCard tone="green" icon={<ShoppingBag size={22} />} label="Vendas realizadas" value={String(officialPerformance?.vendas_realizadas ?? funil.ganhos.quantidade)} detail={BRL(officialPerformance?.faturamento_realizado ?? funil.ganhos.valor)} />
+          <StatCard tone="blue" icon={<TrendingUp size={22} />} label="Vendas projetadas" value={String(Math.round(officialPerformance?.vendas_projetadas ?? 0))} />
           <StatCard tone="orange" icon={<Phone size={22} />} label="Atendimentos hoje" value={String(porCanal.total)} />
         </section>
 

@@ -486,16 +486,14 @@ export function CheckinCrmSection({ ctx, allowInlineQuickEdit = true }: CheckinC
         ? (clientes as any[]).find(cliente => phoneDigits(cliente.telefone) === normalizedTelefone)
         : null
 
-      // Construct date of competence timestamp override (noon of selectedDate in Sao Paulo time)
-      const createdAtOverride = `${selectedDate}T12:00:00-03:00`
-
       const clientePayload: ClienteInput = {
         nome: nome.trim(),
         telefone: formatPhone(telefone) || null,
         canal_origem: canal || null,
         status: criaOportunidade ? 'oportunidade' : 'aguardando_contato',
         potencial_negocio: parsedValor || 0,
-        ...((!editingClienteDbId && !existingCliente?.id) ? { created_at: createdAtOverride } : {}),
+        data_competencia: selectedDate,
+        origem_modulo: 'terminal_mx',
       }
 
       // Save in Supabase — always use the real clientes.id (editingClienteDbId), never the local row id
@@ -527,7 +525,8 @@ export function CheckinCrmSection({ ctx, allowInlineQuickEdit = true }: CheckinC
         carro_avaliado: carroAvaliado === 'sim',
         motivo_perda: motivoPerda.trim() || null,
         closed_at: normalizedVendaRealizada !== 'Em Negociação' ? toClosedAt(dateOnly) : null,
-        ...(!editingClientId ? { created_at: createdAtOverride } : {}),
+        data_competencia: selectedDate,
+        origem_modulo: 'terminal_mx',
       }
 
       const { error: oportError, id: newOportunidadeId } = editingClientId

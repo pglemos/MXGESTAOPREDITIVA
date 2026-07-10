@@ -93,7 +93,7 @@ if (finalDate > maxDailyDate) {
 return 'Lançamentos não podem usar data futura.'
     }
 
-    if (scope === 'daily' && finalDate !== officialReferenceDate && finalDate !== maxDailyDate) {
+    if (scope === 'daily' && finalDate !== officialReferenceDate) {
         return 'Registro diário aceita somente a data operacional ativa. Use o histórico para datas retroativas.'
     }
 

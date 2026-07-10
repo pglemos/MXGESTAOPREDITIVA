@@ -59,10 +59,9 @@ export function useCrmDerivedTotals(referenceDate: string): CrmDerivedTotals {
         const [clientesResult, opResult, atResult, agdResult] = await Promise.all([
             supabase
                 .from('clientes')
-                .select('id, created_at, canal_origem')
+                .select('id, created_at, data_competencia, canal_origem')
                 .eq('seller_user_id', supabaseUser.id)
-                .gte('created_at', referenceRange.startIso)
-                .lt('created_at', referenceRange.endIso),
+                .or(`data_competencia.eq.${referenceDate},and(data_competencia.is.null,created_at.gte.${referenceRange.startIso},created_at.lt.${referenceRange.endIso})`),
 
             supabase
                 .from('oportunidades')

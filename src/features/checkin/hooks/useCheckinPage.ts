@@ -2,12 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import {
-    CHECKIN_DEADLINE_LABEL,
-    CHECKIN_EDIT_LIMIT_LABEL,
     CHECKIN_EDIT_LIMIT_MINUTES,
     CHECKIN_MAX_INPUT_VALUE,
     MX_TIMEZONE,
-    canEditCurrentCheckin,
     useCheckins,
 } from '@/hooks/useCheckins'
 import { validarFunil, calcularTotais } from '@/lib/calculations'
@@ -485,6 +482,14 @@ ${linkSeguro}`
         vendas: Number(effectiveForm.vnd_porta) + Number(effectiveForm.vnd_cart) + Number(effectiveForm.vnd_net),
     }), [effectiveForm])
 
+    const hasCrmActivity = useMemo(
+        () => effectiveTotals.leads > declaredProgressTotals.leads
+            || effectiveTotals.visitas > declaredProgressTotals.visitas
+            || effectiveTotals.agd > declaredProgressTotals.agd
+            || effectiveTotals.vendas > declaredProgressTotals.vendas,
+        [declaredProgressTotals, effectiveTotals],
+    )
+
     const totalAgendamentosD1 = Number(declaredForm.agd_cart ?? 0) + Number(declaredForm.agd_net ?? 0)
     const hasDeclaredClosingInput = declaredProgressTotals.leads > 0
         || declaredProgressTotals.visitas > 0
@@ -571,17 +576,7 @@ ${linkSeguro}`
     // rolou (calculateReferenceDate) — usar isPastDeadline evita marcar
     // como atrasado um dia novo que acabou de abrir às 12h00.
     const isLate = isPastDeadline
-    const canEditExisting = canEditCurrentCheckin(currentTime)
-
-    const deadlineMessage = useMemo(() => {
-        if (minutesUntilEditLock < 0) return `Bloqueado desde ${CHECKIN_EDIT_LIMIT_LABEL}.`
-        const lockText = minutesUntilEditLock === 0 ? 'menos de 1 min' : `${minutesUntilEditLock} min`
-        return isLate
-            ? `Prazo oficial passou às ${CHECKIN_DEADLINE_LABEL}. Edição bloqueia em ${lockText}.`
-            : `No prazo. Edição bloqueia em ${lockText}.`
-    }, [isLate, minutesUntilEditLock])
-
-    const allZero = useMemo(
+    const declaredAllZero = useMemo(
         () => declaredProgressTotals.leads === 0 && declaredProgressTotals.agd === 0 && declaredProgressTotals.visitas === 0 && declaredProgressTotals.vendas === 0,
         [declaredProgressTotals],
     )
@@ -690,19 +685,19 @@ const fechamentoConcluido = metricScope === 'daily'
             toast.error('Preencha os campos numéricos vazios antes de salvar.')
             return
         }
-        if (allZero && !form.zero_reason) {
+        if (declaredAllZero && !form.zero_reason) {
             setFieldError('zero_reason', 'Selecione o motivo da produção zero.')
             setInputError('Justificativa obrigatória para produção zero.')
             toast.error('Justificativa obrigatória para produção zero.')
             return
         }
-        if (allZero && !form.note.trim()) {
+        if (declaredAllZero && !form.note.trim()) {
             setFieldError('note', 'Descreva a observação da produção zero.')
             setInputError('Observação obrigatória para produção zero.')
             toast.error('Observação obrigatória para produção zero.')
             return
         }
-        if (allZero && form.zero_reason === 'Outro' && form.note.trim().length < 8) {
+        if (declaredAllZero && form.zero_reason === 'Outro' && form.note.trim().length < 8) {
             setFieldError('note', 'Descreva o motivo “Outro” com pelo menos 8 caracteres.')
             setInputError('Descreva o motivo com pelo menos 8 caracteres quando selecionar Outro.')
             toast.error('Descreva o motivo quando selecionar Outro.')
@@ -734,11 +729,11 @@ const fechamentoConcluido = metricScope === 'daily'
         // flag de liberação vão no payload; o servidor deriva a penalidade e o
         // valor final a partir do seu próprio relógio (não confia no client).
             const checkinPayload = {
-                ...effectiveForm,
+                ...declaredForm,
                 pontuacao_disciplina_base: rawDiscipline,
                 fechamento_liberado: fechamentoLiberado,
             }
- const { error } = await saveCheckin(checkinPayload, metricScope, selectedDate)
+ const { error } = await saveCheckin(checkinPayload, metricScope, selectedDate, activeClosingContext.mainDate)
  if (error) { toast.error(error); return }
 
         // Score/penalidade/liberação agora são persistidos pelo servidor
@@ -763,11 +758,9 @@ const fechamentoConcluido = metricScope === 'daily'
             minute: '2-digit',
         })
         const submittedDateLabel = selectedDate.split('-').reverse().join('/')
-        const d1EditLimitLabel = addDaysDateOnly(selectedDate, 1).split('-').reverse().join('/')
-
         setSaveNotice({
             title: `Fechamento de ${submittedDateLabel} finalizado às ${submittedAtLabel}.`,
-            detail: `Fechamento concluído. Os Agendamentos D+1 podem ser ajustados até 09h30 de ${d1EditLimitLabel}.`,
+            detail: 'Fechamento concluído. Novos registros comerciais continuam disponíveis; correções deste fechamento devem ser solicitadas pelo Histórico.',
         })
         if (declaredProgressTotals.vendas > 0) setShowConfetti(true)
         toast.success('Fechamento finalizado com sucesso.')
@@ -872,10 +865,9 @@ const fechamentoConcluido = metricScope === 'daily'
         crmDerived,
         totals,
         isLate,
-        canEditExisting,
         minutesUntilEditLock,
-        deadlineMessage,
-        allZero,
+        declaredAllZero,
+        hasCrmActivity,
         funnelError,
         mandatoryFeedbackActionsCount,
         setMetricScope,

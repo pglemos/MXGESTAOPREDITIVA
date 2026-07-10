@@ -29,7 +29,7 @@ export type CheckinScope = 'daily' | 'adjustment' | 'historical'
 export type CheckinSubmissionStatus = 'on_time' | 'late'
 export type StoreSourceMode = 'legacy_forms' | 'native_app' | 'hybrid'
 export type ProjectionMode = 'calendar' | 'business'
-export type CorrectionStatus = 'pending' | 'approved' | 'rejected'
+export type CorrectionStatus = 'pending' | 'approved' | 'rejected' | 'cancelled'
 
 /** Preferências granulares de notificação do usuário */
 export interface NotificationPreferences {
@@ -265,10 +265,15 @@ export interface CheckinCorrectionRequest {
     seller_id: string
     store_id: string
     requested_values: CheckinFormData
+    original_values?: Partial<CheckinFormData> | null
+    delta?: Record<string, { original: unknown; solicitado: unknown }>
     reason: string
     status: CorrectionStatus
     auditor_id: string | null
     reviewed_at: string | null
+    rejection_reason?: string | null
+    cancelled_at?: string | null
+    applied_at?: string | null
     created_at: string
 }
 

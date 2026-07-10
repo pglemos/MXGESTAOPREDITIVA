@@ -113,6 +113,7 @@ export const ClienteSchema = z.object({
   seller_user_id: z.string().uuid(),
   nome: z.string(),
   telefone: z.string().nullable(),
+  data_competencia: z.string().nullable().optional(),
   empresa: z.string().nullable(),
   canal_origem: z.enum(CRM_CANAIS).nullable(),
   status: z.enum(CRM_CLIENTE_STATUS),
@@ -146,6 +147,9 @@ export const OportunidadeSchema = z.object({
   created_at: z.string(),
   updated_at: z.string(),
   closed_at: z.string().nullable(),
+  data_competencia: z.string().nullable().optional(),
+  origem_modulo: z.string().optional(),
+  fechamento_id: z.string().uuid().nullable().optional(),
 })
 export type Oportunidade = z.infer<typeof OportunidadeSchema>
 

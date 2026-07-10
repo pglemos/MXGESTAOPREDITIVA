@@ -334,7 +334,7 @@ interface NovoRegistroModalProps {
 
 export function NovoRegistroModal({ open, onClose, onSaved, defaultDate }: NovoRegistroModalProps) {
   const { buscarClienteExistentePorTelefone, createCliente, updateCliente } = useClientes()
-  const { createOportunidade } = useOportunidades()
+  const { createOportunidade, registrarVendaDireta } = useOportunidades()
   const { createAgendamento } = useAgendamentos()
 
   const [tipo, setTipo] = useState<RegistroTipo | null>(null)
@@ -385,6 +385,8 @@ export function NovoRegistroModal({ open, onClose, onSaved, defaultDate }: NovoR
       canal_origem: canalDb,
       status: 'oportunidade',
       observacoes: form.observacao?.trim() || null,
+      data_competencia: hoje,
+      origem_modulo: defaultDate ? 'regularizacao' : 'terminal_mx',
     })
     if (error || !id) return { id: '', error: error || 'Não foi possível cadastrar o cliente.' }
     return { id, error: null }
@@ -394,16 +396,33 @@ export function NovoRegistroModal({ open, onClose, onSaved, defaultDate }: NovoR
     if (!tipo) return
     setSaving(true)
     try {
-      const { id: clienteId, error: clienteError } = await resolverCliente()
-      if (clienteError) { toast.error(clienteError); setSaving(false); return }
-
       const canalDb = form.canal ? CANAL_UI_TO_DB[form.canal] : null
       const financiamentoDb = form.financiamento ? FINANCIAMENTO_UI_TO_DB[form.financiamento] : 'nao_aplica'
 
-      // Quando defaultDate é informado (regularização de um dia passado), o
-      // registro precisa "pertencer" àquele dia — created_at é o campo que
-      // deriveClientesListFromCrm usa pra filtrar a tabela por data.
-      const createdAtOverride = defaultDate ? `${hoje}T12:00:00` : undefined
+      if (tipo === 'venda') {
+        const { error: vendaError } = await registrarVendaDireta({
+          nome: form.nome?.trim() || '',
+          telefone: form.whatsapp || '',
+          veiculo: form.veiculo_texto || '',
+          placa: form.placa_veiculo || '',
+          valor_venda: currencyToNumber(form.valor_venda || ''),
+          data_competencia: form.data_venda || hoje,
+          canal: canalDb,
+          financiamento: financiamentoDb,
+          carro_avaliado: form.possui_troca === 'Sim',
+          data_entrega_prevista: form.data_hora_entrega || null,
+          observacao: form.observacao || null,
+          observacao_entrega: form.observacao_entrega || null,
+        })
+        if (vendaError) { toast.error(vendaError); return }
+        toast.success('Venda salva com sucesso.')
+        onSaved?.()
+        handleClose()
+        return
+      }
+
+      const { id: clienteId, error: clienteError } = await resolverCliente()
+      if (clienteError) { toast.error(clienteError); setSaving(false); return }
 
       if (tipo === 'agendamento') {
         const { error: opError, id: opId } = await createOportunidade({
@@ -414,7 +433,8 @@ export function NovoRegistroModal({ open, onClose, onSaved, defaultDate }: NovoR
           canal: canalDb,
           financiamento: financiamentoDb,
           carro_avaliado: form.possui_troca === 'Sim',
-          created_at: createdAtOverride,
+          data_competencia: hoje,
+          origem_modulo: defaultDate ? 'regularizacao' : 'terminal_mx',
         })
         if (opError) { toast.error(opError); setSaving(false); return }
         const tipoAgendamento = form.modalidade === 'Visita na loja' ? 'visita' : 'negociacao'
@@ -428,34 +448,6 @@ export function NovoRegistroModal({ open, onClose, onSaved, defaultDate }: NovoR
           observacoes: [form.modalidade, form.origem_detalhada, form.observacao].filter(Boolean).join(' — ') || null,
         })
         if (agError) { toast.error(agError); setSaving(false); return }
-      }
-
-      if (tipo === 'venda') {
-        const { error: opError, id: opId } = await createOportunidade({
-          cliente_id: clienteId,
-          veiculo_interesse: form.veiculo_texto,
-          valor_negociado: currencyToNumber(form.valor_venda || ''),
-          etapa: 'ganho',
-          canal: canalDb,
-          financiamento: financiamentoDb,
-          carro_avaliado: form.possui_troca === 'Sim',
-          closed_at: `${form.data_venda}T12:00:00`,
-          placa_veiculo: form.placa_veiculo,
-          data_entrega_prevista: form.data_hora_entrega || null,
-          created_at: createdAtOverride,
-        })
-        if (opError) { toast.error(opError); setSaving(false); return }
-        if (form.data_hora_entrega) {
-          await createAgendamento({
-            cliente_id: clienteId,
-            oportunidade_id: opId,
-            data_hora: form.data_hora_entrega,
-            canal: canalDb,
-            tipo: 'entrega',
-            status: 'aguardando',
-            observacoes: [form.observacao_entrega, form.observacao].filter(Boolean).join(' — ') || null,
-          })
-        }
       }
 
       if (tipo === 'garantia') {
@@ -496,7 +488,8 @@ export function NovoRegistroModal({ open, onClose, onSaved, defaultDate }: NovoR
           canal: canalDb,
           financiamento: financiamentoDb,
           carro_avaliado: form.possui_troca === 'Sim',
-          created_at: createdAtOverride,
+          data_competencia: hoje,
+          origem_modulo: defaultDate ? 'regularizacao' : 'terminal_mx',
         })
         if (opError) { toast.error(opError); setSaving(false); return }
         if (observacoes) await updateCliente(clienteId, { observacoes })

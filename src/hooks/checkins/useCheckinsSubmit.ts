@@ -35,14 +35,16 @@ export function useCheckinsSubmit(args: UseCheckinsSubmitArgs) {
         formData: CheckinFormData,
         scope: CheckinScope = 'daily',
         customDate?: string,
-    ): Promise<{ error: string | null }> => {
+        officialReferenceDate?: string,
+    ): Promise<{ error: string | null; id?: string }> => {
         if (!profile || !storeId) return { error: 'Usuário não autenticado' }
         if (scope === 'adjustment' && !canCreateAdjustment(role)) {
             return { error: 'Ajuste técnico é restrito a gestores e perfis internos MX.' }
         }
 
         const finalDate = customDate || formData.reference_date || referenceDate
-const dateError = validateCheckinSubmissionDate(finalDate, referenceDate, scope, getSaoPauloDateOnly())
+        const activeReferenceDate = officialReferenceDate || referenceDate
+        const dateError = validateCheckinSubmissionDate(finalDate, activeReferenceDate, scope, getSaoPauloDateOnly())
         if (dateError) return { error: dateError }
 
  const isDaily = scope === 'daily' && finalDate <= getSaoPauloDateOnly()
@@ -80,11 +82,11 @@ const dateError = validateCheckinSubmissionDate(finalDate, referenceDate, scope,
         const { data, error } = await supabase.rpc('submit_checkin', { p_payload: payload })
 
         if (error) return { error: error.message }
-        const result = data as { ok?: boolean; error?: string } | null
+        const result = data as { ok?: boolean; error?: string; data?: { id?: string } } | null
         if (!result?.ok) return { error: result?.error || 'Não foi possível salvar o check-in.' }
 
         if (afterSubmit) await afterSubmit()
-        return { error: null }
+        return { error: null, id: result.data?.id }
     }
 
     return { saveCheckin }

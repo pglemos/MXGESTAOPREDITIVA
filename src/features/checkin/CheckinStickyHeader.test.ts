@@ -28,13 +28,14 @@ describe('Checkin sticky header layout contract', () => {
     expect(sellerShellSource).toContain('h-[calc(82px+env(safe-area-inset-bottom))]')
   })
 
-  test('uses CRM-derived effective totals instead showing zero summary values', () => {
+  test('keeps CRM totals as comparison while persisting only declared values', () => {
     expect(checkinHookSource).toContain('crmDailyCounters')
     expect(checkinHookSource).toContain('effectiveForm')
     expect(checkinHookSource).toContain('effectiveTotals')
-    expect(checkinHookSource).toContain('...effectiveForm')
+    expect(checkinHookSource).toContain('...declaredForm')
+    expect(checkinHookSource).toContain('hasCrmActivity')
     expect(checkinHookSource).toContain('saveCheckin(checkinPayload')
-    expect(checkinFormSource).toContain('const display = effectiveTotals')
+    expect(checkinFormSource).toContain('const productionZeroActive = declaredAllZero')
   })
 
   test('keeps mobile CRM readable without desktop table overflow', () => {
@@ -44,8 +45,8 @@ describe('Checkin sticky header layout contract', () => {
     expect(checkinCrmSource).toContain('Veículo')
   })
 
-  test('uses wizard de 4 etapas (Base44) e copy explicita de bloqueio', () => {
+  test('uses wizard de 4 etapas without reactivating the old deadline block', () => {
     expect(checkinFormSource).toContain('<FluxoFechamento')
-    expect(checkinFormSource).toContain('AGUARDANDO LIBERAÇÃO DO GERENTE')
+    expect(checkinFormSource).toContain('Nesta fase, o horário não bloqueia o envio')
   })
 })

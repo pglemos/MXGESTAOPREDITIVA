@@ -20,6 +20,15 @@ type LancamentoRow = {
     visit_prev_day?: number | null
 }
 
+type OfficialPerformanceRow = {
+    seller_user_id: string
+    vendas_realizadas: number | string
+    vendas_ultimo_dia: number | string
+    leads: number | string
+    atendimentos: number | string
+    agendamentos: number | string
+}
+
 type StorePerformanceEntry = {
     id: string
     name: string
@@ -57,31 +66,14 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
         setLoading(true)
         setError(null)
 
-        // Get checkins for the month using canonical EPIC-01 columns
-        let checkins: LancamentoRow[] | null = null
-        let checkinsError: { message: string } | null = null
-        if (isLancamentosViaRpcEnabled()) {
-            const { result } = await traced(async () =>
-                supabase.rpc('get_lancamentos_por_loja_periodo', {
-                    p_store_id: storeId,
-                    p_start_date: startDate,
-                    p_end_date: endDate,
-                    p_scope: 'daily',
-                }),
-            )
-            checkins = (result.data as LancamentoRow[] | null) || []
-            checkinsError = result.error
-        } else {
-            const res = await supabase
-                .from('lancamentos_diarios')
-                .select('seller_user_id, reference_date, leads_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
-                .eq('store_id', storeId)
-                .eq('metric_scope', 'daily')
-                .gte('reference_date', startDate)
-                .lte('reference_date', endDate)
-            checkins = (res.data as LancamentoRow[] | null) || []
-            checkinsError = res.error
-        }
+        const officialResult = await supabase.rpc('vendedor_performance_oficial', {
+            p_start_date: startDate,
+            p_end_date: endDate,
+            p_store_id: storeId,
+            p_seller_id: null,
+        })
+        const officialRows = (officialResult.data as OfficialPerformanceRow[] | null) || []
+        const checkinsError = officialResult.error
 
         if (checkinsError) {
             console.error('Audit Error [useRanking]: checkins fail ->', checkinsError.message)
@@ -139,7 +131,7 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
             ? (tenures as unknown as { seller_user_id: string; users?: User }[]).map((item) => ({ user_id: item.seller_user_id, users: item.users }))
             : (fallbackMembers || [])
 
-        if (!checkins || !members) { setLoading(false); return }
+        if (!members) { setLoading(false); return }
 
         const storeGoal = rules?.monthly_goal || 0
         const includeVendaLojaInGoal = rules?.include_venda_loja_in_individual_goal || false
@@ -160,17 +152,14 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
             })
         }
 
-        for (const c of checkins) {
-            const current = aggregated.get(c.seller_user_id)
+        for (const row of officialRows) {
+            const current = aggregated.get(row.seller_user_id)
             if (current) {
-                current.leads += c.leads_prev_day || 0
-                current.agd += (c.agd_cart_today || 0) + (c.agd_net_today || 0)
-                current.visitas += c.visit_prev_day || 0
-                const dayVnd = (c.vnd_porta_prev_day || 0) + (c.vnd_cart_prev_day || 0) + (c.vnd_net_prev_day || 0)
-                current.vnd += dayVnd
-                if (c.reference_date === daysInfo.referencia) {
-                    current.vnd_yesterday += dayVnd
-                }
+                current.leads = Number(row.leads || 0)
+                current.agd = Number(row.agendamentos || 0)
+                current.visitas = Number(row.atendimentos || 0)
+                current.vnd = Number(row.vendas_realizadas || 0)
+                current.vnd_yesterday = Number(row.vendas_ultimo_dia || 0)
             }
         }
 

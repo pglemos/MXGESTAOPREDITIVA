@@ -18,6 +18,15 @@ const baseOportunidade: OportunidadeForClienteRow = {
 }
 
 describe('deriveClientesListFromCrm', () => {
+  test('usa data_competencia explícita sem adulterar created_at', () => {
+    const result = deriveClientesListFromCrm(
+      [{ ...baseOportunidade, created_at: '2026-07-10T15:00:00-03:00', data_competencia: '2026-06-23' }],
+      [],
+      '2026-06-23',
+    )
+    expect(result).toHaveLength(1)
+  })
+
   test('venda (etapa ganho) classifica como Venda, sem agendamento vinculado', () => {
     const rows = deriveClientesListFromCrm(
       [{ ...baseOportunidade, etapa: 'ganho', valor_negociado: 100000 }],

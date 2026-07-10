@@ -24,6 +24,9 @@ export type ClienteInput = {
   potencial_negocio?: number
   observacoes?: string | null
   created_at?: string | null
+  data_competencia?: string | null
+  origem_modulo?: string | null
+  fechamento_id?: string | null
 }
 
 export function buildClientePayload(
@@ -47,7 +50,9 @@ export function buildClientePayload(
     potencial_negocio: input.potencial_negocio ?? 0,
     observacoes: input.observacoes?.trim() || null,
     ultima_interacao: toDateOnlyBR(now),
-    ...(input.created_at ? { created_at: input.created_at } : {}),
+    data_competencia: input.data_competencia || null,
+    origem_modulo: input.origem_modulo || 'crm',
+    fechamento_id: input.fechamento_id || null,
   }
 }
 
@@ -87,11 +92,9 @@ export function useClientes() {
   }, [supabaseUser])
 
   /**
-   * Base única: evita cadastrar o mesmo cliente duas vezes quando o
-   * telefone já existe na carteira deste vendedor. Escopo é por vendedor
-   * (não por loja) porque a RLS de `clientes` restringe leitura/escrita
-   * de linhas de outro seller_user_id — cada vendedor só enxerga a própria
-   * carteira.
+   * Fluxos genéricos continuam deduplicando dentro da carteira legível pelo
+   * vendedor. A venda direta faz o dedupe loja-wide dentro da RPC transacional,
+   * onde também é criado o vínculo seguro com a oportunidade.
    */
   const buscarClienteExistentePorTelefone = useCallback(async (telefone: string | null | undefined) => {
     const normalizado = normalizarTelefone(telefone)
@@ -113,8 +116,6 @@ export function useClientes() {
 
     const existenteId = await buscarClienteExistentePorTelefone(input.telefone)
     if (existenteId) {
-      const { error: updateError } = await updateCliente(existenteId, input)
-      if (updateError) return { error: updateError }
       return { error: null, id: existenteId, existed: true }
     }
 

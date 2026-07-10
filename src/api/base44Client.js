@@ -1149,8 +1149,10 @@ export const base44 = {
           level: r.target_audience || 'N1 Iniciante',
           duration_minutes: r.duration_minutes || 10,
           content_url: r.video_url || '',
+          video_url: r.video_url || '',
+          material_url: r.material_url || '',
           thumbnail_url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60',
-          is_live: r.type === 'live' || r.published_at ? true : false,
+          is_live: r.type === 'live',
           live_date: r.published_at,
           recording_url: r.video_url || ''
         }));
@@ -1173,7 +1175,7 @@ export const base44 = {
         return (rows || []).map(r => ({
           id: r.id,
           training_id: r.training_id,
-          completed: r.status === 'completed' || r.status === 'watched',
+          completed: r.status === 'completed' || r.status === 'watched' || r.status === 'concluido' || Boolean(r.completed_at),
           quiz_score: 100,
           hours_studied: 0.5,
           attended_live: true

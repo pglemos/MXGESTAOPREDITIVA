@@ -34,6 +34,25 @@ export type OportunidadeInput = {
   created_at?: string | null
   placa_veiculo?: string | null
   data_entrega_prevista?: string | null
+  data_competencia?: string | null
+  origem_modulo?: string | null
+  fechamento_id?: string | null
+}
+
+export type VendaDiretaInput = {
+  nome: string
+  telefone: string
+  veiculo: string
+  placa: string
+  valor_venda: number
+  data_competencia: string
+  canal?: CrmCanal | null
+  financiamento?: CrmFinanciamento
+  carro_avaliado?: boolean
+  data_entrega_prevista?: string | null
+  observacao?: string | null
+  observacao_entrega?: string | null
+  fechamento_id?: string | null
 }
 
 export function buildOportunidadePayload(
@@ -58,6 +77,9 @@ export function buildOportunidadePayload(
     closed_at: isTerminal ? (input.closed_at || nowIso()) : null,
     placa_veiculo: input.placa_veiculo?.trim() || null,
     data_entrega_prevista: input.data_entrega_prevista || null,
+    data_competencia: input.data_competencia || null,
+    origem_modulo: input.origem_modulo || 'crm',
+    fechamento_id: input.fechamento_id || null,
     ...(input.created_at ? { created_at: input.created_at } : {}),
   }
 }
@@ -123,6 +145,19 @@ export function useOportunidades() {
     await fetchOportunidades()
     return { error: null, id: data?.id }
   }, [supabaseUser, effectiveStoreId, fetchOportunidades])
+
+  const registrarVendaDireta = useCallback(async (input: VendaDiretaInput): Promise<{ error: string | null; id?: string }> => {
+    if (!supabaseUser || !effectiveStoreId) return { error: 'Sessão ou loja inválida.' }
+    const idempotencyKey = [supabaseUser.id, input.data_competencia, input.telefone.replace(/\D/g, ''), input.placa.trim().toUpperCase()].join(':')
+    const { data, error: rpcError } = await supabase.rpc('registrar_venda_direta', {
+      p_payload: { ...input, store_id: effectiveStoreId, idempotency_key: idempotencyKey, origem_modulo: 'terminal_mx' },
+    })
+    if (rpcError) return { error: rpcError.message }
+    const result = data as { ok?: boolean; error?: string; data?: { oportunidade_id?: string } } | null
+    if (!result?.ok) return { error: result?.error || 'Não foi possível registrar a venda.' }
+    await fetchOportunidades()
+    return { error: null, id: result.data?.oportunidade_id }
+  }, [effectiveStoreId, fetchOportunidades, supabaseUser])
 
   const updateOportunidade = useCallback(async (id: string, input: OportunidadeInput): Promise<{ error: string | null }> => {
     if (!supabaseUser) return { error: 'Sessão inválida.' }
@@ -217,5 +252,5 @@ export function useOportunidades() {
     }
   }, [oportunidades])
 
-  return { oportunidades, funil, loading, error, refetch: fetchOportunidades, createOportunidade, updateOportunidade, updateMotivoPerda, updateEtapa, deleteOportunidade }
+  return { oportunidades, funil, loading, error, refetch: fetchOportunidades, createOportunidade, registrarVendaDireta, updateOportunidade, updateMotivoPerda, updateEtapa, deleteOportunidade }
 }

@@ -18,6 +18,7 @@ export interface CrmDerivedTotalsBase {
 
 export interface CrmClienteForTotals {
   created_at?: string | null
+  data_competencia?: string | null
   canal_origem?: string | null
 }
 
@@ -87,7 +88,8 @@ export function deriveCrmDerivedTotals(input: {
   agendamentos: readonly CrmAgendamentoForTotals[]
 }): CrmDerivedTotalsBase {
   const agendaDate = addDaysDateOnly(input.referenceDate, 1)
-  const leadsDia = input.clientes.filter(cliente => timestampMatchesDateOnly(cliente.created_at, input.referenceDate))
+  const leadsDia = input.clientes.filter(cliente => cliente.data_competencia === input.referenceDate
+    || (!cliente.data_competencia && timestampMatchesDateOnly(cliente.created_at, input.referenceDate)))
   const leads_cart = leadsDia.filter(cliente => cliente.canal_origem === 'carteira').length
   const leads_net = leadsDia.filter(cliente => cliente.canal_origem === 'internet').length
   const leads = leadsDia.length

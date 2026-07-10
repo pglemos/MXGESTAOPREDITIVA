@@ -3,10 +3,12 @@ import { BookOpen } from "lucide-react";
 import { SellerPageHeader } from "@/components/seller/SellerPageHeader";
 import FeedbackPage from "./FeedbackPage";
 import PDIPage from "./PDIPage";
+import Treinamentos from "./Treinamentos";
 
 const TABS = [
   { key: "feedback", label: "Feedback" },
   { key: "pdi", label: "PDI" },
+  { key: "conteudos", label: "Conteúdos" },
 ];
 
 export default function Desenvolvimento() {
@@ -35,6 +37,7 @@ tab === t.key
 <div className="pt-4">
         {tab === "feedback" && <FeedbackPage />}
         {tab === "pdi" && <PDIPage />}
+        {tab === "conteudos" && <Treinamentos />}
       </div>
     </div>
   );

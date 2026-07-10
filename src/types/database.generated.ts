@@ -8521,40 +8521,64 @@ export type Database = {
       }
       solicitacoes_correcao_lancamento: {
         Row: {
+          applied_at: string | null
           auditor_id: string | null
+          cancelled_at: string | null
           checkin_id: string
           created_at: string | null
+          delta: Json
           id: string
+          idempotency_key: string | null
+          impact: Json
+          original_values: Json | null
           reason: string
+          rejection_reason: string | null
           requested_values: Json
           reviewed_at: string | null
           seller_id: string
-          status: Database["public"]["Enums"]["correction_status"]
+          status: string
           store_id: string
+          updated_at: string
         }
         Insert: {
+          applied_at?: string | null
           auditor_id?: string | null
+          cancelled_at?: string | null
           checkin_id: string
           created_at?: string | null
+          delta?: Json
           id?: string
+          idempotency_key?: string | null
+          impact?: Json
+          original_values?: Json | null
           reason: string
+          rejection_reason?: string | null
           requested_values: Json
           reviewed_at?: string | null
           seller_id: string
-          status?: Database["public"]["Enums"]["correction_status"]
+          status?: string
           store_id: string
+          updated_at?: string
         }
         Update: {
+          applied_at?: string | null
           auditor_id?: string | null
+          cancelled_at?: string | null
           checkin_id?: string
           created_at?: string | null
+          delta?: Json
           id?: string
+          idempotency_key?: string | null
+          impact?: Json
+          original_values?: Json | null
           reason?: string
+          rejection_reason?: string | null
           requested_values?: Json
           reviewed_at?: string | null
           seller_id?: string
-          status?: Database["public"]["Enums"]["correction_status"]
+          status?: string
           store_id?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -10099,6 +10123,10 @@ export type Database = {
         Args: { request_id: string }
         Returns: undefined
       }
+      aplicar_regularizacao_fechamento: {
+        Args: { p_request_id: string }
+        Returns: Json
+      }
       approve_pdi_action_evidence: {
         Args: { p_action_id: string; p_approval_payload: Json }
         Returns: undefined
@@ -10106,6 +10134,10 @@ export type Database = {
       atribuir_trilha_maturidade_vendedor: {
         Args: { p_seller_id?: string }
         Returns: string
+      }
+      cancelar_regularizacao_fechamento: {
+        Args: { p_request_id: string }
+        Returns: Json
       }
       can_access_consulting_client: {
         Args: { p_client_id: string }
@@ -10896,6 +10928,19 @@ export type Database = {
       reject_correction_request: {
         Args: { request_id: string }
         Returns: undefined
+      }
+      rejeitar_regularizacao_fechamento: {
+        Args: { p_reason?: string | null; p_request_id: string }
+        Returns: Json
+      }
+      solicitar_regularizacao_fechamento: {
+        Args: {
+          p_checkin_id: string
+          p_idempotency_key?: string | null
+          p_reason: string
+          p_requested_values: Json
+        }
+        Returns: Json
       }
       resolve_alert: {
         Args: { p_alert_id: string }

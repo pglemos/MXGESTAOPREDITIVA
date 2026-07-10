@@ -7,7 +7,6 @@ import {
   DollarSign,
   Globe,
   LockKeyhole,
-  MessageSquare,
   Minus,
   Plus,
   RefreshCw,
@@ -126,11 +125,11 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
     fieldErrors,
     numberDrafts,
     changedFields,
-    canEditExisting,
     funnelError,
     inputError,
     minutesUntilEditLock,
-    allZero,
+    declaredAllZero,
+    hasCrmActivity,
     saveNotice,
     mandatoryFeedbackActionsCount,
     navigate,
@@ -142,14 +141,12 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
     crmDerived,
     historicalCheckin,
     isLate,
-    deadlineMessage,
     // Added Props
     clientesList,
     fechamentoLiberado,
     finalizadoAposPrazo,
     isPastDeadline,
     lockStage,
-    avisarGerenteWhatsapp,
   disciplinePercent,
   completedItems,
   pendingItems,
@@ -164,13 +161,11 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
         customReferenceDate,
         declaredForm,
         declaredProgressTotals,
-        effectiveTotals,
         activeClosingContext,
     } = ctx
 
     const selectedDate = ctx.selectedDate || customReferenceDate || ctx.referenceDate
     const mainDateLabel = selectedDate.split('-').reverse().join('/')
-    const nextDateLabel = addDaysDateOnly(selectedDate, 1).split('-').reverse().join('/')
     const resumoTitle = activeClosingContext.mainLabel === 'Hoje' ? 'RESUMO DE HOJE' : 'RESUMO DO FECHAMENTO ANTERIOR'
     const detalhesD1Concluidos = totalAgendamentosD1 <= 0 || creditosValidos >= totalAgendamentosD1
     const hasIncompleteD1 = shouldConfirmBeforeFinalizar({ totalAgendamentosD1, creditosValidos })
@@ -178,8 +173,8 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
     const readValue = (field: NumericCheckinField) =>
         Number(declaredForm[field] ?? form[field] ?? 0)
 
-    const display = effectiveTotals
-    const productionZeroActive = display.leads === 0 && display.visitas === 0 && display.agd === 0 && display.vendas === 0
+    const productionZeroActive = declaredAllZero
+    const display = declaredProgressTotals
 
   const showCrmBadge = !historicalCheckin && crmDerived.hasCrmData
 
@@ -298,6 +293,15 @@ return (
           funnelError={funnelError}
           inputError={inputError}
         />
+      )}
+
+      {hasCrmActivity && (
+        <div className="flex items-start gap-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3" role="status">
+          <Info size={16} className="mt-0.5 shrink-0 text-sky-600" aria-hidden="true" />
+          <p className="text-[13px] font-semibold text-sky-900">
+            O CRM registra atividade acima do declarado. O fechamento salvará exatamente os números informados por você; a divergência ficará disponível para conferência da liderança.
+          </p>
+        </div>
       )}
 
 <section className="scroll-mt-6 md:hidden">
@@ -753,20 +757,20 @@ Confirmar Internet
                 </div>
               </div>
 
-              {/* SECTION 6: Prazo para fechar o dia anterior */}
+              {/* SECTION 6: Data operacional */}
               <div className="space-y-2">
                 <h3 className="font-extrabold text-[#64748B] flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
-                  <Clock size={14} /> 6. Prazo para fechar o dia anterior
+                  <Clock size={14} /> 6. Data operacional
                 </h3>
                 <p>
-                  Você pode realizar ou corrigir o fechamento do dia anterior até 09h30 da manhã, no horário de Brasília.
+                  Antes de 12h, conclua primeiro o fechamento anterior. Assim que ele for finalizado, o fechamento de hoje será liberado imediatamente.
                 </p>
                 <p>
-                  Depois desse horário, o fechamento fica bloqueado. Caso precise ajustar, solicite liberação ao seu superior.
+                  Depois de 12h, o dia atual fica disponível e qualquer pendência anterior segue para o Histórico. Nesta fase, o horário não bloqueia o envio.
                 </p>
                 <div className="bg-[#F7F8F8] text-[#526B7A] font-bold p-2.5 rounded-lg border border-[#DFE0E1] flex items-center gap-2">
                   <LockKeyhole size={14} />
-                  <span>Após 09h30, somente o superior poderá liberar o fechamento.</span>
+                  <span>Fechamento concluído é imutável; correções são solicitadas pelo Histórico.</span>
                 </div>
               </div>
 
@@ -781,7 +785,7 @@ Confirmar Internet
                   <li className="flex items-center gap-1.5"><Check size={12} className="text-[#22C55E] stroke-[3]" /> Detalhou apenas parte dos agendamentos: pontuação proporcional</li>
                   <li className="flex items-center gap-1.5"><Check size={12} className="text-[#22C55E] stroke-[3]" /> Cadastrou com data diferente de amanhã: aquele cadastro vale apenas 50%</li>
                   <li className="flex items-center gap-1.5"><Check size={12} className="text-[#22C55E] stroke-[3]" /> Cliente vendido conta como venda, não como agendamento</li>
-                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#22C55E] stroke-[3]" /> Fechamento do dia anterior fica liberado até 09h30 do dia seguinte</li>
+                  <li className="flex items-center gap-1.5"><Check size={12} className="text-[#22C55E] stroke-[3]" /> D-1 concluído libera D0 imediatamente; pendências antigas seguem para o Histórico</li>
                 </ul>
                 <p className="italic text-[#475569] mt-3">
                   “Essa regra existe para manter seu funil atualizado e ajudar você, sua liderança e a loja a acompanharem melhor as oportunidades reais de venda.”
@@ -817,8 +821,7 @@ Ao concluir, leads, atendimentos, vendas e demais informações referentes ao di
 <strong className="text-[#0F172A]">{mainDateLabel}</strong> serão encerrados e não poderão mais ser alterados.
 </p>
 <p>
-Até 09h30 de {nextDateLabel}, você poderá corrigir somente as informações de{' '}
-<strong className="text-[#0F172A]">Agendamentos D+1</strong>.
+Novos registros comerciais continuam disponíveis 24 horas. Para corrigir números deste fechamento após a conclusão, use o Histórico.
 </p>
 {hasIncompleteD1 && (
 <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[12px] font-semibold text-amber-800">
@@ -860,41 +863,16 @@ className="rounded-xl bg-[#22C55E] px-6 py-2.5 text-[13px] font-bold text-white 
 
       {/* Finalizar Fechamento */}
       <div className="min-w-0 rounded-[18px] border border-[#dfe7f0] bg-white px-6 py-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] mt-5 space-y-4">
-        {/* Late Close Warning Banner — só no estágio "blocked" (09h31-12h00).
-            Após 12h01 (lockStage 'discreet') a tela para de insistir; ver
-            showDiscreetPendingBanner acima. Liberado mostra sempre, pra
-            confirmar a penalidade antes de finalizar. */}
-        {(lockStage === 'blocked' || fechamentoLiberado) && isPastDeadline && (
-          <div className={`rounded-xl border p-4 shadow-sm ${
-            fechamentoLiberado
-              ? 'border-status-success/30 bg-status-success-surface'
-              : 'border-status-error/30 bg-status-error-surface'
-          }`}>
+        {isPastDeadline && !fechamentoConcluido && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
             <div className="flex items-start gap-2">
-              {fechamentoLiberado ? (
-                <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-status-success" />
-              ) : (
-                <AlertTriangle size={18} className="mt-0.5 shrink-0 text-status-error" />
-              )}
+              <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-600" />
               <div className="flex-1">
-                <Typography variant="p" className={`text-sm font-bold ${
-                  fechamentoLiberado ? 'text-status-success' : 'text-status-error'
-                }`}>
-                  {fechamentoLiberado
-                    ? 'Fechamento liberado pelo gerente. Ao finalizar, será aplicada penalização de 10% por atraso.'
-                    : 'Prazo encerrado às 09h30. Solicite liberação ao seu gerente para finalizar este fechamento.'}
+                <Typography variant="p" className="text-sm font-bold text-amber-900">
+                  Este fechamento está pendente, mas continua disponível para envio sem liberação de gerente. Após concluir, qualquer correção deverá ser solicitada pelo Histórico.
                 </Typography>
               </div>
             </div>
-            {!fechamentoLiberado && (
-              <button
-                type="button"
-                onClick={() => avisarGerenteWhatsapp()}
-                className="mt-3 inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-status-success px-4 text-xs font-bold text-white transition-colors hover:opacity-90 shadow-sm"
-              >
-                <MessageSquare size={14} /> Avisar gerente no WhatsApp
-              </button>
-            )}
           </div>
         )}
 

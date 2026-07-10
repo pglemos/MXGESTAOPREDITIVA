@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { UserCircle, Briefcase, Clock, Target, GraduationCap, DollarSign, Save } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useOfficialSellerPerformance } from "@/hooks/useOfficialSellerPerformance";
 
 const formatBRL = (value) =>
   `R$ ${Number(value || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -32,6 +34,10 @@ const Field = ({ label, children }) => (
 );
 
 export default function MeuPerfil() {
+ const { profile: authProfile, storeId: authStoreId } = useAuth();
+ const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+ const yearStart = `${today.slice(0, 4)}-01-01`;
+ const { performance: officialPerformance } = useOfficialSellerPerformance(yearStart, today, authProfile?.id, authStoreId);
  const [profile, setProfile] = useState({
     full_name: "",
     phone: "",
@@ -54,6 +60,12 @@ export default function MeuPerfil() {
     education: "",
     job_interest: "Não",
     avatar_url: "",
+    entry_date: "",
+    academic_education: "",
+    previous_experience: "",
+    courses_certifications: "",
+    career_plan: "",
+    pdi_history_count: 0,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -67,10 +79,11 @@ export default function MeuPerfil() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error("Unauthorized");
 
-        const [{ data: usuario }, { data: vendedorPerfil }, { data: vinculos }] = await Promise.all([
+        const [{ data: usuario }, { data: vendedorPerfil }, { data: vinculos }, pdis] = await Promise.all([
           supabase.from("usuarios").select("name,phone,avatar_url").eq("id", user.id).maybeSingle(),
           supabase.from("vendedor_perfil").select("*").eq("seller_user_id", user.id).maybeSingle(),
           supabase.from("vinculos_loja").select("store_id").eq("user_id", user.id).eq("is_active", true).limit(1),
+          base44.entities.PDI.list().catch(() => []),
         ]);
 
  const storeId = vendedorPerfil?.loja_id || vinculos?.[0]?.store_id || legacyProfile.dealership || "";
@@ -134,6 +147,12 @@ export default function MeuPerfil() {
           salary_goal: selectedPlan?.salary_goal ?? vendedorPerfil?.pretensao_min ?? legacyProfile.salary_goal ?? legacyProfile.target_salary ?? 0,
           job_interest: vendedorPerfil?.carreira_interesse === "disponivel" ? "Disponível para o mercado" : vendedorPerfil?.carreira_interesse === "confidencial" ? "Confidencial" : "Não",
           avatar_url: usuario?.avatar_url || legacyProfile.avatar_url || "",
+          entry_date: vendedorPerfil?.data_entrada || "",
+          academic_education: vendedorPerfil?.formacao_academica || "",
+          previous_experience: vendedorPerfil?.experiencias_anteriores || "",
+          courses_certifications: vendedorPerfil?.cursos_certificacoes || "",
+          career_plan: vendedorPerfil?.plano_carreira || "",
+          pdi_history_count: pdis?.length || 0,
         }));
         setProfileId(vendedorPerfil?.id || legacyProfile.id || user.id);
       } finally {
@@ -184,6 +203,10 @@ export default function MeuPerfil() {
           hora_saida: data.work_end ? `${data.work_end}:00` : null,
           tempo_mercado_anos: data.experience_years,
           carreira_interesse: data.job_interest === "Disponível para o mercado" ? "disponivel" : data.job_interest === "Confidencial" ? "confidencial" : "nao",
+          formacao_academica: data.academic_education?.trim() || null,
+          experiencias_anteriores: data.previous_experience?.trim() || null,
+          cursos_certificacoes: data.courses_certifications?.trim() || null,
+          plano_carreira: data.career_plan?.trim() || null,
         }, { onConflict: "seller_user_id" })
         .select()
         .single();
@@ -290,9 +313,44 @@ export default function MeuPerfil() {
 
         {/* Education */}
         <Section title="Formação" icon={GraduationCap}>
-          <Field label="Formação Acadêmica">
-            <Input value={profile.education || ""} placeholder="Não cadastrado" readOnly aria-readonly="true" className="rounded-xl bg-slate-50 text-slate-500 cursor-default" />
-          </Field>
+          <div className="grid gap-4">
+            <Field label="Formação Acadêmica">
+              <textarea value={profile.academic_education || ""} onChange={e => setProfile({ ...profile, academic_education: e.target.value })} rows={3} maxLength={2000} className="w-full rounded-xl border border-slate-200 p-3 text-sm" placeholder="Graduação, instituição e ano." />
+            </Field>
+            <Field label="Cursos e Certificações">
+              <textarea value={profile.courses_certifications || ""} onChange={e => setProfile({ ...profile, courses_certifications: e.target.value })} rows={3} maxLength={3000} className="w-full rounded-xl border border-slate-200 p-3 text-sm" placeholder="Cursos, certificações e datas relevantes." />
+            </Field>
+          </div>
+        </Section>
+
+        <Section title="Histórico Profissional e Carreira" icon={Briefcase}>
+          <div className="grid gap-4">
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Data de Entrada">
+                <Input type="date" value={profile.entry_date || ""} readOnly aria-readonly="true" className="rounded-xl bg-slate-50 text-slate-500" />
+              </Field>
+              <Field label="Tempo de Casa">
+                <Input value={profile.entry_date ? `${Math.max(0, Math.floor((Date.now() - new Date(profile.entry_date).getTime()) / 31557600000))} ano(s)` : "Não informado"} readOnly className="rounded-xl bg-slate-50 text-slate-500" />
+              </Field>
+            </div>
+            <Field label="Empresas e Experiências Anteriores">
+              <textarea value={profile.previous_experience || ""} onChange={e => setProfile({ ...profile, previous_experience: e.target.value })} rows={4} maxLength={4000} className="w-full rounded-xl border border-slate-200 p-3 text-sm" placeholder="Empresa, cargo, período e principais resultados." />
+            </Field>
+            <Field label="Plano de Carreira">
+              <textarea value={profile.career_plan || ""} onChange={e => setProfile({ ...profile, career_plan: e.target.value })} rows={3} maxLength={3000} className="w-full rounded-xl border border-slate-200 p-3 text-sm" placeholder="Objetivos, próximos passos e interesses profissionais." />
+            </Field>
+          </div>
+        </Section>
+
+        <Section title="Performance e Desenvolvimento" icon={Target}>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <Field label="Vendas Oficiais no Ano"><Input value={officialPerformance?.vendas_realizadas ?? 0} readOnly className="rounded-xl bg-slate-50 text-slate-500" /></Field>
+            <Field label="Média Mensal Oficial"><Input value={officialPerformance ? (officialPerformance.vendas_realizadas / Math.max(new Date().getMonth() + 1, 1)).toFixed(1) : "0"} readOnly className="rounded-xl bg-slate-50 text-slate-500" /></Field>
+            <Field label="Histórico de PDI"><Input value={`${profile.pdi_history_count || 0} registro(s)`} readOnly className="rounded-xl bg-slate-50 text-slate-500" /></Field>
+            <Field label="Disciplina"><Input value={`${Math.round(officialPerformance?.disciplina ?? 0)}%`} readOnly className="rounded-xl bg-slate-50 text-slate-500" /></Field>
+            <Field label="Regularizações Pendentes"><Input value={officialPerformance?.regularizacoes_pendentes ?? 0} readOnly className="rounded-xl bg-slate-50 text-slate-500" /></Field>
+            <Field label="Regularizações Aprovadas"><Input value={officialPerformance?.regularizacoes_aprovadas ?? 0} readOnly className="rounded-xl bg-slate-50 text-slate-500" /></Field>
+          </div>
         </Section>
 
         {/* Compensation */}
