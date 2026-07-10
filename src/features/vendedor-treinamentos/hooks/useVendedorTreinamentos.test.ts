@@ -54,4 +54,9 @@ describe('VendedorTreinamentos — contrato visual anterior', () => {
         expect(containerSource).not.toContain('<PageHeading title="Universidade MX"')
         expect(containerSource).not.toContain('<TabNavPill')
     })
+
+    test('usa os mesmos limites, margens e padding responsivo da tela de Ranking', () => {
+        expect(containerSource).toContain('overflow-y-auto bg-surface-alt font-body no-scrollbar px-mx-sm py-mx-md sm:px-mx-md lg:px-mx-lg pb-12')
+        expect(containerSource).toContain('mx-auto w-full max-w-[1500px] space-y-8')
+    })
 })
