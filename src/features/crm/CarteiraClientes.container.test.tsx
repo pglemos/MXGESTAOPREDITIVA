@@ -1,6 +1,10 @@
 import React from 'react'
 import { afterEach, describe, expect, it, mock } from 'bun:test'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+// P0-05b (auditoria 2026-07-10): ver RelatoriosVendedor.container.test.tsx —
+// reusa a implementação real em vez de manter uma cópia hand-rolled que fica
+// obsoleta e mascara bugs reais (ex.: P1-05/P0-05a).
+import { buildOportunidadePayload } from '@/features/crm/hooks/useOportunidades'
 
 const createCliente = mock(async () => ({ error: null, id: 'cliente-1' }))
 const registrarStatusCadencia = mock(async () => ({ error: null }))
@@ -92,40 +96,7 @@ mock.module('@/features/crm/hooks/useClientes', () => ({
 }))
 
 mock.module('@/features/crm/hooks/useOportunidades', () => ({
-  buildOportunidadePayload: (
-    input: {
-      cliente_id: string
-      veiculo_interesse?: string | null
-      tipo_veiculo?: string | null
-      valor_negociado?: number
-      etapa?: string
-      canal?: string | null
-      sinal?: number
-      financiamento?: string
-      carro_avaliado?: boolean
-      motivo_perda?: string | null
-      closed_at?: string | null
-    },
-    context: { loja_id: string; seller_user_id: string },
-    now: () => string = () => new Date().toISOString(),
-  ) => {
-    const etapa = input.etapa || 'prospeccao'
-    return {
-      cliente_id: input.cliente_id,
-      loja_id: context.loja_id,
-      seller_user_id: context.seller_user_id,
-      veiculo_interesse: input.veiculo_interesse?.trim() || null,
-      tipo_veiculo: input.tipo_veiculo || null,
-      valor_negociado: input.valor_negociado ?? 0,
-      etapa,
-      canal: input.canal || null,
-      sinal: input.sinal ?? 0,
-      financiamento: input.financiamento || 'nao_aplica',
-      carro_avaliado: input.carro_avaliado ?? false,
-      motivo_perda: etapa === 'perdido' ? input.motivo_perda?.trim() || null : null,
-      closed_at: input.closed_at || (etapa === 'ganho' || etapa === 'perdido' ? now() : null),
-    }
-  },
+  buildOportunidadePayload,
   useOportunidades: () => ({
     oportunidades: [],
   }),

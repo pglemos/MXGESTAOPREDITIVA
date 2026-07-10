@@ -31,15 +31,15 @@ export function RotinaAjustesTab({
       exit={{ opacity: 0, y: -20 }}
       className="space-y-mx-lg"
     >
-      <Card className="p-mx-10 md:p-14 border-none shadow-mx-xl bg-white relative overflow-hidden">
+      <Card className="rounded-mx-lg border border-border-subtle p-mx-md shadow-mx-sm bg-white relative overflow-hidden">
         <div
           className="absolute top-mx-0 right-mx-0 w-mx-sidebar-expanded h-mx-64 bg-brand-primary/5 rounded-mx-full blur-mx-xl -mr-32 -mt-32"
           aria-hidden="true"
         />
-        <header className="flex items-center justify-between border-b border-border-default pb-8 mb-10 relative z-10">
+        <header className="flex items-center justify-between border-b border-border-subtle pb-8 mb-10 relative z-10">
           <div className="flex items-center gap-mx-md">
-            <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-pure-black text-white flex items-center justify-center shadow-mx-xl transform rotate-2">
-              <ShieldAlert size={32} className="text-brand-primary" />
+            <div className="w-mx-2xl h-mx-2xl rounded-mx-lg bg-brand-primary text-white flex items-center justify-center shadow-mx-xl transform rotate-2">
+              <ShieldAlert size={32} />
             </div>
             <div>
               <Typography variant="h2" className="uppercase tracking-tighter leading-none">
@@ -56,7 +56,7 @@ export function RotinaAjustesTab({
           </div>
           <Badge
             variant={pendingRequests.length > 0 ? 'warning' : 'success'}
-            className="shadow-mx-md px-6 py-2 rounded-mx-full font-black uppercase text-tiny"
+            className="shadow-mx-md px-6 py-2 rounded-mx-lg font-black uppercase text-tiny"
           >
             {pendingRequests.length} PENDÊNCIAS
           </Badge>
@@ -64,7 +64,7 @@ export function RotinaAjustesTab({
 
         <div className="space-y-mx-md relative z-10">
           {pendingRequests.length === 0 ? (
-            <div className="py-20 text-center flex flex-col items-center justify-center gap-mx-md bg-surface-alt rounded-mx-3xl border-2 border-dashed border-border-default">
+            <div className="py-20 text-center flex flex-col items-center justify-center gap-mx-md bg-surface-alt rounded-mx-lg border border-dashed border-border-subtle">
               <ShieldCheck size={48} className="text-text-tertiary/20" />
               <Typography
                 variant="p"
@@ -78,7 +78,7 @@ export function RotinaAjustesTab({
             pendingRequests.map((req) => (
               <Card
                 key={req.id}
-                className="p-mx-lg border border-border-default bg-surface-alt/30 hover:bg-white hover:shadow-mx-lg transition-all group"
+                className="rounded-mx-lg border border-border-subtle bg-surface-alt/30 hover:bg-white hover:shadow-mx-sm transition-all group p-mx-md"
               >
                 <div className="flex flex-col lg:flex-row gap-mx-lg">
                   <div className="flex-1 space-y-mx-md">
@@ -88,7 +88,7 @@ export function RotinaAjustesTab({
                           src={req.seller?.avatar_url || undefined}
                           alt={`Avatar de ${req.seller?.name || 'vendedor'}`}
                           fallback={req.seller?.name || '?'}
-                          className="w-mx-10 h-mx-10 rounded-mx-xl bg-brand-primary text-white shadow-inner"
+                          className="w-mx-10 h-mx-10 rounded-mx-lg bg-brand-primary text-white shadow-inner"
                         />
                         <div>
                           <Typography variant="h3" className="text-base uppercase font-black">
@@ -108,8 +108,8 @@ export function RotinaAjustesTab({
                       </Badge>
                     </div>
 
-                    <div className="bg-white p-mx-md rounded-mx-xl shadow-inner border border-border-default space-y-mx-sm">
-                      <header className="flex items-center gap-mx-xs border-b border-border-default pb-2 mb-2">
+                    <div className="bg-white p-mx-md rounded-mx-lg shadow-inner border border-border-subtle space-y-mx-sm">
+                      <header className="flex items-center gap-mx-xs border-b border-border-subtle pb-2 mb-2">
                         <MessageSquare size={14} className="text-brand-primary" />
                         <Typography
                           variant="tiny"
@@ -125,7 +125,7 @@ export function RotinaAjustesTab({
                         &quot;{req.reason}&quot;
                       </Typography>
                     </div>
-                    <div className="rounded-mx-xl border border-status-warning/20 bg-status-warning-surface p-mx-md">
+                    <div className="rounded-mx-lg border border-status-warning/20 bg-status-warning-surface p-mx-md">
                       <Typography
                         variant="tiny"
                         className="mb-mx-xs block font-black uppercase tracking-widest text-status-warning"
@@ -184,7 +184,7 @@ export function RotinaAjustesTab({
                       ].map((val) => (
                         <div
                           key={val.l}
-                          className="bg-white p-mx-sm rounded-mx-xl border border-border-default shadow-sm text-center"
+                          className="bg-white p-mx-sm rounded-mx-lg border border-border-subtle shadow-sm text-center"
                         >
                           <Typography variant="tiny" tone="muted" className="font-black block">
                             {val.l}
@@ -205,7 +205,7 @@ export function RotinaAjustesTab({
                         size="sm"
                         onClick={() => onReject(req.id)}
                         disabled={auditorLoading}
-                        className="flex-1 h-mx-11 rounded-mx-xl font-black text-mx-micro uppercase hover:bg-status-error-surface hover:text-status-error transition-all"
+                        className="flex-1 h-mx-11 rounded-mx-lg font-black text-mx-micro uppercase hover:bg-status-error-surface hover:text-status-error transition-all border-border-subtle"
                       >
                         REJEITAR
                       </Button>
@@ -213,7 +213,7 @@ export function RotinaAjustesTab({
                         size="sm"
                         onClick={() => onApprove(req)}
                         disabled={auditorLoading}
-                        className="flex-1 h-mx-11 rounded-mx-xl font-black text-mx-micro uppercase shadow-mx-md"
+                        className="flex-1 h-mx-11 rounded-mx-lg font-black text-mx-micro uppercase shadow-mx-md bg-brand-primary hover:bg-brand-primary-hover text-white"
                       >
                         APROVAR AJUSTE
                       </Button>

@@ -3,6 +3,10 @@ import { readFileSync } from 'node:fs'
 
 const formSource = readFileSync(new URL('./CheckinForm.tsx', import.meta.url), 'utf8')
 const pageHookSource = readFileSync(new URL('../hooks/useCheckinPage.ts', import.meta.url), 'utf8')
+const submitCheckinRpcSource = readFileSync(
+    new URL('../../../../supabase/migrations/20260710120000_harden_submit_checkin_operational_date.sql', import.meta.url),
+    'utf8',
+)
 
 describe('CheckinForm draft save contract', () => {
     test('wires Salvar rascunho to a draft-only save flow', () => {
@@ -12,5 +16,30 @@ describe('CheckinForm draft save contract', () => {
         expect(pageHookSource).toContain('CHECKIN_DRAFT_STORAGE_PREFIX')
         expect(pageHookSource).toContain("toast.success('Rascunho salvo.')")
         expect(pageHookSource).not.toContain('const handleSaveDraft = async () => {\n        await submitCheckin()')
+    })
+})
+
+// Auditoria 2026-07-10 (P0-01): a reunião de produto de 09/07 decidiu que a
+// janela 09h30-12h00 com bloqueio/liberação de gerente é evolução futura —
+// a fase atual não pode travar envio nem aplicar penalidade por horário.
+// Estes testes de contrato falham se alguém reintroduzir o bloqueio sem uma
+// decisão consciente (evita regressão silenciosa, já aconteceu uma vez).
+describe('Política de horário do Fechamento Diário — sem bloqueio (P0-01)', () => {
+    test('botão de finalizar nunca é desabilitado por prazo/lockStage no client', () => {
+        expect(formSource).toContain('const submitBlockedByDeadline = false')
+        expect(formSource).toContain('const editLockedWithoutLiberacao = false')
+        expect(formSource).not.toMatch(/submitBlockedByDeadline\s*=\s*lockStage/)
+        expect(formSource).not.toMatch(/submitBlockedByDeadline\s*=\s*isPastDeadline/)
+    })
+
+    test('RPC submit_checkin ativa não chama mais checkin_validation_kit / time_window_closed', () => {
+        expect(submitCheckinRpcSource).not.toContain('checkin_validation_kit')
+        expect(submitCheckinRpcSource).not.toContain('time_window_closed')
+        expect(submitCheckinRpcSource).toContain('trava horária permanece desativada por decisão de produto')
+    })
+
+    test('penalidade de disciplina só pode existir se houver liberação explícita registrada (opt-in), nunca automática por horário', () => {
+        expect(submitCheckinRpcSource).toContain('v_finalizado_apos_prazo := v_scope_text IN (\'daily\', \'historical\')')
+        expect(submitCheckinRpcSource).toMatch(/AND v_liberado;/)
     })
 })

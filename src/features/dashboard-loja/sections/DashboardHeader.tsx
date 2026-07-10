@@ -95,7 +95,7 @@ export function DashboardHeader({
             Status de Unidade
           </Typography>
           <div className="flex items-center justify-center lg:justify-start gap-mx-sm">
-            <div className="hidden sm:block w-mx-xs h-mx-10 bg-brand-secondary rounded-mx-full shadow-mx-md" aria-hidden="true" />
+            <div className="h-mx-10 w-mx-xs shrink-0 rounded-mx-full bg-brand-primary shadow-mx-md" aria-hidden="true" />
             {isPerfilInternoMx(role) ? (
               <div className="relative group w-full mx-store-title-select-width max-w-mx-sidebar-expanded sm:max-w-mx-2xl">
                 <select
@@ -131,7 +131,7 @@ export function DashboardHeader({
 
         <div className="flex flex-wrap items-center justify-center xl:justify-end gap-mx-sm shrink-0 w-full xl:w-auto max-w-full">
           {isOwner && selectableStores.length > 1 && (
-            <label htmlFor="owner-store-select" className="flex w-full flex-col gap-mx-tiny rounded-mx-xl border border-border-default bg-white px-mx-md py-mx-xs shadow-mx-sm sm:w-mx-sidebar-expanded">
+            <label htmlFor="owner-store-select" className="flex w-full flex-col gap-mx-tiny rounded-mx-lg border border-border-subtle bg-white px-mx-md py-mx-xs shadow-mx-sm sm:w-mx-sidebar-expanded">
               <span className="text-mx-micro font-black uppercase tracking-widest text-text-secondary">Trocar unidade</span>
               <select aria-label="Trocar unidade"
                 id="owner-store-select"
@@ -155,7 +155,7 @@ export function DashboardHeader({
           <TabNavPill tabs={LOJA_TABS} activeTab={activeTab} onTabChange={onTabChange} className="mx-store-dashboard-tabs max-w-full overflow-x-auto" buttonClassName="h-mx-8 sm:h-mx-10 px-2 sm:px-6 shrink-0" aria-label="Abas da loja" />
 
           {activeTab === 'performance' && (
-            <Button variant="outline" onClick={onRefresh} aria-label={`Atualizar performance. ${lastSyncLabel}`} title={lastSyncLabel} className="h-mx-10 sm:h-mx-14 rounded-mx-xl shadow-mx-sm bg-white px-mx-md">
+            <Button variant="outline" onClick={onRefresh} aria-label={`Atualizar performance. ${lastSyncLabel}`} title={lastSyncLabel} className="h-mx-10 sm:h-mx-14 rounded-mx-xl shadow-mx-sm bg-white px-mx-md border-border-subtle hover:bg-surface-alt">
               <RefreshCw size={18} className={cn(isRefetching && 'animate-spin')} />
               Atualizar
             </Button>
@@ -166,14 +166,14 @@ export function DashboardHeader({
       <div className="flex flex-col gap-mx-sm sm:flex-row sm:items-center sm:justify-between">
         <LastUpdated value={lastSyncAt} />
         {syncWarning && (
-          <div role="alert" className="rounded-mx-xl border border-status-warning/20 bg-status-warning-surface px-mx-md py-mx-sm text-mx-tiny font-black uppercase tracking-tight text-status-warning">
+          <div role="alert" className="rounded-mx-lg border border-status-warning/20 bg-status-warning-surface px-mx-md py-mx-sm text-mx-tiny font-black uppercase tracking-tight text-status-warning">
             {syncWarning}
           </div>
         )}
       </div>
 
       {activeTab === 'performance' && (
-        <Card className="border border-border-default bg-white p-mx-md shadow-mx-sm">
+        <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
           <div className="grid grid-cols-1 gap-mx-md xl:grid-cols-[auto_1fr_auto] xl:items-center">
             <div className="min-w-0">
               <Typography variant="h3" className="uppercase tracking-tight">{periodContext.title}</Typography>
@@ -182,20 +182,20 @@ export function DashboardHeader({
             <div className="flex flex-col gap-mx-sm sm:flex-row sm:items-center">
               <TabNavPill tabs={PERIODO_TABS} activeTab={viewMode} onTabChange={(m) => setViewMode(m as ViewMode)} buttonClassName="h-mx-11 px-5" aria-label="Período do dashboard" />
               <div className={cn(
-                'grid grid-cols-1 gap-mx-sm rounded-mx-xl border border-border-default bg-surface-alt p-mx-sm sm:grid-cols-2',
+                'grid grid-cols-1 gap-mx-sm rounded-mx-lg border border-border-subtle bg-surface-alt p-mx-sm sm:grid-cols-2',
                 viewMode === 'day' && 'opacity-50'
               )}>
                 <label className="space-y-mx-tiny">
                   <span className="block text-mx-micro font-black uppercase tracking-widest text-text-secondary">Início</span>
-                  <input type="date" aria-label="Data inicial do período" disabled={viewMode === 'day'} value={startDate} onChange={e => { setStartDate(e.target.value); setViewMode('month') }} className="h-mx-12 w-full min-w-mx-40 rounded-mx-lg border border-border-default bg-white px-mx-sm text-sm font-black text-text-primary outline-none focus:border-brand-primary" />
+                  <input type="date" aria-label="Data inicial do período" disabled={viewMode === 'day'} value={startDate} onChange={e => { setStartDate(e.target.value); setViewMode('month') }} className="h-mx-12 w-full min-w-mx-40 rounded-mx-lg border border-border-subtle bg-white px-mx-sm text-sm font-black text-text-primary outline-none focus:border-brand-primary" />
                 </label>
                 <label className="space-y-mx-tiny">
                   <span className="block text-mx-micro font-black uppercase tracking-widest text-text-secondary">Fim</span>
-                  <input type="date" aria-label="Data final do período" disabled={viewMode === 'day'} value={endDate} onChange={e => { setEndDate(e.target.value); setViewMode('month') }} className="h-mx-12 w-full min-w-mx-40 rounded-mx-lg border border-border-default bg-white px-mx-sm text-sm font-black text-text-primary outline-none focus:border-brand-primary" />
+                  <input type="date" aria-label="Data final do período" disabled={viewMode === 'day'} value={endDate} onChange={e => { setEndDate(e.target.value); setViewMode('month') }} className="h-mx-12 w-full min-w-mx-40 rounded-mx-lg border border-border-subtle bg-white px-mx-sm text-sm font-black text-text-primary outline-none focus:border-brand-primary" />
                 </label>
               </div>
             </div>
-            <Button type="button" variant="outline" onClick={() => onTabChange('metas')} className="h-mx-11 rounded-mx-xl bg-white">
+            <Button type="button" variant="outline" onClick={() => onTabChange('metas')} className="h-mx-11 rounded-mx-xl bg-white border-border-subtle hover:bg-surface-alt">
               <Target size={16} className="mr-2" />
               Metas que alimentam a leitura
             </Button>

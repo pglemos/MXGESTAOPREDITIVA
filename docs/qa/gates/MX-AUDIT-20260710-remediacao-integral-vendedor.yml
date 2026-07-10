@@ -1,17 +1,27 @@
 schema: 1
 story: 'MX-AUDIT-20260710'
 story_title: 'Remediacao integral do modulo do vendedor'
-gate: PASS
-status_reason: 'AC1-AC6 validados por contratos, 712 testes, dry-run Supabase, checks remotos verdes e smoke autenticado pos-deploy nos tres papeis.'
+gate: CONCERNS
+status_reason: 'AC1-AC6 validados por contratos e 712 testes unitarios/contrato passam, mas o artefato de evidencia E2E do mesmo dia (docs/audit/admin-master-full-e2e-20260710055707.md) registrava 1 FAIL e 3 WARN nao mencionados aqui quando este gate foi originalmente marcado PASS/score 100. Linguagem revisada em 2026-07-10 (sessao Orion/aiox-master) para "sem bloqueadores conhecidos no escopo testado", nao "100% do sistema" — ver Auditoria Integral 2026-07-10, secao P0-05.'
 reviewer: 'Quinn (Test Architect)'
 updated: '2026-07-10T09:48:38Z'
-top_issues: []
+top_issues:
+  - id: 'P0-05-E2E-FAIL'
+    severity: low
+    status: resolved
+    summary: 'devolutivas upsert no E2E Admin Master usava onConflict desatualizado (seller_id,week_reference) apos a migration 20260516121500 trocar a unique key para store_id,manager_id,seller_id,week_reference. Tooling drift, nao bug de produto (src/hooks/useFeedbacks.ts ja usava a chave correta). Corrigido em scripts/validate_admin_master_full_e2e.mjs.'
+    refs: ['docs/audit/admin-master-full-e2e-20260710055707.md']
+  - id: 'P0-05-E2E-EMAIL-WARN'
+    severity: low
+    status: open
+    summary: '3 integracoes de e-mail (relatorio-matinal, feedback-semanal, relatorio-mensal) retornaram email:"not_sent" no ultimo E2E Admin Master. send-visit-report (mesmo mecanismo) passou, entao nao parece falha de infraestrutura geral — nao investigado nesta sessao.'
+    refs: ['docs/audit/admin-master-full-e2e-20260710055707.md']
 waiver:
   active: false
-quality_score: 100
+quality_score: 85
 evidence:
   tests_reviewed: 712
-  risks_identified: 0
+  risks_identified: 2
   trace:
     ac_covered: [1, 2, 3, 4, 5, 6]
     ac_gaps: []
@@ -23,13 +33,19 @@ nfr_validation:
     status: PASS
     notes: 'Build concluido e read model oficial centraliza as agregacoes das superficies do vendedor.'
   reliability:
-    status: PASS
-    notes: 'Idempotencia, transacoes, auditoria, dry-run limpo, Supabase Preview e Vercel verdes.'
+    status: CONCERNS
+    notes: 'Idempotencia, transacoes, auditoria, dry-run limpo, Supabase Preview e Vercel verdes — mas o artefato E2E do dia registrava 1 FAIL (corrigido nesta sessao) e 3 WARN de e-mail (abertos). Nao havia menca a esses achados neste gate antes de 2026-07-10.'
   maintainability:
     status: PASS
     notes: 'Contratos SQL co-localizados, File List atualizada e artefatos TestSprite obsoletos removidos.'
 recommendations:
-  immediate: []
+  immediate:
+    - action: 'Reexecutar scripts/validate_admin_master_full_e2e.mjs (agora com onConflict corrigido) para gerar um artefato limpo de FAIL antes de reclassificar o gate para PASS.'
+      refs: ['scripts/validate_admin_master_full_e2e.mjs']
+    - action: 'Investigar os 3 WARN de e-mail nao enviado (relatorio-matinal, feedback-semanal, relatorio-mensal).'
+      refs: ['docs/audit/admin-master-full-e2e-20260710055707.md']
   future:
     - action: 'Autenticar o CodeRabbit CLI caso a integracao seja reativada; a story atual a declara desabilitada.'
       refs: ['docs/stories/story-MX-AUDIT-20260710-remediacao-integral-vendedor.md']
+    - action: 'P0-05c (2026-07-10): nenhum check de CI rodava typecheck ou os 726 testes unitarios/contrato ate esta sessao — adicionado .github/workflows/typecheck-and-unit-tests.yml. Playwright E2E e smoke pos-deploy autenticado ainda nao tem job de CI dedicado (dependem de secrets de ambiente live); consolidacao dos 11 workflows em um pipeline unico tambem fica como trabalho futuro.'
+      refs: ['.github/workflows/typecheck-and-unit-tests.yml']

@@ -393,7 +393,14 @@ async function createTeamAndCheckins(adminProfile) {
     notes: RUN_ID,
     acknowledged: false,
   }
-  let feedbackRes = await userClient.from('devolutivas').upsert(feedbackPayload, { onConflict: 'seller_id,week_reference' }).select('id').single()
+  // P0-05b (auditoria 2026-07-10): a chave 'seller_id,week_reference' foi
+  // substituída por 'store_id,manager_id,seller_id,week_reference' na
+  // migration 20260516121500_devolutivas_store_manager_week_key.sql — este
+  // script continuava usando a chave antiga, causando o FAIL "there is no
+  // unique or exclusion constraint matching the ON CONFLICT specification"
+  // em toda execução desde 2026-05-16. Não era um bug de produto: o código
+  // real (src/hooks/useFeedbacks.ts) já usava a chave correta.
+  let feedbackRes = await userClient.from('devolutivas').upsert(feedbackPayload, { onConflict: 'store_id,manager_id,seller_id,week_reference' }).select('id').single()
   if (feedbackRes.error) {
     record('CLI/API', 'feedback upsert constraint', 'FAIL', { message: feedbackRes.error.message })
     feedbackRes = await userClient.from('devolutivas').insert(feedbackPayload).select('id').single()

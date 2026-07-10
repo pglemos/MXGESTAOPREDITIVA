@@ -169,8 +169,8 @@ export function AdminSettingsCard({
   if (!selectedStore) return null
 
   return (
-    <Card className="w-full border border-border-default shadow-mx-sm bg-white overflow-hidden">
-      <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-lg">
+    <Card className="w-full rounded-mx-lg border border-border-subtle bg-white overflow-hidden shadow-mx-sm">
+      <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-md">
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-mx-md">
           <div className="flex items-center gap-mx-sm min-w-0">
             <div className="w-mx-12 h-mx-12 rounded-mx-xl bg-brand-primary text-white flex items-center justify-center shadow-mx-inner shrink-0">
@@ -200,7 +200,7 @@ export function AdminSettingsCard({
         </div>
       </CardHeader>
       {showAdminSettings && (
-        <CardContent className="p-mx-lg">
+        <CardContent className="p-mx-md">
           <div className="mb-mx-lg rounded-mx-xl border border-border-default bg-surface-alt px-mx-md py-mx-sm">
             <Typography variant="p" tone="muted" className="text-sm">
               Estes parâmetros alteram metas, fonte de dados, benchmarks e entregas de relatório. A leitura de

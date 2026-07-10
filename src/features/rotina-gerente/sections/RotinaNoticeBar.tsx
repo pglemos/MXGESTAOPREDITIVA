@@ -13,7 +13,7 @@ export function RotinaNoticeBar({ notice }: Props) {
     <div
       role="status"
       className={cn(
-        'rounded-mx-xl border px-mx-md py-mx-sm text-sm font-bold',
+        'rounded-mx-lg border px-mx-md py-mx-sm text-sm font-bold',
         notice.tone === 'success' &&
           'border-status-success/20 bg-status-success-surface text-status-success',
         notice.tone === 'warning' &&

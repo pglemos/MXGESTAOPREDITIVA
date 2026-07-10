@@ -151,12 +151,18 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
     if (row.finalized) {
       const checkin = checkins.find(c => c.reference_date === row.date)
       if (checkin) {
+        // P0-02 (auditoria 2026-07-10): não jogar o total inteiro em
+        // leads_cart/visitas_porta e zerar os demais canais — isso perdia a
+        // distribuição real ao reabrir para regularização. Quando o canal de
+        // visitas não foi rastreado (registro antigo, colunas NULL), preserva
+        // o total em visitas_porta em vez de inventar uma distribuição.
+        const hasVisitasCanal = checkin.visitas_porta_prev_day !== null && checkin.visitas_porta_prev_day !== undefined
         setFormValues({
           leads_cart: checkin.leads_prev_day || 0,
-          leads_net: 0,
-          visitas_porta: checkin.visit_prev_day || 0,
-          visitas_cart: 0,
-          visitas_net: 0,
+          leads_net: checkin.leads_net_prev_day || 0,
+          visitas_porta: hasVisitasCanal ? (checkin.visitas_porta_prev_day || 0) : (checkin.visit_prev_day || 0),
+          visitas_cart: hasVisitasCanal ? (checkin.visitas_cart_prev_day || 0) : 0,
+          visitas_net: hasVisitasCanal ? (checkin.visitas_net_prev_day || 0) : 0,
           agd_cart: checkin.agd_cart_today || 0,
           agd_net: checkin.agd_net_today || 0,
           vnd_porta: checkin.vnd_porta_prev_day || 0,
@@ -281,19 +287,23 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
       }
       
       // Build the requested values payload
+      // P0-02/P0-06 (auditoria 2026-07-10): agd_cart_prev_day/agd_net_prev_day
+      // (agendamentos D-1) NÃO são editáveis neste drawer — antes eram
+      // enviados como 0 fixo, o que zerava esses campos em toda regularização
+      // aprovada, mesmo sem o usuário ter tocado neles. Omitir as chaves faz
+      // a RPC solicitar_regularizacao_fechamento preservar o valor original
+      // (fallback já implementado no servidor). leads_prev_day/leads_net_prev_day
+      // e visitas_*_prev_day usam os nomes de coluna reais para a RPC não
+      // precisar somar leads_cart+leads_net em Carteira (mesmo bug do P0-02).
       const requestedValues = {
         reference_date: selectedRow.date,
-        leads: Number(formValues.leads_cart) + Number(formValues.leads_net),
-        leads_cart: Number(formValues.leads_cart),
-        leads_net: Number(formValues.leads_net),
-        visitas: Number(formValues.visitas_porta) + Number(formValues.visitas_cart) + Number(formValues.visitas_net),
-        visitas_porta: Number(formValues.visitas_porta),
-        visitas_cart: Number(formValues.visitas_cart),
-        visitas_net: Number(formValues.visitas_net),
+        leads_prev_day: Number(formValues.leads_cart),
+        leads_net_prev_day: Number(formValues.leads_net),
+        visitas_porta_prev_day: Number(formValues.visitas_porta),
+        visitas_cart_prev_day: Number(formValues.visitas_cart),
+        visitas_net_prev_day: Number(formValues.visitas_net),
         agd_cart: Number(formValues.agd_cart),
         agd_net: Number(formValues.agd_net),
-        agd_cart_prev_day: 0,
-        agd_net_prev_day: 0,
         agd_cart_today: Number(formValues.agd_cart),
         agd_net_today: Number(formValues.agd_net),
         vnd_porta_prev_day: Number(formValues.vnd_porta),

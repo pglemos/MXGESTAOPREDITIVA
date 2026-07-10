@@ -2,6 +2,10 @@ import React from 'react'
 import { afterEach, describe, expect, it, mock } from 'bun:test'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
+// P0-05b (auditoria 2026-07-10): ver RelatoriosVendedor.container.test.tsx —
+// reusa a implementação real em vez de manter uma cópia hand-rolled que fica
+// obsoleta e mascara bugs reais (ex.: P1-05/P0-05a).
+import { buildOportunidadePayload } from '@/features/crm/hooks/useOportunidades'
 
 mock.module('@/hooks/useAuth', () => ({
   useAuth: () => ({
@@ -103,24 +107,7 @@ mock.module('@/features/crm/hooks/useAgendamentos', () => ({
 }))
 
 mock.module('@/features/crm/hooks/useOportunidades', () => ({
-  buildOportunidadePayload: (input: any, context: any, nowIso = () => new Date().toISOString()) => {
-    const isTerminal = input.etapa === 'ganho' || input.etapa === 'perdido'
-    return {
-      cliente_id: input.cliente_id,
-      loja_id: context.loja_id,
-      seller_user_id: context.seller_user_id,
-      veiculo_interesse: input.veiculo_interesse?.trim() || null,
-      tipo_veiculo: input.tipo_veiculo || null,
-      valor_negociado: input.valor_negociado ?? 0,
-      etapa: input.etapa || 'prospeccao',
-      canal: input.canal || null,
-      sinal: input.sinal ?? 0,
-      financiamento: input.financiamento || 'nao_aplica',
-      carro_avaliado: input.carro_avaliado ?? false,
-      motivo_perda: input.etapa === 'perdido' ? (input.motivo_perda?.trim() || null) : null,
-      closed_at: isTerminal ? (input.closed_at || nowIso()) : null,
-    }
-  },
+  buildOportunidadePayload,
   useOportunidades: () => ({
     oportunidades: [],
   }),

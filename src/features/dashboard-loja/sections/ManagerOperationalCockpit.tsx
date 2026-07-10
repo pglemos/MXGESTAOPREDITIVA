@@ -17,6 +17,7 @@ import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
+import { PageHeading } from '@/components/molecules/PageHeading'
 import { chartTokens } from '@/lib/charts/tokens'
 import { calcularProjecao, getDiasInfo } from '@/lib/calculations'
 import { cn } from '@/lib/utils'
@@ -104,7 +105,7 @@ export function ManagerOperationalCockpit({ data, alerts }: ManagerOperationalCo
       <ManagerHeader storeName={data.metrics.storeName} periodLabel={formatPeriodLabel(data.referenceDate)} />
 
       <section className="grid grid-cols-1 gap-mx-lg md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-[minmax(320px,1.5fr)_repeat(4,minmax(190px,1fr))]" aria-label="Indicadores gerenciais">
-        <Card className="border-none bg-white p-mx-lg shadow-mx-lg">
+        <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
           <div className="flex items-center gap-mx-sm">
             <MetricIcon tone="brand"><Target size={22} /></MetricIcon>
             <Typography variant="h3" className="uppercase tracking-tight">Meta do Mês</Typography>
@@ -145,7 +146,7 @@ export function ManagerOperationalCockpit({ data, alerts }: ManagerOperationalCo
           icon={<CalendarDays size={22} />}
           tone={data.metrics.totalAgd > 0 ? 'success' : 'warning'}
         />
-        <Card className="min-h-[190px] border-none bg-white p-mx-lg shadow-mx-lg">
+        <Card className="min-h-[190px] rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
           <div className="flex items-center justify-between gap-mx-sm">
             <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">MX Score Loja</Typography>
             <Gauge size={18} className="text-text-tertiary" />
@@ -160,7 +161,7 @@ export function ManagerOperationalCockpit({ data, alerts }: ManagerOperationalCo
       </section>
 
       <section className="grid grid-cols-1 gap-mx-lg xl:grid-cols-2 2xl:grid-cols-12" aria-label="Operação da equipe">
-        <Card className="border-none bg-white shadow-mx-lg xl:col-span-1 2xl:col-span-5">
+        <Card className="rounded-mx-lg border border-border-subtle bg-white shadow-mx-sm xl:col-span-1 2xl:col-span-5">
           <PanelHeader title="Desempenho da Equipe" action="Ver equipe" onAction={() => navigate('?tab=equipe')} />
           <div className="overflow-x-auto">
             <table className="w-full min-w-[620px]">
@@ -186,7 +187,7 @@ export function ManagerOperationalCockpit({ data, alerts }: ManagerOperationalCo
           </div>
         </Card>
 
-        <Card className="border-none bg-white p-mx-lg shadow-mx-lg xl:col-span-1 2xl:col-span-4">
+        <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm xl:col-span-1 2xl:col-span-4">
           <div className="flex items-center justify-between gap-mx-md">
             <div>
               <Typography variant="h3" className="uppercase tracking-tight">Funil de Vendas da Equipe</Typography>
@@ -199,14 +200,14 @@ export function ManagerOperationalCockpit({ data, alerts }: ManagerOperationalCo
               <FunnelSegmentRow key={row.label} label={row.label} tone={row.tone} stages={row.stages} />
             ))}
           </div>
-          <div className="mt-mx-lg flex items-center justify-between rounded-mx-xl bg-mx-indigo-50 px-mx-md py-mx-sm">
+          <div className="mt-mx-lg flex items-center justify-between rounded-mx-lg bg-mx-indigo-50 px-mx-md py-mx-sm">
             <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest">Total de Vendas: {formatInteger(data.funilData.vnd_total)}</Typography>
             <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest">Conversão geral</Typography>
             <Typography variant="h3" tone={data.funilData.tx_visita_vnd >= data.funnelBenchmarks.visitaVnd ? 'success' : 'error'}>{data.funilData.tx_visita_vnd}%</Typography>
           </div>
         </Card>
 
-        <Card className="border-none bg-white shadow-mx-lg xl:col-span-2 2xl:col-span-3">
+        <Card className="rounded-mx-lg border border-border-subtle bg-white shadow-mx-sm xl:col-span-2 2xl:col-span-3">
           <PanelHeader title="Alertas Importantes" badge={alerts.length} action="Ver todos" onAction={() => navigate('/rotina')} />
           <div className="space-y-mx-sm p-mx-lg pt-0">
             {alerts.slice(0, 6).map(alert => (
@@ -217,7 +218,7 @@ export function ManagerOperationalCockpit({ data, alerts }: ManagerOperationalCo
       </section>
 
       <section className="grid grid-cols-1 gap-mx-lg xl:grid-cols-2 2xl:grid-cols-12" aria-label="Agenda e engajamento">
-        <Card className="border-none bg-white p-mx-lg shadow-mx-lg xl:col-span-2 2xl:col-span-6">
+        <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm xl:col-span-2 2xl:col-span-6">
           <div className="flex items-center justify-between gap-mx-md">
             <Typography variant="h3" className="uppercase tracking-tight">Engajamento da Equipe</Typography>
             <Badge variant={teamEngagement >= 75 ? 'success' : teamEngagement >= 60 ? 'warning' : 'danger'} className="rounded-mx-full">{teamEngagement}%</Badge>
@@ -234,16 +235,16 @@ export function ManagerOperationalCockpit({ data, alerts }: ManagerOperationalCo
           </div>
         </Card>
 
-        <Card className="border-none bg-white p-mx-lg shadow-mx-lg xl:col-span-1 2xl:col-span-3">
+        <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm xl:col-span-1 2xl:col-span-3">
           <div className="flex items-center justify-between gap-mx-md">
             <Typography variant="h3" className="uppercase tracking-tight">Ranking da Loja</Typography>
             <button type="button" onClick={() => navigate('/classificacao')} className="text-mx-tiny font-black uppercase tracking-widest text-brand-primary">Ver ranking</button>
           </div>
           <div className="mt-mx-lg space-y-mx-sm">
             {visibleRanking.slice(0, 3).map((row, index) => (
-              <div key={row.user_id} className="flex items-center justify-between gap-mx-sm rounded-mx-xl bg-surface-alt px-mx-md py-mx-sm">
+              <div key={row.user_id} className="flex items-center justify-between gap-mx-sm rounded-mx-lg bg-surface-alt px-mx-md py-mx-sm">
                 <div className="flex min-w-0 items-center gap-mx-sm">
-                  <span className={cn('flex h-mx-9 w-mx-9 shrink-0 items-center justify-center rounded-mx-full border bg-white', medalTone(index))}>
+                  <span className={cn('flex h-mx-9 w-mx-9 shrink-0 items-center justify-center rounded-mx-lg border bg-white', medalTone(index))}>
                     {index === 0 ? <Trophy size={16} /> : <Medal size={16} />}
                   </span>
                   <Avatar src={row.avatar_url || undefined} alt={`Avatar de ${row.user_name}`} fallback={row.user_name} size="sm" className="rounded-mx-lg" />
@@ -259,7 +260,7 @@ export function ManagerOperationalCockpit({ data, alerts }: ManagerOperationalCo
           </div>
         </Card>
 
-        <Card className="border-none bg-white shadow-mx-lg xl:col-span-1 2xl:col-span-3">
+        <Card className="rounded-mx-lg border border-border-subtle bg-white shadow-mx-sm xl:col-span-1 2xl:col-span-3">
           <PanelHeader title="Agenda de Hoje" action="Abrir rotina" onAction={() => navigate('/rotina')} />
           <div className="space-y-mx-sm p-mx-lg pt-0">
             {data.metrics.totalAgd > 0 ? (
@@ -268,7 +269,7 @@ export function ManagerOperationalCockpit({ data, alerts }: ManagerOperationalCo
                 <AgendaItem time="Agora" title="Cobrar pendências de rotina" detail={pendingNames.length ? pendingNames.slice(0, 3).join(', ') : 'Equipe com rotina sincronizada.'} />
               </>
             ) : (
-              <div className="rounded-mx-xl border border-dashed border-border-default bg-surface-alt p-mx-md">
+              <div className="rounded-mx-lg border border-dashed border-border-subtle bg-surface-alt p-mx-md">
                 <Typography variant="p" tone="muted">Agenda operacional pendente de integração ou lançamentos do dia.</Typography>
               </div>
             )}
@@ -281,19 +282,18 @@ export function ManagerOperationalCockpit({ data, alerts }: ManagerOperationalCo
 
 function ManagerHeader({ storeName, periodLabel }: { storeName: string; periodLabel: string }) {
   return (
-    <header className="flex flex-col gap-mx-md border-b border-border-subtle pb-mx-lg lg:flex-row lg:items-center lg:justify-between">
-      <div className="min-w-0">
-        <Typography variant="h1" className="text-3xl md:text-4xl">Bom dia, Gerente!</Typography>
-        <Typography variant="p" tone="muted" className="mt-mx-xs">Aqui está o desempenho da sua equipe hoje.</Typography>
-        <Typography variant="tiny" tone="muted" className="mt-mx-xs block font-black uppercase tracking-widest">{storeName}</Typography>
-      </div>
-      <div className="flex flex-wrap gap-mx-sm">
-        <Badge variant="outline" className="h-mx-11 rounded-mx-xl px-mx-md">Período: {periodLabel}</Badge>
-        <Button type="button" variant="outline" size="sm" className="h-mx-11 rounded-mx-xl bg-white">
-          Filtros
-        </Button>
-      </div>
-    </header>
+    <PageHeading
+      title={<>Bom dia, <span className="text-brand-primary">Gerente</span>!</>}
+      subtitle={`${storeName.toUpperCase()} · DESEMPENHO DA EQUIPE`}
+      actions={(
+        <div className="flex flex-wrap gap-mx-sm">
+          <Badge variant="outline" className="h-mx-11 rounded-mx-xl px-mx-md border-border-subtle bg-white text-text-secondary">Período: {periodLabel}</Badge>
+          <Button type="button" variant="outline" size="sm" className="h-mx-11 rounded-mx-xl bg-white border-border-subtle hover:bg-surface-alt">
+            Filtros
+          </Button>
+        </div>
+      )}
+    />
   )
 }
 
@@ -314,7 +314,7 @@ function ManagerKpiCard({
 }) {
   const arrow = tone === 'success' ? '↑' : tone === 'danger' ? '↓' : ''
   return (
-    <Card className="min-h-[190px] border-none bg-white p-mx-lg shadow-mx-lg flex flex-col">
+    <Card className="min-h-[190px] rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm flex flex-col">
       <div className="flex items-center gap-mx-sm">
         <MetricIcon tone={tone}>{icon}</MetricIcon>
         <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">{title}</Typography>
@@ -413,7 +413,7 @@ function PanelHeader({
 function AlertItem({ alert }: { alert: OwnerPerformanceAlert }) {
   const tone = alert.variant === 'danger' ? 'danger' : alert.variant === 'warning' ? 'warning' : alert.variant === 'success' ? 'success' : 'info'
   return (
-    <div className="flex gap-mx-sm rounded-mx-xl border border-border-subtle bg-surface-alt p-mx-sm">
+    <div className="flex gap-mx-sm rounded-mx-lg border border-border-subtle bg-surface-alt p-mx-sm">
       <MetricIcon tone={tone} className="h-mx-9 w-mx-9"><AlertTriangle size={16} /></MetricIcon>
       <div className="min-w-0">
         <Typography variant="p" className="font-black leading-tight">{alert.title}</Typography>
@@ -435,7 +435,7 @@ function FunnelSegmentRow({
   stages: Array<{ label: string; value: number; pct?: number }>
 }) {
   return (
-    <div className="rounded-mx-xl border border-border-default bg-white p-mx-md shadow-mx-sm">
+    <div className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
       <div className="flex items-center gap-mx-sm">
         <MetricIcon tone={tone} className="h-mx-8 w-mx-8 rounded-mx-lg">
           <Gauge size={14} />
@@ -556,7 +556,7 @@ function SemiCircularGauge({ value, label, suffix = '' }: { value: number; label
 
 function AgendaItem({ time, title, detail }: { time: string; title: string; detail: string }) {
   return (
-    <div className="flex gap-mx-sm rounded-mx-xl bg-surface-alt p-mx-sm">
+    <div className="flex gap-mx-sm rounded-mx-lg bg-surface-alt p-mx-sm">
       <div className="flex h-mx-10 w-mx-12 shrink-0 items-center justify-center rounded-mx-lg bg-white text-mx-tiny font-black uppercase text-brand-primary shadow-mx-sm">
         {time}
       </div>
@@ -580,7 +580,7 @@ function MiniStat({ label, value, detail }: { label: string; value: string | num
 
 function MetricIcon({ tone, className, children }: { tone: ManagerTone; className?: string; children: ReactNode }) {
   return (
-    <div className={cn('flex h-mx-12 w-mx-12 shrink-0 items-center justify-center rounded-mx-xl border shadow-mx-inner', toneBorder(tone), className)}>
+    <div className={cn('flex h-mx-12 w-mx-12 shrink-0 items-center justify-center rounded-mx-lg border shadow-mx-inner', toneBorder(tone), className)}>
       {children}
     </div>
   )

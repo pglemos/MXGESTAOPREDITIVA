@@ -105,8 +105,8 @@ export function RankingSection({ viewMode, ranking, mixCanais, diagnostics }: Ra
     <MotionList className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg pb-32">
       <MotionRow as="section" className="xl:col-span-8 flex flex-col">
         <MotionCard className="flex-1">
-          <Card className="border-none shadow-mx-lg bg-white overflow-hidden flex-1">
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-mx-md p-mx-lg bg-surface-alt/30 border-b border-border-default">
+          <Card className="rounded-mx-lg border border-border-subtle bg-white overflow-hidden flex-1 shadow-mx-sm">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-mx-md p-mx-md bg-surface-alt/30 border-b border-border-default">
             <div>
               <CardTitle className="text-xl md:text-2xl">{viewMode === 'day' ? 'Grade Diária' : 'Ranking da Unidade'}</CardTitle>
               <CardDescription className="font-black uppercase tracking-mx-wide mt-1 text-mx-tiny">Performance individual para ação gerencial</CardDescription>
@@ -124,7 +124,7 @@ export function RankingSection({ viewMode, ranking, mixCanais, diagnostics }: Ra
               />
             </div>
           </CardHeader>
-          <div className="border-b border-border-default bg-white px-mx-lg py-mx-sm">
+          <div className="border-b border-border-default bg-white px-mx-md py-mx-sm">
             <div className="flex flex-col gap-mx-sm lg:flex-row lg:items-center lg:justify-between">
               <Typography variant="p" tone="muted" className="text-sm">
                 Use a busca para localizar vendedor e abrir ações de devolutiva, PDI ou rotina sem depender de estética competitiva.
@@ -150,9 +150,9 @@ export function RankingSection({ viewMode, ranking, mixCanais, diagnostics }: Ra
 
       <MotionRow as="aside" className="xl:col-span-4 flex flex-col gap-mx-lg">
         <MotionCard>
-          <Card className="p-mx-lg border-none shadow-mx-lg bg-white">
+          <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
           <header className="flex items-center gap-mx-sm mb-8">
-            <div className="w-mx-12 h-mx-12 rounded-mx-xl bg-surface-alt flex items-center justify-center text-brand-primary shadow-mx-inner border border-border-default shrink-0">
+            <div className="w-mx-12 h-mx-12 rounded-mx-lg bg-surface-alt flex items-center justify-center text-brand-primary shadow-mx-inner border border-border-default shrink-0">
               <Globe size={24} />
             </div>
             <Typography variant="h3" className="text-lg uppercase tracking-tight font-black">Mix de Canais</Typography>
@@ -179,7 +179,7 @@ export function RankingSection({ viewMode, ranking, mixCanais, diagnostics }: Ra
         </MotionCard>
 
         <MotionCard>
-          <Card className="p-mx-lg bg-brand-primary rounded-mx-3xl text-white shadow-mx-xl relative overflow-hidden group border-none">
+          <Card className="rounded-mx-lg border border-white/10 bg-brand-primary text-white p-mx-md shadow-mx-sm relative overflow-hidden group">
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-50" />
           <div className="relative z-10 text-center py-4">
             <History className="mx-auto mb-6 opacity-30 transform group-hover:scale-110 transition-transform" size={40} />

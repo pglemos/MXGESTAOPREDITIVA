@@ -22,6 +22,7 @@ import { supabase } from '@/lib/supabase'
 import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
 import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
 import { resolveActiveClosingContext } from '../lib/active-closing-context'
+import { reconstructCheckinFormFromHistorical } from '../lib/reconstruct-checkin-form'
 
 export interface CheckinForm {
     leads: number
@@ -187,6 +188,9 @@ export function useCheckinPage() {
     } = useFeedbackActions()
     const [historicalCheckin, setHistoricalCheckin] = useState<DailyCheckin | null>(null)
     const [loadingHistory, setLoadingHistory] = useState(false)
+    // P0-02: true quando o lançamento reaberto é anterior à granularidade de
+    // canal de visitas — o total em visitas_porta não reflete um canal real.
+    const [visitasCanalIndisponivel, setVisitasCanalIndisponivel] = useState(false)
     
     const [customReferenceDate, setCustomReferenceDate] = useState('')
 const todaySP = getSPDateOnly(currentTime)
@@ -280,26 +284,12 @@ todayClosing,
         if (changedFields.size > 0) return
         setNumberDrafts({})
         if (historicalCheckin) {
-            setForm({
-                leads: historicalCheckin.leads_prev_day || 0,
-                leads_cart: historicalCheckin.leads_prev_day || 0,
-                leads_net: 0,
-                agd_cart_prev: historicalCheckin.agd_cart_prev_day || 0,
-                agd_net_prev: historicalCheckin.agd_net_prev_day || 0,
-                agd_cart: historicalCheckin.agd_cart_today || 0,
-                agd_net: historicalCheckin.agd_net_today || 0,
-                vnd_porta: historicalCheckin.vnd_porta_prev_day || 0,
-                vnd_cart: historicalCheckin.vnd_cart_prev_day || 0,
-                vnd_net: historicalCheckin.vnd_net_prev_day || 0,
-                visitas: historicalCheckin.visit_prev_day || 0,
-                visitas_porta: historicalCheckin.visit_prev_day || 0,
-                visitas_cart: 0,
-                visitas_net: 0,
-                note: historicalCheckin.note || '',
-                zero_reason: historicalCheckin.zero_reason || '',
-            })
+            const { form: reconstructedForm, visitasCanalIndisponivel } = reconstructCheckinFormFromHistorical(historicalCheckin)
+            setForm(reconstructedForm)
+            setVisitasCanalIndisponivel(visitasCanalIndisponivel)
         } else {
             setForm(createEmptyCheckinForm())
+            setVisitasCanalIndisponivel(false)
         }
     }, [historicalCheckin, changedFields.size, selectedDate])
 
@@ -858,6 +848,7 @@ const fechamentoConcluido = metricScope === 'daily'
  crmDailyCounters,
  historicalCheckin,
         loadingHistory,
+        visitasCanalIndisponivel,
         customReferenceDate,
         hookLoading,
         referenceDate,

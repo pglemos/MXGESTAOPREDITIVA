@@ -120,19 +120,19 @@ export function KpisSection({
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-mx-md md:gap-mx-lg shrink-0">
-      <Card className="p-mx-lg border-none bg-brand-secondary text-white shadow-mx-xl">
+      <Card className="rounded-mx-lg border border-white/10 bg-brand-secondary text-white p-mx-md shadow-mx-sm">
         <Typography variant="tiny" tone="white" className="opacity-50 mb-2 block font-black uppercase tracking-widest text-mx-tiny">Meta de Vendas</Typography>
         <Typography variant="h1" tone="white" className="text-4xl sm:text-5xl tabular-nums leading-none mb-2 tracking-tighter font-mono-numbers">{metrics.goalValue}</Typography>
         <Badge variant="outline" className="bg-white text-brand-secondary border-white font-black h-mx-md uppercase text-mx-tiny shadow-mx-sm">{metrics.attainment}% ATINGIDO</Badge>
       </Card>
 
-      <Card className="p-mx-lg border-none shadow-mx-lg bg-white">
+      <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
         <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny">Vendido Período</Typography>
         <Typography variant="h1" className="text-4xl sm:text-5xl tabular-nums leading-none mb-2 tracking-tighter font-mono-numbers">{metrics.totalSales}</Typography>
         <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest text-mx-tiny">REFERÊNCIA REAL-TIME</Typography>
       </Card>
 
-      <Card className="p-mx-lg border-none shadow-mx-lg bg-white">
+      <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
         <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny">Leads Gerados</Typography>
         <div className="flex items-baseline gap-mx-xs mb-2">
           <Typography variant="h1" className="text-4xl sm:text-5xl tabular-nums leading-none tracking-tighter font-mono-numbers">{metrics.totalLeads}</Typography>
@@ -141,7 +141,7 @@ export function KpisSection({
         <Typography variant="tiny" tone="info" className="font-black uppercase tracking-widest text-mx-tiny">ENTRADA DO FUNIL</Typography>
       </Card>
 
-      <Card className="p-mx-lg border-none shadow-mx-lg bg-white">
+      <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
         <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny">Visitas Realizadas</Typography>
         <div className="flex items-baseline gap-mx-xs mb-2">
           <Typography variant="h1" className="text-4xl sm:text-5xl tabular-nums leading-none tracking-tighter font-mono-numbers">{metrics.totalVis}</Typography>
@@ -150,7 +150,7 @@ export function KpisSection({
         <Typography variant="tiny" tone="warning" className="font-black uppercase tracking-widest text-mx-tiny">MEIO DO FUNIL</Typography>
       </Card>
 
-      <Card className="p-mx-lg border-none shadow-mx-lg bg-white">
+      <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
         <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny">
           <GlossaryHint term="Saúde Disciplinar" definition="Percentual da equipe que realizou o Fechamento Diário obrigatório." />
         </Typography>
@@ -164,7 +164,7 @@ export function KpisSection({
         </Typography>
         <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-mx-tiny">REGISTROS SINCRONIZADOS</Typography>
         {pendingDisciplineSellers.length > 0 && (
-          <div className="mt-mx-sm rounded-mx-xl border border-status-warning/20 bg-status-warning-surface p-mx-sm">
+          <div className="mt-mx-sm rounded-mx-lg border border-status-warning/20 bg-status-warning-surface p-mx-sm">
             <Typography variant="tiny" className="block font-black uppercase tracking-widest text-status-warning">Pendentes</Typography>
             <Typography variant="p" className="mt-mx-tiny text-sm text-status-warning line-clamp-2">
               {pendingDisciplineSellers.slice(0, 3).map(seller => seller.name).join(', ')}
@@ -180,7 +180,7 @@ export function KpisSection({
       </Card>
 
       {(isPerfilInternoMx(role) || role === 'dono') && latestDRE && (
-        <Card className="p-mx-lg bg-white shadow-mx-lg border-none animate-in slide-in-from-right duration-500 delay-300">
+        <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm animate-in slide-in-from-right duration-500 delay-300">
           <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny text-brand-primary">Lucratividade Preditiva (DRE)</Typography>
           <div className="flex items-baseline gap-mx-xs mb-mx-xs">
             <Typography variant="tiny" tone="muted" className="font-black text-mx-nano">R$</Typography>
@@ -192,7 +192,7 @@ export function KpisSection({
         </Card>
       )}
       {(isPerfilInternoMx(role) || role === 'dono') && !latestDRE && (
-        <Card className="p-mx-lg bg-white shadow-mx-lg border-none">
+        <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
           <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny text-brand-primary">Lucratividade Preditiva (DRE)</Typography>
           <Typography variant="h3" className="mb-mx-xs uppercase">DRE pendente</Typography>
           <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-mx-tiny">
@@ -228,7 +228,7 @@ function ManagerMetricCard({
   tone: ManagerTone
 }) {
   return (
-    <Card className="min-h-[144px] border-none bg-white p-mx-lg shadow-mx-lg">
+    <Card className="min-h-[144px] rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
       <div className="flex items-start justify-between gap-mx-sm">
         <div className="min-w-0">
           <Typography variant="tiny" tone="muted" className="mb-2 block font-black uppercase tracking-widest text-mx-tiny">

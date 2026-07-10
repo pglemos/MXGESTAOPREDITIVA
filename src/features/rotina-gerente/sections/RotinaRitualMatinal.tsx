@@ -50,14 +50,14 @@ export function RotinaRitualMatinal({
   ]
 
   return (
-    <Card className="p-mx-10 md:p-14 space-y-mx-xl border-none shadow-mx-xl bg-white relative overflow-hidden">
+    <Card className="rounded-mx-lg border border-border-subtle p-mx-md space-y-mx-md shadow-mx-sm bg-white relative overflow-hidden">
       <div
         className="absolute top-mx-0 right-mx-0 w-mx-sidebar-expanded h-mx-64 bg-brand-primary/5 rounded-mx-full blur-mx-xl -mr-32 -mt-32"
         aria-hidden="true"
       />
-      <header className="flex items-center justify-between border-b border-border-default pb-8 relative z-10">
+      <header className="flex items-center justify-between border-b border-border-subtle pb-8 relative z-10">
         <div className="flex items-center gap-mx-md">
-          <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-xl transform -rotate-2">
+          <div className="w-mx-2xl h-mx-2xl rounded-mx-lg bg-brand-primary text-white flex items-center justify-center shadow-mx-xl transform -rotate-2">
             <Zap size={32} />
           </div>
           <div>
@@ -75,7 +75,7 @@ export function RotinaRitualMatinal({
         </div>
         <Badge
           variant="danger"
-          className="animate-pulse shadow-mx-md px-6 py-2 rounded-mx-full font-black uppercase text-tiny"
+          className="animate-pulse shadow-mx-md px-6 py-2 rounded-mx-lg font-black uppercase text-tiny"
         >
           Prioridade 01
         </Badge>
@@ -87,20 +87,20 @@ export function RotinaRitualMatinal({
             key={step.idx}
             onClick={() => step.set(!step.done)}
             className={cn(
-              'p-mx-lg cursor-pointer group transition-all border-2',
+              'rounded-mx-lg border p-mx-md cursor-pointer group transition-all',
               step.done
-                ? 'bg-status-success-surface/30 border-status-success/20'
-                : 'bg-surface-alt border-transparent hover:bg-white hover:border-brand-primary/20 hover:shadow-mx-lg',
+                ? 'bg-status-success-surface/30 border-status-success/20 text-status-success'
+                : 'bg-surface-alt border-border-subtle hover:bg-white hover:border-brand-primary/20 hover:shadow-mx-sm',
             )}
           >
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-mx-md">
               <div className="flex items-start sm:items-center gap-mx-md min-w-0">
                 <div
                   className={cn(
-                    'w-mx-xl h-mx-xl rounded-mx-xl flex items-center justify-center border shadow-mx-inner transition-all',
+                    'w-mx-xl h-mx-xl rounded-mx-lg flex items-center justify-center border shadow-mx-inner transition-all',
                     step.done
                       ? 'bg-white text-status-success border-status-success/30'
-                      : 'bg-white text-text-tertiary border-border-default group-hover:scale-110',
+                      : 'bg-white text-text-tertiary border-border-subtle group-hover:scale-110',
                   )}
                 >
                   {step.done ? (
@@ -134,7 +134,7 @@ export function RotinaRitualMatinal({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full sm:w-auto rounded-mx-full px-6 h-mx-10 font-black text-tiny uppercase tracking-widest bg-white shadow-sm"
+                  className="w-full sm:w-auto rounded-mx-lg px-6 h-mx-10 font-black text-tiny uppercase tracking-widest bg-white shadow-sm border-border-subtle hover:bg-surface-alt"
                 >
                   Concluir
                 </Button>
@@ -145,16 +145,16 @@ export function RotinaRitualMatinal({
 
         <Card
           className={cn(
-            'p-mx-10 border-none transition-all flex flex-col md:flex-row md:items-center justify-between gap-mx-lg',
+            'rounded-mx-lg border border-border-subtle p-mx-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-mx-lg',
             canTriggerMatinal
-              ? 'bg-mx-black text-white shadow-mx-elite'
+              ? 'bg-mx-black text-white shadow-mx-elite border-none'
               : 'bg-surface-alt opacity-40',
           )}
         >
           <div className="flex items-center gap-mx-md">
             <div
               className={cn(
-                'w-mx-14 h-mx-14 rounded-mx-xl flex items-center justify-center border transition-all',
+                'w-mx-14 h-mx-14 rounded-mx-lg flex items-center justify-center border transition-all',
                 canTriggerMatinal
                   ? 'bg-white/10 text-white border-white/10 shadow-mx-inner'
                   : 'bg-white text-text-tertiary',
@@ -183,10 +183,10 @@ export function RotinaRitualMatinal({
             disabled={!canTriggerMatinal || executing}
             onClick={onTriggerMatinal}
             className={cn(
-              'h-mx-14 px-10 rounded-mx-full font-black uppercase tracking-widest text-tiny',
+              'h-mx-14 px-10 rounded-mx-lg font-black uppercase tracking-widest text-tiny',
               canTriggerMatinal
-                ? 'bg-brand-primary shadow-mx-xl'
-                : 'bg-white border-border-default',
+                ? 'bg-brand-primary shadow-mx-xl text-white'
+                : 'bg-white border-border-subtle text-text-tertiary',
             )}
           >
             {executing ? (
@@ -199,7 +199,7 @@ export function RotinaRitualMatinal({
           {matinalAudit && (
             <div
               className={cn(
-                'w-full rounded-mx-xl border px-mx-md py-mx-sm text-sm font-bold md:basis-full',
+                'w-full rounded-mx-lg border px-mx-md py-mx-sm text-sm font-bold md:basis-full',
                 matinalAudit.tone === 'success'
                   ? 'border-status-success/20 bg-status-success-surface text-status-success'
                   : 'border-status-error/20 bg-status-error-surface text-status-error',

@@ -29,7 +29,7 @@ export function OwnerExecutiveSection({
 }: OwnerExecutiveSectionProps) {
   if (ownerActiveStores.length === 0) {
     return (
-      <Card className="border-none bg-white shadow-mx-md">
+      <Card className="rounded-mx-lg border border-border-subtle bg-white shadow-mx-sm p-mx-md">
         <EmptyState
           size="lg"
           icon={<Building2 />}
@@ -43,7 +43,7 @@ export function OwnerExecutiveSection({
 
   return (
     <section className="grid grid-cols-1 gap-mx-md xl:grid-cols-12">
-      <Card className="border border-border-default bg-white p-mx-lg shadow-mx-md xl:col-span-5">
+      <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm xl:col-span-5">
         <div className="mb-mx-md flex items-start justify-between gap-mx-md">
           <div>
             <Typography variant="h3" className="uppercase tracking-tight">
@@ -56,7 +56,7 @@ export function OwnerExecutiveSection({
           <Compass size={24} className="shrink-0 text-brand-primary" aria-hidden="true" />
         </div>
         <div className="space-y-mx-sm">
-          <div className="rounded-mx-xl border border-border-default bg-surface-alt p-mx-md">
+          <div className="rounded-mx-lg border border-border-subtle bg-surface-alt p-mx-md">
             <Typography variant="tiny" className="font-black uppercase tracking-widest text-text-secondary">
               Unidades com atenção
             </Typography>
@@ -73,7 +73,7 @@ export function OwnerExecutiveSection({
                 : 'Todas as lojas ativas têm estrutura e disciplina dentro do mínimo esperado.'}
             </Typography>
           </div>
-          <div className="rounded-mx-xl border border-status-info/20 bg-status-info-surface p-mx-md">
+          <div className="rounded-mx-lg border border-status-info/20 bg-status-info-surface p-mx-md">
             <Typography variant="tiny" className="font-black uppercase tracking-widest text-status-info">
               Pré-cadastro
             </Typography>
@@ -84,7 +84,7 @@ export function OwnerExecutiveSection({
         </div>
       </Card>
 
-      <Card className="border border-border-default bg-white p-mx-lg shadow-mx-md xl:col-span-7">
+      <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm xl:col-span-7">
         <div className="mb-mx-md">
           <Typography variant="h3" className="uppercase tracking-tight">
             Comparativo direto entre lojas
@@ -101,7 +101,7 @@ export function OwnerExecutiveSection({
               <Link
                 key={store.id}
                 to={`/lojas/${slugify(store.name)}?id=${store.id}`}
-                className="group rounded-mx-xl border border-border-default bg-surface-alt p-mx-md transition-all hover:border-brand-primary hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15"
+                className="group rounded-mx-lg border border-border-subtle bg-surface-alt p-mx-md transition-all hover:border-brand-primary hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15"
               >
                 <div className="flex items-start justify-between gap-mx-sm">
                   <div className="min-w-0">

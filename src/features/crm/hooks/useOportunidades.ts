@@ -55,13 +55,35 @@ export type VendaDiretaInput = {
   fechamento_id?: string | null
 }
 
+type OportunidadePayload = {
+  cliente_id: string
+  loja_id: string
+  seller_user_id: string
+  veiculo_interesse: string | null
+  tipo_veiculo: CrmTipoVeiculo | null
+  valor_negociado: number
+  etapa: CrmEtapaFunil
+  canal: CrmCanal | null
+  sinal: number
+  financiamento: CrmFinanciamento
+  carro_avaliado: boolean
+  motivo_perda: string | null
+  closed_at: string | null
+  data_competencia: string | null
+  origem_modulo: string
+  fechamento_id: string | null
+  placa_veiculo?: string | null
+  data_entrega_prevista?: string | null
+  created_at?: string
+}
+
 export function buildOportunidadePayload(
   input: OportunidadeInput,
   context: { loja_id: string; seller_user_id: string },
   nowIso = () => new Date().toISOString(),
-) {
+): OportunidadePayload {
   const isTerminal = input.etapa === 'ganho' || input.etapa === 'perdido'
-  return {
+  const payload: OportunidadePayload = {
     cliente_id: input.cliente_id,
     loja_id: context.loja_id,
     seller_user_id: context.seller_user_id,
@@ -75,13 +97,21 @@ export function buildOportunidadePayload(
     carro_avaliado: input.carro_avaliado ?? false,
     motivo_perda: input.etapa === 'perdido' ? (input.motivo_perda?.trim() || null) : null,
     closed_at: isTerminal ? (input.closed_at || nowIso()) : null,
-    placa_veiculo: input.placa_veiculo?.trim() || null,
-    data_entrega_prevista: input.data_entrega_prevista || null,
     data_competencia: input.data_competencia || null,
     origem_modulo: input.origem_modulo || 'crm',
     fechamento_id: input.fechamento_id || null,
-    ...(input.created_at ? { created_at: input.created_at } : {}),
   }
+  // P1-05/P0-05a (auditoria 2026-07-10): placa e previsão de entrega são
+  // "esparsos" — só entram no payload quando o caller explicitamente os
+  // informa. Em UPDATE, uma chave ausente preserva o valor já salvo
+  // (Postgrest só sobrescreve colunas presentes no payload); antes, um
+  // `|| null` incondicional aqui fazia qualquer edição que não tocasse
+  // nesses dois campos (confirmar venda, confirmar perda, editar outro campo
+  // no Fechamento) apagar a placa/previsão de entrega já cadastradas.
+  if (input.placa_veiculo !== undefined) payload.placa_veiculo = input.placa_veiculo?.trim() || null
+  if (input.data_entrega_prevista !== undefined) payload.data_entrega_prevista = input.data_entrega_prevista || null
+  if (input.created_at) payload.created_at = input.created_at
+  return payload
 }
 
 function parse(data: unknown): OportunidadeComCliente[] {

@@ -23,8 +23,8 @@ export function WeeklyReportsList({ reports, variant = 'admin' }: Props) {
           <Card
             className={
               variant === 'admin'
-                ? 'p-mx-lg md:p-10 hover:shadow-mx-xl transition-all h-full border-none shadow-mx-lg bg-white relative overflow-hidden flex flex-col'
-                : 'p-mx-lg md:p-10 hover:shadow-mx-xl transition-all h-full border-none shadow-mx-lg bg-white flex flex-col'
+                ? 'rounded-mx-lg border border-border-subtle p-mx-md hover:shadow-mx-xl transition-all h-full shadow-mx-sm bg-white relative overflow-hidden flex flex-col'
+                : 'rounded-mx-lg border border-border-subtle p-mx-md hover:shadow-mx-xl transition-all h-full shadow-mx-sm bg-white flex flex-col'
             }
           >
             {variant === 'admin' ? (
@@ -49,7 +49,7 @@ function ReportHeader({ report }: { report: WeeklyFeedbackReport }) {
   return (
     <div className="flex items-center justify-between mb-10 relative z-10">
       <div className="flex items-center gap-mx-sm">
-        <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-md">
+        <div className="w-mx-14 h-mx-14 rounded-mx-lg bg-brand-primary text-white flex items-center justify-center shadow-mx-md">
           <Calendar size={24} />
         </div>
         <div>
@@ -87,11 +87,11 @@ function ReportMetrics({
     <div
       className={
         dense
-          ? 'grid grid-cols-2 gap-mx-md py-8 border-y border-border-default'
-          : 'grid grid-cols-1 sm:grid-cols-2 gap-mx-md py-8 border-y border-border-default relative z-10'
+          ? 'grid grid-cols-2 gap-mx-md py-8 border-y border-border-subtle'
+          : 'grid grid-cols-1 sm:grid-cols-2 gap-mx-md py-8 border-y border-border-subtle relative z-10'
       }
     >
-      <div className="bg-surface-alt rounded-mx-2xl p-mx-md shadow-mx-inner text-center">
+      <div className="bg-surface-alt rounded-mx-lg p-mx-md shadow-mx-inner text-center">
         <Typography
           variant="tiny"
           tone="muted"
@@ -110,7 +110,7 @@ function ReportMetrics({
           {report.weekly_goal}v
         </Typography>
       </div>
-      <div className="bg-surface-alt rounded-mx-2xl p-mx-md shadow-mx-inner text-center">
+      <div className="bg-surface-alt rounded-mx-lg p-mx-md shadow-mx-inner text-center">
         <Typography
           variant="tiny"
           tone="muted"

@@ -43,8 +43,8 @@ export function FunnelSection({ funilData, funnelBenchmarks }: FunnelSectionProp
 
   return (
     <MotionCard className="w-full">
-      <Card className="w-full border-none shadow-mx-lg bg-white overflow-hidden">
-      <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-lg">
+      <Card className="w-full rounded-mx-lg border border-border-subtle bg-white overflow-hidden shadow-mx-sm">
+      <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-md">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-lg md:text-xl uppercase tracking-tighter">Fluxo de Escoamento</CardTitle>
@@ -62,7 +62,7 @@ export function FunnelSection({ funilData, funnelBenchmarks }: FunnelSectionProp
           </div>
         </div>
       </CardHeader>
-      <CardContent className="p-mx-lg md:p-mx-10">
+      <CardContent className="p-mx-md">
         <MotionList className="grid grid-cols-1 md:grid-cols-3 gap-mx-lg md:gap-mx-14">
           {steps.map((step, idx) => (
             <MotionRow key={`${step.from}-${step.to}`} className="space-y-mx-md">

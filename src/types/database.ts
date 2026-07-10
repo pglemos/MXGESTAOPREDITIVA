@@ -169,6 +169,7 @@ export interface DailyCheckin {
     
     // Métricas de Produção
     leads_prev_day: number
+    leads_net_prev_day: number
     agd_cart_prev_day: number
     agd_net_prev_day: number
     agd_cart_today: number
@@ -177,7 +178,13 @@ export interface DailyCheckin {
     vnd_cart_prev_day: number
     vnd_net_prev_day: number
     visit_prev_day: number
-    
+    // Distribuição de visitas por canal (P0-02, 2026-07-10). NULL em registros
+    // anteriores a esta migração — significa "distribuição não rastreada",
+    // nunca deve ser lido como zero.
+    visitas_porta_prev_day: number | null
+    visitas_cart_prev_day: number | null
+    visitas_net_prev_day: number | null
+
     zero_reason: string | null
     note: string | null
     submitted_late?: boolean
@@ -333,6 +340,9 @@ export interface FunnelData {
 export interface CheckinFormData {
     leads?: number
     leads_prev_day?: number
+    leads_cart?: number
+    leads_net?: number
+    leads_net_prev_day?: number
     agd_cart_prev?: number
     agd_cart_prev_day?: number
     agd_net_prev?: number
@@ -349,6 +359,12 @@ export interface CheckinFormData {
     vnd_net_prev_day?: number
     visitas?: number
     visit_prev_day?: number
+    visitas_porta?: number
+    visitas_cart?: number
+    visitas_net?: number
+    visitas_porta_prev_day?: number
+    visitas_cart_prev_day?: number
+    visitas_net_prev_day?: number
     note?: string
     zero_reason?: string
     reference_date?: string

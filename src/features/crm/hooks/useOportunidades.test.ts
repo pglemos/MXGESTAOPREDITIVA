@@ -36,6 +36,9 @@ describe('buildOportunidadePayload', () => {
       carro_avaliado: true,
       motivo_perda: null,
       closed_at: '2026-06-15T12:00:00-03:00',
+      data_competencia: null,
+      origem_modulo: 'crm',
+      fechamento_id: null,
     })
   })
 
@@ -51,5 +54,46 @@ describe('buildOportunidadePayload', () => {
 
     expect(payload.motivo_perda).toBe('Preco acima do orçamento')
     expect(payload.closed_at).toBe('2026-06-16T10:00:00.000Z')
+  })
+
+  // P1-05/P0-05a (auditoria 2026-07-10): a previsão de entrega desaparecia ao
+  // confirmar venda/perda ou editar outro campo, porque o payload de UPDATE
+  // sempre gravava `data_entrega_prevista`/`placa_veiculo` com default null,
+  // mesmo quando o caller (confirmVenda, confirmPerda, CheckinCrmSection) não
+  // tinha esses campos no seu formulário local.
+  describe('placa_veiculo / data_entrega_prevista — update esparso (P0-05a)', () => {
+    it('omite as duas chaves do payload quando o caller não as informa (edição não deve apagar o que já estava salvo)', () => {
+      const payload = buildOportunidadePayload({
+        cliente_id: 'cliente-3',
+        etapa: 'ganho',
+        closed_at: '2026-07-10T12:00:00.000Z',
+        // simula confirmVenda/confirmPerda: não tocam em placa/entrega
+      }, { loja_id: 'loja-1', seller_user_id: 'seller-1' })
+
+      expect('placa_veiculo' in payload).toBe(false)
+      expect('data_entrega_prevista' in payload).toBe(false)
+    })
+
+    it('grava normalmente quando o caller informa os dois campos (fluxo de criação/edição que os possui)', () => {
+      const payload = buildOportunidadePayload({
+        cliente_id: 'cliente-4',
+        placa_veiculo: '  abc1234  ',
+        data_entrega_prevista: '2026-07-15T14:00:00.000Z',
+      }, { loja_id: 'loja-1', seller_user_id: 'seller-1' })
+
+      expect(payload.placa_veiculo).toBe('abc1234')
+      expect(payload.data_entrega_prevista).toBe('2026-07-15T14:00:00.000Z')
+    })
+
+    it('permite limpar explicitamente enviando null (distinto de não informar)', () => {
+      const payload = buildOportunidadePayload({
+        cliente_id: 'cliente-5',
+        placa_veiculo: null,
+        data_entrega_prevista: null,
+      }, { loja_id: 'loja-1', seller_user_id: 'seller-1' })
+
+      expect(payload.placa_veiculo).toBeNull()
+      expect(payload.data_entrega_prevista).toBeNull()
+    })
   })
 })

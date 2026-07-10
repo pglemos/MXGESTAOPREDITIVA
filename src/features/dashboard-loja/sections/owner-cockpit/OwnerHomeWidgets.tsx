@@ -28,7 +28,7 @@ export function SalesGoalCard({ data }: { data: DashboardData }) {
   const pace = referenceDay > 0 ? Math.max(sold / referenceDay, 0) : 0
 
   return (
-    <Card className="rounded-mx-2xl p-mx-lg">
+    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-mx-sm">
           <Target size={24} className="text-brand-primary" />
@@ -47,7 +47,7 @@ export function SalesGoalCard({ data }: { data: DashboardData }) {
         <MetricPill label="Faltam" value={goal > 0 ? formatInteger(missing) : '--'} tone="danger" />
         <MetricPill label="Ritmo/dia" value={pace > 0 ? pace.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) : '--'} tone="info" />
       </div>
-      <div className="mt-mx-md rounded-mx-xl border border-border-default bg-surface-alt px-mx-md py-mx-sm flex items-center justify-between">
+      <div className="mt-mx-md rounded-mx-lg border border-border-subtle bg-surface-alt px-mx-md py-mx-sm flex items-center justify-between">
         <Typography variant="p" className="font-black">Projeção atual</Typography>
         <Typography variant="p" className="font-black text-brand-primary">{goal > 0 ? `${formatInteger(sold)} veículos` : 'Pendente'}</Typography>
       </div>
@@ -59,7 +59,7 @@ export function OwnerAlertList({ alerts }: { alerts: OwnerPerformanceAlert[] }) 
   const navigate = useNavigate()
   const visibleAlerts = alerts.slice(0, 6)
   return (
-    <Card className="rounded-mx-2xl p-mx-lg">
+    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
       <div className="flex items-center justify-between gap-mx-sm">
         <div className="flex items-center gap-mx-sm">
           <Bell size={24} className="text-status-error" />
@@ -97,7 +97,7 @@ export function OwnerAlertList({ alerts }: { alerts: OwnerPerformanceAlert[] }) 
 export function NextActionsCard({ actions }: { actions: ActionRow[] }) {
   const navigate = useNavigate()
   return (
-    <Card className="rounded-mx-2xl p-mx-lg">
+    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
       <div className="flex items-center gap-mx-sm">
         <CheckCircle2 size={24} className="text-brand-primary" />
         <Typography variant="h3" className="text-xl font-black">Próximas ações do diretor</Typography>
@@ -131,13 +131,13 @@ export function OwnerPanoramaChart({
   attainment: number
 }) {
   return (
-    <Card className="rounded-mx-2xl p-mx-lg">
+    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
       <div className="flex flex-col gap-mx-md md:flex-row md:items-start md:justify-between">
         <div>
           <Typography variant="h3" className="text-xl font-black">Evolução planejado x realizado</Typography>
           <Typography variant="p" tone="muted" className="mt-1 block font-bold">Ritmo da loja no período selecionado.</Typography>
         </div>
-        <div className="rounded-mx-xl border border-border-default bg-surface-alt px-mx-md py-mx-sm">
+        <div className="rounded-mx-lg border border-border-subtle bg-surface-alt px-mx-md py-mx-sm">
           <Typography variant="tiny" tone="muted" className="block font-black">Meta mensal</Typography>
           <Typography variant="p" className="font-black tabular-nums">{goalValue > 0 ? formatInteger(goalValue) : 'Pendente'}</Typography>
           <Typography variant="tiny" tone={attainment >= 80 ? 'success' : 'warning'} className="block font-black">
@@ -160,7 +160,7 @@ export function OwnerPanoramaChart({
           </ResponsiveContainer>
         </div>
       ) : (
-        <div className="mt-mx-md min-h-[250px] rounded-mx-2xl border border-dashed border-border-default bg-surface-alt flex flex-col items-center justify-center text-center p-mx-lg">
+        <div className="mt-mx-md min-h-[250px] rounded-mx-lg border border-dashed border-border-subtle bg-surface-alt flex flex-col items-center justify-center text-center p-mx-lg">
           <LineChartIcon size={40} className="text-text-tertiary" />
           <Typography variant="h3" className="mt-mx-md text-lg font-black">Dados pendentes</Typography>
           <Typography variant="p" tone="muted" className="mt-mx-xs max-w-sm">A evolução aparece quando a rotina diária tiver histórico no período.</Typography>
@@ -182,7 +182,7 @@ export function OwnerActionPlanSummary({ actions }: { actions: ActionRow[] }) {
   const ineficazesPct = Math.max(0, 100 - eficazesPct - parciaisPct)
 
   return (
-    <Card className="rounded-mx-2xl p-mx-lg">
+    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
       <Typography variant="h3" className="text-xl font-black">Eficácia das Ações</Typography>
       <div className="mt-mx-md flex items-center gap-mx-md">
         <EficaciaDonut eficazes={eficazesPct} parciais={parciaisPct} ineficazes={ineficazesPct} />
@@ -262,7 +262,7 @@ function EficaciaLegendRow({ color, label, value }: { color: string; label: stri
 export function OwnerDepartmentScoreGrid({ departments }: { departments: DepartmentScore[] }) {
   const navigate = useNavigate()
   return (
-    <Card className="rounded-mx-2xl p-mx-lg">
+    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
       <div className="mb-mx-md flex items-center justify-between gap-mx-md">
         <div className="flex items-center gap-mx-xs">
           <Typography variant="h3" className="text-xl font-black">Desempenho por Departamento</Typography>
@@ -276,7 +276,7 @@ export function OwnerDepartmentScoreGrid({ departments }: { departments: Departm
           const score = department.score ?? 0
           const statusBadgeTone = score >= 75 ? 'bg-[var(--color-status-success-surface)] text-status-success' : score >= 60 ? 'bg-[var(--color-status-warning-surface)] text-status-warning' : 'bg-[var(--color-status-error-surface)] text-status-error'
           return (
-            <button key={department.name} type="button" onClick={() => navigate(department.path)} className="rounded-mx-2xl border border-border-default bg-white p-mx-md text-left hover:shadow-mx-md transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15 flex flex-col items-center">
+            <button key={department.name} type="button" onClick={() => navigate(department.path)} className="rounded-mx-lg border border-border-subtle bg-white p-mx-md text-left hover:shadow-mx-md transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15 flex flex-col items-center">
               <div className="flex w-full items-center gap-mx-sm">
                 <span className={cn('h-mx-9 w-mx-9 rounded-mx-lg flex shrink-0 items-center justify-center', classes.bg)}>{department.icon}</span>
                 <Typography variant="p" className="font-black text-sm truncate">{department.name}</Typography>

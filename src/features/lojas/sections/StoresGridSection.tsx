@@ -16,7 +16,7 @@ interface StoresGridSectionProps {
 export function StoresGridSection({ isOwner, columns, data }: StoresGridSectionProps) {
   return (
     <div className="flex-1 min-h-0 pb-32" aria-live="polite">
-      <Card className="border-none shadow-mx-xl bg-white overflow-hidden p-mx-0">
+      <Card className="rounded-mx-lg border border-border-subtle shadow-mx-sm bg-white overflow-hidden p-mx-0">
         <DataGrid
           columns={columns}
           data={data}

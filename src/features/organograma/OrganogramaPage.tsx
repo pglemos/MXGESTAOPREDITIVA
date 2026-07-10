@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Network } from 'lucide-react'
-import { PageHeader } from '@/components/molecules/PageHeader'
+import { PageHeading } from '@/components/molecules/PageHeading'
 import { TabNav, type TabNavItem } from '@/components/molecules/TabNav'
 import { EmptyState } from '@/components/atoms/EmptyState'
 import { useLojasDoUsuario } from '@/hooks/useLojasDoUsuario'
@@ -23,9 +23,9 @@ export default function OrganogramaPage() {
 
   return (
 <div className="w-full space-y-mx-lg">
-      <PageHeader
+      <PageHeading
         title="Organograma & Plano de Carreira"
-        description="Estrutura hierárquica da empresa e a trilha de evolução por cargo."
+        subtitle="ESTRUTURA HIERÁRQUICA DA EMPRESA E A TRILHA DE EVOLUÇÃO POR CARGO"
         actions={
           <label className="flex items-center gap-mx-sm">
             <span className="text-xs font-black uppercase tracking-widest text-text-tertiary">Loja</span>
@@ -33,7 +33,7 @@ export default function OrganogramaPage() {
               value={lojaSelecionada}
               onChange={e => setLojaId(e.target.value)}
               disabled={loading || lojas.length === 0}
-              className="h-mx-12 px-mx-sm bg-surface-alt border border-border-default rounded-mx-xl font-black uppercase text-xs focus:outline-none focus:border-brand-primary appearance-none cursor-pointer"
+              className="h-mx-12 px-mx-sm bg-surface-alt border border-border-subtle rounded-mx-lg font-black uppercase text-xs focus:outline-none focus:border-brand-primary appearance-none cursor-pointer"
             >
               <option value="">Selecione…</option>
               {lojas.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}

@@ -10,7 +10,7 @@ type Props = { routineProgress: RoutineProgress }
  */
 export function RotinaProgressCard({ routineProgress }: Props) {
   return (
-    <Card className="border border-border-default bg-white p-mx-lg shadow-mx-sm">
+    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
       <div className="flex flex-col gap-mx-md lg:flex-row lg:items-center lg:justify-between">
         <div>
           <Typography variant="h3" className="uppercase tracking-tight">
@@ -38,10 +38,10 @@ export function RotinaProgressCard({ routineProgress }: Props) {
           <div
             key={step.label}
             className={cn(
-              'rounded-mx-xl border px-mx-md py-mx-sm text-sm font-black uppercase',
+              'rounded-mx-lg border px-mx-md py-mx-sm text-sm font-black uppercase',
               step.done
                 ? 'border-status-success/20 bg-status-success-surface text-status-success'
-                : 'border-border-default bg-surface-alt text-text-secondary',
+                : 'border-border-subtle bg-surface-alt text-text-secondary',
             )}
           >
             {step.label}

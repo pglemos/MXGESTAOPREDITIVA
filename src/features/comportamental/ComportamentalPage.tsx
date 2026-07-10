@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { PageHeader } from '@/components/molecules/PageHeader'
+import { PageHeading } from '@/components/molecules/PageHeading'
 import { TabNav, type TabNavItem } from '@/components/molecules/TabNav'
 import { TesteComportamental } from './components/TesteComportamental'
 import { BancoTalentos } from './components/BancoTalentos'
@@ -16,9 +16,9 @@ export default function ComportamentalPage() {
 
   return (
 <div className="w-full space-y-mx-lg">
-      <PageHeader
+      <PageHeading
         title="Teste Comportamental & Banco de Talentos"
-        description="Aplique o teste no onboarding e construa o banco de perfis vencedores."
+        subtitle="APLIQUE O TESTE NO ONBOARDING E CONSTRUA O BANCO DE PERFIS VENCEDORES"
       />
       <TabNav tabs={TABS} activeTab={tab} onTabChange={setTab} />
       <section id={`${tab}-panel`} role="tabpanel" aria-labelledby={`${tab}-tab`}>

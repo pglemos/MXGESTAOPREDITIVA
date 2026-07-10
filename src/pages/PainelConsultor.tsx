@@ -19,7 +19,7 @@ import { toast } from 'sonner'
 import { format, startOfDay, endOfDay, subDays, startOfMonth, endOfMonth, parseISO, startOfWeek, endOfWeek } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { getOperationalStatus, getDiasInfo, calcularProjecao } from '@/lib/calculations'
-import { PageHeader } from '@/components/molecules/PageHeader'
+import { PageHeading } from '@/components/molecules/PageHeading'
 import type { DailyCheckin, Store as StoreRecord } from '@/types/database'
 import { isLancamentosViaRpcEnabled } from '@/lib/feature-flags'
 
@@ -292,20 +292,20 @@ export default function PainelConsultor() {
     return (
         <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar" id="main-content">
             
-            <PageHeader 
+            <PageHeading 
                 title={<span>Rede <span className="text-brand-primary">Operacional</span></span>}
-                description={
-                    <div className="flex items-center gap-mx-sm">
-                        <Badge variant="danger" className="px-4 py-1 font-black shadow-mx-sm border-none">
+                subtitle={
+                    <div className="flex flex-wrap items-center gap-mx-sm">
+                        <Badge variant="danger" className="px-4 py-1 font-black shadow-mx-sm border-none rounded-mx-lg">
                             GAP GLOBAL: {globalStats.totalGap} UNIDADES
                         </Badge>
                         <span className="opacity-40 font-black uppercase tracking-mx-widest text-mx-nano">Matriz de Governança MX • {filteredAndSortedStores.length} LOJAS</span>
                     </div>
                 }
                 actions={
-                    <div className="flex flex-col items-stretch gap-mx-sm shrink-0 xl:items-end">
+                    <div className="flex flex-col items-stretch gap-mx-sm shrink-0 xl:items-end w-full lg:w-auto">
                         <div className="flex flex-wrap items-center justify-end gap-mx-sm">
-                            <nav className="flex max-w-full items-center gap-mx-tiny rounded-mx-full border border-border-default bg-white p-mx-tiny px-3 shadow-mx-sm">
+                            <nav className="flex max-w-full items-center gap-mx-tiny rounded-mx-full border border-border-subtle bg-white p-mx-tiny px-3 shadow-mx-sm">
                                 <Calendar size={14} className="mr-1 text-text-tertiary" />
                                 {(['hoje', 'ontem', 'semanal', 'mensal'] as const).map((t) => (
                                     <Button 
@@ -330,7 +330,7 @@ export default function PainelConsultor() {
                                 <AnimatePresence>
                                     {showCustomPicker && (
                                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute top-full mt-4 right-mx-0 z-50">
-                                            <Card className="p-mx-lg min-w-mx-card-sm shadow-mx-elite border-none bg-white/95 backdrop-blur-xl rounded-mx-3xl">
+                                            <Card className="p-mx-md min-w-mx-card-sm shadow-mx-sm border border-border-subtle bg-white rounded-mx-lg">
                                                 <header className="flex items-center justify-between mb-8">
                                                     <Typography variant="caption" tone="muted" className="font-black uppercase tracking-mx-widest">Período Customizado</Typography>
                                                     <Button variant="ghost" size="sm" onClick={() => setShowCustomPicker(false)} className="w-mx-10 h-mx-10 p-mx-0 rounded-mx-full"><X size={16} /></Button>
@@ -344,7 +344,7 @@ export default function PainelConsultor() {
                                                         <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest ml-1">Fim</Typography>
                                                         <Input aria-label="Fim" type="date" value={customRange.end} onChange={e => setCustomRange(p => ({ ...p, end: e.target.value }))} className="!h-12 !px-4 uppercase font-black" />
                                                     </div>
-                                                    <Button onClick={() => { setTimeframe('personalizada'); setShowCustomPicker(false); fetchNetworkSnapshot() }} className="w-full h-mx-14 shadow-mx-lg font-black uppercase text-xs tracking-widest rounded-mx-xl">
+                                                    <Button onClick={() => { setTimeframe('personalizada'); setShowCustomPicker(false); fetchNetworkSnapshot() }} className="w-full h-mx-14 shadow-mx-lg font-black uppercase text-xs tracking-widest rounded-mx-lg bg-brand-primary hover:bg-brand-primary-hover text-white">
                                                         APLICAR PERÍODO
                                                     </Button>
                                                 </div>
@@ -354,13 +354,13 @@ export default function PainelConsultor() {
                                 </AnimatePresence>
                             </nav>
 
-                            <Button variant="outline" size="icon" onClick={() => fetchNetworkSnapshot(true)} className="rounded-mx-xl shadow-mx-sm h-mx-14 w-mx-14 bg-white border-border-default">
+                            <Button variant="outline" size="icon" onClick={() => fetchNetworkSnapshot(true)} className="rounded-mx-lg shadow-mx-sm h-mx-14 w-mx-14 bg-white border-border-subtle hover:bg-surface-alt text-text-secondary">
                                 <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                             </Button>
                         </div>
 
                         <div className="flex flex-wrap items-center justify-end gap-mx-sm">
-                            <nav className="flex max-w-full items-center gap-mx-tiny rounded-mx-full border border-border-default bg-white p-mx-tiny px-3 shadow-mx-sm">
+                            <nav className="flex max-w-full items-center gap-mx-tiny rounded-mx-full border border-border-subtle bg-white p-mx-tiny px-3 shadow-mx-sm">
                                 {(['matinal', 'semanal', 'mensal'] as const).map((r) => (
                                     <Button 
                                         key={r}
@@ -380,7 +380,7 @@ export default function PainelConsultor() {
             />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-mx-lg shrink-0">
-                <Card className="bg-mx-black border-none p-mx-xl shadow-mx-elite text-white rounded-mx-4xl relative overflow-hidden group">
+                <Card className="rounded-mx-lg bg-mx-black border-none p-mx-md shadow-mx-sm text-white relative overflow-hidden group">
                     <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/20 via-transparent to-transparent opacity-50" />
                     <div className="relative z-10">
                         <Typography variant="tiny" tone="brand" className="mb-4 block font-black uppercase tracking-mx-widest opacity-60">Venda {timeframe.toUpperCase()}</Typography>
@@ -394,7 +394,7 @@ export default function PainelConsultor() {
                     </div>
                 </Card>
 
-                <Card className="p-mx-xl border-none shadow-mx-lg bg-white/50 backdrop-blur-2xl rounded-mx-4xl flex flex-col justify-between group">
+                <Card className="rounded-mx-lg border border-border-subtle bg-white/50 backdrop-blur-2xl p-mx-md shadow-mx-sm flex flex-col justify-between group">
                     <Typography variant="tiny" tone="muted" className="mb-6 block font-black uppercase tracking-mx-widest opacity-40">Escoamento Rede</Typography>
                     <div className="grid grid-cols-3 gap-mx-md">
                         <div className="text-center group-hover:scale-110 transition-transform">
@@ -410,10 +410,10 @@ export default function PainelConsultor() {
                             <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-mx-micro opacity-60">Vis</Typography>
                         </div>
                     </div>
-                    <div className="mt-8 h-mx-px bg-border-default opacity-50" />
+                    <div className="mt-8 h-mx-px bg-border-subtle opacity-50" />
                 </Card>
 
-                <Card className="p-mx-xl flex flex-col justify-between border-none shadow-mx-lg bg-white/50 backdrop-blur-2xl rounded-mx-4xl relative overflow-hidden group">
+                <Card className="rounded-mx-lg border border-border-subtle bg-white/50 backdrop-blur-2xl p-mx-md shadow-mx-sm flex flex-col justify-between relative overflow-hidden group">
                     <div className="absolute -right-mx-lg -top-mx-lg w-mx-32 h-mx-32 bg-status-error-surface rounded-mx-full blur-mx-4xl opacity-0 group-hover:opacity-100 transition-opacity" />
                     <Typography variant="tiny" tone="error" className="mb-4 font-black uppercase tracking-mx-widest opacity-60">Unidades Críticas</Typography>
                     <div className="flex items-baseline gap-mx-sm">
@@ -425,7 +425,7 @@ export default function PainelConsultor() {
                     <Typography variant="tiny" tone="error" className="mt-6 font-black uppercase tracking-mx-widest text-mx-nano italic">Ação Imediata Necessária</Typography>
                 </Card>
 
-                <Card className="p-mx-xl flex flex-col justify-between border-none shadow-mx-lg bg-white/50 backdrop-blur-2xl rounded-mx-4xl relative overflow-hidden group">
+                <Card className="rounded-mx-lg border border-border-subtle bg-white/50 backdrop-blur-2xl p-mx-md shadow-mx-sm flex flex-col justify-between relative overflow-hidden group">
                     <div className="absolute -right-mx-lg -top-mx-lg w-mx-32 h-mx-32 bg-status-success-surface rounded-mx-full blur-mx-4xl opacity-0 group-hover:opacity-100 transition-opacity" />
                     <Typography variant="tiny" tone="success" className="mb-4 font-black uppercase tracking-mx-widest opacity-60">Saúde Disciplinar</Typography>
                     <div className="flex items-baseline gap-mx-sm">
@@ -438,10 +438,10 @@ export default function PainelConsultor() {
                 </Card>
             </div>
 
-            <Card className="w-full mb-32 shadow-mx-elite border-none bg-white/50 backdrop-blur-2xl rounded-mx-4xl overflow-hidden">
-                <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-mx-lg p-mx-xl border-b border-white/20">
+            <Card className="w-full mb-32 shadow-mx-sm border border-border-subtle bg-white/50 backdrop-blur-2xl rounded-mx-lg overflow-hidden">
+                <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-mx-lg p-mx-md border-b border-border-subtle">
                     <div className="flex items-center gap-mx-md">
-                        <div className="w-mx-14 h-mx-14 rounded-mx-2xl bg-mx-black text-white flex items-center justify-center shadow-mx-xl"><Activity size={28} /></div>
+                        <div className="w-mx-14 h-mx-14 rounded-mx-lg bg-brand-primary text-white flex items-center justify-center shadow-mx-sm"><Activity size={28} /></div>
                         <div>
                             <CardTitle className="text-3xl uppercase tracking-tighter font-black">Malha de Performance</CardTitle>
                             <CardDescription className="font-black uppercase tracking-mx-widest mt-1 text-mx-tiny opacity-40">Monitoramento Predictivo de Unidades.</CardDescription>
@@ -450,16 +450,16 @@ export default function PainelConsultor() {
                     <div className="flex flex-wrap items-center gap-mx-sm">
                         <div className="relative group w-full sm:w-mx-sidebar-expanded">
                             <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary" />
-                            <Input placeholder="LOCALIZAR UNIDADE..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="!pl-12 !h-14 uppercase font-black tracking-mx-widest !text-xs rounded-mx-xl bg-white border-border-default shadow-mx-sm" />
+                            <Input placeholder="LOCALIZAR UNIDADE..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="!pl-12 !h-14 uppercase font-black tracking-mx-widest !text-xs rounded-mx-lg bg-white border-border-subtle shadow-mx-sm" />
                         </div>
-                        <div className="flex items-center gap-mx-tiny bg-mx-black/5 p-mx-tiny rounded-mx-xl h-mx-14 shadow-inner px-2">
+                        <div className="flex items-center gap-mx-tiny bg-mx-black/5 p-mx-tiny rounded-mx-lg h-mx-14 shadow-inner px-2">
                             {(['all', 'alert', 'critical'] as const).map(f => (
                                 <Button key={f} variant={statusFilter === f ? 'secondary' : 'ghost'} size="sm" onClick={() => setStatusFilter(f)} className="h-mx-10 rounded-mx-lg px-6 uppercase font-black text-mx-nano tracking-widest">
                                     {f === 'all' ? 'Todos' : f === 'alert' ? 'Alertas' : 'Críticos'}
                                 </Button>
                             ))}
                         </div>
-                        <Button asChild variant="secondary" className="h-mx-14 px-8 shadow-mx-sm uppercase font-black text-mx-tiny tracking-mx-widest rounded-mx-xl border border-brand-primary/15 bg-white text-brand-secondary hover:bg-mx-green-50">
+                        <Button asChild variant="secondary" className="h-mx-14 px-8 shadow-mx-sm uppercase font-black text-mx-tiny tracking-mx-widest rounded-mx-lg border border-brand-primary/15 bg-white text-brand-primary hover:bg-mx-green-50">
                             <Link to="/lojas"><Store size={18} className="mr-2" /> GESTÃO LOJAS</Link>
                         </Button>
                     </div>
@@ -467,7 +467,7 @@ export default function PainelConsultor() {
                 <div className="overflow-x-auto no-scrollbar">
                     <table className="w-full text-left min-w-mx-table-wide">
                         <thead>
-                            <tr className="uppercase tracking-mx-widest border-b border-border-default bg-mx-black/5">
+                            <tr className="uppercase tracking-mx-widest border-b border-border-subtle bg-mx-black/5">
                                 <th className="pl-12 py-6 cursor-pointer hover:text-brand-primary transition-colors" onClick={() => handleSort('name')}>
                                     <Typography variant="tiny" className="font-black">Unidade</Typography>
                                 </th>
@@ -497,7 +497,7 @@ export default function PainelConsultor() {
                                     >
                                         <td className="pl-12">
                                             <div className="flex items-center gap-mx-md">
-                                                <div className="w-mx-12 h-mx-12 rounded-mx-xl bg-white border border-border-default flex items-center justify-center font-black text-text-primary text-xl group-hover:bg-mx-black group-hover:text-white group-hover:border-mx-black transition-all shadow-mx-sm uppercase" aria-hidden="true">{store.name.charAt(0)}</div>
+                                                <div className="w-mx-12 h-mx-12 rounded-mx-lg bg-white border border-border-subtle flex items-center justify-center font-black text-text-primary text-xl group-hover:bg-mx-black group-hover:text-white group-hover:border-mx-black transition-all shadow-mx-sm uppercase" aria-hidden="true">{store.name.charAt(0)}</div>
                                                 <Typography variant="h3" className="text-lg group-hover:text-brand-primary transition-colors uppercase tracking-tight font-black">{store.name}</Typography>
                                             </div>
                                         </td>

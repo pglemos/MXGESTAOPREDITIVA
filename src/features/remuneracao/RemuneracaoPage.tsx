@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Wallet } from 'lucide-react'
-import { PageHeader } from '@/components/molecules/PageHeader'
+import { PageHeading } from '@/components/molecules/PageHeading'
 import { TabNav, type TabNavItem } from '@/components/molecules/TabNav'
 import { EmptyState } from '@/components/atoms/EmptyState'
 import { CadastroPlanos } from './components/CadastroPlanos'
@@ -27,9 +27,9 @@ export default function RemuneracaoPage() {
 
   return (
 <div className="w-full space-y-mx-lg">
-      <PageHeader
+      <PageHeading
         title="Remuneração Inteligente"
-        description="Cadastre o plano de remuneração por cargo e compare com a média de mercado."
+        subtitle="CADASTRE O PLANO DE REMUNERAÇÃO POR CARGO E COMPARE COM A MÉDIA DE MERCADO"
         actions={
           <label className="flex items-center gap-mx-sm">
             <span className="text-xs font-black uppercase tracking-widest text-text-tertiary">Loja</span>
@@ -37,7 +37,7 @@ export default function RemuneracaoPage() {
               value={lojaSelecionada}
               onChange={e => setLojaId(e.target.value)}
               disabled={loading || lojas.length === 0}
-              className="h-mx-12 px-mx-sm bg-surface-alt border border-border-default rounded-mx-xl font-black uppercase text-xs focus:outline-none focus:border-brand-primary appearance-none cursor-pointer"
+              className="h-mx-12 px-mx-sm bg-surface-alt border border-border-subtle rounded-mx-lg font-black uppercase text-xs focus:outline-none focus:border-brand-primary appearance-none cursor-pointer"
             >
               <option value="">Selecione…</option>
               {lojas.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}

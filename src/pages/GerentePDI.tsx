@@ -18,6 +18,7 @@ import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Avatar } from '@/components/atoms/Avatar'
 import { Card } from '@/components/molecules/Card'
+import { PageHeading } from '@/components/molecules/PageHeading'
 import { WizardPDI } from '@/features/pdi/WizardPDI'
 
 const statusCfg = {
@@ -98,42 +99,36 @@ export default function GerentePDI() {
 
     return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt" id="main-content">
-            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0" role="banner">
-                <div className="flex flex-col gap-mx-tiny">
-                    <div className="flex items-center gap-mx-sm">
-                        <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" />
-                        <Typography variant="h1">{isOwner ? 'PDI da ' : 'Evolução do '}<span className="text-mx-green-700">{isOwner ? 'Rede' : 'Vendedor'}</span></Typography>
-                    </div>
-                    <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black text-text-label">
-                        {isOwner ? 'ACOMPANHAMENTO EXECUTIVO DOS PLANOS DE DESENVOLVIMENTO' : 'PERSONAL DEVELOPMENT PLAN (PDI) • ACADEMY MX'}
-                    </Typography>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0">
-                    <div className="relative group w-full sm:w-mx-sidebar-expanded">
-                        <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
-                        <label htmlFor="pdi-search" className="sr-only">Buscar plano de PDI</label>
-                        <Input
-                            id="pdi-search"
-                            name="pdi-search"
-                            placeholder="BUSCAR PLANO..." value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="!pl-11 !h-12 uppercase tracking-widest text-mx-tiny font-black"
-                        />
-                    </div>
-                    <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar lista de PDIs" className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white">
-                        <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
-                    </Button>
-                    {canManagePDI && (
-                        <Button onClick={() => setShowForm(true)} className="h-mx-xl px-8 shadow-mx-lg bg-brand-secondary uppercase font-black tracking-widest text-xs">
-                            <Plus size={18} className="mr-2" /> NOVO PDI
+            <PageHeading
+                title={<>{isOwner ? 'PDI da ' : 'Evolução do '}<span className="text-brand-primary">{isOwner ? 'Rede' : 'Vendedor'}</span></>}
+                subtitle={isOwner ? 'ACOMPANHAMENTO EXECUTIVO DOS PLANOS DE DESENVOLVIMENTO' : 'PERSONAL DEVELOPMENT PLAN (PDI) • ACADEMY MX'}
+                actions={(
+                    <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full sm:w-auto">
+                        <div className="relative group w-full sm:w-mx-sidebar-expanded">
+                            <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
+                            <label htmlFor="pdi-search" className="sr-only">Buscar plano de PDI</label>
+                            <Input
+                                id="pdi-search"
+                                name="pdi-search"
+                                placeholder="BUSCAR PLANO..." value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="!pl-11 !h-12 uppercase tracking-widest text-mx-tiny font-black"
+                            />
+                        </div>
+                        <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar lista de PDIs" className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white border-border-subtle hover:bg-surface-alt">
+                            <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                         </Button>
-                    )}
-                </div>
-            </header>
+                        {canManagePDI && (
+                            <Button onClick={() => setShowForm(true)} className="h-mx-xl px-8 shadow-mx-lg bg-brand-primary hover:bg-brand-primary-hover font-black uppercase text-xs tracking-widest rounded-mx-xl text-white">
+                                <Plus size={18} className="mr-2" /> NOVO PDI
+                            </Button>
+                        )}
+                    </div>
+                )}
+            />
 
             {isManager && (
-                <Card className="border border-status-info/20 bg-status-info-surface p-mx-lg shadow-mx-sm">
+                <Card className="rounded-mx-lg border border-status-info/20 bg-status-info-surface p-mx-md shadow-mx-sm">
                     <Typography variant="h3" className="uppercase tracking-tight text-status-info">Escopo do gerente</Typography>
                     <Typography variant="p" className="mt-mx-xs text-sm text-status-info">
                         Esta tela mostra os PDIs da sua unidade. Use o botão de novo PDI para conduzir desenvolvimento da equipe; Admin MX e Dono usam a mesma rota em escopos diferentes.
@@ -142,7 +137,7 @@ export default function GerentePDI() {
             )}
 
             {isOwner && (
-                <Card className="border border-status-info/20 bg-status-info-surface p-mx-lg shadow-mx-sm">
+                <Card className="rounded-mx-lg border border-status-info/20 bg-status-info-surface p-mx-md shadow-mx-sm">
                     <Typography variant="h3" className="uppercase tracking-tight text-status-info">PDI como acompanhamento do Dono</Typography>
                     <Typography variant="p" className="mt-mx-xs text-sm text-status-info">
                         Esta visão mostra evolução, prazos e consistência dos planos. Criação e condução de PDI ficam com gerente/Admin MX; aqui o foco é decidir onde cobrar cadência.
@@ -172,7 +167,7 @@ export default function GerentePDI() {
                                 const status = statusCfg[p.status as keyof typeof statusCfg] || statusCfg.aberto
                                 return (
                                     <motion.article key={p.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }}>
-                                        <Card className="p-mx-lg h-full flex flex-col justify-between group hover:shadow-mx-xl transition-all border-none shadow-mx-lg bg-white relative overflow-hidden">
+                                        <Card className="rounded-mx-lg border border-border-subtle p-mx-md h-full flex flex-col justify-between group hover:shadow-mx-xl transition-all shadow-mx-sm bg-white relative overflow-hidden">
                                             <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/5 rounded-mx-full blur-mx-lg -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
                                             
                                             <div>
@@ -183,7 +178,7 @@ export default function GerentePDI() {
                                                             alt={`Avatar de ${p.seller_name || 'vendedor'}`}
                                                             fallback={p.seller_name || 'U'}
                                                             size="lg"
-                                                            className="w-mx-14 h-mx-14 rounded-mx-xl shadow-mx-inner group-hover:border-brand-secondary transition-all transform group-hover:rotate-3"
+                                                            className="w-mx-14 h-mx-14 rounded-mx-lg shadow-mx-inner group-hover:border-brand-primary transition-all transform group-hover:rotate-3"
                                                         />
                                                         <div className="min-w-0">
                                                             <Typography variant="h3" className="text-base uppercase tracking-tight truncate group-hover:text-brand-primary transition-colors font-black">{p.seller_name}</Typography>
@@ -209,11 +204,11 @@ export default function GerentePDI() {
                                                             {formatSafeDate(p.due_date)}
                                                         </Typography>
                                                     </div>
-                                                    <Button type="button" variant="ghost" size="icon" onClick={() => navigate(`/pdi/${p.id}/print`)} className="w-mx-10 h-mx-10 rounded-mx-xl text-text-tertiary hover:text-brand-primary hover:bg-mx-indigo-50 bg-white shadow-sm border border-border-default" aria-label={`Imprimir PDI de ${p.seller_name || 'vendedor'}`}>
+                                                    <Button type="button" variant="ghost" size="icon" onClick={() => navigate(`/pdi/${p.id}/print`)} className="w-mx-10 h-mx-10 rounded-mx-lg text-text-tertiary hover:text-brand-primary hover:bg-mx-indigo-50 bg-white shadow-sm border border-border-subtle" aria-label={`Imprimir PDI de ${p.seller_name || 'vendedor'}`}>
                                                         <Printer size={18} />
                                                     </Button>
                                                 </div>
-                                                <Button type="button" variant="secondary" size="icon" onClick={() => navigate(`/pdi/${p.id}/print`)} className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-md hover:scale-110 active:scale-95 transition-all" aria-label={`Abrir PDI de ${p.seller_name || 'vendedor'}`}>
+                                                <Button type="button" variant="secondary" size="icon" onClick={() => navigate(`/pdi/${p.id}/print`)} className="w-mx-xl h-mx-xl rounded-mx-lg shadow-mx-md hover:scale-110 active:scale-95 transition-all" aria-label={`Abrir PDI de ${p.seller_name || 'vendedor'}`}>
                                                     <ChevronRight size={24} strokeWidth={2} />
                                                 </Button>
                                             </footer>
@@ -224,14 +219,14 @@ export default function GerentePDI() {
                         </AnimatePresence>
                     </div>
                 ) : (
-                    <div className="col-span-full py-40 rounded-mx-4xl text-center border-dashed border-2 border-border-default bg-white/50 flex flex-col items-center justify-center relative overflow-hidden group">
-                        <div className="w-mx-3xl h-mx-3xl rounded-mx-3xl bg-surface-alt shadow-mx-xl flex items-center justify-center mb-8 border border-border-default group-hover:rotate-12 transition-transform duration-500">
+                    <div className="col-span-full py-40 rounded-mx-lg text-center border border-dashed border-border-subtle bg-white shadow-mx-sm flex flex-col items-center justify-center relative overflow-hidden group">
+                        <div className="w-mx-3xl h-mx-3xl rounded-mx-lg bg-surface-alt shadow-mx-sm flex items-center justify-center mb-8 border border-border-subtle group-hover:rotate-12 transition-transform duration-500">
                             <TrendingUp size={48} className="text-text-tertiary opacity-20" />
                         </div>
                         <Typography variant="h2" className="mb-4 uppercase tracking-tighter">Matriz de Evolução Limpa</Typography>
                         <Typography variant="caption" tone="muted" className="max-w-sm mx-auto uppercase tracking-widest mb-10 font-black">Não localizamos planos de desenvolvimento para os filtros atuais.</Typography>
                         {canManagePDI && (
-                            <Button onClick={() => setShowForm(true)} className="h-mx-2xl px-12 rounded-mx-full shadow-mx-elite font-black uppercase tracking-widest text-xs">
+                            <Button onClick={() => setShowForm(true)} className="h-mx-2xl px-12 rounded-mx-xl shadow-mx-elite font-black uppercase tracking-widest text-xs">
                                 <Plus size={20} className="mr-3" /> INICIAR PRIMEIRO PDI
                             </Button>
                         )}

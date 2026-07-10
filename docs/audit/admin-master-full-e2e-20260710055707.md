@@ -129,3 +129,17 @@
 
 - Todos os registros E2E conhecidos foram removidos ou verificados no bloco de limpeza.
 - A conta real validada foi preservada: papel, usuario e senha nao foram alterados pelo runner.
+
+## Resolução (P0-05b — Auditoria Integral 2026-07-10)
+
+**Status:** `FAIL` reclassificado como **tooling drift, não defeito de produto**. Corrigido em `scripts/validate_admin_master_full_e2e.mjs`.
+
+**Causa raiz:** a migration `20260516121500_devolutivas_store_manager_week_key.sql` (2026-05-16) trocou a unique key de upsert da tabela `devolutivas` de `(seller_id, week_reference)` para `(store_id, manager_id, seller_id, week_reference)`. O script de validação E2E continuou usando a chave antiga (`onConflict: 'seller_id,week_reference'`) desde então — toda execução a partir de 2026-05-16 falhava neste passo com `there is no unique or exclusion constraint matching the ON CONFLICT specification`.
+
+**Por que não é bug de produto:** o código de aplicação real (`src/hooks/useFeedbacks.ts:95`) já usava a chave correta (`onConflict: 'store_id,manager_id,seller_id,week_reference'`) desde a mesma migration — o fluxo de feedback semanal em produção nunca foi afetado. Só o script de validação ficou desatualizado.
+
+**Correção aplicada:** `scripts/validate_admin_master_full_e2e.mjs` atualizado para usar a chave correta.
+
+**3 WARN de e-mail (relatorio-matinal, feedback-semanal, relatorio-mensal — `email: "not_sent"`):** não investigados nesta rodada; ficam registrados como pendência aberta de configuração de envio de e-mail (Resend/SMTP) em ambiente de validação — não bloqueiam este fechamento porque `send-visit-report` (mesmo mecanismo de envio) passou (`PASS`, `email: "sent"`), indicando que o problema é específico dessas 3 integrações, não da infraestrutura de e-mail em geral.
+
+**Conclusão:** nenhum bloqueador de produto confirmado neste artefato. Reexecução completa do E2E (que exige ambiente Vercel + Supabase ao vivo) não foi feita nesta sessão — recomenda-se reexecutar após o deploy da correção para obter um artefato 100% `PASS`/`WARN` sem `FAIL`.

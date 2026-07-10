@@ -33,7 +33,7 @@ export function RotinaSnapshotAside({
 }: Props) {
   return (
     <aside className="lg:col-span-5 flex flex-col gap-mx-lg">
-      <Card className="p-mx-10 bg-brand-secondary text-white border-none shadow-mx-xl relative overflow-hidden group">
+      <Card className="rounded-mx-lg bg-brand-primary text-white border-none p-mx-md shadow-mx-sm relative overflow-hidden group">
         <div
           className="absolute inset-0 bg-gradient-to-br from-brand-primary/20 to-transparent opacity-50"
           aria-hidden="true"
@@ -41,7 +41,7 @@ export function RotinaSnapshotAside({
         <div className="relative z-10 space-y-mx-lg">
           <header className="flex items-center justify-between mb-10 border-b border-white/10 pb-6">
             <div className="flex items-center gap-mx-sm">
-              <div className="w-mx-xl h-mx-xl rounded-mx-2xl bg-white/10 flex items-center justify-center border border-white/10 shadow-mx-inner">
+              <div className="w-mx-xl h-mx-xl rounded-mx-lg bg-white/10 flex items-center justify-center border border-white/10 shadow-mx-inner">
                 <History size={24} />
               </div>
               <Typography
@@ -90,16 +90,16 @@ export function RotinaSnapshotAside({
             variant="secondary"
             onClick={onSendDailyReminders}
             disabled={pendingSellersCount === 0 || !activeRoutineStoreId}
-            className="w-full h-mx-12 rounded-mx-xl font-black uppercase tracking-widest text-mx-tiny"
+            className="w-full h-mx-12 rounded-mx-lg font-black uppercase tracking-widest text-mx-tiny"
           >
             <Send size={16} className="mr-2" /> Lembrar Pendentes
           </Button>
         </div>
       </Card>
 
-      <Card className="p-mx-10 md:p-12 space-y-mx-lg border-none shadow-mx-lg bg-white">
+      <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md space-y-mx-md shadow-mx-sm">
         <header className="flex items-center gap-mx-sm mb-4">
-          <div className="w-mx-xl h-mx-xl rounded-mx-xl bg-status-success-surface text-status-success flex items-center justify-center border border-status-success/20 shadow-mx-inner">
+          <div className="w-mx-xl h-mx-xl rounded-mx-lg bg-status-success-surface text-status-success flex items-center justify-center border border-status-success/20 shadow-mx-inner">
             <ShieldCheck size={24} />
           </div>
           <div>
@@ -124,7 +124,7 @@ export function RotinaSnapshotAside({
         <Button
           onClick={onRegisterRoutine}
           disabled={savingRoutine || !!routineLog}
-          className="w-full h-mx-2xl rounded-mx-full shadow-mx-xl font-black uppercase tracking-widest text-tiny"
+          className="w-full h-mx-2xl rounded-mx-lg shadow-mx-xl font-black uppercase tracking-widest text-tiny bg-brand-primary hover:bg-brand-primary-hover text-white"
         >
           {savingRoutine ? (
             <RefreshCw className="animate-spin mr-2" />

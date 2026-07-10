@@ -20,7 +20,7 @@ interface CorporateMetricsSectionProps {
 export function CorporateMetricsSection({ isOwner, metrics }: CorporateMetricsSectionProps) {
   return (
     <section className="mb-mx-md">
-      <Card className="bg-white shadow-mx-md border border-border-default overflow-hidden rounded-mx-2xl">
+      <Card className="rounded-mx-lg border border-border-subtle bg-white shadow-mx-sm">
         <CardContent className="p-mx-md sm:p-mx-lg flex flex-wrap gap-mx-md items-center justify-between sm:justify-start">
           <div className="flex flex-col min-w-mx-20">
             <Typography
@@ -36,7 +36,7 @@ export function CorporateMetricsSection({ isOwner, metrics }: CorporateMetricsSe
               Unidades ativas
             </Typography>
           </div>
-          <div className="w-px h-mx-12 bg-border-default hidden sm:block" />
+          <div className="w-px h-mx-12 bg-border-subtle hidden sm:block" />
           <div className="flex flex-col min-w-mx-20">
             <Typography
               variant="tiny"
@@ -51,7 +51,7 @@ export function CorporateMetricsSection({ isOwner, metrics }: CorporateMetricsSe
               Especialistas Ativos
             </Typography>
           </div>
-          <div className="w-px h-mx-12 bg-border-default hidden sm:block" />
+          <div className="w-px h-mx-12 bg-border-subtle hidden sm:block" />
           <div className="flex flex-col min-w-mx-20">
             <Typography
               variant="tiny"

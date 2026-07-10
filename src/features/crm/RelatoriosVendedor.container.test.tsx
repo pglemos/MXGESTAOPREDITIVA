@@ -1,6 +1,13 @@
 import React from 'react'
 import { afterEach, describe, expect, it, mock } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
+// P0-05b (auditoria 2026-07-10): capturado ANTES do mock.module abaixo para
+// reusar a implementação real de buildOportunidadePayload em vez de manter
+// uma cópia duplicada — uma cópia hand-rolled desatualizada aqui já fez o
+// teste unitário de useOportunidades.test.ts rodar contra uma versão obsoleta
+// (sem placa_veiculo/data_entrega_prevista) quando executado junto com este
+// arquivo, mascarando o bug real de P1-05/P0-05a.
+import { buildOportunidadePayload } from '@/features/crm/hooks/useOportunidades'
 
 mock.module('@/features/crm/hooks/useClientes', () => ({
   buildClientePayload: (
@@ -44,40 +51,7 @@ mock.module('@/features/crm/hooks/useClientes', () => ({
 }))
 
 mock.module('@/features/crm/hooks/useOportunidades', () => ({
-  buildOportunidadePayload: (
-    input: {
-      cliente_id: string
-      veiculo_interesse?: string | null
-      tipo_veiculo?: string | null
-      valor_negociado?: number
-      etapa?: string
-      canal?: string | null
-      sinal?: number
-      financiamento?: string
-      carro_avaliado?: boolean
-      motivo_perda?: string | null
-      closed_at?: string | null
-    },
-    context: { loja_id: string; seller_user_id: string },
-    nowIso = () => new Date().toISOString(),
-  ) => {
-    const isTerminal = input.etapa === 'ganho' || input.etapa === 'perdido'
-    return {
-      cliente_id: input.cliente_id,
-      loja_id: context.loja_id,
-      seller_user_id: context.seller_user_id,
-      veiculo_interesse: input.veiculo_interesse?.trim() || null,
-      tipo_veiculo: input.tipo_veiculo || null,
-      valor_negociado: input.valor_negociado ?? 0,
-      etapa: input.etapa || 'prospeccao',
-      canal: input.canal || null,
-      sinal: input.sinal ?? 0,
-      financiamento: input.financiamento || 'nao_aplica',
-      carro_avaliado: input.carro_avaliado ?? false,
-      motivo_perda: input.etapa === 'perdido' ? (input.motivo_perda?.trim() || null) : null,
-      closed_at: isTerminal ? (input.closed_at || nowIso()) : null,
-    }
-  },
+  buildOportunidadePayload,
   useOportunidades: () => ({
     oportunidades: [],
     funil: {

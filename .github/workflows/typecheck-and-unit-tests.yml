@@ -1,0 +1,50 @@
+name: Typecheck and unit tests
+
+# P0-05c (Auditoria Integral 2026-07-10): antes deste workflow, NENHUM check
+# de CI rodava `tsc --noEmit` (typecheck) ou `bun test` (726 testes
+# unitarios/contrato) — os workflows existentes (atomic-lint,
+# eslint-a11y, bundle-budget, db-types-diff, migration-reversibility,
+# rls-matrix, smoke-403, gitleaks, coderabbit-review, storybook-build)
+# cobrem lint de tokens, a11y, bundle size, contratos SQL/RLS e secrets, mas
+# nenhum deles valida que o codigo compila (tipos) ou que os testes passam.
+# Um PR com erro de tipo ou teste quebrado podia ser mergeado sem nenhum
+# check vermelho. Nao depende de secrets — roda 100% local ao runner.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+      - name: Typecheck (tsc --noEmit)
+        run: npm run typecheck
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+      - name: Unit tests (bun test)
+        run: npm test

@@ -3,6 +3,7 @@ import { Bell, CalendarDays, CircleHelp, Filter, Search } from 'lucide-react'
 import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
+import { PageHeading } from '@/components/molecules/PageHeading'
 import { chartTokens } from '@/lib/charts/tokens'
 import { cn } from '@/lib/utils'
 import { toneClasses, toneHex, vividIconClasses, type KpiTone } from './types'
@@ -20,50 +21,42 @@ export function OwnerCockpitHeader({
   storeName: string
 }) {
   return (
-    <div className="flex flex-col gap-mx-md lg:flex-row lg:items-start lg:justify-between">
-      <div className="min-w-0">
-        <Typography variant="h1" className="text-3xl md:text-4xl font-black text-text-primary">
-          {greeting()}, {name.split(' ')[0]}!
-        </Typography>
-        <Typography variant="p" tone="muted" className="mt-1 text-base font-bold">
-          Aqui está o panorama da sua loja hoje.
-        </Typography>
-        <Typography variant="tiny" tone="muted" className="mt-mx-xs block font-black uppercase">
-          {storeName}
-        </Typography>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-mx-sm">
-        <Button type="button" variant="outline" className="h-mx-11 rounded-mx-xl bg-white">
-          <Filter size={16} />
-          Filtros
-        </Button>
-        <div className="h-mx-11 rounded-mx-xl border border-border-default bg-white px-mx-md shadow-mx-sm flex items-center gap-mx-sm">
-          <Typography variant="tiny" tone="muted" className="font-black uppercase">Período:</Typography>
-          <Typography variant="tiny" className="font-black">{periodLabel}</Typography>
-          <CalendarDays size={16} className="text-text-tertiary" />
+    <PageHeading
+      title={<>{greeting()}, <span className="text-brand-primary">{name.split(' ')[0]}</span>!</>}
+      subtitle={`PANORAMA HOJE DA LOJA ${storeName.toUpperCase()}`}
+      actions={(
+        <div className="flex flex-wrap items-center gap-mx-sm">
+          <Button type="button" variant="outline" className="h-mx-11 rounded-mx-xl bg-white border-border-subtle hover:bg-surface-alt">
+            <Filter size={16} />
+            Filtros
+          </Button>
+          <div className="h-mx-11 rounded-mx-xl border border-border-subtle bg-white px-mx-md shadow-mx-sm flex items-center gap-mx-sm">
+            <Typography variant="tiny" tone="muted" className="font-black uppercase">Período:</Typography>
+            <Typography variant="tiny" className="font-black">{periodLabel}</Typography>
+            <CalendarDays size={16} className="text-text-tertiary" />
+          </div>
+          <button
+            type="button"
+            className="relative h-mx-11 w-mx-11 rounded-mx-xl border border-border-subtle bg-white text-text-primary shadow-mx-sm flex items-center justify-center hover:bg-surface-alt"
+            aria-label={`${alertCount} alertas importantes`}
+          >
+            <Bell size={20} />
+            {alertCount > 0 && (
+              <span className="absolute -right-1 -top-1 min-w-mx-6 h-mx-6 rounded-mx-full bg-status-error px-1 text-white text-mx-micro font-black flex items-center justify-center">
+                {alertCount}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            className="h-mx-11 w-mx-11 rounded-mx-xl border border-border-subtle bg-white text-text-primary shadow-mx-sm flex items-center justify-center hover:bg-surface-alt"
+            aria-label="Ajuda da visão do dono"
+          >
+            <CircleHelp size={20} />
+          </button>
         </div>
-        <button
-          type="button"
-          className="relative h-mx-11 w-mx-11 rounded-mx-xl border border-border-default bg-white text-text-primary shadow-mx-sm flex items-center justify-center"
-          aria-label={`${alertCount} alertas importantes`}
-        >
-          <Bell size={20} />
-          {alertCount > 0 && (
-            <span className="absolute -right-1 -top-1 min-w-mx-6 h-mx-6 rounded-mx-full bg-status-error px-1 text-white text-mx-micro font-black flex items-center justify-center">
-              {alertCount}
-            </span>
-          )}
-        </button>
-        <button
-          type="button"
-          className="h-mx-11 w-mx-11 rounded-mx-xl border border-border-default bg-white text-text-primary shadow-mx-sm flex items-center justify-center"
-          aria-label="Ajuda da visão do dono"
-        >
-          <CircleHelp size={20} />
-        </button>
-      </div>
-    </div>
+      )}
+    />
   )
 }
 
@@ -89,7 +82,7 @@ export function OwnerKpiCard({
   const classes = toneClasses[tone]
   const vivid = vividIconClasses[tone]
   return (
-    <Card className="min-h-[140px] rounded-mx-2xl bg-white p-mx-md shadow-mx-sm border-none">
+    <Card className="min-h-[140px] rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
       <div className="flex items-start justify-between gap-mx-sm">
         <div className="min-w-0 flex-1">
           <Typography variant="p" className={cn('block text-sm font-black', classes.text)}>
@@ -102,7 +95,7 @@ export function OwnerKpiCard({
             {detail}
           </Typography>
         </div>
-        <div className={cn('h-mx-10 w-mx-10 rounded-mx-full flex shrink-0 items-center justify-center shadow-mx-sm', vivid)}>
+        <div className={cn('h-mx-10 w-mx-10 rounded-mx-lg flex shrink-0 items-center justify-center shadow-mx-sm', vivid)}>
           {icon}
         </div>
       </div>
@@ -166,7 +159,7 @@ export function MXScoreCompact({ score }: { score: number | null }) {
   const pointerX = cx + (radius - strokeWidth / 2) * Math.cos(pointerRad)
   const pointerY = cy - (radius - strokeWidth / 2) * Math.sin(pointerRad)
   return (
-    <Card className="min-h-[140px] rounded-mx-2xl p-mx-md text-white" style={{ background: 'linear-gradient(160deg, var(--color-sidebar-bg) 0%, var(--color-sidebar-bg-strong) 100%)', border: 'none' }}>
+    <Card className="min-h-[140px] rounded-mx-lg p-mx-md text-white border border-white/10" style={{ background: 'linear-gradient(160deg, var(--color-sidebar-bg) 0%, var(--color-sidebar-bg-strong) 100%)' }}>
       <div className="flex items-center justify-between">
         <Typography variant="tiny" tone="white" className="font-black uppercase tracking-widest opacity-90">
           MX Score da Loja
@@ -207,7 +200,7 @@ export function MXScoreCompact({ score }: { score: number | null }) {
 export function MetricPill({ label, value, tone }: { label: string; value: string; tone: KpiTone }) {
   const classes = toneClasses[tone]
   return (
-    <div className={cn('rounded-mx-xl border p-mx-sm text-center', classes.soft)}>
+    <div className={cn('rounded-mx-lg border border-border-subtle p-mx-sm text-center', classes.soft)}>
       <Typography variant="tiny" className="block font-black">{label}</Typography>
       <div className="mt-mx-xs text-2xl font-black tabular-nums">{value}</div>
     </div>
@@ -257,12 +250,12 @@ export function SectionTitle({ title, subtitle }: { title: string; subtitle: str
 
 export function SideList({ title, items, className }: { title: string; items: string[]; className?: string }) {
   return (
-    <Card className={cn('rounded-mx-2xl p-mx-lg', className)}>
+    <Card className={cn('rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm', className)}>
       <Typography variant="h3" className="text-lg font-black">{title}</Typography>
       <div className="mt-mx-md space-y-mx-sm">
         {items.map((item, index) => (
           <div key={`${item}-${index}`} className="flex items-center gap-mx-sm">
-            <span className="flex h-mx-7 w-mx-7 shrink-0 items-center justify-center rounded-mx-full bg-mx-indigo-50 text-xs font-black text-brand-primary">{index + 1}</span>
+            <span className="flex h-mx-7 w-mx-7 shrink-0 items-center justify-center rounded-mx-lg bg-mx-indigo-50 text-xs font-black text-brand-primary">{index + 1}</span>
             <Typography variant="p" className="text-sm font-bold">{item}</Typography>
           </div>
         ))}
@@ -276,7 +269,7 @@ export function ToolbarPlaceholder({ searchPlaceholder }: { searchPlaceholder: s
     <div className="flex flex-col gap-mx-sm lg:flex-row lg:items-center lg:justify-between">
       <div className="grid grid-cols-1 gap-mx-sm sm:grid-cols-4">
         {['Todos os departamentos', 'Todas as origens', 'Todos os status', 'Todas as prioridades'].map(label => (
-          <button key={label} type="button" className="h-mx-10 rounded-mx-lg border border-border-default bg-white px-mx-sm text-left text-xs font-black text-text-secondary">
+          <button key={label} type="button" className="h-mx-10 rounded-mx-lg border border-border-subtle bg-white px-mx-sm text-left text-xs font-black text-text-secondary">
             {label}
           </button>
         ))}
@@ -284,7 +277,7 @@ export function ToolbarPlaceholder({ searchPlaceholder }: { searchPlaceholder: s
       <label className="relative min-w-0 lg:w-[320px]">
         <span className="sr-only">{searchPlaceholder}</span>
         <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
-        <input className="h-mx-10 w-full rounded-mx-lg border border-border-default bg-white pl-mx-xl pr-mx-sm text-sm font-bold outline-none focus:border-brand-primary" placeholder={searchPlaceholder} />
+        <input className="h-mx-10 w-full rounded-mx-lg border border-border-subtle bg-white pl-mx-xl pr-mx-sm text-sm font-bold outline-none focus:border-brand-primary" placeholder={searchPlaceholder} />
       </label>
     </div>
   )
@@ -305,9 +298,9 @@ export function SummaryCard({
 }) {
   const classes = toneClasses[tone]
   return (
-    <Card className="rounded-mx-2xl p-mx-lg">
+    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
       <div className="flex items-start gap-mx-sm">
-        <span className={cn('h-mx-12 w-mx-12 rounded-mx-xl flex shrink-0 items-center justify-center', classes.bg)}>{icon}</span>
+        <span className={cn('h-mx-12 w-mx-12 rounded-mx-lg flex shrink-0 items-center justify-center', classes.bg)}>{icon}</span>
         <div>
           <Typography variant="p" className="font-black">{title}</Typography>
           <div className={cn('mt-mx-xs text-3xl font-black tabular-nums', classes.text)}>{value}</div>
