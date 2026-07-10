@@ -50,25 +50,6 @@ export function StoreRankingView() {
                     </button>
                   ))}
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <label htmlFor="ranking-unidade" className="text-[11px] font-semibold text-slate-500">
-                    Unidade
-                  </label>
-                  <select
-                    id="ranking-unidade"
-                    value={data.unidade}
-                    onChange={e => data.setUnidade(e.target.value)}
-                    className="text-[12px] border border-slate-200 rounded-lg px-3 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-green-300"
-                  >
-                    <option value="todas">Todas as unidades</option>
-                    {data.unidades.map(u => (
-                      <option key={u} value={u}>
-                        {u}
-                      </option>
-                    ))}
-                  </select>
-                </div>
               </div>
             )}
           />

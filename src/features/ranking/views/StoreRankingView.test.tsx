@@ -66,27 +66,11 @@ describe('StoreRankingView', () => {
     expect(screen.queryByText('Acompanhe sua posição, a corrida do período e as bonificações da loja.')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Mensal' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Trimestral' })).toBeInTheDocument()
-    expect(screen.getByLabelText('Unidade')).toBeInTheDocument()
     expect(screen.getByText(/Critério configurado pela loja:/i)).toBeInTheDocument()
     expect(screen.getByText(/Volume de vendas/i)).toBeInTheDocument()
     expect(screen.getByText('Pódio do Período')).toBeInTheDocument()
     expect(screen.getByText('Sua posição')).toBeInTheDocument()
     expect(screen.getByText('Corrida do Período')).toBeInTheDocument()
     expect(screen.getByText('Bonificação do Período')).toBeInTheDocument()
-  })
-
-  it('filters the ranking table by unit', () => {
-    const { rerender } = render(<StoreRankingView />)
-
-    const table = screen.getByRole('table')
-    expect(within(table).getByText('Ana Loja Norte')).toBeInTheDocument()
-
-    fireEvent.change(screen.getByLabelText('Unidade'), { target: { value: 'Centro' } })
-    rerender(<StoreRankingView />)
-
-    expect(setUnidade).toHaveBeenCalledWith('Centro')
-    expect(within(screen.getByRole('table')).getByText('Lucas Vendedor')).toBeInTheDocument()
-    expect(within(screen.getByRole('table')).getByText('Bruno Centro')).toBeInTheDocument()
-    expect(within(screen.getByRole('table')).queryByText('Ana Loja Norte')).toBeNull()
   })
 })
