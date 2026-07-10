@@ -29,6 +29,8 @@ const MinhaRemuneracao = lazy(() => import('@/pages/MinhaRemuneracao'))
 const CarteiraClientes = lazy(() => import('@/pages/CarteiraClientes'))
 const FunilVendedor = lazy(() => import('@/pages/FunilVendedor'))
 const CentralExecucao = lazy(() => import('@/pages/CentralExecucao'))
+// P0-04 (auditoria 2026-07-10): ainda reexporta src/base44-reference — não é
+// implementação real. Migração pendente (fora do escopo desta rodada).
 const MeuPerfilVendedor = lazy(() => import('@/pages/MeuPerfilVendedor'))
 const RelatoriosVendedor = lazy(() => import('@/pages/RelatoriosVendedor'))
 const FunilVendasGerente = lazy(() => import('@/features/gerente/FunilVendasGerente'))
@@ -338,7 +340,7 @@ export default function App() {
             <Route path="ranking" element={<Suspense fallback={<Spinner />}><Ranking /></Suspense>} />
             <Route path="classificacao" element={<Suspense fallback={<Spinner />}><Ranking /></Suspense>} />
             <Route path="treinamentos" element={<Suspense fallback={<Spinner />}>
-              <RoleSwitch vendedor={withLegacyShell(<VendedorTreinamentos />)} gerente={<GerenteTreinamentos />} dono={<GerenteTreinamentos />} admin={<ConsultorTreinamentos />} />
+              <RoleSwitch vendedor={<VendedorTreinamentos />} gerente={<GerenteTreinamentos />} dono={<GerenteTreinamentos />} admin={<ConsultorTreinamentos />} />
             </Suspense>} />
 <Route path="desenvolvimento" element={<Suspense fallback={<Spinner />}>
 <RoleSwitch vendedor={<VendedorDesenvolvimento />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />

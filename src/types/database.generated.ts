@@ -9022,6 +9022,89 @@ export type Database = {
           },
         ]
       }
+      treinamento_tarefa_respostas: {
+        Row: {
+          concluida: boolean
+          concluida_em: string | null
+          created_at: string
+          id: string
+          seller_user_id: string
+          tarefa_id: string
+          updated_at: string
+        }
+        Insert: {
+          concluida?: boolean
+          concluida_em?: string | null
+          created_at?: string
+          id?: string
+          seller_user_id: string
+          tarefa_id: string
+          updated_at?: string
+        }
+        Update: {
+          concluida?: boolean
+          concluida_em?: string | null
+          created_at?: string
+          id?: string
+          seller_user_id?: string
+          tarefa_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "treinamento_tarefa_respostas_seller_user_id_fkey"
+            columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "treinamento_tarefa_respostas_tarefa_id_fkey"
+            columns: ["tarefa_id"]
+            isOneToOne: false
+            referencedRelation: "treinamento_tarefas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      treinamento_tarefas: {
+        Row: {
+          active: boolean
+          created_at: string
+          descricao: string
+          id: string
+          ordem: number
+          training_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          descricao: string
+          id?: string
+          ordem?: number
+          training_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          descricao?: string
+          id?: string
+          ordem?: number
+          training_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "treinamento_tarefas_training_id_fkey"
+            columns: ["training_id"]
+            isOneToOne: false
+            referencedRelation: "treinamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       treinamentos: {
         Row: {
           active: boolean | null

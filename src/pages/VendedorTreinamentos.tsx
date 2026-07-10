@@ -1,4 +1,4 @@
-// @ts-nocheck
-// Paridade 1:1 com Base44: renderiza o componente de Treinamentos do protótipo
-// (header + stats + Biblioteca/Trilha/Aulas ao Vivo) usando o shim base44Client.
-export { default } from '@/base44-reference/pages/Treinamentos.jsx'
+// Universidade MX — implementação real (P0-03/P0-04/UNIV-7, auditoria 2026-07-10).
+// Antes reexportava src/base44-reference/pages/Treinamentos.jsx (protótipo
+// Base44, @ts-nocheck, tarefas em localStorage, stats fabricadas no shim).
+export { default } from '@/features/vendedor-treinamentos/VendedorTreinamentos.container'
