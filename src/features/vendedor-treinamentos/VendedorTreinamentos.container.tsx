@@ -76,7 +76,7 @@ function TrainingCard({ training, completed, onOpen }: { training: Treinamento; 
 export default function VendedorTreinamentosContainer() {
     const {
         trainings, loading, completedIds, completedCount, tarefas,
-        nivelMaturidade, nivelMaturidadeLabel, toggleTarefa, markCompleted,
+        nivelMaturidade, nivelMaturidadeLabel, recomendacoes, toggleTarefa, markCompleted,
     } = useVendedorTreinamentos()
 
     const [tab, setTab] = useState<TabKey>('biblioteca')
@@ -174,6 +174,27 @@ export default function VendedorTreinamentosContainer() {
 
             {tab === 'biblioteca' && (
                 <div className="space-y-6">
+                    {recomendacoes.length > 0 && (
+                        <section aria-label="Recomendado para você">
+                            <div className="mb-3 flex items-center gap-2">
+                                <Star className="h-4 w-4 text-brand-primary" aria-hidden="true" />
+                                <Typography variant="h3">Recomendado para Você</Typography>
+                            </div>
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                {recomendacoes.map(rec => (
+                                    <div key={rec.id} className="flex flex-col gap-2">
+                                        <TrainingCard training={rec.training} completed={false} onOpen={() => void openTraining(rec.training)} />
+                                        <div className="flex flex-wrap gap-1 px-1">
+                                            {rec.motivos.map(motivo => (
+                                                <Badge key={motivo} variant="outline" className="text-[10px] font-medium normal-case">{motivo}</Badge>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
                     <div className="flex flex-wrap gap-3">
                         <div className="relative min-w-[200px] flex-1">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />

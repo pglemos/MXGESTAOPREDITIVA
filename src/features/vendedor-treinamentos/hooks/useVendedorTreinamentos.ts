@@ -8,6 +8,7 @@ import {
     type VendedorExperienciaDeclarada,
 } from '@/features/crm/lib/maturidade'
 import { atualizarTarefaTreinamento, categoriaDoTreinamento, concluirTreinamento, listarTarefasTreinamento, listarTreinamentosVendedor, type TarefaTreinamento as TarefaServico } from '@/features/universidade/services/universidade-service'
+import { recomendarTreinamentos, type CompetenciaPdi, type EtapaFunilAberta, type SinaisRecomendacao } from '@/features/universidade/services/recomendacao'
 
 /**
  * Dados reais da Universidade MX (aulas do vendedor). Substitui:
@@ -59,18 +60,37 @@ export function useVendedorTreinamentos() {
     const [progress, setProgress] = useState<ProgressoTreinamento[]>([])
     const [tarefas, setTarefas] = useState<TarefaTreinamento[]>([])
     const [nivelMaturidade, setNivelMaturidade] = useState<NivelMaturidadeVendedor>('N1')
+    const [sinais, setSinais] = useState<Omit<SinaisRecomendacao, 'nivelMaturidade'>>({ etapasAbertas: {}, devolutivaAcoesPendentes: 0, competenciasPdi: null })
     const [loading, setLoading] = useState(true)
 
     const fetchAll = useCallback(async () => {
         if (!supabaseUser?.id) { setLoading(false); return }
         setLoading(true)
 
-        const [trainingsResult, perfilRes] = await Promise.all([
+        const [trainingsResult, perfilRes, oportunidadesRes, devolutivasRes, pdiRes] = await Promise.all([
             listarTreinamentosVendedor(supabase, supabaseUser.id),
             supabase
                 .from('vendedor_perfil')
                 .select('tempo_mercado_anos, experiencia_declarada, cargo_atual')
                 .eq('seller_user_id', supabaseUser.id)
+                .maybeSingle(),
+            supabase
+                .from('clientes_oportunidades')
+                .select('etapa')
+                .eq('seller_user_id', supabaseUser.id)
+                .is('closed_at', null)
+                .not('etapa', 'in', '("ganho","perdido")'),
+            supabase
+                .from('devolutiva_acoes')
+                .select('id', { count: 'exact', head: true })
+                .eq('seller_id', supabaseUser.id)
+                .eq('status', 'pendente'),
+            supabase
+                .from('pdis')
+                .select('comp_prospeccao,comp_abordagem,comp_demonstracao,comp_negociacao,comp_fechamento,comp_crm,comp_digital,comp_produto,comp_organizacao,comp_disciplina')
+                .eq('seller_id', supabaseUser.id)
+                .order('created_at', { ascending: false })
+                .limit(1)
                 .maybeSingle(),
         ])
 
@@ -88,6 +108,18 @@ export function useVendedorTreinamentos() {
             experiencia_declarada: perfil?.experiencia_declarada ?? null,
             cargo_atual: perfil?.cargo_atual ?? null,
         }))
+
+        const etapasAbertas: Partial<Record<EtapaFunilAberta, number>> = {}
+        for (const row of oportunidadesRes.data ?? []) {
+            const etapa = row.etapa as EtapaFunilAberta | null
+            if (!etapa) continue
+            etapasAbertas[etapa] = (etapasAbertas[etapa] ?? 0) + 1
+        }
+        setSinais({
+            etapasAbertas,
+            devolutivaAcoesPendentes: devolutivasRes.count ?? 0,
+            competenciasPdi: (pdiRes.data as Partial<Record<CompetenciaPdi, number>> | null) ?? null,
+        })
 
         if (mappedTrainings.length > 0) {
             setTarefas(await listarTarefasTreinamento(supabase, supabaseUser.id, mappedTrainings.map(t => t.id)) as TarefaServico[])
@@ -122,6 +154,16 @@ export function useVendedorTreinamentos() {
     const completedIds = useMemo(() => new Set(progress.filter(p => p.completed).map(p => p.training_id)), [progress])
     const completedCount = completedIds.size
 
+    // UNIV-4: recomendações explicáveis (lacuna PDI + gargalo do funil + devolutiva
+    // pendente + maturidade). Sem sinal real, lista vazia — nada de "primeiros 4".
+    const recomendacoes = useMemo(() => {
+        const porId = new Map(trainings.map(t => [t.id, t]))
+        return recomendarTreinamentos(
+            trainings.map(t => ({ id: t.id, title: t.title, category: t.category, level: t.level, completed: completedIds.has(t.id) })),
+            { ...sinais, nivelMaturidade },
+        ).map(rec => ({ ...rec, training: porId.get(rec.id)! }))
+    }, [trainings, completedIds, sinais, nivelMaturidade])
+
     return {
         trainings,
         progress,
@@ -131,6 +173,7 @@ export function useVendedorTreinamentos() {
         completedCount,
         nivelMaturidade,
         nivelMaturidadeLabel: MATURIDADE_VENDEDOR_LABEL[nivelMaturidade],
+        recomendacoes,
         toggleTarefa,
         markCompleted,
         refetch: fetchAll,
