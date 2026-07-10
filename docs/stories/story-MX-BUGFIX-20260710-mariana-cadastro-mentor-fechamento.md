@@ -2,7 +2,7 @@
 
 ## Status
 
-Ready for Review
+Done
 
 ## Source
 
@@ -53,9 +53,11 @@ Relatos de produção enviados pela usuária em 10/07/2026, referentes a Cadastr
 - Publicado em `main` no commit `69ff6fdc`; os checks Gitleaks, Atomic Design e ESLint a11y concluíram com sucesso e o deploy Vercel de produção ficou pronto.
 - Smoke autenticado concluído sem salvar alterações nos dados reais.
 - 2026-07-10 (revalidação): o fluxo foi conferido com dados preenchidos antes do envio; o botão ficou habilitado sem liberação prévia. A interface agora explicita a aprovação pelo gerente e remove a consulta residual que não interferia mais no fluxo canônico.
+- Produção após `87a746be`: em `/terminal-mx` com perfil da Mariana, lançamento, motivo e justificativa foram preenchidos antes da aprovação; `Solicitar aprovação do gerente` ficou habilitado. A tela foi fechada sem submissão e sem alterar dados reais.
 
 ### Change Log
 
 - 2026-07-10: Corrige cadastro, mentor comercial e fluxo de fechamento relatados por Mariana; adiciona cobertura de regressão.
 - 2026-07-10: Validação de produção concluída e story encerrada.
 - 2026-07-10: Clarifica e protege o fluxo de solicitação ao gerente com dados já preenchidos; aguarda publicação e novo smoke de produção.
+- 2026-07-10: Publicação e smoke de produção concluídos para a solicitação de aprovação com dados preenchidos.
