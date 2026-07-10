@@ -7,6 +7,15 @@ import {
     validateCheckinSubmissionDate,
 } from './types'
 
+function getSaoPauloDateOnly(baseDate = new Date()): string {
+return new Intl.DateTimeFormat('en-CA', {
+timeZone: 'America/Sao_Paulo',
+year: 'numeric',
+month: '2-digit',
+day: '2-digit',
+}).format(baseDate)
+}
+
 export interface UseCheckinsSubmitArgs {
     profile: { id: string } | null
     storeId: string | null
@@ -33,10 +42,10 @@ export function useCheckinsSubmit(args: UseCheckinsSubmitArgs) {
         }
 
         const finalDate = customDate || formData.reference_date || referenceDate
-        const dateError = validateCheckinSubmissionDate(finalDate, referenceDate, scope)
+const dateError = validateCheckinSubmissionDate(finalDate, referenceDate, scope, getSaoPauloDateOnly())
         if (dateError) return { error: dateError }
 
-        const isDaily = scope === 'daily' && finalDate === referenceDate
+ const isDaily = scope === 'daily' && finalDate <= getSaoPauloDateOnly()
 
         const normalizeText = (str?: string | null) => {
             const trimmed = str?.trim()

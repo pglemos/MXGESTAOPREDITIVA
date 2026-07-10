@@ -32,25 +32,43 @@ export function StoreRankingView() {
           title="Ranking"
           subtitle="Acompanhe sua posição, a corrida do período e as bonificações da loja."
           actions={(
-            <>
-            <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-1 flex-wrap">
-              {RANKING_PERIODOS.map(p => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => data.setPeriodo(p)}
-                  className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all ${
-                    data.periodo === p
-                      ? 'bg-white text-green-700 shadow-sm border border-green-200'
-                      : 'text-slate-500 hover:text-slate-700'
-                  }`}
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-1 flex-wrap">
+                {RANKING_PERIODOS.map(p => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => data.setPeriodo(p)}
+                    className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-all ${
+                      data.periodo === p
+                        ? 'bg-white text-green-700 shadow-sm border border-green-200'
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
 
-            </>
+              <div className="flex items-center gap-2">
+                <label htmlFor="ranking-unidade" className="text-[11px] font-semibold text-slate-500">
+                  Unidade
+                </label>
+                <select
+                  id="ranking-unidade"
+                  value={data.unidade}
+                  onChange={e => data.setUnidade(e.target.value)}
+                  className="text-[12px] border border-slate-200 rounded-lg px-3 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-green-300"
+                >
+                  <option value="todas">Todas as unidades</option>
+                  {data.unidades.map(u => (
+                    <option key={u} value={u}>
+                      {u}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           )}
         />
 

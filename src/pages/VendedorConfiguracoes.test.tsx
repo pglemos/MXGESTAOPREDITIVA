@@ -21,7 +21,7 @@ describe('VendedorConfiguracoes', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByRole('heading', { name: 'Configurações do Vendedor' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Configurações' })).toBeInTheDocument()
     expect(screen.getByText('Ana Vendedora')).toBeInTheDocument()
     expect(screen.getByText('MX Teste')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Abrir Meu Perfil' })).toHaveAttribute('href', '/perfil')

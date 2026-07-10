@@ -24,6 +24,7 @@ import { deriveClientesListFromCrm } from '../lib/clientes-list-from-crm'
 import { supabase } from '@/lib/supabase'
 import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
 import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
+import { resolveActiveClosingContext } from '../lib/active-closing-context'
 
 export interface CheckinForm {
     leads: number
@@ -43,6 +44,25 @@ export interface CheckinForm {
     note: string
     zero_reason: string
 }
+
+const createEmptyCheckinForm = (): CheckinForm => ({
+    leads: 0,
+    leads_cart: 0,
+    leads_net: 0,
+    agd_cart_prev: 0,
+    agd_net_prev: 0,
+    agd_cart: 0,
+    agd_net: 0,
+    vnd_porta: 0,
+    vnd_cart: 0,
+    vnd_net: 0,
+    visitas: 0,
+    visitas_porta: 0,
+    visitas_cart: 0,
+    visitas_net: 0,
+    note: '',
+    zero_reason: '',
+})
 
 export interface ClienteRow {
     id: string
@@ -160,13 +180,7 @@ export function useCheckinPage() {
     const [numberDrafts, setNumberDrafts] = useState<Partial<Record<keyof CheckinForm, string>>>({})
     const [saveNotice, setSaveNotice] = useState<{ title: string; detail: string } | null>(null)
 
-    const [form, setForm] = useState<CheckinForm>({
-        leads: 0, leads_cart: 0, leads_net: 0,
-        agd_cart_prev: 0, agd_net_prev: 0, agd_cart: 0, agd_net: 0,
-        vnd_porta: 0, vnd_cart: 0, vnd_net: 0,
-        visitas: 0, visitas_porta: 0, visitas_cart: 0, visitas_net: 0,
-        note: '', zero_reason: '',
-    })
+    const [form, setForm] = useState<CheckinForm>(() => createEmptyCheckinForm())
 
     const { checkins, todayCheckin, saveCheckin, loading: hookLoading, referenceDate, fetchCheckinByDate, error: checkinLoadError } = useCheckins()
     const {
@@ -178,19 +192,67 @@ export function useCheckinPage() {
     const [loadingHistory, setLoadingHistory] = useState(false)
     
     const [customReferenceDate, setCustomReferenceDate] = useState('')
-    const crmDerived = useCrmDerivedTotals(customReferenceDate)
+const todaySP = getSPDateOnly(currentTime)
+const yesterdaySP = addDaysDateOnly(todaySP, -1)
+const [previousCheckin, setPreviousCheckin] = useState<DailyCheckin | null>(null)
+
+useEffect(() => {
+if (!yesterdaySP) return
+let cancelled = false
+fetchCheckinByDate(yesterdaySP, 'daily')
+.then(res => {
+if (!cancelled) setPreviousCheckin(res)
+})
+.catch(() => {
+if (!cancelled) setPreviousCheckin(null)
+})
+return () => { cancelled = true }
+}, [yesterdaySP, fetchCheckinByDate])
+
+const todayClosingFromList = useMemo(
+() => checkins.find(checkin =>
+checkin.reference_date === todaySP
+&& checkin.metric_scope === 'daily'
+&& (!supabaseUser?.id || checkin.seller_user_id === supabaseUser.id)
+) ?? null,
+[checkins, supabaseUser?.id, todaySP],
+)
+
+const yesterdayClosing = previousCheckin
+?? (referenceDate === yesterdaySP ? todayCheckin : null)
+?? checkins.find(checkin =>
+checkin.reference_date === yesterdaySP
+&& checkin.metric_scope === 'daily'
+&& (!supabaseUser?.id || checkin.seller_user_id === supabaseUser.id)
+) ?? null
+
+const todayClosing = (referenceDate === todaySP ? todayCheckin : null) ?? todayClosingFromList
+
+const activeClosingContext = useMemo(
+() => resolveActiveClosingContext({
+today: todaySP,
+yesterday: yesterdaySP,
+now: currentTime,
+yesterdayClosing,
+todayClosing,
+}),
+[currentTime, todaySP, todayClosing, yesterdaySP, yesterdayClosing],
+)
 
     useEffect(() => {
         // Regra MX: a produção declarada se refere sempre ao dia anterior,
         // independente do horário em que o vendedor abre a tela à tarde.
-        if (referenceDate) {
-            setCustomReferenceDate(referenceDate)
+ if (activeClosingContext.mainDate) {
+ setCustomReferenceDate(current => current === activeClosingContext.mainDate ? current : activeClosingContext.mainDate)
+ setMetricScope('daily')
+ setChangedFields(new Set())
         }
-    }, [referenceDate])
+ }, [activeClosingContext.mainDate])
 
     // Clients/Opportunities Reactive List — fonte única é o CRM real
     // (oportunidades + agendamentos), não mais localStorage (EV-1.7).
-    const selectedDate = customReferenceDate || referenceDate
+ const selectedDate = customReferenceDate || activeClosingContext.mainDate || referenceDate
+ const crmDerived = useCrmDerivedTotals(selectedDate)
 
     const { oportunidades, refetch: refetchOportunidades } = useOportunidades()
     const { agendamentos, refetch: refetchAgendamentos } = useAgendamentos()
@@ -240,28 +302,25 @@ export function useCheckinPage() {
                 zero_reason: historicalCheckin.zero_reason || '',
             })
         } else {
-            setForm({
-                leads: crmDerived.leads,
-                leads_cart: crmDerived.leads_cart,
-                leads_net: crmDerived.leads_net,
-                agd_cart_prev: 0,
-                agd_net_prev: 0,
-                agd_cart: crmDerived.agd_cart,
-                agd_net: crmDerived.agd_net,
-                vnd_porta: crmDerived.vnd_porta,
-                vnd_cart: crmDerived.vnd_cart,
-                vnd_net: crmDerived.vnd_net,
-                visitas: crmDerived.visitas,
-                visitas_porta: crmDerived.visitas_porta,
-                visitas_cart: crmDerived.visitas_cart,
-                visitas_net: crmDerived.visitas_net,
-                note: '',
-                zero_reason: '',
-            })
+            setForm(createEmptyCheckinForm())
         }
-    }, [historicalCheckin, changedFields.size, crmDerived])
+    }, [historicalCheckin, changedFields.size, selectedDate])
 
-    const totals = useMemo(() => calcularTotais(form), [form])
+    const declaredForm = useMemo<CheckinForm>(() => ({
+        ...form,
+        leads: Number(form.leads_cart) + Number(form.leads_net),
+        visitas: Number(form.visitas_porta) + Number(form.visitas_cart) + Number(form.visitas_net),
+    }), [form])
+
+    const declaredProgressTotals = useMemo(() => ({
+        leads: Number(declaredForm.leads_cart) + Number(declaredForm.leads_net),
+        visitas: Number(declaredForm.visitas_porta) + Number(declaredForm.visitas_cart) + Number(declaredForm.visitas_net),
+        agd: Number(declaredForm.agd_cart) + Number(declaredForm.agd_net),
+        vendas: Number(declaredForm.vnd_porta) + Number(declaredForm.vnd_cart) + Number(declaredForm.vnd_net),
+    }), [declaredForm])
+
+    const declaredTotals = useMemo(() => calcularTotais(declaredForm), [declaredForm])
+    const totals = declaredTotals
 
     useEffect(() => {
         const clock = setInterval(() => setCurrentTime(new Date()), 30000)
@@ -276,11 +335,9 @@ export function useCheckinPage() {
         }
     }, [changedFields, saving])
 
-    const spTime = getSPHoursMinutes(currentTime)
-    const todaySP = getSPDateOnly(currentTime)
-    const yesterdaySP = addDaysDateOnly(todaySP, -1)
+const spTime = getSPHoursMinutes(currentTime)
 
-    // Deadline check (Brasília time) — dia operacional D fica aberto até
+// Deadline check (Brasília time) — dia operacional D fica aberto até
     // D+1 09h30 sem liberação; D+1 09h31-12h00 depende de liberação do
     // gerente (calcularLockStage); a partir de D+1 12h00 o dia operacional
     // já rolou (calculateReferenceDate), então "hoje" é outro dia.
@@ -428,7 +485,12 @@ ${linkSeguro}`
         vendas: Number(effectiveForm.vnd_porta) + Number(effectiveForm.vnd_cart) + Number(effectiveForm.vnd_net),
     }), [effectiveForm])
 
-    const totalAgendamentosD1 = Number(effectiveForm.agd_cart ?? 0) + Number(effectiveForm.agd_net ?? 0)
+    const totalAgendamentosD1 = Number(declaredForm.agd_cart ?? 0) + Number(declaredForm.agd_net ?? 0)
+    const hasDeclaredClosingInput = declaredProgressTotals.leads > 0
+        || declaredProgressTotals.visitas > 0
+        || declaredProgressTotals.agd > 0
+        || declaredProgressTotals.vendas > 0
+        || form.zero_reason !== ''
 
     const validosCarteira = useMemo(() => {
         return clientesList.filter(c =>
@@ -446,21 +508,21 @@ ${linkSeguro}`
         ).length
     }, [clientesList])
 
-    const creditosCarteira = Math.min(validosCarteira, Number(effectiveForm.agd_cart ?? 0))
-    const creditosInternet = Math.min(validosInternet, Number(effectiveForm.agd_net ?? 0))
+    const creditosCarteira = Math.min(validosCarteira, Number(declaredForm.agd_cart ?? 0))
+    const creditosInternet = Math.min(validosInternet, Number(declaredForm.agd_net ?? 0))
     const creditosValidos = creditosCarteira + creditosInternet
 
     const disciplina = useMemo(
         () => calcularDisciplina({ totalAgendamentosD1, creditosValidos, finalizadoAposPrazo }),
         [totalAgendamentosD1, creditosValidos, finalizadoAposPrazo],
     )
-    const pontosExtrasDisciplina = disciplina.pontosExtras
-    const rawDiscipline = disciplina.pontuacaoDisciplinaBase
-    const disciplinePercent = disciplina.pontuacaoDisciplinaFinal
+    const pontosExtrasDisciplina = hasDeclaredClosingInput ? disciplina.pontosExtras : 0
+    const rawDiscipline = hasDeclaredClosingInput ? disciplina.pontuacaoDisciplinaBase : 0
+    const disciplinePercent = hasDeclaredClosingInput ? disciplina.pontuacaoDisciplinaFinal : 0
 
     const completedItems = useMemo(() => {
         const items = []
-        const hasFormFill = effectiveTotals.leads > 0 || effectiveTotals.agd > 0 || effectiveTotals.visitas > 0 || effectiveTotals.vendas > 0 || form.zero_reason !== ''
+        const hasFormFill = declaredProgressTotals.leads > 0 || declaredProgressTotals.agd > 0 || declaredProgressTotals.visitas > 0 || declaredProgressTotals.vendas > 0 || form.zero_reason !== ''
         if (hasFormFill) {
             items.push('Preenchimento básico (70%)')
         }
@@ -470,7 +532,7 @@ ${linkSeguro}`
             items.push('Detalhamento p/ Amanhã (Sem agendamentos no dia)')
         }
         return items
-    }, [effectiveTotals, form.zero_reason, totalAgendamentosD1, creditosValidos, pontosExtrasDisciplina])
+    }, [declaredProgressTotals, form.zero_reason, totalAgendamentosD1, creditosValidos, pontosExtrasDisciplina])
 
     const pendingItems = useMemo(() => {
         const items = []
@@ -519,11 +581,13 @@ ${linkSeguro}`
             : `No prazo. Edição bloqueia em ${lockText}.`
     }, [isLate, minutesUntilEditLock])
 
-  const allZero = useMemo(
-    () => effectiveTotals.leads === 0 && effectiveTotals.agd === 0 && effectiveTotals.visitas === 0 && effectiveTotals.vendas === 0,
-    [effectiveTotals],
-  )
-  const fechamentoConcluido = Boolean(historicalCheckin && metricScope === 'daily')
+    const allZero = useMemo(
+        () => declaredProgressTotals.leads === 0 && declaredProgressTotals.agd === 0 && declaredProgressTotals.visitas === 0 && declaredProgressTotals.vendas === 0,
+        [declaredProgressTotals],
+    )
+const fechamentoConcluido = metricScope === 'daily'
+&& selectedDate === activeClosingContext.mainDate
+&& activeClosingContext.isMainDateSubmitted
     const funnelError = useMemo(() => {
         try { return validarFunil(form) } catch { return 'Erro de validação' }
     }, [form])
@@ -669,11 +733,11 @@ ${linkSeguro}`
         // Save the checkin to Supabase — disciplina base (antes da penalidade) e o
         // flag de liberação vão no payload; o servidor deriva a penalidade e o
         // valor final a partir do seu próprio relógio (não confia no client).
-        const checkinPayload = {
-            ...effectiveForm,
-            pontuacao_disciplina_base: rawDiscipline,
-            fechamento_liberado: fechamentoLiberado,
-        }
+            const checkinPayload = {
+                ...effectiveForm,
+                pontuacao_disciplina_base: rawDiscipline,
+                fechamento_liberado: fechamentoLiberado,
+            }
  const { error } = await saveCheckin(checkinPayload, metricScope, selectedDate)
  if (error) { toast.error(error); return }
 
@@ -693,12 +757,20 @@ ${linkSeguro}`
         setChangedFields(new Set())
         setFieldErrors({})
         
-        setSaveNotice({
-            title: realSalesCount > 0 ? `${realSalesCount} vendas consolidadas.` : 'Fechamento finalizado com sucesso.',
-            detail: 'Você pode revisar os números, abrir o histórico ou voltar para o início sem espera automática.',
+        const submittedAtLabel = new Date().toLocaleTimeString('pt-BR', {
+            timeZone: MX_TIMEZONE,
+            hour: '2-digit',
+            minute: '2-digit',
         })
-        if (realSalesCount > 0) setShowConfetti(true)
- toast.success(realSalesCount > 0 ? `${realSalesCount} vendas consolidadas.` : 'Fechamento finalizado com sucesso.')
+        const submittedDateLabel = selectedDate.split('-').reverse().join('/')
+        const d1EditLimitLabel = addDaysDateOnly(selectedDate, 1).split('-').reverse().join('/')
+
+        setSaveNotice({
+            title: `Fechamento de ${submittedDateLabel} finalizado às ${submittedAtLabel}.`,
+            detail: `Fechamento concluído. Os Agendamentos D+1 podem ser ajustados até 09h30 de ${d1EditLimitLabel}.`,
+        })
+        if (declaredProgressTotals.vendas > 0) setShowConfetti(true)
+        toast.success('Fechamento finalizado com sucesso.')
  timerRef.current = setTimeout(() => setShowConfetti(false), 1200)
  } catch {
  toast.error('Não foi possível finalizar o fechamento. Tente novamente.')
@@ -784,9 +856,12 @@ ${linkSeguro}`
         fieldErrors,
         numberDrafts,
  saveNotice,
- currentTime,
- effectiveForm,
- effectiveTotals,
+        currentTime,
+        declaredForm,
+        declaredProgressTotals,
+        declaredTotals,
+        effectiveForm,
+        effectiveTotals,
  crmDailyCounters,
  historicalCheckin,
         loadingHistory,
@@ -814,8 +889,9 @@ ${linkSeguro}`
         handleSaveDraft,
         saveTechnicalAdjustment,
         // Added properties
-        selectedDate,
-        clientesList,
+selectedDate,
+activeClosingContext,
+clientesList,
         refetchClientesList,
         fechamentoLiberado,
         finalizadoAposPrazo,

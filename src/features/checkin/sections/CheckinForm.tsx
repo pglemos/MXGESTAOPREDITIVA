@@ -36,29 +36,13 @@ import { CheckinCrmSection } from './CheckinCrmSection'
 import { FluxoFechamento } from './FluxoFechamento'
 import type { CheckinPageContext, NumericCheckinField } from '../hooks/useCheckinPage'
 import { shouldConfirmBeforeFinalizar } from '../lib/confirm-finalize'
+import { addDaysDateOnly } from '../lib/crm-derived-totals'
 
 interface CheckinFormProps {
   ctx: CheckinPageContext
   totalsAgd: number
   totalsVnd: number
   onOpenHistory?: () => void
-}
-
-const REFERENCE_VALUES: Record<NumericCheckinField, number> = {
-  leads: 30,
-  leads_cart: 12,
-  leads_net: 18,
-  agd_cart_prev: 0,
-  agd_net_prev: 0,
-  agd_cart: 7,
-  agd_net: 11,
-  vnd_porta: 2,
-  vnd_cart: 5,
-  vnd_net: 3,
-  visitas: 44,
-  visitas_porta: 9,
-  visitas_cart: 14,
-  visitas_net: 21,
 }
 
 const BRL = (value: number) =>
@@ -153,8 +137,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
     updateField,
     updateNumberField,
     commitNumberField,
-    handleSubmit,
-    submitCheckin,
+        submitCheckin,
     handleSaveDraft,
     crmDerived,
     historicalCheckin,
@@ -178,22 +161,25 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
     creditosValidos,
     creditosCarteira,
     creditosInternet,
-    customReferenceDate,
-    effectiveForm,
-    effectiveTotals,
-  } = ctx
+        customReferenceDate,
+        declaredForm,
+        declaredProgressTotals,
+        effectiveTotals,
+        activeClosingContext,
+    } = ctx
 
-const selectedDate = customReferenceDate || ctx.referenceDate
-const detalhesD1Concluidos = totalAgendamentosD1 <= 0 || creditosValidos >= totalAgendamentosD1
+    const selectedDate = ctx.selectedDate || customReferenceDate || ctx.referenceDate
+    const mainDateLabel = selectedDate.split('-').reverse().join('/')
+    const nextDateLabel = addDaysDateOnly(selectedDate, 1).split('-').reverse().join('/')
+    const resumoTitle = activeClosingContext.mainLabel === 'Hoje' ? 'RESUMO DE HOJE' : 'RESUMO DO FECHAMENTO ANTERIOR'
+    const detalhesD1Concluidos = totalAgendamentosD1 <= 0 || creditosValidos >= totalAgendamentosD1
+    const hasIncompleteD1 = shouldConfirmBeforeFinalizar({ totalAgendamentosD1, creditosValidos })
 
-const useReferenceValues = allZero && changedFields.size === 0 && !historicalCheckin
-const readActualValue = (field: NumericCheckinField) =>
-Number(effectiveForm[field] ?? form[field] ?? 0)
-const readValue = (field: NumericCheckinField) =>
-useReferenceValues ? REFERENCE_VALUES[field] : readActualValue(field)
+    const readValue = (field: NumericCheckinField) =>
+        Number(declaredForm[field] ?? form[field] ?? 0)
 
-  const display = effectiveTotals
-  const productionZeroActive = display.leads === 0 && display.visitas === 0 && display.agd === 0 && display.vendas === 0
+    const display = effectiveTotals
+    const productionZeroActive = display.leads === 0 && display.visitas === 0 && display.agd === 0 && display.vendas === 0
 
   const showCrmBadge = !historicalCheckin && crmDerived.hasCrmData
 
@@ -251,24 +237,13 @@ updateField(field, Math.max(0, Math.min(CHECKIN_MAX_INPUT_VALUE, next)))
     return ''
   }, [disciplinePercent, fechamentoConcluido, fechamentoLiberado, finalizadoAposPrazo, isPastDeadline, temAgendamentoDataDiferente])
 
-  // Spec §20: se o vendedor informou Agendamentos D+1 e não detalhou todos,
-  // abre modal de confirmação em vez de finalizar direto. D+1 zerado ou
-  // 100% detalhado segue o fluxo normal sem interrupção.
-  const onFormSubmit = (e: React.FormEvent) => {
-    if (shouldConfirmBeforeFinalizar({ totalAgendamentosD1, creditosValidos })) {
-      e.preventDefault()
-      setConfirmFinalizeModalOpen(true)
-      return
+    const onFormSubmit = (e: React.FormEvent) => {
+        e.preventDefault()
+        if (fechamentoConcluido || saving) return
+        setConfirmFinalizeModalOpen(true)
     }
-    handleSubmit(e)
-  }
 
-  const handleVoltarECadastrar = () => {
-    setConfirmFinalizeModalOpen(false)
-    document.getElementById('cadastrar-venda-agendamentos')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
-  const handleFinalizarMesmoAssim = () => {
+const handleFinalizarMesmoAssim = () => {
     setConfirmFinalizeModalOpen(false)
     void submitCheckin()
   }
@@ -282,9 +257,27 @@ updateField(field, Math.max(0, Math.min(CHECKIN_MAX_INPUT_VALUE, next)))
   const submitBlockedByDeadline = false
   const editLockedWithoutLiberacao = false
 
-  return (
+return (
 <form onSubmit={onFormSubmit} className="mt-mx-xs grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-mx-sm pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-16">
-      {/* Aviso discreto (após 12h01, sem liberação — Especificação Funcional §3.3) */}
+<section className="rounded-[18px] border border-[#dfe7f0] bg-white px-5 py-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+<div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+<div>
+<p className="text-[11px] font-extrabold uppercase tracking-widest text-[#00A89D]">
+{activeClosingContext.mainLabel === 'Hoje' ? 'FECHAMENTO DE HOJE' : 'FECHAMENTO ANTERIOR'}
+</p>
+<h1 className="mt-1 text-[20px] font-black tracking-tight text-[#071822] sm:text-[24px]">
+{activeClosingContext.mainLabel === 'Hoje' ? 'Fechamento de Hoje' : 'Fechamento de Ontem'}
+</h1>
+<p className="mt-1 text-sm font-semibold text-[#526B7A]">
+{activeClosingContext.mainLabel} · {mainDateLabel} · Preencha as informações do movimento comercial desta data.
+</p>
+</div>
+<span className="inline-flex h-9 w-fit items-center rounded-full bg-[#E8F3F2] px-3 text-xs font-black uppercase tracking-wide text-[#00A89D]">
+{fechamentoConcluido ? 'Data concluída' : 'Aberto para preenchimento'}
+</span>
+</div>
+</section>
+{/* Aviso discreto (após 12h01, sem liberação — Especificação Funcional §3.3) */}
       {showDiscreetPendingBanner && (
         <div className="hidden items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 sm:flex">
           <AlertTriangle size={16} className="shrink-0 text-[#F59E0B]" />
@@ -330,7 +323,7 @@ Info
 
 <div className="space-y-2.5 py-3">
 {mobileInternetRows.map(({ label, field }) => {
-const value = readActualValue(field)
+const value = readValue(field)
 const draftValue = numberDrafts[field] ?? String(value)
 const disabled = fechamentoConcluido
 return (
@@ -505,7 +498,7 @@ Confirmar Internet
 <section className="grid w-full max-w-full min-w-0 scroll-mt-6 gap-5 md:scroll-mt-48 xl:grid-cols-2">
         {/* ── RESUMO DO DIA ANTERIOR ── */}
         <div className="rounded-[18px] border border-[#dfe7f0] bg-white px-4 py-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] flex flex-col justify-between gap-4 sm:px-6">
-          <p className="text-[12px] font-extrabold uppercase tracking-widest text-[#334155]">RESUMO DO DIA ANTERIOR</p>
+<p className="text-[12px] font-extrabold uppercase tracking-widest text-[#334155]">{resumoTitle}</p>
 
           {/* 4 metrics: 2x2 grid on mobile, single row with dividers from sm+ */}
           <div className="grid grid-cols-2 gap-y-4 sm:flex sm:items-stretch sm:gap-y-0 sm:divide-x sm:divide-[#DFE0E1]">
@@ -810,17 +803,32 @@ Confirmar Internet
         </div>
       )}
 
-      {confirmFinalizeModalOpen && (
+{confirmFinalizeModalOpen && (
 <div className="fixed inset-0 z-[140] grid place-items-center bg-black/35 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] backdrop-blur-[3px]">
-<div className="flex max-h-[calc(100dvh-2rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] w-full max-w-[min(460px,calc(100vw-2rem))] flex-col overflow-hidden rounded-[18px] border border-[#DFE0E1] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] transition-all animate-in fade-in zoom-in-95 duration-200">
-            <header className="px-6 py-5 border-b border-[#DFE0E1] bg-[#F7F8F8]">
-              <h2 className="text-lg font-extrabold text-[#071822] uppercase tracking-tight">
-                Deseja finalizar mesmo assim?
-              </h2>
-            </header>
-            <div className="p-6 space-y-4 text-sm leading-relaxed text-[#526B7A]">
+<div role="dialog" aria-modal="true" aria-labelledby="checkin-finalize-title" aria-describedby="checkin-finalize-description" className="flex max-h-[calc(100dvh-2rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] w-full max-w-[min(460px,calc(100vw-2rem))] flex-col overflow-hidden rounded-[18px] border border-[#DFE0E1] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] transition-all animate-in fade-in zoom-in-95 duration-200">
+<header className="border-b border-[#DFE0E1] bg-white px-6 py-5">
+<h2 id="checkin-finalize-title" className="text-[17px] font-bold leading-snug tracking-tight text-[#0F172A]">
+Confirma que não haverá mais registros {activeClosingContext.mainLabel}?
+</h2>
+</header>
+<div id="checkin-finalize-description" className="space-y-3 px-6 py-5 text-[13px] leading-relaxed text-[#64748B]">
+<p>
+Ao concluir, leads, atendimentos, vendas e demais informações referentes ao dia{' '}
+<strong className="text-[#0F172A]">{mainDateLabel}</strong> serão encerrados e não poderão mais ser alterados.
+</p>
+<p>
+Até 09h30 de {nextDateLabel}, você poderá corrigir somente as informações de{' '}
+<strong className="text-[#0F172A]">Agendamentos D+1</strong>.
+</p>
+{hasIncompleteD1 && (
+<div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[12px] font-semibold text-amber-800">
+Você informou {totalAgendamentosD1} Agendamentos D+1 e detalhou {creditosValidos}. A pontuação será calculada apenas com os agendamentos detalhados.
+</div>
+)}
+</div>
+<div className="hidden">
               <p>
-                Você informou <strong className="text-[#071822]">{totalAgendamentosD1}</strong> Agendamentos D+1, mas detalhou{' '}
+ Ao concluir, leads, atendimentos, vendas e demais informações referentes ao dia{' '}
                 <strong className="text-[#071822]">{creditosValidos}</strong>. O fechamento poderá ser finalizado normalmente, porém sua pontuação de disciplina será calculada apenas com os agendamentos detalhados.
               </p>
               <ul className="space-y-1.5 font-semibold text-[#071822] bg-[#F7F8F8] rounded-xl border border-[#DFE0E1] p-4">
@@ -829,20 +837,21 @@ Confirmar Internet
                 <li>Pontuação estimada de disciplina: {disciplinePercent}%</li>
               </ul>
             </div>
- <footer className="flex flex-col-reverse gap-3 border-t border-[#DFE0E1] bg-[#F7F8F8] px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
+ <footer className="flex items-center justify-end gap-3 border-t border-slate-100 px-6 py-4">
               <button
                 type="button"
-                onClick={handleVoltarECadastrar}
- className="min-h-11 w-full rounded-xl px-5 py-2 text-sm font-bold leading-snug text-[#526B7A] transition-colors hover:bg-[#F7F8F8] sm:w-auto"
+ onClick={() => setConfirmFinalizeModalOpen(false)}
+ className="rounded-xl border border-[#E5E7EB] px-5 py-2.5 text-[13px] font-semibold text-[#64748B] transition-colors hover:bg-slate-50"
               >
-                Voltar e cadastrar
+ Não, voltar
               </button>
               <button
                 type="button"
-                onClick={handleFinalizarMesmoAssim}
-className="min-h-11 w-full rounded-xl bg-[#00A89D] px-5 py-2 text-sm font-bold leading-snug text-white shadow-sm transition-colors hover:bg-[#00A89D] sm:w-auto sm:min-w-[190px]"
+ onClick={handleFinalizarMesmoAssim}
+disabled={saving}
+className="rounded-xl bg-[#22C55E] px-6 py-2.5 text-[13px] font-bold text-white shadow-sm shadow-green-100 transition-colors hover:bg-green-600 disabled:opacity-50"
               >
-                Finalizar mesmo assim
+ Sim, concluir
               </button>
             </footer>
           </div>

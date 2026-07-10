@@ -75,17 +75,17 @@ export function Checkin() {
     const dateLabel = todayDisplay.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
     // Regra MX: a referência operacional é sempre o dia anterior. Quando o vendedor
     // está no lançamento do dia anterior (referência oficial), sinalizamos "Ontem".
-    const isYesterday = activeDate === referenceDate
-    const dateStr = isYesterday ? `Ontem · ${dateLabel}` : dateLabel
+const dateStr = `${ctx.activeClosingContext.mainLabel} · ${dateLabel}`
+const previousCard = ctx.activeClosingContext.previousCard
 
     // Progresso por pilar do lançamento diário — cada pilar acende quando recebe
     // ao menos um lançamento (preenchido vs vazio).
-    const f = ctx.effectiveForm
+    const f = ctx.declaredForm
     const pillars = [
         { key: 'leads', label: 'Leads', filled: (f.leads_cart || 0) + (f.leads_net || 0) > 0 },
         { key: 'atendimentos', label: 'Atendimentos', filled: (f.visitas_porta || 0) + (f.visitas_cart || 0) + (f.visitas_net || 0) > 0 },
         { key: 'agendamentos', label: 'Agend. Amanhã', filled: (f.agd_cart || 0) + (f.agd_net || 0) > 0 },
-        { key: 'vendas', label: 'Vendas', filled: (ctx.realSalesCount || 0) > 0 },
+        { key: 'vendas', label: 'Vendas', filled: (f.vnd_porta || 0) + (f.vnd_cart || 0) + (f.vnd_net || 0) > 0 },
     ]
 
   return (
@@ -117,6 +117,7 @@ export function Checkin() {
                     checkins={ctx.checkins}
                     userId={ctx.supabaseUser?.id}
                     saveCheckin={ctx.saveCheckin}
+                    previousCard={previousCard}
                 />
             </CheckinErrorBoundary>
 

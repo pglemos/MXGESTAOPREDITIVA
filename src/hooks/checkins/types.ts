@@ -82,18 +82,19 @@ export function getCheckinEditLockedAt(baseDate = new Date()): string {
 export function validateCheckinSubmissionDate(
     finalDate: string,
     officialReferenceDate: string,
-    scope: import('@/types/database').CheckinScope,
+scope: import('@/types/database').CheckinScope,
+maxDailyDate = officialReferenceDate,
 ): string | null {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(finalDate)) {
         return 'Data de referência inválida.'
     }
 
-    if (finalDate > officialReferenceDate) {
-        return 'Lançamentos não podem usar data futura ou o dia corrente.'
+if (finalDate > maxDailyDate) {
+return 'Lançamentos não podem usar data futura.'
     }
 
-    if (scope === 'daily' && finalDate !== officialReferenceDate) {
-        return 'Registro diário aceita somente a referência oficial. Use ajuste técnico para datas retroativas.'
+    if (scope === 'daily' && finalDate !== officialReferenceDate && finalDate !== maxDailyDate) {
+        return 'Registro diário aceita somente a data operacional ativa. Use o histórico para datas retroativas.'
     }
 
     return null

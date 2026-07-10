@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { CalendarDays, History, X, CalendarClock } from 'lucide-react'
+import { AlertTriangle, CalendarDays, CheckCircle2, History, X, CalendarClock } from 'lucide-react'
 import { Button } from '@/components/atoms/Button'
 import { supabase } from '@/lib/supabase'
 import { useCheckinAuditor } from '@/hooks/useCheckinAuditor'
@@ -9,6 +9,7 @@ import { addDaysDateOnly } from '../lib/crm-derived-totals'
 import { isRegularizacaoBloqueada } from '../lib/regularizacao-lock'
 import { RegularizarFechamentoDrawer } from './RegularizarFechamentoDrawer'
 import { NotificationBellButton } from '@/components/NotificationBellButton'
+import type { PreviousClosingCard } from '../lib/active-closing-context'
 
 interface PillarProgress {
   key: string
@@ -25,9 +26,10 @@ setCustomReferenceDate: (value: string) => void
 handleExit: () => void
 historyOpen: boolean
   setHistoryOpen: (open: boolean) => void
-  checkins?: DailyCheckin[]
-  userId?: string
-  saveCheckin: (
+ checkins?: DailyCheckin[]
+ userId?: string
+ previousCard?: PreviousClosingCard | null
+ saveCheckin: (
     formData: any,
     scope?: any,
     customDate?: string
@@ -42,9 +44,10 @@ creditosValidos = 0,
 setCustomReferenceDate,
 historyOpen,
 setHistoryOpen,
-  checkins = [],
-  userId = 'vendedor',
-  saveCheckin,
+ checkins = [],
+ userId = 'vendedor',
+ previousCard = null,
+ saveCheckin,
   ..._props
 }: CheckinHeaderProps) {
 const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
@@ -383,8 +386,45 @@ return (
    <NotificationBellButton variant="light" />
  </div>
         </div>
-      </div>
+</div>
 
+{previousCard && (
+<section className={`rounded-[14px] border bg-white px-3 py-2 shadow-[0_8px_22px_rgba(15,23,42,0.05)] ${
+previousCard.type === 'previous_done' ? 'border-emerald-200' : 'border-amber-200'
+}`}>
+<div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+<div className="flex min-w-0 items-center gap-2">
+<span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg ${
+previousCard.type === 'previous_done' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+}`}>
+{previousCard.type === 'previous_done' ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
+</span>
+<div className="min-w-0">
+<p className={`text-[11px] font-black uppercase tracking-[0.08em] ${
+previousCard.type === 'previous_done' ? 'text-emerald-700' : 'text-amber-800'
+}`}>
+{previousCard.type === 'previous_done' ? 'Anterior concluído' : 'Anterior pendente'}
+</p>
+<p className="truncate text-[12px] font-semibold text-[#526B7A]">
+{previousCard.type === 'previous_done'
+? `Fechamento de ${previousCard.date.split('-').reverse().join('/')} enviado. Ajustes ficam no histórico.`
+: `Fechamento de ${previousCard.date.split('-').reverse().join('/')} pendente. Regularize pelo histórico.`}
+</p>
+</div>
+</div>
+<div className="flex shrink-0 gap-2">
+<button type="button" onClick={() => { setActiveView('list'); setHistoryOpen(true) }} className="inline-flex h-8 items-center justify-center rounded-lg border border-[#DFE0E1] bg-white px-3 text-[11px] font-bold text-[#334155] shadow-sm transition-colors hover:border-[#005BFF] hover:text-[#005BFF]">
+Histórico
+</button>
+<button type="button" onClick={() => { setActiveView('list'); setHistoryOpen(true) }} className={`inline-flex h-8 items-center justify-center rounded-lg px-3 text-[11px] font-black text-white shadow-sm ${
+previousCard.type === 'previous_done' ? 'bg-[#00A89D]' : 'bg-amber-600'
+}`}>
+{previousCard.type === 'previous_done' ? 'Ajustar' : `Regularizar ${previousCard.date.slice(8, 10)}/${previousCard.date.slice(5, 7)}`}
+</button>
+</div>
+</div>
+</section>
+)}
 
 <div className="space-y-3 md:hidden">
 <div className="flex justify-center">
