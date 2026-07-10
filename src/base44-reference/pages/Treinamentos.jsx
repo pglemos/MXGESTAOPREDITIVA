@@ -192,6 +192,79 @@ const HTML5CompliancePlayer = ({ videoUrl, onProgressUpdate, onCompleted }) => {
   );
 };
 
+const CLASS_TASKS = {
+  "Aula 1 – Seja bem vindo": [
+    "Aprender sobre a história e cultura da loja",
+    "Perguntar ao gestor qual o padrão de atendimento inegociável",
+    "Observar a loja por 30 minutos e anotar 3 pontos de confiança"
+  ],
+  "Aula 3 – Diagnóstico": [
+    "Criar uma lista de perguntas para identificar a necessidade real do cliente",
+    "Treinar a escuta ativa no próximo atendimento",
+    "Descobrir o real motivo da troca do carro no próximo cliente"
+  ],
+  "Aula 4 – Planejamento Estratégico": [
+    "Escrever a meta de vendas desejada para o mês",
+    "Dividir a meta mensal em objetivos semanais e diários",
+    "Calcular quantos atendimentos diários são necessários para bater a meta"
+  ],
+  "Aula 5 – Vendas em Multicanais": [
+    "Identificar qual canal de vendas você depende mais hoje",
+    "Listar 10 ações possíveis para trabalhar fora do fluxo de porta",
+    "Dedicar 1 hora do dia exclusivamente para prospecção ativa"
+  ],
+  "Aula 6 – Processos de Vendas": [
+    "Mapear as etapas do funil de vendas dos seus clientes ativos",
+    "Identificar em qual etapa do processo a maioria das vendas está travando",
+    "Definir uma ação para destravar os clientes mornos no funil"
+  ],
+  "Aula 7 – Critérios de Contratação": [
+    "Entender o perfil ideal de vendedor para a equipe",
+    "Definir os critérios técnicos e comportamentais inegociáveis",
+    "Alinhar com o gerente o script de entrevista inicial"
+  ],
+  "Aula 8 – Captação de Vendedores": [
+    "Divulgar a vaga em pelo menos dois canais de captação ativos",
+    "Abordar 3 potenciais candidatos no LinkedIn ou indicação",
+    "Triar e selecionar os 5 melhores currículos recebidos"
+  ],
+  "Aula 9 – Curso de Contratação": [
+    "Estruturar o cronograma do primeiro dia (onboarding) do novo vendedor",
+    "Preparar o kit de boas-vindas com acessos e manuais da loja",
+    "Definir a meta de aprendizado para a primeira semana do novato"
+  ],
+  "Aula 10 – Check Lista de Contratação": [
+    "Aplicar o checklist de contratação no próximo processo seletivo",
+    "Validar referências profissionais de candidatos finalistas",
+    "Revisar a documentação padrão e termos de contratação"
+  ],
+  "Aula 11 – Introdução ao Nível de Maturidade": [
+    "Identificar em qual nível de maturidade (N1 a N4) você se encontra hoje",
+    "Listar duas competências técnicas que precisa desenvolver para subir de nível",
+    "Revisar com o gestor os indicadores de performance do seu nível"
+  ],
+  "Aula 12 – Reunião de Boas Vindas": [
+    "Realizar um rito de integração com o novo vendedor no pátio",
+    "Explicar a dinâmica de comissionamento e metas de forma transparente",
+    "Apresentar o novo integrante para toda a equipe comercial"
+  ],
+  "Aula 13 – Cronograma de Treinamento": [
+    "Montar a agenda de estudos do vendedor para os próximos 15 dias",
+    "Agendar os horários de validação prática (roleplay) na semana",
+    "Definir os indicadores de acompanhamento do cronograma"
+  ],
+  "Aula 14 – Plano de Treinamento Trimestral": [
+    "Estruturar as prioridades de treinamento para o próximo trimestre",
+    "Definir o cronograma de workshops e dinâmicas de grupo da loja",
+    "Estabelecer as metas de evolução de score da equipe"
+  ],
+  "Aula 15 – Check List de Treinamento": [
+    "Preencher a planilha de controle de presença das dinâmicas",
+    "Avaliar a evolução de conversão de cada vendedor após o treino",
+    "Aplicar avaliação de reação das aulas gravadas com a equipe"
+  ]
+};
+
 export default function Treinamentos() {
   const [trainings, setTrainings] = useState([]);
   const [progress, setProgress] = useState([]);
@@ -203,6 +276,24 @@ export default function Treinamentos() {
   const [comment, setComment] = useState("");
   const [savingInteraction, setSavingInteraction] = useState(false);
   const [watchedPercent, setWatchedPercent] = useState(0);
+  const [completedTasks, setCompletedTasks] = useState(() => {
+    try {
+      const stored = localStorage.getItem("mx-training-tasks");
+      return stored ? JSON.parse(stored) : {};
+    } catch (e) {
+      return {};
+    }
+  });
+
+  const handleToggleTask = (taskId, checked) => {
+    setCompletedTasks(prev => {
+      const updated = { ...prev, [taskId]: checked };
+      try {
+        localStorage.setItem("mx-training-tasks", JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+  };
 
   useEffect(() => {
     Promise.all([
@@ -505,6 +596,34 @@ export default function Treinamentos() {
                     : `Concluir Aula (${Math.round(watchedPercent)}%)`}
                 </button>
               </div>
+              {CLASS_TASKS[selectedTraining.title] && (
+                <section className="rounded-xl border border-slate-200 p-4 bg-slate-50">
+                  <h3 className="flex items-center gap-2 font-bold text-mx-navy text-sm uppercase tracking-wide">
+                    <CheckCircle2 size={16} className="text-mx-blue" />
+                    Plano de Ação - Tarefa Prática da Aula
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1 mb-3">Execute estas ações hoje para consolidar o aprendizado da aula:</p>
+                  <div className="space-y-2">
+                    {CLASS_TASKS[selectedTraining.title].map((task, idx) => {
+                      const taskId = `${selectedTraining.id}-task-${idx}`;
+                      const isChecked = completedTasks[taskId] || false;
+                      return (
+                        <label key={idx} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-white border border-slate-100 hover:border-slate-200 transition-colors cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => handleToggleTask(taskId, e.target.checked)}
+                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-mx-blue focus:ring-mx-blue"
+                          />
+                          <span className={`text-xs ${isChecked ? "line-through text-slate-400 font-medium" : "text-slate-700 font-semibold"}`}>
+                            {task}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
               <section className="rounded-xl border border-slate-200 p-4">
                 <h3 className="flex items-center gap-2 font-semibold text-mx-navy"><MessageSquare size={16} /> Comentário ou sugestão</h3>
                 <textarea value={comment} onChange={event => setComment(event.target.value)} maxLength={1000} rows={4} className="mt-3 w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:ring-2 focus:ring-mx-blue" placeholder="Compartilhe uma dúvida, comentário ou sugestão de conteúdo." />
