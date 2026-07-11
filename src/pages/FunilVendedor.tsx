@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { chartTokens } from '@/lib/charts/tokens'
 import { supabase } from '@/lib/supabase'
 import { useOfficialSellerPerformance } from '@/hooks/useOfficialSellerPerformance'
+import { resolveIndividualGoal } from '@/lib/storeSalesRules'
 import {
   buildCurrentMonthRange,
   buildFunnelDashboard,
@@ -108,25 +109,28 @@ function rowMatchesStore(row: FunnelRow, storeId: string | null) {
 }
 
 /**
- * Meta do vendedor = regras_metas_loja.monthly_goal da loja ativa. Modo
- * 'even' (rateio igualitario) divide pelo numero de vendedores ativos da
- * loja (via RPC contar_vendedores_ativos_loja, ja que RLS nao deixa o
- * vendedor contar os colegas direto). Modos 'custom' e 'proportional'
- * ainda nao tem configuracao por vendedor/peso historico no sistema —
- * caem no fallback da meta cheia da loja (mesma regra da RPC
- * upsert_funnel_metrics_snapshot, supabase/migrations/20260617009000)
- * ate essa configuracao existir.
+ * Meta do vendedor = regras_metas_loja.monthly_goal da loja ativa, rateada
+ * conforme regras_metas_loja.individual_goal_mode:
+ * - 'even': divide pelo numero de vendedores ativos da loja (via RPC
+ *   contar_vendedores_ativos_loja, ja que RLS nao deixa o vendedor contar
+ *   os colegas direto).
+ * - 'custom': usa o valor individual configurado na tabela `metas`
+ *   (store_id + user_id + month + year), quando existir.
+ * - 'proportional': o schema atual nao tem fonte de peso/proporcao por
+ *   vendedor (ver src/lib/storeSalesRules.ts) — cai no valor cheio da loja
+ *   ate essa configuracao existir no banco.
+ * A logica de rateio em si vive em resolveIndividualGoal (testada em
+ * src/lib/storeSalesRules.test.ts); esta funcao so adapta o formato de
+ * FunnelRow para o input dessa funcao pura.
  */
-function resolveStoreMonthlyGoal(storeConfig: FunnelRow | null, activeSellersCount: number | null): number | null {
+function resolveStoreMonthlyGoal(storeConfig: FunnelRow | null, activeSellersCount: number | null, customGoal: number | null): number | null {
   if (!storeConfig) return null
-  const raw = storeConfig.monthly_goal
-  const value = typeof raw === 'number' ? raw : Number(raw)
-  if (!Number.isFinite(value) || value <= 0) return null
-  const mode = String(storeConfig.individual_goal_mode || 'even')
-  if (mode === 'even' && activeSellersCount && activeSellersCount > 0) {
-    return Math.round(value / activeSellersCount)
-  }
-  return value
+  return resolveIndividualGoal({
+    mode: storeConfig.individual_goal_mode as string | null | undefined,
+    storeMonthlyGoal: storeConfig.monthly_goal as number | null | undefined,
+    activeSellersCount,
+    customGoal,
+  })
 }
 
 export default function FunilVendedor() {
@@ -138,6 +142,7 @@ export default function FunilVendedor() {
   const [loading, setLoading] = useState(true)
   const [errors, setErrors] = useState<string[]>([])
   const [activeSellersCount, setActiveSellersCount] = useState<number | null>(null)
+  const [customGoal, setCustomGoal] = useState<number | null>(null)
   const [chartAberto, setChartAberto] = useState(false)
 
   const loadData = useCallback(async () => {
@@ -168,22 +173,55 @@ export default function FunilVendedor() {
     return () => { cancelled = true }
   }, [effectiveStoreId])
 
+  // Meta individual custom (individual_goal_mode='custom'): valor configurado
+  // por vendedor/mes/ano na tabela `metas` (store_id + user_id + month + year).
+  // Sem linha configurada, customGoal fica null e o rateio cai no valor cheio
+  // da loja (ver resolveIndividualGoal em src/lib/storeSalesRules.ts).
+  useEffect(() => {
+    const sellerId = profile?.id
+    if (!effectiveStoreId || !sellerId) { setCustomGoal(null); return }
+    let cancelled = false
+    const now = new Date()
+    supabase
+      .from('metas')
+      .select('target')
+      .eq('store_id', effectiveStoreId)
+      .eq('user_id', sellerId)
+      .eq('month', now.getMonth() + 1)
+      .eq('year', now.getFullYear())
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled) return
+        const target = !error && data ? Number((data as { target?: number }).target) : null
+        setCustomGoal(Number.isFinite(target) && (target as number) > 0 ? (target as number) : null)
+      })
+    return () => { cancelled = true }
+  }, [effectiveStoreId, profile?.id])
+
   const period = useMemo(() => resolvePeriod(periodKey), [periodKey])
   const periodStart = period.start.toISOString().slice(0, 10)
   const periodEnd = period.end.toISOString().slice(0, 10)
   const { performance: officialPerformance } = useOfficialSellerPerformance(periodStart, periodEnd, profile?.id, effectiveStoreId)
   const dashboard = useMemo(
-    () => buildDashboard(rows, sellerIds, effectiveStoreId, period, activeSellersCount),
-    [effectiveStoreId, period, rows, sellerIds, activeSellersCount],
+    () => buildDashboard(rows, sellerIds, effectiveStoreId, period, activeSellersCount, customGoal),
+    [effectiveStoreId, period, rows, sellerIds, activeSellersCount, customGoal],
   )
   const rollingPeriod = useMemo(() => buildLastThreeMonthsRange(), [])
   const rollingDashboard = useMemo(
-    () => buildDashboard(rows, sellerIds, effectiveStoreId, rollingPeriod, activeSellersCount),
-    [effectiveStoreId, rollingPeriod, rows, sellerIds, activeSellersCount],
+    () => buildDashboard(rows, sellerIds, effectiveStoreId, rollingPeriod, activeSellersCount, customGoal),
+    [effectiveStoreId, rollingPeriod, rows, sellerIds, activeSellersCount, customGoal],
   )
   const officialKpis = useMemo<FunnelKpis>(() => {
     if (!officialPerformance) return dashboard.kpis
-    const meta = officialPerformance.meta
+    // A RPC vendedor_performance_oficial (server-side) sempre rateia a meta
+    // da loja igualmente entre vendedores ativos, sem consultar
+    // individual_goal_mode. dashboard.kpis.meta (client, via
+    // resolveIndividualGoal) honra 'custom'/'proportional' quando ha dado
+    // disponivel — por isso ele tem prioridade aqui. So volta para o valor
+    // da RPC se o client ainda nao tiver uma meta calculada (ex.: loading
+    // parcial de regras_metas_loja).
+    const clientMeta = dashboard.kpis.meta
+    const meta = clientMeta !== null && clientMeta > 0 ? clientMeta : officialPerformance.meta
     const realizado = officialPerformance.vendas_realizadas
     return {
       ...dashboard.kpis,
@@ -258,9 +296,9 @@ export default function FunilVendedor() {
   )
 }
 
-function buildDashboard(rows: SourceRows, sellerIds: string[], storeId: string | null, period: PeriodRange, activeSellersCount: number | null) {
+function buildDashboard(rows: SourceRows, sellerIds: string[], storeId: string | null, period: PeriodRange, activeSellersCount: number | null, customGoal: number | null) {
   const storeConfig = rows.storeConfigs.find(row => rowMatchesStore(row, storeId)) || null
-  const meta = resolveStoreMonthlyGoal(storeConfig, activeSellersCount)
+  const meta = resolveStoreMonthlyGoal(storeConfig, activeSellersCount, customGoal)
   return buildFunnelDashboard({
     events: rows.events,
     customers: rows.customers,
