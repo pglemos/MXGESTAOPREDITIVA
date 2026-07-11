@@ -67,12 +67,12 @@ Verificado ao vivo no ambiente real (login `jose.vendedor@...`): página carrega
 5. ✅ Garantir que a previsão de entrega aparece na Rotina como atividade `entrega`. Provado por teste: contrato SQL (RPC `registrar_venda_direta` cria agendamento tipo `entrega` na data prevista) + teste de UI (Central de Execução lista a atividade "Entrega" do dia mesmo com oportunidade já ganha).
 6. ✅ Testar idempotência da venda direta (`registrar_venda_direta`). Feito: chave extraída para função pura `chaveIdempotenciaVendaDireta` (determinística por vendedor+competência+telefone normalizado+placa) com testes de igualdade/divergência; contrato SQL travado por testes (retorno `duplicate:true` sem novo evento, revalidação pós advisory lock, índices únicos parciais em `oportunidades`/`eventos_comerciais`).
 
-### 2.3 Sprint de metas e performance — não iniciado
+### 2.3 Sprint de metas e performance — iniciado em 2026-07-11
 
-1. Implementar metas `custom` e `proportional` (hoje caem no valor cheio da meta da loja — vendedor pode receber meta individual errada).
+1. ◐ Metas `custom` e `proportional` — **`custom` implementado** (2026-07-11): `resolveIndividualGoal()` pura em `src/lib/storeSalesRules.ts` (11 testes), Minha Meta (`FunilVendedor.tsx`) lê a meta individual da tabela `metas` (já existia com RLS correta — sem migration) e o card "Status da Meta" passa a preferir a meta mode-aware em vez do rateio cru da RPC. **`proportional` bloqueado por schema** (Artigo IV): não existe coluna de peso/share em `regras_metas_loja`/`vendedores_loja`/`usuarios`; lógica pronta (`proportionalShare` como input), fallback ao valor cheio agora documentado em vez de silencioso. **Pendência de banco:** (a) fonte de peso por vendedor para `proportional`; (b) migration na RPC `vendedor_performance_oficial` para honrar `individual_goal_mode` server-side (hoje sempre divide `monthly_goal / seller_count`).
 2. Migrar diagnóstico detalhado de Minha Meta (hoje lê `eventos_comerciais`/`clientes_oportunidades`/`regras_metas_loja` direto) para RPC analítica escopada, mantendo a RPC oficial para os KPIs do topo.
 3. Testar paridade entre Home × Minha Meta × Ranking × Relatórios (mesma venda deve aparecer igual nas 4 superfícies).
-4. Criar `docs/domain/metricas-vendedor.md` — dicionário oficial de score/disciplina/ranking/performance (definição, fórmula, fonte, granularidade, competência, arredondamento, responsável, consumidores, testes).
+4. ✅ `docs/domain/metricas-vendedor.md` criado (2026-07-11) — score/disciplina/ranking/performance/meta com fórmula, fonte (arquivo:linha/RPC), granularidade, competência, arredondamento e consumidores, tudo verificado no código. **Dois comportamentos divergentes documentados como pendências conhecidas:** dim resultado do Score MX conta oportunidades all-time (sem janela, diferente das outras dimensões); penalidade de disciplina (−10pp) aplica em fechamento atrasado **com** liberação (`v_is_late_now AND v_liberado`).
 
 ### 2.4 Sprint de acabamento — não iniciado
 
