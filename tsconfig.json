@@ -33,6 +33,7 @@
   "exclude": [
     "node_modules",
     "dist",
+    "squads",
     "supabase/functions",
     "whatsapp-service",
     "**/*.test.tsx",
