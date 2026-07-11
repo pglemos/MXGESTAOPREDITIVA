@@ -8,6 +8,9 @@ import { cleanup, render, screen } from '@testing-library/react'
 // (sem placa_veiculo/data_entrega_prevista) quando executado junto com este
 // arquivo, mascarando o bug real de P1-05/P0-05a.
 import { buildOportunidadePayload } from '@/features/crm/hooks/useOportunidades'
+// Idem — useAgendamentos.test.ts resolve o mesmo path e quebraria se o mock
+// abaixo não expuser eventoDeCriacaoParaTipo (2.2.4, auditoria 2026-07-10).
+import { eventoDeCriacaoParaTipo } from '@/features/crm/hooks/useAgendamentos'
 
 mock.module('@/features/crm/hooks/useClientes', () => ({
   buildClientePayload: (
@@ -83,6 +86,7 @@ mock.module('@/features/crm/hooks/useAtendimentos', () => ({
 }))
 
 mock.module('@/features/crm/hooks/useAgendamentos', () => ({
+  eventoDeCriacaoParaTipo,
   useAgendamentos: () => ({
     metrics: {
       agendamentosHoje: 1,

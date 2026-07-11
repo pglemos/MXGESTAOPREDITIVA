@@ -6,6 +6,9 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 // reusa a implementação real em vez de manter uma cópia hand-rolled que fica
 // obsoleta e mascara bugs reais (ex.: P1-05/P0-05a).
 import { buildOportunidadePayload } from '@/features/crm/hooks/useOportunidades'
+// Idem — useAgendamentos.test.ts resolve o mesmo path e quebraria se o mock
+// abaixo não expuser eventoDeCriacaoParaTipo (2.2.4, auditoria 2026-07-10).
+import { eventoDeCriacaoParaTipo } from '@/features/crm/hooks/useAgendamentos'
 
 mock.module('@/hooks/useAuth', () => ({
   useAuth: () => ({
@@ -96,6 +99,7 @@ mock.module('@/features/crm/hooks/useMeuScore', () => ({
 }))
 
 mock.module('@/features/crm/hooks/useAgendamentos', () => ({
+  eventoDeCriacaoParaTipo,
   useAgendamentos: () => ({
     agendamentos: [],
     metrics: {

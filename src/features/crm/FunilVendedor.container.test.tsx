@@ -2,6 +2,9 @@ import React from 'react'
 import { afterEach, describe, expect, it, mock } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+// Idem — useAgendamentos.test.ts resolve o mesmo path e quebraria se o mock
+// abaixo não expuser eventoDeCriacaoParaTipo (2.2.4, auditoria 2026-07-10).
+import { eventoDeCriacaoParaTipo } from '@/features/crm/hooks/useAgendamentos'
 
 type OportunidadeMock = {
   cliente_id?: string | null
@@ -95,6 +98,7 @@ mock.module('@/features/crm/hooks/useClientes', () => ({
 }))
 
 mock.module('@/features/crm/hooks/useAgendamentos', () => ({
+  eventoDeCriacaoParaTipo,
   useAgendamentos: () => ({
     agendamentos: agendamentosMock,
   }),

@@ -5,6 +5,9 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 // reusa a implementação real em vez de manter uma cópia hand-rolled que fica
 // obsoleta e mascara bugs reais (ex.: P1-05/P0-05a).
 import { buildOportunidadePayload } from '@/features/crm/hooks/useOportunidades'
+// Idem — useAgendamentos.test.ts resolve o mesmo path e quebraria se o mock
+// abaixo não expuser eventoDeCriacaoParaTipo (2.2.4, auditoria 2026-07-10).
+import { eventoDeCriacaoParaTipo } from '@/features/crm/hooks/useAgendamentos'
 
 const createCliente = mock(async () => ({ error: null, id: 'cliente-1' }))
 const registrarStatusCadencia = mock(async () => ({ error: null }))
@@ -103,6 +106,7 @@ mock.module('@/features/crm/hooks/useOportunidades', () => ({
 }))
 
 mock.module('@/features/crm/hooks/useAgendamentos', () => ({
+  eventoDeCriacaoParaTipo,
   useAgendamentos: () => ({
     agendamentos: [],
   }),
