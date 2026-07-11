@@ -96,7 +96,13 @@
       "Edit(bin/aiox.js)",
       "Write(bin/aiox.js)",
       "Edit(bin/aiox-init.js)",
-      "Write(bin/aiox-init.js)"
+      "Write(bin/aiox-init.js)",
+      "Edit(.aiox-core/core/errors/**)",
+      "Write(.aiox-core/core/errors/**)",
+      "Edit(.aiox-core/core/external-executors/**)",
+      "Write(.aiox-core/core/external-executors/**)",
+      "Edit(.aiox-core/core/resilience/**)",
+      "Write(.aiox-core/core/resilience/**)"
     ]
   }
 }

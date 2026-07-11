@@ -113,7 +113,7 @@ function resolveInstalledPro(projectRoot) {
 }
 
 function readProjectPackageJson(projectRoot) {
-  const packageJsonPath = path.join(projectRoot, 'package.json');
+  const packageJsonPath = path.join(path.resolve(projectRoot), 'package.json');
   if (!fs.existsSync(packageJsonPath)) {
     return null;
   }
@@ -126,12 +126,14 @@ function readProjectPackageJson(projectRoot) {
 }
 
 function buildNodeModulesPackageJsonPath(projectRoot, packageName) {
+  const resolvedProjectRoot = path.resolve(projectRoot);
+
   if (packageName.startsWith('@')) {
     const [scope, name] = packageName.slice(1).split('/');
-    return path.join(projectRoot, 'node_modules', scope, name, 'package.json');
+    return path.join(resolvedProjectRoot, 'node_modules', scope, name, 'package.json');
   }
 
-  return path.join(projectRoot, 'node_modules', packageName, 'package.json');
+  return path.join(resolvedProjectRoot, 'node_modules', packageName, 'package.json');
 }
 
 function detectCorePackageName(projectRoot) {
@@ -168,13 +170,13 @@ function assertValidProjectRoot(projectRoot) {
     stats = fs.statSync(resolvedProjectRoot);
   } catch {
     throw new Error(
-      `updatePro(projectRoot): projectRoot does not exist or is not a directory: ${resolvedProjectRoot}`
+      `updatePro(projectRoot): projectRoot does not exist or is not a directory: ${resolvedProjectRoot}`,
     );
   }
 
   if (!stats.isDirectory()) {
     throw new Error(
-      `updatePro(projectRoot): projectRoot does not exist or is not a directory: ${resolvedProjectRoot}`
+      `updatePro(projectRoot): projectRoot does not exist or is not a directory: ${resolvedProjectRoot}`,
     );
   }
 
@@ -187,7 +189,8 @@ function assertValidProjectRoot(projectRoot) {
  * @returns {string|null}
  */
 function getCoreVersion(projectRoot) {
-  const versionJsonPath = path.join(projectRoot, '.aiox-core', 'version.json');
+  const resolvedProjectRoot = path.resolve(projectRoot);
+  const versionJsonPath = path.join(resolvedProjectRoot, '.aiox-core', 'version.json');
   if (fs.existsSync(versionJsonPath)) {
     try {
       const versionInfo = JSON.parse(fs.readFileSync(versionJsonPath, 'utf8'));
@@ -200,7 +203,7 @@ function getCoreVersion(projectRoot) {
   }
 
   for (const packageName of CORE_PACKAGES) {
-    const packageJsonPath = buildNodeModulesPackageJsonPath(projectRoot, packageName);
+    const packageJsonPath = buildNodeModulesPackageJsonPath(resolvedProjectRoot, packageName);
     if (fs.existsSync(packageJsonPath)) {
       try {
         const data = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
@@ -211,13 +214,13 @@ function getCoreVersion(projectRoot) {
     }
   }
 
-  const projectPackageJson = readProjectPackageJson(projectRoot);
+  const projectPackageJson = readProjectPackageJson(resolvedProjectRoot);
   if (projectPackageJson) {
     if (CORE_PACKAGES.includes(projectPackageJson.name)) {
       return projectPackageJson.version || null;
     }
 
-    const declaredCorePackage = detectCorePackageName(projectRoot);
+    const declaredCorePackage = detectCorePackageName(resolvedProjectRoot);
     if (declaredCorePackage) {
       for (const field of DEPENDENCY_FIELDS) {
         const declaredVersion = projectPackageJson[field]?.[declaredCorePackage];
@@ -400,7 +403,7 @@ async function updatePro(projectRoot, options = {}) {
         installed.packagePath,
         result,
         onProgress,
-        'AIOX Pro is up to date, but re-scaffolding failed.'
+        'AIOX Pro is up to date, but re-scaffolding failed.',
       );
       if (!scaffolded) {
         return result;
@@ -420,7 +423,7 @@ async function updatePro(projectRoot, options = {}) {
   // 5. Check compatibility with aiox-core
   const coreVersion = getCoreVersion(resolvedProjectRoot);
   const requiredCore = CORE_PACKAGES.map(
-    (packageName) => latest.peerDependencies?.[packageName]
+    (packageName) => latest.peerDependencies?.[packageName],
   ).find(Boolean);
 
   if (requiredCore && coreVersion && !satisfiesPeer(coreVersion, requiredCore)) {
@@ -509,7 +512,7 @@ async function updatePro(projectRoot, options = {}) {
       proPath,
       result,
       onProgress,
-      'AIOX Pro package updated, but re-scaffolding failed.'
+      'AIOX Pro package updated, but re-scaffolding failed.',
     );
     if (!scaffolded) {
       return result;

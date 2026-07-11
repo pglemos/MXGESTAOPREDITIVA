@@ -25,38 +25,16 @@ function parseArgs(argv = process.argv.slice(2)) {
   };
 }
 
-function countMarkdownFiles(dirPath, expectedFilenames = null) {
+function countMarkdownFiles(dirPath) {
   if (!fs.existsSync(dirPath)) return 0;
-  return fs
-    .readdirSync(dirPath)
-    .filter((f) => f.endsWith('.md'))
-    .filter((f) => !expectedFilenames || expectedFilenames.has(f))
-    .length;
+  return fs.readdirSync(dirPath).filter((f) => f.endsWith('.md')).length;
 }
 
-function getExpectedAgentFilenames(sourceAgentsDir) {
-  if (!fs.existsSync(sourceAgentsDir)) return new Set();
-  return new Set(fs.readdirSync(sourceAgentsDir).filter((f) => f.endsWith('.md')));
-}
-
-function getExpectedSkillIds(sourceAgentsDir) {
-  if (!fs.existsSync(sourceAgentsDir)) return new Set();
-  return new Set(
-    fs.readdirSync(sourceAgentsDir)
-      .filter((f) => f.endsWith('.md'))
-      .map((file) => {
-        const id = path.basename(file, '.md');
-        return id.startsWith('aiox-') ? id : `aiox-${id}`;
-      }),
-  );
-}
-
-function countSkillFiles(skillsDir, expectedSkillIds = null) {
+function countSkillFiles(skillsDir) {
   if (!fs.existsSync(skillsDir)) return 0;
   const entries = fs.readdirSync(skillsDir, { withFileTypes: true });
   return entries
     .filter((entry) => entry.isDirectory() && entry.name.startsWith('aiox-'))
-    .filter((entry) => !expectedSkillIds || expectedSkillIds.has(entry.name))
     .filter((entry) => fs.existsSync(path.join(skillsDir, entry.name, 'SKILL.md')))
     .length;
 }
@@ -89,11 +67,9 @@ function validateCodexIntegration(options = {}) {
     errors.push(`Missing Codex skills dir: ${path.relative(resolved.projectRoot, resolved.skillsDir)}`);
   }
 
-  const expectedAgentFilenames = getExpectedAgentFilenames(resolved.sourceAgentsDir);
   const sourceCount = countMarkdownFiles(resolved.sourceAgentsDir);
-  const codexAgentsCount = countMarkdownFiles(resolved.agentsDir, expectedAgentFilenames);
-  const expectedSkillIds = getExpectedSkillIds(resolved.sourceAgentsDir);
-  const codexSkillsCount = countSkillFiles(resolved.skillsDir, expectedSkillIds);
+  const codexAgentsCount = countMarkdownFiles(resolved.agentsDir);
+  const codexSkillsCount = countSkillFiles(resolved.skillsDir);
 
   if (sourceCount > 0 && codexAgentsCount !== sourceCount) {
     warnings.push(`Codex agent count differs from source (${codexAgentsCount}/${sourceCount})`);
@@ -161,7 +137,5 @@ module.exports = {
   parseArgs,
   getDefaultOptions,
   countMarkdownFiles,
-  getExpectedAgentFilenames,
   countSkillFiles,
-  getExpectedSkillIds,
 };
