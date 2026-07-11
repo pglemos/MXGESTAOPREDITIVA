@@ -12,7 +12,7 @@ import { eventoJaExiste, registrarEventoComercial } from '@/features/crm/lib/eve
 import type { CrmEventoTipo } from '@/lib/schemas/crm.schema'
 
 /** Garantia e pós-venda não são "compromisso futuro" no sentido do funil — já nascem como o fato realizado. */
-function eventoDeCriacaoParaTipo(tipo: CrmAgendamentoTipo): CrmEventoTipo {
+export function eventoDeCriacaoParaTipo(tipo: CrmAgendamentoTipo): CrmEventoTipo {
   if (tipo === 'garantia') return 'garantia_registrada'
   if (tipo === 'pos_venda') return 'pos_venda_realizado'
   return 'agendamento_criado'

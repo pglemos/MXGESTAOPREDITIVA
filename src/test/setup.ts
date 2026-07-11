@@ -27,6 +27,15 @@ globalAny.DocumentFragment = window.DocumentFragment;
 globalAny.Event = window.Event;
 globalAny.KeyboardEvent = window.KeyboardEvent;
 globalAny.MouseEvent = window.MouseEvent;
+// CustomEvent faltava aqui — Radix (react-focus-scope/react-dismissable-layer)
+// despacha CustomEvent nos nós do happy-dom; sem esse alias, `instanceof`
+// falha contra o CustomEvent global do Bun e o dispatch quebra com
+// "TypeError is not a constructor" ao abrir qualquer Modal em telas com
+// react-router (2.2.4, auditoria 2026-07-10).
+globalAny.CustomEvent = window.CustomEvent;
+// NodeFilter também faltava — react-focus-scope usa TreeWalker/NodeFilter
+// para varrer nós focáveis dentro do trap de foco do Radix Dialog.
+globalAny.NodeFilter = window.NodeFilter;
 
 // Fix for happy-dom specific issue with SyntaxError
 if (!window.SyntaxError) {

@@ -1,12 +1,24 @@
 import React from 'react'
 import { afterEach, describe, expect, it, mock } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 // Importado estaticamente (antes de qualquer mock.module abaixo) pra preservar
 // a função pura real no mock do hook — outros arquivos de teste (ex.:
 // useScoreRotina.test.ts) também resolvem esse mesmo path e quebrariam se o
 // mock só expusesse `useScoreRotina`.
 import { calcularScoreRotina } from '@/features/crm/hooks/useScoreRotina'
+// Mesmo motivo do calcularScoreRotina acima — useAgendamentos.test.ts resolve
+// esse mesmo path e quebraria se o mock só expusesse os campos usados aqui.
+import { eventoDeCriacaoParaTipo } from '@/features/crm/hooks/useAgendamentos'
+
+// Radix Dialog (Modal) precisa desses globais em jsdom/happy-dom — ver
+// CarteiraClientes.container.test.tsx para o mesmo shim.
+globalThis.getComputedStyle ||= (() => ({ animationName: 'none' })) as typeof getComputedStyle
+globalThis.MutationObserver ||= class {
+  observe() {}
+  disconnect() {}
+  takeRecords() { return [] }
+} as unknown as typeof MutationObserver
 
 const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date())
 const toastSuccess = mock(() => {})
@@ -15,7 +27,17 @@ const toastInfo = mock(() => {})
 
 let oportunidadesMock: unknown[] = []
 let agendamentosMock: unknown[] = []
+let clientesMock: unknown[] = []
 let scoreMock = { score: 10, items: [{ label: 'Abriu a Central de Execução', value: '10pts', done: true }] }
+
+// Named mocks (2.2.4, auditoria 2026-07-10) — precisam ser inspecionáveis por
+// call para provar QUAL registro foi alterado em cada transição (contador de
+// pendências, atividade vencida some da lista, reagendamento não duplica,
+// venda encerra a atividade certa, garantia não reabre a venda).
+const updateOportunidadeMock = mock(async () => ({ error: null }))
+const updateAgendamentoMock = mock(async () => ({ error: null }))
+const createAgendamentoMock = mock(async () => ({ error: null }))
+const updateStatusMock = mock(async () => ({ error: null }))
 const organizacaoTemplate = {
   tipo: 'organizacao',
   nome: 'Organização do Dia',
@@ -92,19 +114,22 @@ mock.module('@/hooks/checkins', () => ({
 mock.module('@/features/crm/hooks/useOportunidades', () => ({
   useOportunidades: () => ({
     oportunidades: oportunidadesMock,
-    updateOportunidade: mock(async () => ({ error: null })),
+    updateOportunidade: updateOportunidadeMock,
   }),
 }))
 
 mock.module('@/features/crm/hooks/useAgendamentos', () => ({
+  eventoDeCriacaoParaTipo,
   useAgendamentos: () => ({
     agendamentos: agendamentosMock,
-    updateAgendamento: mock(async () => ({ error: null })),
+    createAgendamento: createAgendamentoMock,
+    updateAgendamento: updateAgendamentoMock,
+    updateStatus: updateStatusMock,
   }),
 }))
 
 mock.module('@/features/crm/hooks/useClientes', () => ({
-  useClientes: () => ({ clientes: [] }),
+  useClientes: () => ({ clientes: clientesMock }),
 }))
 
 mock.module('@/features/crm/hooks/useVendedorPerfil', () => ({
@@ -130,8 +155,13 @@ afterEach(() => {
   toastSuccess.mockClear()
   toastError.mockClear()
   toastInfo.mockClear()
+  updateOportunidadeMock.mockClear()
+  updateAgendamentoMock.mockClear()
+  createAgendamentoMock.mockClear()
+  updateStatusMock.mockClear()
   oportunidadesMock = []
   agendamentosMock = []
+  clientesMock = []
   scoreMock = { score: 10, items: [{ label: 'Abriu a Central de Execução', value: '10pts', done: true }] }
   routinePlaybookMock = { ...routinePlaybookMock, conflitoCliente: null }
 })
@@ -169,6 +199,41 @@ function agendamento(overrides: Record<string, unknown> = {}) {
     observacoes: null,
     ...overrides,
   }
+}
+
+function cliente(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'cli-1',
+    loja_id: 'loja-1',
+    seller_user_id: '22222222-2222-4222-8222-222222222222',
+    nome: 'Carlos Mendes',
+    telefone: '31999998888',
+    empresa: null,
+    canal_origem: 'carteira',
+    status: 'aguardando_contato',
+    relacionamento: 'neutro',
+    ultima_interacao: `${today}T08:00:00.000Z`,
+    proxima_acao: null,
+    proxima_acao_em: null,
+    potencial_negocio: 0,
+    observacoes: null,
+    created_at: `${today}T08:00:00.000Z`,
+    updated_at: `${today}T08:00:00.000Z`,
+    ...overrides,
+  }
+}
+
+function op1(overrides: Record<string, unknown> = {}) {
+  return oportunidade(overrides)
+}
+
+function op2(overrides: Record<string, unknown> = {}) {
+  return oportunidade({
+    id: 'op-2',
+    cliente_id: 'cli-2',
+    cliente: { nome: 'Ana Paula', telefone: '31988887777' },
+    ...overrides,
+  })
 }
 
 describe('CentralExecucao', () => {
@@ -227,5 +292,130 @@ describe('CentralExecucao', () => {
     screen.getByRole('button', { name: 'Rotina do Dia' }).click()
 
     expect(await screen.findByText(/Você possui um cliente agendado neste horário/)).toBeTruthy()
+  })
+
+  // 2.2.4 (auditoria 2026-07-10) — prova das 5 transições da Rotina/Mentor:
+  // contador de pendências, atividade vencida sai da lista, reagendamento não
+  // duplica competência, venda encerra a atividade certa, garantia não reabre venda.
+  describe('transições da Rotina (2.2.4, auditoria 2026-07-10)', () => {
+    it('contador de pendências: soma agendamentos não tratados de dias anteriores e concorda no singular/plural', async () => {
+      oportunidadesMock = [op1(), op2()]
+      agendamentosMock = [
+        agendamento({ id: 'ag-velho-1', oportunidade_id: 'op-1', data_hora: '2026-06-01T12:00:00.000Z', status: 'aguardando' }),
+        agendamento({ id: 'ag-velho-2', oportunidade_id: 'op-2', cliente_id: 'cli-2', data_hora: '2026-06-02T09:00:00.000Z', status: 'confirmado' }),
+      ]
+
+      render(<MemoryRouter><CentralExecucao /></MemoryRouter>)
+
+      expect(await screen.findByText('Você possui 2 pendências de dias anteriores.')).toBeTruthy()
+    })
+
+    it('contador de pendências: usa singular quando há apenas 1 e não conta agendamentos já tratados nem os de hoje', async () => {
+      oportunidadesMock = [op1()]
+      agendamentosMock = [
+        agendamento({ id: 'ag-velho', data_hora: '2026-06-01T12:00:00.000Z', status: 'aguardando' }),
+        // Tratado (compareceu) não é pendência, mesmo estando no passado.
+        agendamento({ id: 'ag-tratado', data_hora: '2026-06-01T12:00:00.000Z', status: 'compareceu' }),
+        // De hoje não é "anterior".
+        agendamento({ id: 'ag-hoje', data_hora: `${today}T12:00:00.000Z`, status: 'aguardando' }),
+      ]
+
+      render(<MemoryRouter><CentralExecucao /></MemoryRouter>)
+
+      expect(await screen.findByText('Você possui 1 pendência de dias anteriores.')).toBeTruthy()
+    })
+
+    it('atividade vencida sai da lista quando o vendedor marca Compareceu (dispara updateStatus com o id certo)', async () => {
+      oportunidadesMock = [op1()]
+      // 5 minutos atrás — vencido em relação ao "agora" real usado pelo componente,
+      // sem depender de um horário fixo (evita flakiness perto da virada UTC do dia).
+      const horarioVencido = new Date(Date.now() - 5 * 60 * 1000).toISOString()
+      agendamentosMock = [agendamento({ id: 'ag-vencido', data_hora: horarioVencido, status: 'aguardando' })]
+
+      render(<MemoryRouter><CentralExecucao /></MemoryRouter>)
+      expect(await screen.findByText('Vencido')).toBeTruthy()
+
+      fireEvent.click(screen.getByRole('button', { name: 'Resolver' }))
+      fireEvent.click(await screen.findByRole('button', { name: /Compareceu/ }))
+
+      expect(updateStatusMock).toHaveBeenCalledTimes(1)
+      expect(updateStatusMock).toHaveBeenCalledWith('ag-vencido', 'compareceu')
+      // A saída em si é provada pela função pura em agenda-hoje.test.ts
+      // ("exclui da lista um agendamento já tratado") — aqui provamos que a
+      // ação do usuário aciona exatamente essa transição de status.
+    })
+
+    it('reagendamento não duplica competência: usa updateAgendamento (não createAgendamento) e mantém o mesmo id', async () => {
+      oportunidadesMock = [op1()]
+      agendamentosMock = [agendamento({ id: 'ag-1', data_hora: `${today}T12:00:00.000Z` })]
+
+      render(<MemoryRouter><CentralExecucao /></MemoryRouter>)
+      const horarioButton = await screen.findByRole('button', { name: /Alterar horário de Carlos Mendes/ })
+      fireEvent.click(horarioButton)
+
+      const dialog = await screen.findByRole('dialog', { name: 'Reagendar' })
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Confirmar' }))
+
+      await waitFor(() => expect(updateAgendamentoMock).toHaveBeenCalledTimes(1))
+      expect(toastSuccess).toHaveBeenCalledWith('Agendamento atualizado.', { duration: 3000 })
+      expect(updateAgendamentoMock.mock.calls[0][0]).toBe('ag-1')
+      expect(createAgendamentoMock).not.toHaveBeenCalled()
+    })
+
+    it('venda encerra a atividade certa: com duas atividades no dia, confirmar venda na segunda atualiza a oportunidade certa (op-2), não a primeira', async () => {
+      oportunidadesMock = [op1(), op2()]
+      agendamentosMock = [
+        agendamento({ id: 'ag-1', oportunidade_id: 'op-1', cliente_id: 'cli-1', data_hora: `${today}T09:00:00.000Z` }),
+        agendamento({ id: 'ag-2', oportunidade_id: 'op-2', cliente_id: 'cli-2', data_hora: `${today}T10:00:00.000Z`, tipo: 'negociacao' }),
+      ]
+
+      render(<MemoryRouter><CentralExecucao /></MemoryRouter>)
+      await screen.findByText('Carlos Mendes')
+      await screen.findByText('Ana Paula')
+
+      const resolverButtons = screen.getAllByRole('button', { name: 'Resolver' })
+      expect(resolverButtons).toHaveLength(2)
+      // A lista é ordenada por prioridade/horário — resolve explicitamente a
+      // atividade da Ana (op-2) clicando no botão dentro do card dela.
+      const anaCard = screen.getByText('Ana Paula').closest('div.group') as HTMLElement
+      fireEvent.click(within(anaCard).getByRole('button', { name: 'Resolver' }))
+
+      fireEvent.click(await screen.findByRole('button', { name: /Registrar Venda/ }))
+      fireEvent.change(screen.getByLabelText('Valor negociado *'), { target: { value: '95000' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Confirmar venda' }))
+
+      await waitFor(() => expect(updateOportunidadeMock).toHaveBeenCalledTimes(1))
+      expect(toastSuccess).toHaveBeenCalledWith('Venda registrada com sucesso.', { duration: 3000 })
+      const [calledId, calledPayload] = updateOportunidadeMock.mock.calls[0] as [string, Record<string, unknown>]
+      expect(calledId).toBe('op-2')
+      expect(calledPayload.etapa).toBe('ganho')
+    })
+
+    it('garantia não reabre venda: registrar uma garantia cria apenas o agendamento, sem tocar na oportunidade já ganha', async () => {
+      oportunidadesMock = [op1({ etapa: 'ganho' })]
+      agendamentosMock = []
+      clientesMock = [cliente({ id: 'cli-1', nome: 'Carlos Mendes', telefone: '31999998888' })]
+
+      render(<MemoryRouter><CentralExecucao /></MemoryRouter>)
+
+      // Sem atividades hoje, o botão "Nova atividade" aparece duas vezes
+      // (cabeçalho + estado vazio) — usa o primeiro, igual ao fluxo real do vendedor.
+      fireEvent.click((await screen.findAllByRole('button', { name: /Nova atividade/ }))[0])
+      fireEvent.click(await screen.findByRole('button', { name: 'Garantia' }))
+
+      const telefoneInput = screen.getByLabelText('Cliente ou Telefone')
+      fireEvent.change(telefoneInput, { target: { value: '31999998888' } })
+      fireEvent.keyDown(telefoneInput, { key: 'Enter' })
+
+      expect(await screen.findByText('Carlos Mendes')).toBeTruthy()
+      fireEvent.click(screen.getByRole('button', { name: /Salvar atividade/ }))
+
+      await waitFor(() => expect(createAgendamentoMock).toHaveBeenCalledTimes(1))
+      expect(toastSuccess).toHaveBeenCalledWith('Atividade criada com sucesso.', { duration: 3000 })
+      const [payload] = createAgendamentoMock.mock.calls[0] as [Record<string, unknown>]
+      expect(payload.tipo).toBe('garantia')
+      // Prova central: garantia NÃO reabre a venda — nenhuma chamada tocou a oportunidade.
+      expect(updateOportunidadeMock).not.toHaveBeenCalled()
+    })
   })
 })
