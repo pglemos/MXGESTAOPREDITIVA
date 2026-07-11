@@ -1,10 +1,84 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { fileURLToPath } from 'url';
 
-const OUTPUT_DIR = '/Users/pedroguilherme/Pictures/PRINT REVISÃO MX';
-const MANIFEST_PATH = path.join(OUTPUT_DIR, '05_RELATORIOS', 'MANIFESTO_V3_PRIMARIO.csv');
-const FINAL_REPORT_PATH = path.join(OUTPUT_DIR, '05_RELATORIOS', 'CHECKLIST_VALIDACAO_V3.csv');
+const DEFAULT_OUTPUT_DIR = '/Users/pedroguilherme/Pictures/PRINT REVISÃO MX';
+
+function parseArgs(argv = process.argv.slice(2)) {
+  const readValue = (flag) => {
+    const index = argv.indexOf(flag);
+    return index === -1 ? null : argv[index + 1] || null;
+  };
+
+  const outputDir = process.env.MX_OUTPUT_DIR || DEFAULT_OUTPUT_DIR;
+  return {
+    manifestPath: readValue('--input') || path.join(outputDir, '05_RELATORIOS', 'MANIFESTO_V3_PRIMARIO.csv'),
+    reportPath: readValue('--output') || path.join(outputDir, '05_RELATORIOS', 'CHECKLIST_VALIDACAO_V3.csv'),
+    recordsJsonPath: readValue('--records-json'),
+  };
+}
+
+function parseCsvRows(text) {
+  const rows = [];
+  let row = [];
+  let field = '';
+  let quoted = false;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const character = text[index];
+    if (quoted) {
+      if (character === '"' && text[index + 1] === '"') {
+        field += '"';
+        index += 1;
+      } else if (character === '"') {
+        quoted = false;
+      } else {
+        field += character;
+      }
+      continue;
+    }
+
+    if (character === '"') {
+      quoted = true;
+    } else if (character === ',') {
+      row.push(field);
+      field = '';
+    } else if (character === '\n') {
+      row.push(field.replace(/\r$/, ''));
+      rows.push(row);
+      row = [];
+      field = '';
+    } else {
+      field += character;
+    }
+  }
+
+  if (quoted) throw new Error('CSV inválido: aspas não fechadas');
+  if (field !== '' || row.length > 0) {
+    row.push(field.replace(/\r$/, ''));
+    rows.push(row);
+  }
+  return rows;
+}
+
+function parseManifestCsv(text) {
+  const rows = parseCsvRows(text);
+  if (rows.length < 2) return [];
+  return rows.slice(1)
+    .filter((parts) => parts.some((part) => part !== ''))
+    .map((parts) => ({
+      id: parts[0] || '',
+      perfil: parts[1] || '',
+      breakpoint: parts[2] || '',
+      rota: parts[3] || '',
+      estado: parts[4] || '',
+      arquivo: parts[5] || '',
+      hash: parts[6] || '',
+      statusScript: parts[7] || '',
+      mensagem: parts.slice(8).join(','),
+    }));
+}
 
 function getHash(filePath) {
   if (!fs.existsSync(filePath)) return null;
@@ -14,23 +88,15 @@ function getHash(filePath) {
   return hashSum.digest('hex');
 }
 
-async function validateCaptures() {
+async function validateCaptures({ manifestPath, reportPath, recordsJsonPath } = parseArgs()) {
   console.log('Iniciando Validação Automática V3...');
   
-  if (!fs.existsSync(MANIFEST_PATH)) {
-    console.error('Manifesto primário não encontrado.');
-    process.exit(1);
+  if (!fs.existsSync(manifestPath)) {
+    throw new Error('Manifesto primário não encontrado.');
   }
 
-  const lines = fs.readFileSync(MANIFEST_PATH, 'utf-8').split('\n').filter(l => l.trim() !== '');
-  const headers = lines[0].split(',');
-  const records = lines.slice(1).map(l => {
-    const parts = l.split(',');
-    return {
-      id: parts[0], perfil: parts[1], breakpoint: parts[2], rota: parts[3],
-      estado: parts[4], arquivo: parts[5], hash: parts[6], statusScript: parts[7], mensagem: parts[8]
-    };
-  });
+  const records = parseManifestCsv(fs.readFileSync(manifestPath, 'utf-8'));
+  const outputDir = path.dirname(path.dirname(manifestPath));
 
   // Agrupar arquivos pelo mesmo ID/Perfil/Breakpoint para checar FALHA_SCROLL
   const hashCache = {};
@@ -39,7 +105,7 @@ async function validateCaptures() {
     const folderMod = `0${['VENDEDOR','GERENTE','DONO','ADMIN'].indexOf(record.perfil)+1}_MODULO_${record.perfil.replace('ADMIN', 'ADMIN_MX')}`;
     // Precisamos achar o nome da página (que eu não gravei no CSV, mas posso inferir pela rota ou buscar nos diretórios)
     // Para simplificar, vou procurar o arquivo em todas as subpastas do módulo
-    const modPath = path.join(OUTPUT_DIR, folderMod);
+    const modPath = path.join(outputDir, folderMod);
     let filePath = null;
     
     if (fs.existsSync(modPath)) {
@@ -136,8 +202,10 @@ async function validateCaptures() {
     reportCsv += `${r.arquivo},${r.hashReal},${r.estado},${assercao},${comparacao},${rolagem},${loading},${now},V3.0,${r.statusFinal},${revVisual}\n`;
   }
 
-  fs.writeFileSync(FINAL_REPORT_PATH, reportCsv);
-  console.log(`Validação concluída. Relatório gravado em: ${FINAL_REPORT_PATH}`);
+  fs.mkdirSync(path.dirname(reportPath), { recursive: true });
+  fs.writeFileSync(reportPath, reportCsv);
+  if (recordsJsonPath) fs.writeFileSync(recordsJsonPath, JSON.stringify(records, null, 2));
+  console.log(`Validação concluída. Relatório gravado em: ${reportPath}`);
   
   // Resumo
   const totais = records.reduce((acc, r) => {
@@ -149,4 +217,11 @@ async function validateCaptures() {
   console.log('STATUS DA AUDITORIA: CONCLUÍDO COM PENDÊNCIA DE REVISÃO VISUAL');
 }
 
-validateCaptures().catch(console.error);
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  validateCaptures().catch((error) => {
+    console.error(error.message);
+    process.exitCode = 1;
+  });
+}
+
+export { parseArgs, parseCsvRows, parseManifestCsv, validateCaptures };

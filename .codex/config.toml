@@ -1,1 +1,17 @@
-approval_policy = "never"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+web_search = "cached"
+
+[mcp_servers.Filesystem]
+command = "npx"
+args = [
+  "-y",
+  "@modelcontextprotocol/server-filesystem",
+  "/Users/pedroguilherme/PROJETOS/MX GESTAO PREDITIVA",
+]
+
+[mcp_servers.supabase-mcp-server-golffox]
+enabled = false
+
+[mcp_servers.supabase]
+enabled = false

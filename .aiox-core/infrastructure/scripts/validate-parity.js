@@ -58,6 +58,17 @@ function loadCompatibilityContract(contractPath) {
   return yaml.load(raw);
 }
 
+function getEnabledIdeSet(projectRoot = process.cwd()) {
+  const configPath = path.join(projectRoot, '.aiox-core', 'core-config.yaml');
+  if (!fs.existsSync(configPath)) return null;
+  const config = yaml.load(fs.readFileSync(configPath, 'utf8')) || {};
+  const configs = config.ide?.configs;
+  if (!configs || typeof configs !== 'object') return null;
+  return new Set(Object.entries(configs)
+    .filter(([, enabled]) => enabled === true)
+    .map(([ide]) => ide));
+}
+
 function normalizeResult(input) {
   if (!input || typeof input !== 'object') {
     return { ok: false, errors: ['Validator returned invalid result'], warnings: [] };
@@ -81,7 +92,8 @@ function validateCompatibilityContract(contract, resultById, options = {}) {
     return ['Compatibility contract is missing or invalid'];
   }
 
-  const matrix = Array.isArray(contract.ide_matrix) ? contract.ide_matrix : [];
+  const matrix = (Array.isArray(contract.ide_matrix) ? contract.ide_matrix : [])
+    .filter((ide) => !options.enabledIdes || options.enabledIdes.has(ide.ide));
   if (matrix.length === 0) {
     return ['Compatibility contract ide_matrix is empty'];
   }
@@ -224,6 +236,7 @@ function runParityValidation(options = {}, deps = {}) {
   const runGeminiIntegration = deps.validateGeminiIntegration || validateGeminiIntegration;
   const runCodexSkills = deps.validateCodexSkills || validateCodexSkills;
   const runPaths = deps.validatePaths || validatePaths;
+  const enabledIdes = deps.getEnabledIdeSet ? deps.getEnabledIdeSet(projectRoot) : getEnabledIdeSet(projectRoot);
   const resolvedContractPath = options.contractPath
     ? path.resolve(projectRoot, options.contractPath)
     : getDefaultContractPath(projectRoot);
@@ -245,7 +258,13 @@ function runParityValidation(options = {}, deps = {}) {
     { id: 'antigravity-sync', exec: () => runSync('antigravity', projectRoot) },
     { id: 'codex-skills', exec: () => runCodexSkills({ projectRoot, strict: true, quiet: true }) },
     { id: 'paths', exec: () => runPaths({ projectRoot }) },
-  ];
+  ].filter((check) => {
+    const ide = check.id.replace(/-(sync|integration)$/, '');
+    if (check.id === 'paths') return true;
+    if (check.id === 'codex-skills') return !enabledIdes || enabledIdes.has('codex');
+    if (ide === 'claude') return !enabledIdes || enabledIdes.has('claude-code');
+    return !enabledIdes || enabledIdes.has(ide);
+  });
 
   const results = checks.map((check) => {
     const normalized = normalizeResult(check.exec());
@@ -255,6 +274,7 @@ function runParityValidation(options = {}, deps = {}) {
   const contractViolations = validateCompatibilityContract(contract, resultById, {
     docsPath,
     docsPathRelative,
+    enabledIdes,
   });
   const contractSummary = contract
     ? {
@@ -352,4 +372,5 @@ module.exports = {
   normalizeResult,
   formatHumanReport,
   diffCompatibilityContracts,
+  getEnabledIdeSet,
 };
