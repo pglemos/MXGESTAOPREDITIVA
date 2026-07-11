@@ -124,6 +124,19 @@ function parse(data: unknown): OportunidadeComCliente[] {
   return out
 }
 
+/**
+ * Chave de idempotência da venda direta: determinística por vendedor,
+ * competência, telefone normalizado e placa — reenvio do mesmo formulário
+ * (duplo clique, retry de rede) gera a MESMA chave e o RPC devolve a venda
+ * existente com `duplicate: true`, sem criar segundo evento oficial.
+ */
+export function chaveIdempotenciaVendaDireta(
+  userId: string,
+  input: Pick<VendaDiretaInput, 'data_competencia' | 'telefone' | 'placa'>,
+): string {
+  return [userId, input.data_competencia, input.telefone.replace(/\D/g, ''), input.placa.trim().toUpperCase()].join(':')
+}
+
 export function useOportunidades() {
   const { supabaseUser, activeStoreId, storeId } = useAuth()
   const effectiveStoreId = activeStoreId || storeId || null
@@ -178,7 +191,7 @@ export function useOportunidades() {
 
   const registrarVendaDireta = useCallback(async (input: VendaDiretaInput): Promise<{ error: string | null; id?: string }> => {
     if (!supabaseUser || !effectiveStoreId) return { error: 'Sessão ou loja inválida.' }
-    const idempotencyKey = [supabaseUser.id, input.data_competencia, input.telefone.replace(/\D/g, ''), input.placa.trim().toUpperCase()].join(':')
+    const idempotencyKey = chaveIdempotenciaVendaDireta(supabaseUser.id, input)
     const { data, error: rpcError } = await supabase.rpc('registrar_venda_direta', {
       p_payload: { ...input, store_id: effectiveStoreId, idempotency_key: idempotencyKey, origem_modulo: 'terminal_mx' },
     })

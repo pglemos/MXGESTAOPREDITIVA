@@ -32,3 +32,24 @@ describe('transactional direct sale migration', () => {
     expect(rpc).toContain('Nenhum dado parcial foi mantido')
   })
 })
+
+describe('idempotência da venda direta (2.2.6, auditoria 2026-07-10)', () => {
+  const rpc = sql.slice(sql.indexOf('FUNCTION public.registrar_venda_direta'))
+
+  test('reenvio com a mesma chave devolve a venda existente com duplicate:true, sem novo evento', () => {
+    expect(rpc).toContain("'duplicate', true")
+    expect(rpc).toContain("WHERE idempotency_key = v_key || ':venda'")
+  })
+
+  test('revalida a chave depois do advisory lock (corrida entre duas chamadas simultâneas)', () => {
+    expect(rpc).toContain('Revalida depois de adquirir o lock')
+    const posLock = rpc.slice(rpc.indexOf('pg_advisory_xact_lock'))
+    expect(posLock).toContain('WHERE idempotency_key = v_key')
+  })
+
+  test('unicidade garantida por índice parcial em oportunidades e eventos_comerciais', () => {
+    expect(sql).toContain('CREATE UNIQUE INDEX IF NOT EXISTS idx_oportunidades_idempotency_key')
+    expect(sql).toContain('CREATE UNIQUE INDEX IF NOT EXISTS idx_eventos_comerciais_idempotency_key')
+    expect(sql).toContain('WHERE idempotency_key IS NOT NULL')
+  })
+})

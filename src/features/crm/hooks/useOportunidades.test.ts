@@ -97,3 +97,24 @@ describe('buildOportunidadePayload', () => {
     })
   })
 })
+
+describe('chaveIdempotenciaVendaDireta', () => {
+  it('gera a mesma chave para o mesmo formulário (duplo clique / retry)', async () => {
+    const { chaveIdempotenciaVendaDireta } = await import('./useOportunidades')
+    const input = { data_competencia: '2026-07-10', telefone: '(11) 98888-7766', placa: ' abc1d23 ' }
+    const a = chaveIdempotenciaVendaDireta('user-1', input)
+    const b = chaveIdempotenciaVendaDireta('user-1', { ...input })
+    expect(a).toBe(b)
+    expect(a).toBe('user-1:2026-07-10:11988887766:ABC1D23')
+  })
+
+  it('chaves diferem por vendedor, competência, telefone ou placa', async () => {
+    const { chaveIdempotenciaVendaDireta } = await import('./useOportunidades')
+    const base = { data_competencia: '2026-07-10', telefone: '11988887766', placa: 'ABC1D23' }
+    const chave = chaveIdempotenciaVendaDireta('user-1', base)
+    expect(chaveIdempotenciaVendaDireta('user-2', base)).not.toBe(chave)
+    expect(chaveIdempotenciaVendaDireta('user-1', { ...base, data_competencia: '2026-07-11' })).not.toBe(chave)
+    expect(chaveIdempotenciaVendaDireta('user-1', { ...base, telefone: '11988887767' })).not.toBe(chave)
+    expect(chaveIdempotenciaVendaDireta('user-1', { ...base, placa: 'XYZ9Z99' })).not.toBe(chave)
+  })
+})
