@@ -61,7 +61,7 @@ Verificado ao vivo no ambiente real (login `jose.vendedor@...`): página carrega
 ### 2.2 Sprint de CRM e execução — não iniciado
 
 1. Consolidar taxonomia comercial fragmentada (etapa do funil, situação da oportunidade, status/tipo de atividade, resultado de interação, motivo de perda, próxima ação — hoje misturados em conceitos sobrepostos).
-2. Resolver modal sobre modal (clicar no cliente abre modal que trava outro modal).
+2. ✅ Resolver modal sobre modal. Provado por teste de UI (planilha #5): "Alterar próximo passo" (z-300) abre sobre a ficha do cliente (z-210), é operável, fecha sem travar — e a ficha continua respondendo (seletor de canal abre em seguida).
 3. ✅ Permitir escolha do canal de contato em "Executar Próximo Passo". Feito (migration `20260710230000`, aplicada em prod): RPC `registrar_status_acao_cadencia` ganhou `p_canal_contato` (whatsapp/ligacao/presencial, validado) gravado como `canalContato` no histórico da cadência. Ficha do cliente pergunta o canal antes de executar (WhatsApp abre wa.me com script, Ligação abre tel:, Presencial só registra); Modo Ataque registra o canal efetivamente usado. Teste de UI cobrindo o seletor.
 4. Provar as transições da Rotina e Mentor com teste automatizado (contador de pendências, atividade vencida sai da lista, reagendamento não duplica competência, venda encerra a atividade certa, garantia não reabre venda).
 5. ✅ Garantir que a previsão de entrega aparece na Rotina como atividade `entrega`. Provado por teste: contrato SQL (RPC `registrar_venda_direta` cria agendamento tipo `entrega` na data prevista) + teste de UI (Central de Execução lista a atividade "Entrega" do dia mesmo com oportunidade já ganha).
@@ -90,7 +90,7 @@ Verificado ao vivo no ambiente real (login `jose.vendedor@...`): página carrega
 | 2 | Duas opções "Em andamento" | Estrutura mudou, taxonomia ainda fragmentada (ver 2.2.1) |
 | 3 | Telefone aceita dígitos demais | Corrigido |
 | 4 | Valor sem máscara monetária | Corrigido |
-| 5 | Definir ação trava com ficha aberta | Não comprovado como encerrado |
+| 5 | Definir ação trava com ficha aberta | ✅ Encerrado em 2026-07-10 — teste de UI prova modal sobre modal operável (ver 2.2.2) |
 | 6 | Sino não clicável | Corrigido |
 | 7 | Progresso inicia em 70% sem ação | Corrigido |
 | 8 | Regularização deveria ser preenchida antes da aprovação | Implementado; E2E completo ainda não provado |
@@ -100,7 +100,7 @@ Verificado ao vivo no ambiente real (login `jose.vendedor@...`): página carrega
 
 ## 3. Estado técnico atual
 
-- **Testes:** 765 pass / 0 fail (`npm test`), typecheck limpo (`npm run typecheck`), lint sem erros, build de produção OK.
+- **Testes:** 766 pass / 0 fail (`npm test`), typecheck limpo (`npm run typecheck`), lint sem erros, build de produção OK.
 - **Migrations aplicadas em produção nesta sessão:** `20260710180000`, `20260710190000`, `20260710200000`, `20260710210000` (quiz oficial), `20260710220000` (import ADR-MX-004), `20260710230000` (canal de contato na cadência) — todas confirmadas via `supabase migration list`/`inspect db table-stats` e `database.generated.ts` regenerado.
 - **Commits enviados ao `main`:** `732b577c` (Sprint P0), `53950404` (Sprint Universidade — fundação).
 - **CI:** ainda faltam jobs de Playwright E2E e smoke pós-deploy autenticado (dependem de secrets de ambiente live não configurados nesta sessão).

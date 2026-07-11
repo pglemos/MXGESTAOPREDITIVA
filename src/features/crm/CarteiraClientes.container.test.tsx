@@ -1,6 +1,6 @@
 import React from 'react'
 import { afterEach, describe, expect, it, mock } from 'bun:test'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 // P0-05b (auditoria 2026-07-10): ver RelatoriosVendedor.container.test.tsx —
 // reusa a implementação real em vez de manter uma cópia hand-rolled que fica
 // obsoleta e mascara bugs reais (ex.: P1-05/P0-05a).
@@ -157,6 +157,24 @@ describe('CarteiraClientes', () => {
       expect(registrarStatusCadencia).toHaveBeenCalledWith({ clienteId: 'cliente-1', status: 'feito', canalContato: null })
     })
     expect(toastSuccess).toHaveBeenCalledWith('Cadência atualizada.', { duration: 3000 })
+  })
+
+  it('modal Alterar próximo passo abre sobre a ficha sem travar nenhum dos dois (planilha #5)', async () => {
+    render(<CarteiraClientes />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Ver cliente/i }))
+    fireEvent.click(screen.getAllByRole('button', { name: /Alterar próximo passo/i })[0])
+
+    // modal de cima abre e é operável
+    const modal = screen.getByRole('dialog', { name: 'Alterar próximo passo' })
+    expect(modal).toBeTruthy()
+    fireEvent.click(within(modal).getByRole('button', { name: 'Fechar' }))
+
+    // ficha de baixo continua viva e operável após fechar o modal de cima
+    expect(screen.queryByRole('dialog', { name: 'Alterar próximo passo' })).toBeNull()
+    const executar = screen.getAllByRole('button', { name: /Executar próximo passo/i }).at(-1)!
+    fireEvent.click(executar)
+    expect(screen.getByText('Por qual canal você vai executar?')).toBeTruthy()
   })
 
   it('executar proximo passo pede canal e registra o canal escolhido (planilha #9)', async () => {
