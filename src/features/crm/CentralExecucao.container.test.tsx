@@ -200,6 +200,16 @@ describe('CentralExecucao', () => {
     expect((await screen.findAllByText('Carlos Mendes')).length).toBeGreaterThan(0)
   })
 
+  it('mostra a entrega prevista da venda como atividade tipo Entrega (2.2.5, auditoria 2026-07-10)', async () => {
+    oportunidadesMock = [oportunidade({ etapa: 'ganho', data_entrega_prevista: `${today}T15:00:00.000Z` })]
+    agendamentosMock = [agendamento({ tipo: 'entrega', data_hora: `${today}T15:00:00.000Z`, proxima_acao: 'Entrega do veículo' })]
+
+    render(<MemoryRouter><CentralExecucao /></MemoryRouter>)
+
+    expect((await screen.findAllByText('Carlos Mendes')).length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Entrega').length).toBeGreaterThan(0)
+  })
+
   it('troca para a aba Rotina do Dia e mostra a etapa atual', async () => {
     render(<MemoryRouter><CentralExecucao /></MemoryRouter>)
 

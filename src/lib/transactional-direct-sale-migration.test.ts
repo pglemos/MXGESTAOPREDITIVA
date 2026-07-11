@@ -53,3 +53,11 @@ describe('idempotência da venda direta (2.2.6, auditoria 2026-07-10)', () => {
     expect(sql).toContain('WHERE idempotency_key IS NOT NULL')
   })
 })
+
+describe('previsão de entrega vira atividade oficial (2.2.5, auditoria 2026-07-10)', () => {
+  test('RPC cria agendamento tipo entrega na data prevista quando informada', () => {
+    const rpc = sql.slice(sql.indexOf('FUNCTION public.registrar_venda_direta'))
+    expect(rpc).toContain("IF nullif(p_payload->>'data_entrega_prevista', '') IS NOT NULL THEN")
+    expect(rpc).toContain("(p_payload->>'data_entrega_prevista')::timestamptz, v_canal, 'entrega', 'aguardando'")
+  })
+})
