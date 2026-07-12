@@ -4,7 +4,7 @@ Estado inicial em 2026-07-11. Medidas renderizadas e screenshots serão acrescen
 
 | Tela gerencial | Referência vendedor | Shell | Header | Grid | Cards | Tipografia | Tokens | Ícones | Estados | Mobile | Gap | Ação |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Fechamento Diário | Fechamento + Central | igual | básico | uniforme 4x | genéricos | parcial | parcial | básicos | parcial | tabela larga | crítico | refatorar primeiro |
+| Fechamento Diário | Base44 `/fechamento-equipe` | igual | equivalente | assimétrico 4x | operacionais | equivalente | aprovado | equivalentes | reais | aprovado | fechado | homologar produção |
 | Rotina da Equipe | Central de Execução | igual | básico | uniforme | genéricos | parcial | parcial | básicos | placeholder | fraco | crítico | refatorar segundo |
 | Início | Meu Dia | igual | parcial | dashboard legado | heterogêneos | parcial | parcial | parcial | parcial | revisar | alto | refatorar terceiro |
 | Mentor Gerencial | Consultor/insights | igual | básico | documental | genéricos | parcial | parcial | poucos | parcial | revisar | crítico | refatorar quarto |
@@ -37,6 +37,7 @@ Validação executada no Chrome DevTools MCP com login real de vendedor e gerent
 
 ### Correções desta rodada
 
+- 2026-07-12: Fechamento Diário ganhou filtros de data/unidade/vendedor, resumo assimétrico, barra de ações, histórico 7/15/30 dias, comparativo sem dados inventados e resumo oficial por canal; Aprovar/Recusar, Agenda D+1, cobrança e correção de leads foram preservados.
 - `PageHeading`: escala mobile reduzida, subtítulo mais legível e spacing responsivo.
 - `ManagerMetricCard`: densidade mobile reduzida sem perder touch targets.
 - Fechamento Diário: cards semânticos, gauge, faixa de ação, tabela premium e mobile recapturado.

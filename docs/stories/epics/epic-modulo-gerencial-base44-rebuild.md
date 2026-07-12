@@ -58,6 +58,9 @@ Status: Ready for Review
 
 ## QA Results
 
+- 2026-07-12: Fechamento Diário reaberto após comparação autenticada Base44 × produção; composição visual, filtros, histórico, comparativo e resumo por canal divergiam da referência.
+- 2026-07-12: Fechamento Diário reconstruído e validado localmente em 1440×900 e 390×844. Busca por vendedor, Agenda D+1, períodos 7/15/30 dias e ações de regularização preservadas; comparativos sem snapshot oficial não fabricam percentuais. PASS: lint, typecheck, build e 812 testes.
+
 Execution evidence — 2026-07-12:
 
 - PASS: 810 unit/component/integration tests, zero failures.
