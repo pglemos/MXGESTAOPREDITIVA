@@ -7,7 +7,7 @@ Reconstruir o Módulo Gerencial do MX com Base44 como referência visual/funcion
 `/Users/pedroguilherme/AIOX-FLEET/MX_GERENTE_REBUILD_AIOX/PROMPT_EXECUCAO_REBUILD_MODULO_GERENTE.md` (1730 linhas). Referências em `/Users/pedroguilherme/AIOX-FLEET/MX_GERENTE_REBUILD_AIOX/reference/`.
 
 ## Agente atual
-Codex CLI com `aiox-master`, em preparação para handoff de publicação ao `aiox-devops`.
+Codex CLI com `aiox-devops`; publicação e homologação concluídas.
 
 ## Branch
 `main` (regra do prompt mestre: trabalhar direto na main, sem branch).
@@ -83,16 +83,13 @@ Ver seção "Arquivos modificados". Principais novos: `ManagerDailyClosing.conta
 - Falhando: E2E Chromium global (Agenda Admin, assertions preexistentes de UI removida); gate de bundle (1949 KB > 1800 KB).
 
 ## Erros conhecidos
-Nenhum bloqueio local conhecido. Falta somente commit/push, deploy e homologação autenticada em produção.
+Nenhum bloqueio funcional conhecido. Produção mantém o aviso preexistente de Sentry sem `VITE_SENTRY_DSN`.
 
 ## Decisões arquiteturais
 Ver `docs/architecture/MODULO_GERENCIAL_BASE44_MIGRATION.md` e `docs/qa/MODULO_GERENCIAL_PARITY_MATRIX.md`. Resumo: shell/9 menus Base44 migrados; auth/entidades/localStorage/dados demo Base44 rejeitados; Rotina vem da Central de Execução (nunca do fechamento); regularização só server-side por RPC canônica; sem números fabricados no cliente.
 
 ## Próxima ação exata
-1. Ativar `aiox-devops` e executar pre-push.
-2. Commitar o escopo gerencial intencional em `main` e enviar ao remoto.
-3. Acompanhar o deploy Vercel até Ready.
-4. Reexecutar login, nove rotas e fluxos críticos diretamente em produção.
+Nenhuma para o rebuild gerencial. Configurar `VITE_SENTRY_DSN` em uma tarefa separada de observabilidade, quando o DSN oficial estiver disponível.
 
 ## Atualização visual 2026-07-11
 

@@ -17,7 +17,7 @@ Status: Ready for Review
 - [x] Unitários, componentes, integração e E2E aprovados.
 - [x] Auditoria visual nos viewports obrigatórios aprovada.
 - [x] Regressões de acesso vendedor/dono/admin cobertas pela matriz de rotas e suíte completa.
-- [ ] Checklist, File List, commit, push e homologação de produção concluídos.
+- [x] Checklist, File List, commit, push e homologação de produção concluídos.
 
 ## File List
 
@@ -70,3 +70,7 @@ Execution evidence — 2026-07-12:
 - PASS: regularization decisions, reminders and lead correction remain server-side/auditable through canonical services.
 - PASS: Agenda D+1 uses CRM/Carteira as canonical source and exposes filters and communication actions without mutating seller data.
 - PASS: Rotina uses Central de Execução and avoids fabricated network comparisons when snapshots do not exist.
+- PASS: commit funcional `07d3dd39` publicado em `origin/main` e deployment Vercel de produção `dpl_46UfPmzj6x84vnjADRtYsKKBRDzL` promovido ao alias `mxperformance.vercel.app`.
+- PASS: homologação pós-deploy executada no alias público com login real de gerente: 4/4 E2E, nove rotas, desktop/mobile e fluxos críticos.
+- PASS: respostas HTTP 200 para `/`, `/home` e `/gerente/fechamento-diario`; nenhuma exceção JavaScript nas nove rotas.
+- INFO: produção emite o aviso preexistente de observabilidade `VITE_SENTRY_DSN ausente`; não bloqueia o módulo, mas deve ser tratado pela configuração de infraestrutura do Sentry.
