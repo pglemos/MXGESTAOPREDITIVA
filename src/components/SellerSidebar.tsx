@@ -320,15 +320,16 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
         aria-current={active ? 'page' : undefined}
         onClick={closeMobile}
         className={cn(
-          'group relative flex min-h-12 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all duration-200 text-slate-400 hover:text-white hover:bg-white/8 outline-none focus-visible:ring-2 focus-visible:ring-primary/45',
-          active && 'bg-primary text-white shadow-lg shadow-primary/25 hover:bg-primary',
+          'group relative flex min-h-12 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-primary/45',
+          isManagerProfile ? 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-700' : 'text-slate-400 hover:bg-white/8 hover:text-white',
+          active && (isManagerProfile ? 'bg-emerald-600 text-white shadow-sm hover:bg-emerald-700' : 'bg-primary text-white shadow-lg shadow-primary/25 hover:bg-primary'),
           isCollapsed && 'justify-center px-0'
         )}
       >
         <NavItemIcon
           icon={item.icon}
           size={20}
-          className={cn('shrink-0 text-slate-400 transition-colors duration-200 group-hover:text-white', active && 'text-white')}
+          className={cn('shrink-0 transition-colors duration-200', isManagerProfile ? 'text-slate-400 group-hover:text-emerald-700' : 'text-slate-400 group-hover:text-white', active && 'text-white')}
         />
         {!isCollapsed && <span className="text-sm font-medium truncate">{item.label}</span>}
         {!isCollapsed && item.badge && <SellerBadge>{item.badge}</SellerBadge>}
@@ -422,17 +423,19 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
             <img src={MxLogo} alt="MX" className={cn('h-8 w-8 shrink-0 object-contain', isCollapsed && 'h-8 w-8')} />
             {!isCollapsed && (
               <div className="min-w-0">
-                <p className="truncate text-[12px] font-bold leading-tight text-white">MX PERFORMANCE</p>
+                <p className={cn('truncate text-[12px] font-bold leading-tight', isManagerProfile ? 'text-slate-800' : 'text-white')}>MX PERFORMANCE</p>
+                {isManagerProfile && <p className="mt-0.5 truncate text-[10px] font-semibold text-emerald-600">Módulo Gerencial</p>}
               </div>
             )}
           </div>
-          {canCollapse && (
+          {canCollapse && !isManagerProfile && (
             <button
               type="button"
               aria-label={isCollapsed ? 'Expandir sidebar' : 'Recolher sidebar'}
               onClick={() => setCollapsed((value) => !value)}
               className={cn(
-                'flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] border border-white/[0.06] bg-white/[0.03] text-[#E0EBEA] outline-none transition-all duration-200 hover:bg-[#00A89D]/10 hover:text-white focus-visible:ring-2 focus-visible:ring-[#00A89D]/45',
+                'flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] border outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#00A89D]/45',
+                isManagerProfile ? 'border-slate-200 bg-white text-slate-500 hover:bg-emerald-50 hover:text-emerald-700' : 'border-white/[0.06] bg-white/[0.03] text-[#E0EBEA] hover:bg-[#00A89D]/10 hover:text-white',
                 isCollapsed && 'h-9 w-9'
               )}
             >
@@ -443,8 +446,8 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
 
         <nav className="no-scrollbar mt-2 flex-1 space-y-1 overflow-y-auto pr-0.5" aria-label={sidebarLabel}>
           {mainSections.map((section, sectionIndex) => (
-            <section key={section.label} className={cn('space-y-1', sectionIndex > 0 && 'border-t border-white/[0.06] pt-1.5')} aria-label={section.label}>
-              {!isCollapsed && <p className="px-2.5 text-[10px] font-semibold uppercase text-[#E0EBEA]/50">{section.label}</p>}
+            <section key={section.label} className={cn('space-y-1', sectionIndex > 0 && (isManagerProfile ? 'border-t border-slate-200 pt-1.5' : 'border-t border-white/[0.06] pt-1.5'))} aria-label={section.label}>
+              {!isCollapsed && <p className={cn('px-2.5 text-[10px] font-semibold uppercase', isManagerProfile ? 'text-slate-400' : 'text-[#E0EBEA]/50')}>{section.label}</p>}
               <div className="space-y-0">{section.items.map((item) => renderNavItem(item, isCollapsed))}</div>
             </section>
           ))}
@@ -458,7 +461,12 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
         ))}
 
         <div className="mt-1.5">
-          {renderProfileCard(isCollapsed)}
+          {isManagerProfile && canCollapse ? (
+            <button type="button" onClick={() => setCollapsed(value => !value)} className={cn('flex h-11 w-full items-center rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-50 hover:text-slate-700', isCollapsed ? 'justify-center' : 'gap-3 px-3')}>
+              {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+              {!isCollapsed && <span>Recolher</span>}
+            </button>
+          ) : renderProfileCard(isCollapsed)}
         </div>
       </>
     )
@@ -494,7 +502,8 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
 
     <aside
       className={cn(
-          'fixed left-0 top-0 z-[80] hidden h-screen flex-col border-r border-white/10 bg-[#051923] transition-all duration-300 ease-in-out md:flex',
+          'fixed left-0 top-0 z-[80] hidden h-screen flex-col border-r transition-all duration-300 ease-in-out md:flex',
+          isManagerProfile ? 'border-slate-200 bg-white' : 'border-white/10 bg-[#051923]',
           collapsed ? 'w-[72px] px-3 py-4' : 'w-[260px] p-4'
         )}
         aria-label={sidebarLabel}

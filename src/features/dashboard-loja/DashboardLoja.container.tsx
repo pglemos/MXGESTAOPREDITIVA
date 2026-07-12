@@ -95,7 +95,7 @@ export function DashboardLoja() {
   }
 
   return (
-  <main className={`h-full w-full overflow-y-auto no-scrollbar ${isFocusedRolePerformance ? 'bg-seller-screen-bg' : 'bg-surface-alt p-mx-lg'}`} id="main-content">
+  <main className={`h-full w-full overflow-y-auto no-scrollbar ${isFocusedRolePerformance ? role === 'gerente' ? 'bg-surface-alt' : 'bg-seller-screen-bg' : 'bg-surface-alt p-mx-lg'}`} id="main-content">
       {isManagerSection ? (
         <div className="mb-mx-lg">
           <SellerPageHeader

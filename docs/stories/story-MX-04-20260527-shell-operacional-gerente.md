@@ -2,7 +2,7 @@
 
 ## Status
 
-Done
+Ready for Review
 
 ## Story
 
@@ -98,11 +98,13 @@ Esta story formaliza o shell operacional do gerente. A revisao visual ja registr
 ### Completion Notes
 
 - Gates de codigo passaram com a implementacao atual do cockpit gerencial.
-- A story permanece `InProgress` ate browser audit autenticado real.
+- O bloqueio antigo de browser audit autenticado foi removido pela validação real de 2026-07-12.
 - Incremento 2026-06-19 manteve o cockpit gerencial e substituiu o container de navegacao pelo sidebar visual novo.
+- 2026-07-12: Home reconstruída a partir de comparação autenticada Base44 × produção. Lint sem erros, 810 testes aprovados, typecheck/build aprovados e browser audit local autenticado em 1440x900 e 390x844 sem overflow ou erros de console. Ação `Abrir Meta da Loja` validada ponta a ponta.
 
 ### Change Log
 
+- 2026-07-12: Story reaberta após comparação autenticada direta com a Base44; a Home em produção divergia em tema, hierarquia, cards e ações. Iniciada reconstrução 1:1 da tela `Início` com dados reais e rotas canônicas.
 - 2026-05-27: Validacao tecnica do shell operacional do gerente e registro de gates.
 - 2026-06-19: Sidebar visual novo promovido para gerente; typecheck, lint, testes e build passaram.
 
