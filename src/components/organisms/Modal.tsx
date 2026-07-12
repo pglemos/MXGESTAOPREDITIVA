@@ -15,6 +15,7 @@ const modalSizeVariants = cva(
         lg: 'max-w-xl',
         xl: 'max-w-3xl',
         '2xl': 'max-w-5xl',
+        '3xl': 'max-w-[1280px]',
       },
     },
     defaultVariants: {
@@ -32,6 +33,7 @@ export interface ModalProps extends VariantProps<typeof modalSizeVariants> {
   showClose?: boolean
   footer?: ReactNode
   className?: string
+  closeOnEscape?: boolean
 }
 
 export function Modal({
@@ -44,12 +46,14 @@ export function Modal({
   showClose = true,
   footer,
   className,
+  closeOnEscape = true,
 }: ModalProps) {
   return (
     <Dialog.Root open={open} onOpenChange={(o) => { if (!o) onClose() }}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-mx-black/60 backdrop-blur-md z-[100]" />
         <Dialog.Content
+          onEscapeKeyDown={(event) => { if (!closeOnEscape) event.preventDefault() }}
           className={cn(
             'fixed left-mx-md right-mx-md top-mx-md bottom-mx-md sm:left-1/2 sm:right-auto sm:top-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 z-[101] focus:outline-none',
             modalSizeVariants({ size }),

@@ -82,6 +82,9 @@ describe('route access matrix', () => {
     expect(canAccessPath('/lancamento-diario', 'dono')).toBe(false)
     expect(canAccessPath('/historico', 'administrador_mx')).toBe(false)
     expect(canAccessPath('/lancamento-diario', 'administrador_mx')).toBe(false)
+    for (const role of ['vendedor', 'gerente', 'dono', 'administrador_mx', 'consultor_mx', 'administrador_geral'] as const) {
+      expect(canAccessPath('/fechamento-diario', role)).toBe(true)
+    }
     expect(canAccessPath('/relatorio-matinal', 'vendedor')).toBe(false)
     expect(canAccessPath('/relatorios/performance-vendedor?id=abc', 'vendedor')).toBe(false)
   })

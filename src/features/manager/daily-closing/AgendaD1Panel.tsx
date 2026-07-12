@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { addDays, format, parseISO } from 'date-fns'
-import { CalendarDays, Copy, MessageCircle, Phone } from 'lucide-react'
+import { CalendarClock, CalendarDays, Copy, Filter, MessageCircle, Phone, Search } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { toast } from '@/lib/toast'
 import { useAuth } from '@/hooks/useAuth'
@@ -50,14 +50,21 @@ export function AgendaD1Panel({ open, onClose, referenceDate, sellers, initialSe
   const d1Date = useMemo(() => format(addDays(parseISO(referenceDate), 1), 'yyyy-MM-dd'), [referenceDate])
   const [rows, setRows] = useState<AgendaD1Row[]>([])
   const [lastContactByCliente, setLastContactByCliente] = useState<Map<string, string>>(new Map())
+  const [lastStatusByCliente, setLastStatusByCliente] = useState<Map<string, string>>(new Map())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<AgendaD1Filters>({ ...AGENDA_D1_DEFAULT_FILTERS, sellerId: initialSellerId || 'all' })
+  const [confirmationStatus, setConfirmationStatus] = useState('all')
+  const [search, setSearch] = useState('')
   const [confirming, setConfirming] = useState<{ rowId: string; outcome: ConfirmationOutcome | ''; note: string } | null>(null)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    if (open) setFilters({ ...AGENDA_D1_DEFAULT_FILTERS, sellerId: initialSellerId || 'all' })
+    if (open) {
+      setFilters({ ...AGENDA_D1_DEFAULT_FILTERS, sellerId: initialSellerId || 'all' })
+      setConfirmationStatus('all')
+      setSearch('')
+    }
   }, [open, initialSellerId])
 
   const fetchAgenda = useCallback(async () => {
@@ -83,16 +90,22 @@ export function AgendaD1Panel({ open, onClose, referenceDate, sellers, initialSe
     if (clienteIds.length) {
       const { data: logs } = await supabase
         .from('d1_audit_log')
-        .select('cliente_id, created_at')
+        .select('cliente_id, created_at, tipo_alteracao, valor_novo')
         .in('cliente_id', clienteIds)
         .order('created_at', { ascending: false })
       const map = new Map<string, string>()
+      const statusMap = new Map<string, string>()
       for (const log of logs || []) {
-        if (log.cliente_id && !map.has(log.cliente_id)) map.set(log.cliente_id, log.created_at)
+        if (log.cliente_id && !map.has(log.cliente_id)) {
+          map.set(log.cliente_id, log.created_at)
+          statusMap.set(log.cliente_id, normalizeManagerConfirmationStatus(log.tipo_alteracao, log.valor_novo))
+        }
       }
       setLastContactByCliente(map)
+      setLastStatusByCliente(statusMap)
     } else {
       setLastContactByCliente(new Map())
+      setLastStatusByCliente(new Map())
     }
     setLoading(false)
   }, [storeId, open, d1Date])
@@ -100,7 +113,16 @@ export function AgendaD1Panel({ open, onClose, referenceDate, sellers, initialSe
   useEffect(() => { void fetchAgenda() }, [fetchAgenda])
 
   const sellerNameById = useMemo(() => new Map(sellers.map(seller => [seller.id, seller.name])), [sellers])
-  const visible = useMemo(() => filterAgenda(rows, filters), [rows, filters])
+  const visible = useMemo(() => {
+    const normalizedSearch = search.trim().toLocaleLowerCase('pt-BR')
+    return filterAgenda(rows, { ...filters, status: 'all', periodo: 'all' }).filter(row => {
+      const managerStatus = row.cliente ? (lastStatusByCliente.get(row.cliente.id) || 'Pendente') : 'Pendente'
+      if (confirmationStatus !== 'all' && managerStatus !== confirmationStatus) return false
+      if (!normalizedSearch) return true
+      return [row.cliente?.nome, row.oportunidade?.veiculo_interesse, format(parseISO(row.data_hora), 'HH:mm')]
+        .some(value => value?.toLocaleLowerCase('pt-BR').includes(normalizedSearch))
+    })
+  }, [rows, filters, search, confirmationStatus, lastStatusByCliente])
 
   const registerLog = useCallback(async (row: AgendaD1Row, tipoAlteracao: string, valorAnterior: string | null, valorNovo: string) => {
     if (!profile?.id) return { error: 'Sessão inválida.' }
@@ -115,6 +137,7 @@ export function AgendaD1Panel({ open, onClose, referenceDate, sellers, initialSe
     if (insertError) return { error: insertError.message }
     if (row.cliente?.id) {
       setLastContactByCliente(prev => new Map(prev).set(row.cliente!.id, new Date().toISOString()))
+      setLastStatusByCliente(prev => new Map(prev).set(row.cliente!.id, normalizeManagerConfirmationStatus(tipoAlteracao, valorNovo)))
     }
     return { error: null }
   }, [profile?.id, profile?.name])
@@ -203,31 +226,33 @@ export function AgendaD1Panel({ open, onClose, referenceDate, sellers, initialSe
   const filterSelectClass = 'h-mx-10'
 
   return (
-    <Modal open={open} onClose={onClose} size="xl" title="Agenda D+1" description={`Agendamentos de ${format(parseISO(d1Date), 'dd/MM/yyyy')} — origem: Carteira/CRM. Confirmações não alteram a agenda do vendedor.`}>
+    <Modal open={open} onClose={onClose} size="3xl" closeOnEscape={false} title="Agenda D+1" description="Clientes agendados para amanhã a partir dos fechamentos da equipe.">
       <div className="space-y-mx-md">
-        <div className="grid grid-cols-2 gap-mx-sm md:grid-cols-5" role="group" aria-label="Filtros da Agenda D+1">
-          <Select label="Vendedor" className={filterSelectClass} value={filters.sellerId} onChange={event => setFilters(prev => ({ ...prev, sellerId: event.target.value }))}>
-            <option value="all">Todos</option>
+        <div className="flex flex-col gap-mx-sm sm:flex-row sm:items-center sm:justify-between">
+          <div><Badge variant="warning">Agenda D+1 parcial</Badge><Typography variant="tiny" tone="muted" className="mt-1 block">Atualizada em tempo real até o encerramento da janela de ajuste.</Typography></div>
+          <Typography variant="p" tone="muted" className="inline-flex items-center gap-mx-xs"><CalendarClock size={17} />Data D+1: <strong className="text-text-primary">{format(parseISO(d1Date), 'dd/MM/yyyy')}</strong></Typography>
+        </div>
+        <div className="rounded-mx-xl bg-surface-alt p-mx-md" role="group" aria-label="Filtros da Agenda D+1">
+          <div className="mb-mx-sm flex items-center gap-mx-xs text-sm font-bold text-text-secondary"><Filter size={17} />Filtros</div>
+          <div className="grid grid-cols-1 gap-mx-sm md:grid-cols-2 xl:grid-cols-5">
+          <Select aria-label="Vendedor" className={filterSelectClass} value={filters.sellerId} onChange={event => setFilters(prev => ({ ...prev, sellerId: event.target.value }))}>
+            <option value="all">Vendedor</option>
             {sellers.map(seller => <option key={seller.id} value={seller.id}>{seller.name}</option>)}
           </Select>
-          <Select label="Canal" className={filterSelectClass} value={filters.canal} onChange={event => setFilters(prev => ({ ...prev, canal: event.target.value as AgendaD1Filters['canal'] }))}>
-            <option value="all">Todos</option>
+          <Select aria-label="Canal" className={filterSelectClass} value={filters.canal} onChange={event => setFilters(prev => ({ ...prev, canal: event.target.value as AgendaD1Filters['canal'] }))}>
+            <option value="all">Canal</option>
             {Object.entries(AGENDA_CANAL_LABEL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </Select>
-          <Select label="Tipo" className={filterSelectClass} value={filters.tipo} onChange={event => setFilters(prev => ({ ...prev, tipo: event.target.value as AgendaD1Filters['tipo'] }))}>
-            <option value="all">Todos</option>
-            {Object.entries(AGENDA_TIPO_LABEL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          <Select aria-label="Tipo de agendamento" className={filterSelectClass} value={filters.tipo} onChange={event => setFilters(prev => ({ ...prev, tipo: event.target.value as AgendaD1Filters['tipo'] }))}>
+            <option value="all">Tipo de agendamento</option>
+            {Object.entries(AGENDA_TIPO_LABEL).map(([value, label]) => <option key={value} value={value}>{label === 'Visita' ? 'Visita Presencial' : label}</option>)}
           </Select>
-          <Select label="Status" className={filterSelectClass} value={filters.status} onChange={event => setFilters(prev => ({ ...prev, status: event.target.value as AgendaD1Filters['status'] }))}>
-            <option value="all">Todos</option>
-            {Object.entries(AGENDA_STATUS_LABEL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          <Select aria-label="Status de confirmação" className={filterSelectClass} value={confirmationStatus} onChange={event => setConfirmationStatus(event.target.value)}>
+            <option value="all">Status de confirmação</option>
+            {['Pendente', 'WhatsApp aberto', 'Reforço enviado', 'Confirmado', 'Sem resposta', 'Solicitou reagendamento', 'Cancelou'].map(status => <option key={status} value={status}>{status}</option>)}
           </Select>
-          <Select label="Horário" className={filterSelectClass} value={filters.periodo} onChange={event => setFilters(prev => ({ ...prev, periodo: event.target.value as AgendaD1Filters['periodo'] }))}>
-            <option value="all">Todos</option>
-            <option value="manha">Manhã</option>
-            <option value="tarde">Tarde</option>
-            <option value="noite">Noite</option>
-          </Select>
+          <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" size={16} /><Input aria-label="Buscar agenda D+1" value={search} onChange={event => setSearch(event.target.value)} placeholder="Buscar (cliente, veículo, horário)..." className={`${filterSelectClass} pl-9`} /></div>
+          </div>
         </div>
         {error && (
           <div className="rounded-mx-md border border-status-error/30 bg-status-error-surface p-mx-md">
@@ -238,9 +263,9 @@ export function AgendaD1Panel({ open, onClose, referenceDate, sellers, initialSe
         {loading ? (
           <div className="space-y-mx-sm" aria-busy="true"><Skeleton className="h-mx-12" /><Skeleton className="h-mx-12" /><Skeleton className="h-mx-12" /></div>
         ) : visible.length === 0 ? (
-          <div className="p-mx-xl text-center">
-            <CalendarDays className="mx-auto text-text-tertiary" />
-            <Typography variant="p" tone="muted" className="mt-mx-sm">{rows.length === 0 ? 'Nenhum agendamento ativo para amanhã.' : 'Nenhum agendamento corresponde aos filtros.'}</Typography>
+          <div className="grid min-h-[220px] place-items-center p-mx-xl text-center">
+            <div><CalendarDays size={42} className="mx-auto text-border-default" />
+            <Typography variant="p" tone="muted" className="mt-mx-sm">{rows.length === 0 ? 'Nenhum cliente agendado para D+1.' : 'Nenhum agendamento corresponde aos filtros.'}</Typography></div>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -301,9 +326,16 @@ export function AgendaD1Panel({ open, onClose, referenceDate, sellers, initialSe
             </table>
           </div>
         )}
+        <Typography variant="tiny" tone="muted" className="block">A Carteira de Clientes permanece a base oficial. O gerente não altera o agendamento original: apenas confirma com o cliente e registra o status gerencial de confirmação.</Typography>
       </div>
     </Modal>
   )
 }
 
 function FragmentRow({ children }: { children: React.ReactNode }) { return <>{children}</> }
+
+function normalizeManagerConfirmationStatus(tipo: string | null, value: string | null) {
+  if (tipo === 'agenda_d1_whatsapp') return 'WhatsApp aberto'
+  if (!value) return 'Pendente'
+  return ['Confirmado', 'Sem resposta', 'Solicitou reagendamento', 'Cancelou'].find(status => value.startsWith(status)) || 'Reforço enviado'
+}

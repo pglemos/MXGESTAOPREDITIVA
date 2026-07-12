@@ -267,7 +267,9 @@ export default function App() {
             </Suspense>} />
             <Route path="minha-remuneracao" element={<RedirectWithSearch to="/home" />} />
                         <Route path="lancamento-diario" element={<RedirectWithSearch to="/terminal-mx" />} />
-                        <Route path="fechamento-diario" element={<RedirectWithSearch to="/terminal-mx" />} />
+                        <Route path="fechamento-diario" element={<Suspense fallback={<Spinner />}>
+              <RoleSwitch vendedor={<Checkin />} gerente={<ManagerDailyClosing />} dono={<ManagerDailyClosing />} admin={<ManagerDailyClosing />} />
+            </Suspense>} />
 <Route path="vendedor/terminal-mx" element={<Suspense fallback={<Spinner />}>
               <RoleSwitch vendedor={<Checkin />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
             </Suspense>} />
@@ -360,7 +362,7 @@ export default function App() {
             <Route path="vendedor/perfil" element={<RedirectWithSearch to="/perfil" />} />
 
             {/* Gerente */}
-            <Route path="gerente/fechamento-diario" element={<Suspense fallback={<Spinner />}><RoleSwitch vendedor={<ForbiddenRoute />} gerente={<ManagerDailyClosing />} dono={<ManagerDailyClosing />} admin={<ManagerDailyClosing />} /></Suspense>} />
+            <Route path="gerente/fechamento-diario" element={<RedirectWithSearch to="/fechamento-diario" />} />
             <Route path="gerente/rotina-equipe" element={<Suspense fallback={<Spinner />}><RoleSwitch vendedor={<ForbiddenRoute />} gerente={<ManagerTeamRoutine />} dono={<ForbiddenRoute />} admin={<ManagerTeamRoutine />} /></Suspense>} />
             <Route path="gerente/minha-equipe" element={<Suspense fallback={<Spinner />}><RoleSwitch vendedor={<ForbiddenRoute />} gerente={<DashboardLoja />} dono={<DashboardLoja />} admin={<DashboardLoja />} /></Suspense>} />
             <Route path="gerente/meta-loja" element={<Suspense fallback={<Spinner />}><RoleSwitch vendedor={<ForbiddenRoute />} gerente={<DashboardLoja />} dono={<DashboardLoja />} admin={<DashboardLoja />} /></Suspense>} />

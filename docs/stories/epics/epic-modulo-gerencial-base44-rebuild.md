@@ -24,6 +24,7 @@ Status: Ready for Review
 - `src/App.tsx`
 - `src/components/Layout.tsx`
 - `src/components/SellerSidebar.tsx`
+- `src/components/organisms/Modal.tsx`
 - `src/components/molecules/PageHeading.tsx`
 - `src/components/seller/SellerPageHeader.tsx`
 - `src/features/dashboard-loja/DashboardLoja.container.tsx`
@@ -45,6 +46,8 @@ Status: Ready for Review
 - `src/pages/ManagerDevelopment.tsx`
 - `src/pages/ManagerMentor.tsx`
 - `src/test/manager-module.playwright.ts`
+- `supabase/migrations/20260712201131_manager_lead_conferences.sql`
+- `supabase/migrations/20260712202902_manager_lead_conferences_manager_index.sql`
 - `package.json`
 - `package-lock.json`
 - `scripts/check_bundle_size.mjs`
@@ -58,8 +61,10 @@ Status: Ready for Review
 
 ## QA Results
 
+- 2026-07-12: Fechamento Diário reprovado pelo usuário após inspeção de produção: a tentativa `6b8d7784` não reproduzia a composição nem o fluxo de Conferência de Leads da referência atual. Story reaberta para nova captura autenticada, rota canônica por perfil e reconstrução funcional.
 - 2026-07-12: Fechamento Diário reaberto após comparação autenticada Base44 × produção; composição visual, filtros, histórico, comparativo e resumo por canal divergiam da referência.
 - 2026-07-12: Fechamento Diário reconstruído e validado localmente em 1440×900 e 390×844. Busca por vendedor, Agenda D+1, períodos 7/15/30 dias e ações de regularização preservadas; comparativos sem snapshot oficial não fabricam percentuais. PASS: lint, typecheck, build e 812 testes.
+- 2026-07-12: Nova inspeção autenticada e captura real Base44 × localhost corrigiu medidas que não eram verificáveis por código: sidebar 224 px, cabeçalho desktop 148 px, cards 163 px com gaps de 16 px, header mobile 48 px e Resumo mobile em grade 2×3 com ícones. Conferência de Leads e Histórico persistem por RPC transacional com RLS; nenhuma conferência fictícia foi gravada. PASS: lint (0 erros; 22 warnings preexistentes), typecheck, build e 815 testes. Capturas finais: desktop 1440×900, mobile 390×844 e viewport inferior rolado do contêiner interno.
 
 Execution evidence — 2026-07-12:
 

@@ -157,7 +157,7 @@ const navConfig: Record<string, NavCategory[]> = {
       category: 'MÓDULO GERENCIAL', icon: <Home size={22} />,
       items: [
         { label: 'Início', path: '/home', icon: <Home size={16} /> },
-        { label: 'Fechamento Diário', path: '/gerente/fechamento-diario', icon: <CheckSquare size={16} /> },
+        { label: 'Fechamento Diário', path: '/fechamento-diario', icon: <CheckSquare size={16} /> },
         { label: 'Rotina da Equipe', path: '/gerente/rotina-equipe', icon: <CalendarCheck size={16} /> },
         { label: 'Minha Equipe', path: '/gerente/minha-equipe', icon: <Users size={16} /> },
         { label: 'Meta da Loja', path: '/gerente/meta-loja', icon: <Target size={16} /> },
@@ -174,7 +174,7 @@ const navConfig: Record<string, NavCategory[]> = {
       category: 'OPERAÇÃO', icon: <Home size={22} />,
       items: [
         { label: 'Meu Dia', path: '/home', icon: <Home size={16} /> },
-        { label: 'Fechamento Diário', path: '/vendedor/terminal-mx', icon: <CheckSquare size={16} /> },
+        { label: 'Fechamento Diário', path: '/fechamento-diario', icon: <CheckSquare size={16} /> },
         { label: 'Central de Execução', path: '/central-execucao', icon: <CalendarCheck size={16} /> },
         { label: 'Carteira de Clientes', path: '/carteira-clientes', icon: <Users size={16} /> },
         { label: 'Funil de Vendas', path: '/meu-funil', icon: <Filter size={16} /> },

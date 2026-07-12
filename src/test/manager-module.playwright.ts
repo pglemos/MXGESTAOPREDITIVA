@@ -8,7 +8,7 @@ const credentials = {
 
 const routes = [
   { path: '/home', slug: 'inicio', heading: /Bom dia|Bom tarde|Bom noite/i, uniqueText: /da meta alcançada/i },
-  { path: '/gerente/fechamento-diario', slug: 'fechamento', heading: 'Fechamento Diário', uniqueText: /Movimento da Equipe/i },
+  { path: '/fechamento-diario', slug: 'fechamento', heading: 'Fechamento Diário', uniqueText: /Movimento da Equipe/i },
   { path: '/gerente/rotina-equipe', slug: 'rotina', heading: 'Rotina da Equipe', uniqueText: /Central de execução consolidada/i },
   { path: '/gerente/minha-equipe', slug: 'equipe', heading: /Equipe|Gestão de Equipe/i, uniqueText: /Performance da Equipe/i },
   { path: '/gerente/meta-loja', slug: 'meta', heading: /Meta|Metas/i, uniqueText: /Meta Mensal de Vendas/i },
@@ -44,7 +44,7 @@ test.describe('Módulo Gerencial canônico', () => {
     for (const viewport of viewports) {
       await page.setViewportSize({ width: viewport.width, height: viewport.height })
       for (const route of [
-        { path: '/gerente/fechamento-diario', heading: 'Fechamento Diário' },
+        { path: '/fechamento-diario', heading: 'Fechamento Diário' },
         { path: '/gerente/rotina-equipe', heading: 'Rotina da Equipe' },
       ]) {
         await page.goto(route.path)
@@ -75,7 +75,7 @@ test.describe('Módulo Gerencial canônico', () => {
   })
 
   test('mantém os fluxos funcionais centrais do contrato gerencial', async ({ page }) => {
-    await page.goto('/gerente/fechamento-diario')
+    await page.goto('/fechamento-diario')
     await page.getByRole('button', { name: 'Ver Agenda D+1' }).click()
     await expect(page.getByRole('heading', { name: 'Agenda D+1' })).toBeVisible({ timeout: 20000 })
     await page.keyboard.press('Escape')
