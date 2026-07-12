@@ -39,7 +39,6 @@ import { AgendaD1Panel } from "@/features/manager/daily-closing/AgendaD1Panel";
 import { LeadConferenceModal } from "@/features/manager/daily-closing/LeadConferenceModal";
 import {
   ManagerSectionCard,
-  ManagerStatusGauge,
 } from "@/features/manager/shared/ManagerVisualPrimitives";
 import type {
   CheckinCorrectionRequest,
@@ -634,6 +633,7 @@ function SummaryCard({
 }
 
 function DisciplineCard({ value }: { value: number }) {
+  const normalized = Math.max(0, Math.min(100, Math.round(value)));
   const label = classifyDiscipline(value)
     .split(" ")
     .map((word) => word.charAt(0).toLocaleUpperCase("pt-BR") + word.slice(1))
@@ -648,13 +648,20 @@ function DisciplineCard({ value }: { value: number }) {
           {label}
         </span>
       </div>
-      <div className="mx-auto mt-mx-xs scale-[1.2]">
-        <ManagerStatusGauge
-          value={value}
-          label={label}
-          showLabel={false}
-          ariaLabel="Disciplina média da equipe"
-        />
+      <div className="mx-auto mt-mx-xs">
+        <div
+          role="progressbar"
+          aria-label="Disciplina média da equipe"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={normalized}
+          className="grid h-24 w-24 place-items-center rounded-full p-2"
+          style={{ background: `conic-gradient(rgb(239 68 68) ${normalized * 3.6}deg, white 0deg)` }}
+        >
+          <div className="grid h-full w-full place-items-center rounded-full bg-red-100">
+            <strong className="text-2xl font-bold text-red-500">{normalized}%</strong>
+          </div>
+        </div>
       </div>
     </Card>
   );

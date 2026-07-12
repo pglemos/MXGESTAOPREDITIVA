@@ -426,7 +426,7 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
               : <img src={MxLogo} alt="MX" className={cn('h-8 w-8 shrink-0 object-contain', isCollapsed && 'h-8 w-8')} />}
             {!isCollapsed && (
               <div className="min-w-0">
-                <p className={cn('truncate text-[12px] font-bold leading-tight', isManagerProfile ? 'text-slate-800' : 'text-white')}>MX PERFORMANCE</p>
+                <p className={cn('truncate text-[12px] font-bold leading-tight', isManagerProfile ? 'text-slate-800' : 'text-white')}>{isManagerProfile ? 'MX Performance' : 'MX PERFORMANCE'}</p>
                 {isManagerProfile && <p className="mt-0.5 truncate text-[10px] font-semibold text-emerald-600">Módulo Gerencial</p>}
               </div>
             )}
