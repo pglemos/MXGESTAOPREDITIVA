@@ -60,7 +60,7 @@ export function ManagerMetricCard({
   )
 }
 
-export function ManagerStatusGauge({ value, label, ariaLabel }: { value: number; label: string; ariaLabel: string }) {
+export function ManagerStatusGauge({ value, label, ariaLabel, showLabel = true }: { value: number; label: string; ariaLabel: string; showLabel?: boolean }) {
   const normalized = Math.max(0, Math.min(100, Math.round(value)))
   return (
     <div
@@ -74,7 +74,7 @@ export function ManagerStatusGauge({ value, label, ariaLabel }: { value: number;
     >
       <div className="grid h-mx-14 w-mx-14 place-items-center rounded-full bg-white text-center">
         <strong className="text-base leading-none text-text-primary">{normalized}%</strong>
-        <span className="max-w-mx-12 text-[9px] font-semibold leading-tight text-text-secondary">{label}</span>
+        {showLabel && <span className="max-w-mx-12 text-[9px] font-semibold leading-tight text-text-secondary">{label}</span>}
       </div>
     </div>
   )

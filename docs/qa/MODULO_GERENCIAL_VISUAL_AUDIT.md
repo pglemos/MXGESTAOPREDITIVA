@@ -17,7 +17,7 @@ Cada captura exige reload e conteúdo exclusivo da página; header, sidebar, ske
 | Página | Desktop/notebook | Tablet/mobile | Hierarquia e tokens | Ações/dados | Resultado |
 |---|---|---|---|---|---|
 | Início | hero, meta, ritmo, prioridades e equipe | composição escura empilhada sem clipping | aprovado | dados reais e CTAs canônicos | aprovado |
-| Fechamento Diário | sidebar, cards e tabela sem sobreposição | cards empilhados e tabela com scroll controlado | aprovado | Agenda D+1, cobrança, regularização e correção auditável | aprovado |
+| Fechamento Diário | **REABERTO:** largura, hierarquia, gráfico e densidade divergiam do Base44 | pendente de nova recaptura após remediação | **em remediação** | cobrança não possuía a confirmação exigida pela referência; Agenda e modais tinham dimensões/overlay divergentes | **reprovado em 2026-07-12** |
 | Rotina da Equipe | cards, tabela e ações sem clipping | título e navegação mobile corrigidos | aprovado | detalhe do vendedor e cobrança sobre Central de Execução | aprovado |
 | Minha Equipe | cards de performance e busca | card 1:1 e CTA de perfil legível | aprovado | perfil em cinco abas | aprovado |
 | Meta, Mentor e Ranking | grid e densidade consistentes | controles empilhados sem perder ações | aprovado | regras/fontes oficiais MX | aprovado |
@@ -25,6 +25,8 @@ Cada captura exige reload e conteúdo exclusivo da página; header, sidebar, ske
 | Universidade MX | tabs, controles e conteúdo separados | tabs e busca sem card gigante/clipping | aprovado | equipe, matriz e trilha; nenhum `NaN` | aprovado |
 
 ## Correções aplicadas durante a auditoria
+
+- A aprovação anterior do Fechamento Diário foi invalidada após revisão do usuário com cinco capturas autenticadas. Medir um card isolado não comprova paridade da tela; o gate agora exige página completa e os estados Agenda D+1, Cobrança, Conferência de Leads e Histórico no mesmo viewport da referência.
 
 - Capturas inicialmente feitas durante o fallback foram rejeitadas e recapturadas após esperar o heading real.
 - Título mobile alterado de “Rotina do Dia” para “Rotina da Equipe”.
