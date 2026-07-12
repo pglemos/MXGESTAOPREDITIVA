@@ -61,6 +61,7 @@ Status: Ready for Review
 
 ## QA Results
 
+- 2026-07-12: Paridade reaberta pelo usuário para reconstrução incremental, card a card. Primeiro recorte (`Agendamentos` / `Ver Agenda D+1`) medido em navegador autenticado Base44 × produção: referência com card `284×164`, raio `16px`, botão `258×30`, raio `8px`, peso `500` e ícone; produção anterior com `284×163`, raio `12px`, botão `258×32`, raio `16px`, peso `600` e sem ícone. Componente ajustado aos valores observados. PASS: lint, typecheck, build e 815 testes. Evidência local: `output/playwright/base44-fechamento-desktop-full.png`, `output/playwright/producao-fechamento-desktop-full.png`, `output/playwright/base44-agenda-d1.png` e `output/playwright/producao-agenda-d1.png`.
 - 2026-07-12: Fechamento Diário reprovado pelo usuário após inspeção de produção: a tentativa `6b8d7784` não reproduzia a composição nem o fluxo de Conferência de Leads da referência atual. Story reaberta para nova captura autenticada, rota canônica por perfil e reconstrução funcional.
 - 2026-07-12: Fechamento Diário reaberto após comparação autenticada Base44 × produção; composição visual, filtros, histórico, comparativo e resumo por canal divergiam da referência.
 - 2026-07-12: Fechamento Diário reconstruído e validado localmente em 1440×900 e 390×844. Busca por vendedor, Agenda D+1, períodos 7/15/30 dias e ações de regularização preservadas; comparativos sem snapshot oficial não fabricam percentuais. PASS: lint, typecheck, build e 812 testes.
