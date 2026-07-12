@@ -50,3 +50,4 @@ tmp/
 
 # Tool session artifacts
 .zcode/
+.audit-snapshots/

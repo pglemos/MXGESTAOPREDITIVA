@@ -154,31 +154,17 @@ const navConfig: Record<string, NavCategory[]> = {
   ],
   gerente: [
     {
-      category: 'COMERCIAL', icon: <Home size={22} />,
+      category: 'MÓDULO GERENCIAL', icon: <Home size={22} />,
       items: [
-        // Cada item tem icone unico dentro do papel para identificacao intuitiva
-        { label: 'Home', path: '/home', icon: <Home size={16} /> },
-        { label: 'Equipe', path: STORE_TEAM_PATH, icon: <Users size={16} /> },
-        { label: 'Agenda', path: '/rotina', icon: <CalendarDays size={16} /> },
-        { label: 'Funil de Vendas', path: '/funil-vendas', icon: <Filter size={16} /> },
-        { label: 'Negociações', path: '/relatorios/performance-vendedor', icon: <Handshake size={16} /> },
-        { label: 'Metas', path: '/metas', icon: <Target size={16} /> },
-        { label: 'Relatórios', path: '/relatorio-matinal', icon: <FileBarChart size={16} /> },
-      ]
-    },
-    {
-      category: 'PESSOAS', icon: <Users size={22} />,
-      items: [
-        { label: 'Feedbacks', path: '/devolutivas', icon: <MessageSquare size={16} /> },
-        { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
-      ]
-    },
-    {
-      category: 'FERRAMENTAS', icon: <BriefcaseBusiness size={22} />,
-      items: [
-        { label: 'Universidade MX', path: '/treinamentos', icon: <GraduationCap size={16} /> },
-        { label: 'Biblioteca', path: '/produtos', icon: <Library size={16} /> },
-        { label: 'Consultor MX IA', path: STORE_CONSULTOR_IA_PATH, icon: <Bot size={16} /> },
+        { label: 'Início', path: '/home', icon: <Home size={16} /> },
+        { label: 'Fechamento Diário', path: '/gerente/fechamento-diario', icon: <CheckSquare size={16} /> },
+        { label: 'Rotina da Equipe', path: '/gerente/rotina-equipe', icon: <CalendarCheck size={16} /> },
+        { label: 'Minha Equipe', path: '/gerente/minha-equipe', icon: <Users size={16} /> },
+        { label: 'Meta da Loja', path: '/gerente/meta-loja', icon: <Target size={16} /> },
+        { label: 'Mentor Gerencial', path: '/gerente/mentor', icon: <Bot size={16} /> },
+        { label: 'Feedbacks e PDIs', path: '/gerente/feedbacks-pdis', icon: <MessageSquare size={16} /> },
+        { label: 'Ranking', path: '/gerente/ranking', icon: <Trophy size={16} /> },
+        { label: 'Universidade MX', path: '/gerente/universidade-mx', icon: <GraduationCap size={16} /> },
       ]
     }
   ],

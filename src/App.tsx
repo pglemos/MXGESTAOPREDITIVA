@@ -46,6 +46,10 @@ const GerentePDI = lazy(() => import('@/pages/GerentePDI'))
 const PDIPrint = lazy(() => import('@/pages/PDIPrint'))
 const GerenteTreinamentos = lazy(() => import('@/pages/GerenteTreinamentos'))
 const RotinaGerente = lazy(() => import('@/pages/RotinaGerente'))
+const ManagerDevelopment = lazy(() => import('@/pages/ManagerDevelopment'))
+const ManagerMentor = lazy(() => import('@/pages/ManagerMentor'))
+const ManagerDailyClosing = lazy(() => import('@/features/manager/daily-closing/ManagerDailyClosing.container'))
+const ManagerTeamRoutine = lazy(() => import('@/features/manager/team-routine/ManagerTeamRoutine.container'))
 
 // Admin
 const PainelConsultor = lazy(() => import('@/pages/PainelConsultor'))
@@ -207,7 +211,7 @@ function TeamAliasRedirect() {
   const { role, membership } = useAuth()
   if (isPerfilInternoMx(role) || role === 'dono') return <Navigate to="/lojas" replace />
   if (role === 'gerente' && membership?.store?.name) {
-    return <Navigate to={`/lojas/${slugify(membership.store.name)}?tab=equipe`} replace />
+    return <RedirectWithSearch to="/gerente/minha-equipe" />
   }
   return <ForbiddenRoute />
 }
@@ -356,6 +360,14 @@ export default function App() {
             <Route path="vendedor/perfil" element={<RedirectWithSearch to="/perfil" />} />
 
             {/* Gerente */}
+            <Route path="gerente/fechamento-diario" element={<Suspense fallback={<Spinner />}><RoleSwitch vendedor={<ForbiddenRoute />} gerente={<ManagerDailyClosing />} dono={<ManagerDailyClosing />} admin={<ManagerDailyClosing />} /></Suspense>} />
+            <Route path="gerente/rotina-equipe" element={<Suspense fallback={<Spinner />}><RoleSwitch vendedor={<ForbiddenRoute />} gerente={<ManagerTeamRoutine />} dono={<ForbiddenRoute />} admin={<ManagerTeamRoutine />} /></Suspense>} />
+            <Route path="gerente/minha-equipe" element={<Suspense fallback={<Spinner />}><RoleSwitch vendedor={<ForbiddenRoute />} gerente={<DashboardLoja />} dono={<DashboardLoja />} admin={<DashboardLoja />} /></Suspense>} />
+            <Route path="gerente/meta-loja" element={<Suspense fallback={<Spinner />}><RoleSwitch vendedor={<ForbiddenRoute />} gerente={<DashboardLoja />} dono={<DashboardLoja />} admin={<DashboardLoja />} /></Suspense>} />
+            <Route path="gerente/mentor" element={<Suspense fallback={<Spinner />}><RoleSwitch vendedor={<ForbiddenRoute />} gerente={<ManagerMentor />} dono={<ManagerMentor />} admin={<ManagerMentor />} /></Suspense>} />
+            <Route path="gerente/feedbacks-pdis" element={<Suspense fallback={<Spinner />}><RoleSwitch vendedor={<ForbiddenRoute />} gerente={<ManagerDevelopment />} dono={<ManagerDevelopment />} admin={<ManagerDevelopment />} /></Suspense>} />
+            <Route path="gerente/ranking" element={<Suspense fallback={<Spinner />}><Ranking /></Suspense>} />
+            <Route path="gerente/universidade-mx" element={<Suspense fallback={<Spinner />}><RoleSwitch vendedor={<ForbiddenRoute />} gerente={<GerenteTreinamentos />} dono={<GerenteTreinamentos />} admin={<ConsultorTreinamentos />} /></Suspense>} />
             <Route path="lojas/:storeSlug/consultor-ia" element={<Suspense fallback={<Spinner />}>
               <StoreConsultorIa />
             </Suspense>} />

@@ -129,13 +129,13 @@ export function StoreGoalsPanel({ storeId, storeName }: StoreGoalsPanelProps) {
   }
 
   return (
-    <section className="space-y-mx-lg pb-24 md:pb-32" aria-label="Metas da loja">
-      <header className="flex flex-col xl:flex-row xl:items-center justify-between gap-mx-md bg-white border border-border-default rounded-mx-3xl p-mx-lg md:p-mx-xl shadow-mx-sm">
-        <div className="min-w-0">
-          <Typography variant="tiny" tone="brand" className="font-black uppercase tracking-widest opacity-60 text-mx-tiny">Aba de Metas</Typography>
-          <Typography variant="h2" className="uppercase tracking-tight truncate text-xl md:text-2xl">{storeName || 'Unidade MX'}</Typography>
-          <Typography variant="p" tone="muted" className="mt-mx-xs max-w-2xl text-sm">Meta mensal, objetivo nominal de sell-out e benchmarks oficiais da unidade.</Typography>
-        </div>
+    <section className="pb-24 md:pb-32" aria-label="Metas da loja">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <header className="mb-5 flex flex-col gap-mx-sm border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <Typography variant="tiny" tone="muted" className="font-bold uppercase tracking-wider">Status da meta</Typography>
+            <Typography variant="p" tone="muted" className="mt-1 text-sm">Meta mensal e benchmarks oficiais de {storeName || 'Unidade MX'}.</Typography>
+          </div>
         {canManageGoals ? (
           <div className="grid w-full grid-cols-2 gap-mx-xs sm:flex sm:w-auto sm:items-center sm:gap-mx-sm">
             <Button
@@ -157,25 +157,17 @@ export function StoreGoalsPanel({ storeId, storeName }: StoreGoalsPanelProps) {
             </Button>
           </div>
         ) : (
-          <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">Somente Admin Master e Admin MX editam</Typography>
+          <Typography variant="caption" tone="muted" className="font-bold uppercase tracking-wider">Somente leitura</Typography>
         )}
-      </header>
+        </header>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg">
-        <section className="xl:col-span-7 bg-white border border-border-default rounded-mx-3xl p-mx-lg md:p-mx-xl shadow-mx-lg">
-          <div>
-            <header className="flex items-center gap-mx-sm mb-mx-lg border-b border-border-default pb-mx-md md:mb-10 md:pb-8">
-              <div className="w-mx-xl h-mx-xl rounded-mx-2xl bg-brand-secondary text-white flex items-center justify-center shadow-mx-lg md:h-mx-2xl md:w-mx-2xl">
-                <Target size={28} className="text-brand-primary/80 md:size-8" />
-              </div>
-              <div className="min-w-0">
-                <Typography variant="h2" className="text-lg md:text-2xl">Meta Mensal de Vendas</Typography>
-                <Typography variant="p" tone="muted" className="text-sm">Objetivo nominal de sell-out por unidade</Typography>
-              </div>
-            </header>
-
-            <div className="grid grid-cols-1 gap-mx-md items-stretch lg:grid-cols-2 lg:gap-mx-lg">
-              <div className="min-w-0 rounded-mx-2xl border border-border-default bg-surface-alt p-mx-md shadow-inner md:p-mx-lg">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]">
+          <div className="flex min-w-0 items-center gap-4 rounded-xl bg-slate-50 p-4 sm:p-5">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-teal-400">
+              <Target size={24} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <Typography variant="tiny" tone="muted" className="font-bold uppercase tracking-wider">Meta mensal de vendas</Typography>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -187,47 +179,30 @@ export function StoreGoalsPanel({ storeId, storeName }: StoreGoalsPanelProps) {
                   }}
                   disabled={!canManageGoals}
                   aria-label="Meta mensal de vendas"
-                  className="w-full bg-transparent px-mx-sm pb-mx-sm pt-mx-xs text-center font-mono-numbers text-5xl font-black leading-none tracking-normal text-text-primary transition-all focus:outline-none disabled:opacity-60 sm:text-6xl lg:text-7xl"
+                  className="mt-1 w-full bg-transparent text-left font-mono-numbers text-3xl font-black leading-none text-slate-900 focus:outline-none disabled:opacity-100 sm:text-4xl"
                 />
-                <Typography variant="caption" tone="muted" className="block text-center font-black uppercase tracking-mx-wider">Unidades comerciais</Typography>
-              </div>
-              <div className="bg-brand-primary p-mx-lg text-white rounded-mx-2xl shadow-mx-lg flex flex-col justify-center items-center text-center border border-brand-primary/10 min-h-36 md:min-h-48">
-                <TrendingUp size={36} className="mb-mx-md opacity-40" />
-                <Typography variant="p" tone="white" className="max-w-xs text-sm font-black italic uppercase leading-relaxed opacity-90">Metas agressivas, porém pautadas no histórico.</Typography>
-              </div>
+              <Typography variant="caption" tone="muted">unidades comerciais</Typography>
             </div>
           </div>
-        </section>
 
-        <aside className="xl:col-span-5 bg-white border border-border-default rounded-mx-3xl p-mx-lg md:p-mx-xl shadow-mx-lg">
-          <header className="flex items-center gap-mx-sm mb-mx-lg border-b border-border-default pb-mx-md md:mb-10 md:pb-8">
-            <div className="w-mx-xl h-mx-xl rounded-mx-2xl bg-brand-primary/10 text-brand-primary flex items-center justify-center border border-brand-primary/20 shadow-inner md:h-mx-2xl md:w-mx-2xl">
-              <Zap size={28} />
-            </div>
-            <div className="min-w-0">
-              <Typography variant="h2" className="text-lg md:text-2xl">Matriz de Benchmarks (20/60/33)</Typography>
-              <Typography variant="p" tone="muted" className="text-sm">Taxas de conversão oficiais para auditoria forense</Typography>
-            </div>
-          </header>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-1 gap-mx-md">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {[
               { label: 'Lead -> Agd', field: 'lead_to_agend' as const, icon: Users, tone: 'brand' },
               { label: 'Agd -> Visita', field: 'agend_to_visit' as const, icon: Calendar, tone: 'warning' },
               { label: 'Visita -> Vnd', field: 'visit_to_sale' as const, icon: TrendingUp, tone: 'success' },
             ].map((benchmark) => (
-              <div key={benchmark.field} className="p-mx-md bg-surface-alt border border-border-default rounded-mx-2xl group/item hover:bg-white hover:shadow-mx-lg transition-all shadow-inner md:p-mx-lg">
-                <div className="flex items-center justify-between gap-mx-md">
+              <div key={benchmark.field} className="rounded-xl bg-slate-50 p-4">
+                <div className="flex items-center gap-3">
                   <div className={cn(
-                    'w-mx-10 h-mx-10 rounded-mx-xl border flex items-center justify-center shadow-mx-sm shrink-0 md:h-mx-12 md:w-mx-12',
+                    'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg',
                     benchmark.tone === 'brand' ? 'bg-mx-indigo-50 border-mx-indigo-100 text-brand-primary' :
                       benchmark.tone === 'success' ? 'bg-status-success-surface border-mx-emerald-100 text-status-success' :
                         'bg-status-warning-surface border-mx-amber-100 text-status-warning'
                   )}>
-                    <benchmark.icon size={22} strokeWidth={2} />
+                    <benchmark.icon size={18} strokeWidth={2} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <Typography variant="caption" tone="muted" className="mb-2 block font-black tracking-widest">{benchmark.label}</Typography>
+                    <Typography variant="tiny" tone="muted" className="block font-bold uppercase tracking-wide">{benchmark.label}</Typography>
                     <div className="flex items-baseline gap-mx-xs">
                       <input
                         type="text"
@@ -236,7 +211,7 @@ export function StoreGoalsPanel({ storeId, storeName }: StoreGoalsPanelProps) {
                         onChange={(event) => updateBenchmark(benchmark.field, event.target.value)}
                         disabled={!canManageGoals}
                         aria-label={`Benchmark ${benchmark.label}`}
-                        className="w-mx-20 bg-transparent font-mono-numbers text-3xl font-black tracking-normal text-text-primary transition-all focus:outline-none disabled:opacity-60 md:w-mx-3xl md:text-4xl"
+                        className="w-mx-20 bg-transparent font-mono-numbers text-2xl font-black text-slate-900 outline-none disabled:opacity-100"
                       />
                       <Typography variant="h1" tone="muted" className="text-2xl">%</Typography>
                     </div>
@@ -245,7 +220,7 @@ export function StoreGoalsPanel({ storeId, storeName }: StoreGoalsPanelProps) {
               </div>
             ))}
           </div>
-        </aside>
+        </div>
       </div>
     </section>
   )

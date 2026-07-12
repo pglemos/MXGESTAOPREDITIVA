@@ -18,7 +18,7 @@ import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Avatar } from '@/components/atoms/Avatar'
 import { Card } from '@/components/molecules/Card'
-import { PageHeading } from '@/components/molecules/PageHeading'
+import { SellerPageHeader } from '@/components/seller/SellerPageHeader'
 import { WizardPDI } from '@/features/pdi/WizardPDI'
 
 const statusCfg = {
@@ -99,9 +99,10 @@ export default function GerentePDI() {
 
     return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt" id="main-content">
-            <PageHeading
-                title={<>{isOwner ? 'PDI da ' : 'Evolução do '}<span className="text-brand-primary">{isOwner ? 'Rede' : 'Vendedor'}</span></>}
-                subtitle={isOwner ? 'ACOMPANHAMENTO EXECUTIVO DOS PLANOS DE DESENVOLVIMENTO' : 'PERSONAL DEVELOPMENT PLAN (PDI) • ACADEMY MX'}
+            <SellerPageHeader
+                icon={TrendingUp}
+                title={isOwner ? 'PDI da Rede' : 'Evolução do Vendedor'}
+                subtitle={isOwner ? 'Acompanhamento executivo dos planos de desenvolvimento' : 'Planos de desenvolvimento da equipe'}
                 actions={(
                     <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full sm:w-auto">
                         <div className="relative group w-full sm:w-mx-sidebar-expanded">

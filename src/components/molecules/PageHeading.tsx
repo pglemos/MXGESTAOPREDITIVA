@@ -17,15 +17,15 @@ type PageHeadingProps = {
  */
 export function PageHeading({ title, subtitle, actions, breadcrumb }: PageHeadingProps) {
   return (
-    <header className="flex min-w-0 shrink-0 flex-col justify-between gap-mx-md border-b border-border-default pb-mx-lg lg:flex-row lg:items-start">
+    <header className="flex min-w-0 shrink-0 flex-col justify-between gap-mx-sm border-b border-border-default pb-mx-md sm:gap-mx-md sm:pb-mx-lg lg:flex-row lg:items-start">
       <div className="flex min-w-0 flex-col gap-mx-tiny text-center lg:text-left">
         {breadcrumb && <div className="mb-mx-xs">{breadcrumb}</div>}
         <div className="flex min-w-0 items-center justify-center gap-mx-sm lg:justify-start">
-          <div className="h-mx-10 w-mx-xs shrink-0 rounded-mx-full bg-brand-primary shadow-mx-md" aria-hidden="true" />
-          <Typography variant="h1" className="min-w-0 break-words text-3xl leading-tight md:text-[2rem] xl:text-4xl">{title}</Typography>
+          <div className="h-mx-8 w-mx-xs shrink-0 rounded-mx-full bg-brand-primary shadow-mx-md sm:h-mx-10" aria-hidden="true" />
+          <Typography variant="h1" className="min-w-0 break-words text-2xl leading-tight sm:text-3xl md:text-[2rem] xl:text-4xl">{title}</Typography>
         </div>
         {subtitle && (
-          <Typography variant="caption" className="pl-mx-md text-[12px] font-black uppercase leading-tight tracking-normal text-text-label xl:whitespace-nowrap">
+          <Typography variant="caption" className="px-mx-xs text-[11px] font-bold uppercase leading-snug tracking-normal text-text-label sm:pl-mx-md sm:text-[12px] sm:font-black xl:whitespace-nowrap">
             {subtitle}
           </Typography>
         )}

@@ -13,7 +13,7 @@ import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Avatar } from '@/components/atoms/Avatar'
 import { Card, CardHeader } from '@/components/molecules/Card'
-import { PageHeading } from '@/components/molecules/PageHeading'
+import { SellerPageHeader } from '@/components/seller/SellerPageHeader'
 import { toast } from '@/lib/toast'
 import { useAuth } from '@/hooks/useAuth'
 import { AulasAoVivoSection } from '@/features/universidade/sections/AulasAoVivoSection'
@@ -26,13 +26,13 @@ export default function GerenteTreinamentos() {
     const trainingTabs = useMemo(() => (
         isOwner
             ? [
-                { key: 'matriz' as const, label: 'Matriz da Equipe', icon: LayoutDashboard },
-                { key: 'meus' as const, label: 'Minha Trilha', icon: Target },
+                { key: 'matriz' as const, label: 'Matriz da Equipe', mobileLabel: 'Matriz', icon: LayoutDashboard },
+                { key: 'meus' as const, label: 'Minha Trilha', mobileLabel: 'Trilha', icon: Target },
             ]
             : [
                 { key: 'equipe' as const, label: 'Equipe', icon: Users },
-                { key: 'matriz' as const, label: 'Matriz da Equipe', icon: LayoutDashboard },
-                { key: 'meus' as const, label: 'Minha Trilha', icon: Target },
+                { key: 'matriz' as const, label: 'Matriz da Equipe', mobileLabel: 'Matriz', icon: LayoutDashboard },
+                { key: 'meus' as const, label: 'Minha Trilha', mobileLabel: 'Trilha', icon: Target },
             ]
     ), [isOwner])
     const [searchTerm, setSearchTerm] = useState('')
@@ -193,17 +193,20 @@ export default function GerenteTreinamentos() {
     return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
-            <PageHeading
-                title={<>{isOwner ? 'Treinamentos da Rede' : 'Desenvolvimento '}<span className="text-brand-primary">{isOwner ? 'MX' : 'Gerencial'}</span></>}
-                subtitle={isOwner ? 'ACOMPANHE ABSORÇÃO E CURADORIA; EXECUÇÃO FICA COM O GERENTE' : 'Biblioteca, PDI, devolutivas e absorção MX'}
+            <SellerPageHeader
+                icon={GraduationCap}
+                title={isOwner ? 'Treinamentos da Rede' : 'Universidade MX'}
+                subtitle={isOwner ? 'Absorção e curadoria da rede' : 'Desenvolvimento gerencial e acompanhamento da equipe'}
                 actions={(
-                    <div className="flex flex-col sm:flex-row items-center gap-mx-sm shrink-0 w-full xl:w-auto max-w-full">
                         <TabNavPill
                             tabs={trainingTabs}
                             activeTab={tab}
                             onTabChange={setTab}
                         />
-                        <div className="flex items-center gap-mx-sm w-full sm:w-auto">
+                )}
+            />
+
+            <div className="flex items-center gap-mx-sm w-full sm:w-auto sm:self-end">
                             <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar" className="rounded-mx-xl shadow-mx-sm h-mx-xl w-mx-xl bg-white border-border-subtle hover:bg-surface-alt">
                                 <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
                             </Button>
@@ -216,9 +219,6 @@ export default function GerenteTreinamentos() {
                                 />
                             </div>
                         </div>
-                    </div>
-                )}
-            />
 
             <div className="flex-1 min-h-0 pb-32" aria-live="polite">
                 {!isOwner && (
@@ -400,7 +400,9 @@ export default function GerenteTreinamentos() {
                         </motion.div>
                     ) : (
                         <motion.div key="equipe" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-mx-lg">
-                            {filteredTeam.map((p, i) => (
+                            {filteredTeam.map((p, i) => {
+                                const progressPct = treinamentos.length > 0 ? Math.round((p.watched.length / treinamentos.length) * 100) : 0
+                                return (
                                 <motion.article key={p.seller_id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }}>
                                     <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm group hover:shadow-mx-xl transition-all relative overflow-hidden flex flex-col items-center text-center">
                                         <div className="absolute top-mx-0 right-mx-0 w-mx-32 h-mx-32 bg-brand-primary/5 rounded-mx-full blur-2xl -mr-16 -mt-16" />
@@ -416,10 +418,10 @@ export default function GerenteTreinamentos() {
                                             <div className="space-y-mx-sm mb-8">
                                                 <div className="flex justify-between items-end px-2">
                                                     <Typography variant="tiny" className="font-black text-text-label uppercase">Conclusão</Typography>
-                                                    <Typography variant="mono" tone="brand" className="text-sm font-black">{Math.round((p.watched.length / treinamentos.length) * 100)}%</Typography>
+                                                    <Typography variant="mono" tone="brand" className="text-sm font-black">{progressPct}%</Typography>
                                                 </div>
                                                 <div className="h-mx-xs w-full bg-surface-alt rounded-mx-full overflow-hidden border border-border-subtle p-mx-px">
-                                                    <motion.div initial={{ width: 0 }} animate={{ width: `${(p.watched.length / treinamentos.length) * 100}%` }} className="h-full bg-brand-primary rounded-mx-full" />
+                                                    <motion.div initial={{ width: 0 }} animate={{ width: `${progressPct}%` }} className="h-full bg-brand-primary rounded-mx-full" />
                                                 </div>
                                             </div>
 
@@ -450,7 +452,8 @@ export default function GerenteTreinamentos() {
                                         </div>
                                     </Card>
                                 </motion.article>
-                            ))}
+                                )
+                            })}
                         </motion.div>
                     )}
                 </AnimatePresence>

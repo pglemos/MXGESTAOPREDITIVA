@@ -239,7 +239,14 @@ setMobileOpen(false)
 void onSignOut()
 }
 
-const mobileNavItems: SellerLayoutNavItem[] = [
+const isManagerProfile = profileRoleLabel?.toLowerCase().includes('gerente')
+const mobileNavItems: SellerLayoutNavItem[] = isManagerProfile ? [
+  { label: 'Início', path: '/home', icon: Home },
+  { label: 'Fechamento', path: '/gerente/fechamento-diario', icon: CalendarCheck },
+  { label: 'Rotina', path: '/gerente/rotina-equipe', icon: Target },
+  { label: 'Equipe', path: '/gerente/minha-equipe', icon: Users },
+  { label: 'Meta', path: '/gerente/meta-loja', icon: Filter },
+] : [
   { label: 'Início', path: '/home', icon: Home, activePaths: ['/home', '/meu-dia'] },
   { label: 'Fechamento', path: '/terminal-mx', icon: CalendarCheck, activePaths: ['/terminal-mx', '/vendedor/terminal-mx', '/lancamento-diario', '/fechamento-diario'] },
   { label: 'Rotina', path: '/central-execucao', icon: Target, activePaths: ['/central-execucao', '/central-de-execucao'] },
@@ -248,6 +255,13 @@ const mobileNavItems: SellerLayoutNavItem[] = [
 ]
 
 const getMobileTitle = (pathname: string) => {
+  if (pathname === '/gerente/rotina-equipe') return 'Rotina da Equipe'
+  if (pathname === '/gerente/minha-equipe') return 'Minha Equipe'
+  if (pathname === '/gerente/meta-loja') return 'Meta da Loja'
+  if (pathname === '/gerente/mentor') return 'Mentor Gerencial'
+  if (pathname === '/gerente/feedbacks-pdis') return 'Feedbacks e PDIs'
+  if (pathname === '/gerente/ranking') return 'Ranking'
+  if (pathname === '/gerente/universidade-mx') return 'Universidade MX'
   if (pathname === '/home' || pathname === '/meu-dia') return 'Início'
   if (pathname.includes('terminal-mx') || pathname.includes('fechamento') || pathname.includes('lancamento')) return 'Fechamento Diário'
   if (pathname.includes('central-execucao') || pathname.includes('rotina')) return 'Rotina do Dia'

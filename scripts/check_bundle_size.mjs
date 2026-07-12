@@ -29,7 +29,6 @@ const BUDGETS = {
     'vendor-supabase': 60,
     'vendor-charts': 145,
     'vendor-ui': 70,
-    'vendor-html2pdf': 260,
     'vendor-jspdf': 145,
     'vendor-html2canvas': 110,
     'vendor-export': 110,

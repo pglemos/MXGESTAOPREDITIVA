@@ -1,7 +1,7 @@
-import { Plus, RefreshCw, Search } from 'lucide-react'
+import { MessageSquare, Plus, RefreshCw, Search } from 'lucide-react'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
-import { Typography } from '@/components/atoms/Typography'
+import { SellerPageHeader } from '@/components/seller/SellerPageHeader'
 import { cn } from '@/lib/utils'
 import type { FeedbackTab } from '../lib/helpers'
 
@@ -29,28 +29,7 @@ export function StoreFeedbackHeader({
   onOpenForm,
 }: Props) {
   return (
-    <header
-      className="flex flex-col xl:flex-row xl:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0"
-      role="banner"
-    >
-      <div className="flex flex-col gap-mx-tiny min-w-0 max-w-full">
-        <div className="flex items-center gap-mx-sm">
-          <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" />
-          <Typography variant="h1">
-            {isOwner ? 'Devolutivas da ' : 'Gestão de '}
-            <span className="text-mx-green-700">{isOwner ? 'Rede' : 'Devolutivas'}</span>
-          </Typography>
-        </div>
-        <Typography
-          variant="caption"
-          className="pl-mx-md uppercase tracking-widest font-black text-text-label"
-        >
-          {isOwner
-            ? 'ACOMPANHE QUALIDADE DE GESTÃO E COBRANÇAS SEMANAIS'
-            : 'Rotina Semanal Mandatória • Metodologia MX'}
-        </Typography>
-      </div>
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-mx-sm shrink-0 w-full xl:w-auto max-w-full">
+    <SellerPageHeader icon={MessageSquare} title={isOwner ? 'Devolutivas da Rede' : 'Feedbacks'} subtitle={isOwner ? 'Acompanhe qualidade e cobranças semanais' : 'Rotina semanal obrigatória'} actions={<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-mx-sm shrink-0 w-full xl:w-auto max-w-full">
         <nav
           className="flex p-mx-tiny bg-white border border-border-default rounded-mx-full shadow-mx-sm xl:mr-2"
           role="tablist"
@@ -110,8 +89,7 @@ export function StoreFeedbackHeader({
             <Plus size={18} className="mr-2" /> NOVO FEEDBACK
           </Button>
         )}
-      </div>
-    </header>
+      </div>} />
   )
 }
 

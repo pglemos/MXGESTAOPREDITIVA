@@ -10,7 +10,6 @@ import { Typography } from '@/components/atoms/Typography'
 import { Skeleton } from '@/components/atoms/Skeleton'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
-import { PageHeader } from '@/components/molecules/PageHeader'
 import { isAdministradorMx, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { canManageTeam } from '@/lib/auth/capabilities'
 import { getSupabaseFunctionUrl, supabase } from '@/lib/supabase'
@@ -392,10 +391,8 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
             onDismiss={clearPendingConfirmation}
           />
 
-          <PageHeader
-            title="Equipe da Loja"
-            description={`Criar, editar e remover integrantes vinculados à loja ${storeName || ''}`.trim()}
-            actions={
+          <div className="flex flex-col gap-mx-sm rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+            <div><Typography variant="h3">Equipe da Loja</Typography><Typography variant="caption" tone="muted">Integrantes vinculados a {storeName || 'esta unidade'}</Typography></div>
               <div className="flex flex-col sm:flex-row items-center gap-mx-sm w-full lg:w-auto">
                 <div className="relative group w-full sm:w-mx-96">
                   <label htmlFor="search-specialist" className="sr-only">Buscar integrante da equipe</label>
@@ -423,19 +420,18 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
                   {canCreateMembers && (
                     <Button
                       onClick={() => setIsUserModalOpen(true)}
-                      className="flex-1 sm:flex-none h-mx-14 px-8 rounded-mx-xl font-black uppercase tracking-widest text-mx-tiny shadow-mx-lg"
+                      className="flex-1 sm:flex-none h-mx-14 px-8 rounded-mx-xl bg-brand-secondary !text-white hover:bg-brand-secondary/90 font-black uppercase tracking-widest text-mx-tiny shadow-mx-lg"
                     >
                       <UserPlus size={18} className="mr-2" /> NOVO INTEGRANTE
                     </Button>
                   )}
                 </div>
               </div>
-            }
-          />
+          </div>
 
           <TeamStatsGrid stats={stats} />
 
-          <div className="grid mx-team-layout-grid gap-mx-lg items-start mt-mx-32 sm:mt-mx-md">
+          <div className="grid mx-team-layout-grid gap-mx-lg items-start mt-mx-md">
 
           <PreRegistrationQueue
             canSharePreRegistrationLink={canSharePreRegistrationLink}

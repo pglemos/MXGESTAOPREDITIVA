@@ -87,7 +87,7 @@ export function usePerformanceAlerts({
         variant: metrics.attainment < 60 ? 'danger' : 'warning',
         impact: metrics.attainment < 60 ? 'Alto' : 'Médio',
         ctaLabel: 'Abrir metas',
-        ctaTo: `${location.pathname}?id=${selectedStoreId || ''}&tab=metas`,
+        ctaTo: role === 'gerente' ? '/gerente/meta-loja' : `${location.pathname}?id=${selectedStoreId || ''}&tab=metas`,
       })
     }
 
@@ -104,7 +104,7 @@ export function usePerformanceAlerts({
         variant: 'warning',
         impact: 'Médio',
         ctaLabel: role === 'gerente' ? 'Abrir rotina' : 'Ver equipe',
-        ctaTo: role === 'gerente' ? '/rotina' : `${location.pathname}?id=${selectedStoreId || ''}&tab=equipe`,
+        ctaTo: role === 'gerente' ? '/gerente/rotina-equipe' : `${location.pathname}?id=${selectedStoreId || ''}&tab=equipe`,
       })
     }
 
@@ -121,7 +121,7 @@ export function usePerformanceAlerts({
         variant: 'danger',
         impact: 'Alto',
         ctaLabel: role === 'gerente' ? 'Criar devolutiva' : 'Ver ranking',
-        ctaTo: role === 'gerente' ? '/devolutivas' : '/classificacao',
+        ctaTo: role === 'gerente' ? '/gerente/feedbacks-pdis?tab=feedbacks' : '/classificacao',
       })
     }
 
@@ -138,7 +138,7 @@ export function usePerformanceAlerts({
         variant: 'danger',
         impact: 'Alto',
         ctaLabel: role === 'gerente' ? 'Ver ranking' : 'Ver ranking',
-        ctaTo: '/classificacao',
+        ctaTo: role === 'gerente' ? '/gerente/ranking' : '/classificacao',
       })
     }
 
@@ -155,7 +155,7 @@ export function usePerformanceAlerts({
         variant: 'outline',
         impact: 'Médio',
         ctaLabel: role === 'gerente' ? 'Abrir rotina' : 'Ver equipe',
-        ctaTo: role === 'gerente' ? '/rotina' : `${location.pathname}?id=${selectedStoreId || ''}&tab=equipe`,
+        ctaTo: role === 'gerente' ? '/gerente/rotina-equipe' : `${location.pathname}?id=${selectedStoreId || ''}&tab=equipe`,
       })
     } else if (out.length === 0) {
       out.push({
@@ -170,7 +170,7 @@ export function usePerformanceAlerts({
         variant: 'success',
         impact: 'Baixo',
         ctaLabel: 'Ver ranking',
-        ctaTo: '/classificacao',
+        ctaTo: role === 'gerente' ? '/gerente/ranking' : '/classificacao',
       })
     }
 

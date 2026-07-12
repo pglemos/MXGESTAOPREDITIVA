@@ -57,7 +57,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
-        globIgnores: ['**/vendor-html2pdf*.js', '**/vendor-html2canvas*.js', '**/vendor-jspdf*.js', '**/vendor-charts*.js', '**/vendor-export*.js'],
+        globIgnores: ['**/vendor-html2canvas*.js', '**/vendor-jspdf*.js', '**/vendor-charts*.js', '**/vendor-export*.js'],
         cleanupOutdatedCaches: true,
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api/, /^\/auth/, /^\/pre-cadastro(?:\/|$)/],
@@ -111,7 +111,6 @@ export default defineConfig({
           if (id.includes('recharts')) return 'vendor-charts';
           if (id.includes('xlsx')) return 'vendor-export';
           if (id.includes('html2canvas')) return 'vendor-html2canvas';
-          if (id.includes('html2pdf.js')) return 'vendor-html2pdf';
           if (id.includes('jspdf')) return 'vendor-jspdf';
           if (id.includes('@supabase/supabase-js')) return 'vendor-supabase';
           return undefined;

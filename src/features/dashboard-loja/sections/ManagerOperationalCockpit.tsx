@@ -50,7 +50,7 @@ export function ManagerOperationalCockpit({ data, alerts }: ManagerOperationalCo
   const pendingNames = data.pendingDisciplineSellers.map(seller => seller.name).filter(Boolean)
 
   const teamEngagementComputed = Math.round((disciplinePct * 0.45) + (Math.min(data.metrics.attainment, 100) * 0.35) + (conversionScore * 0.2))
-  const teamEngagement = data.checkins.length > 0 ? teamEngagementComputed : 68
+  const teamEngagement = data.checkins.length > 0 ? teamEngagementComputed : 0
   const channelTotals = data.checkins.reduce(
     (acc, checkin) => {
       acc.carteiraAgd += (checkin.agd_cart_prev_day || 0) + (checkin.agd_cart_today || 0)
@@ -96,9 +96,9 @@ export function ManagerOperationalCockpit({ data, alerts }: ManagerOperationalCo
   const engagementMetrics: Array<{ label: string; value: number; icon: ReactNode; accent: 'info' | 'success' | 'warning' | 'teal' | 'brand' }> = [
     { label: 'Fechamento diário', value: disciplinePct, icon: <CheckSquare size={18} />, accent: 'info' },
     { label: 'Agenda cumprida', value: data.metrics.totalAgd > 0 ? 100 : 0, icon: <CalendarDays size={18} />, accent: 'success' },
-    { label: 'Treinamentos', value: data.checkins.length > 0 ? Math.min(100, Math.max(45, teamEngagement - 8)) : 64, icon: <Target size={18} />, accent: 'warning' },
-    { label: 'Feedbacks', value: data.checkins.length > 0 ? Math.min(100, Math.max(40, teamEngagement - 12)) : 58, icon: <MessageSquare size={18} />, accent: 'teal' },
-    { label: 'Participação', value: data.checkins.length > 0 ? teamEngagement : 72, icon: <Users size={18} />, accent: 'brand' },
+    { label: 'Treinamentos', value: 0, icon: <Target size={18} />, accent: 'warning' },
+    { label: 'Feedbacks', value: 0, icon: <MessageSquare size={18} />, accent: 'teal' },
+    { label: 'Participação', value: teamEngagement, icon: <Users size={18} />, accent: 'brand' },
   ]
   return (
     <div className="flex flex-col gap-mx-lg pb-28">

@@ -3,7 +3,11 @@ type Html2PdfOptions = {
   filename: string
   image?: { type?: 'jpeg' | 'png' | 'webp'; quality?: number }
   html2canvas?: Record<string, unknown>
-  jsPDF?: { unit?: string; format?: string | [number, number]; orientation?: 'landscape' | 'portrait' }
+  jsPDF?: {
+    unit?: 'pt' | 'px' | 'in' | 'mm' | 'cm' | 'ex' | 'em' | 'pc'
+    format?: string | [number, number]
+    orientation?: 'landscape' | 'portrait'
+  }
 }
 
 const HTML_RENDER_TIMEOUT_MS = 18000
@@ -67,19 +71,59 @@ async function createTextFallbackPdf(element: HTMLElement, filename: string): Pr
   return pdf.output('blob')
 }
 
+function normalizeMargins(margin: Html2PdfOptions['margin']): [number, number, number, number] {
+  if (Array.isArray(margin)) return margin
+  const value = margin ?? 10
+  return [value, value, value, value]
+}
+
+async function createVisualPdf(element: HTMLElement, options: Html2PdfOptions): Promise<Blob> {
+  const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+    import('html2canvas'),
+    import('jspdf'),
+  ])
+  const [marginTop, marginRight, marginBottom, marginLeft] = normalizeMargins(options.margin)
+  const orientation = options.jsPDF?.orientation ?? 'portrait'
+  const format = options.jsPDF?.format ?? 'a4'
+  const unit = options.jsPDF?.unit ?? 'mm'
+  const pdf = new jsPDF({ unit, format, orientation })
+  const canvas = await html2canvas(element, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#ffffff',
+    ...options.html2canvas,
+  })
+  const pageWidth = pdf.internal.pageSize.getWidth()
+  const pageHeight = pdf.internal.pageSize.getHeight()
+  const contentWidth = pageWidth - marginLeft - marginRight
+  const contentHeight = pageHeight - marginTop - marginBottom
+  const renderedHeight = (canvas.height * contentWidth) / canvas.width
+  const imageType = options.image?.type ?? 'jpeg'
+  const imageFormat = imageType.toUpperCase()
+  const imageData = canvas.toDataURL(`image/${imageType}`, options.image?.quality ?? 0.95)
+  const pageCount = Math.max(1, Math.ceil(renderedHeight / contentHeight))
+
+  for (let page = 0; page < pageCount; page += 1) {
+    if (page > 0) pdf.addPage(format, orientation)
+    pdf.addImage(
+      imageData,
+      imageFormat,
+      marginLeft,
+      marginTop - (page * contentHeight),
+      contentWidth,
+      renderedHeight,
+      undefined,
+      'FAST',
+    )
+  }
+
+  return pdf.output('blob')
+}
+
 export async function downloadHtmlAsPdf(element: HTMLElement, options: Html2PdfOptions) {
-  const { default: html2pdf } = await import('html2pdf.js')
-  const htmlRender = html2pdf()
-    .set(options)
-    .from(element)
-    .toPdf()
-    .outputPdf('blob') as Promise<Blob>
-
-  htmlRender.catch(() => undefined)
-
   let blob: Blob
   try {
-    blob = await withTimeout(htmlRender, HTML_RENDER_TIMEOUT_MS)
+    blob = await withTimeout(createVisualPdf(element, options), HTML_RENDER_TIMEOUT_MS)
   } catch {
     blob = await createTextFallbackPdf(element, options.filename)
   }

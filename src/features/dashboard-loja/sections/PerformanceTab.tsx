@@ -7,7 +7,7 @@ import { FunnelSection } from './FunnelSection'
 import { RankingSection } from './RankingSection'
 import { AdminSettingsCard } from './AdminSettingsCard'
 import { OwnerExecutiveCockpit } from './OwnerExecutiveCockpit'
-import { ManagerOperationalCockpit } from './ManagerOperationalCockpit'
+import { ManagerSellerParityHome } from './ManagerSellerParityHome'
 import type { useDashboardLojaData } from '../hooks/useDashboardLojaData'
 
 type DashboardData = ReturnType<typeof useDashboardLojaData>
@@ -68,8 +68,8 @@ export function PerformanceTab({
 
   if (role === 'gerente') {
     return (
-      <DashboardErrorBoundary sectionName="ManagerOperationalCockpit">
-        <ManagerOperationalCockpit data={data} alerts={alerts} />
+      <DashboardErrorBoundary sectionName="ManagerSellerParityHome">
+        <ManagerSellerParityHome data={data} alerts={alerts} />
       </DashboardErrorBoundary>
     )
   }

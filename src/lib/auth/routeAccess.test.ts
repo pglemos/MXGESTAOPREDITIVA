@@ -31,6 +31,25 @@ describe('route access matrix', () => {
     expect(canAccessPath('/lojas', 'gerente')).toBe(false)
   })
 
+  it('protects every canonical manager route from sellers', () => {
+    const routes = [
+      '/gerente/fechamento-diario',
+      '/gerente/rotina-equipe',
+      '/gerente/minha-equipe',
+      '/gerente/meta-loja',
+      '/gerente/mentor',
+      '/gerente/feedbacks-pdis',
+      '/gerente/ranking',
+      '/gerente/universidade-mx',
+    ]
+    for (const route of routes) {
+      expect(canAccessPath(route, 'gerente')).toBe(true)
+      expect(canAccessPath(route, 'dono')).toBe(true)
+      expect(canAccessPath(route, 'administrador_mx')).toBe(true)
+      expect(canAccessPath(route, 'vendedor')).toBe(false)
+    }
+  })
+
   it('allows leaders to manage remuneration while keeping sellers out', () => {
     expect(canAccessPath('/configuracoes/remuneracao', 'administrador_mx')).toBe(true)
     expect(canAccessPath('/configuracoes/remuneracao', 'dono')).toBe(true)

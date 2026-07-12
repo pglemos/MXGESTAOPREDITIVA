@@ -115,9 +115,9 @@ export function useDashboardLojaData({ selectedStoreId, selectedStoreName }: Use
 
   const funnelBenchmarks = useMemo(
     () => ({
-      leadAgd: benchmark?.lead_to_agend ?? operationalMetaRules?.bench_lead_agd ?? 20,
-      agdVisita: benchmark?.agend_to_visit ?? operationalMetaRules?.bench_agd_visita ?? 60,
-      visitaVnd: benchmark?.visit_to_sale ?? operationalMetaRules?.bench_visita_vnd ?? 33,
+      leadAgd: benchmark?.lead_to_agend ?? operationalMetaRules?.bench_lead_agd ?? 0,
+      agdVisita: benchmark?.agend_to_visit ?? operationalMetaRules?.bench_agd_visita ?? 0,
+      visitaVnd: benchmark?.visit_to_sale ?? operationalMetaRules?.bench_visita_vnd ?? 0,
     }),
     [benchmark, operationalMetaRules]
   )
