@@ -35,6 +35,7 @@ Status: Ready for Review
 
 ## File List
 
+- `.github/workflows/typecheck-and-unit-tests.yml`
 - `src/App.tsx`
 - `src/components/Layout.tsx`
 - `src/components/SellerSidebar.tsx`
