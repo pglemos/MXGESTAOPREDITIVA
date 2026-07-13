@@ -41,6 +41,9 @@ A Admin Master MX Mariane esqueceu a senha. O acesso precisa ser restaurado com 
 - Scripts legados de reset/provisionamento passaram a rejeitar senha curta antes de chamar Supabase; `provision_mx_team.ts` não usa mais `123456` para novos Admin Master MX.
 - Dry-run do novo script confirmou que `danieljsvendas@gmail.com` pode ser resetado pelo processo operacional seguro.
 - Gates locais 2026-05-17 passaram: `bun test src/lib/auth/passwordPolicy.test.ts`, `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`, `npx playwright test src/test/auth-password-recovery.playwright.ts --project=chromium`.
+- Incidente Diego 2026-07-13: Auth estava ativo e confirmado, mas a senha temporária informada não correspondia; o login foi resetado e o fluxo real revelou que o trigger de hardening bloqueava o RPC `complete_password_change`.
+- Aplicada no Supabase remoto a migration `20260713130000_allow_controlled_password_change.sql`, liberando somente `true → false` de `must_change_password` dentro do RPC com marcador transacional protegido.
+- Smoke live passou: login temporário, `auth.updateUser`, `complete_password_change` `{ok:true}`, `must_change_password=false` e novo login; auto-update direto do campo sensível continuou bloqueado.
 
 ### Completion Notes
 
@@ -49,6 +52,8 @@ A Admin Master MX Mariane esqueceu a senha. O acesso precisa ser restaurado com 
 - Processo de reset agora bloqueia apenas senhas com menos de 6 caracteres antes da gravação, evitando falso sucesso operacional.
 - Para o caso Daniel, a senha solicitada passa na validação do app por ter 8 caracteres.
 - Reset aplicado e validado para `danieljsvendas@gmail.com` com `must_change_password=true`.
+- Conta Diego (`diegosouza270496@gmail.com`) ficou ativa, confirmada e apta a acessar com a nova senha definida no fluxo; o perfil persistido está com `must_change_password=false`.
+- A conta está persistida com role `consultor_mx`, que é o perfil interno MX existente; nenhuma elevação de privilégio foi feita sem solicitação explícita.
 
 ### File List
 
@@ -68,3 +73,5 @@ A Admin Master MX Mariane esqueceu a senha. O acesso precisa ser restaurado com 
 - `src/pages/Login.tsx`
 - `src/test/auth-password-recovery.playwright.ts`
 - `src/test/e2e-helpers/supabase-admin.ts`
+- `supabase/migrations/20260713130000_allow_controlled_password_change.sql`
+- `src/lib/auth-password-change-migration.test.ts`
