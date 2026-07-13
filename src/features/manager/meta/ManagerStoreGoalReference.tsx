@@ -15,6 +15,7 @@ import {
 import { calcularProjecao, getDiasInfo } from '@/lib/calculations'
 import { chartTokens } from '@/lib/charts/tokens'
 import type { useDashboardLojaData } from '@/features/dashboard-loja/hooks/useDashboardLojaData'
+import { ManagerHomeReturnLink } from '@/features/manager/home/ManagerHomeReturnLink'
 
 type DashboardData = ReturnType<typeof useDashboardLojaData>
 type Horizon = 'hoje' | 'semana' | 'quinzena' | 'mes'
@@ -91,6 +92,7 @@ export function ManagerStoreGoalReference({ data }: { data: DashboardData }) {
   return (
     <section className="min-h-full bg-gray-50" aria-labelledby="manager-store-goal-title">
       <div className="mx-auto max-w-7xl space-y-5 px-4 py-6 pb-24">
+        <ManagerHomeReturnLink />
         <header className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>

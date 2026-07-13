@@ -7,6 +7,7 @@ import { StoreGoalsPanel } from '@/features/lojas/components/StoreGoalsPanel'
 import { StoreTeamPanel } from '@/features/lojas/components/StoreTeamPanel'
 import { ManagerTeamPerformance } from '@/features/manager/team/ManagerTeamPerformance'
 import { ManagerStoreGoalReference } from '@/features/manager/meta/ManagerStoreGoalReference'
+import { ManagerSellerParityHome } from './sections/ManagerSellerParityHome'
 import { DashboardHeader, type DashboardTab } from './sections/DashboardHeader'
 import { PerformanceTab } from './sections/PerformanceTab'
 import { CreateStoreModal } from './sections/CreateStoreModal'
@@ -63,7 +64,12 @@ export function DashboardLoja() {
   const data = useDashboardLojaData({
     selectedStoreId,
     selectedStoreName: selectedStore?.name || 'Unidade MX',
+    managerCalendarMode: role === 'gerente' && activeTab === 'performance',
   })
+
+  const handleManagerStoreChange = useCallback((storeId: string) => {
+    setActiveStoreId(storeId)
+  }, [setActiveStoreId])
 
   const onRefetchAll = useCallback(async () => {
     await Promise.all([refetchStores(), data.refetchStoreGoal()])
@@ -81,6 +87,13 @@ export function DashboardLoja() {
   }
   if (!resolving && !storesLoading && isOwner && (requestedStoreForbidden || storeResolutionIssue || !selectedStoreId)) {
     return <OwnerStoreUnavailable requestedStoreForbidden={requestedStoreForbidden} storeResolutionIssue={storeResolutionIssue} />
+  }
+  if (!resolving && !storesLoading && role === 'gerente' && activeTab === 'performance' && !selectedStoreId) {
+    return (
+      <main className="h-full w-full overflow-y-auto bg-surface-alt no-scrollbar" id="main-content">
+        <ManagerSellerParityHome data={data} alerts={[]} />
+      </main>
+    )
   }
   if (!resolving && !storesLoading && !selectedStoreId && (isPerfilInternoMx(role) || role === 'dono')) {
     return <Navigate to="/lojas" replace />
@@ -136,6 +149,8 @@ export function DashboardLoja() {
           isAdminMx={isAdminMx}
           selectedStoreId={selectedStoreId}
           selectedStore={selectedStore}
+          selectableStores={selectableStores}
+          onManagerStoreChange={handleManagerStoreChange}
           data={data}
           showAdminSettings={showAdminSettings}
           onToggleAdminSettings={() => setShowAdminSettings(v => !v)}

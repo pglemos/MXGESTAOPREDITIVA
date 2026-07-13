@@ -1,0 +1,73 @@
+schema: 1
+story: 'MX-MGR-20260713-01'
+story_title: 'Início gerencial Base44 1:1'
+gate: PASS
+status_reason: 'Os 15 critérios foram rastreados a testes e evidência autenticada no Chrome; não há issue funcional, visual, de segurança ou regressão bloqueante no escopo da story.'
+reviewer: 'Quinn (Test Architect)'
+updated: '2026-07-13T05:39:17-03:00'
+
+top_issues: []
+
+waiver:
+  active: false
+
+quality_score: 100
+expires: '2026-07-27T05:39:17-03:00'
+
+evidence:
+  tests_reviewed: 852
+  assertions_reviewed: 2748
+  risks_identified: 3
+  trace:
+    ac_covered: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    ac_gaps: []
+  automation:
+    targeted_manager_tests: PASS_18_TESTS_77_ASSERTIONS
+    full_regression: PASS_852_TESTS_2748_ASSERTIONS
+    lint: PASS_0_ERRORS_22_PREEXISTING_WARNINGS_OUT_OF_SCOPE
+    typecheck: PASS
+    build: PASS_4985_MODULES
+    diff_check: PASS
+    secret_scan: PASS_NO_MATCHES
+    chrome_authenticated_refresh: PASS_ALL_EXPECTED_REQUESTS_HTTP_200
+    chrome_console: PASS_NO_ERROR_WARN_ISSUE
+    chrome_visual: PASS_3_VIEWPORTS_NO_LOADING_NO_HORIZONTAL_OVERFLOW
+    coderabbit: UNAVAILABLE_CLI_ENDED_WITHOUT_VERDICT_OR_STORED_FINDINGS
+    code_intelligence: UNAVAILABLE_NO_CONFIGURED_PROVIDER
+
+risk_summary:
+  totals:
+    critical: 0
+    high: 0
+    medium: 0
+    low: 3
+  highest_score: 3
+  mitigations:
+    - 'Diff visual amplo mitigado por comparação Base44, testes co-localizados e captura real em três viewports.'
+    - 'Separação dia/mês mitigada por testes de data civil e requests Supabase observados com os intervalos esperados.'
+    - 'Risco de refresh parcial eliminado por TDD e confirmação de cinco fontes atualizadas em paralelo.'
+
+nfr_validation:
+  security:
+    status: PASS
+    notes: 'Nenhum segredo persistido; sessionStorage guarda somente contexto de navegação e não substitui membership/RLS; nenhum schema, grant ou dependência foi alterado.'
+  performance:
+    status: PASS
+    notes: 'Consultas diária e mensal permanecem escopadas por loja/data, refresh usa Promise.all e o build concluiu sem regressão observável.'
+  reliability:
+    status: PASS
+    notes: 'Loading, erro e vazios são separados; falhas do refresh propagam ao tratamento existente; suíte completa e Chrome autenticado passaram.'
+  maintainability:
+    status: PASS
+    notes: 'Domínio, refresh e retorno contextual estão isolados e testados; Recharts usa tokens gerenciais que preservam as cores observáveis da referência.'
+
+recommendations:
+  immediate:
+    - action: 'Executar smoke autenticado pós-deploy nos mesmos três viewports antes de iniciar a próxima tela vertical.'
+      refs:
+        - 'https://mxperformance.vercel.app/home'
+  future:
+    - action: 'Atualizar a integração AIOX para a sintaxe do CodeRabbit CLI 0.6.5 e investigar por que a revisão encerra em summarizing sem findings.'
+      refs:
+        - '.aiox-core/development/agents/qa.md'
+        - '.aiox-core/development/tasks/qa-review-story.md'

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { format, parseISO } from 'date-fns'
 import { AlertTriangle, CheckCircle2, Eye, Megaphone, RefreshCw, Search, TrendingUp, XCircle } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { toast } from '@/lib/toast'
 import { useAuth } from '@/hooks/useAuth'
@@ -14,11 +15,14 @@ import { Card } from '@/components/molecules/Card'
 import { Modal } from '@/components/organisms/Modal'
 import { classifyRoutine, percent } from '@/features/manager/shared/manager-metrics'
 import { ManagerSectionCard } from '@/features/manager/shared/ManagerVisualPrimitives'
+import { ManagerHomeReturnLink } from '@/features/manager/home/ManagerHomeReturnLink'
+import { getManagerTeamSearch } from '@/features/manager/home/manager-home-parity'
 
 type ActionRow = { id: string; seller_id: string; status: string; due_at: string; title: string; updated_at: string }
 type AppointmentRow = { id: string; seller_user_id: string }
 
 export default function ManagerTeamRoutine() {
+  const location = useLocation()
   const { storeId, membership } = useAuth()
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [actions, setActions] = useState<ActionRow[]>([])
@@ -26,7 +30,8 @@ export default function ManagerTeamRoutine() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedSellerId, setSelectedSellerId] = useState<string | null>(null)
-  const [search, setSearch] = useState('')
+  const chartSearch = getManagerTeamSearch(location.search)
+  const [search, setSearch] = useState(chartSearch)
   const { sellers, loading: sellersLoading, refetch: refetchSellers } = useSellersByStore(storeId)
   const { sendNotification } = useNotifications()
 
@@ -50,6 +55,7 @@ export default function ManagerTeamRoutine() {
   }, [storeId, date])
 
   useEffect(() => { void fetchRoutine() }, [fetchRoutine])
+  useEffect(() => { setSearch(chartSearch) }, [chartSearch])
 
   const rows = useMemo(() => sellers.map(seller => {
     const sellerActions = actions.filter(action => action.seller_id === seller.id)
@@ -73,6 +79,7 @@ export default function ManagerTeamRoutine() {
   const refresh = async () => { await Promise.all([fetchRoutine(), refetchSellers()]); toast.success('Rotina da equipe atualizada.') }
 
   return <main className="min-h-full bg-gray-50" id="main-content"><div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-6 pb-24">
+    <ManagerHomeReturnLink />
     <header className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm"><div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><div><h1 className="text-xl font-bold text-gray-800">Rotina da Equipe</h1><p className="mt-0.5 text-sm text-gray-500">Acompanhe a execução das atividades comerciais da equipe em tempo real.</p></div><div className="flex flex-wrap items-end gap-2"><label className="text-xs text-gray-500" htmlFor="manager-routine-date">Data<input id="manager-routine-date" type="date" value={date} onChange={event => setDate(event.target.value)} className="mt-1 block h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500"/></label><label className="text-xs text-gray-500">Buscar<div className="relative mt-1"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Vendedor..." className="h-10 w-40 rounded-xl border border-gray-200 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500"/></div></label><Button className="h-10 rounded-xl bg-emerald-600 px-4 hover:bg-emerald-700" onClick={refresh}><RefreshCw size={15}/>Atualizar</Button></div></div></header>
     {error && <Card className="border border-status-error/30 bg-status-error-surface p-mx-md"><Typography variant="p" tone="error">Não foi possível carregar a rotina: {error}</Typography></Card>}
     <section className="grid grid-cols-2 gap-4 xl:grid-cols-4" aria-label="Resumo da rotina"><RoutineSummaryCard label="Execução Média" value={`${average}%`} icon={TrendingUp} tone="blue"/><RoutineSummaryCard label="Em Dia" value={rows.filter(row=>row.status==='Em dia').length} icon={CheckCircle2} tone="green"/><RoutineSummaryCard label="Em Atenção" value={rows.filter(row=>row.status==='Atenção').length} icon={AlertTriangle} tone="amber"/><RoutineSummaryCard label="Críticos" value={rows.filter(row=>row.status==='Crítico').length} icon={XCircle} tone="red"/></section>

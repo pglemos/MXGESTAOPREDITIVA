@@ -10,6 +10,8 @@ import { useStoreSales } from '@/hooks/useStoreSales'
 import { useDRE } from '@/hooks/useDRE'
 import { somarVendas, calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 import { buildStoreSalesRules } from '@/lib/storeSalesRules'
+import { getManagerCalendarDate, getManagerMonthRange } from '@/features/manager/home/manager-home-parity'
+import { refreshManagerHomeData } from '@/features/manager/home/manager-home-refresh'
 import type { RankingEntry } from '@/types/database'
 import type { Database } from '@/types/database.generated'
 
@@ -19,6 +21,7 @@ export type ViewMode = 'day' | 'month'
 type UseDashboardLojaDataInput = {
   selectedStoreId: string | null
   selectedStoreName: string
+  managerCalendarMode?: boolean
 }
 
 type ExecutionActionRow = Pick<Database['public']['Tables']['execution_actions']['Row'], 'seller_id' | 'status'>
@@ -51,8 +54,12 @@ async function fetchExecutionActionRows(storeId: string, rangeStart: string, ran
  * settings operacionais e o canal Supabase Realtime que dispara refetch.
  * Extraído de DashboardLoja.tsx (Story 2.5, ADR-0050).
  */
-export function useDashboardLojaData({ selectedStoreId, selectedStoreName }: UseDashboardLojaDataInput) {
-  const { sellers } = useSellersByStore(selectedStoreId)
+export function useDashboardLojaData({
+  selectedStoreId,
+  selectedStoreName,
+  managerCalendarMode = false,
+}: UseDashboardLojaDataInput) {
+  const { sellers, loading: sellersLoading, refetch: refetchSellers } = useSellersByStore(selectedStoreId)
   const { goal: storeGoal, refetch: refetchStoreGoal } = useStoreGoal(selectedStoreId)
   const operationalSettings = useOperationalSettings(selectedStoreId)
   const {
@@ -66,7 +73,9 @@ export function useDashboardLojaData({ selectedStoreId, selectedStoreName }: Use
   } = operationalSettings
 
   const [viewMode, setViewMode] = useState<ViewMode>('day')
-  const [referenceDate, setReferenceDate] = useState(() => calculateReferenceDate())
+  const [operationalReferenceDate, setReferenceDate] = useState(() => calculateReferenceDate())
+  const managerReferenceDate = getManagerCalendarDate()
+  const referenceDate = managerCalendarMode ? managerReferenceDate : operationalReferenceDate
   const [startDate, setStartDate] = useState(() => format(startOfMonth(parseISO(referenceDate)), 'yyyy-MM-dd'))
   const [endDate, setEndDate] = useState(() => referenceDate)
   const [isRefetching, setIsRefetching] = useState(false)
@@ -75,11 +84,51 @@ export function useDashboardLojaData({ selectedStoreId, selectedStoreName }: Use
   const [routineExecutionBySeller, setRoutineExecutionBySeller] = useState<Record<string, number | null>>({})
   const refetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const { checkins, loading, refetch } = useCheckinsByDateRange(
+  const managerMonthRange = useMemo(() => getManagerMonthRange(managerReferenceDate), [managerReferenceDate])
+  const queryStartDate = managerCalendarMode ? managerReferenceDate : viewMode === 'day' ? referenceDate : startDate
+  const queryEndDate = managerCalendarMode ? managerReferenceDate : viewMode === 'day' ? referenceDate : endDate
+  const {
+    checkins,
+    loading: checkinsLoading,
+    error,
+    refetch: refetchCheckins,
+  } = useCheckinsByDateRange(
     selectedStoreId,
-    viewMode === 'day' ? referenceDate : startDate,
-    viewMode === 'day' ? referenceDate : endDate
+    queryStartDate,
+    queryEndDate,
   )
+  const {
+    checkins: managerMonthlyCheckins,
+    loading: managerMonthlyLoading,
+    error: managerMonthlyError,
+    refetch: refetchManagerMonthlyCheckins,
+  } = useCheckinsByDateRange(
+    managerCalendarMode ? selectedStoreId : null,
+    managerMonthRange.start,
+    managerMonthRange.end,
+  )
+
+  const refreshDashboardData = useCallback(async () => {
+    if (managerCalendarMode) {
+      await refreshManagerHomeData({
+        refetchDailyCheckins: refetchCheckins,
+        refetchMonthlyCheckins: refetchManagerMonthlyCheckins,
+        refetchSellers,
+        refetchStoreGoal,
+        refetchOperationalSettings: fetchSettings,
+      })
+      return
+    }
+
+    await Promise.all([refetchCheckins(), refetchSellers()])
+  }, [
+    fetchSettings,
+    managerCalendarMode,
+    refetchCheckins,
+    refetchManagerMonthlyCheckins,
+    refetchSellers,
+    refetchStoreGoal,
+  ])
 
   // Realtime Sync: Escutar alterações na tabela de checkins para esta loja
   useEffect(() => {
@@ -98,7 +147,7 @@ export function useDashboardLojaData({ selectedStoreId, selectedStoreName }: Use
         () => {
           if (refetchTimerRef.current) clearTimeout(refetchTimerRef.current)
           refetchTimerRef.current = setTimeout(() => {
-            void refetch()
+            void refreshDashboardData()
               .then(() => {
                 setSyncWarning(null)
                 setLastSyncAt(new Date())
@@ -121,12 +170,12 @@ export function useDashboardLojaData({ selectedStoreId, selectedStoreName }: Use
       }
       supabase.removeChannel(channel)
     }
-  }, [selectedStoreId, refetch])
+  }, [refreshDashboardData, selectedStoreId])
 
   const handleRefresh = useCallback(async () => {
     setIsRefetching(true)
     try {
-      await refetch()
+      await refreshDashboardData()
       setSyncWarning(null)
       setLastSyncAt(new Date())
       toast.success('Performance sincronizada!')
@@ -136,7 +185,7 @@ export function useDashboardLojaData({ selectedStoreId, selectedStoreName }: Use
     } finally {
       setIsRefetching(false)
     }
-  }, [refetch])
+  }, [refreshDashboardData])
 
   useEffect(() => {
     if (!selectedStoreId) {
@@ -270,9 +319,13 @@ export function useDashboardLojaData({ selectedStoreId, selectedStoreName }: Use
 
   return {
     // dados brutos
+    selectedStoreId,
     sellers,
     checkins,
-    loading,
+    managerMonthlyCheckins,
+    loading: checkinsLoading || sellersLoading || (managerCalendarMode && managerMonthlyLoading),
+    error,
+    managerMonthlyError,
     // settings operacionais
     storeGoal,
     refetchStoreGoal,

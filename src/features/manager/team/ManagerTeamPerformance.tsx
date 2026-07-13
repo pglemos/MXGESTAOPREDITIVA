@@ -9,6 +9,7 @@ import { Modal } from '@/components/organisms/Modal'
 import { TabNavPill } from '@/components/molecules/TabNavPill'
 import type { RankingEntry } from '@/types/database'
 import type { useDashboardLojaData } from '@/features/dashboard-loja/hooks/useDashboardLojaData'
+import { ManagerHomeReturnLink } from '@/features/manager/home/ManagerHomeReturnLink'
 import { ManagerTeamKanban, type ManagerTeamAction } from './ManagerTeamKanban'
 import { buildManagerTeamCard, type ManagerTeamView } from './manager-team-kanban'
 
@@ -59,6 +60,7 @@ export function ManagerTeamPerformance({ data, storeName }: { data: DashboardDat
 
   return <section className="min-h-full bg-gray-50" aria-label="Performance da equipe">
     <div className="mx-auto max-w-7xl space-y-5 px-4 py-6 pb-24">
+    <ManagerHomeReturnLink />
     <header className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><div><h1 className="text-xl font-bold text-gray-800">Minha Equipe</h1><p className="mt-0.5 text-sm text-gray-500">Acompanhe a evolução da equipe e identifique onde sua atuação gerencial é necessária.</p></div><div className="flex flex-wrap items-end gap-2"><label className="text-xs text-gray-500">Buscar<div className="relative mt-1 w-full sm:w-52"><Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={15}/><Input aria-label="Buscar vendedor" placeholder="Vendedor..." value={search} onChange={event => setSearch(event.target.value)} className="h-10 rounded-xl border-gray-200 pl-9"/></div></label><label className="text-xs text-gray-500">Período<select value={period} onChange={event => setPeriod(event.target.value as TeamPeriod)} aria-label="Período da equipe" className="mt-1 block h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-700"><option value="current">Mês atual</option><option value="previous">Mês anterior</option><option value="last30">Últimos 30 dias</option></select></label></div></div>
     </header>

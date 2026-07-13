@@ -17,6 +17,7 @@ import { useSellersByStore } from '@/hooks/useStores'
 import { useFeedbacks } from '@/hooks/useFeedbacks'
 import { usePDIs } from '@/hooks/usePDI'
 import { useDashboardLojaData } from '@/features/dashboard-loja/hooks/useDashboardLojaData'
+import { ManagerHomeReturnLink } from '@/features/manager/home/ManagerHomeReturnLink'
 import { supabase } from '@/lib/supabase'
 import { toast } from '@/lib/toast'
 
@@ -180,6 +181,7 @@ export function ManagerDayRoutine() {
 
   return <main className="min-h-full bg-gray-50" id="main-content">
     <div className="mx-auto max-w-7xl space-y-5 px-4 py-6 pb-24">
+      <ManagerHomeReturnLink />
       <header className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm"><div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><div><h1 className="text-xl font-bold text-gray-800">Rotina do Dia</h1><p className="mt-0.5 text-sm text-gray-500">Alertas e ações essenciais para conduzir o dia com foco em resultado.</p></div><div className="flex items-center gap-3"><div className="text-right"><p className="text-sm font-semibold text-gray-700">{capitalize(new Intl.DateTimeFormat('pt-BR', { weekday: 'long' }).format(date))}</p><p className="text-xs text-gray-500">{new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }).format(date)}</p><p className="text-xs font-medium text-emerald-600">{membership?.store?.name || 'Unidade vinculada'}</p></div><button type="button" onClick={() => void Promise.all([fetchActions(), dashboard.handleRefresh()])} className="flex h-10 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 text-sm font-medium shadow-sm hover:bg-gray-50"><RefreshCw size={15} className={dashboard.isRefetching ? 'animate-spin' : ''}/>Atualizar</button></div></div></header>
 
       <nav className="flex overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm" aria-label="Rotina do Dia" role="tablist"><TabButton active={tab === 'today'} onClick={() => setTab('today')} icon={CalendarClock} label="Hoje" count={tab === 'history' ? todayTasks.length : undefined}/><TabButton active={tab === 'history'} onClick={() => setTab('history')} label="Minha Rotina"/></nav>

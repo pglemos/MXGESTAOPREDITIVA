@@ -2,6 +2,21 @@
 
 Status: Ready for Review
 
+## Execução vertical aprovada em 2026-07-13
+
+O usuário aprovou que o contrato Base44 vença em design, fórmulas, estados, ações e fluxos, mantendo React/Auth/Supabase/RLS como infraestrutura e o sidebar escuro como exceção visual. A implementação será entregue na ordem do menu, com uma story por tela e validação real no Chrome antes da próxima.
+
+1. [Início gerencial Base44 1:1](../story-MX-MGR-20260713-01-inicio-base44-1x1.md)
+2. Rotina do Dia — story pendente
+3. Fechamento Diário — story pendente
+4. Rotina da Equipe — story pendente
+5. Minha Equipe — story pendente
+6. Meta da Loja — story pendente
+7. Mentor Gerencial — story pendente
+8. Desenvolvimento — story pendente
+9. Ranking — story pendente
+10. Universidade MX — story pendente
+
 ## Acceptance criteria
 
 - [x] Arquitetura e mapeamento de dados documentados.

@@ -18,6 +18,8 @@ type PerformanceTabProps = {
   isAdminMx: boolean
   selectedStoreId: string
   selectedStore: Store | null
+  selectableStores: Store[]
+  onManagerStoreChange: (storeId: string) => void
   data: DashboardData
   showAdminSettings: boolean
   onToggleAdminSettings: () => void
@@ -38,6 +40,8 @@ export function PerformanceTab({
   isAdminMx,
   selectedStoreId,
   selectedStore,
+  selectableStores,
+  onManagerStoreChange,
   data,
   showAdminSettings,
   onToggleAdminSettings,
@@ -69,7 +73,12 @@ export function PerformanceTab({
   if (role === 'gerente') {
     return (
       <DashboardErrorBoundary sectionName="ManagerSellerParityHome">
-        <ManagerSellerParityHome data={data} alerts={alerts} />
+        <ManagerSellerParityHome
+          data={data}
+          alerts={alerts}
+          selectableStores={selectableStores}
+          onStoreChange={onManagerStoreChange}
+        />
       </DashboardErrorBoundary>
     )
   }

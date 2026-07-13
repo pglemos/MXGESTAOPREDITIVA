@@ -129,6 +129,8 @@ to { height: 0; }
   --color-chart-axis-tick: #6B7280;
   --color-chart-axis-tick-muted: #526B7A;
   --color-chart-axis-tick-strong: #526B7A;
+  --color-chart-manager-axis-tick: #4B5563;
+  --color-chart-manager-positive: #10B981;
   --color-chart-grid: #DFE0E1;
   --color-chart-grid-strong: #DFE0E1;
   --color-chart-grid-dark: #334155;

@@ -42,6 +42,9 @@ export const chartTokens = {
     axisTick: () => cssVar('--color-chart-axis-tick', '#6B7280'),
     axisTickMuted: () => cssVar('--color-chart-axis-tick-muted', '#526B7A'),
     axisTickStrong: () => cssVar('--color-chart-axis-tick-strong', '#526B7A'),
+    /** Cores observáveis do gráfico de previsibilidade do módulo gerencial Base44. */
+    managerAxisTick: () => cssVar('--color-chart-manager-axis-tick', '#4B5563'),
+    managerPositive: () => cssVar('--color-chart-manager-positive', '#10B981'),
     grid: () => cssVar('--color-chart-grid', '#DFE0E1'),
     gridStrong: () => cssVar('--color-chart-grid-strong', '#DFE0E1'),
     gridDark: () => cssVar('--color-chart-grid-dark', '#334155'),

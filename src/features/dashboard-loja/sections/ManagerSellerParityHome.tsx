@@ -1,107 +1,610 @@
 import type { ReactNode } from 'react'
 import {
   AlertTriangle,
+  Building2,
+  Calendar,
   CalendarClock,
-  CalendarDays,
+  CheckCircle,
+  DollarSign,
   Lightbulb,
   RefreshCw,
   Target,
   TrendingUp,
   Users,
+  type LucideIcon,
 } from 'lucide-react'
+import {
+  Bar,
+  BarChart,
+  Cell,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  type BarRectangleItem,
+} from 'recharts'
 import { useNavigate } from 'react-router-dom'
-import { getDiasInfo } from '@/lib/calculations'
-import type { RankingEntry } from '@/types/database'
+import { somarVendas } from '@/lib/calculations'
+import { chartTokens } from '@/lib/charts/tokens'
+import { resolveIndividualGoal } from '@/lib/storeSalesRules'
+import {
+  AGENDAMENTOS_POR_VENDA,
+  buildSuggestedAction,
+  buildTodayReading,
+  calculateAppointmentGap,
+  calculateAppointmentTarget,
+  calculateForecastCoverage,
+  calculateSalesForecast,
+  calculateSalesNeededToday,
+  calculateSellerFinancialStatus,
+  countElapsedBusinessDays,
+  formatSales,
+  saleSuffix,
+  sortTeamFocus,
+  type ManagerTeamFocusItem,
+} from '@/features/manager/home/manager-home-parity'
+import type { DailyCheckin, Store } from '@/types/database'
 import type { useDashboardLojaData } from '../hooks/useDashboardLojaData'
 import type { OwnerPerformanceAlert } from './PerformanceAlerts'
 
 type DashboardData = ReturnType<typeof useDashboardLojaData>
 
-const SALES_PER_APPOINTMENTS = 3
+type ManagerSellerParityHomeProps = {
+  data: DashboardData
+  alerts: OwnerPerformanceAlert[]
+  selectableStores?: Store[]
+  onStoreChange?: (storeId: string) => void
+}
 
-export function ManagerSellerParityHome({ data }: { data: DashboardData; alerts: OwnerPerformanceAlert[] }) {
+type AppointmentChartItem = {
+  sellerId: string
+  firstName: string
+  fullName: string
+  appointments: number
+}
+
+const BUSINESS_DAYS_BASE44 = 22
+
+export function ManagerSellerParityHome({
+  data,
+  selectableStores = [],
+  onStoreChange,
+}: ManagerSellerParityHomeProps) {
   const navigate = useNavigate()
-  const ranking = data.metrics.ranking
-  const goal = data.metrics.goalValue || 0
-  const sales = data.metrics.totalSales || 0
-  const missingSales = Math.max(goal - sales, 0)
-  const days = getDiasInfo(data.referenceDate, data.operationalMetaRules?.projection_mode || 'calendar')
-  const remainingDays = Math.max(days.restantes, 1)
-  const salesNeededToday = missingSales > 0 ? Math.max(1, Math.ceil(missingSales / remainingDays)) : 0
-  const appointmentsToday = data.metrics.totalAgd || 0
-  const salesForecastToday = Math.floor(appointmentsToday / SALES_PER_APPOINTMENTS)
-  const appointmentTarget = salesNeededToday * SALES_PER_APPOINTMENTS
-  const appointmentGap = appointmentsToday - appointmentTarget
-  const coverage = salesNeededToday > 0 ? Math.min(100, Math.round((salesForecastToday / salesNeededToday) * 100)) : 100
-  const date = new Date(`${data.referenceDate}T12:00:00`)
-  const weekday = capitalize(new Intl.DateTimeFormat('pt-BR', { weekday: 'long' }).format(date))
-  const longDate = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }).format(date)
-  const configuredRules = ranking.filter(item => item.remuneracao_plano_id)
-  const closeToBand = configuredRules.filter(item => item.gap > 0 && item.gap <= 2).length
-  const chartMax = Math.max(1, ...ranking.map(item => item.agd_total || 0))
 
-  return <div className="min-h-full bg-gray-50 text-gray-800">
-    <div className="mx-auto max-w-7xl space-y-5 px-4 py-6 pb-24">
-      <header className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div><h1 className="text-xl font-bold text-gray-800">Início</h1><p className="mt-0.5 text-sm text-gray-500">Previsibilidade comercial para conduzir o resultado do dia.</p></div>
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <div className="mr-1 text-right"><p className="text-sm font-semibold text-gray-700">{weekday}</p><p className="text-xs text-gray-500">{longDate}</p></div>
-            <input aria-label="Data de referência" type="date" value={data.referenceDate} onChange={event => data.setReferenceDate(event.target.value)} className="h-10 rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-emerald-500" />
-            <HeaderAction icon={Target} label="Ver Meta da Loja" onClick={() => navigate('/gerente/meta-loja')} tone="emerald" />
-            <HeaderAction icon={CalendarClock} label="Ver Rotina do Dia" onClick={() => navigate('/rotina')} tone="dark" />
-            <button type="button" onClick={() => void data.handleRefresh()} aria-label="Atualizar início" className="grid h-10 w-10 place-items-center rounded-xl text-gray-500 hover:bg-gray-50"><RefreshCw size={17} className={data.isRefetching ? 'animate-spin' : ''}/></button>
+  if (!data.selectedStoreId) {
+    return (
+      <ManagerHomeState
+        title="Bem-vindo ao MX Performance"
+        description="Cadastre sua loja e a meta mensal no módulo do Dono para ativar o Dashboard de Previsibilidade Comercial."
+      />
+    )
+  }
+
+  const activeSellers = data.sellers.filter(seller => seller.active && !seller.is_venda_loja)
+  const activeSellerIds = new Set(activeSellers.map(seller => seller.id))
+  const dailyCheckins = data.checkins.filter(checkin => activeSellerIds.has(checkin.seller_user_id))
+  const monthlyCheckins = data.managerMonthlyCheckins.filter(checkin => activeSellerIds.has(checkin.seller_user_id))
+  const dailyBySeller = groupCheckinsBySeller(dailyCheckins)
+  const monthlyBySeller = groupCheckinsBySeller(monthlyCheckins)
+
+  const appointmentsToday = sumAppointments(dailyCheckins)
+  const salesToday = somarVendas(dailyCheckins)
+  const monthlyGoal = Number(data.effectiveMonthlyGoal || data.metrics.goalValue || 0)
+  const salesForecastToday = calculateSalesForecast(appointmentsToday)
+  const salesNeededToday = calculateSalesNeededToday(monthlyGoal, BUSINESS_DAYS_BASE44, salesToday)
+  const appointmentTarget = calculateAppointmentTarget(salesNeededToday)
+  const appointmentGap = calculateAppointmentGap(appointmentsToday, appointmentTarget)
+  const forecastCoverage = calculateForecastCoverage(salesForecastToday, salesNeededToday)
+  const todayReading = buildTodayReading(salesForecastToday, salesNeededToday)
+  const suggestedAction = buildSuggestedAction(appointmentGap, salesForecastToday, salesNeededToday)
+  const elapsedBusinessDays = countElapsedBusinessDays(data.referenceDate)
+  const individualGoal = resolveIndividualGoal({
+    mode: data.operationalMetaRules?.individual_goal_mode,
+    storeMonthlyGoal: monthlyGoal,
+    activeSellersCount: activeSellers.length,
+  })
+
+  const team = sortTeamFocus(activeSellers.map((seller): ManagerTeamFocusItem => {
+    const sellerDailyCheckins = dailyBySeller.get(seller.id) || []
+    const sellerMonthlyCheckins = monthlyBySeller.get(seller.id) || []
+    const sellerAppointments = sumAppointments(sellerDailyCheckins)
+    const sellerForecast = calculateSalesForecast(sellerAppointments)
+    const sellerMonthlySales = somarVendas(sellerMonthlyCheckins)
+    const proportionalGoal = individualGoal && BUSINESS_DAYS_BASE44 > 0
+      ? (individualGoal / BUSINESS_DAYS_BASE44) * elapsedBusinessDays
+      : 0
+    const resultPercentage = proportionalGoal > 0 ? (sellerMonthlySales / proportionalGoal) * 100 : null
+
+    return {
+      sellerId: seller.id,
+      sellerName: seller.name,
+      appointmentsToday: sellerAppointments,
+      salesForecastToday: sellerForecast,
+      salesThisMonth: sellerMonthlySales,
+      nextCommissionBand: null,
+      missingCarsToNextBand: null,
+      projectedAward: null,
+      resultPercentage,
+      financialStatus: calculateSellerFinancialStatus(
+        null,
+        sellerForecast,
+        sellerAppointments,
+        resultPercentage,
+      ),
+    }
+  }))
+  const focusedTeam = team.slice(0, 5)
+  const chartData = activeSellers
+    .map((seller): AppointmentChartItem => ({
+      sellerId: seller.id,
+      firstName: firstName(seller.name),
+      fullName: seller.name,
+      appointments: sumAppointments(dailyBySeller.get(seller.id) || []),
+    }))
+    .sort((left, right) => right.appointments - left.appointments)
+
+  const persistNavigationContext = () => {
+    sessionStorage.setItem('mx_contexto_navegacao', JSON.stringify({
+      origemNavegacao: 'DASHBOARD_GERENCIAL',
+      data: data.referenceDate,
+      unidade: data.selectedStoreId,
+      dataHora: new Date().toISOString(),
+    }))
+  }
+  const navigateFromDashboard = (path: string) => {
+    persistNavigationContext()
+    navigate(path)
+  }
+
+  if (data.error || data.managerMonthlyError) {
+    return (
+      <ManagerHomeState
+        title="Não foi possível carregar o Início"
+        description="Os dados da unidade não foram sincronizados. Atualize antes de tomar uma decisão operacional."
+        action={<button type="button" onClick={() => void data.handleRefresh()} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">Tentar novamente</button>}
+      />
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 text-gray-800">
+      <div className="mx-auto max-w-7xl space-y-5 px-4 py-6 pb-24">
+        <ManagerHomeHeader
+          referenceDate={data.referenceDate}
+          stores={selectableStores}
+          selectedStoreId={data.selectedStoreId}
+          onStoreChange={onStoreChange}
+          onViewGoal={() => navigateFromDashboard('/gerente/meta-loja')}
+          onViewRoutine={() => navigateFromDashboard('/rotina')}
+          onRefresh={() => void data.handleRefresh()}
+          refreshing={data.isRefetching}
+        />
+
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Previsibilidade do dia">
+          <SalesForecastCard salesForecast={salesForecastToday} appointments={appointmentsToday} />
+          <SalesNeededCard salesNeeded={salesNeededToday} />
+          <AppointmentTargetCard appointmentTarget={appointmentTarget} salesNeeded={salesNeededToday} />
+          <AppointmentGapCard appointmentGap={appointmentGap} />
+        </section>
+
+        <section className="flex flex-col gap-4 lg:flex-row">
+          <div className="lg:w-[60%]">
+            <TodayReading
+              salesForecast={salesForecastToday}
+              salesNeeded={salesNeededToday}
+              coverage={forecastCoverage}
+              message={todayReading}
+            />
+          </div>
+          <div className="lg:w-[40%]">
+            <SuggestedAction message={suggestedAction} />
+          </div>
+        </section>
+
+        <TeamFocus
+          team={focusedTeam}
+          showAll={activeSellers.length > 5}
+          onSellerClick={() => navigateFromDashboard('/gerente/minha-equipe')}
+          onViewAll={() => navigateFromDashboard('/gerente/minha-equipe')}
+        />
+
+        <section className="flex flex-col gap-4 lg:flex-row">
+          <div className="lg:w-[45%]">
+            <FinancialRadar team={team} rulesConfigured={false} />
+          </div>
+          <div className="lg:w-[55%]">
+            <AppointmentsChart
+              data={chartData}
+              onBarClick={item => navigateFromDashboard(`/gerente/rotina-equipe?busca=${encodeURIComponent(item.fullName)}`)}
+            />
+          </div>
+        </section>
+      </div>
+    </div>
+  )
+}
+
+function ManagerHomeHeader({
+  referenceDate,
+  stores,
+  selectedStoreId,
+  onStoreChange,
+  onViewGoal,
+  onViewRoutine,
+  onRefresh,
+  refreshing,
+}: {
+  referenceDate: string
+  stores: Store[]
+  selectedStoreId: string | null
+  onStoreChange?: (storeId: string) => void
+  onViewGoal: () => void
+  onViewRoutine: () => void
+  onRefresh: () => void
+  refreshing: boolean
+}) {
+  const date = new Date(`${referenceDate}T12:00:00-03:00`)
+  const weekday = capitalize(new Intl.DateTimeFormat('pt-BR', {
+    weekday: 'long',
+    timeZone: 'America/Sao_Paulo',
+  }).format(date))
+  const longDate = new Intl.DateTimeFormat('pt-BR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'America/Sao_Paulo',
+  }).format(date)
+
+  return (
+    <header className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-gray-800">Início</h1>
+          <p className="mt-0.5 text-sm text-gray-500">Previsibilidade comercial para conduzir o resultado do dia.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="hidden text-right sm:block">
+            <p className="text-sm font-semibold text-gray-700">{weekday}</p>
+            <p className="text-xs text-gray-500">{longDate}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-600">
+              {formatNumericDate(referenceDate)}
+            </div>
+            {stores.length > 1 && onStoreChange ? (
+              <label className="relative">
+                <span className="sr-only">Unidade</span>
+                <Building2 size={14} className="pointer-events-none absolute left-2.5 top-2.5 text-gray-400" />
+                <select
+                  aria-label="Unidade"
+                  value={selectedStoreId || ''}
+                  onChange={event => onStoreChange(event.target.value)}
+                  className="min-w-[120px] rounded-xl border border-gray-200 py-2 pl-8 pr-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  {stores.map(store => <option key={store.id} value={store.id}>{store.name}</option>)}
+                </select>
+              </label>
+            ) : null}
+            <HeaderAction icon={Target} label="Ver Meta da Loja" onClick={onViewGoal} tone="emerald" />
+            <HeaderAction icon={CalendarClock} label="Ver Rotina do Dia" onClick={onViewRoutine} tone="dark" />
+            <button
+              type="button"
+              onClick={onRefresh}
+              disabled={refreshing}
+              aria-label="Atualizar início"
+              className="grid h-[38px] w-10 place-items-center rounded-xl text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+            >
+              <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+            </button>
           </div>
         </div>
-      </header>
-
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4" aria-label="Previsibilidade do dia">
-        <ForecastCard title="Previsão de vendas hoje" value={`${salesForecastToday} vendas`} detail={appointmentsToday > 0 ? `${appointmentsToday} agendamento${appointmentsToday === 1 ? '' : 's'} confirmado${appointmentsToday === 1 ? '' : 's'} para hoje.` : 'Nenhum agendamento confirmado para hoje.'} footer={`Regra atual: 1 venda a cada ${SALES_PER_APPOINTMENTS} agendamentos`} tone="green" icon={TrendingUp}/>
-        <ForecastCard title="Necessidade de vendas no dia" value={`${salesNeededToday} vendas`} detail="Para sustentar a meta da loja hoje" tone="neutral" icon={Target}/>
-        <ForecastCard title="Meta de agendamentos para hoje" value={`${appointmentTarget} agendamentos`} detail={`Baseado na necessidade de ${salesNeededToday} venda${salesNeededToday === 1 ? '' : 's'}`} tone="neutral" icon={CalendarDays}/>
-        <ForecastCard title="Gap de agendamentos" value={String(appointmentGap)} detail={`${appointmentGap < 0 ? `Faltam ${Math.abs(appointmentGap)}` : `Sobram ${appointmentGap}`} agendamento${Math.abs(appointmentGap) === 1 ? '' : 's'} para sustentar o volume de vendas necessário`} tone="warning" icon={AlertTriangle}/>
-      </section>
-
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-[1.5fr_1fr]">
-        <article className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm"><h2 className="font-semibold text-gray-800">Leitura do Dia</h2><div className="mt-5 flex items-end justify-between gap-4"><Metric label="Previsão" value={`${salesForecastToday} vendas`}/><Metric label="Necessidade" value={`${salesNeededToday} vendas`} align="right"/></div><div className="mt-4 h-2 overflow-hidden rounded-full bg-gray-100"><div className="h-full rounded-full bg-emerald-500" style={{width:`${coverage}%`}}/></div><p className="mt-2 text-xs text-gray-400">Cobertura: {coverage}%</p><p className={`mt-4 text-sm font-semibold ${salesForecastToday >= salesNeededToday ? 'text-emerald-600' : 'text-orange-600'}`}>{salesForecastToday >= salesNeededToday ? 'A projeção cobre a necessidade do dia.' : `A projeção ainda está ${salesNeededToday - salesForecastToday} venda${salesNeededToday - salesForecastToday === 1 ? '' : 's'} abaixo do necessário.`}</p></article>
-        <article className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm"><div className="flex items-center gap-2"><span className="grid h-8 w-8 place-items-center rounded-lg bg-amber-50 text-amber-500"><Lightbulb size={17}/></span><h2 className="font-semibold text-gray-800">Ação sugerida</h2></div><p className="mt-4 text-sm leading-6 text-gray-600">{appointmentGap < 0 ? 'Prioridade do gerente: elevar a agenda do dia e acompanhar negociações com maior chance de fechamento.' : 'A agenda cobre a necessidade prevista. Acompanhe confirmações e proteja a conversão.'}</p></article>
-      </section>
-
-      <section className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm" aria-labelledby="team-focus-title">
-        <div className="flex items-center justify-between gap-3 px-5 py-4"><h2 id="team-focus-title" className="font-semibold text-gray-800">Equipe em foco</h2><button type="button" onClick={() => navigate('/gerente/minha-equipe')} className="text-xs font-semibold text-emerald-600 hover:text-emerald-700">Ver toda a equipe →</button></div>
-        <div className="overflow-x-auto"><table className="w-full min-w-[900px] text-sm"><thead className="border-y border-gray-100 bg-gray-50/70"><tr>{['Vendedor','Agend. hoje','Projeção','Realizado mês','Próx. faixa','Faltam carros','Status'].map(label=><th key={label} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{label}</th>)}</tr></thead><tbody className="divide-y divide-gray-50">{ranking.length ? ranking.slice(0, 8).map(row=><TeamFocusRow key={row.user_id} row={row}/>) : <tr><td colSpan={7} className="px-5 py-12 text-center text-sm text-gray-400">Equipe sem dados no período.</td></tr>}</tbody></table></div>
-      </section>
-
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <article className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm"><h2 className="font-semibold text-gray-800">Radar Financeiro da Equipe</h2><p className="mt-1 text-xs text-gray-500">Vendedores próximos da próxima faixa</p><div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3"><RadarStat label="Próximos da faixa" value={configuredRules.length ? closeToBand : 'Regras não configuradas'}/><RadarStat label="Premiação projetada" value={configuredRules.length ? 'Disponível no plano' : 'Regras não configuradas'}/><RadarStat label="Podem subir hoje" value={configuredRules.length ? closeToBand : 'Regras não configuradas'}/></div></article>
-        <article className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm"><h2 className="font-semibold text-gray-800">Agendamentos por Vendedor</h2>{ranking.length ? <div className="mt-5 flex h-36 items-end gap-3 overflow-x-auto pb-2">{ranking.map(row=><div key={row.user_id} className="flex min-w-10 flex-1 flex-col items-center justify-end gap-2"><span className="text-xs font-semibold text-gray-500">{row.agd_total || 0}</span><div className="w-full max-w-9 rounded-t-lg bg-emerald-500" style={{height:`${Math.max(4, ((row.agd_total || 0) / chartMax) * 92)}px`}}/><span className="max-w-14 truncate text-[10px] text-gray-400">{firstName(row.user_name)}</span></div>)}</div> : <p className="py-12 text-center text-sm text-gray-400">Sem dados de agendamento.</p>}</article>
-      </section>
-    </div>
-  </div>
+      </div>
+    </header>
+  )
 }
 
-function HeaderAction({ icon: Icon, label, onClick, tone }: { icon: typeof Target; label: string; onClick: () => void; tone: 'emerald' | 'dark' }) { return <button type="button" onClick={onClick} className={`flex h-10 items-center gap-2 rounded-xl border px-3 text-sm font-semibold shadow-sm transition-colors ${tone === 'emerald' ? 'border-emerald-500 text-emerald-700 hover:bg-emerald-50' : 'border-gray-700 text-gray-700 hover:bg-gray-50'}`}><Icon size={16}/>{label}</button> }
-
-function ForecastCard({ title, value, detail, footer, tone, icon: Icon }: { title: string; value: string; detail: string; footer?: string; tone: 'green' | 'neutral' | 'warning'; icon: typeof Target }) {
-  const styles = tone === 'green' ? 'border-emerald-700 bg-gradient-to-br from-emerald-600 to-emerald-800 text-white' : tone === 'warning' ? 'border-orange-200 bg-white' : 'border-gray-100 bg-white'
-  const valueTone = tone === 'warning' ? 'text-orange-500' : tone === 'green' ? 'text-white' : 'text-gray-900'
-  return <article className={`flex min-h-48 flex-col rounded-2xl border p-5 shadow-sm ${styles}`}><div className="flex items-start justify-between gap-3"><p className={`text-xs font-semibold uppercase tracking-wide ${tone === 'green' ? 'text-emerald-100' : 'text-gray-500'}`}>{title}</p><span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${tone === 'green' ? 'bg-white/15 text-white' : 'bg-gray-50 text-gray-400'}`}><Icon size={17}/></span></div><div className="mt-auto"><p className={`text-3xl font-bold ${valueTone}`}>{value}</p><p className={`mt-2 text-sm leading-5 ${tone === 'green' ? 'text-emerald-50' : 'text-gray-500'}`}>{detail}</p>{footer && <p className="mt-3 text-xs text-emerald-100">{footer}</p>}</div></article>
+function HeaderAction({ icon: Icon, label, onClick, tone }: {
+  icon: LucideIcon
+  label: string
+  onClick: () => void
+  tone: 'emerald' | 'dark'
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex h-[38px] items-center gap-1 rounded-xl border px-3 text-sm font-semibold shadow-sm transition-colors ${tone === 'emerald' ? 'border-emerald-600 text-emerald-700 hover:bg-emerald-50' : 'border-gray-800 text-gray-800 hover:bg-gray-100'}`}
+    >
+      <Icon size={14} /> {label}
+    </button>
+  )
 }
 
-function Metric({ label, value, align = 'left' }: { label: string; value: string; align?: 'left' | 'right' }) { return <div className={align === 'right' ? 'text-right' : ''}><p className="text-xs text-gray-500">{label}</p><p className="mt-1 text-xl font-bold text-gray-800">{value}</p></div> }
-
-function TeamFocusRow({ row }: { row: RankingEntry }) {
-  const nextBand = row.remuneracao_plano_cargo || 'Sem regra configurada'
-  const gap = row.remuneracao_plano_id ? row.gap : null
-  const status = row.status?.label || (row.projecao >= row.meta && row.meta > 0 ? 'Em evolução' : 'Abaixo do ritmo')
-  const statusStyle = /bom|dia|evolu/i.test(status) ? 'bg-emerald-100 text-emerald-700' : /aten/i.test(status) ? 'bg-amber-100 text-amber-700' : 'bg-orange-100 text-orange-700'
-  return <tr><td className="px-5 py-3"><div className="flex items-center gap-2"><span className="grid h-8 w-8 place-items-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">{initials(row.user_name)}</span><span className="font-semibold text-gray-700">{row.user_name}</span></div></td><td className="px-5 py-3 text-gray-600">{row.agd_total || 0}</td><td className="px-5 py-3 text-gray-600">{row.projecao || 0}</td><td className="px-5 py-3 text-gray-600">{row.vnd_total || 0}</td><td className="px-5 py-3 text-gray-500">{nextBand}</td><td className="px-5 py-3 text-gray-500">{gap === null ? '—' : gap}</td><td className="px-5 py-3"><span className={`rounded-lg px-2 py-1 text-xs font-medium ${statusStyle}`}>{status}</span></td></tr>
+function SalesForecastCard({ salesForecast, appointments }: { salesForecast: number; appointments: number }) {
+  return (
+    <article className="flex min-h-[140px] flex-col justify-between rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-800 p-5 text-white shadow-md">
+      <div className="flex items-start justify-between">
+        <p className="text-xs font-medium uppercase tracking-wide text-emerald-100">Previsão de Vendas Hoje</p>
+        <span className="grid h-9 w-9 place-items-center rounded-xl bg-white/20"><TrendingUp size={18} /></span>
+      </div>
+      <div>
+        <p className="text-3xl font-bold leading-tight">{formatSales(salesForecast)} {saleSuffix(salesForecast)}</p>
+        <p className="mt-1 text-sm text-emerald-100">
+          {appointments === 0
+            ? 'Nenhum agendamento confirmado para hoje.'
+            : `${appointments} agendamento${appointments === 1 ? '' : 's'} confirmado${appointments === 1 ? '' : 's'} hoje`}
+        </p>
+      </div>
+      <p className="mt-2 text-xs text-emerald-200">Regra atual: 1 venda a cada {AGENDAMENTOS_POR_VENDA} agendamentos</p>
+    </article>
+  )
 }
 
-function RadarStat({ label, value }: { label: string; value: ReactNode }) { return <div className="rounded-xl bg-gray-50 p-3"><p className="text-xs text-gray-500">{label}</p><p className="mt-2 text-sm font-semibold text-gray-700">{value}</p></div> }
+function SalesNeededCard({ salesNeeded }: { salesNeeded: number | null }) {
+  const missingGoal = salesNeeded === null
+  const fulfilled = salesNeeded === 0
+  return (
+    <article className="flex min-h-[140px] flex-col justify-between rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+      <div className="flex items-start justify-between">
+        <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Necessidade de Vendas no Dia</p>
+        <span className="grid h-9 w-9 place-items-center rounded-xl bg-gray-100"><Target size={18} className="text-gray-500" /></span>
+      </div>
+      <div>
+        {missingGoal ? (
+          <><p className="text-2xl font-bold text-gray-400">Meta não cadastrada</p><p className="mt-1 text-sm text-gray-400">Cadastre a meta da loja para ativar a previsibilidade.</p></>
+        ) : fulfilled ? (
+          <><p className="text-3xl font-bold text-emerald-600">0 vendas adicionais</p><p className="mt-1 text-sm text-gray-500">Necessidade do dia atendida</p></>
+        ) : (
+          <><p className="text-3xl font-bold text-gray-800">{salesNeeded} vendas</p><p className="mt-1 text-sm text-gray-500">Para sustentar a meta da loja hoje</p></>
+        )}
+      </div>
+    </article>
+  )
+}
 
-function initials(name: string) { const parts = name.trim().split(/\s+/); return `${parts[0]?.[0] || ''}${parts.length > 1 ? parts[parts.length - 1][0] : ''}`.toUpperCase() }
-function firstName(name: string) { return name.trim().split(/\s+/)[0] || '—' }
-function capitalize(value: string) { return value ? `${value[0].toUpperCase()}${value.slice(1)}` : value }
+function AppointmentTargetCard({ appointmentTarget, salesNeeded }: { appointmentTarget: number | null; salesNeeded: number | null }) {
+  const missingGoal = appointmentTarget === null
+  const fulfilled = salesNeeded === 0
+  return (
+    <article className="flex min-h-[140px] flex-col justify-between rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+      <div className="flex items-start justify-between">
+        <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Meta de Agendamentos para Hoje</p>
+        <span className="grid h-9 w-9 place-items-center rounded-xl bg-gray-100"><Calendar size={18} className="text-gray-500" /></span>
+      </div>
+      <div>
+        {missingGoal ? (
+          <><p className="text-2xl font-bold text-gray-400">Não calculada</p><p className="mt-1 text-sm text-gray-400">Cadastre a meta da loja.</p></>
+        ) : (
+          <>
+            <p className="text-3xl font-bold text-gray-800">{fulfilled ? '0 obrigatórios' : `${appointmentTarget} agendamentos`}</p>
+            <p className="mt-1 text-sm text-gray-500">{fulfilled ? 'Para a necessidade atual do dia' : `Baseado na necessidade de ${salesNeeded} vendas`}</p>
+          </>
+        )}
+      </div>
+    </article>
+  )
+}
+
+function AppointmentGapCard({ appointmentGap }: { appointmentGap: number | null }) {
+  const missingGoal = appointmentGap === null
+  const negative = appointmentGap !== null && appointmentGap < 0
+  const zero = appointmentGap === 0
+  const positive = appointmentGap !== null && appointmentGap > 0
+  const absoluteGap = Math.abs(appointmentGap || 0)
+  return (
+    <article className={`flex min-h-[140px] flex-col justify-between rounded-2xl border bg-white p-5 shadow-sm ${negative ? 'border-orange-200' : zero || positive ? 'border-emerald-200' : 'border-gray-100'}`}>
+      <div className="flex items-start justify-between">
+        <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Gap de Agendamentos</p>
+        <span className="grid h-9 w-9 place-items-center rounded-xl bg-gray-100">
+          {missingGoal || negative
+            ? <AlertTriangle size={18} className={negative ? 'text-orange-500' : 'text-gray-400'} />
+            : <CheckCircle size={18} className="text-emerald-500" />}
+        </span>
+      </div>
+      <div>
+        {missingGoal ? (
+          <><p className="text-2xl font-bold text-gray-400">Não calculado</p><p className="mt-1 text-sm text-gray-400">Cadastre a meta da loja.</p></>
+        ) : negative ? (
+          <><p className="text-3xl font-bold text-orange-500">{appointmentGap}</p><p className="mt-1 text-sm text-gray-500">Faltam {absoluteGap} agendamento{absoluteGap === 1 ? '' : 's'} para sustentar o volume de vendas necessário</p></>
+        ) : zero ? (
+          <><p className="text-3xl font-bold text-emerald-600">0</p><p className="mt-1 text-sm text-gray-500">Meta de agendamentos atendida</p></>
+        ) : (
+          <><p className="text-3xl font-bold text-emerald-600">+{appointmentGap}</p><p className="mt-1 text-sm text-gray-500">{appointmentGap} agendamento{appointmentGap === 1 ? '' : 's'} acima da necessidade</p></>
+        )}
+      </div>
+    </article>
+  )
+}
+
+function TodayReading({ salesForecast, salesNeeded, coverage, message }: {
+  salesForecast: number
+  salesNeeded: number | null
+  coverage: number | null
+  message: string
+}) {
+  const missingGoal = salesNeeded === null
+  const fulfilled = salesNeeded === 0
+  const deficit = !missingGoal && !fulfilled && salesForecast < salesNeeded
+  const fill = missingGoal || fulfilled ? 100 : Math.min((salesForecast / salesNeeded) * 100, 100)
+  return (
+    <article className="h-full rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+      <h2 className="mb-4 text-sm font-bold text-gray-800">Leitura do Dia</h2>
+      <div className="mb-3 flex items-center justify-between">
+        <div><p className="text-xs text-gray-500">Previsão</p><p className="text-xl font-bold text-gray-800">{formatSales(salesForecast)} {saleSuffix(salesForecast)}</p></div>
+        <div className="text-right"><p className="text-xs text-gray-500">Necessidade</p><p className="text-xl font-bold text-gray-800">{missingGoal ? '—' : fulfilled ? '0' : `${salesNeeded} vendas`}</p></div>
+      </div>
+      <div className="relative h-3 overflow-hidden rounded-full bg-gray-100">
+        <div className={`h-full rounded-full transition-all ${deficit ? 'bg-orange-400' : 'bg-emerald-500'}`} style={{ width: `${fill}%` }} />
+        <div className="absolute left-full top-0 h-full w-0.5 bg-gray-700" />
+      </div>
+      {coverage !== null ? <p className="mt-1.5 text-xs text-gray-400">Cobertura: {Math.round(coverage)}%</p> : null}
+      <p className={`mt-3 text-sm font-medium ${deficit ? 'text-orange-600' : 'text-gray-600'}`}>{message}</p>
+    </article>
+  )
+}
+
+function SuggestedAction({ message }: { message: string }) {
+  return (
+    <article className="flex h-full flex-col rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+      <div className="mb-3 flex items-center gap-2"><span className="grid h-8 w-8 place-items-center rounded-lg bg-amber-50"><Lightbulb size={16} className="text-amber-500" /></span><h2 className="text-sm font-bold text-gray-800">Ação sugerida</h2></div>
+      <p className="flex-1 text-sm leading-relaxed text-gray-600">{message}</p>
+    </article>
+  )
+}
+
+function TeamFocus({ team, showAll, onSellerClick, onViewAll }: {
+  team: ManagerTeamFocusItem[]
+  showAll: boolean
+  onSellerClick: (seller: ManagerTeamFocusItem) => void
+  onViewAll: () => void
+}) {
+  if (team.length === 0) {
+    return (
+      <section aria-label="Equipe em foco" className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+        <h2 className="mb-3 text-sm font-bold text-gray-800">Equipe em foco</h2>
+        <p className="py-6 text-center text-sm text-gray-400">Nenhum vendedor vinculado a este gerente.</p>
+      </section>
+    )
+  }
+
+  return (
+    <section aria-label="Equipe em foco" className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-sm font-bold text-gray-800">Equipe em foco</h2>
+        {showAll ? <button type="button" onClick={onViewAll} className="flex items-center gap-0.5 text-xs font-medium text-emerald-600 hover:text-emerald-700">Ver toda a equipe <span aria-hidden>›</span></button> : null}
+      </div>
+      <div className="hidden overflow-x-auto md:block">
+        <table className="w-full text-sm">
+          <thead><tr className="border-b border-gray-100 text-xs uppercase tracking-wide text-gray-500">{['Vendedor', 'Agend. Hoje', 'Projeção', 'Realizado mês', 'Próx. faixa', 'Faltam carros', 'Status'].map((label, index) => <th key={label} className={`${index === 0 ? 'text-left' : 'text-center'} pb-2 font-medium`}>{label}</th>)}</tr></thead>
+          <tbody>{team.map(seller => <TeamFocusRow key={seller.sellerId} seller={seller} onClick={() => onSellerClick(seller)} />)}</tbody>
+        </table>
+      </div>
+      <div className="space-y-3 md:hidden">
+        {team.map(seller => (
+          <button key={seller.sellerId} type="button" onClick={() => onSellerClick(seller)} className="w-full rounded-xl border border-gray-100 p-3 text-left hover:bg-gray-50">
+            <div className="mb-2 flex items-center justify-between gap-2"><SellerIdentity seller={seller} /><StatusBadge status={seller.financialStatus} /></div>
+            <div className="grid grid-cols-2 gap-1 text-xs">
+              <MobileMetric label="Agend. hoje" value={seller.appointmentsToday} />
+              <MobileMetric label="Projeção" value={formatSales(seller.salesForecastToday)} />
+              <MobileMetric label="Realizado mês" value={seller.salesThisMonth} />
+              <MobileMetric label="Faltam carros" value={seller.missingCarsToNextBand ?? '—'} />
+            </div>
+          </button>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function TeamFocusRow({ seller, onClick }: { seller: ManagerTeamFocusItem; onClick: () => void }) {
+  return (
+    <tr onClick={onClick} className="cursor-pointer border-b border-gray-50 transition-colors hover:bg-gray-50">
+      <td className="py-2.5 pr-3"><SellerIdentity seller={seller} /></td>
+      <td className="px-2 text-center text-gray-700">{seller.appointmentsToday}</td>
+      <td className="px-2 text-center text-gray-700">{formatSales(seller.salesForecastToday)}</td>
+      <td className="px-2 text-center text-gray-700">{seller.salesThisMonth}</td>
+      <td className="px-2 text-center text-xs text-gray-500">{seller.nextCommissionBand ?? 'Sem regra configurada'}</td>
+      <td className="px-2 text-center text-xs text-gray-500">{seller.missingCarsToNextBand ?? '—'}</td>
+      <td className="pl-2 text-center"><StatusBadge status={seller.financialStatus} /></td>
+    </tr>
+  )
+}
+
+function SellerIdentity({ seller }: { seller: ManagerTeamFocusItem }) {
+  return <div className="flex min-w-0 items-center gap-2"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">{initials(seller.sellerName)}</span><span className="truncate text-sm font-medium text-gray-700">{seller.sellerName}</span></div>
+}
+
+function StatusBadge({ status }: { status: ManagerTeamFocusItem['financialStatus'] }) {
+  return <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${status.className}`}>{status.label}</span>
+}
+
+function MobileMetric({ label, value }: { label: string; value: ReactNode }) {
+  return <div><span className="text-gray-400">{label}:</span> <span className="font-medium text-gray-700">{value}</span></div>
+}
+
+function FinancialRadar({ team, rulesConfigured }: { team: ManagerTeamFocusItem[]; rulesConfigured: boolean }) {
+  const closeToBand = rulesConfigured ? team.filter(seller => (seller.missingCarsToNextBand || 0) > 0 && (seller.missingCarsToNextBand || 0) <= 2).length : 0
+  const projectedAward = rulesConfigured ? team.reduce((sum, seller) => sum + (seller.projectedAward || 0), 0) : null
+  const canMoveUp = rulesConfigured ? team.filter(seller => (seller.missingCarsToNextBand || 0) > 0 && seller.salesForecastToday >= (seller.missingCarsToNextBand || 0)).length : 0
+  return (
+    <article className="h-full rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+      <h2 className="mb-4 text-sm font-bold text-gray-800">Radar Financeiro da Equipe</h2>
+      <div className="space-y-3">
+        <RadarRow icon={Users} label="Vendedores próximos da próxima faixa" value={rulesConfigured ? `${closeToBand} vendedor${closeToBand === 1 ? '' : 'es'}` : 'Regras não configuradas'} tone="emerald" />
+        <RadarRow icon={DollarSign} label="Premiação projetada da equipe" value={rulesConfigured ? formatCurrency(projectedAward) : 'Regras não configuradas'} tone="amber" />
+        <RadarRow icon={TrendingUp} label="Vendedores podem subir de faixa hoje" value={rulesConfigured ? `${canMoveUp} vendedor${canMoveUp === 1 ? '' : 'es'}` : 'Regras não configuradas'} tone="emerald" />
+      </div>
+    </article>
+  )
+}
+
+function RadarRow({ icon: Icon, label, value, tone }: { icon: LucideIcon; label: string; value: string; tone: 'emerald' | 'amber' }) {
+  return <div className="flex items-center gap-3 rounded-xl bg-gray-50 p-3"><span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${tone === 'amber' ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'}`}><Icon size={18} /></span><div><p className="text-xs text-gray-500">{label}</p><p className="text-lg font-bold text-gray-800">{value}</p></div></div>
+}
+
+function AppointmentsChart({ data, onBarClick }: { data: AppointmentChartItem[]; onBarClick: (item: AppointmentChartItem) => void }) {
+  const maxValue = Math.max(...data.map(item => item.appointments), 1)
+  const handleBarClick = (rectangle: BarRectangleItem) => {
+    const item = rectangle.payload as AppointmentChartItem | undefined
+    if (item) onBarClick(item)
+  }
+  return (
+    <article className="h-full rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+      <h2 className="mb-4 text-sm font-bold text-gray-800">Agendamentos por Vendedor</h2>
+      {data.length === 0 ? <p className="py-6 text-center text-sm text-gray-400">Nenhum agendamento confirmado para hoje.</p> : (
+        <ResponsiveContainer width="100%" height={Math.max(data.length * 38 + 10, 120)}>
+          <BarChart data={data} layout="vertical" margin={{ left: 10, right: 20, top: 0, bottom: 0 }}>
+            <XAxis type="number" domain={[0, maxValue]} hide />
+            <YAxis type="category" dataKey="firstName" width={100} tick={{ fontSize: 12, fill: chartTokens.managerAxisTick() }} axisLine={false} tickLine={false} />
+            <Bar dataKey="appointments" radius={[0, 4, 4, 0]} cursor="pointer" onClick={handleBarClick}>
+              {data.map(item => <Cell key={item.sellerId} fill={item.appointments > 0 ? chartTokens.managerPositive() : '#d1d5db'} />)}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      )}
+    </article>
+  )
+}
+
+function ManagerHomeState({ title, description, action }: { title: string; description: string; action?: ReactNode }) {
+  return <div className="flex min-h-full items-center justify-center bg-gray-50 px-4 py-12"><div className="max-w-md rounded-2xl border border-gray-100 bg-white p-8 text-center shadow-sm"><h2 className="font-semibold text-gray-700">{title}</h2><p className="mt-2 text-sm text-gray-500">{description}</p>{action ? <div className="mt-5">{action}</div> : null}</div></div>
+}
+
+function groupCheckinsBySeller(checkins: DailyCheckin[]) {
+  const grouped = new Map<string, DailyCheckin[]>()
+  for (const checkin of checkins) {
+    const current = grouped.get(checkin.seller_user_id)
+    if (current) current.push(checkin)
+    else grouped.set(checkin.seller_user_id, [checkin])
+  }
+  return grouped
+}
+
+function sumAppointments(checkins: DailyCheckin[]) {
+  return checkins.reduce((total, checkin) => total + (checkin.agd_cart_today || 0) + (checkin.agd_net_today || 0), 0)
+}
+
+function formatNumericDate(value: string) {
+  const [year, month, day] = value.split('-')
+  return `${day}/${month}/${year}`
+}
+
+function formatCurrency(value: number | null) {
+  if (value === null) return '—'
+  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 0 })
+}
+
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/)
+  return `${parts[0]?.[0] || '?'}${parts.length > 1 ? parts[parts.length - 1][0] : ''}`.toUpperCase()
+}
+
+function firstName(name: string) {
+  return name.trim().split(/\s+/)[0] || '—'
+}
+
+function capitalize(value: string) {
+  return value ? `${value[0].toUpperCase()}${value.slice(1)}` : value
+}
 
 export default ManagerSellerParityHome
