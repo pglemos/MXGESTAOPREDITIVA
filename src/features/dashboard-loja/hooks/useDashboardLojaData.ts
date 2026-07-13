@@ -11,6 +11,7 @@ import { useDRE } from '@/hooks/useDRE'
 import { somarVendas, calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 import { buildStoreSalesRules } from '@/lib/storeSalesRules'
 import type { RankingEntry } from '@/types/database'
+import type { Database } from '@/types/database.generated'
 
 export type StoreRankingEntry = RankingEntry & { id: string }
 export type ViewMode = 'day' | 'month'
@@ -18,6 +19,31 @@ export type ViewMode = 'day' | 'month'
 type UseDashboardLojaDataInput = {
   selectedStoreId: string | null
   selectedStoreName: string
+}
+
+type ExecutionActionRow = Pick<Database['public']['Tables']['execution_actions']['Row'], 'seller_id' | 'status'>
+
+const EXECUTION_ACTION_PAGE_SIZE = 1000
+
+async function fetchExecutionActionRows(storeId: string, rangeStart: string, rangeEnd: string): Promise<ExecutionActionRow[]> {
+  const rows: ExecutionActionRow[] = []
+
+  for (let from = 0; ; from += EXECUTION_ACTION_PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from('execution_actions')
+      .select('seller_id,status')
+      .eq('store_id', storeId)
+      .gte('due_at', `${rangeStart}T00:00:00-03:00`)
+      .lte('due_at', `${rangeEnd}T23:59:59-03:00`)
+      .order('id', { ascending: true })
+      .range(from, from + EXECUTION_ACTION_PAGE_SIZE - 1)
+
+    if (error) throw error
+
+    const page = (data || []) as ExecutionActionRow[]
+    rows.push(...page)
+    if (page.length < EXECUTION_ACTION_PAGE_SIZE) return rows
+  }
 }
 
 /**
@@ -40,12 +66,13 @@ export function useDashboardLojaData({ selectedStoreId, selectedStoreName }: Use
   } = operationalSettings
 
   const [viewMode, setViewMode] = useState<ViewMode>('day')
-  const [referenceDate] = useState(() => calculateReferenceDate())
+  const [referenceDate, setReferenceDate] = useState(() => calculateReferenceDate())
   const [startDate, setStartDate] = useState(() => format(startOfMonth(parseISO(referenceDate)), 'yyyy-MM-dd'))
   const [endDate, setEndDate] = useState(() => referenceDate)
   const [isRefetching, setIsRefetching] = useState(false)
   const [syncWarning, setSyncWarning] = useState<string | null>(null)
   const [lastSyncAt, setLastSyncAt] = useState<Date | null>(null)
+  const [routineExecutionBySeller, setRoutineExecutionBySeller] = useState<Record<string, number | null>>({})
   const refetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const { checkins, loading, refetch } = useCheckinsByDateRange(
@@ -111,6 +138,39 @@ export function useDashboardLojaData({ selectedStoreId, selectedStoreName }: Use
     }
   }, [refetch])
 
+  useEffect(() => {
+    if (!selectedStoreId) {
+      setRoutineExecutionBySeller({})
+      return
+    }
+
+    const rangeStart = viewMode === 'day' ? referenceDate : startDate
+    const rangeEnd = viewMode === 'day' ? referenceDate : endDate
+    let active = true
+
+    void fetchExecutionActionRows(selectedStoreId, rangeStart, rangeEnd)
+      .then(actionRows => {
+        if (!active) return
+        const totals = new Map<string, { completed: number; total: number }>()
+        for (const action of actionRows) {
+          const current = totals.get(action.seller_id) || { completed: 0, total: 0 }
+          current.total += 1
+          if (action.status === 'concluida' || action.status === 'justificada') current.completed += 1
+          totals.set(action.seller_id, current)
+        }
+        setRoutineExecutionBySeller(Object.fromEntries(
+          Array.from(totals.entries()).map(([sellerId, total]) => [sellerId, total.total > 0 ? Math.round((total.completed / total.total) * 100) : null]),
+        ))
+      })
+      .catch(error => {
+        if (!active) return
+        console.error('Audit Error [useDashboardLojaData]: routine actions fail ->', error)
+        setRoutineExecutionBySeller({})
+      })
+
+    return () => { active = false }
+  }, [endDate, referenceDate, selectedStoreId, startDate, viewMode])
+
   const effectiveMonthlyGoal = operationalMetaRules?.monthly_goal ?? storeGoal?.target ?? 0
 
   const funnelBenchmarks = useMemo(
@@ -133,6 +193,9 @@ export function useDashboardLojaData({ selectedStoreId, selectedStoreName }: Use
       checkins,
       ranking: (sellers || []).map(s => {
         const sellerCheckins = checkinsBySeller[s.id] || []
+        const disciplineValues = sellerCheckins
+          .map(checkin => checkin.pontuacao_disciplina_final)
+          .filter((value): value is number => typeof value === 'number')
         return {
           id: s.id,
           user_id: s.id,
@@ -155,6 +218,10 @@ export function useDashboardLojaData({ selectedStoreId, selectedStoreName }: Use
           gap: 0,
           position: 0,
           checked_in: s.checkin_today,
+          routine_execution: routineExecutionBySeller[s.id] ?? null,
+          discipline_score: disciplineValues.length > 0
+            ? Math.round(disciplineValues.reduce((sum, value) => sum + value, 0) / disciplineValues.length)
+            : null,
         }
       }),
       rules: buildStoreSalesRules({
@@ -163,7 +230,7 @@ export function useDashboardLojaData({ selectedStoreId, selectedStoreName }: Use
         metaRules: operationalMetaRules,
       }),
     }
-  }, [checkins, effectiveMonthlyGoal, operationalMetaRules, selectedStoreId, sellers])
+  }, [checkins, effectiveMonthlyGoal, operationalMetaRules, routineExecutionBySeller, selectedStoreId, sellers])
 
   const storeSales = useStoreSales(storeSalesParams)
   const { financials, computeDRE: computeDREFn } = useDRE(undefined, selectedStoreId || undefined)
@@ -220,6 +287,7 @@ export function useDashboardLojaData({ selectedStoreId, selectedStoreName }: Use
     viewMode,
     setViewMode,
     referenceDate,
+    setReferenceDate,
     startDate,
     setStartDate,
     endDate,

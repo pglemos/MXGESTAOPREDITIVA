@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
@@ -50,6 +50,16 @@ export function Modal({
   closeOnEscape = true,
   referenceStyle = false,
 }: ModalProps) {
+  const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
+  const wasOpenRef = useRef(false);
+
+  if (open && !wasOpenRef.current && typeof document !== "undefined") {
+    previouslyFocusedElementRef.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+  }
+  wasOpenRef.current = open;
+
   return (
     <Dialog.Root
       open={open}
@@ -67,6 +77,13 @@ export function Modal({
         <Dialog.Content
           onEscapeKeyDown={(event) => {
             if (!closeOnEscape) event.preventDefault();
+          }}
+          onCloseAutoFocus={(event) => {
+            const previouslyFocusedElement = previouslyFocusedElementRef.current;
+            if (!previouslyFocusedElement?.isConnected) return;
+
+            event.preventDefault();
+            requestAnimationFrame(() => previouslyFocusedElement.focus());
           }}
           className={cn(
             "fixed left-mx-md right-mx-md top-mx-md bottom-mx-md sm:left-1/2 sm:right-auto sm:top-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 z-[101] focus:outline-none",

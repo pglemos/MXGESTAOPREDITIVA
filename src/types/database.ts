@@ -323,6 +323,8 @@ export interface RankingEntry {
     gap: number
     position: number
     checked_in?: boolean
+    routine_execution?: number | null
+    discipline_score?: number | null
 }
 
 /** Dados do Funil de Vendas */

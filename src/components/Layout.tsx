@@ -18,7 +18,10 @@ import {
   Handshake,
   FileBarChart,
   Activity,
+  BookOpen,
   CalendarCheck,
+  CalendarClock,
+  BrainCircuit,
 } from 'lucide-react'
 import { slugify } from '@/lib/utils'
 import SellerLayoutShell, { type SellerLayoutNavItem, type SellerLayoutNavSection } from './SellerSidebar'
@@ -154,15 +157,16 @@ const navConfig: Record<string, NavCategory[]> = {
   ],
   gerente: [
     {
-      category: 'MÓDULO GERENCIAL', icon: <Home size={22} />,
+      category: 'MENU', icon: <Home size={22} />,
       items: [
         { label: 'Início', path: '/home', icon: <Home size={16} /> },
+        { label: 'Rotina do Dia', path: '/rotina', icon: <CalendarClock size={16} /> },
         { label: 'Fechamento Diário', path: '/fechamento-diario', icon: <CheckSquare size={16} /> },
         { label: 'Rotina da Equipe', path: '/gerente/rotina-equipe', icon: <CalendarCheck size={16} /> },
         { label: 'Minha Equipe', path: '/gerente/minha-equipe', icon: <Users size={16} /> },
         { label: 'Meta da Loja', path: '/gerente/meta-loja', icon: <Target size={16} /> },
-        { label: 'Mentor Gerencial', path: '/gerente/mentor', icon: <Bot size={16} /> },
-        { label: 'Feedbacks e PDIs', path: '/gerente/feedbacks-pdis', icon: <MessageSquare size={16} /> },
+        { label: 'Mentor Gerencial', path: '/gerente/mentor', icon: <BrainCircuit size={16} /> },
+        { label: 'Desenvolvimento', path: '/gerente/feedbacks-pdis', icon: <BookOpen size={16} /> },
         { label: 'Ranking', path: '/gerente/ranking', icon: <Trophy size={16} /> },
         { label: 'Universidade MX', path: '/gerente/universidade-mx', icon: <GraduationCap size={16} /> },
       ]

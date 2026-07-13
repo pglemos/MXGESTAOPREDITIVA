@@ -6,6 +6,7 @@ import { StoreEditModal } from '@/features/admin/components/StoreEditModal'
 import { StoreGoalsPanel } from '@/features/lojas/components/StoreGoalsPanel'
 import { StoreTeamPanel } from '@/features/lojas/components/StoreTeamPanel'
 import { ManagerTeamPerformance } from '@/features/manager/team/ManagerTeamPerformance'
+import { ManagerStoreGoalReference } from '@/features/manager/meta/ManagerStoreGoalReference'
 import { DashboardHeader, type DashboardTab } from './sections/DashboardHeader'
 import { PerformanceTab } from './sections/PerformanceTab'
 import { CreateStoreModal } from './sections/CreateStoreModal'
@@ -18,9 +19,6 @@ import { useDashboardLojaData } from './hooks/useDashboardLojaData'
 import { useStoreResolution } from './hooks/useStoreResolution'
 import { useStoreActions } from './hooks/useStoreActions'
 import { DashboardErrorBoundary } from './components/DashboardErrorBoundary'
-import { SellerPageHeader } from '@/components/seller/SellerPageHeader'
-import { Target, Users } from 'lucide-react'
-import { TabNavPill } from '@/components/molecules/TabNavPill'
 
 /**
  * Container do DashboardLoja — orquestra resolução de loja, routing por slug/query,
@@ -95,17 +93,8 @@ export function DashboardLoja() {
   }
 
   return (
-  <main className={`h-full w-full overflow-y-auto no-scrollbar ${isFocusedRolePerformance ? role === 'gerente' ? 'bg-surface-alt' : 'bg-seller-screen-bg' : 'bg-surface-alt p-mx-lg'}`} id="main-content">
-      {isManagerSection ? (
-        <div className="mb-mx-lg">
-          <SellerPageHeader
-            icon={activeTab === 'equipe' ? Users : Target}
-            title={activeTab === 'equipe' ? 'Minha Equipe' : 'Meta da Loja'}
-            subtitle={data.metrics.storeName}
-            actions={<TabNavPill tabs={[{ key: 'metas' as const, label: 'Meta', icon: Target }, { key: 'equipe' as const, label: 'Equipe', icon: Users }]} activeTab={activeTab as 'metas' | 'equipe'} onTabChange={handleTabChange} />}
-          />
-        </div>
-      ) : !isFocusedRolePerformance && (
+  <main className={`h-full w-full overflow-y-auto no-scrollbar ${isFocusedRolePerformance ? role === 'gerente' ? 'bg-surface-alt' : 'bg-seller-screen-bg' : isManagerSection ? 'bg-surface-alt' : 'bg-surface-alt p-mx-lg'}`} id="main-content">
+      {!isFocusedRolePerformance && !isManagerSection && (
         <DashboardErrorBoundary sectionName="Header">
           <DashboardHeader
             role={role}
@@ -133,10 +122,12 @@ export function DashboardLoja() {
       )}
 
       {activeTab === 'metas' ? (
-        <StoreGoalsPanel storeId={selectedStoreId} storeName={data.metrics.storeName} />
+        role === 'gerente'
+          ? <ManagerStoreGoalReference data={data} />
+          : <StoreGoalsPanel storeId={selectedStoreId} storeName={data.metrics.storeName} />
       ) : activeTab === 'equipe' ? (
         role === 'gerente'
-          ? <ManagerTeamPerformance rows={data.metrics.ranking} storeName={data.metrics.storeName} />
+          ? <ManagerTeamPerformance data={data} storeName={data.metrics.storeName} />
           : <StoreTeamPanel storeId={selectedStoreId} storeName={data.metrics.storeName} />
       ) : selectedStoreId ? (
         <PerformanceTab

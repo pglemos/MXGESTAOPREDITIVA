@@ -1,0 +1,204 @@
+import { useMemo, useState } from 'react'
+import {
+  AlertCircle,
+  AlertOctagon,
+  CalendarClock,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Eye,
+  FileText,
+  GraduationCap,
+  MessageSquarePlus,
+  MoreVertical,
+  TrendingUp,
+  UserX,
+  Users,
+} from 'lucide-react'
+import type { RankingEntry } from '@/types/database'
+import {
+  getManagerTeamNextStep,
+  getManagerTeamStatus,
+  groupManagerTeamCards,
+  MANAGER_TEAM_COLUMN_GUIDANCE,
+  summarizeManagerTeam,
+  type ManagerTeamCard,
+  type ManagerTeamStatus,
+  type ManagerTeamView,
+} from './manager-team-kanban'
+
+export type ManagerTeamAction = 'routine' | 'feedback' | 'closing' | 'training'
+
+type ManagerTeamKanbanProps = {
+  cards: ManagerTeamCard[]
+  view: ManagerTeamView
+  storeName: string
+  onViewChange: (view: ManagerTeamView) => void
+  onOpenProfile: (row: RankingEntry) => void
+  onAction: (action: ManagerTeamAction, row: RankingEntry) => void
+}
+
+const STATUS_ORDER = ['critical', 'attention', 'on_track'] as const
+
+const COLUMN_CONFIG = {
+  critical: {
+    label: 'Críticos',
+    icon: AlertOctagon,
+    header: 'border-red-200 bg-red-100 text-red-700',
+    body: 'border-red-200 bg-red-50/50',
+    footer: 'border-red-100 bg-red-50 text-red-700',
+    active: 'border-red-600 bg-red-600 text-white',
+  },
+  attention: {
+    label: 'Atenção',
+    icon: AlertCircle,
+    header: 'border-amber-200 bg-amber-100 text-amber-700',
+    body: 'border-amber-200 bg-amber-50/50',
+    footer: 'border-amber-100 bg-amber-50 text-amber-700',
+    active: 'border-amber-500 bg-amber-500 text-white',
+  },
+  on_track: {
+    label: 'Em dia',
+    icon: CheckCircle2,
+    header: 'border-emerald-200 bg-emerald-100 text-emerald-700',
+    body: 'border-emerald-200 bg-emerald-50/50',
+    footer: 'border-emerald-100 bg-emerald-50 text-emerald-700',
+    active: 'border-emerald-600 bg-emerald-600 text-white',
+  },
+} as const
+
+const CARD_THEME = {
+  critical: {
+    border: 'border-red-300',
+    badge: 'bg-red-100 text-red-700',
+    avatar: 'bg-red-100 text-red-700',
+    advice: 'bg-red-50 text-red-700',
+    action: 'border-red-200 text-red-700 hover:bg-red-50',
+  },
+  attention: {
+    border: 'border-amber-300',
+    badge: 'bg-amber-100 text-amber-700',
+    avatar: 'bg-amber-100 text-amber-700',
+    advice: 'bg-amber-50 text-amber-700',
+    action: 'border-amber-200 text-amber-700 hover:bg-amber-50',
+  },
+  on_track: {
+    border: 'border-emerald-300',
+    badge: 'bg-emerald-100 text-emerald-700',
+    avatar: 'bg-emerald-100 text-emerald-700',
+    advice: 'bg-emerald-50 text-emerald-700',
+    action: 'border-emerald-200 text-emerald-700 hover:bg-emerald-50',
+  },
+} as const
+
+const VIEW_OPTIONS: Array<{ value: ManagerTeamView; label: string }> = [
+  { value: 'all', label: 'Todos' },
+  { value: 'result', label: 'Resultado' },
+  { value: 'consistency', label: 'Consistência' },
+]
+
+export function ManagerTeamKanban({ cards, view, storeName, onViewChange, onOpenProfile, onAction }: ManagerTeamKanbanProps) {
+  const [mobileStatus, setMobileStatus] = useState<Exclude<ManagerTeamStatus, 'not_applicable'>>('critical')
+  const groups = useMemo(() => groupManagerTeamCards(cards, view), [cards, view])
+  const summary = useMemo(() => summarizeManagerTeam(groups), [groups])
+  const activeMobileStatus = groups[mobileStatus].length > 0
+    ? mobileStatus
+    : STATUS_ORDER.find(status => groups[status].length > 0) ?? 'critical'
+
+  return <div className="space-y-4">
+    <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm" aria-label="Visão do Kanban">
+      <div className="mb-1.5 flex items-center gap-1.5"><Eye size={14} className="text-gray-400"/><p className="text-xs font-medium text-gray-500">Visão do Kanban</p></div>
+      <div className="inline-flex max-w-full gap-1 overflow-x-auto rounded-xl border border-gray-200 bg-gray-50 p-1" role="tablist" aria-label="Classificação da equipe">
+        {VIEW_OPTIONS.map(option => <button key={option.value} type="button" role="tab" aria-selected={view === option.value} onClick={() => onViewChange(option.value)} className={`whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all ${view === option.value ? 'bg-emerald-600 text-white shadow-sm' : 'text-gray-500 hover:bg-white hover:text-gray-700'}`}>{option.label}</button>)}
+      </div>
+      <p className="mt-1.5 text-[11px] text-gray-400">A posição no Kanban muda conforme a visão selecionada.</p>
+    </section>
+
+    <div className="flex flex-wrap items-center justify-center gap-2 rounded-xl bg-white px-3 py-2 shadow-sm">
+      <Users size={15} className="text-emerald-600"/>
+      <p className="text-sm font-semibold text-gray-700"><span className="text-base text-emerald-600">{summary.onTrackPercentage}%</span> da equipe Em dia</p>
+      <span className="text-xs text-gray-400">({summary.eligible} vendedores elegíveis)</span>
+    </div>
+
+    <div className="hidden items-start gap-4 lg:grid lg:grid-cols-3">
+      {STATUS_ORDER.map(status => <KanbanColumn key={status} status={status} cards={groups[status]} view={view} storeName={storeName} onOpenProfile={onOpenProfile} onAction={onAction}/>)}
+    </div>
+
+    <div className="-mx-1 hidden snap-x snap-mandatory items-start gap-3 overflow-x-auto px-1 pb-2 md:flex lg:hidden">
+      {STATUS_ORDER.map(status => <div key={status} className="w-[300px] shrink-0 snap-start"><KanbanColumn status={status} cards={groups[status]} view={view} storeName={storeName} onOpenProfile={onOpenProfile} onAction={onAction}/></div>)}
+    </div>
+
+    <div className="space-y-3 md:hidden">
+      <div className="grid grid-cols-3 gap-2">
+        {STATUS_ORDER.map(status => {
+          const config = COLUMN_CONFIG[status]
+          const Icon = config.icon
+          const active = activeMobileStatus === status
+          return <button key={status} type="button" disabled={groups[status].length === 0} onClick={() => setMobileStatus(status)} className={`rounded-xl border py-2.5 transition-colors ${active ? config.active : groups[status].length === 0 ? 'border-gray-100 bg-gray-50 text-gray-300' : `${config.header} bg-opacity-60`}`}>
+            <span className="flex items-center justify-center gap-1 text-xs font-semibold"><Icon size={14}/>{config.label}</span>
+            <span className="mt-0.5 block text-lg font-bold">{groups[status].length}</span>
+          </button>
+        })}
+      </div>
+      <KanbanMobileList status={activeMobileStatus} cards={groups[activeMobileStatus]} view={view} storeName={storeName} onOpenProfile={onOpenProfile} onAction={onAction}/>
+    </div>
+
+    <NotApplicableSellers cards={groups.not_applicable} storeName={storeName}/>
+  </div>
+}
+
+type ColumnProps = {
+  status: Exclude<ManagerTeamStatus, 'not_applicable'>
+  cards: ManagerTeamCard[]
+  view: ManagerTeamView
+  storeName: string
+  onOpenProfile: (row: RankingEntry) => void
+  onAction: (action: ManagerTeamAction, row: RankingEntry) => void
+}
+
+function KanbanColumn({ status, cards, view, storeName, onOpenProfile, onAction }: ColumnProps) {
+  const config = COLUMN_CONFIG[status]
+  const Icon = config.icon
+  const guidance = MANAGER_TEAM_COLUMN_GUIDANCE[view][status]
+  return <section className={`flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border ${config.body}`} aria-label={`${config.label}: ${cards.length}`}>
+    <header className={`flex min-h-[52px] items-center justify-between border-b px-4 py-3 ${config.header}`}><div className="flex items-center gap-2"><Icon size={18}/><h2 className="text-sm font-bold">{config.label}</h2></div><span className="rounded-full bg-white/80 px-2.5 py-0.5 text-xs font-bold">{cards.length}</span></header>
+    <div className="flex min-h-[100px] flex-1 flex-col gap-3 p-3">{cards.length ? cards.map(card => <ManagerSellerCard key={card.row.user_id} card={card} view={view} status={status} storeName={storeName} onOpenProfile={onOpenProfile} onAction={onAction}/>) : <div className="flex h-20 items-center justify-center text-xs text-gray-400">Nenhum vendedor nesta coluna</div>}</div>
+    <footer className={`border-t px-3 py-2.5 ${config.footer}`}><p className="text-xs font-semibold">{guidance.title}</p><p className="mt-0.5 text-[11px] leading-snug opacity-75">{guidance.detail}</p></footer>
+  </section>
+}
+
+function KanbanMobileList(props: ColumnProps) {
+  const guidance = MANAGER_TEAM_COLUMN_GUIDANCE[props.view][props.status]
+  const config = COLUMN_CONFIG[props.status]
+  return <>{props.cards.length ? <div className="space-y-3">{props.cards.map(card => <ManagerSellerCard key={card.row.user_id} card={card} view={props.view} status={props.status} storeName={props.storeName} onOpenProfile={props.onOpenProfile} onAction={props.onAction}/>)}</div> : <div className="rounded-2xl border border-gray-100 bg-white py-12 text-center text-sm text-gray-400">Nenhum vendedor nesta coluna</div>}<div className={`mt-3 rounded-2xl border p-3 ${config.footer}`}><p className="text-xs font-semibold">{guidance.title}</p><p className="mt-0.5 text-[11px] leading-snug opacity-75">{guidance.detail}</p></div></>
+}
+
+function ManagerSellerCard({ card, view, status, storeName, onOpenProfile, onAction }: Omit<ColumnProps, 'cards'> & { card: ManagerTeamCard }) {
+  const theme = CARD_THEME[status]
+  const statusLabel = COLUMN_CONFIG[status].label === 'Críticos' ? 'Crítico' : COLUMN_CONFIG[status].label
+  return <article className={`grid min-h-[260px] grid-rows-[auto_auto_1fr_auto] rounded-2xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md ${theme.border}`}>
+    <div className="mb-3 flex items-start justify-between gap-2"><div className="flex min-w-0 items-center gap-2.5"><span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl text-xs font-bold ${theme.avatar}`}>{initials(card.row.user_name)}</span><div className="min-w-0"><p className="truncate text-sm font-semibold text-gray-800">{card.row.user_name}</p><p className="truncate text-xs text-gray-500">{storeName}</p></div></div><span className={`shrink-0 rounded-lg px-2 py-0.5 text-xs font-medium ${theme.badge}`}>{statusLabel}</span></div>
+    <div className="mb-3 grid grid-cols-2 gap-2"><KanbanMetric label="Resultado" value={card.result} status={card.resultStatus}/><KanbanMetric label="Consistência" value={card.consistency} status={card.consistencyStatus}/></div>
+    <div className={`mb-3 rounded-xl p-2.5 ${theme.advice}`}><div className="flex items-start gap-1.5"><TrendingUp size={13} className="mt-0.5 shrink-0"/><p className="min-h-12 text-xs leading-snug">{getManagerTeamNextStep(card, view)}</p></div></div>
+    <div className="mt-auto flex items-center gap-1"><button type="button" onClick={() => onOpenProfile(card.row)} className={`flex min-h-9 flex-1 items-center justify-center gap-1 rounded-xl border px-2 text-xs font-semibold transition-colors ${theme.action}`}>Ver perfil completo <ChevronRight size={14}/></button><details className="group relative"><summary aria-label={`Mais ações para ${card.row.user_name}`} className={`grid h-9 w-9 cursor-pointer list-none place-items-center rounded-xl border transition-colors [&::-webkit-details-marker]:hidden ${theme.action}`}><MoreVertical size={14}/></summary><div className="absolute bottom-11 right-0 z-30 w-52 overflow-hidden rounded-xl border border-gray-200 bg-white p-1 shadow-xl"><ActionItem icon={CalendarClock} label="Ver rotina de hoje" onClick={() => onAction('routine', card.row)}/><ActionItem icon={MessageSquarePlus} label="Registrar feedback" onClick={() => onAction('feedback', card.row)}/><ActionItem icon={FileText} label="Abrir Fechamento Diário" onClick={() => onAction('closing', card.row)}/><ActionItem icon={GraduationCap} label="Recomendar treinamento" onClick={() => onAction('training', card.row)}/></div></details></div>
+  </article>
+}
+
+function KanbanMetric({ label, value, status }: { label: string; value: number | null; status: ManagerTeamStatus }) {
+  const valueTone = status === 'not_applicable' ? 'text-gray-400' : status === 'on_track' ? 'text-emerald-600' : status === 'attention' ? 'text-amber-600' : 'text-red-600'
+  return <div className="rounded-xl border border-gray-100 bg-gray-50 p-2.5 text-center"><p className={`text-xl font-bold ${valueTone}`}>{value === null ? '—' : `${Math.round(value)}%`}</p><p className="text-xs text-gray-500">{label}</p></div>
+}
+
+function ActionItem({ icon: Icon, label, onClick }: { icon: typeof CalendarClock; label: string; onClick: () => void }) {
+  return <button type="button" onClick={onClick} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-gray-600 hover:bg-gray-50 hover:text-gray-900"><Icon size={14}/>{label}</button>
+}
+
+function NotApplicableSellers({ cards, storeName }: { cards: ManagerTeamCard[]; storeName: string }) {
+  if (cards.length === 0) return null
+  return <details className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm"><summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 hover:bg-gray-50 [&::-webkit-details-marker]:hidden"><span className="flex items-center gap-2 text-sm font-semibold text-gray-700"><UserX size={16} className="text-gray-400"/>Não aplicáveis no período — {cards.length}</span><ChevronDown size={16} className="text-gray-400"/></summary><div className="space-y-2 px-4 pb-4">{cards.map(card => <div key={card.row.user_id} className="flex items-center justify-between gap-3 rounded-xl bg-gray-50 p-3"><div className="flex min-w-0 items-center gap-2.5"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gray-100 text-xs font-bold text-gray-500">{initials(card.row.user_name)}</span><div className="min-w-0"><p className="truncate text-sm font-medium text-gray-700">{card.row.user_name}</p><p className="truncate text-xs text-gray-400">{storeName}</p></div></div><p className="max-w-[220px] text-right text-[11px] text-gray-400">{card.reason}</p></div>)}</div></details>
+}
+
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/)
+  return parts.length > 1 ? `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase() : parts[0]?.[0]?.toUpperCase() || '?'
+}

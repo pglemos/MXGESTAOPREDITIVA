@@ -240,13 +240,7 @@ void onSignOut()
 }
 
 const isManagerProfile = profileRoleLabel?.toLowerCase().includes('gerente')
-const mobileNavItems: SellerLayoutNavItem[] = isManagerProfile ? [
-  { label: 'Início', path: '/home', icon: Home },
-  { label: 'Fechamento', path: '/fechamento-diario', icon: CalendarCheck },
-  { label: 'Rotina', path: '/gerente/rotina-equipe', icon: Target },
-  { label: 'Equipe', path: '/gerente/minha-equipe', icon: Users },
-  { label: 'Meta', path: '/gerente/meta-loja', icon: Filter },
-] : [
+const mobileNavItems: SellerLayoutNavItem[] = [
   { label: 'Início', path: '/home', icon: Home, activePaths: ['/home', '/meu-dia'] },
   { label: 'Fechamento', path: '/fechamento-diario', icon: CalendarCheck, activePaths: ['/terminal-mx', '/vendedor/terminal-mx', '/lancamento-diario', '/fechamento-diario'] },
   { label: 'Rotina', path: '/central-execucao', icon: Target, activePaths: ['/central-execucao', '/central-de-execucao'] },
@@ -255,11 +249,12 @@ const mobileNavItems: SellerLayoutNavItem[] = isManagerProfile ? [
 ]
 
 const getMobileTitle = (pathname: string) => {
+  if (pathname === '/rotina') return 'Rotina do Dia'
   if (pathname === '/gerente/rotina-equipe') return 'Rotina da Equipe'
   if (pathname === '/gerente/minha-equipe') return 'Minha Equipe'
   if (pathname === '/gerente/meta-loja') return 'Meta da Loja'
   if (pathname === '/gerente/mentor') return 'Mentor Gerencial'
-  if (pathname === '/gerente/feedbacks-pdis') return 'Feedbacks e PDIs'
+  if (pathname === '/gerente/feedbacks-pdis') return 'Desenvolvimento'
   if (pathname === '/gerente/ranking') return 'Ranking'
   if (pathname === '/gerente/universidade-mx') return 'Universidade MX'
   if (pathname === '/home' || pathname === '/meu-dia') return 'Início'
@@ -321,16 +316,15 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
         onClick={closeMobile}
         className={cn(
           'group relative flex w-full items-center gap-3 rounded-xl px-3 text-left transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-primary/45',
-          isManagerProfile ? 'min-h-10 py-2' : 'min-h-12 py-2.5',
-          isManagerProfile ? 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-700' : 'text-slate-400 hover:bg-white/8 hover:text-white',
-          active && (isManagerProfile ? 'bg-emerald-600 text-white shadow-sm hover:bg-emerald-700' : 'bg-primary text-white shadow-lg shadow-primary/25 hover:bg-primary'),
+          'min-h-12 py-2.5 text-slate-400 hover:bg-white/8 hover:text-white',
+          active && 'bg-primary text-white shadow-lg shadow-primary/25 hover:bg-primary',
           isCollapsed && 'justify-center px-0'
         )}
       >
         <NavItemIcon
           icon={item.icon}
           size={20}
-          className={cn('shrink-0 transition-colors duration-200', isManagerProfile ? 'text-slate-400 group-hover:text-emerald-700' : 'text-slate-400 group-hover:text-white', active && 'text-white')}
+          className={cn('shrink-0 text-slate-400 transition-colors duration-200 group-hover:text-white', active && 'text-white')}
         />
         {!isCollapsed && <span className="text-sm font-medium truncate">{item.label}</span>}
         {!isCollapsed && item.badge && <SellerBadge>{item.badge}</SellerBadge>}
@@ -419,26 +413,23 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
 
     return (
       <>
-        <div className={cn('flex items-center gap-2', isCollapsed ? 'flex-col justify-center' : 'justify-between', isManagerProfile && !isCollapsed && 'px-2')}>
-          <div className={cn('flex min-w-0 items-center', isManagerProfile ? 'gap-3' : 'gap-2', isCollapsed && 'justify-center')}>
-            {isManagerProfile
-              ? <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-emerald-600 text-xs font-black text-white">MX</span>
-              : <img src={MxLogo} alt="MX" className={cn('h-8 w-8 shrink-0 object-contain', isCollapsed && 'h-8 w-8')} />}
+        <div className={cn('flex items-center gap-2', isCollapsed ? 'flex-col justify-center' : 'justify-between')}>
+          <div className={cn('flex min-w-0 items-center gap-2', isCollapsed && 'justify-center')}>
+            <img src={MxLogo} alt="MX" className={cn('h-8 w-8 shrink-0 object-contain', isCollapsed && 'h-8 w-8')} />
             {!isCollapsed && (
               <div className="min-w-0">
-                <p className={cn('truncate text-[12px] font-bold leading-tight', isManagerProfile ? 'text-slate-800' : 'text-white')}>{isManagerProfile ? 'MX Performance' : 'MX PERFORMANCE'}</p>
-                {isManagerProfile && <p className="mt-0.5 truncate text-[10px] font-semibold text-emerald-600">Módulo Gerencial</p>}
+                <p className="truncate text-[12px] font-bold leading-tight text-white">MX PERFORMANCE</p>
               </div>
             )}
           </div>
-          {canCollapse && !isManagerProfile && (
+          {canCollapse && (
             <button
               type="button"
               aria-label={isCollapsed ? 'Expandir sidebar' : 'Recolher sidebar'}
               onClick={() => setCollapsed((value) => !value)}
               className={cn(
                 'flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] border outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#00A89D]/45',
-                isManagerProfile ? 'border-slate-200 bg-white text-slate-500 hover:bg-emerald-50 hover:text-emerald-700' : 'border-white/[0.06] bg-white/[0.03] text-[#E0EBEA] hover:bg-[#00A89D]/10 hover:text-white',
+                'border-white/[0.06] bg-white/[0.03] text-[#E0EBEA] hover:bg-[#00A89D]/10 hover:text-white',
                 isCollapsed && 'h-9 w-9'
               )}
             >
@@ -447,10 +438,10 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
           )}
         </div>
 
-        <nav className={cn('no-scrollbar flex-1 space-y-1 overflow-y-auto pr-0.5', isManagerProfile ? 'mt-[39px]' : 'mt-2')} aria-label={sidebarLabel}>
+        <nav className="no-scrollbar mt-2 flex-1 space-y-1 overflow-y-auto pr-0.5" aria-label={sidebarLabel}>
           {mainSections.map((section, sectionIndex) => (
-            <section key={section.label} className={cn('space-y-1', sectionIndex > 0 && (isManagerProfile ? 'border-t border-slate-200 pt-1.5' : 'border-t border-white/[0.06] pt-1.5'))} aria-label={section.label}>
-              {!isCollapsed && !isManagerProfile && <p className="px-2.5 text-[10px] font-semibold uppercase text-[#E0EBEA]/50">{section.label}</p>}
+            <section key={section.label} className={cn('space-y-1', sectionIndex > 0 && 'border-t border-white/[0.06] pt-1.5')} aria-label={section.label}>
+              {!isCollapsed && <p className="px-2.5 text-[10px] font-semibold uppercase text-[#E0EBEA]/50">{section.label}</p>}
               <div className="space-y-0">{section.items.map((item) => renderNavItem(item, isCollapsed))}</div>
             </section>
           ))}
@@ -464,36 +455,21 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
         ))}
 
         <div className="mt-1.5">
-          {isManagerProfile && canCollapse ? (
-            <button type="button" onClick={() => setCollapsed(value => !value)} className={cn('flex h-11 w-full items-center rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-50 hover:text-slate-700', isCollapsed ? 'justify-center' : 'gap-3 px-3')}>
-              {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
-              {!isCollapsed && <span>Recolher</span>}
-            </button>
-          ) : renderProfileCard(isCollapsed)}
+          {renderProfileCard(isCollapsed)}
         </div>
       </>
     )
   }
 
   return (
-    <div className={cn('mx-app-scrollbarless h-[100dvh] overflow-hidden bg-background text-foreground', isManagerProfile ? 'font-sans' : 'font-display')}>
-      <header className={cn('fixed left-0 right-0 top-0 z-[90] flex items-center border-b border-border bg-white pt-[env(safe-area-inset-top)] md:hidden', isManagerProfile ? 'h-[calc(48px+env(safe-area-inset-top))] px-4' : 'h-[calc(82px+env(safe-area-inset-top))] justify-between px-5 shadow-[0_8px_26px_rgba(15,23,42,0.05)]')}>
-        {isManagerProfile ? (
-          <button type="button" aria-label="Abrir menu principal" onClick={() => setMobileOpen(true)} className="flex items-center gap-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40">
-            <Menu size={20} className="text-slate-500" />
-            <span className="grid h-6 w-6 place-items-center rounded bg-emerald-600 text-[10px] font-black text-white">MX</span>
-            <span className="text-sm font-bold text-slate-800">MX Performance</span>
-          </button>
-        ) : (
-          <>
+    <div className="mx-app-scrollbarless h-[100dvh] overflow-hidden bg-background font-display text-foreground">
+      <header className="fixed left-0 right-0 top-0 z-[90] flex h-[calc(82px+env(safe-area-inset-top))] items-center justify-between border-b border-border bg-white px-5 pt-[env(safe-area-inset-top)] shadow-[0_8px_26px_rgba(15,23,42,0.05)] md:hidden">
             <button type="button" aria-label="Abrir menu principal" onClick={() => setMobileOpen(true)} className="flex min-w-0 items-center gap-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-[#00A896]/45">
               <img src={MxLogo} alt="MX" className="h-10 w-10 shrink-0 object-contain" />
               <span className="hidden min-w-0 leading-tight min-[430px]:block"><span className="block text-[17px] font-black tracking-tight text-foreground">MX</span><span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Performance</span></span>
             </button>
             <div className="pointer-events-none absolute left-1/2 top-[calc(50%+env(safe-area-inset-top)/2)] max-w-[48vw] -translate-x-1/2 -translate-y-1/2 truncate text-center text-[17px] font-black tracking-tight text-foreground min-[430px]:max-w-[42vw] min-[430px]:text-[18px]">{mobileTitle}</div>
             <div className="flex items-center gap-3"><NotificationBellButton variant="light" /><button type="button" aria-label={`Abrir perfil de ${displayName}`} onClick={() => goTo(profilePath)} className="grid h-10 w-10 place-items-center rounded-full bg-primary text-[13px] font-black uppercase text-white shadow-[0_10px_24px_rgba(0,168,150,0.22)] outline-none focus-visible:ring-2 focus-visible:ring-[#00A896]/45">{displayName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('') || 'MX'}</button></div>
-          </>
-        )}
     </header>
 
 
@@ -501,8 +477,8 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
     <aside
       className={cn(
           'fixed left-0 top-0 z-[80] hidden h-screen flex-col border-r transition-all duration-300 ease-in-out md:flex',
-          isManagerProfile ? 'border-slate-200 bg-white' : 'border-white/10 bg-[#051923]',
-          collapsed ? 'w-[72px] px-3 py-4' : isManagerProfile ? 'w-[224px] px-2 pb-2 pt-5' : 'w-[260px] p-4'
+          'border-white/10 bg-[#051923]',
+          collapsed ? 'w-[72px] px-3 py-4' : 'w-[260px] p-4'
         )}
         aria-label={sidebarLabel}
       >
@@ -523,7 +499,7 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
             role="dialog"
             aria-modal="true"
             aria-label={sidebarLabel}
-            className={cn('h-full w-[min(320px,calc(100vw-1.5rem))] border-r p-5 shadow-[0_24px_70px_rgba(0,0,0,0.42)]', isManagerProfile ? 'border-slate-200 bg-white' : 'border-white/[0.08] bg-[#051923]')}
+            className="h-full w-[min(320px,calc(100vw-1.5rem))] border-r border-white/[0.08] bg-[#051923] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.42)]"
             onClick={(event) => event.stopPropagation()}
             onKeyDown={(event) => event.stopPropagation()}
           >
@@ -543,8 +519,8 @@ const renderNavItem = (item: SellerLayoutNavItem, isCollapsed: boolean) => {
         tabIndex={-1}
         className={cn(
           'h-[100dvh] overflow-hidden bg-background px-0 outline-none transition-[padding] duration-200 md:h-screen md:p-0',
-          isManagerProfile ? 'pb-0 pt-[calc(48px+env(safe-area-inset-top))]' : 'pb-[calc(82px+env(safe-area-inset-bottom))] pt-[calc(82px+env(safe-area-inset-top))]',
-          collapsed ? 'md:pl-[72px]' : isManagerProfile ? 'md:pl-[224px]' : 'md:pl-[260px]'
+          'pb-[calc(82px+env(safe-area-inset-bottom))] pt-[calc(82px+env(safe-area-inset-top))]',
+          collapsed ? 'md:pl-[72px]' : 'md:pl-[260px]'
         )}
       >
         {isSimulating && (

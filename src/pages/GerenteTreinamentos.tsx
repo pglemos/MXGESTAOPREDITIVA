@@ -1,9 +1,9 @@
 import { useContentSuggestions, useDevelopmentTracks, useTrainings, useTeamTrainings, useNotifications } from '@/hooks/useData'
 import { motion, AnimatePresence } from 'motion/react'
 import { useState, useMemo, useCallback } from 'react'
-import { 
-    GraduationCap, Play, CheckCircle, Search, 
-    Filter, RefreshCw, X, Award, Users, LayoutDashboard, Target, Send, Star, Route, Plus
+import {
+    GraduationCap, Play, CheckCircle, Search, BookOpen, TrendingUp,
+    Filter, RefreshCw, X, Award, Users, LayoutDashboard, Target, Send, Star
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TabNavPill } from '@/components/molecules/TabNavPill'
@@ -17,12 +17,12 @@ import { SellerPageHeader } from '@/components/seller/SellerPageHeader'
 import { toast } from '@/lib/toast'
 import { useAuth } from '@/hooks/useAuth'
 import { AulasAoVivoSection } from '@/features/universidade/sections/AulasAoVivoSection'
+import { ManagerUniversityReference } from '@/features/manager/development/ManagerUniversityReference'
 
 export default function GerenteTreinamentos() {
-    const { role } = useAuth()
+    const { role, membership } = useAuth()
     const isOwner = role === 'dono'
-    const canManageTeamTrainings = !isOwner
-    const [tab, setTab] = useState<'meus' | 'equipe' | 'matriz'>(() => isOwner ? 'matriz' : 'equipe')
+    const [tab, setTab] = useState<'meus' | 'equipe' | 'matriz'>(() => role === 'gerente' ? 'meus' : isOwner ? 'matriz' : 'equipe')
     const trainingTabs = useMemo(() => (
         isOwner
             ? [
@@ -71,27 +71,6 @@ export default function GerenteTreinamentos() {
         setIsAssigning(false)
         if (error) toast.error('Falha ao enviar lembrete.')
         else toast.success('Lembrete enviado ao especialista!')
-    }
-
-    const handleRemindAll = async (trainingId: string) => {
-        const training = treinamentos.find(t => t.id === trainingId)
-        const pendents = teamProgress.filter(p => !p.watched.includes(trainingId))
-        
-        if (pendents.length === 0) return toast.info('Todos já assistiram este módulo!')
-
-        setIsAssigning(true)
-        const promises = pendents.map(p => sendNotification({
-            recipient_id: p.seller_id,
-            title: '🔥 CONVOCAÇÃO MX ACADEMY',
-            message: `O gerente solicitou a conclusão do treinamento: "${training?.title}". Todos devem concluir este módulo nas próximas 24h.`,
-            type: 'training',
-            priority: 'high',
-            link: '/treinamentos'
-        }))
-
-        await Promise.all(promises)
-        setIsAssigning(false)
-        toast.success(`Convocação enviada para ${pendents.length} especialistas!`)
     }
 
     const handleRefresh = useCallback(async () => {
@@ -170,6 +149,38 @@ export default function GerenteTreinamentos() {
         if (!teamProgress) return []
         return teamProgress.filter(p => p.seller_name.toLowerCase().includes(searchTerm.toLowerCase()))
     }, [teamProgress, searchTerm])
+
+    if (role === 'gerente') return (
+        <ManagerUniversityReference
+            tab={tab === 'meus' ? 'manager' : 'team'}
+            onTabChange={(next) => setTab(next === 'manager' ? 'meus' : 'equipe')}
+            storeName={membership?.store?.name || 'Unidade vinculada'}
+            trainings={filteredMe}
+            allTrainings={treinamentos}
+            teamProgress={filteredTeam}
+            allTeamProgress={teamProgress}
+            loading={isLoading && !isRefetching}
+            progress={progress}
+            watched={watched}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            onRefresh={handleRefresh}
+            isRefetching={isRefetching}
+            onMarkWatched={markWatched}
+            onRemindSeller={handleRemindSeller}
+            isAssigning={isAssigning}
+            assigningTo={assigningTo}
+            setAssigningTo={setAssigningTo}
+            onAssignTraining={handleAssignTraining}
+            onAssignOnboarding={handleAssignOnboarding}
+            assignments={assignments}
+            suggestions={suggestions}
+            institutionalForm={institutionalForm}
+            setInstitutionalForm={setInstitutionalForm}
+            onCreateInstitutionalContent={handleCreateInstitutionalContent}
+            savingInstitutional={savingInstitutional}
+        />
+    )
 
     if (isLoading && !isRefetching) return (
         <main className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg bg-surface-alt animate-in fade-in duration-500">
@@ -257,38 +268,6 @@ export default function GerenteTreinamentos() {
                         </div>
                     </Card>
                 )}
-                {tab === 'equipe' && canManageTeamTrainings && (
-                    <Card className="mb-mx-lg rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
-                        <form onSubmit={handleCreateInstitutionalContent} className="grid grid-cols-1 lg:grid-cols-[1.2fr_1.4fr_1.2fr_auto] gap-mx-sm items-end">
-                            <div>
-                                <Typography variant="h3" className="uppercase tracking-tight">Conteúdo institucional</Typography>
-                                <Typography variant="caption" tone="muted" className="uppercase tracking-widest">História, valores, cultura e processos da loja</Typography>
-                            </div>
-                            <Input
-                                value={institutionalForm.title}
-                                onChange={event => setInstitutionalForm(prev => ({ ...prev, title: event.target.value }))}
-                                placeholder="TÍTULO DO CONTEÚDO"
-                                className="!h-12 uppercase tracking-widest text-mx-tiny font-black"
-                            />
-                            <Input
-                                value={institutionalForm.video_url}
-                                onChange={event => setInstitutionalForm(prev => ({ ...prev, video_url: event.target.value }))}
-                                placeholder="LINK DO VÍDEO OU MATERIAL"
-                                className="!h-12 text-mx-tiny font-bold"
-                            />
-                            <Button type="submit" disabled={savingInstitutional} className="h-mx-12 rounded-mx-lg font-black uppercase text-mx-micro shadow-mx-md">
-                                {savingInstitutional ? <RefreshCw size={14} className="mr-2 animate-spin" /> : <Plus size={14} className="mr-2" />}
-                                Publicar
-                            </Button>
-                            <textarea
-                                value={institutionalForm.description}
-                                onChange={event => setInstitutionalForm(prev => ({ ...prev, description: event.target.value }))}
-                                placeholder="Descreva o que o novo colaborador precisa entender sobre a loja."
-                                className="lg:col-start-2 lg:col-span-2 w-full bg-surface-alt border border-border-subtle rounded-mx-lg p-mx-md text-sm font-bold text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-brand-primary focus:ring-4 focus:ring-brand-primary/5 transition-all resize-none min-h-mx-20"
-                            />
-                        </form>
-                    </Card>
-                )}
                 <AnimatePresence mode="wait">
                     {tab === 'meus' ? (
                         <motion.div key="meus" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-mx-lg">
@@ -351,9 +330,6 @@ export default function GerenteTreinamentos() {
                                                         <span className="truncate block max-w-mx-20 mx-auto">{t.title}</span>
                                                         <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 bg-brand-secondary text-white text-mx-micro font-black uppercase tracking-widest rounded-mx-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[70] whitespace-nowrap shadow-mx-lg">
                                                             {t.title}
-                                                            {canManageTeamTrainings && (
-                                                                <Button onClick={() => handleRemindAll(t.id)} className="block mt-2 w-full h-mx-10 bg-brand-primary text-mx-nano font-black">COBRAR EQUIPE</Button>
-                                                            )}
                                                         </div>
                                                     </th>
                                                 ))}
@@ -378,15 +354,6 @@ export default function GerenteTreinamentos() {
                                                                     )}>
                                                                         {isWatched ? <CheckCircle size={16} /> : <X size={16} />}
                                                                     </div>
-                                                                    {!isWatched && canManageTeamTrainings && (
-                                                                        <button 
-                                                                            onClick={() => handleRemindSeller(p.seller_id, t.title)}
-                                                                            disabled={isAssigning}
-                                                                            className="text-mx-nano font-black text-brand-primary uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity"
-                                                                        >
-                                                                            COBRAR
-                                                                        </button>
-                                                                    )}
                                                                 </div>
                                                             </td>
                                                         )
@@ -425,30 +392,9 @@ export default function GerenteTreinamentos() {
                                                 </div>
                                             </div>
 
-                                            {canManageTeamTrainings ? (
-                                                <>
-                                                    <Button
-                                                        variant="outline" size="sm"
-                                                        onClick={() => setAssigningTo(p.seller_id)}
-                                                        className="w-full h-mx-11 rounded-mx-lg font-black uppercase text-mx-micro shadow-sm bg-white border-border-subtle hover:border-brand-primary transition-all"
-                                                    >
-                                                        <Award size={14} className="mr-2" /> PLANO DE REFORÇO
-                                                    </Button>
-                                                    <Button
-                                                        variant="secondary"
-                                                        size="sm"
-                                                        onClick={() => handleAssignOnboarding(p.seller_id)}
-                                                        disabled={isAssigning || assignments.some((assignment: { seller_id?: string; status?: string }) => assignment.seller_id === p.seller_id && assignment.status === 'active')}
-                                                        className="w-full h-mx-11 mt-mx-sm rounded-mx-lg font-black uppercase text-mx-micro shadow-sm"
-                                                    >
-                                                        <Route size={14} className="mr-2" /> TRILHA ENTRADA
-                                                    </Button>
-                                                </>
-                                            ) : (
-                                                <Badge variant="outline" className="w-full justify-center rounded-mx-lg py-mx-sm font-black uppercase">
-                                                    Acompanhar
-                                                </Badge>
-                                            )}
+                                            <Badge variant="outline" className="w-full justify-center rounded-mx-lg py-mx-sm font-black uppercase">
+                                                Acompanhar
+                                            </Badge>
                                         </div>
                                     </Card>
                                 </motion.article>
@@ -459,43 +405,6 @@ export default function GerenteTreinamentos() {
                 </AnimatePresence>
             </div>
 
-            <AnimatePresence>
-                {assigningTo && canManageTeamTrainings && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-mx-md bg-mx-black/60 backdrop-blur-sm">
-                        <Card className="w-full max-w-mx-2xl max-h-full overflow-y-auto no-scrollbar shadow-mx-elite border border-border-subtle bg-white rounded-mx-lg">
-                            <header className="p-mx-lg border-b border-border-subtle flex items-center justify-between sticky top-mx-0 bg-white z-10">
-                                <div className="flex items-center gap-mx-sm">
-                                    <div className="w-mx-10 h-mx-10 rounded-mx-lg bg-brand-primary text-white flex items-center justify-center shadow-mx-md"><Target size={20} /></div>
-                                    <div>
-                                        <Typography variant="h3" className="font-black uppercase">Atribuir Reforço</Typography>
-                                        <Typography variant="caption" tone="muted" className="font-black uppercase">Destino: {teamProgress.find(p => p.seller_id === assigningTo)?.seller_name}</Typography>
-                                    </div>
-                                </div>
-                                <Button variant="ghost" size="icon" onClick={() => setAssigningTo(null)} className="rounded-mx-full w-mx-10 h-mx-10"><X size={20} /></Button>
-                            </header>
-                            <div className="p-mx-lg grid grid-cols-1 gap-mx-sm">
-                                {treinamentos.map(t => (
-                                    <button 
-                                        key={t.id} onClick={() => handleAssignTraining(t.id)} disabled={isAssigning}
-                                        className="flex items-center justify-between p-mx-md rounded-mx-lg border border-border-subtle hover:border-brand-primary hover:bg-mx-indigo-50 transition-all text-left group"
-                                    >
-                                        <div className="flex items-center gap-mx-md">
-                                            <div className="w-mx-xl h-mx-xl rounded-mx-lg bg-surface-alt flex items-center justify-center text-text-tertiary group-hover:bg-white transition-all shadow-inner"><GraduationCap size={20} /></div>
-                                            <div>
-                                                <Typography variant="p" className="font-black uppercase text-xs leading-none mb-1 group-hover:text-brand-primary transition-colors">{t.title}</Typography>
-                                                <Badge variant="outline" className="shadow-none border-border-subtle">
-                                                    <Typography variant="tiny" as="span" className="font-black uppercase">{t.type}</Typography>
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                        <Send size={16} className="text-text-tertiary opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-                                    </button>
-                                ))}
-                            </div>
-                        </Card>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </main>
     )
 }

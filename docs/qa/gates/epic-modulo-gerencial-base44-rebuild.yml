@@ -1,0 +1,78 @@
+schema: 1
+story: epic-modulo-gerencial-base44-rebuild
+story_title: Reconstrução do Módulo Gerencial com referência Base44
+gate: CONCERNS
+status_reason: Os dois major da Universidade MX foram corrigidos, 830 testes passaram e o CodeRabbit final reportou zero issues. Permanecem apenas os gates externos de E2E autenticado e Chrome real, indisponíveis nesta sessão.
+reviewer: Quinn (Test Architect)
+updated: '2026-07-13T02:06:58-03:00'
+
+top_issues:
+  - id: TEST-E2E-AUTH-002
+    severity: medium
+    finding: A regressão autenticada pós-correções foi executada, mas os quatro cenários foram skipped porque E2E_ROLE_PASSWORD e E2E_AUTH_PASSWORD não estão disponíveis no ambiente.
+    suggested_action: Reexecutar src/test/manager-module.playwright.ts com a credencial E2E fornecida somente em runtime.
+    suggested_owner: qa
+  - id: TEST-CHROME-001
+    severity: medium
+    finding: 'Chrome 150, a ChatGPT Chrome Extension e o native host estão instalados e habilitados no perfil selecionado, mas o browser-client ainda retorna Browser is not available: extension.'
+    suggested_action: Reinstalar ou reconectar o plugin do Chrome pela interface do ChatGPT e repetir a inspeção autenticada dos estados finais.
+    suggested_owner: qa
+
+waiver:
+  active: false
+
+quality_score: 80
+expires: '2026-07-27T02:06:58-03:00'
+
+evidence:
+  tests_reviewed: 830
+  risks_identified: 2
+  trace:
+    ac_covered: [1, 3, 4, 5, 6, 7, 9, 10, 11, 12, 14, 15, 16, 17, 20]
+    ac_gaps:
+      - 'AC 2, 8, 13 e 19: aprovação visual final ainda depende da recaptura no Chrome real.'
+      - 'AC 18: o E2E autenticado pós-correções ficou skipped por ausência das senhas de runtime.'
+      - 'AC 21: File List e gates locais estão atualizados; publicação e homologação de produção pertencem ao handoff DevOps atual.'
+  automation:
+    lint: PASS
+    typecheck: PASS
+    unit_component_integration: PASS_830
+    build: PASS
+    bundle: PASS_1700_57_OF_1800_KB_GZIP
+    manager_e2e_after_fixes: SKIPPED_4_MISSING_RUNTIME_PASSWORDS
+    aiox_validations: PASS_WITH_PREEXISTING_WARNINGS
+    coderabbit: PASS_0_ISSUES
+    chrome_visual: BLOCKED_EXTENSION_COMMUNICATION
+    secret_scan: PASS_NO_MATCHES
+    dependency_audit: CONCERNS_0_CRITICAL_4_HIGH_PREEXISTING
+
+nfr_validation:
+  security:
+    status: CONCERNS
+    notes: Nenhuma credencial foi persistida e URLs de material aceitam apenas HTTP/HTTPS. npm audit não encontrou critical, mas mantém quatro advisories high preexistentes, incluindo xlsx sem correção disponível.
+  performance:
+    status: PASS
+    notes: Build concluído e bundle total de 1700,57 KB gzip permaneceu abaixo do gate de 1800 KB.
+  reliability:
+    status: CONCERNS
+    notes: A regressão local passou integralmente; faltam somente E2E autenticado pós-correções e Chrome real por indisponibilidade externa de credencial/conexão.
+  maintainability:
+    status: PASS
+    notes: Os diálogos reutilizam Modal e useFocusTrap, o material oficial tem contrato testado e o CodeRabbit final reportou zero issues.
+
+recommendations:
+  immediate:
+    - action: Reexecutar o E2E autenticado com E2E_ROLE_PASSWORD ou E2E_AUTH_PASSWORD disponível apenas em runtime.
+      refs:
+        - src/test/manager-module.playwright.ts
+    - action: Reconectar o plugin do Chrome e recapturar os estados finais sem usar controlador alternativo como evidência.
+      refs:
+        - src/features/manager/development/ManagerUniversityReference.tsx
+  future:
+    - action: Tratar os advisories high preexistentes do npm audit em story de dependências, com substituição do xlsx se necessário.
+      refs:
+        - package.json
+        - package-lock.json
+    - action: Tratar os warnings AIOX preexistentes de dependências ausentes em uma story própria.
+      refs:
+        - .aiox-core/development/agents

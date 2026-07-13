@@ -17,7 +17,11 @@ import * as Dialog from '@radix-ui/react-dialog'
 
 export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSuccess: (sessionId?: string) => void }) {
     const { storeId } = useAuth()
-    const { sellers } = useTeam()
+    const { sellers: teamMembers } = useTeam()
+    const sellers = useMemo(
+        () => teamMembers.filter(member => member.role === 'vendedor'),
+        [teamMembers],
+    )
     const { cargos, template, loading, fetchCargos, fetchTemplate, fetchSuggestedActions, saveSessionBundle } = usePDI_MX()
     
     const [currentStep, setCurrentStep] = useState(0)
@@ -256,7 +260,7 @@ export function WizardPDI({ onClose, onSuccess }: { onClose: () => void, onSucce
                 <Dialog.Overlay asChild forceMount>
                     <motion.div 
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center p-mx-sm md:p-10 bg-mx-black/80 backdrop-blur-md"
+                        className="fixed inset-0 z-[140] flex items-center justify-center p-mx-sm md:p-10 bg-mx-black/80 backdrop-blur-md"
                     >
                         <Dialog.Content asChild forceMount>
                             <Card className="w-full max-w-mx-6xl max-h-full overflow-y-auto no-scrollbar shadow-mx-elite border-none flex flex-col bg-white rounded-mx-2xl">

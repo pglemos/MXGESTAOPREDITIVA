@@ -1,6 +1,7 @@
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { GlobalRankingView } from './views/GlobalRankingView'
 import { StoreRankingView } from './views/StoreRankingView'
+import { ManagerRankingReference } from './views/ManagerRankingReference'
 
 /**
  * Container raiz do Ranking. Faz routing por perfil:
@@ -12,6 +13,7 @@ import { StoreRankingView } from './views/StoreRankingView'
 export function Ranking() {
   const { role } = useAuth()
   if (isPerfilInternoMx(role)) return <GlobalRankingView />
+  if (role === 'gerente') return <ManagerRankingReference />
   return <StoreRankingView />
 }
 

@@ -29,6 +29,11 @@ type OfficialPerformanceRow = {
     agendamentos: number | string
 }
 
+type RoutineActionRow = {
+    seller_id: string
+    status: string
+}
+
 type StorePerformanceEntry = {
     id: string
     name: string
@@ -66,20 +71,33 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
         setLoading(true)
         setError(null)
 
-        const officialResult = await supabase.rpc('vendedor_performance_oficial', {
-            p_start_date: startDate,
-            p_end_date: endDate,
-            p_store_id: storeId,
-            p_seller_id: null,
-        })
+        try {
+        const [officialResult, routineResult] = await Promise.all([
+            supabase.rpc('vendedor_performance_oficial', {
+                p_start_date: startDate,
+                p_end_date: endDate,
+                p_store_id: storeId,
+                p_seller_id: null,
+            }),
+            supabase
+                .from('execution_actions')
+                .select('seller_id,status')
+                .eq('store_id', storeId)
+                .gte('due_at', `${startDate}T00:00:00-03:00`)
+                .lte('due_at', `${endDate}T23:59:59-03:00`),
+        ])
         const officialRows = (officialResult.data as OfficialPerformanceRow[] | null) || []
         const checkinsError = officialResult.error
+        const routineRows = (routineResult.data as RoutineActionRow[] | null) || []
+
+        if (routineResult.error) {
+            console.error('Audit Error [useRanking]: routine actions fail ->', routineResult.error.message)
+        }
 
         if (checkinsError) {
             console.error('Audit Error [useRanking]: checkins fail ->', checkinsError.message)
             setError('Não foi possível carregar os lançamentos do ranking.')
             setRanking([])
-            setLoading(false)
             return
         }
 
@@ -93,7 +111,6 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
             console.error('Audit Error [useRanking]: tenures fail ->', tenuresError.message)
             setError('Não foi possível carregar os vínculos ativos do ranking.')
             setRanking([])
-            setLoading(false)
             return
         }
 
@@ -109,7 +126,6 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
             console.error('Audit Error [useRanking]: fallback members fail ->', fallbackError.message)
             setError('Não foi possível carregar a equipe do ranking.')
             setRanking([])
-            setLoading(false)
             return
         }
 
@@ -123,7 +139,6 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
             console.error('Audit Error [useRanking]: rules fail ->', rulesError.message)
             setError('Não foi possível carregar as metas do ranking.')
             setRanking([])
-            setLoading(false)
             return
         }
 
@@ -131,10 +146,18 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
             ? (tenures as unknown as { seller_user_id: string; users?: User }[]).map((item) => ({ user_id: item.seller_user_id, users: item.users }))
             : (fallbackMembers || [])
 
-        if (!members) { setLoading(false); return }
+        if (!members) return
 
         const storeGoal = rules?.monthly_goal || 0
         const includeVendaLojaInGoal = rules?.include_venda_loja_in_individual_goal || false
+
+        const routineBySeller = new Map<string, { completed: number; total: number }>()
+        for (const action of routineRows) {
+            const current = routineBySeller.get(action.seller_id) || { completed: 0, total: 0 }
+            current.total += 1
+            if (action.status === 'concluida' || action.status === 'justificada') current.completed += 1
+            routineBySeller.set(action.seller_id, current)
+        }
         
         const aggregated = new Map<string, { leads: number; agd: number; visitas: number; vnd: number; vnd_yesterday: number; name: string; avatarUrl: string | null; isVendaLoja: boolean }>()
         const realSellersCount = members.filter((m) => !(m.users as User | undefined)?.is_venda_loja).length
@@ -168,6 +191,7 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
                 const meta = data.isVendaLoja 
                     ? (includeVendaLojaInGoal ? Math.round(storeGoal / Math.max(goalDivisor, 1)) : 0)
                     : Math.round(storeGoal / Math.max(goalDivisor || realSellersCount, 1))
+                const routine = routineBySeller.get(userId)
 
                 return {
                     user_id: userId,
@@ -182,6 +206,9 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
                     meta,
                     atingimento: 0,
                     position: 0,
+                    routine_execution: routine && routine.total > 0
+                        ? Math.round((routine.completed / routine.total) * 100)
+                        : null,
                 }
             })
             .sort((a, b) => {
@@ -214,7 +241,13 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
             })
 
         setRanking(entries)
-        setLoading(false)
+        } catch (caughtError) {
+            console.error('Audit Error [useRanking]: fetch threw ->', caughtError)
+            setError('Não foi possível carregar o ranking.')
+            setRanking([])
+        } finally {
+            setLoading(false)
+        }
     }, [storeId, startDate, endDate])
 
     useEffect(() => { fetchRanking() }, [fetchRanking])

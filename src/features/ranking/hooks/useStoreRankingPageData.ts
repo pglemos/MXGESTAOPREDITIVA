@@ -21,21 +21,22 @@ function toISODate(d: Date): string {
   return `${year}-${month}-${day}`
 }
 
-function getPeriodoRange(periodo: RankingPeriodo): { startDate: string; endDate: string } {
-  const hoje = new Date()
+export function getPeriodoRange(periodo: RankingPeriodo, referenceMonth?: string): { startDate: string; endDate: string } {
+  const referenceMonthIsValid = Boolean(referenceMonth && /^\d{4}-\d{2}$/.test(referenceMonth))
+  const anchor = referenceMonthIsValid ? new Date(`${referenceMonth}-01T12:00:00`) : new Date()
+  if (periodo === 'Mensal') {
+    return { startDate: toISODate(startOfMonth(anchor)), endDate: toISODate(endOfMonth(anchor)) }
+  }
   if (periodo === 'Trimestral') {
-    return { startDate: toISODate(startOfQuarter(hoje)), endDate: toISODate(endOfQuarter(hoje)) }
+    return { startDate: toISODate(startOfQuarter(anchor)), endDate: toISODate(endOfQuarter(anchor)) }
   }
   if (periodo === 'Semestral') {
-    const semestreInicioMes = hoje.getMonth() < 6 ? 0 : 6
-    const inicio = new Date(hoje.getFullYear(), semestreInicioMes, 1)
-    const fim = new Date(hoje.getFullYear(), semestreInicioMes + 6, 0)
+    const semestreInicioMes = anchor.getMonth() < 6 ? 0 : 6
+    const inicio = new Date(anchor.getFullYear(), semestreInicioMes, 1)
+    const fim = new Date(anchor.getFullYear(), semestreInicioMes + 6, 0)
     return { startDate: toISODate(inicio), endDate: toISODate(fim) }
   }
-  if (periodo === 'Anual') {
-    return { startDate: toISODate(startOfYear(hoje)), endDate: toISODate(endOfYear(hoje)) }
-  }
-  return { startDate: toISODate(startOfMonth(hoje)), endDate: toISODate(endOfMonth(hoje)) }
+  return { startDate: toISODate(startOfYear(anchor)), endDate: toISODate(endOfYear(anchor)) }
 }
 
 export type RankedVendedor = {
@@ -45,7 +46,20 @@ export type RankedVendedor = {
   unidade?: string
   vendas: number
   meta: number
+  leads: number
+  agendamentos: number
+  visitas: number
+  atingimento: number
+  conversao: number
+  rotina: number | null
+  posicao: number
+  pontuacao: number | null
   planoRemuneracao?: string | null
+}
+
+export function calculateManagerScore(input: { attainment: number; conversion: number; routine: number | null }): number | null {
+  if (input.routine === null) return null
+  return Math.round((input.attainment * 0.5) + (input.conversion * 0.25) + (input.routine * 0.25))
 }
 
 /**
@@ -54,13 +68,16 @@ export type RankedVendedor = {
  * com abas de período reais (Mensal/Trimestral/Semestral/Anual) usando
  * o mesmo pipeline de dados (useRanking + useStoreMetaRules).
  */
-export function useStoreRankingPageData() {
+export function useStoreRankingPageData(options: { referenceMonth?: string } = {}) {
   const { profile } = useAuth()
   const [periodo, setPeriodo] = useState<RankingPeriodo>('Mensal')
   const [unidade, setUnidade] = useState('todas')
   const [isRefetching, setIsRefetching] = useState(false)
 
-  const { startDate, endDate } = useMemo(() => getPeriodoRange(periodo), [periodo])
+  const { startDate, endDate } = useMemo(
+    () => getPeriodoRange(periodo, options.referenceMonth),
+    [periodo, options.referenceMonth]
+  )
   const { ranking, loading, error, refetch } = useRanking(undefined, { startDate, endDate })
   const { metaRules, fetchMetaRules } = useStoreMetaRules()
 
@@ -78,15 +95,27 @@ export function useStoreRankingPageData() {
   const todosVendedores = useMemo<RankedVendedor[]>(() => {
     return ranking
       .filter(r => !r.is_venda_loja)
-      .map(r => ({
-        id: r.user_id,
-        nome: r.user_name,
-        foto: r.avatar_url,
-        unidade: r.store_name,
-        vendas: r.vnd_total,
-      meta: r.meta || metaPeriodo,
-      planoRemuneracao: r.remuneracao_plano_cargo,
-      }))
+      .map(r => {
+        const conversao = r.visitas > 0 ? Math.round((r.vnd_total / r.visitas) * 100) : 0
+        const rotina = r.routine_execution ?? null
+        return {
+          id: r.user_id,
+          nome: r.user_name,
+          foto: r.avatar_url,
+          unidade: r.store_name,
+          vendas: r.vnd_total,
+          meta: r.meta || metaPeriodo,
+          leads: r.leads,
+          agendamentos: r.agd_total,
+          visitas: r.visitas,
+          atingimento: r.atingimento,
+          conversao,
+          rotina,
+          posicao: r.position,
+          pontuacao: calculateManagerScore({ attainment: r.atingimento, conversion: conversao, routine: rotina }),
+          planoRemuneracao: r.remuneracao_plano_cargo,
+        }
+      })
       .sort((a, b) => (b.vendas !== a.vendas ? b.vendas - a.vendas : a.nome.localeCompare(b.nome)))
   }, [ranking, metaPeriodo])
 

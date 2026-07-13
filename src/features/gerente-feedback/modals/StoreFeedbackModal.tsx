@@ -76,12 +76,12 @@ export function StoreFeedbackModal({
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="fixed inset-0 z-50 flex items-end justify-center p-mx-sm bg-mx-black/60 backdrop-blur-sm sm:items-center md:p-10"
+          className="fixed inset-0 z-[140] flex items-end justify-center p-mx-sm bg-mx-black/60 backdrop-blur-sm sm:items-center md:p-10"
           role="dialog"
           aria-modal="true"
           aria-labelledby="feedback-store-title"
         >
-          <Card className="flex max-h-full w-full max-w-mx-4xl flex-col overflow-hidden border-none bg-white shadow-mx-2xl rounded-mx-2xl">
+          <Card className="flex max-h-full w-full max-w-[var(--container-mx-4xl)] flex-col overflow-hidden border-none bg-white shadow-mx-2xl rounded-mx-2xl">
             <header className="p-mx-lg md:p-10 border-b border-border-default flex items-center justify-between sticky top-mx-0 bg-white z-10">
               <div className="flex items-center gap-mx-sm">
                 <div className="w-mx-xl h-mx-xl rounded-mx-2xl bg-brand-primary text-white flex items-center justify-center shadow-mx-lg">
@@ -301,11 +301,11 @@ export function StoreFeedbackModal({
                 </motion.div>
               )}
             </div>
-            <footer className="p-mx-lg md:p-10 border-t border-border-default sticky bottom-mx-0 bg-white z-10 flex justify-end gap-mx-sm">
+            <footer className="p-mx-lg md:p-10 border-t border-border-default sticky bottom-mx-0 bg-white z-10 flex flex-col gap-mx-sm sm:flex-row sm:justify-end">
               <Button
                 variant="ghost"
                 onClick={onClose}
-                className="h-mx-14 px-8 rounded-mx-full font-black uppercase tracking-widest"
+                className="h-mx-14 w-full px-8 rounded-mx-full font-black uppercase tracking-widest sm:w-auto"
               >
                 CANCELAR
               </Button>
@@ -319,7 +319,7 @@ export function StoreFeedbackModal({
                   !formData.attention_points.trim() ||
                   !formData.action.trim()
                 }
-                className="h-mx-14 px-12 rounded-mx-full shadow-mx-xl font-black uppercase tracking-widest"
+                className="h-mx-14 w-full px-12 rounded-mx-full shadow-mx-xl font-black uppercase tracking-widest sm:w-auto"
               >
                 {saving ? (
                   <RefreshCw className="animate-spin mr-2" />
