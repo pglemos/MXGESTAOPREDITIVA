@@ -62,7 +62,8 @@ quality_gate_tools:
   - [x] Reproduzir modais, foco, Escape, filtros, estados e responsividade desktop/mobile Base44.
 - [ ] 5. Validar e publicar (AC: 11–13)
   - [x] Executar gates completos e QA AIOX local.
-  - [ ] Entregar publicação via `@devops` e homologar produção autenticada.
+  - [x] Entregar publicação via `@devops` no `origin/main` e promover o deployment `dpl_AsrVJp9UDcvnEvS9etjmceKbZ8hU` para `https://mxperformance.vercel.app`.
+  - [ ] Homologar novamente produção autenticada em desktop, tablet e mobile com console limpo; o canal Chrome não esteve disponível nesta retomada.
 
 ## Dev Notes
 
@@ -92,6 +93,7 @@ quality_gate_tools:
 | Date | Version | Description | Author |
 |---|---|---|---|
 | 2026-07-13 | 1.0 | Story criada após comparação autenticada Base44 × local da Rotina da Equipe no Chrome real. | River (@sm) |
+| 2026-07-13 | 1.1 | Implementação publicada em `origin/main`; deployment Vercel e resposta HTTP da rota de produção registrados. Homologação visual final permanece pendente enquanto o canal Chrome não anexa. | Codex (@devops) |
 
 ## Dev Agent Record
 
@@ -107,7 +109,8 @@ Codex com `aiox-master`/Orion coordenando implementação e QA local.
 - `Cobrar` abre formulário com vendedor, data e mensagem editável; o envio só ocorre após confirmação e falhas exibem erro.
 - Evidência Chrome local: `output/playwright/manager-parity/local/14-rotina-equipe-mobile-after-vertical.png` e `output/playwright/manager-parity/local/15-rotina-equipe-desktop-after-vertical.png`.
 - Gates locais: `npm test` (883 pass), `npm run lint` (0 erros, 22 warnings preexistentes), `npm run typecheck`, `npm run build` e `git diff --check`.
-- Produção, deploy, snapshot real com rotina preenchida e idempotência/auditoria da cobrança permanecem pendentes para `@devops`/`@qa`.
+- Produção publicada no commit `225f7b139a8e4f5e54d420eaef82d9c3f1b272cf`, deployment `dpl_AsrVJp9UDcvnEvS9etjmceKbZ8hU`, alias `https://mxperformance.vercel.app`; a entrada `/gerente/rotina-equipe` respondeu `HTTP 200` e entregou `MX PERFORMANCE`/`#root`.
+- Homologação visual autenticada de produção, snapshot preenchido e idempotência/auditoria da cobrança permanecem como gate de QA; nesta retomada o Chrome real estava instalado e rodando, mas o canal de controle não conseguiu anexar ao perfil.
 
 ### File List
 
