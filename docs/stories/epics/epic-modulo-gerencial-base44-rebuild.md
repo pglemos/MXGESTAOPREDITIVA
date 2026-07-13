@@ -24,7 +24,7 @@ Status: Ready for Review
 - [ ] Unitários, componentes, integração e E2E aprovados.
 - [ ] Auditoria visual nos viewports desktop, tablet e mobile aprovada após o conteúdo estabilizar; capturas de loading são inválidas.
 - [ ] Regressões de acesso vendedor/dono/admin cobertas pela matriz de rotas e suíte completa.
-- [ ] Checklist e File List atualizados; publicação depende de solicitação explícita e autoridade `@devops`.
+- [x] Checklist e File List atualizados; publicação depende de solicitação explícita e autoridade `@devops`.
 
 ## Reabertura — referência Base44 atual de 2026-07-12
 
@@ -79,8 +79,10 @@ Status: Ready for Review
 - `src/features/ranking/views/ManagerRankingReference.tsx`
 - `src/test/manager-module.playwright.ts`
 - `src/types/database.ts`
-- `supabase/migrations/20260712201131_manager_lead_conferences.sql`
-- `supabase/migrations/20260712202902_manager_lead_conferences_manager_index.sql`
+- `src/lib/manager-lead-conference-hardening-migration.test.ts`
+- `supabase/migrations/20260712202753_manager_lead_conferences.sql`
+- `supabase/migrations/20260712202923_manager_lead_conferences_manager_index.sql`
+- `supabase/migrations/20260713031616_manager_lead_conference_hardening.sql`
 - `package.json`
 - `package-lock.json`
 - `scripts/check_bundle_size.mjs`
@@ -95,6 +97,9 @@ Status: Ready for Review
 
 ## QA Results
 
+- 2026-07-13 — QA focado da reconciliação Supabase: PASS. Os renames preservam 100% dos bytes aplicados, a migration corretiva passou em transação remota com rollback, `834/834` testes, lint, typecheck e build, e o CodeRabbit não mantém finding critical/major. O gate global da story permanece `CONCERNS` somente pelos bloqueios externos já registrados.
+- 2026-07-13: dois findings `major` do CodeRabbit foram reproduzidos e corrigidos em migration forward-only: escrita autenticada restrita à RPC `SECURITY DEFINER` com autorização interna e validação explícita do vínculo ativo do vendedor, e `divergent_sellers` passa a contar divergência em qualquer canal sem cancelamento cruzado. RED confirmado em dois ciclos; GREEN final com `4 pass` e 22 assertions. O recheck eliminou os `major`; o único `minor` condicional não se aplica porque `manager_lead_conference_items_unique_seller UNIQUE (conference_id, seller_user_id)` foi confirmado no arquivo e no banco remoto.
+- 2026-07-13: histórico de migrations reconciliado sem mutação remota. Auditoria somente leitura confirmou que `20260712202753_manager_lead_conferences.sql` (9440 bytes, MD5 `e16642a549159e3891160ffcd1d4c883`) e `20260712202923_manager_lead_conferences_manager_index.sql` (123 bytes, MD5 `372f04690e6c9481b2baa8331efcac92`) são byte a byte idênticos às migrations já aplicadas; apenas os timestamps locais estavam divergentes. Nenhum `migration repair`, `db push` ou DDL foi executado.
 - 2026-07-12: Declaração anterior de paridade do Fechamento Diário invalidada. Auditoria autenticada em viewport idêntico comprovou divergências sistêmicas: conteúdo de 1444 px contra ~1248 px na referência, Agenda D+1 de 1280 px contra 1152 px, overlay com blur inexistente no Base44, gráfico manual incompatível e ausência total do modal de confirmação de cobrança. Remediação reaberta para página completa e cinco estados fornecidos pelo usuário; nenhuma aprovação parcial por card é válida.
 - 2026-07-12: Paridade reaberta pelo usuário para reconstrução incremental, card a card. Primeiro recorte (`Agendamentos` / `Ver Agenda D+1`) medido em navegador autenticado Base44 × produção: referência com card `284×164`, raio `16px`, botão `258×30`, raio `8px`, peso `500` e ícone; produção anterior com `284×163`, raio `12px`, botão `258×32`, raio `16px`, peso `600` e sem ícone. Componente ajustado aos valores observados. PASS: lint, typecheck, build e 815 testes. Evidência local: `output/playwright/base44-fechamento-desktop-full.png`, `output/playwright/producao-fechamento-desktop-full.png`, `output/playwright/base44-agenda-d1.png` e `output/playwright/producao-agenda-d1.png`.
 - 2026-07-12: Fechamento Diário reprovado pelo usuário após inspeção de produção: a tentativa `6b8d7784` não reproduzia a composição nem o fluxo de Conferência de Leads da referência atual. Story reaberta para nova captura autenticada, rota canônica por perfil e reconstrução funcional.
