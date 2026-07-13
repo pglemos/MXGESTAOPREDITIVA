@@ -1,6 +1,7 @@
-import { describe, expect, mock, test } from "bun:test";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import {
+  getMovementState,
   PENDING_CLOSING_MESSAGE,
   PendingReminderModal,
 } from "./ManagerDailyClosing.container";
@@ -13,6 +14,9 @@ globalThis.MutationObserver ||= class {
 } as unknown as typeof MutationObserver;
 
 describe("PendingReminderModal", () => {
+  beforeEach(() => cleanup());
+  afterEach(() => cleanup());
+
   test("confirma a cobrança antes de disparar a ação", () => {
     const onConfirm = mock(() => undefined);
     const onClose = mock(() => undefined);
@@ -38,5 +42,20 @@ describe("PendingReminderModal", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Confirmar Cobrança" }));
     expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
+
+});
+
+describe("getMovementState", () => {
+  test("mantém o vazio Base44 quando só existem vendedores pendentes", () => {
+    expect(getMovementState(5, 0)).toBe("empty");
+  });
+
+  test("renderiza tabela quando existe ao menos um fechamento enviado", () => {
+    expect(getMovementState(5, 1)).toBe("table");
+  });
+
+  test("separa ausência de vendedores do vazio de fechamentos", () => {
+    expect(getMovementState(0, 0)).toBe("no-sellers");
   });
 });

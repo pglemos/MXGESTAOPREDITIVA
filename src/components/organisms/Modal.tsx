@@ -35,6 +35,7 @@ export interface ModalProps extends VariantProps<typeof modalSizeVariants> {
   className?: string;
   closeOnEscape?: boolean;
   referenceStyle?: boolean;
+  onOpenAutoFocus?: (event: Event) => void;
 }
 
 export function Modal({
@@ -49,6 +50,7 @@ export function Modal({
   className,
   closeOnEscape = true,
   referenceStyle = false,
+  onOpenAutoFocus,
 }: ModalProps) {
   const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
   const wasOpenRef = useRef(false);
@@ -78,6 +80,7 @@ export function Modal({
           onEscapeKeyDown={(event) => {
             if (!closeOnEscape) event.preventDefault();
           }}
+          onOpenAutoFocus={onOpenAutoFocus}
           onCloseAutoFocus={(event) => {
             const previouslyFocusedElement = previouslyFocusedElementRef.current;
             if (!previouslyFocusedElement?.isConnected) return;
@@ -86,16 +89,25 @@ export function Modal({
             requestAnimationFrame(() => previouslyFocusedElement.focus());
           }}
           className={cn(
-            "fixed left-mx-md right-mx-md top-mx-md bottom-mx-md sm:left-1/2 sm:right-auto sm:top-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 z-[101] focus:outline-none",
+            referenceStyle
+              ? "fixed left-4 right-4 top-1/2 -translate-y-1/2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-[101] focus:outline-none"
+              : "fixed left-mx-md right-mx-md top-mx-md bottom-mx-md sm:left-1/2 sm:right-auto sm:top-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 z-[101] focus:outline-none",
             modalSizeVariants({ size }),
-            referenceStyle && "!max-h-[calc(100dvh-84px)] !rounded-[16px]",
+            referenceStyle && "!max-h-[90vh] !rounded-[16px]",
             className,
           )}
         >
-          <div className="p-mx-md sm:p-mx-lg border-b border-border-default flex items-start justify-between gap-mx-md sticky top-mx-0 bg-white z-10 shrink-0">
+          <div className={cn(
+            "border-b flex justify-between gap-mx-md sticky top-mx-0 bg-white z-10 shrink-0",
+            referenceStyle
+              ? "items-center border-gray-100 px-5 py-4"
+              : "items-start border-border-default p-mx-md sm:p-mx-lg",
+          )}>
             <div className="min-w-0">
               <Dialog.Title asChild>
-                <Typography variant="h3">{title}</Typography>
+                <Typography variant="h3" className={referenceStyle ? "text-base leading-6" : undefined}>
+                  {title}
+                </Typography>
               </Dialog.Title>
               {description && (
                 <Dialog.Description asChild>
@@ -115,10 +127,10 @@ export function Modal({
                   type="button"
                   aria-label="Fechar modal"
                   className={cn(
-                    "w-mx-xl h-mx-xl flex items-center justify-center text-text-tertiary hover:text-text-primary transition-all shrink-0",
+                    "flex items-center justify-center text-text-tertiary hover:text-text-primary transition-all shrink-0",
                     referenceStyle
-                      ? "rounded-lg bg-transparent"
-                      : "rounded-mx-xl bg-surface-alt",
+                      ? "h-5 w-5 !min-h-0 rounded-lg bg-transparent p-0"
+                      : "h-mx-xl w-mx-xl rounded-mx-xl bg-surface-alt",
                   )}
                 >
                   <X size={20} />
@@ -127,13 +139,23 @@ export function Modal({
             )}
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-mx-md sm:p-mx-lg">
+          <div className={cn(
+            "min-h-0 flex-1 overflow-y-auto overscroll-contain",
+            referenceStyle
+              ? "p-5 [&_input]:!text-sm [&_select]:!text-sm [&_textarea]:!text-sm"
+              : "p-mx-md sm:p-mx-lg",
+          )}>
             {children}
           </div>
 
           {footer && (
             <div
-              className="p-mx-md sm:p-mx-lg border-t border-border-default flex flex-col-reverse sm:flex-row sm:justify-end gap-mx-sm sticky bottom-mx-0 bg-white shrink-0"
+              className={cn(
+                "border-t flex sticky bottom-mx-0 bg-white shrink-0",
+                referenceStyle
+                  ? "flex-row justify-end gap-2 border-gray-100 px-5 py-4 [&>button]:!min-h-0"
+                  : "flex-col-reverse gap-mx-sm border-border-default sm:flex-row sm:justify-end p-mx-md sm:p-mx-lg",
+              )}
               style={{
                 paddingBottom: "max(env(safe-area-inset-bottom, 0px), 1rem)",
               }}

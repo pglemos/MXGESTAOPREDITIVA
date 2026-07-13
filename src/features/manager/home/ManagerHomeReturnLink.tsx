@@ -5,7 +5,7 @@ const MANAGER_NAVIGATION_CONTEXT_KEY = 'mx_contexto_navegacao'
 
 export function ManagerHomeReturnLink() {
   const navigate = useNavigate()
-  const context = readManagerDashboardContext()
+  const context = readManagerReturnContext()
 
   if (!context) return null
 
@@ -13,24 +13,36 @@ export function ManagerHomeReturnLink() {
     <button
       type="button"
       onClick={() => {
-        sessionStorage.removeItem(MANAGER_NAVIGATION_CONTEXT_KEY)
-        navigate('/home')
+        if (context.consumeBeforeNavigate) {
+          sessionStorage.removeItem(MANAGER_NAVIGATION_CONTEXT_KEY)
+        }
+        navigate(context.path)
       }}
       className="flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-gray-700"
     >
-      <ArrowLeft size={16} /> Voltar para o Início
+      <ArrowLeft size={16} /> {context.label}
     </button>
   )
 }
 
-function readManagerDashboardContext() {
+function readManagerReturnContext(): {
+  path: '/home' | '/rotina'
+  label: string
+  consumeBeforeNavigate: boolean
+} | null {
   if (typeof sessionStorage === 'undefined') return null
   const rawContext = sessionStorage.getItem(MANAGER_NAVIGATION_CONTEXT_KEY)
   if (!rawContext) return null
 
   try {
     const context = JSON.parse(rawContext) as { origemNavegacao?: unknown }
-    return context.origemNavegacao === 'DASHBOARD_GERENCIAL' ? context : null
+    if (context.origemNavegacao === 'DASHBOARD_GERENCIAL') {
+      return { path: '/home', label: 'Voltar para o Início', consumeBeforeNavigate: true }
+    }
+    if (context.origemNavegacao === 'ROTINA_DO_DIA_GERENTE') {
+      return { path: '/rotina', label: 'Voltar para a Rotina do Dia', consumeBeforeNavigate: false }
+    }
+    return null
   } catch {
     return null
   }

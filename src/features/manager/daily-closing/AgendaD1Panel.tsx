@@ -364,7 +364,6 @@ export function AgendaD1Panel({
       size="3xl"
       className="sm:max-w-[1152px]"
       referenceStyle
-      closeOnEscape={false}
       title="Agenda D+1"
       description="Clientes agendados para amanhã a partir dos fechamentos da equipe."
     >

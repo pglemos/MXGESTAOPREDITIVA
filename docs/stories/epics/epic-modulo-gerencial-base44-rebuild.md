@@ -7,9 +7,9 @@ Status: Ready for Review
 O usuário aprovou que o contrato Base44 vença em design, fórmulas, estados, ações e fluxos, mantendo React/Auth/Supabase/RLS como infraestrutura e o sidebar escuro como exceção visual. A implementação será entregue na ordem do menu, com uma story por tela e validação real no Chrome antes da próxima.
 
 1. [Início gerencial Base44 1:1](../story-MX-MGR-20260713-01-inicio-base44-1x1.md)
-2. Rotina do Dia — story pendente
-3. Fechamento Diário — story pendente
-4. Rotina da Equipe — story pendente
+2. [Rotina do Dia Base44 1:1](../story-MX-MGR-20260713-02-rotina-dia-base44-1x1.md)
+3. [Fechamento Diário Base44 1:1](../story-MX-MGR-20260713-03-fechamento-diario-base44-1x1.md)
+4. [Rotina da Equipe Base44 1:1](../story-MX-MGR-20260713-04-rotina-equipe-base44-1x1.md)
 5. Minha Equipe — story pendente
 6. Meta da Loja — story pendente
 7. Mentor Gerencial — story pendente

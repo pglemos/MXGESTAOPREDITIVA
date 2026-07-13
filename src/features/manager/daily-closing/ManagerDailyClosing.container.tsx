@@ -37,6 +37,12 @@ import {
 } from "@/features/manager/shared/manager-metrics";
 import { AgendaD1Panel } from "@/features/manager/daily-closing/AgendaD1Panel";
 import { LeadConferenceModal } from "@/features/manager/daily-closing/LeadConferenceModal";
+import { ClosingDetailsModal } from "@/features/manager/daily-closing/ClosingDetailsModal";
+import { ManagerHomeReturnLink } from "@/features/manager/home/ManagerHomeReturnLink";
+import {
+  RegularizationsListModal,
+  type RegularizationRequest,
+} from "@/features/manager/daily-closing/RegularizationsListModal";
 import {
   ManagerSectionCard,
 } from "@/features/manager/shared/ManagerVisualPrimitives";
@@ -76,6 +82,12 @@ export default function ManagerDailyClosing() {
     open: false,
   });
   const [leadConferenceOpen, setLeadConferenceOpen] = useState(false);
+  const [regularizationsOpen, setRegularizationsOpen] = useState(false);
+  const [closingDetail, setClosingDetail] = useState<{
+    seller: { id: string; name: string };
+    checkin?: CheckinWithTotals;
+    status: string;
+  } | null>(null);
   const [reminding, setReminding] = useState(false);
   const [reminderOpen, setReminderOpen] = useState(false);
   const historyStart = format(
@@ -123,6 +135,7 @@ export default function ManagerDailyClosing() {
   const submitted = rows.filter((row) => row.checkin).length;
   const pending = rows.length - submitted;
   const pendingRows = rows.filter((row) => !row.checkin);
+  const movementState = getMovementState(rows.length, submitted);
   const appointments = checkins.reduce(
     (sum, item) => sum + item.agd_cart_today + item.agd_net_today,
     0,
@@ -210,6 +223,7 @@ export default function ManagerDailyClosing() {
   return (
     <main className="min-h-full bg-surface-alt px-4 py-6" id="main-content">
       <div className="mx-auto flex w-full max-w-[1248px] flex-col gap-5 pb-20">
+        <ManagerHomeReturnLink />
         <section className="flex min-h-[148px] items-center rounded-mx-xl border border-border-subtle bg-white p-5 shadow-mx-sm">
           <div className="flex flex-col gap-mx-sm xl:flex-row xl:items-center xl:justify-between xl:gap-mx-lg">
             <div className="max-w-3xl">
@@ -306,9 +320,7 @@ export default function ManagerDailyClosing() {
             action="Ver Regularizações"
             actionDisabled={!requests.length}
             onAction={() =>
-              document
-                .getElementById("manager-closing-movement")
-                ?.scrollIntoView({ behavior: "smooth" })
+              setRegularizationsOpen(true)
             }
           />
           <DisciplineCard value={discipline} />
@@ -317,7 +329,7 @@ export default function ManagerDailyClosing() {
         <ManagerSectionCard>
           <div id="manager-closing-movement" />
           <div className="flex flex-col gap-mx-sm border-b border-border-subtle px-5 py-[14px] sm:flex-row sm:items-center sm:justify-between">
-            <Typography variant="h3" className="!text-base !font-semibold">
+            <Typography variant="h2" className="!text-base !font-semibold">
               Movimento da Equipe — {format(parseISO(date), "dd/MM/yyyy")}
             </Typography>
             <div className="flex flex-wrap items-center gap-mx-sm">
@@ -340,9 +352,9 @@ export default function ManagerDailyClosing() {
               </Button>
             </div>
           </div>
-          {rows.length === 0 ? (
+          {movementState === "no-sellers" ? (
             <Empty text="Nenhum vendedor vinculado a este gerente." />
-          ) : submitted === 0 && requests.length === 0 ? (
+          ) : movementState === "empty" ? (
             <Empty text="Ainda não há fechamentos enviados para a data selecionada." />
           ) : (
             <ClosingTable
@@ -350,6 +362,7 @@ export default function ManagerDailyClosing() {
               requests={requests}
               onDecide={decide}
               onOpenAgenda={(sellerId) => setAgenda({ open: true, sellerId })}
+              onOpenDetails={(detail) => setClosingDetail(detail)}
             />
           )}
         </ManagerSectionCard>
@@ -465,6 +478,30 @@ export default function ManagerDailyClosing() {
             name: seller.name,
           }))}
         />
+        <RegularizationsListModal
+          open={regularizationsOpen}
+          requests={requests as RegularizationRequest[]}
+          onClose={() => setRegularizationsOpen(false)}
+          onApprove={async (request) => {
+            setRegularizationsOpen(false);
+            await decide(request as PendingRequest, "approve");
+          }}
+          onReject={async (request) => {
+            setRegularizationsOpen(false);
+            await decide(request as PendingRequest, "reject");
+          }}
+        />
+        <ClosingDetailsModal
+          open={Boolean(closingDetail)}
+          seller={closingDetail?.seller || { id: "", name: "" }}
+          checkin={closingDetail?.checkin}
+          status={closingDetail?.status || "—"}
+          onClose={() => setClosingDetail(null)}
+          onOpenAgenda={closingDetail ? () => {
+            setClosingDetail(null);
+            setAgenda({ open: true, sellerId: closingDetail.seller.id });
+          } : undefined}
+        />
       </div>
     </main>
   );
@@ -524,7 +561,6 @@ export function PendingReminderModal({
       onClose={onClose}
       size="md"
       referenceStyle
-      closeOnEscape={false}
       title="Cobrar Fechamentos Pendentes"
       description={`${pendingRows.length} vendedor(es) pendente(s)`}
       footer={footer}
@@ -557,6 +593,15 @@ export function PendingReminderModal({
       </div>
     </Modal>
   );
+}
+
+export function getMovementState(
+  sellerCount: number,
+  submittedCount: number,
+): "no-sellers" | "empty" | "table" {
+  if (sellerCount === 0) return "no-sellers";
+  if (submittedCount === 0) return "empty";
+  return "table";
 }
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
@@ -672,6 +717,7 @@ function ClosingTable({
   requests,
   onDecide,
   onOpenAgenda,
+  onOpenDetails,
 }: {
   rows: ReturnType<typeof getClosingRows>;
   requests: PendingRequest[];
@@ -680,6 +726,7 @@ function ClosingTable({
     action: "approve" | "reject",
   ) => Promise<void>;
   onOpenAgenda: (sellerId: string) => void;
+  onOpenDetails: (detail: { seller: { id: string; name: string }; checkin?: CheckinWithTotals; status: string }) => void;
 }) {
   return (
     <div className="overflow-x-auto">
@@ -719,6 +766,7 @@ function ClosingTable({
               )}
               onDecide={onDecide}
               onOpenAgenda={() => onOpenAgenda(seller.id)}
+              onOpenDetails={() => onOpenDetails({ seller, checkin, status })}
             />
           ))}
         </tbody>
@@ -909,6 +957,7 @@ function ClosingRow({
   request,
   onDecide,
   onOpenAgenda,
+  onOpenDetails,
 }: {
   name: string;
   checkin?: CheckinWithTotals;
@@ -919,6 +968,7 @@ function ClosingRow({
     action: "approve" | "reject",
   ) => Promise<void>;
   onOpenAgenda: () => void;
+  onOpenDetails: () => void;
 }) {
   const appointments = checkin
     ? checkin.agd_cart_today + checkin.agd_net_today
@@ -973,8 +1023,17 @@ function ClosingRow({
         {typeof discipline === "number" ? `${discipline}%` : "—"}
       </td>
       <td className="px-mx-md py-mx-sm">
-        {request ? (
-          <div className="flex gap-mx-xs">
+        <div className="flex flex-wrap gap-mx-xs">
+          <button
+            type="button"
+            className="inline-flex items-center rounded-mx-sm px-mx-xs text-xs font-semibold text-text-secondary hover:bg-surface-alt hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mx-action"
+            aria-label={`Detalhes ${name}`}
+            onClick={onOpenDetails}
+          >
+            <Eye size={13} /> Detalhes
+          </button>
+          {request ? (
+            <>
             <Button
               size="xs"
               variant="success"
@@ -989,12 +1048,9 @@ function ClosingRow({
             >
               Recusar
             </Button>
-          </div>
-        ) : (
-          <Typography variant="tiny" tone="muted">
-            Somente consulta
-          </Typography>
-        )}
+            </>
+          ) : <Typography variant="tiny" tone="muted">Somente consulta</Typography>}
+        </div>
       </td>
     </tr>
   );

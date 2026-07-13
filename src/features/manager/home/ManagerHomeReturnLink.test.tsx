@@ -84,6 +84,34 @@ describe('ManagerHomeReturnLink', () => {
     expect(screen.getByTestId('current-location').textContent).toBe('/home')
     expect(sessionStorage.getItem('mx_contexto_navegacao')).toBeNull()
   })
+
+  it('preserva o contexto da Rotina do Dia até /rotina restaurar filtros e ordenação', async () => {
+    const module = await import('./ManagerHomeReturnLink').catch(() => ({}))
+    const ManagerHomeReturnLink = 'ManagerHomeReturnLink' in module
+      ? module.ManagerHomeReturnLink
+      : undefined
+
+    expect(typeof ManagerHomeReturnLink).toBe('function')
+    if (!ManagerHomeReturnLink) return
+
+    const context = JSON.stringify({
+      origemNavegacao: 'ROTINA_DO_DIA_GERENTE',
+      filtros: { filtro: 'equipe', ordenacao: 'origem' },
+    })
+    sessionStorage.setItem('mx_contexto_navegacao', context)
+
+    render(
+      <MemoryRouter initialEntries={['/gerente/rotina-equipe']}>
+        <ManagerHomeReturnLink />
+        <LocationProbe />
+      </MemoryRouter>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /voltar para a rotina do dia/i }))
+
+    expect(screen.getByTestId('current-location').textContent).toBe('/rotina')
+    expect(sessionStorage.getItem('mx_contexto_navegacao')).toBe(context)
+  })
 })
 
 function LocationProbe() {
