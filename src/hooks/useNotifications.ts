@@ -140,6 +140,20 @@ export function useNotifications() {
         return { error: error?.message || null }
       }
 
+      if (input.recipient_id && (input.type === 'routine' || input.type === 'checkin')) {
+        const { data, error } = await supabase.rpc('enviar_cobranca_diaria', {
+          p_recipient_id: input.recipient_id,
+          p_store_id: input.store_id || null,
+          p_type: input.type,
+          p_title: input.title,
+          p_message: input.message,
+          p_priority: input.priority || 'high',
+          p_link: input.link || null,
+        })
+        const result = data as { ok?: boolean; error?: string; duplicate?: boolean } | null
+        return { error: error?.message || result?.error || null, duplicate: result?.duplicate || false }
+      }
+
       const { error } = await supabase.from('notificacoes').insert({ ...input, target_type: 'all', sender_id: profile.id, read: false })
       return { error: error?.message || null }
     },

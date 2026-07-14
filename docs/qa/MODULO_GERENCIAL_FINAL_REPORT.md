@@ -114,9 +114,11 @@ Executadas via script autenticado (`@supabase/supabase-js`, contas de homologaç
 | Fluxo | Resultado | Idempotência | Observação |
 |---|---|---|---|
 | Regularização (Fechamento Diário) | ✅ Corrigido e validado ponta a ponta | ✅ Confirmada nas 3 RPCs (`solicitar`/`aplicar`/`rejeitar`) | Bug de produção corrigido (ver acima) |
-| Cobrança (Rotina da Equipe / Fechamento) | ✅ Corrigido e validado | ⚠️ Não idempotente no servidor | Bug de produção corrigido; duplicidade em reenvio é achado aberto, não bug corrigido |
-| PDI (Desenvolvimento) | ⚠️ Funciona, mas com 2 achados | ❌ Não idempotente — repetir `create_pdi_session_bundle` cria segunda sessão | `create_pdi_session_bundle` grava `status='concluido'` fixo na criação (mesmo com plano de ação `pendente`), inconsistente com os 10 estados do ciclo PDI da especificação (17.2); não corrigido — depende de decisão de qual status inicial é correto (`ativo` é o candidato óbvio, mas é regra de negócio, não estou assumindo) |
+| Cobrança (Rotina da Equipe / Fechamento) | ✅ Corrigido e validado | ✅ Corrigida via RPC `enviar_cobranca_diaria` | Bug de produção corrigido; idempotência por dia calendário implementada e confirmada (2ª tentativa no mesmo dia retorna `duplicate:true` sem duplicar linha); RPC também nega cross-store |
+| PDI (Desenvolvimento) | ⚠️ Funciona, com 1 achado corrigido e 1 aberto | ❌ Ainda não idempotente — repetir `create_pdi_session_bundle` cria segunda sessão (decisão de produto: cliclos concorrentes são permitidos ou não?) | Status inicial corrigido para `draft` (migration `20260714130000`) — sessão nova não nasce mais marcada `concluido`. Estados completos do ciclo (17.2, 10 estados) não existem no schema (`pdi_sessoes_status_check` só aceita `draft`/`concluido`); implementar o motor de 10 estados é trabalho de produto/design fora do escopo desta correção |
 | Treinamento (Universidade MX) | ✅ Validado | ✅ Confirmada (upsert com `onConflict`) | Sem achados; quiz (`submeter_quiz_treinamento`) verificado só por leitura de código, não exercido ao vivo nesta rodada |
+| Feedback (Desenvolvimento) | ✅ Validado | ✅ Confirmada (upsert com `onConflict` em `store_id,manager_id,seller_id,week_reference`) | Sem achados; criação de `devolutiva_acoes` associada ao feedback não foi exercitada nesta rodada (só o `upsert` principal de `devolutivas`) |
+| Leads — Corrigir Leads (Fechamento Diário) | ❌ Não exercitável | — | **Achado: recurso órfão.** `CorrigirLeadsModal`/`corrigir-leads.ts` existem (cálculo puro + componente), mas não estão importados em nenhuma tela e não existe RPC de backend para aplicar a correção. Gerente não consegue acessar essa função hoje. Não implementei a integração (tela + RPC com auditoria, no padrão da regularização) por ser trabalho de feature completa, não patch pontual — registrado como pendência para story própria |
 
 ## Acessibilidade
 
@@ -164,13 +166,15 @@ warnings runtime descritos em Console e network permanecem pendentes. Evidência
 
 ## Pendências críticas
 
-1. ~~Executar fixture autorizada para validar gravação e idempotência: cobrança, regularização, PDI, treinamento.~~ **Feito em 2026-07-14** — ver `## Fixtures de mutação` acima. Achados abertos que restam desta pendência: (a) cobrança não é idempotente no servidor (duplicidade em reenvio); (b) `create_pdi_session_bundle` não é idempotente e grava `status='concluido'` fixo na criação, precisa decisão de produto sobre status inicial correto; (c) leads/feedback ainda não exercidos com fixture autorizada, só regularização/cobrança/PDI/treinamento.
-2. Completar auditoria RLS cross-store e por papel com fixture autorizada.
+1. ~~Executar fixture autorizada para validar gravação e idempotência: cobrança, regularização, PDI, treinamento, feedback.~~ **Feito em 2026-07-14** — ver `## Fixtures de mutação` acima. Regularização, cobrança (agora idempotente via `enviar_cobranca_diaria`), PDI (status inicial corrigido) e treinamento/feedback validados. Achados residuais: (a) `create_pdi_session_bundle` continua não sendo idempotente entre chamadas — decisão de produto sobre ciclos concorrentes; (b) Corrigir Leads é recurso órfão (sem tela nem RPC), fora do escopo de patch pontual.
+2. ~~Completar auditoria RLS cross-store e por papel com fixture autorizada.~~ **Feito em 2026-07-14** — isolamento confirmado em 4 tabelas + RPCs para gerente/vendedor/dono; ressalva de que a negação cross-store de RPC só foi provada por `request_id` inválido, não por um `id` real de loja de terceiro (ver seção de segurança).
 3. Formalizar a decisão do Dono sobre a fórmula definitiva do Ranking; até lá a fórmula permanece provisória.
 4. Revisar os diffs carregados com dados determinísticos e limiar formal; a regressão MX local já está automatizada (`30/30`).
 5. Reexecutar o gate Playwright autenticado com `E2E_ROLE_PASSWORD` ou `E2E_AUTH_PASSWORD` disponível no ambiente; sem a variável, a suíte agora falha explicitamente em vez de marcar os casos como `skipped`.
-6. Confirmar o job remoto `Typecheck and unit tests` e, depois, executar QA/DevOps das mutações críticas.
+6. ~~Confirmar o job remoto `Typecheck and unit tests`.~~ **Feito em 2026-07-14** — verde nos últimos pushes; único job vermelho é `Smoke 403 (PostgREST RLS)` por falta de secrets `SUPABASE_URL`/`SUPABASE_ANON_KEY` no CI (config, não código — gap pré-existente já documentado).
 7. Configurar o DSN do Sentry em produção e corrigir o sizing inicial do gráfico que reporta largura/altura `-1`.
+8. Implementar Corrigir Leads de ponta a ponta (tela + RPC com auditoria, no padrão da regularização) — story própria, não patch.
+9. Decidir status inicial completo do ciclo PDI (10 estados da especificação 17.2) e estender `pdi_sessoes_status_check` de acordo — hoje só existe `draft`/`concluido`.
 
 ## Veredito final
 
