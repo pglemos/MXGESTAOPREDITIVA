@@ -24,4 +24,18 @@ describe('manager sales realtime migration', () => {
     expect(sql).toContain("tablename = 'eventos_comerciais'")
     expect(sql).toContain('ALTER PUBLICATION supabase_realtime ADD TABLE public.eventos_comerciais')
   })
+
+  it('keeps the real LIAL seller accounts out of the synthetic Venda Loja bucket', () => {
+    const sql = readFileSync(
+      'supabase/migrations/20260714215439_lial_seller_role_flag_fix.sql',
+      'utf8',
+    )
+
+    expect(sql).toContain("upper(l.name) = 'LIAL'")
+    expect(sql).toContain("u.role = 'vendedor'")
+    expect(sql).toContain('SET is_venda_loja = false')
+    expect(sql).toContain('diellelages@gmail.com')
+    expect(sql).toContain('gestaobrunosantos@gmail.com')
+    expect(sql).toContain('joaodanielvdhf@gmail.com')
+  })
 })
