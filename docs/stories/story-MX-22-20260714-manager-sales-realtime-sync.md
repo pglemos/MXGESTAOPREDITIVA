@@ -73,4 +73,6 @@ Ready for Review
 - `git diff --check`: PASS.
 - Supabase advisors: sem finding novo relacionado à migration; o projeto mantém alertas gerais preexistentes de Auth/RLS/performance.
 - CodeRabbit CLI: revisão não executada por rate limit do plano (`waitTime=25 minutes`), sem findings disponíveis.
-- Chrome real: pendente até o deploy desta revisão; a validação deve confirmar `/fechamento-diario`, canal WebSocket `realtime`, evento de `lancamentos_diarios` e refetch automático em LIAL.
+- Chrome real: PASS no deployment de produção para a conta de gerente fornecida — login, `/fechamento-diario`, resposta HTTP 200, canal `wss://fbhcmzzgwjdgkctlfvbo.supabase.co/realtime/v1/websocket` aberto e zero erros de console.
+- LIAL: consulta remota confirmou Vitor como gerente ativo e Dielle, Bruno e João como vendedores ativos no store `855a788c-eb07-4f37-a1ec-090de14e570f`; a conta genérica de gerente usada no smoke está vinculada a outra unidade.
+- Conta específica `vgs.victor@icloud.com`: a senha fornecida foi recusada pelo Auth (HTTP 400), portanto a validação autenticada específica dessa conta permanece pendente e não foi simulada.
