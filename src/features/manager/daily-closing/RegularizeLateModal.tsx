@@ -1,0 +1,122 @@
+import { useEffect, useState } from "react";
+import { Info } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { Modal } from "@/components/organisms/Modal";
+
+type RegularizeLateModalProps = {
+  open: boolean;
+  sellerName: string;
+  referenceDate: string;
+  submittedAt: string | null | undefined;
+  saving: boolean;
+  onClose: () => void;
+  onSubmit: (observation: string) => void | Promise<void>;
+};
+
+export function RegularizeLateModal({
+  open,
+  sellerName,
+  referenceDate,
+  submittedAt,
+  saving,
+  onClose,
+  onSubmit,
+}: RegularizeLateModalProps) {
+  const [observation, setObservation] = useState("");
+
+  useEffect(() => {
+    if (open) setObservation("");
+  }, [open, sellerName, referenceDate]);
+
+  const valid = observation.trim().length >= 8;
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      size="lg"
+      referenceStyle
+      title="Regularizar Fechamento"
+      description={`${sellerName} — ${formatDate(referenceDate)}`}
+      footer={
+        <div className="grid w-full grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            className="h-11 rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={() => void onSubmit(observation.trim())}
+            disabled={!valid || saving}
+            className="h-11 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-200"
+          >
+            {saving ? "Enviando..." : "Enviar Regularização"}
+          </button>
+        </div>
+      }
+    >
+      <div className="space-y-4">
+        <div className="flex items-start gap-3 rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm leading-5 text-blue-700">
+          <Info size={18} className="mt-0.5 shrink-0" />
+          <p>
+            Este fechamento foi enviado fora do horário limite. Ao regularizar,
+            ele ficará como “Aguardando aprovação” e será avaliado pelo gerente.
+          </p>
+        </div>
+
+        <div className="space-y-2 rounded-xl bg-gray-50 p-4 text-sm">
+          <DataRow label="Vendedor" value={sellerName} />
+          <DataRow label="Data" value={formatDate(referenceDate)} />
+          <DataRow label="Entrega" value={formatTime(submittedAt)} />
+        </div>
+
+        <label className="block">
+          <span className="mb-1 block text-xs font-medium text-gray-600">
+            Observação
+          </span>
+          <textarea
+            aria-label="Observação da regularização"
+            value={observation}
+            onChange={(event) => setObservation(event.target.value)}
+            rows={4}
+            placeholder="Justificativa ou contexto da regularização..."
+            className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <span className="mt-1 block text-[11px] text-gray-400">
+            Informe ao menos 8 caracteres para manter a justificativa auditável.
+          </span>
+        </label>
+      </div>
+    </Modal>
+  );
+}
+
+function DataRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="text-gray-500">{label}</span>
+      <strong className="text-gray-800">{value}</strong>
+    </div>
+  );
+}
+
+function formatDate(value: string) {
+  try {
+    return format(parseISO(`${value}T12:00:00`), "dd/MM/yyyy");
+  } catch {
+    return "—";
+  }
+}
+
+function formatTime(value: string | null | undefined) {
+  if (!value) return "—";
+  try {
+    return format(parseISO(value), "HH:mm");
+  } catch {
+    return "—";
+  }
+}
