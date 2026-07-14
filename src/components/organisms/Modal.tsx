@@ -125,10 +125,11 @@ export function Modal({
               {referenceStyle ? (
                 <>
                   <Dialog.Title
-                    className={cn(
-                      size === "sm" ? "text-base" : "text-lg",
-                      "font-semibold leading-6 text-gray-800",
-                    )}
+                    className={
+                      size === "sm"
+                        ? "text-base leading-6 font-semibold text-gray-800"
+                        : "text-lg leading-6 font-semibold text-gray-800"
+                    }
                   >
                     {title}
                   </Dialog.Title>
