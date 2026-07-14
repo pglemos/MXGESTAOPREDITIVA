@@ -126,8 +126,8 @@ export function Modal({
                 <>
                   <Dialog.Title
                     className={cn(
-                      "font-semibold leading-6 text-gray-800",
                       size === "sm" ? "text-base" : "text-lg",
+                      "font-semibold leading-6 text-gray-800",
                     )}
                   >
                     {title}
