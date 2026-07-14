@@ -182,12 +182,12 @@ export function Modal({
               className={cn(
                 "sticky bottom-0 flex shrink-0 bg-white",
                 referenceStyle
-                  ? "border-t border-gray-100 p-5 [&>button]:!min-h-0"
+                  ? "border-t border-gray-100 px-5 py-4 [&>button]:!min-h-0"
                   : "flex-col-reverse gap-mx-sm border-t border-border-default p-mx-md sm:flex-row sm:justify-end sm:p-mx-lg",
               )}
               style={{
                 paddingBottom: referenceStyle
-                  ? "max(env(safe-area-inset-bottom, 0px), 1.25rem)"
+                  ? "max(env(safe-area-inset-bottom, 0px), 1rem)"
                   : "max(env(safe-area-inset-bottom, 0px), 1rem)",
               }}
             >
