@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 describe('manager sales realtime migration', () => {
   it('adds the canonical closing table to Supabase Realtime idempotently', () => {
     const sql = readFileSync(
-      'supabase/migrations/20260714184925_manager_sales_realtime_sync.sql',
+      'supabase/migrations/20260714185743_manager_sales_realtime_sync.sql',
       'utf8',
     )
 

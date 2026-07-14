@@ -48,7 +48,7 @@ Ready for Review
 
 ## File List
 
-- [x] `supabase/migrations/20260714184925_manager_sales_realtime_sync.sql`
+- [x] `supabase/migrations/20260714185743_manager_sales_realtime_sync.sql`
 - [x] `src/features/manager/daily-closing/ManagerDailyClosing.container.tsx`
 - [x] `src/features/manager/daily-closing/manager-closing-realtime.ts`
 - [x] `src/features/manager/daily-closing/manager-closing-realtime.test.ts`

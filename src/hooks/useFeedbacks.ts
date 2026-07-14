@@ -99,19 +99,29 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
         acknowledged_at: null,
       }, { onConflict: 'store_id,manager_id,seller_id,week_reference' }).select('id').maybeSingle()
 
-      if (!error && saved?.id && data.visible_to_seller !== false && data.action.trim()) {
-        const actionPayload = buildFeedbackActionPayload({
-          devolutivaId: saved.id,
-          storeId: targetStoreId,
-          sellerId: data.seller_id,
-          managerId: profile.id,
-          action: data.action,
-        })
-        const { error: actionError } = await supabase
-          .from('devolutiva_acoes')
-          .upsert(actionPayload, { onConflict: 'devolutiva_id' })
+      if (!error && saved?.id) {
+        if (data.visible_to_seller !== false && data.action.trim()) {
+          const actionPayload = buildFeedbackActionPayload({
+            devolutivaId: saved.id,
+            storeId: targetStoreId,
+            sellerId: data.seller_id,
+            managerId: profile.id,
+            action: data.action,
+          })
+          const { error: actionError } = await supabase
+            .from('devolutiva_acoes')
+            .upsert(actionPayload, { onConflict: 'devolutiva_id' })
 
-        if (actionError) return { error: actionError.message }
+          if (actionError) return { error: actionError.message }
+        } else {
+          const { error: actionError } = await supabase
+            .from('devolutiva_acoes')
+            .delete()
+            .eq('devolutiva_id', saved.id)
+            .eq('manager_id', profile.id)
+
+          if (actionError) return { error: actionError.message }
+        }
       }
 
       if (!error && saved?.id) {
