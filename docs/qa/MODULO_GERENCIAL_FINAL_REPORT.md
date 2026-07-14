@@ -118,7 +118,7 @@ Executadas via script autenticado (`@supabase/supabase-js`, contas de homologaç
 | PDI (Desenvolvimento) | ⚠️ Funciona, com 1 achado corrigido e 1 aberto | ❌ Ainda não idempotente — repetir `create_pdi_session_bundle` cria segunda sessão (decisão de produto: cliclos concorrentes são permitidos ou não?) | Status inicial corrigido para `draft` (migration `20260714130000`) — sessão nova não nasce mais marcada `concluido`. Estados completos do ciclo (17.2, 10 estados) não existem no schema (`pdi_sessoes_status_check` só aceita `draft`/`concluido`); implementar o motor de 10 estados é trabalho de produto/design fora do escopo desta correção |
 | Treinamento (Universidade MX) | ✅ Validado | ✅ Confirmada (upsert com `onConflict`) | Sem achados; quiz (`submeter_quiz_treinamento`) verificado só por leitura de código, não exercido ao vivo nesta rodada |
 | Feedback (Desenvolvimento) | ✅ Validado | ✅ Confirmada (upsert com `onConflict` em `store_id,manager_id,seller_id,week_reference`) | Sem achados; criação de `devolutiva_acoes` associada ao feedback não foi exercitada nesta rodada (só o `upsert` principal de `devolutivas`) |
-| Leads — Corrigir Leads (Fechamento Diário) | ❌ Não exercitável | — | **Achado: recurso órfão.** `CorrigirLeadsModal`/`corrigir-leads.ts` existem (cálculo puro + componente), mas não estão importados em nenhuma tela e não existe RPC de backend para aplicar a correção. Gerente não consegue acessar essa função hoje. Não implementei a integração (tela + RPC com auditoria, no padrão da regularização) por ser trabalho de feature completa, não patch pontual — registrado como pendência para story própria |
+| Leads — Corrigir Leads (Fechamento Diário) | ✅ Implementado e validado em 2026-07-14 | ✅ Confirmada (reusa o par `solicitar`/`aplicar_regularizacao_fechamento` já auditado) | Recurso estava órfão (componente e cálculo puro existiam, sem tela nem RPC). Implementado: botão "Corrigir leads" em `ClosingDetailsModal` → `CorrigirLeadsModal` → `ManagerDailyClosing.container.tsx#handleCorrectLeads`, que solicita e aplica via as RPCs canônicas de regularização (nenhuma RPC nova — o payload restrito já era desenhado para elas). Fixture confirma: só `leads_prev_day`/`leads_net_prev_day` mudam, `vnd_*`/`visit_*` permanecem intocados; auditoria em `checkin_audit_logs` herdada do fluxo de regularização |
 
 ## Acessibilidade
 
@@ -173,7 +173,7 @@ warnings runtime descritos em Console e network permanecem pendentes. Evidência
 5. ~~Reexecutar o gate Playwright autenticado com `E2E_ROLE_PASSWORD`/`E2E_AUTH_PASSWORD`.~~ **Feito em 2026-07-14** — `src/test/manager-module.playwright.ts`: `5/5` em `chromium` e `5/5` em `mobile-chrome`, local, contra o build pós-fixes.
 6. ~~Confirmar o job remoto `Typecheck and unit tests`.~~ **Feito em 2026-07-14** — verde nos últimos pushes; único job vermelho é `Smoke 403 (PostgREST RLS)` por falta de secrets `SUPABASE_URL`/`SUPABASE_ANON_KEY` no CI (config, não código — gap pré-existente já documentado).
 7. Configurar o DSN do Sentry em produção e corrigir o sizing inicial do gráfico que reporta largura/altura `-1`.
-8. Implementar Corrigir Leads de ponta a ponta (tela + RPC com auditoria, no padrão da regularização) — story própria, não patch.
+8. ~~Implementar Corrigir Leads de ponta a ponta.~~ **Feito em 2026-07-14** — ver linha "Leads — Corrigir Leads" na matriz resumida acima.
 9. Decidir status inicial completo do ciclo PDI (10 estados da especificação 17.2) e estender `pdi_sessoes_status_check` de acordo — hoje só existe `draft`/`concluido`.
 
 ## Veredito final

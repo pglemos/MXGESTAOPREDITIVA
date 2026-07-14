@@ -41,6 +41,8 @@ import { getDiasInfo } from "@/lib/calculations";
 import { AgendaD1Panel } from "@/features/manager/daily-closing/AgendaD1Panel";
 import { LeadConferenceModal } from "@/features/manager/daily-closing/LeadConferenceModal";
 import { ClosingDetailsModal } from "@/features/manager/daily-closing/ClosingDetailsModal";
+import { CorrigirLeadsModal } from "@/features/manager/daily-closing/CorrigirLeadsModal";
+import type { buildLeadCorrectionPayload } from "@/features/manager/daily-closing/corrigir-leads";
 import { ManagerHomeReturnLink } from "@/features/manager/home/ManagerHomeReturnLink";
 import {
   RegularizationsListModal,
@@ -95,6 +97,7 @@ export default function ManagerDailyClosing() {
   } | null>(null);
   const [reminding, setReminding] = useState(false);
   const [reminderOpen, setReminderOpen] = useState(false);
+  const [correctingLeads, setCorrectingLeads] = useState(false);
   const historyStart = format(
     subDays(parseISO(date), historyRange - 1),
     "yyyy-MM-dd",
@@ -250,6 +253,34 @@ export default function ManagerDailyClosing() {
         : "Regularização recusada.",
     );
     await Promise.all([loadRequests(), refetch(), refetchHistory()]);
+  };
+
+  const handleCorrectLeads = async (
+    payload: ReturnType<typeof buildLeadCorrectionPayload>,
+    reason: string,
+  ): Promise<{ error: string | null }> => {
+    if (!closingDetail?.checkin?.id) {
+      return { error: "Fechamento não encontrado para este vendedor." };
+    }
+    const solicited = await auditor.requestCorrection(
+      closingDetail.checkin.id,
+      payload,
+      reason,
+    );
+    if (solicited.error || !solicited.id) {
+      return { error: solicited.error || "Não foi possível registrar a correção de leads." };
+    }
+    const applied = await auditor.approveRequest({
+      id: solicited.id,
+    } as CheckinCorrectionRequest);
+    if (applied.error) {
+      return { error: applied.error };
+    }
+    toast.success("Leads corrigidos e auditados.");
+    setCorrectingLeads(false);
+    setClosingDetail(null);
+    await Promise.all([loadRequests(), refetch(), refetchHistory()]);
+    return { error: null };
   };
 
   if (sellersLoading || checkinsLoading) return <ManagerClosingSkeleton />;
@@ -541,6 +572,14 @@ export default function ManagerDailyClosing() {
             setClosingDetail(null);
             setAgenda({ open: true, sellerId: closingDetail.seller.id });
           } : undefined}
+          onCorrectLeads={closingDetail?.checkin ? () => setCorrectingLeads(true) : undefined}
+        />
+        <CorrigirLeadsModal
+          open={correctingLeads}
+          onClose={() => setCorrectingLeads(false)}
+          sellerName={closingDetail?.seller.name || ""}
+          checkin={closingDetail?.checkin || null}
+          onSubmit={handleCorrectLeads}
         />
       </div>
     </main>

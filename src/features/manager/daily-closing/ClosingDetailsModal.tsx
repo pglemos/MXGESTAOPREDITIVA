@@ -1,4 +1,4 @@
-import { CalendarClock } from "lucide-react";
+import { CalendarClock, Pencil } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import type { ReactNode } from "react";
 import { Button } from "@/components/atoms/Button";
@@ -11,6 +11,7 @@ type ClosingDetailsModalProps = {
   checkin?: Partial<CheckinWithTotals> | null;
   status: string;
   onOpenAgenda?: () => void;
+  onCorrectLeads?: () => void;
   onClose: () => void;
 };
 
@@ -20,6 +21,7 @@ export function ClosingDetailsModal({
   checkin,
   status,
   onOpenAgenda,
+  onCorrectLeads,
   onClose,
 }: ClosingDetailsModalProps) {
   const referenceDate = checkin?.reference_date || "";
@@ -40,10 +42,19 @@ export function ClosingDetailsModal({
       referenceStyle
       title={`Detalhes do Fechamento — ${seller.name}`}
       description={referenceDate ? formatDate(referenceDate) : "—"}
-      footer={onOpenAgenda ? (
-        <Button type="button" variant="outline" onClick={onOpenAgenda} className="text-emerald-700">
-          <CalendarClock size={15} /> Ver Agenda D+1 deste vendedor
-        </Button>
+      footer={onOpenAgenda || onCorrectLeads ? (
+        <div className="flex flex-wrap justify-end gap-2">
+          {onCorrectLeads && (
+            <Button type="button" variant="outline" onClick={onCorrectLeads} className="text-amber-700">
+              <Pencil size={15} /> Corrigir leads
+            </Button>
+          )}
+          {onOpenAgenda && (
+            <Button type="button" variant="outline" onClick={onOpenAgenda} className="text-emerald-700">
+              <CalendarClock size={15} /> Ver Agenda D+1 deste vendedor
+            </Button>
+          )}
+        </div>
       ) : undefined}
     >
       <div className="space-y-5">
