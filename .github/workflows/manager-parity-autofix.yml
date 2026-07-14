@@ -1,5 +1,6 @@
 name: Manager Parity Autofix
 
+# One-shot deterministic patch for the dedicated parity branch.
 on:
   push:
     branches:
