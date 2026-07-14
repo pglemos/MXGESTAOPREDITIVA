@@ -2,7 +2,7 @@
 
 ## Commit
 
-`59c3f40f9a7d59ba6216d629156d6c0780204a71` (base da branch; alterações ainda não commitadas)
+`a8f8776c6a3445de77eb72f609f19e42d1313827` — publicado em `main`
 
 ## Branch
 
@@ -42,8 +42,10 @@ Implementado e verificado nesta branch:
 - typecheck, build, `git diff --check`, validações AIOX e bundle budget passaram;
 - capturas local/produção versionadas nos três viewports mínimos;
 - Base44 autenticado recapturado com conteúdo carregado nas dez rotas e nos três viewports mínimos; capturas `06-*` e diffs Base44×MX versionados.
+- deploy automático Vercel concluído para o commit publicado; as dez rotas canônicas responderam HTTP 200 em produção;
+- `/gerente/rotina-equipe` validada no Chrome real pós-deploy, com conteúdo autenticado, console sem erros e requests Supabase HTTP 200 escopadas por `store_id`.
 
-O módulo não está aprovado porque ainda não houve fixture/staging autorizada para mutações críticas, auditoria RLS cross-store completa, decisão definitiva do Ranking e publicação/homologação pós-deploy.
+O módulo não está aprovado porque ainda não houve fixture/staging autorizada para mutações críticas, auditoria RLS cross-store completa e decisão definitiva do Ranking.
 
 ## Fontes e precedência
 
@@ -57,16 +59,16 @@ O sidebar escuro MX foi preservado; `CalendarClock` e `BrainCircuit` permanecem 
 
 | Tela | Funcional | Visual | Dados | Segurança | E2E | Produção | Status |
 |---|---|---|---|---|---|---|---|
-| Início | Parcialmente corrigido | Local capturado; Base44 sem baseline equivalente | Plano oficial ligado | Rota protegida; RLS não reauditado nesta rodada | Passa local/produção existentes | Não promovido | EM AUDITORIA |
-| Rotina do Dia | Sem nova mutação nesta rodada | Local capturado nos viewports mínimos | `execution_actions`/fontes canônicas | Não reauditado nesta rodada | Passa no conjunto de dez rotas | Não promovido | EM AUDITORIA |
-| Fechamento Diário | Ausência não vira zero; mutações pendentes | Local capturado; Base44 instável | `lancamentos_diarios`/auditoria | Não reauditado nesta rodada | Passa local/produção existentes | Não promovido | EM AUDITORIA |
-| Rotina da Equipe | Score oficial e série histórica canônica corrigidos; cobrança pendente | Base44 e MX carregados; diff versionado | Seis fontes canônicas por vendedor/data | Escopo existente; cobrança não rehomologada | Chromium `5/5` + mobile `5/5` | Não promovido | EM AUDITORIA |
-| Minha Equipe | Sem nova mutação nesta rodada | Capturada nos viewports mínimos | Dados reais do dashboard | Não reauditado nesta rodada | Passa no conjunto de dez rotas | Não promovido | EM AUDITORIA |
-| Meta da Loja | `NaN` corrigido; plano oficial coberto por testes | Base44 e MX carregados; diff versionado | Meta/calendário/check-ins | Não reauditado nesta rodada | Passa no conjunto de dez rotas | Não promovido | EM AUDITORIA |
-| Desenvolvimento | Fluxos de produção não executados | Capturada nos viewports mínimos | Feedback/PDI canônicos | Mutação não executada | Passa no conjunto de dez rotas | Não promovido | EM AUDITORIA |
-| Mentor | Conteúdo determinístico existente | Capturada nos viewports mínimos | Recomendações reais ainda não comparadas | Não reauditado nesta rodada | Passa no conjunto de dez rotas | Não promovido | EM AUDITORIA |
-| Ranking | Quatro períodos expostos; fórmula continua provisória | Capturada com Mensal/Trimestral/Semestral/Anual; ausência usa `Sem dados oficiais`/`—` | `useStoreRankingPageData` e RPC oficial | Vendedor bloqueado na rota; ranking carregado para gerente/admin | `5/5` unitário/componente + navegação real | Não promovido | EM AUDITORIA |
-| Universidade MX | Catálogo/abas carregados | Capturada nos viewports mínimos | Progresso/mutação não homologados | Não reauditado nesta rodada | Passa no conjunto de dez rotas | Não promovido | EM AUDITORIA |
+| Início | Parcialmente corrigido | Local capturado; Base44 sem baseline equivalente | Plano oficial ligado | Rota protegida; RLS não reauditado nesta rodada | Passa local/produção existentes | Deploy automático; somente leitura | EM AUDITORIA |
+| Rotina do Dia | Sem nova mutação nesta rodada | Local capturado nos viewports mínimos | `execution_actions`/fontes canônicas | Não reauditado nesta rodada | Passa no conjunto de dez rotas | Deploy automático; somente leitura | EM AUDITORIA |
+| Fechamento Diário | Ausência não vira zero; mutações pendentes | Local capturado; Base44 instável | `lancamentos_diarios`/auditoria | Não reauditado nesta rodada | Passa local/produção existentes | Deploy automático; somente leitura | EM AUDITORIA |
+| Rotina da Equipe | Score oficial e série histórica canônica corrigidos; cobrança pendente | Base44 e MX carregados; diff versionado | Seis fontes canônicas por vendedor/data | Escopo existente; cobrança não rehomologada | Chromium `5/5` + mobile `5/5` | Deploy automático; Chrome pós-deploy | EM AUDITORIA |
+| Minha Equipe | Sem nova mutação nesta rodada | Capturada nos viewports mínimos | Dados reais do dashboard | Não reauditado nesta rodada | Passa no conjunto de dez rotas | Deploy automático; somente leitura | EM AUDITORIA |
+| Meta da Loja | `NaN` corrigido; plano oficial coberto por testes | Base44 e MX carregados; diff versionado | Meta/calendário/check-ins | Não reauditado nesta rodada | Passa no conjunto de dez rotas | Deploy automático; somente leitura | EM AUDITORIA |
+| Desenvolvimento | Fluxos de produção não executados | Capturada nos viewports mínimos | Feedback/PDI canônicos | Mutação não executada | Passa no conjunto de dez rotas | Deploy automático; somente leitura | EM AUDITORIA |
+| Mentor | Conteúdo determinístico existente | Capturada nos viewports mínimos | Recomendações reais ainda não comparadas | Não reauditado nesta rodada | Passa no conjunto de dez rotas | Deploy automático; somente leitura | EM AUDITORIA |
+| Ranking | Quatro períodos expostos; fórmula continua provisória | Capturada com Mensal/Trimestral/Semestral/Anual; ausência usa `Sem dados oficiais`/`—` | `useStoreRankingPageData` e RPC oficial | Vendedor bloqueado na rota; ranking carregado para gerente/admin | `5/5` unitário/componente + navegação real | Deploy automático; somente leitura | EM AUDITORIA |
+| Universidade MX | Catálogo/abas carregados | Capturada nos viewports mínimos | Progresso/mutação não homologados | Não reauditado nesta rodada | Passa no conjunto de dez rotas | Deploy automático; somente leitura | EM AUDITORIA |
 
 ## Correções realizadas
 
@@ -112,15 +114,23 @@ para `1440×900`, `768×1024` e `390×844`. O resultado atual é `30/30`.
 Após a correção de `id/name` no Ranking, a composição visual não mudou; a evidência
 Chrome pós-correção está em `mx-local/09-ranking-loaded-mx-local-1440x900-*postfix.png`.
 
+A evidência Chrome pós-deploy da Rotina da Equipe está em `mx-production/11-post-deploy-a8f8776c-routine-team-1440x900-{viewport,full-page}.png`.
+
 Os diffs P0 foram gerados com ImageMagick. O diff carregado Base44×MX está em `measurements/base44-vs-mx-loaded-ae.txt` e `diffs/*-base44-vs-mx-loaded-*`. Os valores não são aprovação automática: incluem diferenças autorizadas do sidebar MX e diferenças de massa/estado; a homologação visual final ainda requer alinhamento de dados determinísticos e limiar formal.
 
 ## CI
 
-Não houve push, PR ou CI remoto nesta execução.
+O push para `main` foi realizado. No commit `a8f8776c`, Gitleaks, ESLint a11y e
+Atomic Design passaram; o job `Typecheck and unit tests` estava em execução no
+momento deste registro e deve ser confirmado no GitHub antes do merge seguinte.
 
 ## Deploy
 
-Nenhum deploy foi executado. `ALLOW_PRODUCTION_MUTATIONS` não estava autorizado; a produção foi somente consultada.
+Deploy automático Vercel concluído com status `success` para o commit
+`a8f8776c` (`Deployment has completed`). Produção validada em modo somente
+leitura: dez rotas canônicas HTTP 200; rota `/gerente/rotina-equipe` autenticada
+no Chrome real, console sem erros e requests de dados HTTP 200. Evidência:
+`https://vercel.com/synvolt/mxperformance/D8RNNirYiXVsWyRFNvthma4UsSy3`.
 
 ## Pendências críticas
 
@@ -129,7 +139,7 @@ Nenhum deploy foi executado. `ALLOW_PRODUCTION_MUTATIONS` não estava autorizado
 3. Formalizar a decisão do Dono sobre a fórmula definitiva do Ranking; até lá a fórmula permanece provisória.
 4. Revisar os diffs carregados com dados determinísticos e limiar formal; a regressão MX local já está automatizada (`30/30`).
 5. Reexecutar o gate Playwright autenticado com `E2E_ROLE_PASSWORD` ou `E2E_AUTH_PASSWORD` disponível no ambiente; sem a variável, a suíte agora falha explicitamente em vez de marcar os casos como `skipped`.
-6. Passar por QA/DevOps, commit, PR e eventual deploy somente após autorização explícita.
+6. Confirmar o job remoto `Typecheck and unit tests` e, depois, executar QA/DevOps das mutações críticas.
 
 ## Veredito final
 
