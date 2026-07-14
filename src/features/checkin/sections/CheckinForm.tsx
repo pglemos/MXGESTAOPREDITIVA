@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from 'motion/react'
 import { useState, useMemo, useRef, useEffect } from 'react'
 import {
   AlertTriangle,
@@ -29,7 +28,7 @@ import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
 import { Card } from '@/components/molecules/Card'
 import { Typography } from '@/components/atoms/Typography'
-import { CHECKIN_MAX_INPUT_VALUE, CHECKIN_ZERO_REASONS } from '@/hooks/useCheckins'
+import { CHECKIN_MAX_INPUT_VALUE } from '@/hooks/useCheckins'
 import { CheckinValidationBanner } from './CheckinValidationBanner'
 import { CheckinSuccessSection } from './CheckinSuccessSection'
 import { CheckinCrmSection } from './CheckinCrmSection'
@@ -374,53 +373,6 @@ Confirmar Internet
 
       <section className="grid w-full min-w-0 grid-cols-1 gap-mx-md">
         <div className="space-y-mx-md">
-          <AnimatePresence>
-            {productionZeroActive && (
-              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }}>
-                <Card className="space-y-3 rounded-[16px] border border-[#fcd34d] bg-[#FFF7E6] px-5 py-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-                  <header className="flex items-center gap-3">
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-[#102C37] text-[#F59F0A]">
-                      <AlertTriangle size={19} strokeWidth={2} />
-                    </div>
-                    <div>
-                      <Typography variant="h2" className="text-[15px] font-bold text-[#92400e]">
-                        Produção Zero
-                      </Typography>
-                      <Typography variant="caption" className="mt-0.5 font-semibold text-[#92400e]/70">
-                        Justificativa obrigatória MX
-                      </Typography>
-                    </div>
-                  </header>
-                  <label htmlFor="checkin-zero-reason" className="sr-only">
-                    Motivo da produção zero
-                  </label>
-                  <select
-                    id="checkin-zero-reason"
-                    name="zero_reason"
-                    value={form.zero_reason}
-                    onChange={event => updateField('zero_reason', event.target.value)}
-                    disabled={fechamentoConcluido}
-                    aria-invalid={Boolean(fieldErrors.zero_reason)}
-                    aria-describedby={fieldErrors.zero_reason ? 'checkin-error-zero-reason' : undefined}
-                    className="h-11 w-full rounded-xl border border-[#fcd34d] bg-white px-4 text-sm font-semibold uppercase tracking-wide text-[#92400e] outline-none focus:border-[#F59F0A]"
-                  >
-                    <option value="">Selecione o motivo...</option>
-                    {CHECKIN_ZERO_REASONS.map(reason => (
-                      <option key={reason} value={reason}>
-                        {reason.toUpperCase()}
-                      </option>
-                    ))}
-                  </select>
-                  {fieldErrors.zero_reason && (
-                    <Typography id="checkin-error-zero-reason" variant="tiny" tone="error" className="font-semibold">
-                      {fieldErrors.zero_reason}
-                    </Typography>
-                  )}
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
           <CheckinCrmSection ctx={ctx} allowInlineQuickEdit={false} />
 
           {mandatoryFeedbackActionsCount > 0 && metricScope === 'daily' && (

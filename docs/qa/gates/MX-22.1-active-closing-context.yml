@@ -1,0 +1,38 @@
+schema: 1
+story: 'MX-22.1'
+slug: 'active-closing-context'
+gate: PASS
+status_reason: 'Camada pura de data operacional, cards §7.2/§7.3 e regra de atraso FEV-DATA-09 corretos e testados; tsc/lint/suite verdes e regressão de on_time incondicional (cc338e13) já corrigida no fix 552a9b40.'
+reviewer: 'Quinn'
+updated: '2026-07-14T18:30:00Z'
+
+context_notes:
+  - 'Story chegou ao gate como "Ready for Review" (não literal "InReview"). Tratado como equivalente de InReview (status pós-@dev deste projeto). Divergência registrada; transição para Done aplicada.'
+  - 'Commit cc338e13 foi commitado E pushado direto para origin/main por processo automático do ambiente, sem revalidação @po nem este gate. Fora do controle do QA; auditado retroativamente aqui.'
+  - 'Fix 552a9b40 (local, não pushado) restaura a detecção de atraso apagada por cc338e13. Este gate valida cc338e13 + 552a9b40 em conjunto.'
+
+evidence:
+  typecheck: 'npx tsc --noEmit → exit 0 (limpo)'
+  tests_full_scope: 'bun test --isolate src/hooks/checkins src/features/checkin src/lib/definitive-daily-closing-migration.test.ts → 84 pass / 0 fail (18 files)'
+  tests_late_detection: 'src/hooks/checkins/types.test.ts → 8 pass / 0 fail (5 novos casos de borda 11:59/12:00/12:01 SP, 09:31, virada de mês)'
+  tests_active_closing: 'active-closing-context.test.ts → 13 pass / 0 fail'
+  card_texts: 'CheckinHeader.tsx L370/374/375 batem §7.2/§7.3 exato; duas ações Ver histórico + Ajustar fechamento/Regularizar dd/mm (L381/386)'
+
+late_detection_review:
+  finding: 'isCheckinLateForReferenceDate correta: tardio = submitted > 12:00 SP de reference_date+1 (estrito >, exatamente 12:00 = no prazo). TS (naive SP-wall-clock) e SQL (timestamptz absoluto) convergem porque SP não tem DST.'
+  migration_residual_bug: 'NENHUM. A migration não força mais on_time incondicional; usa CASE WHEN is_late e só zera campos de penalização quando NOT is_late. Comentário de regra alinhado a §10.2/§12.4.'
+  other_hardcodes_scan: 'Varredura nos 16 arquivos de cc338e13: único hardcode sempre-on_time/false estava no par migration+useCheckinsSubmit (agora condicional). fechamento_liberado ?? false é form-sourced, não hardcode. Nenhum outro "sempre true/false" suspeito.'
+
+migration_safety:
+  file: 'supabase/migrations/20260714150000_definitive_daily_closing_window.sql'
+  applied_to_supabase: false
+  syntax: 'OK — CREATE OR REPLACE FUNCTION ($function$...END;$function$), DROP TRIGGER IF EXISTS + CREATE TRIGGER, DO $do$ com IF/END IF balanceados.'
+  safety: 'Idempotente (CREATE OR REPLACE, DROP IF EXISTS, guarda de constraint por NOT EXISTS). Roda após trigger legado zz_ para não reintroduzir regra 09:30. Seguro para aplicar depois.'
+
+top_issues: []
+
+waiver: { active: false }
+
+recommendations:
+  - 'Aplicar a migration 20260714150000 no Supabase (project fbhcmzzgwjdgkctlfvbo) antes de MX-22.5 (penalização de Disciplina) depender de submission_status/submitted_late reais.'
+  - 'Push do fix 552a9b40 para main via @devops — main hoje ainda carrega a regressão de cc338e13.'

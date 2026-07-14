@@ -31,4 +31,12 @@ describe('validarFeedbackObrigatorio', () => {
   it('aprova feedback completo', () => {
     expect(validarFeedbackObrigatorio(validForm)).toEqual({ ok: true })
   })
+
+  it('aceita feedback positivo sem pontos de atenção', () => {
+    expect(validarFeedbackObrigatorio({ ...validForm, attention_points: '', feedback_type: 'positive' })).toEqual({ ok: true })
+  })
+
+  it('aceita feedback de desenvolvimento sem pontos fortes', () => {
+    expect(validarFeedbackObrigatorio({ ...validForm, positives: '', feedback_type: 'development' })).toEqual({ ok: true })
+  })
 })

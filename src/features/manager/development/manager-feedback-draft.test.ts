@@ -34,6 +34,7 @@ describe('buildManagerFeedbackFormData', () => {
       deadline: '2026-07-20',
       nextConversation: '2026-07-27',
       useAsPdiEvidence: true,
+      sendToSeller: true,
     }
 
     const result = buildManagerFeedbackFormData(draft, base)
@@ -50,7 +51,9 @@ describe('buildManagerFeedbackFormData', () => {
       prazo: '2026-07-20',
       proxima_conversa: '2026-07-27',
       usar_no_pdi: true,
+      feedback_type: 'positive',
     }))
+    expect(result.visible_to_seller).toBe(true)
   })
 
   it('keeps a development feedback distinguishable in the canonical fields', () => {
@@ -58,6 +61,7 @@ describe('buildManagerFeedbackFormData', () => {
       sellerId: 'seller-2', date: '2026-07-13', type: 'development', competency: '', origin: 'Observação do gerente',
       situation: 'Não atualizou os clientes prioritários.', impact: 'Clientes sem acompanhamento', orientation: 'Atualizar a carteira até amanhã.',
       commitment: '', deadline: '', nextConversation: '', useAsPdiEvidence: false,
+      sendToSeller: false,
     }
 
     const result = buildManagerFeedbackFormData(draft, base)
@@ -65,5 +69,7 @@ describe('buildManagerFeedbackFormData', () => {
     expect(result.positives).toBe('')
     expect(result.attention_points).toContain('Não atualizou os clientes prioritários.')
     expect(result.caso_motivo).toBe('Não atualizou os clientes prioritários.')
+    expect(result.diagnostic_json).toEqual(expect.objectContaining({ feedback_type: 'development' }))
+    expect(result.visible_to_seller).toBe(false)
   })
 })

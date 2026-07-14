@@ -127,7 +127,11 @@ export function useStoreFeedback() {
   )
 
   const handleSubmit = useCallback(async (submittedData: FeedbackFormData = formData) => {
-    const validation = validarFeedbackObrigatorio(submittedData)
+    const feedbackType = submittedData.diagnostic_json?.feedback_type
+    const validation = validarFeedbackObrigatorio({
+      ...submittedData,
+      feedback_type: feedbackType === 'positive' || feedbackType === 'development' ? feedbackType : null,
+    })
     if (!validation.ok) {
       toast.error(validation.message)
       return false

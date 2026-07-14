@@ -13,6 +13,7 @@ export type ManagerFeedbackDraft = {
   deadline: string
   nextConversation: string
   useAsPdiEvidence: boolean
+  sendToSeller: boolean
 }
 
 export function buildManagerFeedbackFormData(
@@ -40,6 +41,7 @@ export function buildManagerFeedbackFormData(
     notes: [base.notes?.trim(), notes].filter(Boolean).join('\n'),
     diagnostic_json: {
       ...(base.diagnostic_json || {}),
+      feedback_type: draft.type,
       competencia: draft.competency,
       origem: draft.origin,
       impacto: impact,
@@ -47,5 +49,6 @@ export function buildManagerFeedbackFormData(
       proxima_conversa: draft.nextConversation,
       usar_no_pdi: draft.useAsPdiEvidence,
     },
+    visible_to_seller: draft.sendToSeller,
   }
 }

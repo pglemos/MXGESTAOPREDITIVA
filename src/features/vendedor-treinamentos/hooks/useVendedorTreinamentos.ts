@@ -78,7 +78,7 @@ export function useVendedorTreinamentos() {
                 .from('clientes_oportunidades')
                 .select('etapa')
                 .eq('seller_user_id', supabaseUser.id)
-                .is('closed_at', null)
+                .is('data_venda', null)
                 .not('etapa', 'in', '("ganho","perdido")'),
             supabase
                 .from('devolutiva_acoes')

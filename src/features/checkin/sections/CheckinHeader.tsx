@@ -9,6 +9,7 @@ import { RegularizarFechamentoDrawer } from './RegularizarFechamentoDrawer'
 import { NotificationBellButton } from '@/components/NotificationBellButton'
 import { isSubmittedClosing, type PreviousClosingCard } from '../lib/active-closing-context'
 import { SellerPageHeader } from '@/components/seller/SellerPageHeader'
+import { CHECKIN_ZERO_REASONS } from '@/hooks/useCheckins'
 
 interface PillarProgress {
   key: string
@@ -25,13 +26,15 @@ setCustomReferenceDate: (value: string) => void
 handleExit: () => void
 historyOpen: boolean
   setHistoryOpen: (open: boolean) => void
- checkins?: DailyCheckin[]
- userId?: string
- previousCard?: PreviousClosingCard | null
+  checkins?: DailyCheckin[]
+  userId?: string
+  previousCard?: PreviousClosingCard | null
+  activeClosingDate: string
   saveCheckin: (
     formData: any,
     scope?: any,
-    customDate?: string
+    customDate?: string,
+    officialReferenceDate?: string,
   ) => Promise<{ error: string | null; id?: string }>
 }
 
@@ -46,6 +49,7 @@ setHistoryOpen,
  checkins = [],
  userId = 'vendedor',
  previousCard = null,
+ activeClosingDate,
  saveCheckin,
   ..._props
 }: CheckinHeaderProps) {
@@ -53,6 +57,9 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
 
   const [activeView, setActiveView] = useState<'list' | 'form'>('list')
   const [selectedRow, setSelectedRow] = useState<any | null>(null)
+  const [productionZeroModalOpen, setProductionZeroModalOpen] = useState(false)
+  const [productionZeroReason, setProductionZeroReason] = useState('')
+  const [productionZeroSaving, setProductionZeroSaving] = useState(false)
   const [formValues, setFormValues] = useState({
     leads_cart: 0,
     leads_net: 0,
@@ -321,6 +328,62 @@ console.error(err)
 }
 }
 
+  const handleOpenProductionZeroModal = () => {
+    const activeCheckin = checkins.find(
+      checkin => checkin.reference_date === activeClosingDate && checkin.metric_scope === 'daily',
+    )
+    setProductionZeroReason(activeCheckin?.zero_reason || '')
+    setProductionZeroModalOpen(true)
+  }
+
+  const handleMarkProductionZero = async () => {
+    if (!productionZeroReason) {
+      toast.error('Selecione o motivo da produção zero.')
+      return
+    }
+
+    setProductionZeroSaving(true)
+    try {
+      const result = await saveCheckin(
+        {
+          reference_date: activeClosingDate,
+          leads: 0,
+          leads_cart: 0,
+          leads_net: 0,
+          agd_cart_prev: 0,
+          agd_net_prev: 0,
+          agd_cart: 0,
+          agd_net: 0,
+          vnd_porta: 0,
+          vnd_cart: 0,
+          vnd_net: 0,
+          visitas: 0,
+          visitas_porta: 0,
+          visitas_cart: 0,
+          visitas_net: 0,
+          note: null,
+          zero_reason: productionZeroReason,
+        },
+        'daily',
+        activeClosingDate,
+        activeClosingDate,
+      )
+
+      if (result.error) {
+        toast.error(`Não foi possível marcar Produção Zero: ${result.error}`)
+        return
+      }
+
+      toast.success('Produção Zero marcada com sucesso.')
+      setProductionZeroModalOpen(false)
+    } catch (error) {
+      console.error(error)
+      toast.error('Não foi possível marcar Produção Zero.')
+    } finally {
+      setProductionZeroSaving(false)
+    }
+}
+
 const completedPillars = pillars.filter((pillar) => pillar.filled).length
 const baseReady = completedPillars >= 3
 const safeTotalAgendamentosD1 = Math.max(0, Number(totalAgendamentosD1) || 0)
@@ -577,7 +640,14 @@ return (
 
             {/* Modal Footer */}
             <footer className="px-6 py-4 border-t border-[#DFE0E1] flex justify-between items-center bg-[#F7F8F8]">
-              <span />
+              <Button
+                type="button"
+                onClick={handleOpenProductionZeroModal}
+                disabled={productionZeroSaving}
+                className="h-10 px-4 text-xs font-bold border border-[#FCD34D] bg-[#FFF7E6] text-[#92400E] hover:bg-[#FEF3C7] rounded-xl shadow-sm transition-colors"
+              >
+                Marcar Produção Zero
+              </Button>
               <Button
                 type="button"
                 onClick={() => setHistoryOpen(false)}
@@ -587,6 +657,94 @@ return (
               </Button>
             </footer>
 
+          </div>
+        </div>
+      )}
+
+      {historyOpen && productionZeroModalOpen && (
+        <div
+          className="fixed inset-0 z-[150] grid place-items-center bg-black/35 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] backdrop-blur-[3px]"
+          role="presentation"
+          onMouseDown={event => {
+            if (event.target === event.currentTarget && !productionZeroSaving) {
+              setProductionZeroModalOpen(false)
+            }
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="production-zero-title"
+            aria-describedby="production-zero-description"
+            className="flex max-h-[calc(100dvh-2rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] w-full max-w-[min(460px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-[#FCD34D] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)] animate-in fade-in zoom-in-95 duration-200"
+            onMouseDown={event => event.stopPropagation()}
+          >
+            <header className="flex items-center gap-3 border-b border-[#FDE68A] bg-[#FFF7E6] px-5 py-4">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[10px] bg-[#102C37] text-[#F59F0A]">
+                <AlertTriangle size={19} strokeWidth={2} aria-hidden="true" />
+              </div>
+              <div>
+                <h2 id="production-zero-title" className="text-base font-extrabold text-[#92400E]">
+                  Marcar Produção Zero
+                </h2>
+                <p id="production-zero-description" className="mt-0.5 text-xs font-semibold text-[#92400E]/70">
+                  Escolha o motivo para {activeClosingDate.split('-').reverse().join('/')}.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setProductionZeroModalOpen(false)}
+                disabled={productionZeroSaving}
+                className="ml-auto grid h-8 w-8 place-items-center rounded-lg text-[#92400E] hover:bg-[#FDE68A] disabled:opacity-50"
+                aria-label="Fechar seleção de Produção Zero"
+              >
+                <X size={18} aria-hidden="true" />
+              </button>
+            </header>
+
+            <div className="space-y-3 overflow-y-auto p-5" role="radiogroup" aria-label="Motivo da Produção Zero">
+              {CHECKIN_ZERO_REASONS.map(reason => {
+                const selected = productionZeroReason === reason
+                return (
+                  <button
+                    key={reason}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => setProductionZeroReason(reason)}
+                    className={`flex min-h-12 w-full items-center justify-between rounded-xl border px-4 text-left text-sm font-extrabold uppercase tracking-wide transition-colors ${
+                      selected
+                        ? 'border-[#F59F0A] bg-[#FFF7E6] text-[#92400E] ring-4 ring-[#F59F0A]/15'
+                        : 'border-[#DFE0E1] bg-white text-[#526B7A] hover:border-[#F59F0A] hover:bg-[#FFFDF7]'
+                    }`}
+                  >
+                    <span>{reason}</span>
+                    <span className={`grid h-5 w-5 place-items-center rounded-full border-2 ${selected ? 'border-[#F59F0A]' : 'border-[#DFE0E1]'}`}>
+                      {selected && <span className="h-2.5 w-2.5 rounded-full bg-[#F59F0A]" />}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+
+            <footer className="flex justify-end gap-2 border-t border-[#DFE0E1] bg-[#F7F8F8] px-5 py-4">
+              <Button
+                type="button"
+                onClick={() => setProductionZeroModalOpen(false)}
+                disabled={productionZeroSaving}
+                className="h-10 rounded-xl border border-[#DFE0E1] bg-white px-4 text-xs font-bold text-[#526B7A] hover:bg-[#F7F8F8]"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                onClick={() => void handleMarkProductionZero()}
+                disabled={!productionZeroReason || productionZeroSaving}
+                className="h-10 rounded-xl bg-[#00A89D] px-4 text-xs font-bold text-white hover:bg-[#008F86] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {productionZeroSaving ? 'Salvando...' : 'Confirmar Produção Zero'}
+              </Button>
+            </footer>
           </div>
         </div>
       )}

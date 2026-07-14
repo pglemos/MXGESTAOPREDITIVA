@@ -298,6 +298,19 @@ export function StoreFeedbackModal({
                       className="w-full h-mx-3xl p-mx-md bg-white border-2 border-brand-primary/20 rounded-mx-2xl text-base font-black focus:border-brand-primary transition-all shadow-mx-lg outline-none resize-none"
                     />
                   </div>
+                  <label className="flex items-start gap-mx-xs text-xs text-text-secondary">
+                    <input
+                      aria-label="Enviar este feedback ao vendedor"
+                      type="checkbox"
+                      checked={formData.visible_to_seller !== false}
+                      onChange={(e) => setFormData((f) => ({ ...f, visible_to_seller: e.target.checked }))}
+                      className="mt-0.5 rounded border-border-default text-brand-primary focus:ring-brand-primary"
+                    />
+                    <span>
+                      <span className="font-semibold text-text-primary">Enviar este feedback ao vendedor</span>
+                      <span className="block text-[11px] text-text-tertiary">Desmarque para manter a observação somente com a liderança.</span>
+                    </span>
+                  </label>
                 </motion.div>
               )}
             </div>

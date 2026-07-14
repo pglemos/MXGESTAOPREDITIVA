@@ -20,13 +20,14 @@ describe('role capabilities', () => {
     expect(canManageTeam('vendedor')).toBe(false)
   })
 
-  it('keeps owner in executive read-only mode while manager runs people workflows', () => {
-    expect(canManageFeedback('dono')).toBe(false)
+  it('allows leadership and internal MX roles to manage feedback and PDI', () => {
+    expect(canManageFeedback('dono')).toBe(true)
     expect(canManageFeedback('gerente')).toBe(true)
     expect(canManageFeedback('vendedor')).toBe(false)
-    expect(canManagePDI('dono')).toBe(false)
+    expect(canManagePDI('dono')).toBe(true)
     expect(canManagePDI('gerente')).toBe(true)
     expect(canManagePDI('vendedor')).toBe(false)
+    expect(canManagePDI('administrador_mx')).toBe(true)
   })
 
   it('allows technical check-in adjustments from the seller terminal and leadership roles', () => {

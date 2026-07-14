@@ -398,14 +398,6 @@ export function TeamCompetencyMap({
   const dialogRef = useRef<HTMLElement>(null)
   useFocusTrap(dialogRef, true)
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [onClose])
-
   const counts = new Map<string, number>();
   pdis
     .filter((item) => !isCompleted(item.status))
@@ -430,6 +422,9 @@ export function TeamCompetencyMap({
         aria-modal="true"
         aria-label="Mapa da Equipe"
         className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-xl"
+        onKeyDown={(event) => {
+          if (event.key === 'Escape' && event.target === event.currentTarget) onClose()
+        }}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between">
@@ -441,7 +436,12 @@ export function TeamCompetencyMap({
               Competências prioritárias registradas nos PDIs ativos.
             </p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Fechar">
+          <button
+            type="button"
+            onClick={onClose}
+            onKeyDown={(event) => { if (event.key === 'Escape') onClose() }}
+            aria-label="Fechar"
+          >
             <X size={18} />
           </button>
         </div>

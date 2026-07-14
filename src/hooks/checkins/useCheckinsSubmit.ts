@@ -42,7 +42,18 @@ export function buildSubmitCheckinPayload(
     finalDate: string,
     submittedAt: Date,
     isDaily: boolean,
+    // MX-22.2 (FEV-DATA-05): rascunho real de D0. Quando true, o registro é
+    // gravado com submission_status='draft' — o servidor (submit_checkin /
+    // normalize_daily_closing_window) já ignora rascunhos na normalização de
+    // prazo, na transição D-1→D0 (isSubmittedClosing) e no bloqueio de
+    // idempotência (ON CONFLICT ... WHERE), então o rascunho sobrevive ao
+    // refresh sem marcar a data como concluída nem penalizar por atraso.
+    isDraft = false,
 ) {
+    // Rascunho nunca é "tardio" e nunca trava edição — ele existe justamente
+    // para o vendedor continuar preenchendo. A detecção de atraso só vale para
+    // uma finalização real (isDraft === false).
+    const isLate = !isDraft && isDaily && isCheckinLateForReferenceDate(finalDate, submittedAt)
     return {
         seller_user_id: sellerUserId,
         store_id: storeId,
@@ -55,10 +66,9 @@ export function buildSubmitCheckinPayload(
         // (spec v2.0 §3/§14 FEV-DATA-09). validateCheckinSubmissionDate já
         // bloqueia o envio de 'daily' fora da data operacional ativa; esta
         // checagem é o cinto-e-suspensório contra clock skew do cliente.
-        submitted_late: isDaily && isCheckinLateForReferenceDate(finalDate, submittedAt),
-        submission_status:
-            isDaily && isCheckinLateForReferenceDate(finalDate, submittedAt) ? 'late' : 'on_time',
-        edit_locked_at: isDaily ? getCheckinEditLockedAt(submittedAt) : null,
+        submitted_late: isLate,
+        submission_status: isDraft ? 'draft' : isLate ? 'late' : 'on_time',
+        edit_locked_at: isDraft || !isDaily ? null : getCheckinEditLockedAt(submittedAt),
         // leads_prev_day = canal Carteira (nome de coluna legado, implícito);
         // leads_net_prev_day = canal Internet. Não usar formData.leads (soma
         // dos dois) aqui — isso jogava tudo em Carteira e zerava Internet no

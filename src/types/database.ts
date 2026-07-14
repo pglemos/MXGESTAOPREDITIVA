@@ -227,6 +227,7 @@ export interface Feedback {
     team_avg_json: Record<string, unknown>
     diagnostic_json: Record<string, unknown>
     commitment_suggested: number
+    visible_to_seller?: boolean
     acknowledged: boolean
     acknowledged_at: string | null
     seller_comment?: string | null
@@ -458,6 +459,7 @@ export interface FeedbackFormData {
     team_avg_json?: Record<string, unknown>
     diagnostic_json?: Record<string, unknown>
     commitment_suggested?: number
+    visible_to_seller?: boolean
 }
 
 export interface WeeklyFeedbackReport {

@@ -114,6 +114,7 @@ const previousCard = ctx.activeClosingContext.previousCard
                     userId={ctx.supabaseUser?.id}
                     saveCheckin={ctx.saveCheckin}
                     previousCard={previousCard}
+                    activeClosingDate={ctx.activeClosingContext.mainDate}
                 />
             </CheckinErrorBoundary>
 

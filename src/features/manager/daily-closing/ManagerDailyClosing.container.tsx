@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { format, parseISO, subDays } from "date-fns";
 import {
@@ -25,6 +25,7 @@ import { useSellersByStore } from "@/hooks/useStores";
 import { useCheckinAuditor } from "@/hooks/useCheckinAuditor";
 import { useStoreMetaRules } from "@/hooks/useGoals";
 import { useNotifications } from "@/hooks/useData";
+import { supabase } from "@/lib/supabase";
 import { calculateReferenceDate } from "@/hooks/checkins/types";
 import { Button } from "@/components/atoms/Button";
 import { Badge } from "@/components/atoms/Badge";
@@ -63,6 +64,7 @@ import {
   formatClosingMetric,
   sumNumericMetrics,
 } from "./manager-closing-metrics";
+import { subscribeToManagerClosingRealtime } from "./manager-closing-realtime";
 import {
   CartesianGrid,
   Line,
@@ -98,6 +100,8 @@ export default function ManagerDailyClosing() {
   const [reminding, setReminding] = useState(false);
   const [reminderOpen, setReminderOpen] = useState(false);
   const [correctingLeads, setCorrectingLeads] = useState(false);
+  const [syncWarning, setSyncWarning] = useState<string | null>(null);
+  const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const historyStart = format(
     subDays(parseISO(date), historyRange - 1),
     "yyyy-MM-dd",
@@ -194,7 +198,7 @@ export default function ManagerDailyClosing() {
   );
   const summary = useMemo(() => buildClosingSummary(checkins), [checkins]);
 
-  const refreshAll = async () => {
+  const refreshAll = useCallback(async () => {
     await Promise.all([
       refetch(),
       refetchHistory(),
@@ -203,7 +207,48 @@ export default function ManagerDailyClosing() {
       loadRequests(),
     ]);
     toast.success("Fechamento da equipe atualizado.");
-  };
+  }, [loadRequests, refetch, refetchHistory, refetchMetricHistory, refetchSellers]);
+
+  useEffect(() => {
+    if (!storeId) return;
+
+    const cleanup = subscribeToManagerClosingRealtime({
+      client: {
+        channel: (name) => supabase.channel(name),
+        removeChannel: (channel) => supabase.removeChannel(channel as Parameters<typeof supabase.removeChannel>[0]),
+      },
+      storeId,
+      onChange: () => {
+        if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
+        realtimeTimerRef.current = setTimeout(() => {
+          void Promise.all([
+            refetch(),
+            refetchHistory(),
+            refetchMetricHistory(),
+            refetchSellers(),
+            loadRequests(),
+          ])
+            .then(() => setSyncWarning(null))
+            .catch(() => setSyncWarning("Falha ao sincronizar automaticamente. Use Atualizar."));
+        }, 500);
+      },
+      onStatus: (status) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          setSyncWarning("Realtime indisponível. Use Atualizar para confirmar os dados.");
+          return;
+        }
+        if (status === "SUBSCRIBED") setSyncWarning(null);
+      },
+    });
+
+    return () => {
+      if (realtimeTimerRef.current) {
+        clearTimeout(realtimeTimerRef.current);
+        realtimeTimerRef.current = null;
+      }
+      cleanup();
+    };
+  }, [loadRequests, refetch, refetchHistory, refetchMetricHistory, refetchSellers, storeId]);
 
   const remindPending = async () => {
     if (!pendingRows.length) return;
@@ -344,6 +389,12 @@ export default function ManagerDailyClosing() {
               Use Atualizar para tentar novamente.
             </Typography>
           </Card>
+        )}
+
+        {syncWarning && (
+          <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800" role="status">
+            {syncWarning}
+          </p>
         )}
 
         <section

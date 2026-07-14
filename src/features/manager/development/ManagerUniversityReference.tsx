@@ -26,6 +26,7 @@ import {
   useTrainings,
 } from '@/hooks/useData'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { ContentSuggestionDialog } from '@/features/universidade/components/ContentSuggestionDialog'
 
 type Trainings = ReturnType<typeof useTrainings>['treinamentos']
 type TeamProgress = ReturnType<typeof useTeamTrainings>['teamProgress']
@@ -239,6 +240,9 @@ function UniversityHeader() {
           <p className="text-sm text-gray-500">
             Desenvolva suas habilidades de liderança e acompanhe a evolução da sua equipe.
           </p>
+        </div>
+        <div className="ml-auto shrink-0">
+          <ContentSuggestionDialog />
         </div>
       </div>
     </header>

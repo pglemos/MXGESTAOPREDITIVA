@@ -272,9 +272,11 @@ export default function ManagerFeedbackReference() {
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`rounded-lg px-2 py-1 text-xs font-medium ${item.acknowledged ? "bg-emerald-100 text-emerald-700" : "bg-indigo-100 text-indigo-700"}`}
+                        className={`rounded-lg px-2 py-1 text-xs font-medium ${!item.visible_to_seller ? "bg-gray-100 text-gray-600" : item.acknowledged ? "bg-emerald-100 text-emerald-700" : "bg-indigo-100 text-indigo-700"}`}
                       >
-                        {item.acknowledged
+                        {!item.visible_to_seller
+                          ? "Somente liderança"
+                          : item.acknowledged
                           ? "Ciência registrada"
                           : "Aguardando ciência"}
                       </span>
@@ -385,14 +387,6 @@ export function FeedbackDetail({
   const dialogRef = useRef<HTMLElement>(null)
   useFocusTrap(dialogRef, true)
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [onClose])
-
   return (
     <div
       className="fixed inset-0 z-[150] flex items-center justify-center bg-black/30 p-4"
@@ -405,13 +399,21 @@ export function FeedbackDetail({
         aria-modal="true"
         aria-label="Detalhes do Feedback"
         className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl"
+        onKeyDown={(event) => {
+          if (event.key === 'Escape' && event.target === event.currentTarget) onClose()
+        }}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-800">
             Detalhes do Feedback
           </h2>
-          <button type="button" onClick={onClose} aria-label="Fechar">
+          <button
+            type="button"
+            onClick={onClose}
+            onKeyDown={(event) => { if (event.key === 'Escape') onClose() }}
+            aria-label="Fechar"
+          >
             <X size={18} className="text-gray-400" />
           </button>
         </div>
@@ -425,6 +427,7 @@ export function FeedbackDetail({
           />
           <Detail label="Compromisso" value={feedback.action || "—"} />
           <Detail label="Observações" value={feedback.notes || "—"} />
+          <Detail label="Visibilidade" value={feedback.visible_to_seller ? "Enviado ao vendedor" : "Somente liderança"} />
         </dl>
       </section>
     </div>

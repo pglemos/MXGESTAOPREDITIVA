@@ -64,3 +64,4 @@ para estudar somente o que ajuda minha rotina e indicar o que precisa melhorar.
 - `src/hooks/useTrainings.ts`
 - `scripts/validate_mx_development_full_smoke.ts`
 - `supabase/migrations/20260515190000_development_full_completion.sql`
+- `src/features/universidade/components/ContentSuggestionDialog.tsx`

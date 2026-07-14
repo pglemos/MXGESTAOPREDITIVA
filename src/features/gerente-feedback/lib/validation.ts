@@ -4,6 +4,7 @@ export type FeedbackObrigatorioInput = {
   positives?: string | null
   attention_points?: string | null
   action?: string | null
+  feedback_type?: 'positive' | 'development' | null
 }
 
 export type FeedbackObrigatorioResult =
@@ -13,8 +14,14 @@ export type FeedbackObrigatorioResult =
 export function validarFeedbackObrigatorio(input: FeedbackObrigatorioInput): FeedbackObrigatorioResult {
   if (!input.seller_id?.trim()) return { ok: false, message: 'Selecione o especialista.' }
   if (!input.caso_motivo?.trim()) return { ok: false, message: 'Informe o caso ou motivo da devolutiva.' }
-  if (!input.positives?.trim()) return { ok: false, message: 'Preencha os pontos fortes.' }
-  if (!input.attention_points?.trim()) return { ok: false, message: 'Preencha os pontos de atenção.' }
+  if (input.feedback_type === 'positive') {
+    if (!input.positives?.trim()) return { ok: false, message: 'Preencha os pontos fortes.' }
+  } else if (input.feedback_type === 'development') {
+    if (!input.attention_points?.trim()) return { ok: false, message: 'Preencha os pontos de atenção.' }
+  } else {
+    if (!input.positives?.trim()) return { ok: false, message: 'Preencha os pontos fortes.' }
+    if (!input.attention_points?.trim()) return { ok: false, message: 'Preencha os pontos de atenção.' }
+  }
   if (!input.action?.trim()) return { ok: false, message: 'Preencha a ação combinada.' }
   return { ok: true }
 }

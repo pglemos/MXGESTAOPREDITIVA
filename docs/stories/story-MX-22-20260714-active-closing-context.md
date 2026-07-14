@@ -2,7 +2,7 @@
 
 ## Status
 
-Ready for Review
+Done
 
 ## Epic Reference
 
@@ -197,3 +197,32 @@ Codex — `aiox-dev` (Dex)
 | 2026-07-14 | 1.1 | **Validação PO (`*validate-story-draft`) — VEREDITO: GO condicional, 8/10.** Spec-fonte v2.0 agora presente em `docs/prd/`; ACs revalidados contra §7.2/§7.3 (textos exatos dos cards) e FEV-DATA-01..09. Correções aplicadas (autoridade @po sobre AC/Scope): AC-8 reescrito com título+mensagem+**duas** ações do card verde (§7.2); AC-9 adicionado para o card de alerta (§7.3, antes ausente); AC-10 adicionado para hierarquia visual §7.1 (8 itens) + rótulos §7.5, marcado como gap a implementar; Fonte e Scope IN atualizados. Transição de status **Draft → Ready**. | @po (Pax) |
 | 2026-07-14 | 1.2 | Implementação concluída: fachada do contexto, testes de fuso/alias, cards conforme §7.2/§7.3, hierarquia visual §7.1/§7.5 e gates verdes. Status `Ready → Ready for Review`. | @dev (Dex) |
 | 2026-07-14 | 1.3 | Fechamento definitivo: remoção do campo de observação operacional da regularização, responsáveis/catálogo/ajuda dos formulários, normalização da janela diária no banco e file list consolidada. | Codex / Orion |
+| 2026-07-14 | 1.4 | QA Gate PASS — Status: InReview (recebido como "Ready for Review") → Done. Auditoria retroativa de cc338e13 + validação do fix 552a9b40 (detecção de atraso FEV-DATA-09 restaurada); tsc/suite verdes (84 pass), cards §7.2/§7.3 e migration sem resquício de on_time incondicional. | @qa (Quinn) |
+
+## QA Results
+
+### Review Date: 2026-07-14
+
+### Reviewed By: Quinn (Test Architect)
+
+**Escopo auditado:** AC-1 a AC-10 desta story (mapeados a Epic AC-02..06/10/11 e FEV-DATA-01/02/03/04/05/06/07/09), commit `cc338e13` (16 arquivos, pushado direto a main por processo automático) e o fix local `552a9b40` (não pushado).
+
+**Gates executados por mim (não confiei no relato):**
+- `npx tsc --noEmit` → exit 0, limpo.
+- `bun test --isolate src/hooks/checkins src/features/checkin src/lib/definitive-daily-closing-migration.test.ts` → 84 pass / 0 fail (18 arquivos).
+- `src/hooks/checkins/types.test.ts` → 8 pass (5 novos casos de borda de atraso: 11:59/12:00/12:01 SP, 09:31, virada de mês).
+- `active-closing-context.test.ts` → 13 pass.
+
+**Detecção de atraso (`isCheckinLateForReferenceDate`):** CORRETA. Tardio = envio após 12:00 (America/Sao_Paulo) de `reference_date + 1 dia`; `>` estrito (exatamente 12:00 = no prazo). TS (comparação naive de wall-clock SP) e SQL (timestamptz absoluto) convergem porque SP não tem horário de verão. Aplicada tanto no payload (`useCheckinsSubmit.ts` L58-59, guardada por `isDaily`) quanto no trigger.
+
+**Migration (`20260714150000_definitive_daily_closing_window.sql`, NÃO aplicada no Supabase):** Sem resquício do bug — não força mais `on_time` incondicional; usa `CASE WHEN is_late` e só zera campos de penalização quando `NOT is_late`, preservando a base que o Módulo Gerencial (§10.2/§12.4) usa. Sintaxe e estrutura OK (`$function$`/`$do$` balanceados, `DROP TRIGGER IF EXISTS` + `CREATE TRIGGER`, guarda de constraint idempotente). Segura para aplicar depois.
+
+**Varredura de outros hardcodes em cc338e13:** O único campo "sempre on_time/false" que deveria ser condicional estava no par migration + `useCheckinsSubmit.ts` — agora condicional. `fechamento_liberado ?? false` é form-sourced (não é hardcode). Nenhum outro "sempre true/false" suspeito nos 16 arquivos.
+
+**Cards de contexto (AC-8/9, §7.2/§7.3):** Títulos, mensagens completas e as **duas** ações (`Ver histórico` + `Ajustar fechamento`/`Regularizar dd/mm`) batem literalmente (`CheckinHeader.tsx` L370/374/375/381/386).
+
+**Divergência de status registrada:** Story recebida como "Ready for Review" (não literal "InReview"); tratada como equivalente pós-@dev e transicionada para Done conforme autorização da missão.
+
+### Gate Status
+
+Gate: PASS → docs/qa/gates/MX-22.1-active-closing-context.yml

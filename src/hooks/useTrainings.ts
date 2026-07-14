@@ -235,6 +235,33 @@ export function useContentSuggestions() {
   return { suggestions: data || [], loading, refetch }
 }
 
+export function useSuggestContent() {
+  const { profile, storeId } = useAuth()
+  const queryClient = useQueryClient()
+
+  const mutation = useMutation({
+    mutationFn: async (input: DevelopmentContentSuggestion) => {
+      if (!profile) return { error: 'Não autenticado' }
+      const { error } = await supabase.from('sugestoes_conteudo').insert({
+        requester_id: profile.id,
+        store_id: storeId || null,
+        title: input.title,
+        description: input.description || null,
+        theme: input.theme,
+        priority: input.priority || 'medium',
+      })
+      return { error: error?.message || null }
+    },
+    onSuccess: result => {
+      if (!result.error) queryClient.invalidateQueries({ queryKey: ['content-suggestions'] })
+    },
+  })
+
+  return {
+    suggestContent: (input: DevelopmentContentSuggestion) => mutation.mutateAsync(input),
+  }
+}
+
 export function useDevelopmentRecommendations() {
   const { profile, role, storeId, vinculos_loja } = useAuth()
   const queryClient = useQueryClient()

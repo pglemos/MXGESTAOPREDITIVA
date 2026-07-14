@@ -22,6 +22,7 @@ export const FeedbackSchema = z.object({
   team_avg_json: z.record(z.string(), z.unknown()),
   diagnostic_json: z.record(z.string(), z.unknown()),
   commitment_suggested: z.number(),
+  visible_to_seller: z.boolean().default(true),
   acknowledged: z.boolean(),
   acknowledged_at: z.string().nullable(),
   seller_comment: z.string().nullable().optional(),

@@ -11,7 +11,7 @@ import {
 } from '@/features/gerente-feedback/lib/autonomous-feedback'
 import { getSafeUserFacingDataError } from '@/lib/errors/user-facing-error'
 
-const FEEDBACK_SELECT = 'id, store_id, manager_id, seller_id, week_reference, leads_week, agd_week, visit_week, vnd_week, tx_lead_agd, tx_agd_visita, tx_visita_vnd, meta_compromisso, team_avg_json, diagnostic_json, commitment_suggested, positives, attention_points, action, caso_motivo, notes, acknowledged, acknowledged_at, seller_comment, seller_comment_at, created_at, seller:usuarios!devolutivas_vendedor_id_fkey(name), manager:usuarios!devolutivas_gerente_id_fkey(name)'
+const FEEDBACK_SELECT = 'id, store_id, manager_id, seller_id, week_reference, leads_week, agd_week, visit_week, vnd_week, tx_lead_agd, tx_agd_visita, tx_visita_vnd, meta_compromisso, team_avg_json, diagnostic_json, commitment_suggested, visible_to_seller, positives, attention_points, action, caso_motivo, notes, acknowledged, acknowledged_at, seller_comment, seller_comment_at, created_at, seller:usuarios!devolutivas_vendedor_id_fkey(name), manager:usuarios!devolutivas_gerente_id_fkey(name)'
 
 export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) {
   const { profile, storeId: authStoreId, role, vinculos_loja } = useAuth()
@@ -28,7 +28,7 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
       let query = supabase.from('devolutivas').select(FEEDBACK_SELECT)
 
       if (role === 'vendedor') {
-        query = query.eq('seller_id', profile.id)
+        query = query.eq('seller_id', profile.id).eq('visible_to_seller', true)
       } else if (role === 'gerente') {
         if (storeId) query = query.eq('store_id', storeId)
         if (filters?.sellerId) query = query.eq('seller_id', filters.sellerId)
@@ -89,6 +89,7 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
         team_avg_json: data.team_avg_json || {},
         diagnostic_json: data.diagnostic_json || {},
         commitment_suggested: data.commitment_suggested ?? data.meta_compromisso,
+        visible_to_seller: data.visible_to_seller !== false,
         positives: data.positives,
         attention_points: data.attention_points,
         action: data.action,
@@ -98,7 +99,7 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
         acknowledged_at: null,
       }, { onConflict: 'store_id,manager_id,seller_id,week_reference' }).select('id').maybeSingle()
 
-      if (!error && saved?.id && data.action.trim()) {
+      if (!error && saved?.id && data.visible_to_seller !== false && data.action.trim()) {
         const actionPayload = buildFeedbackActionPayload({
           devolutivaId: saved.id,
           storeId: targetStoreId,

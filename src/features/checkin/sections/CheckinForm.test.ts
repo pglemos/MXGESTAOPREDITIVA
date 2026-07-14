@@ -7,6 +7,7 @@ const submitCheckinRpcSource = readFileSync(
     new URL('../../../../supabase/migrations/20260710120000_harden_submit_checkin_operational_date.sql', import.meta.url),
     'utf8',
 )
+const headerSource = readFileSync(new URL('./CheckinHeader.tsx', import.meta.url), 'utf8')
 
 describe('CheckinForm draft save contract', () => {
     test('wires Salvar rascunho to a draft-only save flow', () => {
@@ -16,6 +17,24 @@ describe('CheckinForm draft save contract', () => {
         expect(pageHookSource).toContain('CHECKIN_DRAFT_STORAGE_PREFIX')
         expect(pageHookSource).toContain("toast.success('Rascunho salvo.')")
         expect(pageHookSource).not.toContain('const handleSaveDraft = async () => {\n        await submitCheckin()')
+    })
+})
+
+describe('Produção Zero — ação exclusiva no Histórico', () => {
+    test('não renderiza card, seletor ou modal de justificativa na tela principal', () => {
+        expect(formSource).not.toContain('Produção Zero')
+        expect(formSource).not.toContain('zero_reason')
+        expect(formSource).not.toContain('id="checkin-zero-reason"')
+        expect(formSource).not.toContain('<select')
+    })
+
+    test('oferece a marcação no Histórico e mantém a ação independente de Regularizar', () => {
+        expect(headerSource).toContain('Marcar Produção Zero')
+        expect(headerSource).toContain('CHECKIN_ZERO_REASONS')
+        expect(headerSource).toContain('role="radiogroup"')
+        expect(headerSource).toContain('Confirmar Produção Zero')
+        expect(headerSource).toContain('Regularizar')
+        expect(headerSource).toContain('handleSelectRow(row)')
     })
 })
 

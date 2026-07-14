@@ -19,6 +19,7 @@ import { toast } from '@/lib/toast'
 import { useAuth } from '@/hooks/useAuth'
 import { AulasAoVivoSection } from '@/features/universidade/sections/AulasAoVivoSection'
 import { ManagerUniversityReference } from '@/features/manager/development/ManagerUniversityReference'
+import { ContentSuggestionDialog } from '@/features/universidade/components/ContentSuggestionDialog'
 
 export default function GerenteTreinamentos() {
     const { role, membership } = useAuth()
@@ -222,11 +223,14 @@ export default function GerenteTreinamentos() {
                 title={isOwner ? 'Treinamentos da Rede' : 'Universidade MX'}
                 subtitle={isOwner ? 'Absorção e curadoria da rede' : 'Desenvolvimento gerencial e acompanhamento da equipe'}
                 actions={(
-                        <TabNavPill
-                            tabs={trainingTabs}
-                            activeTab={tab}
-                            onTabChange={setTab}
-                        />
+                        <div className="flex flex-wrap items-center gap-2">
+                            <ContentSuggestionDialog />
+                            <TabNavPill
+                                tabs={trainingTabs}
+                                activeTab={tab}
+                                onTabChange={setTab}
+                            />
+                        </div>
                 )}
             />
 

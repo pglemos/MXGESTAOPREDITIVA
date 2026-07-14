@@ -12,6 +12,8 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/components/ui/use-toast";
 import { Trophy, Target, Star, Plus, Calendar } from "lucide-react";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from "recharts";
+import { useAuth } from "@/hooks/useAuth";
+import { canManagePDI } from "@/lib/auth/capabilities";
 
 const techCompetencies = [
   { key: "tech_planejamento", label: "Planejamento" },
@@ -39,6 +41,8 @@ const behavCompetencies = [
 
 export default function PDIPage({ hideHeader = false }) {
   const { toast } = useToast();
+  const { role } = useAuth();
+  const canEdit = canManagePDI(role);
   const [pdi, setPdi] = useState(null);
   const [actions, setActions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -58,6 +62,7 @@ export default function PDIPage({ hideHeader = false }) {
   }, []);
 
   const savePDI = async (data) => {
+    if (!canEdit) return;
     setSaving(true);
     if (pdi?.id) {
       const updated = await base44.entities.PDI.update(pdi.id, data);
@@ -71,6 +76,7 @@ export default function PDIPage({ hideHeader = false }) {
   };
 
   const createAction = async () => {
+    if (!canEdit) return;
     const created = await base44.entities.ActionPlan.create(newAction);
     setActions(prev => [created, ...prev]);
     setNewAction({ action: "", competency: "", description: "", deadline: "", status: "Pendente", progress: 0 });
@@ -79,6 +85,7 @@ export default function PDIPage({ hideHeader = false }) {
   };
 
   const updateActionStatus = async (id, status, progress) => {
+    if (!canEdit) return;
     await base44.entities.ActionPlan.update(id, { status, progress });
     setActions(prev => prev.map(a => a.id === id ? { ...a, status, progress } : a));
   };
@@ -91,7 +98,7 @@ export default function PDIPage({ hideHeader = false }) {
   const techData = techCompetencies.map(c => ({ subject: c.label, value: currentPDI[c.key] || 5, target: 10 }));
   const behavData = behavCompetencies.map(c => ({ subject: c.label, value: currentPDI[c.key] || 5, target: 10 }));
 
-  const CompetencySlider = ({ comp, value, onChange }) => (
+  const CompetencySlider = ({ comp, value, onChange, disabled = false }) => (
     <div className="flex items-center gap-4">
       <span className="text-sm text-slate-600 w-32 flex-shrink-0">{comp.label}</span>
       <Slider
@@ -100,6 +107,7 @@ export default function PDIPage({ hideHeader = false }) {
         max={10}
         min={1}
         step={1}
+        disabled={disabled}
         className="flex-1"
       />
       <div className="flex items-center gap-2 w-20">
@@ -124,6 +132,7 @@ export default function PDIPage({ hideHeader = false }) {
         <div className="flex items-center gap-2 mb-6">
           <Trophy className="w-5 h-5 text-mx-amber" />
           <h3 className="text-base font-semibold text-mx-navy">Conquistas</h3>
+          {!canEdit && <span className="ml-auto text-xs font-medium text-slate-400">Somente gerente, dono ou Admin MX podem editar</span>}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
@@ -141,6 +150,8 @@ export default function PDIPage({ hideHeader = false }) {
                   setPdi(data);
                 }}
                 onBlur={() => savePDI({ [goal.key]: currentPDI[goal.key] || "" })}
+                disabled={!canEdit}
+                readOnly={!canEdit}
                 placeholder="Descreva sua meta..."
                 className="mt-2 rounded-xl resize-none border-slate-100"
                 rows={3}
@@ -177,6 +188,7 @@ export default function PDIPage({ hideHeader = false }) {
                   setPdi(data);
                   savePDI({ [c.key]: v });
                 }}
+                disabled={!canEdit}
               />
             ))}
           </div>
@@ -207,6 +219,7 @@ export default function PDIPage({ hideHeader = false }) {
                   setPdi(data);
                   savePDI({ [c.key]: v });
                 }}
+                disabled={!canEdit}
               />
             ))}
           </div>
@@ -217,7 +230,7 @@ export default function PDIPage({ hideHeader = false }) {
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="p-5 border-b border-slate-100 flex items-center justify-between">
           <h3 className="text-base font-semibold text-mx-navy">Plano de Ação</h3>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          {canEdit && <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="bg-mx-blue hover:bg-blue-600 rounded-xl gap-1"><Plus className="w-4 h-4" />Nova Ação</Button>
             </DialogTrigger>
@@ -231,7 +244,7 @@ export default function PDIPage({ hideHeader = false }) {
                 <Button onClick={createAction} disabled={!newAction.action || !newAction.competency || !newAction.deadline} className="bg-mx-blue hover:bg-blue-600 rounded-xl">Criar Ação</Button>
               </div>
             </DialogContent>
-          </Dialog>
+          </Dialog>}
         </div>
         {actions.length === 0 ? (
           <div className="p-12 text-center">
@@ -258,7 +271,7 @@ export default function PDIPage({ hideHeader = false }) {
                     <td className="px-5 py-3.5 text-sm text-slate-600">{a.competency}</td>
                     <td className="px-5 py-3.5 text-sm text-slate-600 flex items-center gap-1"><Calendar className="w-3 h-3 text-slate-400" />{a.deadline}</td>
                     <td className="px-5 py-3.5">
-                      <Select value={a.status} onValueChange={v => updateActionStatus(a.id, v, v === "Concluído" ? 100 : a.progress)}>
+                      <Select disabled={!canEdit} value={a.status} onValueChange={v => updateActionStatus(a.id, v, v === "Concluído" ? 100 : a.progress)}>
                         <SelectTrigger className="h-8 w-[140px] border-0 shadow-none">
                           <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[a.status]}`}>{a.status}</span>
                         </SelectTrigger>
