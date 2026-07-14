@@ -2,7 +2,8 @@
 
 ## Commit
 
-`a8f8776c6a3445de77eb72f609f19e42d1313827` — publicado em `main`
+`a8f8776c6a3445de77eb72f609f19e42d1313827` (código) +
+`ec02323d4d5d647201b115072fd5423096e952b7` (relatório/evidências) — publicados em `main`
 
 ## Branch
 
@@ -43,7 +44,7 @@ Implementado e verificado nesta branch:
 - capturas local/produção versionadas nos três viewports mínimos;
 - Base44 autenticado recapturado com conteúdo carregado nas dez rotas e nos três viewports mínimos; capturas `06-*` e diffs Base44×MX versionados.
 - deploy automático Vercel concluído para o commit publicado; as dez rotas canônicas responderam HTTP 200 em produção;
-- `/gerente/rotina-equipe` validada no Chrome real pós-deploy, com conteúdo autenticado, console sem erros e requests Supabase HTTP 200 escopadas por `store_id`.
+- `/gerente/rotina-equipe` validada no Chrome real pós-deploy, com conteúdo autenticado, sem erros JS/4xx/5xx e requests Supabase HTTP 200 escopadas por `store_id`; dois warnings runtime permanecem registrados abaixo.
 
 O módulo não está aprovado porque ainda não houve fixture/staging autorizada para mutações críticas, auditoria RLS cross-store completa e decisão definitiva do Ranking.
 
@@ -99,7 +100,7 @@ Build passou. Bundle: `1728.99/1800 KB` gzip; chunks dentro do budget.
 
 ## Console e network
 
-O gate autenticado percorreu as dez rotas em Chromium e mobile-chrome sem erros de console, 4xx/5xx ou overflow; a retomada confirmou no Chrome DevTools MCP que os requests do Ranking usam `store_id` explícito e retornam HTTP 200.
+O gate autenticado percorreu as dez rotas em Chromium e mobile-chrome sem erros de console, 4xx/5xx ou overflow; a retomada confirmou no Chrome DevTools MCP que os requests do Ranking usam `store_id` explícito e retornam HTTP 200. Na recarga pós-deploy da Rotina da Equipe foram observados dois warnings: `VITE_SENTRY_DSN ausente em produção` e o chart reportando largura/altura `-1` durante a montagem.
 
 ## Regressão visual
 
@@ -127,10 +128,11 @@ momento deste registro e deve ser confirmado no GitHub antes do merge seguinte.
 ## Deploy
 
 Deploy automático Vercel concluído com status `success` para o commit
-`a8f8776c` (`Deployment has completed`). Produção validada em modo somente
+`ec02323d` (`Deployment has completed`). Produção validada em modo somente
 leitura: dez rotas canônicas HTTP 200; rota `/gerente/rotina-equipe` autenticada
-no Chrome real, console sem erros e requests de dados HTTP 200. Evidência:
-`https://vercel.com/synvolt/mxperformance/D8RNNirYiXVsWyRFNvthma4UsSy3`.
+no Chrome real, sem erros JS/4xx/5xx e requests de dados HTTP 200; os dois
+warnings runtime descritos em Console e network permanecem pendentes. Evidência:
+`https://vercel.com/synvolt/mxperformance/3cGSqPs8JouVKfhBFfMiJavex5qZ`.
 
 ## Pendências críticas
 
@@ -140,6 +142,7 @@ no Chrome real, console sem erros e requests de dados HTTP 200. Evidência:
 4. Revisar os diffs carregados com dados determinísticos e limiar formal; a regressão MX local já está automatizada (`30/30`).
 5. Reexecutar o gate Playwright autenticado com `E2E_ROLE_PASSWORD` ou `E2E_AUTH_PASSWORD` disponível no ambiente; sem a variável, a suíte agora falha explicitamente em vez de marcar os casos como `skipped`.
 6. Confirmar o job remoto `Typecheck and unit tests` e, depois, executar QA/DevOps das mutações críticas.
+7. Configurar o DSN do Sentry em produção e corrigir o sizing inicial do gráfico que reporta largura/altura `-1`.
 
 ## Veredito final
 
