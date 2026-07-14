@@ -45,6 +45,10 @@ A Admin Master MX Mariane esqueceu a senha. O acesso precisa ser restaurado com 
 - Aplicada no Supabase remoto a migration `20260713130000_allow_controlled_password_change.sql`, liberando somente `true → false` de `must_change_password` dentro do RPC com marcador transacional protegido.
 - Criada a migration `20260713150000_server_owned_password_change_challenge.sql` com desafio de troca de senha persistido no servidor, expiração de 10 minutos, consumo único e execução pública revogada; a migration anterior `20260713143000_require_password_update_proof.sql` permanece preservada como histórico já aplicado.
 - Frontend atualizado para iniciar o desafio antes de `auth.updateUser()` e concluir a RPC sem argumentos em `useAuthActions` e no fluxo de recovery de `/login`; contrato gerado e teste estático da migration também foram atualizados.
+- Migration `20260713150000_server_owned_password_change_challenge.sql` aplicada no Supabase remoto sem erro.
+- Smoke remoto de Diego passou: login temporário, rejeição de conclusão sem desafio, rejeição sem `auth.updateUser`, troca válida, limpeza de `must_change_password`, novo login e restauração final da senha temporária com `active=true`.
+- Commit `02ef3c96` publicado no `main`; deploy Vercel `dpl_GkjZ3EBQdreMYGkMQJtYgsk1foD7` ficou `READY` e aliasado em `https://mxperformance.vercel.app`; HTTP de `/` e `/login` retornou 200.
+- Validação visual no Chrome não foi executada porque a extensão retornou `Browser is not available: extension` nas duas tentativas previstas.
 
 ### Completion Notes
 
