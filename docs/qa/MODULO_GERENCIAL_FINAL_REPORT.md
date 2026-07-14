@@ -7,7 +7,7 @@
 
 ## Branch
 
-`fix/manager-module-full-parity-20260714`
+`main`
 
 ## Ambiente
 
