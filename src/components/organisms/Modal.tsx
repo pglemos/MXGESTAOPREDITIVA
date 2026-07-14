@@ -182,7 +182,7 @@ export function Modal({
               className={cn(
                 "sticky bottom-0 flex shrink-0 bg-white",
                 referenceStyle
-                  ? "flex-row border-t border-gray-100 px-5 py-4 [&>button]:!min-h-0"
+                  ? "flex-row justify-end border-t border-gray-100 px-5 py-4 [&>button]:!min-h-0"
                   : "flex-col-reverse gap-mx-sm border-t border-border-default p-mx-md sm:flex-row sm:justify-end sm:p-mx-lg",
               )}
               style={{
