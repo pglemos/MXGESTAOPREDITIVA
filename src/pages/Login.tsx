@@ -238,6 +238,14 @@ export default function Login() {
             return
         }
 
+        const { data: challengeData, error: challengeError } = await supabase.rpc('begin_password_change')
+        const challengeResult = challengeData as { ok?: boolean; error?: string } | null
+        if (challengeError || !challengeResult?.ok) {
+            setLoading(false)
+            setError(challengeError?.message || challengeResult?.error || 'Não foi possível iniciar a troca de senha.')
+            return
+        }
+
         const { error: updateError } = await supabase.auth.updateUser({ password: newPassword })
         if (updateError) {
             setLoading(false)

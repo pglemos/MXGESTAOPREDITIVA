@@ -43,7 +43,8 @@ A Admin Master MX Mariane esqueceu a senha. O acesso precisa ser restaurado com 
 - Gates locais 2026-05-17 passaram: `bun test src/lib/auth/passwordPolicy.test.ts`, `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`, `npx playwright test src/test/auth-password-recovery.playwright.ts --project=chromium`.
 - Incidente Diego 2026-07-13: Auth estava ativo e confirmado, mas a senha temporária informada não correspondia; o login foi resetado e o fluxo real revelou que o trigger de hardening bloqueava o RPC `complete_password_change`.
 - Aplicada no Supabase remoto a migration `20260713130000_allow_controlled_password_change.sql`, liberando somente `true → false` de `must_change_password` dentro do RPC com marcador transacional protegido.
-- Smoke live passou: login temporário, `auth.updateUser`, `complete_password_change` `{ok:true}`, `must_change_password=false` e novo login; auto-update direto do campo sensível continuou bloqueado.
+- Criada a migration `20260713150000_server_owned_password_change_challenge.sql` com desafio de troca de senha persistido no servidor, expiração de 10 minutos, consumo único e execução pública revogada; a migration anterior `20260713143000_require_password_update_proof.sql` permanece preservada como histórico já aplicado.
+- Frontend atualizado para iniciar o desafio antes de `auth.updateUser()` e concluir a RPC sem argumentos em `useAuthActions` e no fluxo de recovery de `/login`; contrato gerado e teste estático da migration também foram atualizados.
 
 ### Completion Notes
 
@@ -52,7 +53,7 @@ A Admin Master MX Mariane esqueceu a senha. O acesso precisa ser restaurado com 
 - Processo de reset agora bloqueia apenas senhas com menos de 6 caracteres antes da gravação, evitando falso sucesso operacional.
 - Para o caso Daniel, a senha solicitada passa na validação do app por ter 8 caracteres.
 - Reset aplicado e validado para `danieljsvendas@gmail.com` com `must_change_password=true`.
-- Conta Diego (`diegosouza270496@gmail.com`) ficou ativa, confirmada e apta a acessar com a nova senha definida no fluxo; o perfil persistido está com `must_change_password=false`.
+- Conta Diego (`[EMAIL_REDACTED]`) ficou ativa, confirmada e apta a acessar com a nova senha definida no fluxo; o perfil persistido está com `must_change_password=false`.
 - A conta está persistida com role `consultor_mx`, que é o perfil interno MX existente; nenhuma elevação de privilégio foi feita sem solicitação explícita.
 
 ### File List
@@ -74,4 +75,8 @@ A Admin Master MX Mariane esqueceu a senha. O acesso precisa ser restaurado com 
 - `src/test/auth-password-recovery.playwright.ts`
 - `src/test/e2e-helpers/supabase-admin.ts`
 - `supabase/migrations/20260713130000_allow_controlled_password_change.sql`
+- `supabase/migrations/20260713143000_require_password_update_proof.sql`
+- `supabase/migrations/20260713150000_server_owned_password_change_challenge.sql`
 - `src/lib/auth-password-change-migration.test.ts`
+- `src/hooks/auth/useAuthActions.ts`
+- `src/types/database.generated.ts`

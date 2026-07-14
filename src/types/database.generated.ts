@@ -10741,7 +10741,14 @@ export type Database = {
         Args: { v: number }
         Returns: Database["public"]["Enums"]["score_band"]
       }
-      complete_password_change: { Args: never; Returns: Json }
+      begin_password_change: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      complete_password_change: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       compute_dre: {
         Args: {
           p_row: Database["public"]["Tables"]["financeiro_consultoria"]["Row"]

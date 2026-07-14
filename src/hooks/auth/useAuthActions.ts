@@ -150,6 +150,12 @@ export function useAuthActions(options: UseAuthActionsOptions): UseAuthActionsRe
       if (!supabaseUser) return { error: 'Usuário não autenticado' }
 
       try {
+        const { data: challengeData, error: challengeError } = await supabase.rpc('begin_password_change')
+        const challengeResult = challengeData as { ok?: boolean; error?: string } | null
+        if (challengeError || !challengeResult?.ok) {
+          return { error: challengeError?.message || challengeResult?.error || 'Não foi possível iniciar a troca de senha.' }
+        }
+
         const { error: authError } = await supabase.auth.updateUser({ password: newPassword })
         if (authError) return { error: authError.message }
 
