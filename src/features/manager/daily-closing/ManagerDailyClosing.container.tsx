@@ -29,11 +29,7 @@ import { useStoreMetaRules } from "@/hooks/useGoals";
 import { useNotifications } from "@/hooks/useData";
 import { supabase } from "@/lib/supabase";
 import { calculateReferenceDate } from "@/hooks/checkins/types";
-import { Button } from "@/components/atoms/Button";
-import { Badge } from "@/components/atoms/Badge";
 import { Skeleton } from "@/components/atoms/Skeleton";
-import { Typography } from "@/components/atoms/Typography";
-import { Card } from "@/components/molecules/Card";
 import { Modal } from "@/components/organisms/Modal";
 import {
   classifyDiscipline,
@@ -51,9 +47,6 @@ import {
   RegularizationsListModal,
   type RegularizationRequest,
 } from "@/features/manager/daily-closing/RegularizationsListModal";
-import {
-  ManagerSectionCard,
-} from "@/features/manager/shared/ManagerVisualPrimitives";
 import type {
   CheckinCorrectionRequest,
   CheckinWithTotals,
@@ -337,8 +330,8 @@ export default function ManagerDailyClosing() {
   if (sellersLoading || checkinsLoading) return <ManagerClosingSkeleton />;
 
   return (
-    <main className="min-h-full bg-surface-alt px-3 py-6 sm:px-6" id="main-content">
-      <div className="mx-auto flex w-full max-w-[1248px] flex-col gap-5 pb-20 xl:-translate-x-[18px]">
+    <main className="min-h-full bg-gray-50" id="main-content">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-6 pb-20">
         <ManagerHomeReturnLink />
         <section className="flex min-h-[148px] items-center rounded-[16px] border border-slate-100 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -374,27 +367,24 @@ export default function ManagerDailyClosing() {
                   </option>
                 </select>
               </Field>
-              <Button
-                variant="success"
-                size="sm"
-                className="!h-[38px] !gap-1 !rounded-[12px] w-fit self-end bg-emerald-600 px-3 text-xs font-medium hover:bg-emerald-700"
+              <button
+                type="button"
+                className="h-[38px] w-fit self-end rounded-[12px] bg-emerald-600 px-3 text-xs font-medium text-white transition-colors hover:bg-emerald-700"
                 onClick={refreshAll}
               >
                 <RefreshCw size={16} />
                 Atualizar
-              </Button>
+              </button>
             </div>
           </div>
         </section>
 
         {(error || requestError) && (
-          <Card className="border border-status-error/30 bg-status-error-surface p-mx-md">
-            <Typography variant="p" tone="error">
+          <div className="rounded-[12px] border border-red-200 bg-red-50 p-4 text-sm text-red-700">
               {error ||
                 `Não foi possível carregar as regularizações: ${requestError}`}{" "}
               Use Atualizar para tentar novamente.
-            </Typography>
-          </Card>
+          </div>
         )}
 
         {syncWarning && (
@@ -454,30 +444,25 @@ export default function ManagerDailyClosing() {
           <DisciplineCard value={discipline} />
         </section>
 
-        <ManagerSectionCard className="!rounded-[16px] !border-slate-100 !shadow-sm">
+        <section className="overflow-hidden rounded-[16px] border border-slate-100 bg-white shadow-sm">
           <div id="manager-closing-movement" />
           <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <Typography variant="h2" className="!text-base !font-semibold !leading-6">
+              <h2 className="text-base font-semibold leading-6 text-slate-800">
               Movimento da Equipe — {format(parseISO(date), "dd/MM/yyyy")}
-            </Typography>
+            </h2>
             <div className="flex flex-wrap items-center gap-3">
-              <Typography
-                variant="tiny"
-                tone="muted"
-                className="inline-flex items-center gap-1"
-              >
+              <span className="inline-flex items-center gap-1 text-xs text-slate-500">
                 <RefreshCw size={13} />
                 Ordenado por entrega (mais recente)
-              </Typography>
-              <Button
-                variant="outline"
-                size="sm"
+              </span>
+              <button
+                type="button"
                 onClick={() => setLeadConferenceOpen(true)}
-                className="!h-[32px] !min-h-0 !gap-1.5 !rounded-[12px] border-purple-200 px-3 text-xs font-medium text-purple-700 hover:bg-purple-50"
+                className="inline-flex h-[32px] items-center gap-1.5 rounded-[12px] border border-purple-200 bg-white px-3 text-xs font-medium text-purple-700 hover:bg-purple-50"
               >
                 <Wrench size={16} />
                 Corrigir Leads
-              </Button>
+              </button>
             </div>
           </div>
           {movementState === "no-sellers" ? (
@@ -496,7 +481,7 @@ export default function ManagerDailyClosing() {
               onOpenDetails={(detail) => setClosingDetail(detail)}
             />
           )}
-        </ManagerSectionCard>
+        </section>
 
         <DisciplineTrendCard
           trend={trend}
@@ -504,7 +489,7 @@ export default function ManagerDailyClosing() {
           onRange={setHistoryRange}
         />
 
-        <ManagerSectionCard className="!rounded-[16px] !border-slate-100 !shadow-sm p-5">
+        <section className="rounded-[16px] border border-slate-100 bg-white p-5 shadow-sm">
           <h2 className="flex items-center gap-2 text-base font-semibold text-slate-800">
             <BarChart3 size={18} className="text-status-success" />
             Comparativo de Disciplina do Fechamento
@@ -525,9 +510,9 @@ export default function ManagerDailyClosing() {
             Comparativos de rede aparecem quando houver snapshots oficiais
             disponíveis.
           </p>
-        </ManagerSectionCard>
+        </section>
 
-        <ManagerSectionCard className="!rounded-[16px] !border-slate-100 !shadow-sm p-5">
+        <section className="rounded-[16px] border border-slate-100 bg-white p-5 shadow-sm">
           <h2 className="mb-4 text-base font-semibold text-slate-800">
             Resumo do Fechamento
           </h2>
@@ -579,7 +564,7 @@ export default function ManagerDailyClosing() {
             Os leads podem ser corrigidos pelo gerente com registro em
             auditoria. Demais dados permanecem sob responsabilidade do vendedor.
           </p>
-        </ManagerSectionCard>
+        </section>
 
         <AgendaD1Panel
           open={agenda.open}
@@ -685,16 +670,17 @@ export function PendingReminderModal({
 }) {
   const footer = (
     <div className="grid w-full grid-cols-2 gap-4">
-      <Button variant="outline" onClick={onClose} className="border-slate-200 text-slate-950">
+      <button type="button" onClick={onClose} className="h-10 rounded-[12px] border border-gray-200 bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50">
         Cancelar
-      </Button>
-      <Button
-        className="bg-amber-600 hover:bg-amber-700"
+      </button>
+      <button
+        type="button"
+        className="h-10 rounded-[12px] bg-amber-600 px-4 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-40"
         disabled={reminding}
         onClick={onConfirm}
       >
         {reminding ? "Enviando…" : "Confirmar Cobrança"}
-      </Button>
+      </button>
     </div>
   );
   return (
@@ -799,7 +785,7 @@ function SummaryCard({
     neutral: "text-slate-800",
   }[tone];
   return (
-    <Card className={`min-h-[164px] !rounded-[16px] border p-3 shadow-sm ${colors}`}>
+    <div className={`min-h-[164px] rounded-[16px] border p-3 shadow-sm ${colors}`}>
       <div className="mb-2 flex items-center justify-between gap-2">
         <h2 className="flex items-center gap-2 text-xs font-medium text-slate-600">
           <Icon size={16} className="shrink-0" />
@@ -830,7 +816,7 @@ function SummaryCard({
         {action === "Ver Regularizações" && <Eye size={13} />}
         {action}
       </button>
-    </Card>
+    </div>
   );
 }
 
@@ -841,7 +827,7 @@ function DisciplineCard({ value }: { value: number | null }) {
     .map((word) => word.charAt(0).toLocaleUpperCase("pt-BR") + word.slice(1))
     .join(" ");
   return (
-    <Card className="flex h-full min-h-[164px] flex-col !rounded-[16px] border border-slate-100 bg-blue-50 p-3 shadow-sm">
+    <div className="flex h-full min-h-[164px] flex-col rounded-[16px] border border-slate-100 bg-blue-50 p-3 shadow-sm">
       <div className="mb-1 flex items-center justify-between gap-2">
         <h2 className="text-xs font-medium text-slate-600">
           Disciplina Média
@@ -868,7 +854,7 @@ function DisciplineCard({ value }: { value: number | null }) {
         </div>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
 
@@ -946,7 +932,7 @@ function DisciplineTrendCard({
 }) {
   const hasData = trend.some((point) => point.value !== null);
   return (
-    <ManagerSectionCard className="!rounded-[16px] !border-slate-100 !shadow-sm p-5">
+    <section className="rounded-[16px] border border-slate-100 bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
               <h2 className="flex items-center gap-2 text-base font-semibold text-slate-800">
@@ -1030,7 +1016,7 @@ function DisciplineTrendCard({
         O dia atual pode aparecer como parcial enquanto houver fechamentos
         pendentes ou regularizações em aberto.
       </p>
-    </ManagerSectionCard>
+    </section>
   );
 }
 
@@ -1151,12 +1137,9 @@ function ClosingRow({
         <span className="flex items-center gap-2"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">{initials(name)}</span><span className="font-medium text-slate-800">{name}</span></span>
       </td>
       <td className="px-4 py-3">
-        <Badge
-          variant="outline"
-          className={`w-fit whitespace-nowrap border-0 px-2 py-1 shadow-none ${status === "Finalizado" ? "bg-emerald-100 text-emerald-700" : status === "Pendente" ? "bg-amber-100 text-amber-700" : status === "Fora do horário" ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}
-        >
+        <span className={`inline-flex w-fit whitespace-nowrap rounded-[8px] px-2 py-1 text-xs font-medium ${status === "Finalizado" ? "bg-emerald-100 text-emerald-700" : status === "Pendente" ? "bg-amber-100 text-amber-700" : status === "Fora do horário" ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}>
           {status}
-        </Badge>
+        </span>
       </td>
       <td className="px-4 py-3 text-slate-600">
         {checkin?.submitted_at
@@ -1199,7 +1182,7 @@ function ClosingRow({
             <button type="button" className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50" onClick={() => onReview(request, "approve")}><Check size={13} /> Aprovar</button>
             <button type="button" className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50" onClick={() => onReview(request, "reject")}><X size={13} /> Recusar</button>
             </>
-          ) : <Typography variant="tiny" tone="muted">Somente consulta</Typography>}
+          ) : <span className="text-xs text-slate-500">Somente consulta</span>}
         </div>
       </td>
     </tr>
@@ -1224,9 +1207,9 @@ function NumberCell({ value, muted }: { value: number | string | null; muted?: b
 function Empty({ text }: { text: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-      <Typography variant="p" tone="muted" className="font-medium">
+      <p className="text-sm font-medium text-slate-500">
         {text}
-      </Typography>
+      </p>
     </div>
   );
 }

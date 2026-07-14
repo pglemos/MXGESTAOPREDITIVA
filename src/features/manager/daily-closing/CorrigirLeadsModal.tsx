@@ -1,8 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Button } from '@/components/atoms/Button'
-import { Input } from '@/components/atoms/Input'
-import { Textarea } from '@/components/atoms/Textarea'
-import { Typography } from '@/components/atoms/Typography'
 import { Modal } from '@/components/organisms/Modal'
 import type { CheckinWithTotals } from '@/types/database'
 import {
@@ -63,37 +59,38 @@ export function CorrigirLeadsModal({ open, onClose, sellerName, checkin, onSubmi
 
   return (
     <Modal open={open} onClose={onClose} size="lg" title={`Corrigir leads — ${sellerName}`} description="Somente leads por canal podem ser alterados. Vendas, atendimentos, agendamentos, qualificados e garantia permanecem intocados."
-      footer={<div className="flex justify-end gap-mx-sm"><Button variant="ghost" onClick={onClose}>Cancelar</Button><Button disabled={saving || !checkin} onClick={() => void submit()}>{saving ? 'Aplicando…' : 'Aplicar correção auditada'}</Button></div>}>
+      referenceStyle
+      footer={<div className="flex justify-end gap-2"><button type="button" className="h-9 rounded-[8px] px-3 text-sm font-medium text-gray-600 hover:bg-gray-100" onClick={onClose}>Cancelar</button><button type="button" className="h-9 rounded-[8px] bg-emerald-600 px-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-40" disabled={saving || !checkin} onClick={() => void submit()}>{saving ? 'Aplicando…' : 'Aplicar correção auditada'}</button></div>}>
       {!checkin ? (
-        <Typography variant="p" tone="muted">Este vendedor ainda não enviou o fechamento do dia — não há leads para corrigir.</Typography>
+        <p className="text-sm text-gray-500">Este vendedor ainda não enviou o fechamento do dia — não há leads para corrigir.</p>
       ) : (
-        <div className="space-y-mx-md">
-          <div className="grid grid-cols-1 gap-mx-md sm:grid-cols-2">
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {LEAD_FIELDS.map(field => (
               <div key={field.key}>
-                <label className="mb-mx-2xs block text-mx-tiny font-black uppercase tracking-wider text-text-tertiary" htmlFor={`corrigir-${field.key}`}>{field.label}</label>
-                <Input id={`corrigir-${field.key}`} type="number" min={0} step={1} value={values[field.key]} onChange={event => setValues(prev => ({ ...prev, [field.key]: Number(event.target.value) }))} />
-                <Typography variant="tiny" tone="muted" className="mt-mx-2xs">Valor anterior: {originals[field.key]}</Typography>
+                <label className="mb-1 block text-xs font-medium text-gray-500" htmlFor={`corrigir-${field.key}`}>{field.label}</label>
+                <input className="h-10 w-full rounded-[12px] border border-gray-200 px-3 text-sm" id={`corrigir-${field.key}`} type="number" min={0} step={1} value={values[field.key]} onChange={event => setValues(prev => ({ ...prev, [field.key]: Number(event.target.value) }))} />
+                <p className="mt-1 text-xs text-gray-500">Valor anterior: {originals[field.key]}</p>
               </div>
             ))}
           </div>
           {diffs.length > 0 && (
-            <div className="rounded-mx-md border border-border-subtle bg-surface-alt p-mx-md" role="status">
+            <div className="rounded-[12px] border border-gray-200 bg-gray-50 p-3" role="status">
               {diffs.map(diff => (
-                <Typography key={diff.key} variant="tiny">{diff.label}: {diff.anterior} → {diff.novo} (diferença {diff.diferenca > 0 ? `+${diff.diferenca}` : diff.diferenca})</Typography>
+                <p key={diff.key} className="text-xs text-gray-600">{diff.label}: {diff.anterior} → {diff.novo} (diferença {diff.diferenca > 0 ? `+${diff.diferenca}` : diff.diferenca})</p>
               ))}
             </div>
           )}
           <div>
-            <label className="mb-mx-2xs block text-mx-tiny font-black uppercase tracking-wider text-text-tertiary" htmlFor="corrigir-motivo">Motivo (obrigatório)</label>
-            <Input id="corrigir-motivo" value={motivo} onChange={event => setMotivo(event.target.value)} placeholder="Ex.: lead contado em duplicidade no canal internet" />
+            <label className="mb-1 block text-xs font-medium text-gray-500" htmlFor="corrigir-motivo">Motivo (obrigatório)</label>
+            <input className="h-10 w-full rounded-[12px] border border-gray-200 px-3 text-sm" id="corrigir-motivo" value={motivo} onChange={event => setMotivo(event.target.value)} placeholder="Ex.: lead contado em duplicidade no canal internet" />
           </div>
           <div>
-            <label className="mb-mx-2xs block text-mx-tiny font-black uppercase tracking-wider text-text-tertiary" htmlFor="corrigir-observacao">Observação (opcional)</label>
-            <Textarea id="corrigir-observacao" rows={2} value={observacao} onChange={event => setObservacao(event.target.value)} placeholder="Contexto adicional para a auditoria" />
+            <label className="mb-1 block text-xs font-medium text-gray-500" htmlFor="corrigir-observacao">Observação (opcional)</label>
+            <textarea className="w-full resize-none rounded-[12px] border border-gray-200 px-3 py-2 text-sm" id="corrigir-observacao" rows={2} value={observacao} onChange={event => setObservacao(event.target.value)} placeholder="Contexto adicional para a auditoria" />
           </div>
-          <Typography variant="tiny" tone="muted">A correção registra gerente, data/hora, valores anteriores e novos no log de auditoria do fechamento.</Typography>
-          {error && <Typography variant="p" tone="error" role="alert">{error}</Typography>}
+          <p className="text-xs text-gray-500">A correção registra gerente, data/hora, valores anteriores e novos no log de auditoria do fechamento.</p>
+          {error && <p className="text-sm text-red-700" role="alert">{error}</p>}
         </div>
       )}
     </Modal>

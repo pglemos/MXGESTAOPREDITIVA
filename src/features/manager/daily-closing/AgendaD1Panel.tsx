@@ -3,7 +3,6 @@ import { addDays, format, parseISO } from "date-fns";
 import {
   CalendarClock,
   CalendarDays,
-  Copy,
   Filter,
   MessageCircle,
   Phone,
@@ -13,12 +12,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "@/lib/toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useNotifications } from "@/hooks/useData";
-import { Badge } from "@/components/atoms/Badge";
-import { Button } from "@/components/atoms/Button";
-import { Input } from "@/components/atoms/Input";
-import { Select } from "@/components/atoms/Select";
 import { Skeleton } from "@/components/atoms/Skeleton";
-import { Typography } from "@/components/atoms/Typography";
 import { Modal } from "@/components/organisms/Modal";
 import {
   AGENDA_CANAL_LABEL,
@@ -291,22 +285,6 @@ export function AgendaD1Panel({
     [registerLog],
   );
 
-  const copyPhone = useCallback(async (row: AgendaD1Row) => {
-    const phone = normalizePhoneBr(
-      row.cliente?.telefone_normalizado || row.cliente?.telefone,
-    );
-    if (!phone) {
-      toast.error("Cliente sem telefone válido.");
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(`+${phone}`);
-      toast.success("Telefone copiado. Use seu aparelho para ligar.");
-    } catch {
-      toast.error(`Não foi possível copiar. Número: +${phone}`);
-    }
-  }, []);
-
   const saveConfirmation = useCallback(
     async (row: AgendaD1Row) => {
       if (!confirming || confirming.rowId !== row.id || !confirming.outcome)
@@ -356,7 +334,7 @@ export function AgendaD1Panel({
     [confirming, registerLog, sendNotification, storeId],
   );
 
-  const filterSelectClass = "h-10 rounded-[12px] px-3 text-sm";
+  const filterSelectClass = "h-10 rounded-[12px] border border-gray-200 bg-white px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500";
 
   return (
     <Modal
@@ -371,34 +349,30 @@ export function AgendaD1Panel({
       <div className="space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <Badge variant="outline" className="border-0 bg-amber-100 px-2.5 py-1 text-xs text-amber-700 shadow-none">Agenda D+1 parcial</Badge>
-            <Typography variant="tiny" tone="muted" className="mt-1 block">
+            <span className="inline-block rounded-[8px] bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">Agenda D+1 parcial</span>
+            <p className="mt-1 text-xs text-gray-400">
               Atualizada em tempo real até o encerramento da janela de ajuste.
-            </Typography>
+            </p>
           </div>
-          <Typography
-            variant="p"
-            tone="muted"
-            className="inline-flex items-center gap-1.5 !text-sm"
-          >
-            <CalendarClock size={14} />
+          <p className="inline-flex items-center gap-1 text-xs text-gray-500">
+            <CalendarClock size={13} />
             Data D+1:{" "}
-            <strong className="text-text-primary">
+            <strong className="text-gray-700">
               {format(parseISO(d1Date), "dd/MM/yyyy")}
             </strong>
-          </Typography>
+          </p>
         </div>
         <div
-          className="rounded-[12px] bg-slate-50 p-4"
+          className="rounded-2xl bg-gray-50 p-4 space-y-3"
           role="group"
           aria-label="Filtros da Agenda D+1"
         >
-          <div className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-600">
-            <Filter size={16} />
+          <div className="flex items-center gap-2 text-xs font-semibold text-gray-600">
+            <Filter size={14} />
             Filtros
           </div>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
-            <Select
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <select
               aria-label="Vendedor"
               className={filterSelectClass}
               value={filters.sellerId}
@@ -415,8 +389,8 @@ export function AgendaD1Panel({
                   {seller.name}
                 </option>
               ))}
-            </Select>
-            <Select
+            </select>
+            <select
               aria-label="Canal"
               className={filterSelectClass}
               value={filters.canal}
@@ -433,8 +407,8 @@ export function AgendaD1Panel({
                   {label}
                 </option>
               ))}
-            </Select>
-            <Select
+            </select>
+            <select
               aria-label="Tipo de agendamento"
               className={filterSelectClass}
               value={filters.tipo}
@@ -451,8 +425,8 @@ export function AgendaD1Panel({
                   {label === "Visita" ? "Visita Presencial" : label}
                 </option>
               ))}
-            </Select>
-            <Select
+            </select>
+            <select
               aria-label="Status de confirmação"
               className={filterSelectClass}
               value={confirmationStatus}
@@ -472,13 +446,13 @@ export function AgendaD1Panel({
                   {status}
                 </option>
               ))}
-            </Select>
+            </select>
             <div className="relative">
               <Search
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary"
                 size={16}
               />
-              <Input
+              <input
                 aria-label="Buscar agenda D+1"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
@@ -489,18 +463,17 @@ export function AgendaD1Panel({
           </div>
         </div>
         {error && (
-          <div className="rounded-mx-md border border-status-error/30 bg-status-error-surface p-mx-md">
-            <Typography variant="p" tone="error">
+          <div className="rounded-[12px] border border-red-200 bg-red-50 p-4">
+            <p className="text-sm text-red-700">
               Não foi possível carregar a Agenda D+1: {error}
-            </Typography>
-            <Button
-              size="xs"
-              variant="outline"
-              className="mt-mx-sm"
+            </p>
+            <button
+              type="button"
+              className="mt-3 rounded-[8px] border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
               onClick={() => void fetchAgenda()}
             >
               Tentar novamente
-            </Button>
+            </button>
           </div>
         )}
         {loading ? (
@@ -513,17 +486,17 @@ export function AgendaD1Panel({
           <div className="grid min-h-[220px] place-items-center p-mx-xl text-center">
             <div>
               <CalendarDays size={42} className="mx-auto text-border-default" />
-              <Typography variant="p" tone="muted" className="mt-mx-sm">
+              <p className="mt-3 text-sm text-gray-500">
                 {rows.length === 0
                   ? "Nenhum cliente agendado para D+1."
                   : "Nenhum agendamento corresponde aos filtros."}
-              </Typography>
+              </p>
             </div>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[1094px]">
-              <thead className="bg-slate-50">
+          <div className="overflow-x-auto rounded-2xl border border-gray-100">
+            <table className="w-full text-sm">
+              <thead className="border-b border-gray-100 bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500">
                 <tr>
                   {[
                     "Horário",
@@ -539,14 +512,14 @@ export function AgendaD1Panel({
                   ].map((label) => (
                     <th
                       key={label}
-                      className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500"
+                      className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500"
                     >
                       {label}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-gray-50">
                 {visible.map((row) => {
                   const lastContact = row.cliente
                     ? lastContactByCliente.get(row.cliente.id) ||
@@ -555,76 +528,60 @@ export function AgendaD1Panel({
                   const isConfirming = confirming?.rowId === row.id;
                   return (
                     <FragmentRow key={row.id}>
-                      <tr className="bg-white">
-                        <td className="px-4 py-3 text-sm font-bold text-slate-800">
+                      <tr className="align-top bg-white transition-colors hover:bg-gray-50">
+                        <td className="whitespace-nowrap px-4 py-3 font-medium text-gray-800">
                           {format(parseISO(row.data_hora), "HH:mm")}
                         </td>
-                        <td className="px-4 py-3 text-sm font-bold text-slate-800">
+                        <td className="px-4 py-3 text-gray-800">
                           {row.cliente?.nome || "—"}
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
+                        <td className="whitespace-nowrap px-4 py-3 text-gray-600">
                           {row.cliente?.telefone || "—"}
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
+                        <td className="px-4 py-3 text-gray-600">
                           {row.oportunidade?.veiculo_interesse || "—"}
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
+                        <td className="px-4 py-3 text-gray-600">
                           {row.canal ? AGENDA_CANAL_LABEL[row.canal] : "—"}
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
+                        <td className="px-4 py-3 text-gray-600">
                           {sellerNameById.get(row.seller_user_id) ||
                             "Vendedor da equipe"}
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
+                        <td className="px-4 py-3 text-gray-600">
                           {AGENDA_TIPO_LABEL[row.tipo]}
                         </td>
                         <td className="px-4 py-3">
-                          <Badge
-                            variant={
-                              row.status === "confirmado"
-                                ? "success"
-                                : row.status === "aguardando"
-                                  ? "warning"
-                                  : "default"
-                            }
-                          >
+                          <span className={`rounded-lg px-2 py-1 text-xs font-medium ${row.status === "confirmado" ? "bg-emerald-100 text-emerald-700" : row.status === "aguardando" ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-600"}`}>
                             {AGENDA_STATUS_LABEL[row.status]}
-                          </Badge>
+                          </span>
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
+                        <td className="whitespace-nowrap px-4 py-3 text-gray-500">
                           {lastContact
                             ? format(parseISO(lastContact), "dd/MM HH:mm")
                             : "—"}
                         </td>
                         <td className="px-4 py-3">
-                          <div className="flex min-w-max flex-wrap gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              className="flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
                               aria-label={`WhatsApp para ${row.cliente?.nome || "cliente"}`}
                               onClick={() => void openWhatsapp(row)}
                             >
-                              <MessageCircle size={17} /> WhatsApp
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
+                              <MessageCircle size={13} /> WhatsApp
+                            </button>
+                            <button
+                              type="button"
+                              className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100"
                               aria-label={`Ligar para ${row.cliente?.nome || "cliente"}`}
                               onClick={() => void callPhone(row)}
                             >
-                              <Phone size={17} /> Telefone
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              aria-label="Copiar telefone"
-                              onClick={() => void copyPhone(row)}
-                            >
-                              <Copy size={17} />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant={isConfirming ? "primary" : "outline"}
+                              <Phone size={13} /> Telefone
+                            </button>
+                            <button
+                              type="button"
+                              className={`flex items-center rounded-lg px-2 py-1 text-xs font-medium ${isConfirming ? "bg-emerald-600 text-white" : "text-emerald-700 hover:bg-emerald-50"}`}
                               onClick={() =>
                                 setConfirming(
                                   isConfirming
@@ -634,7 +591,7 @@ export function AgendaD1Panel({
                               }
                             >
                               Confirmar
-                            </Button>
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -642,9 +599,9 @@ export function AgendaD1Panel({
                         <tr className="bg-surface-alt/60">
                           <td colSpan={10} className="px-mx-md py-mx-sm">
                             <div className="flex flex-wrap items-end gap-mx-sm">
-                              <Select
-                                label="Resultado do contato"
-                                className="h-mx-10 min-w-[220px]"
+                              <select
+                                aria-label="Resultado do contato"
+                                className="h-10 min-w-[220px] rounded-[12px] border border-gray-200 bg-white px-3 text-sm"
                                 value={confirming.outcome}
                                 onChange={(event) =>
                                   setConfirming((prev) =>
@@ -666,19 +623,19 @@ export function AgendaD1Panel({
                                     {outcome}
                                   </option>
                                 ))}
-                              </Select>
+                              </select>
                               <div className="min-w-[260px] flex-1">
                                 <label
-                                  className="mb-mx-2xs block text-mx-tiny font-black uppercase tracking-wider text-text-tertiary"
+                                  className="mb-1 block text-xs font-medium text-gray-500"
                                   htmlFor={`agenda-d1-note-${row.id}`}
                                 >
                                   {confirming.outcome === "Outro"
                                     ? "Observação (obrigatória)"
                                     : "Observação (opcional)"}
                                 </label>
-                                <Input
+                                <input
                                   id={`agenda-d1-note-${row.id}`}
-                                  className="h-mx-10"
+                                  className="h-10 w-full rounded-[12px] border border-gray-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                                   value={confirming.note}
                                   onChange={(event) =>
                                     setConfirming((prev) =>
@@ -690,32 +647,29 @@ export function AgendaD1Panel({
                                   placeholder="Detalhe do contato com o cliente"
                                 />
                               </div>
-                              <Button
-                                size="sm"
+                              <button
+                                type="button"
+                                className="h-9 rounded-[8px] bg-emerald-600 px-3 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-40"
                                 disabled={saving || !confirming.outcome}
                                 onClick={() => void saveConfirmation(row)}
                               >
                                 {saving ? "Salvando…" : "Salvar registro"}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
+                              </button>
+                              <button
+                                type="button"
+                                className="h-9 rounded-[8px] px-3 text-xs font-medium text-gray-600 hover:bg-gray-100"
                                 onClick={() => setConfirming(null)}
                               >
                                 Cancelar
-                              </Button>
+                              </button>
                             </div>
                             {(confirming.outcome ===
                               "Solicitou reagendamento" ||
                               confirming.outcome === "Cancelou") && (
-                              <Typography
-                                variant="tiny"
-                                tone="muted"
-                                className="mt-mx-xs"
-                              >
+                              <p className="mt-2 text-xs text-gray-500">
                                 A agenda original não será alterada. O vendedor
                                 recebe um aviso para atualizar pela Carteira.
-                              </Typography>
+                              </p>
                             )}
                           </td>
                         </tr>
@@ -727,11 +681,11 @@ export function AgendaD1Panel({
             </table>
           </div>
         )}
-        <Typography variant="tiny" tone="muted" className="block">
+        <p className="block text-xs text-gray-500">
           A Carteira de Clientes permanece a base oficial. O gerente não altera
           o agendamento original: apenas confirma com o cliente e registra o
           status gerencial de confirmação.
-        </Typography>
+        </p>
       </div>
     </Modal>
   );

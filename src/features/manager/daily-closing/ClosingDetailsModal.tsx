@@ -1,7 +1,6 @@
 import { CalendarClock, Pencil } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import type { ReactNode } from "react";
-import { Button } from "@/components/atoms/Button";
 import { Modal } from "@/components/organisms/Modal";
 import type { CheckinWithTotals } from "@/types/database";
 
@@ -47,14 +46,14 @@ export function ClosingDetailsModal({
       footer={onOpenAgenda || onCorrectLeads ? (
         <div className="flex flex-wrap justify-end gap-2">
           {onCorrectLeads && (
-            <Button type="button" variant="outline" onClick={onCorrectLeads} className="text-amber-700">
+            <button type="button" onClick={onCorrectLeads} className="inline-flex h-9 items-center gap-1.5 rounded-[8px] border border-amber-200 bg-white px-3 text-sm font-medium text-amber-700 hover:bg-amber-50">
               <Pencil size={15} /> Corrigir leads
-            </Button>
+            </button>
           )}
           {onOpenAgenda && (
-            <Button type="button" variant="outline" onClick={onOpenAgenda} className="text-emerald-700">
+            <button type="button" onClick={onOpenAgenda} className="inline-flex h-9 items-center gap-1.5 rounded-[8px] border border-emerald-200 bg-white px-3 text-sm font-medium text-emerald-700 hover:bg-emerald-50">
               <CalendarClock size={15} /> Ver Agenda D+1 deste vendedor
-            </Button>
+            </button>
           )}
         </div>
       ) : undefined}
@@ -93,15 +92,15 @@ export function ClosingDetailsModal({
 }
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
-  return <section><h3 className="mb-4 text-[22px] font-bold text-slate-700">{title}</h3>{children}</section>;
+  return <section><h3 className="mb-2 text-sm font-semibold text-gray-700">{title}</h3>{children}</section>;
 }
 
 function Field({ label, value }: { label: string; value: ReactNode }) {
-  return <div className="min-h-[114px] rounded-[24px] bg-slate-50 p-5"><p className="mb-2 text-[16px] text-slate-500">{label}</p><div className="text-[20px] font-semibold text-slate-800">{value}</div></div>;
+  return <div className="rounded-[12px] bg-gray-50 p-2.5"><p className="mb-0.5 text-xs text-gray-500">{label}</p><div className="text-sm font-medium text-gray-800">{value}</div></div>;
 }
 
 function Channel({ name, values }: { name: string; values: Array<[string, number | string]> }) {
-  return <div className="rounded-[24px] bg-slate-50 p-5"><p className="mb-4 text-[18px] font-semibold text-slate-600">{name}</p><div className="flex flex-wrap gap-5">{values.map(([label, value]) => <div key={label}><span className="text-[16px] text-slate-500">{label}: </span><span className="text-[16px] font-semibold text-slate-800">{value}</span></div>)}</div></div>;
+  return <div className="rounded-[12px] bg-gray-50 p-3"><p className="mb-2 text-xs font-semibold text-gray-600">{name}</p><div className="flex flex-wrap gap-4">{values.map(([label, value]) => <div key={label}><span className="text-xs text-gray-500">{label}: </span><span className="text-sm font-semibold text-gray-800">{value}</span></div>)}</div></div>;
 }
 
 function Discipline({ value }: { value: string }) {

@@ -2,7 +2,6 @@ import { useRef, type ReactNode } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
-import { Typography } from "@/components/atoms/Typography";
 import { X } from "lucide-react";
 
 const modalSizeVariants = cva(
@@ -23,6 +22,15 @@ const modalSizeVariants = cva(
     },
   },
 );
+
+const referenceModalSizes = {
+  sm: "max-w-md",
+  md: "max-w-lg",
+  lg: "max-w-xl",
+  xl: "max-w-3xl",
+  "2xl": "max-w-5xl",
+  "3xl": "max-w-[1280px]",
+} as const;
 
 export interface ModalProps extends VariantProps<typeof modalSizeVariants> {
   open: boolean;
@@ -93,8 +101,9 @@ export function Modal({
             referenceStyle
               ? "fixed left-4 right-4 top-1/2 -translate-y-1/2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-[101] focus:outline-none"
               : "fixed left-mx-md right-mx-md top-mx-md bottom-mx-md sm:left-1/2 sm:right-auto sm:top-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 z-[101] focus:outline-none",
-            modalSizeVariants({ size: resolvedSize }),
-            referenceStyle && "!max-h-[90vh] !rounded-[16px]",
+            referenceStyle
+              ? `w-full max-h-[90vh] flex flex-col bg-white shadow-xl rounded-[16px] ${referenceModalSizes[resolvedSize]}`
+              : modalSizeVariants({ size: resolvedSize }),
             className,
           )}
         >
@@ -106,19 +115,15 @@ export function Modal({
           )}>
             <div className="min-w-0">
               <Dialog.Title asChild>
-                <Typography variant="h3">
-                  {title}
-                </Typography>
+                <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
               </Dialog.Title>
               {description && (
                 <Dialog.Description asChild>
-                  <Typography
-                    variant="tiny"
-                    tone="muted"
-                    className={referenceStyle ? "mt-0.5 block !text-sm !leading-5" : "mt-1 block"}
-                  >
-                    {description}
-                  </Typography>
+                  {referenceStyle ? (
+                    <p className="mt-0.5 text-sm text-gray-500">{description}</p>
+                  ) : (
+                    <p className="mt-1 text-sm text-text-secondary">{description}</p>
+                  )}
                 </Dialog.Description>
               )}
             </div>
@@ -128,13 +133,13 @@ export function Modal({
                   type="button"
                   aria-label="Fechar modal"
                   className={cn(
-                    "flex items-center justify-center text-text-tertiary hover:text-text-primary transition-all shrink-0",
+                    "flex items-center justify-center transition-colors shrink-0",
                     referenceStyle
-                      ? "mt-0.5 h-5 w-5 !min-h-0 rounded-none bg-transparent p-0"
+                      ? "mt-0.5 h-auto w-auto !min-h-0 rounded-none bg-transparent p-0 text-gray-400 hover:text-gray-600"
                       : "h-mx-xl w-mx-xl rounded-mx-xl bg-surface-alt",
                   )}
                 >
-                  <X size={20} />
+                  <X size={referenceStyle ? 18 : 20} />
                 </button>
               </Dialog.Close>
             )}

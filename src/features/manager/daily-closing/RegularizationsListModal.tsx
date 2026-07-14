@@ -1,8 +1,6 @@
 import type { CheckinFormData } from "@/types/database";
 import { useEffect, useState } from "react";
 import { Check, X } from "lucide-react";
-import { Button } from "@/components/atoms/Button";
-import { Textarea } from "@/components/atoms/Textarea";
 import { Modal } from "@/components/organisms/Modal";
 import { format, parseISO } from "date-fns";
 
@@ -87,7 +85,7 @@ export function RegularizationsListModal({
         description={`${requests.length} regularização(ões) pendente(s)`}
       >
       {requests.length === 0 ? (
-        <p className="py-8 text-center text-sm text-text-secondary">
+        <p className="py-8 text-center text-sm text-gray-500">
           Nenhuma regularização aguardando aprovação.
         </p>
       ) : (
@@ -96,15 +94,15 @@ export function RegularizationsListModal({
             const name = request.seller?.name || request.seller_id;
             const metrics = getRequestedMetrics(request.requested_values);
             return (
-              <article key={request.id} className="rounded-xl bg-surface-alt p-4">
+              <article key={request.id} className="rounded-[12px] bg-gray-50 p-4">
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-2">
                     <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
                       {initials(name)}
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-text-primary">{name}</p>
-                      <p className="text-xs text-text-secondary">
+                      <p className="truncate text-sm font-medium text-gray-800">{name}</p>
+                      <p className="text-xs text-gray-500">
                         Enviado: {formatRequestDate(request.created_at, request.requested_values.reference_date)}
                       </p>
                     </div>
@@ -122,29 +120,28 @@ export function RegularizationsListModal({
                 </div>
 
                 <div className="flex flex-col gap-2 sm:flex-row">
-                  <Button
+                  <button
                     type="button"
                     onClick={() => {
                       setDecision({ request, action: "approve" });
                       setConfirmed(false);
                     }}
-                    className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700"
+                    className="inline-flex h-9 flex-1 items-center justify-center gap-1 rounded-[12px] bg-emerald-600 px-3 text-sm font-medium text-white hover:bg-emerald-700"
                     aria-label={`Aprovar ${name}`}
                   >
                     <Check size={14} /> Aprovar
-                  </Button>
-                  <Button
+                  </button>
+                  <button
                     type="button"
-                    variant="outline"
                     onClick={() => {
                       setDecision({ request, action: "reject" });
                       setConfirmed(false);
                     }}
-                    className="flex-1 rounded-xl border-red-200 text-red-700 hover:bg-red-50"
+                    className="inline-flex h-9 flex-1 items-center justify-center gap-1 rounded-[12px] border border-red-200 bg-white px-3 text-sm font-medium text-red-700 hover:bg-red-50"
                     aria-label={`Recusar ${name}`}
                   >
                     <X size={14} /> Recusar
-                  </Button>
+                  </button>
                 </div>
               </article>
             );
@@ -209,44 +206,44 @@ function RegularizationDecisionModal({
       description={`${sellerName} — ${referenceDate ? formatRequestDate("", referenceDate) : "—"}`}
       footer={
         <div className="grid w-full grid-cols-2 gap-4">
-          <Button
-            variant="outline"
+          <button
+            type="button"
             onClick={onSwitchAction}
             disabled={saving}
-            className="border-red-200 text-red-700 hover:bg-red-50"
+            className="h-10 rounded-[12px] border border-red-200 bg-white px-4 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-40"
           >
             {approve ? "Recusar" : "Aprovar"}
-          </Button>
-          <Button
-            variant={approve ? "success" : "danger"}
+          </button>
+          <button
+            type="button"
             onClick={onSubmit}
             disabled={!confirmed || saving}
-            className={approve ? "disabled:!bg-emerald-600 disabled:!text-white disabled:opacity-40" : "disabled:!bg-red-600 disabled:!text-white disabled:opacity-40"}
+            className={`h-10 rounded-[12px] px-4 text-sm font-medium text-white disabled:opacity-40 ${approve ? "bg-emerald-600 hover:bg-emerald-700" : "bg-red-600 hover:bg-red-700"}`}
           >
             {saving ? "Processando..." : actionLabel}
-          </Button>
+          </button>
         </div>
       }
     >
-      <div className="space-y-7 text-slate-600">
-        <p className="text-[20px] leading-8">{description}</p>
+      <div className="space-y-4 text-gray-600">
+        <p className="text-sm leading-6">{description}</p>
         <div>
-          <label className="mb-2 block text-[18px] font-semibold text-slate-600" htmlFor="regularization-comment">
+          <label className="mb-1 block text-xs font-medium text-gray-600" htmlFor="regularization-comment">
             Comentário (opcional)
           </label>
-          <Textarea
+          <textarea
             id="regularization-comment"
             rows={2}
             placeholder={`Adicione um comentário sobre a ${approve ? "aprovação" : "recusa"}...`}
-            className="min-h-[116px] !rounded-[24px] !border-slate-200 !px-6 !py-4 !text-[18px]"
+            className="min-h-[80px] w-full resize-none rounded-[12px] border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
-        <label className="flex cursor-pointer items-center gap-3 text-[20px] leading-7 text-slate-600">
+        <label className="flex cursor-pointer items-center gap-2 text-sm leading-5 text-gray-600">
           <input
             type="checkbox"
             checked={confirmed}
             onChange={(event) => onConfirmedChange(event.target.checked)}
-            className="h-8 w-8 rounded-lg border-slate-300 text-emerald-600 focus:ring-emerald-500"
+            className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
           />
           {confirmationLabel}
         </label>
@@ -256,7 +253,7 @@ function RegularizationDecisionModal({
 }
 
 function Metric({ label, value }: { label: string; value: number }) {
-  return <div><span className="text-text-secondary">{label}: </span><span className="font-semibold text-text-primary">{value}</span></div>;
+  return <div><span className="text-gray-500">{label}: </span><span className="font-semibold text-gray-800">{value}</span></div>;
 }
 
 function initials(name: string) {
