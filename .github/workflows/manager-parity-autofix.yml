@@ -25,25 +25,25 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
 
-          replacements = {
-              Path('src/features/manager/daily-closing/ManagerDailyClosingBase44.tsx'): [
-                  (
-                      'if (!checkin || checkin.submission_status === "draft") return "Pendente";',
-                      'if (!checkin) return "Pendente";',
-                  ),
-              ],
-              Path('src/features/manager/daily-closing/RegularizeLateModal.tsx'): [
-                  (
-                      '''function formatTime(value: string | null | undefined) {
-            if (!value) return "—";
-            try {
-              return format(parseISO(value), "HH:mm");
-            } catch {
-              return "—";
-            }
-          }''',
-                      '''function formatTime(value: string | null | undefined) {
+          closing_path = Path('src/features/manager/daily-closing/ManagerDailyClosingBase44.tsx')
+          closing = closing_path.read_text(encoding='utf-8')
+          old_status = 'if (!checkin || checkin.submission_status === "draft") return "Pendente";'
+          if old_status not in closing:
+              raise SystemExit(f'{closing_path}: status guard not found')
+          closing_path.write_text(
+              closing.replace(old_status, 'if (!checkin) return "Pendente";', 1),
+              encoding='utf-8',
+          )
+
+          regularize_path = Path('src/features/manager/daily-closing/RegularizeLateModal.tsx')
+          regularize = regularize_path.read_text(encoding='utf-8')
+          pattern = re.compile(
+              r'function formatTime\(value: string \| null \| undefined\) \{.*?\n\}',
+              re.S,
+          )
+          replacement = '''function formatTime(value: string | null | undefined) {
             if (!value) return "—";
             const civilTime = value.match(/T(\\d{2}):(\\d{2})/);
             if (civilTime) return `${civilTime[1]}:${civilTime[2]}`;
@@ -52,25 +52,25 @@ jobs:
             } catch {
               return "—";
             }
-          }''',
-                  ),
-              ],
-              Path('src/components/organisms/Modal.tsx'): [
-                  (
-                      '"items-start gap-4 border-b border-gray-100 p-5"',
-                      '"items-start gap-4 border-b border-gray-100 px-5 py-4"',
-                  ),
-              ],
-          }
+          }'''
+          regularize, count = pattern.subn(replacement, regularize, count=1)
+          if count != 1:
+              raise SystemExit(f'{regularize_path}: formatTime replacement count={count}')
+          regularize_path.write_text(regularize, encoding='utf-8')
 
-          for path, pairs in replacements.items():
-              text = path.read_text(encoding='utf-8')
-              for old, new in pairs:
-                  count = text.count(old)
-                  if count != 1:
-                      raise SystemExit(f'{path}: expected exactly one match, found {count}')
-                  text = text.replace(old, new, 1)
-              path.write_text(text, encoding='utf-8')
+          modal_path = Path('src/components/organisms/Modal.tsx')
+          modal = modal_path.read_text(encoding='utf-8')
+          old_modal = '"items-start gap-4 border-b border-gray-100 p-5"'
+          if old_modal not in modal:
+              raise SystemExit(f'{modal_path}: reference header class not found')
+          modal_path.write_text(
+              modal.replace(
+                  old_modal,
+                  '"items-start gap-4 border-b border-gray-100 px-5 py-4"',
+                  1,
+              ),
+              encoding='utf-8',
+          )
           PY
 
       - name: Commit patched sources
