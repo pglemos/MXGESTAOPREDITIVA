@@ -53,5 +53,16 @@ File list:
 - `src/hooks/usePDI_MX.ts`
 - `src/hooks/useStores.ts`
 - `src/features/manager/development/ManagerDevelopmentErrorStates.test.tsx`
+- `src/lib/feedback-visibility-migration.test.ts`
+- `src/lib/feedback-visibility-action-cleanup-migration.test.ts`
+- `supabase/migrations/20260714193000_feedback_visibility_to_seller.sql`
+- `supabase/migrations/20260714192019_feedback_visibility_action_cleanup.sql`
 
-Pendências reais: validar criação com dados de teste autorizados e auditoria Supabase, alinhar edição/detalhe com registros equivalentes e concluir diff por pixel dos estados/modal. Hooks e telas agora propagam erros de consulta de feedback, PDI e vendedores; regressão dedicada `3/3`. A story permanece `Em auditoria`.
+Implementado nesta correção:
+
+- Validação condicional por tipo: feedback positivo exige pontos fortes; desenvolvimento exige pontos de atenção.
+- Checkbox `Enviar este feedback ao vendedor`, ligado por padrão, com marcação de liderança quando desativado.
+- Feedback privado fica protegido no RLS, não aparece ao vendedor e não gera ação na Central; ações antigas vinculadas são removidas ao tornar o feedback privado.
+- Teste real em produção cobriu login de gerente, gravação privada e login do vendedor; o conteúdo privado e sua pendência não apareceram, sem erros/warnings de console.
+
+Pendências reais: alinhar edição/detalhe com registros equivalentes e concluir diff por pixel dos estados/modal. Hooks e telas agora propagam erros de consulta de feedback, PDI e vendedores; regressão dedicada `3/3`. A story permanece `Em auditoria`.
