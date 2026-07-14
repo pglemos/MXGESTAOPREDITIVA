@@ -5,15 +5,21 @@ export type PreviousClosingCard =
   | { type: 'previous_pending'; date: string; checkin: null }
 
 export interface ActiveClosingContext {
+  now: Date
+  today: string
+  yesterday: string
   mainDate: string
   mainLabel: 'Hoje' | 'Ontem'
   mainCheckin: DailyCheckin | null
   isMainDateSubmitted: boolean
   canEditMainForm: boolean
+  canSubmitMainForm: boolean
   mode:
-    | 'pending_previous_before_noon'
+    | 'previous_pending_before_noon'
     | 'today_open_after_previous_done'
-    | 'today_open'
+    | 'today_open_after_noon_previous_done'
+    | 'today_open_after_noon_previous_pending'
+    | 'today_in_progress'
     | 'today_submitted'
   previousCard: PreviousClosingCard | null
 }
@@ -56,6 +62,22 @@ function getSaoPauloMinutes(now: Date) {
   return Number(byType.get('hour') || 0) * 60 + Number(byType.get('minute') || 0)
 }
 
+function getDateInSaoPaulo(now: Date) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now)
+}
+
+function subtractOneDay(date: string) {
+  const [year, month, day] = date.split('-').map(Number)
+  const value = new Date(Date.UTC(year, month - 1, day))
+  value.setUTCDate(value.getUTCDate() - 1)
+  return value.toISOString().slice(0, 10)
+}
+
 export function resolveActiveClosingContext({
   today,
   yesterday,
@@ -69,12 +91,16 @@ export function resolveActiveClosingContext({
 
   if (!afterNoon && !yesterdaySubmitted) {
     return {
+      now,
+      today,
+      yesterday,
       mainDate: yesterday,
       mainLabel: 'Ontem',
       mainCheckin: yesterdayClosing,
       isMainDateSubmitted: false,
       canEditMainForm: true,
-      mode: 'pending_previous_before_noon',
+      canSubmitMainForm: true,
+      mode: 'previous_pending_before_noon',
       previousCard: null,
     }
   }
@@ -86,12 +112,55 @@ export function resolveActiveClosingContext({
       : null
 
   return {
+    now,
+    today,
+    yesterday,
     mainDate: today,
     mainLabel: 'Hoje',
     mainCheckin: todayClosing,
     isMainDateSubmitted: todaySubmitted,
     canEditMainForm: !todaySubmitted,
-    mode: todaySubmitted ? 'today_submitted' : afterNoon ? 'today_open' : 'today_open_after_previous_done',
+    canSubmitMainForm: !todaySubmitted,
+    mode: todaySubmitted
+      ? 'today_submitted'
+      : todayClosing
+        ? afterNoon
+          ? yesterdaySubmitted ? 'today_in_progress' : 'today_open_after_noon_previous_pending'
+          : 'today_in_progress'
+        : afterNoon
+          ? yesterdaySubmitted ? 'today_open_after_noon_previous_done' : 'today_open_after_noon_previous_pending'
+          : 'today_open_after_previous_done',
     previousCard,
   }
+}
+
+/**
+ * Nome público alinhado ao spec v2.0.
+ *
+ * A implementação legada continua exportada porque o hook e consumidores
+ * existentes já dependem dela; a fachada preserva a assinatura validada sem
+ * duplicar a regra de data operacional.
+ */
+export function getActiveClosingContext(
+  now: Date,
+  closingsByDate: Record<string, DailyCheckin | null | undefined>,
+): ActiveClosingContext
+export function getActiveClosingContext(args: ResolveActiveClosingContextArgs): ActiveClosingContext
+export function getActiveClosingContext(
+  nowOrArgs: Date | ResolveActiveClosingContextArgs,
+  closingsByDate: Record<string, DailyCheckin | null | undefined> = {},
+): ActiveClosingContext {
+  if (nowOrArgs instanceof Date) {
+    const today = getDateInSaoPaulo(nowOrArgs)
+    const yesterday = subtractOneDay(today)
+    return resolveActiveClosingContext({
+      today,
+      yesterday,
+      now: nowOrArgs,
+      yesterdayClosing: closingsByDate[yesterday] ?? null,
+      todayClosing: closingsByDate[today] ?? null,
+    })
+  }
+
+  return resolveActiveClosingContext(nowOrArgs)
 }

@@ -3,7 +3,6 @@ import type { CheckinFormData, CheckinScope } from '@/types/database'
 import { canCreateAdjustment } from '@/lib/auth/capabilities'
 import {
     getCheckinEditLockedAt,
-    isCheckinLate,
     validateCheckinSubmissionDate,
 } from './types'
 
@@ -49,8 +48,11 @@ export function buildSubmitCheckinPayload(
         reference_date: finalDate,
         submitted_at: submittedAt.toISOString(),
         metric_scope: scope,
-        submitted_late: isDaily ? isCheckinLate(submittedAt) : false,
-        submission_status: isDaily ? (isCheckinLate(submittedAt) ? 'late' : 'on_time') : 'on_time',
+        // A janela de fechamento diário termina às 12:00. A janela 09:30 é
+        // exclusiva do snapshot da Agenda D+1 e não pode transformar um D-1
+        // ainda válido (09:31–11:59) em fechamento tardio.
+        submitted_late: false,
+        submission_status: 'on_time',
         edit_locked_at: isDaily ? getCheckinEditLockedAt(submittedAt) : null,
         // leads_prev_day = canal Carteira (nome de coluna legado, implícito);
         // leads_net_prev_day = canal Internet. Não usar formData.leads (soma

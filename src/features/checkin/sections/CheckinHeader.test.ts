@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 
 const headerSource = readFileSync(new URL('./CheckinHeader.tsx', import.meta.url), 'utf8')
+const formSource = readFileSync(new URL('./CheckinForm.tsx', import.meta.url), 'utf8')
 
 // P0-02/P0-06 (auditoria 2026-07-10): a solicitação de regularização enviava
 // agd_cart_prev_day/agd_net_prev_day fixos em 0 — zerando os agendamentos D-1
@@ -26,5 +27,29 @@ describe('CheckinHeader — regularização (P0-02/P0-06)', () => {
         expect(headerSource).toContain('visitas_porta_prev_day: Number(formValues.visitas_porta)')
         expect(headerSource).toContain('visitas_cart_prev_day: Number(formValues.visitas_cart)')
         expect(headerSource).toContain('visitas_net_prev_day: Number(formValues.visitas_net)')
+    })
+
+    test('mantém os textos e as duas ações prescritas nos cards de contexto', () => {
+        expect(headerSource).toContain('FECHAMENTO ANTERIOR CONCLUÍDO')
+        expect(headerSource).toContain('FECHAMENTO ANTERIOR PENDENTE')
+        expect(headerSource).toContain('Você enviou o fechamento do dia ${previousCard.date.split')
+        expect(headerSource).toContain('As informações foram encaminhadas para sua liderança. Caso precise corrigir algum dado, acesse o Histórico de Fechamentos, clique em Ajustar e envie a regularização para análise.')
+        expect(headerSource).toContain('não foi enviado dentro do prazo. A tela atual já está liberada para o fechamento de hoje.')
+        expect(headerSource).toContain('Ver histórico')
+        expect(headerSource).toContain('Ajustar fechamento')
+        expect(headerSource).toContain('Regularizar ${previousCard.date.slice')
+        expect(headerSource).toContain('whitespace-normal break-words')
+        expect(headerSource).not.toContain('truncate text-[12px] font-semibold')
+    })
+
+    test('preserva a hierarquia visual da data, progresso, finalização e histórico', () => {
+        expect(headerSource.indexOf('Data operacional principal')).toBeLessThan(headerSource.indexOf('Progresso do Fechamento'))
+        expect(formSource.indexOf('FINALIZAR FECHAMENTO DO DIA')).toBeLessThan(formSource.lastIndexOf('Histórico de Fechamentos'))
+    })
+
+    test('não reutiliza observação operacional como motivo de regularização', () => {
+        expect(headerSource).not.toContain('formValues.note')
+        expect(headerSource).not.toContain('onNoteChange')
+        expect(formSource).not.toContain('Observações Operacionais (Justificativa)')
     })
 })

@@ -25,11 +25,9 @@ describe('RegularizarFechamentoDrawer', () => {
           vnd_cart: 0,
           vnd_net: 0,
           reason: 'Inclusão de dado',
-          note: 'Dados preenchidos antes da aprovação do gerente.',
         }}
         onFieldChange={() => {}}
         onReasonChange={() => {}}
-        onNoteChange={() => {}}
         saving={false}
         onVoltar={() => {}}
         onClose={() => {}}

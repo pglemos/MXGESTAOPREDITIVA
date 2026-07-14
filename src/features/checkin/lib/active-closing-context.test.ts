@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import type { DailyCheckin } from '@/types/database'
-import { resolveActiveClosingContext } from './active-closing-context'
+import { getActiveClosingContext, resolveActiveClosingContext } from './active-closing-context'
 
 const closing = (date: string) => ({
   id: `checkin-${date}`,
@@ -155,7 +155,7 @@ describe('resolveActiveClosingContext', () => {
     expect(ctx.mainDate).toBe('2026-07-09')
     expect(ctx.isMainDateSubmitted).toBe(false)
     expect(ctx.canEditMainForm).toBe(true)
-    expect(ctx.mode).toBe('today_open')
+    expect(ctx.mode).toBe('today_in_progress')
   })
 
   test('after noon keeps justified zero D0 closed', () => {
@@ -170,5 +170,75 @@ describe('resolveActiveClosingContext', () => {
     expect(ctx.isMainDateSubmitted).toBe(true)
     expect(ctx.canEditMainForm).toBe(false)
     expect(ctx.mode).toBe('today_submitted')
+  })
+
+  test('uses the Sao Paulo noon boundary at 11:59, 12:00 and 12:01', () => {
+    const base = {
+      today: '2026-07-09',
+      yesterday: '2026-07-08',
+      yesterdayClosing: null,
+      todayClosing: null,
+    }
+
+    const beforeNoon = resolveActiveClosingContext({
+      ...base,
+      now: new Date('2026-07-09T14:59:00.000Z'), // 11:59 SP
+    })
+    const atNoon = resolveActiveClosingContext({
+      ...base,
+      now: new Date('2026-07-09T15:00:00.000Z'), // 12:00 SP
+    })
+    const afterNoon = resolveActiveClosingContext({
+      ...base,
+      now: new Date('2026-07-09T15:01:00.000Z'), // 12:01 SP
+    })
+
+    expect(beforeNoon.mainDate).toBe('2026-07-08')
+    expect(atNoon.mainDate).toBe('2026-07-09')
+    expect(afterNoon.mainDate).toBe('2026-07-09')
+    expect(atNoon.previousCard?.type).toBe('previous_pending')
+  })
+
+  test('uses Sao Paulo time around midnight, independently of the UTC date', () => {
+    const beforeMidnight = resolveActiveClosingContext({
+      today: '2026-07-09',
+      yesterday: '2026-07-08',
+      now: new Date('2026-07-10T02:59:59.999Z'), // 23:59:59 SP on 09/07
+      yesterdayClosing: null,
+      todayClosing: null,
+    })
+    const afterMidnight = resolveActiveClosingContext({
+      today: '2026-07-10',
+      yesterday: '2026-07-09',
+      now: new Date('2026-07-10T03:00:00.000Z'), // 00:00 SP on 10/07
+      yesterdayClosing: null,
+      todayClosing: null,
+    })
+
+    expect(beforeMidnight.mainDate).toBe('2026-07-09')
+    expect(afterMidnight.mainDate).toBe('2026-07-09')
+  })
+
+  test('exposes the spec-facing alias without changing the resolved context', () => {
+    const args = {
+      today: '2026-07-09',
+      yesterday: '2026-07-08',
+      now: new Date('2026-07-09T15:01:00.000Z'),
+      yesterdayClosing: closing('2026-07-08'),
+      todayClosing: null,
+    }
+
+    expect(getActiveClosingContext(args)).toEqual(resolveActiveClosingContext(args))
+  })
+
+  test('public facade derives D0/D-1 from Sao Paulo and accepts a date map', () => {
+    const now = new Date('2026-07-09T15:01:00.000Z')
+    const context = getActiveClosingContext(now, {
+      '2026-07-08': closing('2026-07-08'),
+      '2026-07-09': null,
+    })
+
+    expect(context.mainDate).toBe('2026-07-09')
+    expect(context.previousCard?.date).toBe('2026-07-08')
   })
 })

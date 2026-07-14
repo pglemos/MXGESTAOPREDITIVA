@@ -16,12 +16,11 @@ import { useCrmDerivedTotals } from './useCrmDerivedTotals'
 import { useAuth } from '@/hooks/useAuth'
 import { addDaysDateOnly } from '../lib/crm-derived-totals'
 import { calcularDisciplina } from '../lib/disciplina'
-import { calcularLockStage } from '../lib/lock-stage'
 import { deriveClientesListFromCrm } from '../lib/clientes-list-from-crm'
 import { supabase } from '@/lib/supabase'
 import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
 import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
-import { resolveActiveClosingContext } from '../lib/active-closing-context'
+import { getActiveClosingContext } from '../lib/active-closing-context'
 import { reconstructCheckinFormFromHistorical } from '../lib/reconstruct-checkin-form'
 
 export interface CheckinForm {
@@ -230,12 +229,9 @@ checkin.reference_date === yesterdaySP
 const todayClosing = (referenceDate === todaySP ? todayCheckin : null) ?? todayClosingFromList
 
 const activeClosingContext = useMemo(
-() => resolveActiveClosingContext({
-today: todaySP,
-yesterday: yesterdaySP,
-now: currentTime,
-yesterdayClosing,
-todayClosing,
+() => getActiveClosingContext(currentTime, {
+    [todaySP]: todayClosing,
+    [yesterdaySP]: yesterdayClosing,
 }),
 [currentTime, todaySP, todayClosing, yesterdaySP, yesterdayClosing],
 )
@@ -324,34 +320,11 @@ todayClosing,
 
 const spTime = getSPHoursMinutes(currentTime)
 
-// Deadline check (Brasília time) — dia operacional D fica aberto até
-    // D+1 09h30 sem liberação; D+1 09h31-12h00 depende de liberação do
-    // gerente (calcularLockStage); a partir de D+1 12h00 o dia operacional
-    // já rolou (calculateReferenceDate), então "hoje" é outro dia.
-    const rawIsPastDeadline = useMemo(() => {
-        if (selectedDate >= todaySP) return false // today's closing is always unlocked
-        if (selectedDate === yesterdaySP) {
-            return spTime.hours > 9 || (spTime.hours === 9 && spTime.minutes > 30)
-        }
-        return true // older than yesterday is always past deadline
-    }, [selectedDate, todaySP, yesterdaySP, spTime])
-
-    const isPastDeadline = rawIsPastDeadline
-
-    // Janela em 3 estágios (Especificação Funcional, §3.1-3.3): 'on_time' até
-    // 09h30; 'blocked' 09h31-12h00 (bloqueio destacado + avisar gerente);
-    // 'discreet' após 12h01 (mesmo ainda bloqueado para finalizar sem
-    // liberação, a tela para de insistir — só o aviso discreto permanece).
-    const lockStage = useMemo(
-        () => calcularLockStage({
-            isPastDeadline,
-            selectedDate,
-            yesterdaySP,
-            spHours: spTime.hours,
-            spMinutes: spTime.minutes,
-        }),
-        [isPastDeadline, selectedDate, yesterdaySP, spTime],
-    )
+    // O fechamento diário não possui trava global por horário. A janela
+    // 09:30 é exclusiva da consolidação da Agenda D+1 (§11.2); a escolha da
+    // data ativa e a transição D-1 → D0 pertencem ao ActiveClosingContext.
+    const isPastDeadline = false
+    const lockStage = 'on_time' as const
 
     // Liberação real (EV-1.6): fonte é fechamento_liberacoes (server),
     // não mais localStorage. Um lançamento já salvo também carrega o flag
@@ -378,9 +351,10 @@ const spTime = getSPHoursMinutes(currentTime)
 
     const fechamentoLiberado = liberacaoStatus === 'liberado' || Boolean(historicalCheckin?.fechamento_liberado)
 
-    const finalizadoAposPrazo = useMemo(() => {
-        return Boolean(historicalCheckin?.finalizado_apos_prazo) || (isPastDeadline && fechamentoLiberado)
-    }, [historicalCheckin, isPastDeadline, fechamentoLiberado])
+    const finalizadoAposPrazo = useMemo(
+        () => Boolean(historicalCheckin?.finalizado_apos_prazo),
+        [historicalCheckin],
+    )
 
     // WhatsApp Request — resolve o gerente real da loja (loja vem de
     // vendedores_loja; vendedor não tem loja_id direto) e usa o telefone real.
@@ -561,11 +535,7 @@ ${linkSeguro}`
         return CHECKIN_EDIT_LIMIT_MINUTES - currentMinutes
     }, [spTime])
 
-    // isCheckinLate() é hora-relógio pura (só sabe "já passou das 09h30
-    // hoje?"); isPastDeadline já sabe se o dia operacional selecionado
-    // rolou (calculateReferenceDate) — usar isPastDeadline evita marcar
-    // como atrasado um dia novo que acabou de abrir às 12h00.
-    const isLate = isPastDeadline
+    const isLate = Boolean(historicalCheckin?.submitted_late)
     const declaredAllZero = useMemo(
         () => declaredProgressTotals.leads === 0 && declaredProgressTotals.agd === 0 && declaredProgressTotals.visitas === 0 && declaredProgressTotals.vendas === 0,
         [declaredProgressTotals],

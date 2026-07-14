@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AlertTriangle, CalendarDays, CheckCircle2, History, X, CalendarClock, CheckSquare } from 'lucide-react'
+import { AlertTriangle, CalendarDays, CheckCircle2, X, CalendarClock, CheckSquare } from 'lucide-react'
 import { Button } from '@/components/atoms/Button'
 import { useCheckinAuditor } from '@/hooks/useCheckinAuditor'
 import { toast } from '@/lib/toast'
@@ -65,7 +65,6 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
     vnd_cart: 0,
     vnd_net: 0,
     reason: '',
-    note: '',
   })
 
   // Generate last 7 days of history (starting from yesterday backwards)
@@ -169,7 +168,6 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
           vnd_cart: checkin.vnd_cart_prev_day || 0,
           vnd_net: checkin.vnd_net_prev_day || 0,
           reason: '',
-          note: '',
         })
       } else {
         setFormValues({
@@ -177,7 +175,7 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
           visitas_porta: 0, visitas_cart: 0, visitas_net: 0,
           agd_cart: 0, agd_net: 0,
           vnd_porta: 0, vnd_cart: 0, vnd_net: 0,
-          reason: '', note: '',
+          reason: '',
         })
       }
     } else {
@@ -186,7 +184,7 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
         visitas_porta: 0, visitas_cart: 0, visitas_net: 0,
         agd_cart: 0, agd_net: 0,
         vnd_porta: 0, vnd_cart: 0, vnd_net: 0,
-        reason: '', note: '',
+        reason: '',
       })
     }
     setActiveView('form')
@@ -216,6 +214,11 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
     setHistoryOpen(true)
   }
 
+  const handleViewPreviousHistory = () => {
+    setActiveView('list')
+    setHistoryOpen(true)
+  }
+
   const handleFieldChange = (field: string, val: number) => {
     setFormValues(prev => ({
       ...prev,
@@ -227,14 +230,6 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
     if (!selectedRow) return
     if (!formValues.reason) {
       toast.error('Por favor, selecione o motivo da alteração.')
-      return
-    }
-    if (!formValues.note.trim()) {
-      toast.error('Por favor, descreva as observações operacionais do ajuste.')
-      return
-    }
-    if (formValues.reason === 'Outro' && formValues.note.trim().length < 15) {
-      toast.error('Para o motivo "Outro", forneça uma justificativa detalhada de pelo menos 15 caracteres.')
       return
     }
 
@@ -269,7 +264,7 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
           visitas_porta: 0,
           visitas_cart: 0,
           visitas_net: 0,
-          note: 'Lançamento retroativo criado para aprovação',
+          note: null,
           zero_reason: 'Outro',
         }
         
@@ -311,10 +306,9 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
         vnd_net_prev_day: Number(formValues.vnd_net),
         visit_prev_day: Number(formValues.visitas_porta) + Number(formValues.visitas_cart) + Number(formValues.visitas_net),
         zero_reason: (Number(formValues.leads_cart) + Number(formValues.leads_net) + Number(formValues.visitas_porta) + Number(formValues.visitas_cart) + Number(formValues.visitas_net) + Number(formValues.agd_cart) + Number(formValues.agd_net) + Number(formValues.vnd_porta) + Number(formValues.vnd_cart) + Number(formValues.vnd_net) === 0) ? 'Outro' : undefined,
-        note: formValues.note,
       }
       
-      const res = await requestCorrection(checkinId, requestedValues, `${formValues.reason}: ${formValues.note}`)
+      const res = await requestCorrection(checkinId, requestedValues, formValues.reason)
       if (res.error) {
         toast.error(`Erro ao enviar solicitação: ${res.error}`)
       } else {
@@ -354,30 +348,7 @@ return (
       <div className="hidden md:block w-full">
         <SellerPageHeader
           icon={CheckSquare}
-          title={
-            <div className="flex items-center gap-2 sm:gap-5">
-              <span className="truncate">Fechamento</span>
-              <div className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 text-[13px] sm:h-9">
-                <CalendarDays size={14} className="text-[#005BFF]" />
-                <span className="truncate font-semibold text-slate-900">{dateStr}</span>
-              </div>
-            </div>
-          }
-          actions={
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveView('list')
-                  setHistoryOpen(true)
-                }}
-                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 text-[13px] font-semibold text-slate-500 shadow-sm transition-all hover:border-[#005BFF] hover:text-[#005BFF] sm:h-10 sm:px-5"
-              >
-                <History size={14} />
-                Histórico de Fechamentos
-              </button>
-            </div>
-          }
+          title="Fechamento"
         />
       </div>
 
@@ -386,7 +357,7 @@ return (
 previousCard.type === 'previous_done' ? 'border-emerald-200' : 'border-amber-200'
 }`}>
 <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-<div className="flex min-w-0 items-center gap-2">
+<div className="flex min-w-0 items-start gap-2 md:flex-1">
 <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg ${
 previousCard.type === 'previous_done' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
 }`}>
@@ -396,37 +367,49 @@ previousCard.type === 'previous_done' ? 'bg-emerald-50 text-emerald-700' : 'bg-a
 <p className={`text-[11px] font-black uppercase tracking-[0.08em] ${
 previousCard.type === 'previous_done' ? 'text-emerald-700' : 'text-amber-800'
 }`}>
-{previousCard.type === 'previous_done' ? 'Fechamento anterior enviado' : 'Fechamento anterior pendente'}
+{previousCard.type === 'previous_done' ? 'FECHAMENTO ANTERIOR CONCLUÍDO' : 'FECHAMENTO ANTERIOR PENDENTE'}
 </p>
-<p className="truncate text-[12px] font-semibold text-[#526B7A]">
+<p className="whitespace-normal break-words text-[12px] font-semibold leading-relaxed text-[#526B7A]">
 {previousCard.type === 'previous_done'
-? `O fechamento de ${previousCard.date.split('-').reverse().join('/')} foi enviado. Se precisar alterar algum dado, clique em Ajustar.`
-: `O fechamento de ${previousCard.date.split('-').reverse().join('/')} ainda não foi enviado. Clique em Regularizar.`}
+? `Você enviou o fechamento do dia ${previousCard.date.split('-').reverse().join('/')} com sucesso. As informações foram encaminhadas para sua liderança. Caso precise corrigir algum dado, acesse o Histórico de Fechamentos, clique em Ajustar e envie a regularização para análise.`
+: `O fechamento do dia ${previousCard.date.split('-').reverse().join('/')} não foi enviado dentro do prazo. A tela atual já está liberada para o fechamento de hoje. Para corrigir a pendência, acesse o Histórico de Fechamentos e envie a regularização para análise da liderança.`}
 </p>
 </div>
 </div>
 <div className="flex shrink-0 gap-2">
+<button type="button" onClick={handleViewPreviousHistory} className="inline-flex h-8 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-[11px] font-black text-slate-600 shadow-sm hover:border-[#005BFF] hover:text-[#005BFF]">
+Ver histórico
+</button>
 <button type="button" onClick={handleAdjustPrevious} className={`inline-flex h-8 items-center justify-center rounded-lg px-3 text-[11px] font-black text-white shadow-sm ${
 previousCard.type === 'previous_done' ? 'bg-[#00A89D]' : 'bg-amber-600'
 }`}>
-{previousCard.type === 'previous_done' ? 'Ajustar' : `Regularizar ${previousCard.date.slice(8, 10)}/${previousCard.date.slice(5, 7)}`}
+{previousCard.type === 'previous_done' ? 'Ajustar fechamento' : `Regularizar ${previousCard.date.slice(8, 10)}/${previousCard.date.slice(5, 7)}`}
 </button>
 </div>
 </div>
 </section>
 )}
 
-<div className="space-y-3 md:hidden">
-<div className="flex justify-center">
+<section aria-labelledby="checkin-operational-date" className="rounded-[14px] border border-slate-200 bg-white px-4 py-3 shadow-[0_8px_22px_rgba(15,23,42,0.04)]">
+<div className="flex flex-wrap items-center justify-between gap-3">
+<div className="flex min-w-0 items-center gap-2">
+<CalendarDays size={18} className="shrink-0 text-[#005BFF]" aria-hidden="true" />
+<div className="min-w-0">
+<p className="text-[10px] font-black uppercase tracking-[0.08em] text-[#526B7A]">Data operacional principal</p>
+<h2 id="checkin-operational-date" className="truncate text-[15px] font-black text-[#071822] sm:text-[17px]">{dateStr}</h2>
+</div>
+</div>
 <button
 type="button"
 onClick={() => setCustomReferenceDate('')}
-className="inline-flex h-10 max-w-full items-center gap-2 rounded-full border border-[#DFE0E1] bg-white px-4 text-[14px] font-black text-[#071822] shadow-sm"
+className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#DFE0E1] bg-white px-3 text-[12px] font-black text-[#071822] shadow-sm hover:border-[#005BFF] hover:text-[#005BFF]"
 >
-<CalendarDays size={16} className="text-[#00A89D]" />
-<span className="truncate">{dateStr}</span>
+Ver data atual
 </button>
 </div>
+</section>
+
+<div className="space-y-3 md:hidden">
 
 <section className="rounded-[16px] border border-[#DFE0E1] bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
 <div className="flex items-start justify-between gap-4">
@@ -615,7 +598,6 @@ return (
           formValues={formValues}
           onFieldChange={handleFieldChange}
           onReasonChange={(value) => setFormValues((prev) => ({ ...prev, reason: value }))}
-          onNoteChange={(value) => setFormValues((prev) => ({ ...prev, note: value }))}
           saving={auditorLoading}
           onVoltar={() => setActiveView('list')}
           onClose={() => { setHistoryOpen(false); setActiveView('list') }}

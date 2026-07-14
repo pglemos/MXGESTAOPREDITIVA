@@ -14,7 +14,7 @@ const ADJUSTMENT_REASONS = [
   'Erro operacional',
   'Duplicidade removida',
   'Fechamento esquecido',
-  'Outro',
+  'Outro motivo',
 ]
 
 const BRL = (value: number) =>
@@ -32,7 +32,6 @@ export interface RegularizarFormValues {
   vnd_cart: number
   vnd_net: number
   reason: string
-  note: string
 }
 
 interface RegularizarFechamentoDrawerProps {
@@ -41,7 +40,6 @@ interface RegularizarFechamentoDrawerProps {
   formValues: RegularizarFormValues
   onFieldChange: (field: keyof Omit<RegularizarFormValues, 'reason' | 'note'>, value: number) => void
   onReasonChange: (value: string) => void
-  onNoteChange: (value: string) => void
   saving: boolean
   onVoltar: () => void
   onClose: () => void
@@ -110,7 +108,6 @@ export function RegularizarFechamentoDrawer({
   formValues,
   onFieldChange,
   onReasonChange,
-  onNoteChange,
   saving,
   onVoltar,
   onClose,
@@ -144,7 +141,7 @@ export function RegularizarFechamentoDrawer({
   const ringColor = disciplina.pontuacaoDisciplinaFinal >= 80 ? '#22C55E' : disciplina.pontuacaoDisciplinaFinal >= 50 ? '#F59E0B' : '#EF4444'
   const ringColorClass = disciplina.pontuacaoDisciplinaFinal >= 80 ? 'text-[#22C55E]' : disciplina.pontuacaoDisciplinaFinal >= 50 ? 'text-[#F59E0B]' : 'text-[#EF4444]'
 
-  const canSubmit = !!formValues.reason && formValues.note.trim().length > 0
+  const canSubmit = !!formValues.reason
 
   const crmCtx = {
     clientesList,
@@ -316,8 +313,8 @@ export function RegularizarFechamentoDrawer({
               </div>
             </div>
 
-            {/* Motivo e observações */}
-            <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+            {/* Motivo da regularização — separado dos dados operacionais auditados. */}
+            <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="adjustment-reason" className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Motivo do Ajuste</label>
                 <select
@@ -330,20 +327,6 @@ export function RegularizarFechamentoDrawer({
                   {ADJUSTMENT_REASONS.map((reason) => <option key={reason} value={reason}>{reason}</option>)}
                 </select>
               </div>
-              {!finalized && (
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="adjustment-note" className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Observações Operacionais (Justificativa)</label>
-                  <textarea
-                    id="adjustment-note"
-                    value={formValues.note}
-                    onChange={(e) => onNoteChange(e.target.value)}
-                    placeholder="Descreva detalhadamente o motivo deste ajuste retroativo..."
-                    className="min-h-[80px] w-full resize-none rounded-xl border border-slate-200 bg-white p-3 text-xs text-[#071822] outline-none placeholder:text-slate-400 focus:border-[#005BFF] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
-                    maxLength={250}
-                  />
-                  <span className="text-right text-[10px] font-mono text-slate-400">{formValues.note.length}/250 caracteres</span>
-                </div>
-              )}
             </div>
           </div>
 

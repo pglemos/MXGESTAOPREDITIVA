@@ -20,6 +20,7 @@ import {
   X,
   AlertCircle,
   Info,
+  History,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { LucideIcon } from 'lucide-react'
@@ -178,10 +179,7 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
 
   const showCrmBadge = !historicalCheckin && crmDerived.hasCrmData
 
-  // Após 12h01 sem liberação (Especificação Funcional, §3.3): para de
-  // insistir com o bloqueio destacado — só o aviso discreto permanece,
-  // direcionando para o Histórico.
-  const showDiscreetPendingBanner = lockStage === 'discreet' && !fechamentoLiberado
+  const showDiscreetPendingBanner = false
 
 const counterProps = {
 form,
@@ -254,24 +252,6 @@ const handleFinalizarMesmoAssim = () => {
 
 return (
 <form onSubmit={onFormSubmit} className="mt-mx-xs grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-mx-sm pb-[calc(8rem+env(safe-area-inset-bottom))] md:pb-16">
-<section className="rounded-[18px] border border-[#dfe7f0] bg-white px-5 py-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-<div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-<div>
-<p className="text-[11px] font-extrabold uppercase tracking-widest text-[#00A89D]">
-{activeClosingContext.mainLabel === 'Hoje' ? 'FECHAMENTO DE HOJE' : 'FECHAMENTO ANTERIOR'}
-</p>
-<h1 className="mt-1 text-[20px] font-black tracking-tight text-[#071822] sm:text-[24px]">
-{activeClosingContext.mainLabel === 'Hoje' ? 'Fechamento de Hoje' : 'Fechamento de Ontem'}
-</h1>
-<p className="mt-1 text-sm font-semibold text-[#526B7A]">
-{activeClosingContext.mainLabel} · {mainDateLabel} · Preencha as informações do movimento comercial desta data.
-</p>
-</div>
-<span className="inline-flex h-9 w-fit items-center rounded-full bg-[#E8F3F2] px-3 text-xs font-black uppercase tracking-wide text-[#00A89D]">
-{fechamentoConcluido ? 'Data concluída' : 'Aberto para preenchimento'}
-</span>
-</div>
-</section>
 {/* Aviso discreto (após 12h01, sem liberação — Especificação Funcional §3.3) */}
       {showDiscreetPendingBanner && (
         <div className="hidden items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 sm:flex">
@@ -918,6 +898,19 @@ saving || submitBlockedByDeadline || editLockedWithoutLiberacao || fechamentoCon
           Salvar rascunho
         </button>
       </div>
+
+      {onOpenHistory && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={onOpenHistory}
+            className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-[13px] font-semibold text-slate-600 shadow-sm transition-colors hover:border-[#005BFF] hover:text-[#005BFF]"
+          >
+            <History size={15} aria-hidden="true" />
+            Histórico de Fechamentos
+          </button>
+        </div>
+      )}
     </form>
   )
 }

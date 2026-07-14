@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowLeft, CalendarCheck, HelpCircle, ShieldCheck, ShoppingCart, UserCheck, X } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { Button } from '@/components/atoms/Button'
@@ -9,6 +9,9 @@ import { useClientes } from '@/features/crm/hooks/useClientes'
 import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
 import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
 import type { CrmCanal, CrmEtapaFunil } from '@/lib/schemas/crm.schema'
+import { useAuth } from '@/hooks/useAuth'
+import { supabase } from '@/lib/supabase'
+import { addDaysDateOnly } from '../lib/crm-derived-totals'
 
 /**
  * Modal unico "Novo Registro" — porta 1:1 de components/fechamento/
@@ -31,14 +34,22 @@ const SITUACAO_OPORTUNIDADE_DESCRICAO: Record<string, string> = {
   Decisão: 'Cliente está decidindo entre finalizar ou não a compra.',
   Recuperação: 'Oportunidade esfriada que está sendo retrabalhada pelo vendedor.',
 }
+const SITUACOES_OPORTUNIDADE_AJUDA: Record<string, string> = {
+  Nova: 'Significado: oportunidade identificada. Quando usar: primeiro registro antes de validar a necessidade. Mentor Comercial: inicia a cadência. Próxima ação: fazer o primeiro contato. Agendamento: não cria automaticamente. Temperatura/prioridade: neutra. Rotina: entra como prospecção pendente. Métricas: conta como oportunidade aberta.',
+  Validação: 'Significado: interesse e necessidade confirmados. Quando usar: após conversa qualificada. Mentor Comercial: avança para qualificação. Próxima ação: confirmar necessidade, orçamento e prazo. Agendamento: não cria automaticamente. Temperatura/prioridade: aumenta a prioridade. Rotina: entra como contato de validação. Métricas: conta na taxa de qualificação.',
+  Construção: 'Significado: proposta e condições em estruturação. Quando usar: depois de validar o cenário. Mentor Comercial: orienta apresentação/proposta. Próxima ação: montar e apresentar a solução. Agendamento: só cria se houver data escolhida. Temperatura/prioridade: quente. Rotina: entra como proposta em andamento. Métricas: conta no funil ativo.',
+  Compromisso: 'Significado: cliente sinalizou intenção clara de fechar. Quando usar: existe compromisso comercial concreto. Mentor Comercial: prioriza conversão. Próxima ação: confirmar condições e próximo encontro. Agendamento: crie quando houver horário combinado. Temperatura/prioridade: muito quente. Rotina: aparece como compromisso. Métricas: conta na etapa de negociação.',
+  Decisão: 'Significado: cliente está decidindo a compra. Quando usar: proposta apresentada e aguardando decisão. Mentor Comercial: recomenda follow-up de fechamento. Próxima ação: remover objeção e combinar prazo de retorno. Agendamento: crie se o retorno tiver horário. Temperatura/prioridade: alta, com risco de perda. Rotina: aparece como retorno prioritário. Métricas: conta na conversão do funil.',
+  Recuperação: 'Significado: oportunidade esfriada em retrabalho. Quando usar: contato perdido, sem resposta ou objeção não resolvida. Mentor Comercial: inicia recuperação. Próxima ação: definir nova abordagem e data de contato. Agendamento: não cria automaticamente. Temperatura/prioridade: reduzida até nova interação. Rotina: aparece como pendência de recuperação. Métricas: conta em recuperação, sem inflar oportunidades novas.',
+}
 const SITUACOES_OPORTUNIDADE_TITLE = SITUACOES_OPORTUNIDADE
-  .map(s => `${s}: ${SITUACAO_OPORTUNIDADE_DESCRICAO[s]}`)
+  .map(s => SITUACOES_OPORTUNIDADE_AJUDA[s] || `${s}: ${SITUACAO_OPORTUNIDADE_DESCRICAO[s]}`)
   .join('\n')
 const PASSO_TO_ETAPA: Record<string, CrmEtapaFunil> = {
   Nova: 'prospeccao', Validação: 'qualificacao', Construção: 'apresentacao', Compromisso: 'negociacao', Decisão: 'fechamento', Recuperação: 'prospeccao',
 }
 const MOTIVOS_GARANTIA = ['Mecânica', 'Documentação', 'Acessório', 'Acabamento', 'Promessa comercial', 'Outro'] as const
-const RESPONSAVEIS_TRATATIVA = ['Vendedor', 'Gerente de Vendas', 'Pós-venda', 'Oficina/Mecânica', 'Gerência Geral', 'Outro'] as const
+type ResponsavelTratativa = { id: string; name: string; role: string }
 const DESCRICOES_GARANTIA_POR_MOTIVO: Record<string, readonly string[]> = {
   'Mecânica': ['Barulho no motor', 'Problema elétrico', 'Vazamento de óleo', 'Freios', 'Suspensão', 'Ar-condicionado', 'Outro'],
   'Documentação': ['Pendência de transferência', 'Nota fiscal', 'IPVA/Licenciamento', 'Contrato/Financiamento', 'Outro'],
@@ -73,6 +84,15 @@ function formatCurrency(raw: string): string {
 function currencyToNumber(raw: string): number {
   const num = (raw || '').replace(/\D/g, '')
   return num ? parseInt(num, 10) / 100 : 0
+}
+
+function getSaoPauloDateOnly(baseDate = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(baseDate)
 }
 
 type FormState = Record<string, string>
@@ -123,6 +143,7 @@ interface FormProps {
   clienteEncontrado: boolean
   clienteJaVendido: boolean
   onPhoneBlur: () => void
+  responsaveis: ResponsavelTratativa[]
 }
 
 function FormAgendamento({ form, setF, clienteEncontrado, clienteJaVendido, onPhoneBlur }: FormProps) {
@@ -196,7 +217,7 @@ function FormVenda({ form, setF, clienteEncontrado, clienteJaVendido, onPhoneBlu
   )
 }
 
-function FormGarantia({ form, setF, clienteEncontrado, clienteJaVendido, onPhoneBlur }: FormProps) {
+function FormGarantia({ form, setF, clienteEncontrado, clienteJaVendido, onPhoneBlur, responsaveis }: FormProps) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <FormField label="WhatsApp / Telefone *" value={form.whatsapp || ''} onChange={e => setF('whatsapp', formatPhone(e.target.value))} onBlur={onPhoneBlur} placeholder="(11) 98765-4321" maxLength={15} />
@@ -235,14 +256,14 @@ function FormGarantia({ form, setF, clienteEncontrado, clienteJaVendido, onPhone
       <Select
         label="Responsável pela Tratativa"
         value={form.responsavel || ''}
-        onChange={e => setF('responsavel', e.target.value)}
+        onChange={e => {
+          setF('responsavel', e.target.value)
+          setF('responsavel_id', e.target.value)
+        }}
       >
         <option value="">Selecione o responsável</option>
-        {RESPONSAVEIS_TRATATIVA.map(r => <option key={r} value={r}>{r}</option>)}
+        {responsaveis.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
       </Select>
-      {form.responsavel === 'Outro' && (
-        <FormField label="Qual responsável? *" value={form.responsavel_outro || ''} onChange={e => setF('responsavel_outro', e.target.value)} placeholder="Ex: João / Terceirizado" />
-      )}
       <FormField label="Observação" value={form.observacao || ''} onChange={e => setF('observacao', e.target.value)} placeholder="Observações adicionais" />
     </div>
   )
@@ -315,7 +336,7 @@ function canSaveForm(tipo: RegistroTipo, form: FormState, clienteEncontrado: boo
   }
   if (tipo === 'garantia') {
     const descricaoOk = form.descricao_garantia === 'Outro' ? Boolean(form.descricao_garantia_outro?.trim()) : Boolean(form.descricao_garantia?.trim())
-    const responsavelOk = form.responsavel !== 'Outro' || Boolean(form.responsavel_outro?.trim())
+    const responsavelOk = Boolean(form.responsavel)
     return Boolean(form.data_garantia && form.motivo_garantia && descricaoOk && responsavelOk)
   }
   if (tipo === 'qualificado') {
@@ -333,6 +354,8 @@ interface NovoRegistroModalProps {
 }
 
 export function NovoRegistroModal({ open, onClose, onSaved, defaultDate }: NovoRegistroModalProps) {
+  const { storeId, activeStoreId } = useAuth()
+  const effectiveStoreId = activeStoreId || storeId || null
   const { buscarClienteExistentePorTelefone, createCliente, updateCliente } = useClientes()
   const { createOportunidade, registrarVendaDireta } = useOportunidades()
   const { createAgendamento } = useAgendamentos()
@@ -343,11 +366,37 @@ export function NovoRegistroModal({ open, onClose, onSaved, defaultDate }: NovoR
   const [clienteJaVendido, setClienteJaVendido] = useState(false)
   const [buscando, setBuscando] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [responsaveis, setResponsaveis] = useState<ResponsavelTratativa[]>([])
+
+  useEffect(() => {
+    if (!open || !effectiveStoreId) {
+      setResponsaveis([])
+      return
+    }
+    let cancelled = false
+    void supabase
+      .from('vinculos_loja')
+      .select('user_id, user:usuarios!user_id(id, name, role, active)')
+      .eq('store_id', effectiveStoreId)
+      .eq('is_active', true)
+      .in('role', ['vendedor', 'gerente', 'dono'])
+      .then(({ data }) => {
+        if (cancelled) return
+        const options = (data || []).flatMap(row => {
+          const user = (row as unknown as { user?: { id?: string; name?: string; role?: string; active?: boolean } | null }).user
+          return user?.id && user.active !== false && user.name
+            ? [{ id: user.id, name: user.name, role: user.role || 'vendedor' }]
+            : []
+        })
+        setResponsaveis(options.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')))
+      })
+    return () => { cancelled = true }
+  }, [effectiveStoreId, open])
 
   if (!open) return null
 
-  const hoje = defaultDate || new Date().toISOString().slice(0, 10)
-  const amanha = new Date(new Date(`${hoje}T12:00:00`).getTime() + 86400000).toISOString().slice(0, 10)
+  const hoje = defaultDate || getSaoPauloDateOnly()
+  const amanha = addDaysDateOnly(hoje, 1)
 
   const setF = (key: string, val: string) => {
     setFormState(f => ({ ...f, [key]: val }))
@@ -454,7 +503,8 @@ export function NovoRegistroModal({ open, onClose, onSaved, defaultDate }: NovoR
         const dataPos = form.data_posicionamento || amanha
         const horaPos = form.hora_posicionamento || '09:00'
         const descricaoFinal = form.descricao_garantia === 'Outro' ? form.descricao_garantia_outro : form.descricao_garantia
-        const responsavelFinal = form.responsavel === 'Outro' ? form.responsavel_outro : form.responsavel
+        const responsavel = responsaveis.find(option => option.id === form.responsavel)
+        const responsavelFinal = responsavel ? `${responsavel.name} [${responsavel.id}]` : ''
         const observacoes = [
           `Motivo: ${form.motivo_garantia}`,
           form.veiculo_texto ? `Veículo: ${form.veiculo_texto}` : null,
@@ -505,7 +555,7 @@ export function NovoRegistroModal({ open, onClose, onSaved, defaultDate }: NovoR
 
   const TITULO: Record<RegistroTipo, string> = { agendamento: 'Novo Agendamento', venda: 'Nova Venda', garantia: 'Nova Garantia', qualificado: 'Novo Qualificado' }
   const ok = tipo ? canSaveForm(tipo, form, !!clienteEncontradoId) : false
-  const formProps: FormProps = { form, setF, clienteEncontrado: !!clienteEncontradoId, clienteJaVendido, onPhoneBlur: handleWhatsAppBlur }
+  const formProps: FormProps = { form, setF, clienteEncontrado: !!clienteEncontradoId, clienteJaVendido, onPhoneBlur: handleWhatsAppBlur, responsaveis }
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4 backdrop-blur-[3px] overflow-y-auto" role="dialog" aria-modal="true" aria-label="Novo registro">
