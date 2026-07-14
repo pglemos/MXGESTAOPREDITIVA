@@ -117,6 +117,8 @@ function formatTime(value: string | null | undefined) {
   const civilTime = value.match(/T(\d{2}):(\d{2})/);
   if (civilTime) return `${civilTime[1]}:${civilTime[2]}`;
   try {
+    const civilTime = value.match(/T(\d{2}):(\d{2})/);
+    if (civilTime) return `${civilTime[1]}:${civilTime[2]}`;
     return format(parseISO(value), "HH:mm");
   } catch {
     return "—";
