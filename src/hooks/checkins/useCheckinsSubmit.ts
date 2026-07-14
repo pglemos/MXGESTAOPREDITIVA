@@ -109,6 +109,9 @@ export function useCheckinsSubmit(args: UseCheckinsSubmitArgs) {
         scope: CheckinScope = 'daily',
         customDate?: string,
         officialReferenceDate?: string,
+        // MX-22.2 (FEV-DATA-05): grava rascunho real (submission_status='draft')
+        // em vez de só localStorage, pra sobreviver a refresh/troca de aba.
+        isDraft = false,
     ): Promise<{ error: string | null; id?: string }> => {
         if (!profile || !storeId) return { error: 'Usuário não autenticado' }
         if (scope === 'adjustment' && !canCreateAdjustment(role)) {
@@ -122,7 +125,7 @@ export function useCheckinsSubmit(args: UseCheckinsSubmitArgs) {
 
  const isDaily = scope === 'daily' && finalDate <= getSaoPauloDateOnly()
         const submittedAt = new Date()
-        const payload = buildSubmitCheckinPayload(formData, scope, profile.id, storeId, finalDate, submittedAt, isDaily)
+        const payload = buildSubmitCheckinPayload(formData, scope, profile.id, storeId, finalDate, submittedAt, isDaily, isDraft)
 
         const { data, error } = await supabase.rpc('submit_checkin', { p_payload: payload })
 

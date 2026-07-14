@@ -87,7 +87,6 @@ export interface ClienteRow {
 export type NumericCheckinField = Exclude<keyof CheckinForm, 'note' | 'zero_reason'>
 
 export const CHECKIN_MAX_INPUT_HELP = `O teto ${CHECKIN_MAX_INPUT_VALUE} evita erro de digitação, importação duplicada ou lançamento fora da escala operacional.`
-export const CHECKIN_DRAFT_STORAGE_PREFIX = 'mx-checkin-draft'
 
 // Timezone Helpers
 export function getSPTime() {
@@ -696,6 +695,15 @@ const fechamentoConcluido = metricScope === 'daily'
  const { error } = await saveCheckin(checkinPayload, metricScope, selectedDate, activeClosingContext.mainDate)
  if (error) { toast.error(error); return }
 
+        // MX-22.2 (AC-1/GAP-1): previousCheckin só é buscado uma vez na
+        // virada de data (efeito acima, keyed em yesterdaySP) e nunca mais.
+        // Sem isto, finalizar D-1 antes de meio-dia não troca a tela pra D0
+        // de verdade — fica preso em "Ontem" até um F5. Recarrega direto
+        // após o sucesso do submit, sem esperar o próximo render de data.
+        if (metricScope === 'daily' && selectedDate === yesterdaySP) {
+            fetchCheckinByDate(yesterdaySP, 'daily').then(setPreviousCheckin)
+        }
+
         // Score/penalidade/liberação agora são persistidos pelo servidor
         // (lancamentos_diarios, EV-1.5/EV-1.6) — nada para gravar em localStorage.
 
@@ -739,32 +747,42 @@ const fechamentoConcluido = metricScope === 'daily'
 
     const handleSaveDraft = async () => {
         if (saving) return
-        if (typeof window === 'undefined') return
 
         setSaving(true)
         setInputError(null)
 
         try {
-            const draftKey = [
-                CHECKIN_DRAFT_STORAGE_PREFIX,
-                selectedDate || 'sem-data',
+            // MX-22.2 (FEV-DATA-05): rascunho grava de verdade em
+            // lancamentos_diarios (submission_status='draft'), não mais só
+            // localStorage — sobrevive a refresh/troca de aba/dispositivo.
+            // isSubmittedClosing já trata 'draft' como não finalizado, então
+            // isso não aciona fechamentoConcluido nem a detecção de atraso.
+            const draftPayload = {
+                ...declaredForm,
+                pontuacao_disciplina_base: rawDiscipline,
+                fechamento_liberado: fechamentoLiberado,
+            }
+            const { error } = await saveCheckin(
+                draftPayload,
                 metricScope,
-            ].join(':')
+                selectedDate,
+                activeClosingContext.mainDate,
+                true,
+            )
+            if (error) {
+                toast.error(error)
+                setInputError(error)
+                return
+            }
 
-            window.localStorage.setItem(draftKey, JSON.stringify({
-                form,
-                metricScope,
-                referenceDate: selectedDate,
-                savedAt: new Date().toISOString(),
-            }))
-
+            setChangedFields(new Set())
             setSaveNotice({
                 title: 'Rascunho salvo.',
                 detail: 'O fechamento ainda não foi finalizado. Revise os números e finalize quando estiver pronto.',
             })
             toast.success('Rascunho salvo.')
         } catch {
-            toast.error('Não foi possível salvar o rascunho neste navegador.')
+            toast.error('Não foi possível salvar o rascunho.')
         } finally {
             setSaving(false)
         }
