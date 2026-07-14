@@ -63,6 +63,27 @@ export function isCheckinLate(baseDate = new Date()): boolean {
     return minutesSinceSaoPauloStartOfDay(baseDate) > CHECKIN_DEADLINE_MINUTES
 }
 
+// Regra MX-22 (spec v2.0 §3/§14 FEV-DATA-09): o fechamento de uma data
+// operacional fica tardio somente depois das 12h00 de D+1 — não às 09h30 do
+// próprio dia, que é exclusiva do snapshot da Agenda D+1 (§11). Diferente de
+// isCheckinLate (horário do relógio agora), esta função avalia o envio de um
+// `reference_date` específico contra o próprio prazo dele.
+export function isCheckinLateForReferenceDate(referenceDate: string, submittedAt = new Date()): boolean {
+    const [year, month, day] = referenceDate.split('-').map(Number)
+    const deadline = Date.UTC(year, month - 1, day + 1, 12, 0, 0, 0)
+    const submittedParts = getSaoPauloParts(submittedAt)
+    const submittedNaiveInstant = Date.UTC(
+        submittedParts.year,
+        submittedParts.month - 1,
+        submittedParts.day,
+        submittedParts.hour,
+        submittedParts.minute,
+        0,
+        0,
+    )
+    return submittedNaiveInstant > deadline
+}
+
 export function canEditCurrentCheckin(baseDate = new Date()): boolean {
     // Só bloqueia dentro da janela 09h31-12h00 (fechamento do dia anterior
     // ainda em aberto, atrasado, aguardando liberação do gerente). Antes das

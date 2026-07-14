@@ -3,6 +3,7 @@ import type { CheckinFormData, CheckinScope } from '@/types/database'
 import { canCreateAdjustment } from '@/lib/auth/capabilities'
 import {
     getCheckinEditLockedAt,
+    isCheckinLateForReferenceDate,
     validateCheckinSubmissionDate,
 } from './types'
 
@@ -48,11 +49,15 @@ export function buildSubmitCheckinPayload(
         reference_date: finalDate,
         submitted_at: submittedAt.toISOString(),
         metric_scope: scope,
-        // A janela de fechamento diário termina às 12:00. A janela 09:30 é
-        // exclusiva do snapshot da Agenda D+1 e não pode transformar um D-1
-        // ainda válido (09:31–11:59) em fechamento tardio.
-        submitted_late: false,
-        submission_status: 'on_time',
+        // A janela de fechamento diário termina às 12:00 de finalDate + 1 dia.
+        // A janela 09:30 é exclusiva do snapshot da Agenda D+1 e não pode
+        // transformar um D-1 ainda válido (09:31–11:59) em fechamento tardio
+        // (spec v2.0 §3/§14 FEV-DATA-09). validateCheckinSubmissionDate já
+        // bloqueia o envio de 'daily' fora da data operacional ativa; esta
+        // checagem é o cinto-e-suspensório contra clock skew do cliente.
+        submitted_late: isDaily && isCheckinLateForReferenceDate(finalDate, submittedAt),
+        submission_status:
+            isDaily && isCheckinLateForReferenceDate(finalDate, submittedAt) ? 'late' : 'on_time',
         edit_locked_at: isDaily ? getCheckinEditLockedAt(submittedAt) : null,
         // leads_prev_day = canal Carteira (nome de coluna legado, implícito);
         // leads_net_prev_day = canal Internet. Não usar formData.leads (soma

@@ -6,26 +6,43 @@
 --
 -- A função roda depois do trigger canônico legado (prefixo zz_) para impedir
 -- que o timestamp real do dispositivo reintroduza a antiga regra 09:30.
+--
+-- Atraso real (FEV-DATA-09) é avaliado contra o prazo de 12:00 de
+-- reference_date + 1 dia (America/Sao_Paulo) — não contra o relógio de hoje.
+-- Não força "on_time" incondicional: isso apagaria a detecção de atraso que
+-- o Módulo Gerencial (spec §10.2/§12.4) depende para penalização de
+-- Disciplina. Os campos de penalização só são zerados quando o envio é
+-- realmente no prazo; quando tardio, ficam para a regra de penalização
+-- (MX-22.5) aplicar/registrar, não são apagados aqui.
 CREATE OR REPLACE FUNCTION public.normalize_daily_closing_window()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $function$
+DECLARE
+  deadline timestamptz;
+  is_late boolean;
 BEGIN
   -- A aprovação de uma regularização histórica é a única transição para
   -- daily que pode preservar atraso/penalização e a auditoria correspondente.
   IF NEW.metric_scope = 'daily'::public.checkin_scope
      AND NOT (TG_OP = 'UPDATE' AND OLD.metric_scope = 'historical'::public.checkin_scope) THEN
     IF coalesce(NEW.submission_status, 'draft') <> 'draft' THEN
-      NEW.submission_status := 'on_time';
-      NEW.submitted_late := false;
-      NEW.finalizado_apos_prazo := false;
-      NEW.penalizacao_atraso_aplicada := false;
-      NEW.percentual_penalizacao_atraso := 0;
-      NEW.fechamento_liberado := false;
-      NEW.liberado_por_id := NULL;
-      NEW.liberado_por_nome := NULL;
-      NEW.data_hora_liberacao := NULL;
-      NEW.pontuacao_disciplina_final := coalesce(NEW.pontuacao_disciplina_base, 0);
+      deadline := ((NEW.reference_date + INTERVAL '1 day') AT TIME ZONE 'America/Sao_Paulo') + INTERVAL '12 hours';
+      is_late := NEW.submitted_at > deadline;
+
+      NEW.submission_status := CASE WHEN is_late THEN 'late' ELSE 'on_time' END;
+      NEW.submitted_late := is_late;
+
+      IF NOT is_late THEN
+        NEW.finalizado_apos_prazo := false;
+        NEW.penalizacao_atraso_aplicada := false;
+        NEW.percentual_penalizacao_atraso := 0;
+        NEW.fechamento_liberado := false;
+        NEW.liberado_por_id := NULL;
+        NEW.liberado_por_nome := NULL;
+        NEW.data_hora_liberacao := NULL;
+        NEW.pontuacao_disciplina_final := coalesce(NEW.pontuacao_disciplina_base, 0);
+      END IF;
     END IF;
   END IF;
 

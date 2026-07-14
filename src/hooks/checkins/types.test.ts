@@ -20,3 +20,38 @@ describe('validateCheckinSubmissionDate', () => {
     )
   })
 })
+
+describe('isCheckinLateForReferenceDate', () => {
+  // America/Sao_Paulo é UTC-3 o ano todo (sem horário de verão): 12:00 SP = 15:00 UTC.
+  test('11:59 SP de reference_date + 1 dia ainda é no prazo', async () => {
+    const { isCheckinLateForReferenceDate } = await import('./types.ts?cb=4')
+    const submittedAt = new Date('2026-07-10T14:59:00.000Z')
+    expect(isCheckinLateForReferenceDate('2026-07-09', submittedAt)).toBe(false)
+  })
+
+  test('exatamente 12:00 SP de reference_date + 1 dia ainda é no prazo', async () => {
+    const { isCheckinLateForReferenceDate } = await import('./types.ts?cb=5')
+    const submittedAt = new Date('2026-07-10T15:00:00.000Z')
+    expect(isCheckinLateForReferenceDate('2026-07-09', submittedAt)).toBe(false)
+  })
+
+  test('12:01 SP de reference_date + 1 dia já é tardio', async () => {
+    const { isCheckinLateForReferenceDate } = await import('./types.ts?cb=6')
+    const submittedAt = new Date('2026-07-10T15:01:00.000Z')
+    expect(isCheckinLateForReferenceDate('2026-07-09', submittedAt)).toBe(true)
+  })
+
+  test('09:31 SP do próprio reference_date não é tardio (09:30 é só o snapshot da Agenda D+1)', async () => {
+    const { isCheckinLateForReferenceDate } = await import('./types.ts?cb=7')
+    const submittedAt = new Date('2026-07-09T12:31:00.000Z')
+    expect(isCheckinLateForReferenceDate('2026-07-09', submittedAt)).toBe(false)
+  })
+
+  test('atravessa virada de mês corretamente (31/07 + 1 dia = 01/08)', async () => {
+    const { isCheckinLateForReferenceDate } = await import('./types.ts?cb=8')
+    const onTime = new Date('2026-08-01T14:59:00.000Z')
+    const late = new Date('2026-08-01T15:01:00.000Z')
+    expect(isCheckinLateForReferenceDate('2026-07-31', onTime)).toBe(false)
+    expect(isCheckinLateForReferenceDate('2026-07-31', late)).toBe(true)
+  })
+})
