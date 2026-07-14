@@ -2,6 +2,7 @@
 
 ## Commit
 
+`b6d9179b6226b84415178fae44504cdede14448f` (correção do modal) +
 `a8f8776c6a3445de77eb72f609f19e42d1313827` (código) +
 `ec02323d4d5d647201b115072fd5423096e952b7` (relatório/evidências) — publicados em `main`
 
@@ -45,6 +46,7 @@ Implementado e verificado nesta branch:
 - Base44 autenticado recapturado com conteúdo carregado nas dez rotas e nos três viewports mínimos; capturas `06-*` e diffs Base44×MX versionados.
 - deploy automático Vercel concluído para o commit publicado; as dez rotas canônicas responderam HTTP 200 em produção;
 - `/gerente/rotina-equipe` validada no Chrome real pós-deploy, com conteúdo autenticado, sem erros JS/4xx/5xx e requests Supabase HTTP 200 escopadas por `store_id`; dois warnings runtime permanecem registrados abaixo.
+- modal de perfil da Minha Equipe protegido contra clipping pelo sidebar, com overlay/conteúdo em camadas superiores, altura responsiva e um único botão de fechar; teste unitário `2/2` e guarda E2E adicionados.
 
 O módulo não está aprovado porque ainda não houve fixture/staging autorizada para mutações críticas, auditoria RLS cross-store completa e decisão definitiva do Ranking.
 
@@ -85,6 +87,7 @@ O sidebar escuro MX foi preservado; `CalendarClock` e `BrainCircuit` permanecem 
 - Filtros do Ranking agora possuem `id/name`; o reload no Chrome real eliminou o issue de acessibilidade de campos sem identificação.
 - Meta da Loja e Início agora reutilizam o mesmo adaptador de linhas de fechamento e predicado de dia operacional; Fechamento Diário sanitiza campos inválidos antes das somas e calcula a necessidade sem arredondamento prematuro.
 - E2E recebeu gate explícito para console e responses/request failures.
+- `ManagerSellerProfileModal` deixou de ficar em `z-50` abaixo do sidebar `z-[80]`; o perfil usa overlay `z-[110]`, conteúdo `z-[120]`, limite de altura por viewport e desativa o close padrão duplicado.
 
 ## Segurança e RLS
 
@@ -121,18 +124,18 @@ Os diffs P0 foram gerados com ImageMagick. O diff carregado Base44×MX está em 
 
 ## CI
 
-O push para `main` foi realizado. No commit `a8f8776c`, Gitleaks, ESLint a11y e
-Atomic Design passaram; o job `Typecheck and unit tests` estava em execução no
-momento deste registro e deve ser confirmado no GitHub antes do merge seguinte.
+O push para `main` foi realizado no commit `b6d9179b`. Gitleaks, ESLint a11y,
+Atomic Design e Typecheck/unit tests passaram; os gates locais de lint, typecheck,
+suíte completa e build também passaram.
 
 ## Deploy
 
 Deploy automático Vercel concluído com status `success` para o commit
-`ec02323d` (`Deployment has completed`). Produção validada em modo somente
+`b6d9179b` (`Deployment has completed`). Produção validada em modo somente
 leitura: dez rotas canônicas HTTP 200; rota `/gerente/rotina-equipe` autenticada
 no Chrome real, sem erros JS/4xx/5xx e requests de dados HTTP 200; os dois
 warnings runtime descritos em Console e network permanecem pendentes. Evidência:
-`https://vercel.com/synvolt/mxperformance/3cGSqPs8JouVKfhBFfMiJavex5qZ`.
+`https://vercel.com/synvolt/mxperformance/5a5fHSGT1q1uyJZivucj5xnPdyKt`.
 
 ## Pendências críticas
 
