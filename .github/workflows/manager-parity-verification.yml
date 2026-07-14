@@ -1,0 +1,56 @@
+name: Manager Parity Verification
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/features/manager/daily-closing/**'
+      - 'src/components/organisms/Modal.tsx'
+      - 'src/test/manager-daily-closing-parity.playwright.ts'
+      - 'scripts/lint-tokens-ast.mjs'
+      - '.github/workflows/manager-parity-verification.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: https://example.supabase.co
+      VITE_SUPABASE_ANON_KEY: test-anon-key
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.14'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+      - name: Run verification and preserve complete logs
+        id: verify
+        shell: bash
+        run: |
+          mkdir -p verification-logs
+          set +e
+          npm run typecheck > verification-logs/typecheck.log 2>&1
+          TYPECHECK=$?
+          npm test > verification-logs/unit-tests.log 2>&1
+          TESTS=$?
+          npm run lint:tokens > verification-logs/lint-tokens.log 2>&1
+          TOKENS=$?
+          npm run lint > verification-logs/lint.log 2>&1
+          LINT=$?
+          npm run build > verification-logs/build.log 2>&1
+          BUILD=$?
+          printf 'typecheck=%s\nunit_tests=%s\nlint_tokens=%s\nlint=%s\nbuild=%s\n' "$TYPECHECK" "$TESTS" "$TOKENS" "$LINT" "$BUILD" | tee verification-logs/summary.txt
+          if [ "$TYPECHECK" -ne 0 ] || [ "$TESTS" -ne 0 ] || [ "$TOKENS" -ne 0 ] || [ "$LINT" -ne 0 ] || [ "$BUILD" -ne 0 ]; then
+            exit 1
+          fi
+      - name: Upload complete verification logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: manager-parity-verification-logs
+          path: verification-logs/
+          retention-days: 7
