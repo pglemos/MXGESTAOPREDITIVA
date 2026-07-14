@@ -13,4 +13,15 @@ describe('manager sales realtime migration', () => {
     expect(sql).toContain("tablename = 'lancamentos_diarios'")
     expect(sql).toContain('ALTER PUBLICATION supabase_realtime ADD TABLE public.lancamentos_diarios')
   })
+
+  it('adds official commercial events to Supabase Realtime in a later migration', () => {
+    const sql = readFileSync(
+      'supabase/migrations/20260714213501_manager_sales_official_realtime_sync.sql',
+      'utf8',
+    )
+
+    expect(sql).toContain("to_regclass('public.eventos_comerciais')")
+    expect(sql).toContain("tablename = 'eventos_comerciais'")
+    expect(sql).toContain('ALTER PUBLICATION supabase_realtime ADD TABLE public.eventos_comerciais')
+  })
 })

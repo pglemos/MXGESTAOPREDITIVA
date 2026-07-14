@@ -8,6 +8,7 @@ import { useStoreGoal } from '@/hooks/useGoals'
 import { useOperationalSettings } from '@/hooks/useOperationalSettings'
 import { useStoreSales } from '@/hooks/useStoreSales'
 import { useDRE } from '@/hooks/useDRE'
+import { useOfficialSellerPerformance } from '@/hooks/useOfficialSellerPerformance'
 import { somarVendas, calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 import { buildStoreSalesRules } from '@/lib/storeSalesRules'
 import { getManagerCalendarDate, getManagerMonthRange } from '@/features/manager/home/manager-home-parity'
@@ -107,6 +108,18 @@ export function useDashboardLojaData({
     managerMonthRange.start,
     managerMonthRange.end,
   )
+  const officialPerformance = useOfficialSellerPerformance(
+    queryStartDate,
+    queryEndDate,
+    null,
+    selectedStoreId,
+  )
+  const officialMonthlyPerformance = useOfficialSellerPerformance(
+    managerMonthRange.start,
+    managerMonthRange.end,
+    null,
+    selectedStoreId,
+  )
 
   const refreshDashboardData = useCallback(async () => {
     if (managerCalendarMode) {
@@ -117,20 +130,31 @@ export function useDashboardLojaData({
         refetchStoreGoal,
         refetchOperationalSettings: fetchSettings,
       })
+      await Promise.all([
+        officialPerformance.refetch(),
+        officialMonthlyPerformance.refetch(),
+      ])
       return
     }
 
-    await Promise.all([refetchCheckins(), refetchSellers()])
+    await Promise.all([
+      refetchCheckins(),
+      refetchSellers(),
+      officialPerformance.refetch(),
+      officialMonthlyPerformance.refetch(),
+    ])
   }, [
     fetchSettings,
     managerCalendarMode,
+    officialMonthlyPerformance.refetch,
+    officialPerformance.refetch,
     refetchCheckins,
     refetchManagerMonthlyCheckins,
     refetchSellers,
     refetchStoreGoal,
   ])
 
-  // Realtime Sync: Escutar alterações na tabela de checkins para esta loja
+  // Realtime Sync: fechamentos e fatos oficiais de venda alimentam a mesma tela.
   useEffect(() => {
     if (!selectedStoreId) return
 
@@ -156,8 +180,28 @@ export function useDashboardLojaData({
           }, 500)
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'eventos_comerciais',
+          filter: `loja_id=eq.${selectedStoreId}`,
+        },
+        () => {
+          if (refetchTimerRef.current) clearTimeout(refetchTimerRef.current)
+          refetchTimerRef.current = setTimeout(() => {
+            void refreshDashboardData()
+              .then(() => {
+                setSyncWarning(null)
+                setLastSyncAt(new Date())
+              })
+              .catch(() => setSyncWarning('Falha ao sincronizar automaticamente. Use Atualizar.'))
+          }, 500)
+        },
+      )
       .subscribe(status => {
-        if (status === 'CHANNEL_ERROR') {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           setSyncWarning('Realtime indisponível. Use Atualizar para confirmar os dados.')
           toast.error('Realtime do dashboard indisponível. Use atualizar para sincronizar.')
         }
@@ -242,6 +286,10 @@ export function useDashboardLojaData({
       checkins,
       ranking: (sellers || []).map(s => {
         const sellerCheckins = checkinsBySeller[s.id] || []
+        const officialRows = managerCalendarMode
+          ? officialPerformance.rows
+          : officialMonthlyPerformance.rows
+        const officialRow = officialRows.find(row => row.seller_user_id === s.id)
         const disciplineValues = sellerCheckins
           .map(checkin => checkin.pontuacao_disciplina_final)
           .filter((value): value is number => typeof value === 'number')
@@ -251,7 +299,9 @@ export function useDashboardLojaData({
           user_name: s.name,
           avatar_url: s.avatar_url,
           is_venda_loja: s.is_venda_loja || false,
-          vnd_total: somarVendas(sellerCheckins),
+          vnd_total: officialRow
+            ? officialRow.vendas_realizadas
+            : somarVendas(sellerCheckins),
           leads: sellerCheckins.reduce((acc, c) => acc + (c.leads_prev_day || 0), 0),
           agd_total: sellerCheckins.reduce(
             (acc, c) => acc + (c.agd_cart_today || 0) + (c.agd_net_today || 0),
@@ -279,7 +329,17 @@ export function useDashboardLojaData({
         metaRules: operationalMetaRules,
       }),
     }
-  }, [checkins, effectiveMonthlyGoal, operationalMetaRules, routineExecutionBySeller, selectedStoreId, sellers])
+  }, [
+    checkins,
+    effectiveMonthlyGoal,
+    managerCalendarMode,
+    officialMonthlyPerformance.rows,
+    officialPerformance.rows,
+    operationalMetaRules,
+    routineExecutionBySeller,
+    selectedStoreId,
+    sellers,
+  ])
 
   const storeSales = useStoreSales(storeSalesParams)
   const { financials, computeDRE: computeDREFn } = useDRE(undefined, selectedStoreId || undefined)
@@ -323,9 +383,11 @@ export function useDashboardLojaData({
     sellers,
     checkins,
     managerMonthlyCheckins,
-    loading: checkinsLoading || sellersLoading || (managerCalendarMode && managerMonthlyLoading),
-    error,
+    loading: checkinsLoading || sellersLoading || officialPerformance.loading || officialMonthlyPerformance.loading || (managerCalendarMode && managerMonthlyLoading),
+    error: error || officialPerformance.error || officialMonthlyPerformance.error,
     managerMonthlyError,
+    officialPerformance: officialPerformance.rows,
+    officialMonthlyPerformance: officialMonthlyPerformance.rows,
     // settings operacionais
     storeGoal,
     refetchStoreGoal,

@@ -64,6 +64,24 @@ describe('ManagerSellerParityHome Base44 parity', () => {
     expect(within(team).getAllByText('1').length).toBeGreaterThan(0)
   })
 
+  it('usa o acumulado oficial de vendas quando os fechamentos diarios estao zerados', () => {
+    renderHome(buildData({
+      sellers: [seller(1), seller(2), seller(3)],
+      checkins: [],
+      managerMonthlyCheckins: [],
+      officialMonthlyPerformance: [
+        { seller_user_id: 'seller-1', vendas_realizadas: 2 },
+        { seller_user_id: 'seller-2', vendas_realizadas: 3 },
+        { seller_user_id: 'seller-3', vendas_realizadas: 1 },
+      ],
+    }))
+
+    const team = screen.getByRole('region', { name: 'Equipe em foco' })
+    expect(within(team).getAllByText('2').length).toBeGreaterThan(0)
+    expect(within(team).getAllByText('3').length).toBeGreaterThan(0)
+    expect(within(team).getAllByText('1').length).toBeGreaterThan(0)
+  })
+
   it('mantém o acesso à equipe completa mesmo quando os cinco vendedores já cabem na tabela', () => {
     renderHome(buildData({
       sellers: Array.from({ length: 5 }, (_, index) => seller(index + 1)),

@@ -81,12 +81,18 @@ export function ManagerSellerParityHome({
   const monthlyCheckins = data.managerMonthlyCheckins.filter(checkin => activeSellerIds.has(checkin.seller_user_id))
   const dailyBySeller = groupCheckinsBySeller(dailyCheckins)
   const monthlyBySeller = groupCheckinsBySeller(monthlyCheckins)
+  const officialMonthlySalesBySeller = new Map(
+    (data.officialMonthlyPerformance || []).map(row => [row.seller_user_id, row.vendas_realizadas]),
+  )
 
   const appointmentsToday = sumAppointments(dailyCheckins)
   const projectionMode = data.operationalMetaRules?.projection_mode || 'calendar'
   const monthDays = getDiasInfo(data.referenceDate, projectionMode)
   const monthlyGoal = Number(data.effectiveMonthlyGoal || data.metrics.goalValue || 0)
-  const monthlySales = somarVendas(monthlyCheckins)
+  const monthlySales = activeSellers.reduce(
+    (total, seller) => total + (officialMonthlySalesBySeller.get(seller.id) ?? somarVendas(monthlyBySeller.get(seller.id) || [])),
+    0,
+  )
   const monthlyAppointments = sumAppointments(monthlyCheckins)
   const appointmentsPerSale = monthlySales > 0 && monthlyAppointments > 0
     ? monthlyAppointments / monthlySales
@@ -121,7 +127,7 @@ export function ManagerSellerParityHome({
     const sellerMonthlyCheckins = monthlyBySeller.get(seller.id) || []
     const sellerAppointments = sumAppointments(sellerDailyCheckins)
     const sellerForecast = calculateSalesForecast(sellerAppointments, appointmentsPerSale)
-    const sellerMonthlySales = somarVendas(sellerMonthlyCheckins)
+    const sellerMonthlySales = officialMonthlySalesBySeller.get(seller.id) ?? somarVendas(sellerMonthlyCheckins)
     const proportionalGoal = individualGoal && monthDays.total > 0
       ? (individualGoal / monthDays.total) * elapsedBusinessDays
       : 0
