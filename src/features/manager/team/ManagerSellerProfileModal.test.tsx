@@ -52,7 +52,11 @@ describe('ManagerSellerProfileModal Base44 parity', () => {
   test('reproduz cabeçalho, cinco abas e estado de diagnóstico sem fabricar dados', () => {
     renderProfile()
 
-    expect(document.querySelector('[aria-label="Perfil de Álvaro Souza"]')).toBeTruthy()
+    const dialog = document.querySelector('[aria-label="Perfil de Álvaro Souza"]')
+    expect(dialog).toBeTruthy()
+    expect(dialog?.className).toContain('z-[120]')
+    expect(screen.getAllByRole('button', { name: 'Fechar perfil do vendedor' })).toHaveLength(1)
+    expect(screen.queryByRole('button', { name: 'Close' })).toBeNull()
     expect(screen.getByText('Álvaro Souza')).toBeTruthy()
     expect(screen.getByText('Composição do Status')).toBeTruthy()
     expect(screen.getByText('Consistência parcial — aguardando fechamentos oficiais.')).toBeTruthy()

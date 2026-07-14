@@ -29,6 +29,7 @@ const ProfileDialogContent = DialogContent as unknown as ComponentType<{
   role?: string
   'aria-label'?: string
   overlayClassName?: string
+  showClose?: boolean
 }>
 const ProfileDialogTitle = DialogTitle as unknown as ComponentType<{ children?: ReactNode; className?: string }>
 
@@ -77,8 +78,9 @@ export function ManagerSellerProfileModal({
       <ProfileDialogContent
         role="dialog"
         aria-label={`Perfil de ${seller.user_name}`}
-        overlayClassName="bg-black/30 backdrop-blur-[1px]"
-        className="w-[calc(100vw-1rem)] max-w-[1280px] gap-0 overflow-hidden rounded-2xl border-0 bg-white p-0 shadow-2xl sm:w-[calc(100vw-2rem)]"
+        overlayClassName="z-[110] bg-black/30 backdrop-blur-[1px]"
+        showClose={false}
+        className="z-[120] max-h-[calc(100dvh-2rem)] w-[calc(100vw-1rem)] max-w-[1280px] gap-0 overflow-hidden rounded-2xl border-0 bg-white p-0 shadow-2xl sm:max-h-[calc(100dvh-4rem)] sm:w-[calc(100vw-2rem)]"
       >
         <ProfileDialogTitle className="sr-only">Perfil de {seller.user_name}</ProfileDialogTitle>
         <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 sm:px-6">

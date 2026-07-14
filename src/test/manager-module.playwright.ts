@@ -184,6 +184,11 @@ test.describe('Módulo Gerencial canônico', () => {
       const profile = page.getByRole('button', { name: 'Ver perfil completo', exact: true }).first()
       await expect(profile).toBeVisible({ timeout: 20000 })
       await profile.click()
+      const profileDialog = page.getByRole('dialog', { name: /Perfil de /i })
+      await expect(profileDialog).toBeVisible()
+      await expectDialogAboveSidebar(profileDialog)
+      await expectWithinViewport(profileDialog)
+      await expect(profileDialog.getByRole('button', { name: 'Fechar perfil do vendedor' })).toHaveCount(1)
       for (const tab of ['Visão Geral', 'Performance', 'Rotina', 'Feedbacks', 'Treinamentos']) {
         await expect(page.getByRole('tab', { name: tab, exact: true })).toBeVisible()
       }
