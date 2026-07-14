@@ -10,7 +10,7 @@ globalThis.MutationObserver ||= class {
 } as unknown as typeof MutationObserver;
 
 mock.module("@/hooks/useAuth", () => ({
-  useAuth: () => ({ membership: { store: { name: "Matriz" } } }),
+  useAuth: () => ({ membership: null }),
 }));
 
 describe("ClosingDetailsModal", () => {
@@ -23,6 +23,7 @@ describe("ClosingDetailsModal", () => {
       <ClosingDetailsModal
         open
         seller={{ id: "seller-1", name: "Ana Oliveira" }}
+        storeName="Matriz"
         status="Fora do horário"
         checkin={{
           reference_date: "2026-07-14",
