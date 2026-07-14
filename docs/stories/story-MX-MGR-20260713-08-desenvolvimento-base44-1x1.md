@@ -49,5 +49,9 @@ File list:
 - `src/features/manager/development/ManagerDevelopmentDialogs.test.tsx`
 - `src/features/manager/development/ManagerPDIReference.tsx`
 - `src/features/gerente-feedback/hooks/useStoreFeedback.ts`
+- `src/hooks/useFeedbacks.ts`
+- `src/hooks/usePDI_MX.ts`
+- `src/hooks/useStores.ts`
+- `src/features/manager/development/ManagerDevelopmentErrorStates.test.tsx`
 
-Pendências reais: validar criação com dados de teste autorizados e auditoria Supabase, alinhar edição/detalhe com registros equivalentes e concluir diff por pixel dos estados/modal. A story permanece `Em auditoria`.
+Pendências reais: validar criação com dados de teste autorizados e auditoria Supabase, alinhar edição/detalhe com registros equivalentes e concluir diff por pixel dos estados/modal. Hooks e telas agora propagam erros de consulta de feedback, PDI e vendedores; regressão dedicada `3/3`. A story permanece `Em auditoria`.

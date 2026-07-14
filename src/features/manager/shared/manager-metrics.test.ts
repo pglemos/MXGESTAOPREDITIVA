@@ -1,13 +1,14 @@
 import { describe, expect, test } from 'bun:test'
-import { classifyDiscipline, classifyRoutine, getClosingStatus, percent } from './manager-metrics'
+import { classifyAppointmentCoverage, classifyDiscipline, classifyRoutine, getClosingStatus, percent } from './manager-metrics'
 
 describe('manager metrics', () => {
   test('classifica disciplina nas faixas oficiais', () => {
-    expect(classifyDiscipline(49)).toBe('Muito baixa')
+    expect(classifyDiscipline(39)).toBe('Crítica')
+    expect(classifyDiscipline(40)).toBe('Baixa')
     expect(classifyDiscipline(50)).toBe('Baixa')
     expect(classifyDiscipline(70)).toBe('Boa')
-    expect(classifyDiscipline(85)).toBe('Muito boa')
-    expect(classifyDiscipline(95)).toBe('Excelente')
+    expect(classifyDiscipline(89)).toBe('Boa')
+    expect(classifyDiscipline(90)).toBe('Excelente')
   })
 
   test('classifica rotina nas faixas oficiais', () => {
@@ -21,5 +22,15 @@ describe('manager metrics', () => {
   test('regularização pendente prevalece sobre envio', () => {
     expect(getClosingStatus(undefined, true)).toBe('Aguardando aprovação')
     expect(getClosingStatus(undefined, false)).toBe('Pendente')
+  })
+
+  test('classifica cobertura de agendamentos sem fabricar base', () => {
+    expect(classifyAppointmentCoverage(0, 10)).toBe('Ruim')
+    expect(classifyAppointmentCoverage(5, 10)).toBe('Ruim')
+    expect(classifyAppointmentCoverage(6, 10)).toBe('Regular')
+    expect(classifyAppointmentCoverage(10, 10)).toBe('Bom')
+    expect(classifyAppointmentCoverage(15, 10)).toBe('Bom')
+    expect(classifyAppointmentCoverage(16, 10)).toBe('Excelente')
+    expect(classifyAppointmentCoverage(10, null)).toBeNull()
   })
 })

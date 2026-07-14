@@ -11,7 +11,7 @@ export type ManagerTeamFocusItem = {
   sellerId: string
   sellerName: string
   appointmentsToday: number
-  salesForecastToday: number
+  salesForecastToday: number | null
   salesThisMonth: number
   nextCommissionBand: string | null
   missingCarsToNextBand: number | null
@@ -58,7 +58,7 @@ export function getManagerTeamSearch(search: string) {
 }
 
 export function formatSales(value: number | null | undefined) {
-  if (value == null || Number.isNaN(value)) return '0'
+  if (value == null || Number.isNaN(value)) return '—'
   const rounded = Math.round(value * 10) / 10
   if (Number.isInteger(rounded)) return String(rounded)
   return String(rounded).replace('.', ',')
@@ -68,8 +68,9 @@ export function saleSuffix(value: number) {
   return Math.round(value * 10) / 10 === 1 ? 'venda' : 'vendas'
 }
 
-export function calculateSalesForecast(appointmentsToday: number) {
-  return (appointmentsToday || 0) / AGENDAMENTOS_POR_VENDA
+export function calculateSalesForecast(appointmentsToday: number, appointmentsPerSale: number | null = AGENDAMENTOS_POR_VENDA) {
+  if (appointmentsPerSale === null || !Number.isFinite(appointmentsPerSale) || appointmentsPerSale <= 0) return null
+  return (appointmentsToday || 0) / appointmentsPerSale
 }
 
 export function calculateSalesNeededToday(monthlyGoal: number, businessDays: number, salesToday: number): number | null {
@@ -78,9 +79,9 @@ export function calculateSalesNeededToday(monthlyGoal: number, businessDays: num
   return Math.max(Math.ceil(dailyGoal) - (salesToday || 0), 0)
 }
 
-export function calculateAppointmentTarget(salesNeededToday: number | null): number | null {
-  if (salesNeededToday === null) return null
-  return Math.ceil(salesNeededToday * AGENDAMENTOS_POR_VENDA)
+export function calculateAppointmentTarget(salesNeededToday: number | null, appointmentsPerSale: number | null = AGENDAMENTOS_POR_VENDA): number | null {
+  if (salesNeededToday === null || appointmentsPerSale === null || !Number.isFinite(appointmentsPerSale) || appointmentsPerSale <= 0) return null
+  return Math.ceil(salesNeededToday * appointmentsPerSale)
 }
 
 export function calculateAppointmentGap(appointmentsToday: number, appointmentTarget: number | null): number | null {
@@ -88,12 +89,13 @@ export function calculateAppointmentGap(appointmentsToday: number, appointmentTa
   return (appointmentsToday || 0) - appointmentTarget
 }
 
-export function calculateForecastCoverage(salesForecastToday: number, salesNeededToday: number | null): number | null {
-  if (!salesNeededToday || salesNeededToday <= 0) return null
+export function calculateForecastCoverage(salesForecastToday: number | null, salesNeededToday: number | null): number | null {
+  if (salesForecastToday === null || !salesNeededToday || salesNeededToday <= 0) return null
   return (salesForecastToday / salesNeededToday) * 100
 }
 
-export function buildTodayReading(salesForecastToday: number, salesNeededToday: number | null) {
+export function buildTodayReading(salesForecastToday: number | null, salesNeededToday: number | null) {
+  if (salesForecastToday === null) return 'Base estatística insuficiente para projetar vendas.'
   if (salesNeededToday === null) return 'Cadastre a meta da loja para ativar a previsibilidade.'
   if (salesNeededToday === 0) return 'A necessidade de vendas do dia já foi atendida.'
   const difference = Math.round((salesNeededToday - salesForecastToday) * 10) / 10
@@ -105,7 +107,8 @@ export function buildTodayReading(salesForecastToday: number, salesNeededToday: 
   return `A projeção está ${formatSales(excess)} ${excess === 1 ? 'venda' : 'vendas'} acima da necessidade do dia.`
 }
 
-export function buildSuggestedAction(appointmentGap: number | null, salesForecastToday: number, salesNeededToday: number | null) {
+export function buildSuggestedAction(appointmentGap: number | null, salesForecastToday: number | null, salesNeededToday: number | null) {
+  if (salesForecastToday === null) return 'Base estatística insuficiente para projetar vendas; valide os agendamentos e vendas oficiais.'
   if (salesNeededToday === null) return 'Cadastre a meta da loja para ativar a previsibilidade.'
   if (salesNeededToday === 0) return 'Prioridade do gerente: manter a agenda ativa e antecipar o próximo objetivo da loja.'
   if (appointmentGap !== null && appointmentGap < 0) return 'Prioridade do gerente: elevar a agenda do dia e acompanhar negociações com maior chance de fechamento.'
@@ -117,12 +120,12 @@ export function buildSuggestedAction(appointmentGap: number | null, salesForecas
 
 export function calculateSellerFinancialStatus(
   missingCars: number | null,
-  salesForecastToday: number,
+  salesForecastToday: number | null,
   appointmentsToday: number,
   resultPercentage: number | null,
 ): ManagerFinancialStatus {
   if (missingCars !== null) {
-    if (missingCars > 0 && salesForecastToday >= missingCars) {
+    if (missingCars > 0 && salesForecastToday !== null && salesForecastToday >= missingCars) {
       return { status: 'pode_subir', label: 'Pode subir de faixa hoje', className: 'bg-emerald-600 text-white' }
     }
     if (missingCars === 1) {
@@ -152,8 +155,8 @@ export function sortTeamFocus(items: ManagerTeamFocusItem[]) {
     const statusDifference = TEAM_FOCUS_STATUS_ORDER[left.financialStatus.status]
       - TEAM_FOCUS_STATUS_ORDER[right.financialStatus.status]
     if (statusDifference !== 0) return statusDifference
-    if (right.salesForecastToday !== left.salesForecastToday) {
-      return right.salesForecastToday - left.salesForecastToday
+    if ((right.salesForecastToday ?? -Infinity) !== (left.salesForecastToday ?? -Infinity)) {
+      return (right.salesForecastToday ?? -Infinity) - (left.salesForecastToday ?? -Infinity)
     }
     return (left.missingCarsToNextBand ?? 999) - (right.missingCarsToNextBand ?? 999)
   })

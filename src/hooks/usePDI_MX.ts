@@ -560,7 +560,7 @@ export function usePDISessions(storeIdOverride?: string) {
     const { profile, storeId, role, vinculos_loja } = useAuth()
     const ownerStoreIds = role === 'dono' ? vinculos_loja.map(m => m.store_id) : []
 
-    const { data, isLoading: loading, refetch } = useQuery({
+    const { data, isLoading: loading, error: queryError, refetch } = useQuery({
         queryKey: ['pdi-sessions', storeIdOverride || (role === 'dono' ? ownerStoreIds.join(',') : storeId) || 'all', role, profile?.id],
         queryFn: () => fetchPDISessions360({
             profileId: profile?.id,
@@ -576,6 +576,7 @@ export function usePDISessions(storeIdOverride?: string) {
         pdis: data || [],
         sessions: data || [],
         loading,
+        error: queryError instanceof Error ? queryError.message : queryError ? String(queryError) : null,
         refetch,
     }
 }

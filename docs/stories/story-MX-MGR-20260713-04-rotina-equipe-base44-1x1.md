@@ -2,7 +2,7 @@
 
 ## Status
 
-**Ready for Review**
+**Em auditoria**
 
 ## Executor Assignment
 
@@ -61,8 +61,8 @@ quality_gate_tools:
   - [x] Reproduzir textos, cards, tabela, gráfico de 7/15/30 dias e comparativo de rede.
   - [x] Reproduzir modais, foco, Escape, filtros, estados e responsividade desktop/mobile Base44.
 - [ ] 5. Validar e publicar (AC: 11–13)
-  - [x] Executar gates completos e QA AIOX local.
-  - [x] Entregar publicação via `@devops` no `origin/main` e promover o deployment `dpl_AsrVJp9UDcvnEvS9etjmceKbZ8hU` para `https://mxperformance.vercel.app`.
+  - [ ] Executar gates completos e QA AIOX local com E2E autenticado não omitido.
+  - [ ] Entregar publicação via `@devops` no `origin/main` e promover um deployment somente após os gates.
   - [ ] Homologar novamente produção autenticada em desktop, tablet e mobile com console limpo; o canal Chrome não esteve disponível nesta retomada.
 
 ## Dev Notes
@@ -111,6 +111,7 @@ Codex com `aiox-master`/Orion coordenando implementação e QA local.
 - Gates locais: `npm test` (883 pass), `npm run lint` (0 erros, 22 warnings preexistentes), `npm run typecheck`, `npm run build` e `git diff --check`.
 - Produção publicada no commit `225f7b139a8e4f5e54d420eaef82d9c3f1b272cf`, deployment `dpl_AsrVJp9UDcvnEvS9etjmceKbZ8hU`, alias `https://mxperformance.vercel.app`; a entrada `/gerente/rotina-equipe` respondeu `HTTP 200` e entregou `MX PERFORMANCE`/`#root`.
 - Homologação visual autenticada de produção, snapshot preenchido e idempotência/auditoria da cobrança permanecem como gate de QA; nesta retomada o Chrome real estava instalado e rodando, mas o canal de controle não conseguiu anexar ao perfil.
+- 2026-07-14: score oficial ligado às seis fontes canônicas por vendedor/data; série histórica passou a reutilizar o mesmo score; detalhe passou a exibir os seis componentes e denominador. Unit/component `8 pass`, suíte completa `909 pass`, typecheck/lint/build/diff-check verdes. E2E autenticado Chromium `5/5` e mobile-chrome `5/5`; story permanece em auditoria por fixture de mutação, paridade Base44 carregada e homologação final.
 
 ### File List
 

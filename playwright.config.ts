@@ -45,7 +45,7 @@ export default defineConfig({
     {
       name: 'visual-desktop',
       testDir: './e2e/visual',
-      testMatch: /.*\.spec\.ts/,
+      testMatch: /(?<!manager-module)\.spec\.ts$/,
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 1280, height: 720 },
@@ -54,7 +54,7 @@ export default defineConfig({
     {
       name: 'visual-tablet',
       testDir: './e2e/visual',
-      testMatch: /.*\.spec\.ts/,
+      testMatch: /(?<!manager-module)\.spec\.ts$/,
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 768, height: 1024 },
@@ -63,10 +63,37 @@ export default defineConfig({
     {
       name: 'visual-mobile',
       testDir: './e2e/visual',
-      testMatch: /.*\.spec\.ts/,
+      testMatch: /(?<!manager-module)\.spec\.ts$/,
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 320, height: 568 },
+      },
+    },
+    {
+      name: 'manager-visual-desktop',
+      testDir: './e2e/visual',
+      testMatch: /manager-module\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1440, height: 900 },
+      },
+    },
+    {
+      name: 'manager-visual-tablet',
+      testDir: './e2e/visual',
+      testMatch: /manager-module\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 768, height: 1024 },
+      },
+    },
+    {
+      name: 'manager-visual-mobile',
+      testDir: './e2e/visual',
+      testMatch: /manager-module\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 390, height: 844 },
       },
     },
   ],

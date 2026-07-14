@@ -1,6 +1,6 @@
 # Epic — reconstrução do Módulo Gerencial com referência Base44
 
-Status: Ready for Review
+Status: Em auditoria
 
 ## Execução vertical aprovada em 2026-07-13
 
@@ -10,12 +10,12 @@ O usuário aprovou que o contrato Base44 vença em design, fórmulas, estados, a
 2. [Rotina do Dia Base44 1:1](../story-MX-MGR-20260713-02-rotina-dia-base44-1x1.md)
 3. [Fechamento Diário Base44 1:1](../story-MX-MGR-20260713-03-fechamento-diario-base44-1x1.md)
 4. [Rotina da Equipe Base44 1:1](../story-MX-MGR-20260713-04-rotina-equipe-base44-1x1.md)
-5. Minha Equipe — story pendente
-6. Meta da Loja — story pendente
-7. Mentor Gerencial — story pendente
-8. Desenvolvimento — story pendente
-9. Ranking — story pendente
-10. Universidade MX — story pendente
+5. [Minha Equipe](../story-MX-MGR-20260713-05-minha-equipe-base44-1x1.md)
+6. [Meta da Loja](../story-MX-MGR-20260713-06-meta-loja-base44-1x1.md)
+7. [Mentor Gerencial](../story-MX-MGR-20260713-07-mentor-gerencial-base44-1x1.md)
+8. [Desenvolvimento](../story-MX-MGR-20260713-08-desenvolvimento-base44-1x1.md)
+9. [Ranking](../story-MX-MGR-20260713-09-ranking-base44-1x1.md)
+10. [Universidade MX](../story-MX-MGR-20260713-10-universidade-mx-base44-1x1.md)
 
 ## Acceptance criteria
 

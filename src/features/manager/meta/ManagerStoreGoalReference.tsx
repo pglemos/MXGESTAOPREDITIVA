@@ -15,7 +15,7 @@ import { getDiasInfo } from '@/lib/calculations'
 import { chartTokens } from '@/lib/charts/tokens'
 import type { useDashboardLojaData } from '@/features/dashboard-loja/hooks/useDashboardLojaData'
 import { ManagerHomeReturnLink } from '@/features/manager/home/ManagerHomeReturnLink'
-import { calculateStoreGoalMetrics, calculateSustainabilityPlan, formatStoreGoalMetric, type StoreGoalClosing } from './manager-store-goal'
+import { buildStoreGoalClosingRows, calculateStoreGoalMetrics, calculateSustainabilityPlan, formatStoreGoalMetric, operationalDayPredicate } from './manager-store-goal'
 
 type DashboardData = ReturnType<typeof useDashboardLojaData>
 type Horizon = 'hoje' | 'semana' | 'dezena' | 'mes'
@@ -73,17 +73,7 @@ export function ManagerStoreGoalReference({ data }: { data: DashboardData }) {
     internet: totals.internet + (checkin.vnd_net_prev_day || 0),
   }), { showroom: 0, carteira: 0, internet: 0 }), [data.checkins])
 
-  const closingRows = useMemo<StoreGoalClosing[]>(() => {
-    const byDate = new Map<string, StoreGoalClosing>()
-    for (const checkin of data.checkins) {
-      const current = byDate.get(checkin.reference_date) || { date: checkin.reference_date, sales: 0, appointments: 0, visits: 0 }
-      current.sales += (checkin.vnd_porta_prev_day || 0) + (checkin.vnd_cart_prev_day || 0) + (checkin.vnd_net_prev_day || 0)
-      current.appointments += (checkin.agd_cart_today || 0) + (checkin.agd_net_today || 0)
-      current.visits += checkin.visit_prev_day || 0
-      byDate.set(checkin.reference_date, current)
-    }
-    return Array.from(byDate.values())
-  }, [data.checkins])
+  const closingRows = useMemo(() => buildStoreGoalClosingRows(data.checkins), [data.checkins])
 
   const operationalStats = useMemo(() => {
     const salesInBase = closingRows.reduce((total, row) => total + row.sales, 0)
@@ -104,7 +94,7 @@ export function ManagerStoreGoalReference({ data }: { data: DashboardData }) {
     closings: closingRows,
     agendaPerSale: operationalStats.agendaPerSale,
     visitsPerSale: operationalStats.visitsPerSale,
-    isOperationalDay: projectionMode === 'calendar' ? () => true : (date) => date.getDay() !== 0,
+    isOperationalDay: operationalDayPredicate(projectionMode),
   }), [activeReferenceDate, closingRows, days.decorridos, days.restantes, days.total, goal, horizon, operationalStats.agendaPerSale, operationalStats.visitsPerSale, projectionMode, sales])
 
   const changeMonth = (value: string) => {
@@ -162,11 +152,11 @@ export function ManagerStoreGoalReference({ data }: { data: DashboardData }) {
                 {sustainabilityPlan.objectiveReached ? <p className="text-sm font-semibold text-emerald-600">Ritmo suficiente</p> : <p className="text-base font-semibold leading-snug text-gray-700">{sustainabilityPlan.ritmoLabel}</p>}
               </SustainabilityBlock>
               <SustainabilityBlock icon={Wrench} label="Necessidade operacional" tone="purple">
-                {sustainabilityPlan.objectiveReached ? <p className="text-sm font-semibold text-emerald-600">Necessidade atendida</p> : <><p className="text-lg font-bold text-gray-800">{sustainabilityPlan.necessidadeOperacional} <span className="text-sm font-medium text-gray-400">{sustainabilityPlan.tipoOperacional}</span></p><p className="mt-1 text-xs text-gray-400">para gerar {sustainabilityPlan.faltam} {sustainabilityPlan.faltam === 1 ? 'venda' : 'vendas'}</p></>}
+                {sustainabilityPlan.objectiveReached ? <p className="text-sm font-semibold text-emerald-600">Necessidade atendida</p> : sustainabilityPlan.necessidadeOperacional === null ? <p className="text-sm font-semibold text-amber-700">Base estatística insuficiente</p> : <><p className="text-lg font-bold text-gray-800">{sustainabilityPlan.necessidadeOperacional} <span className="text-sm font-medium text-gray-400">{sustainabilityPlan.tipoOperacional}</span></p><p className="mt-1 text-xs text-gray-400">para gerar {sustainabilityPlan.faltam} {sustainabilityPlan.faltam === 1 ? 'venda' : 'vendas'}</p></>}
               </SustainabilityBlock>
             </div>
             <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50 p-3"><p className="text-sm font-medium leading-snug text-emerald-700">{sustainabilityPlan.mensagemFoco}</p></div>
-            {!sustainabilityPlan.hasStatisticalBase ? <p className="mt-3 text-xs text-gray-400">Sem histórico suficiente — usando valores de referência padrão.</p> : null}
+            {!sustainabilityPlan.hasStatisticalBase ? <p className="mt-3 text-xs text-gray-400">Sem histórico suficiente — configure uma base oficial de agendamentos ou atendimentos por venda.</p> : null}
           </>}
         </article>
 

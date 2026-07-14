@@ -21,16 +21,46 @@ export type StoreGoalClosing = {
   visits: number
 }
 
+export type StoreGoalClosingSource = {
+  reference_date: string
+  vnd_porta_prev_day?: unknown
+  vnd_cart_prev_day?: unknown
+  vnd_net_prev_day?: unknown
+  agd_cart_today?: unknown
+  agd_net_today?: unknown
+  visit_prev_day?: unknown
+}
+
 export type SustainabilityPlan = {
   horizonte: StoreGoalHorizon
   faltam: number
   ritmo: number
   ritmoLabel: string
-  necessidadeOperacional: number
-  tipoOperacional: 'agendamentos' | 'atendimentos'
+  necessidadeOperacional: number | null
+  tipoOperacional: 'agendamentos' | 'atendimentos' | null
   objectiveReached: boolean
   mensagemFoco: string
   hasStatisticalBase: boolean
+}
+
+function finiteOrZero(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0
+}
+
+export function buildStoreGoalClosingRows(checkins: StoreGoalClosingSource[]): StoreGoalClosing[] {
+  const byDate = new Map<string, StoreGoalClosing>()
+  for (const checkin of checkins) {
+    const current = byDate.get(checkin.reference_date) || { date: checkin.reference_date, sales: 0, appointments: 0, visits: 0 }
+    current.sales += finiteOrZero(checkin.vnd_porta_prev_day) + finiteOrZero(checkin.vnd_cart_prev_day) + finiteOrZero(checkin.vnd_net_prev_day)
+    current.appointments += finiteOrZero(checkin.agd_cart_today) + finiteOrZero(checkin.agd_net_today)
+    current.visits += finiteOrZero(checkin.visit_prev_day)
+    byDate.set(checkin.reference_date, current)
+  }
+  return Array.from(byDate.values())
+}
+
+export function operationalDayPredicate(projectionMode: string | null | undefined): (date: Date) => boolean {
+  return projectionMode === 'calendar' ? () => true : (date) => date.getDay() !== 0
 }
 
 type SustainabilityPlanInput = {
@@ -71,7 +101,7 @@ export function calculateStoreGoalMetrics(
 }
 
 export function formatStoreGoalMetric(value: number): string {
-  if (!Number.isFinite(value)) return '0'
+  if (!Number.isFinite(value)) return '—'
   return value.toLocaleString('pt-BR', { maximumFractionDigits: 1 })
 }
 
@@ -174,15 +204,15 @@ export function calculateSustainabilityPlan({
   const ritmo = operationalDays > 0 ? faltam / operationalDays : 0
   const hasStatisticalBase = (agendaPerSale || 0) > 0 || (visitsPerSale || 0) > 0
   const useAgenda = (agendaPerSale || 0) > 0
-  const factor = useAgenda ? agendaPerSale! : (visitsPerSale || 0) > 0 ? visitsPerSale! : 3
-  const tipoOperacional = useAgenda || !hasStatisticalBase ? 'agendamentos' : 'atendimentos'
+  const factor = useAgenda ? agendaPerSale! : (visitsPerSale || 0) > 0 ? visitsPerSale! : null
+  const tipoOperacional = useAgenda ? 'agendamentos' : (visitsPerSale || 0) > 0 ? 'atendimentos' : null
 
   return {
     horizonte: horizon,
     faltam,
     ritmo,
     ritmoLabel: formatPace(ritmo),
-    necessidadeOperacional: Math.ceil(faltam * factor),
+    necessidadeOperacional: factor === null ? null : Math.ceil(faltam * factor),
     tipoOperacional,
     objectiveReached: faltam <= 0,
     mensagemFoco,

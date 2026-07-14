@@ -25,6 +25,7 @@ import {
 import { ManagerFeedbackModal } from './ManagerFeedbackModal'
 import { buildManagerFeedbackFormData, type ManagerFeedbackDraft } from './manager-feedback-draft'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { ManagerDataErrorState } from './ManagerDataErrorState'
 
 type PeriodFilter = "current" | "previous" | "last30";
 type KindFilter = "all" | "positive" | "development";
@@ -87,6 +88,9 @@ export default function ManagerFeedbackReference() {
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" />
       </div>
     );
+
+  if (vm.error)
+    return <ManagerDataErrorState title="Não foi possível carregar os feedbacks." />
 
   return (
     <div className="space-y-4">

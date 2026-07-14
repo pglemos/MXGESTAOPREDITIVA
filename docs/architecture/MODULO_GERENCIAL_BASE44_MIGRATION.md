@@ -1,16 +1,15 @@
 # Módulo Gerencial — arquitetura de reconstrução Base44 1:1 no MX
 
-> Decisão revisada em 2026-07-13 após aprovação explícita do usuário. Esta revisão
-> substitui a regra anterior que preservava comportamentos ou fórmulas MX quando
-> eles divergiam da referência Base44.
+> Decisão revisada em 2026-07-14. A precedência funcional pertence à especificação
+> textual; Base44 é a referência visual e comportamental quando não houver conflito.
 
 ## Decisão
 
-O código-fonte de `/Users/pedroguilherme/Downloads/mx-gerente.zip` e o comportamento autenticado de `https://mx-gerente.base44.app` formam o contrato normativo do módulo gerencial: composição, conteúdo, cálculos, estados, formulários, modais, gráficos, ações e fluxos devem produzir o mesmo resultado observável.
+O texto da especificação funcional consolidada e do Prompt Mestre V2 forma o contrato normativo para fórmulas, regras, permissões, estados e critérios de aceite. O snapshot externo do ZIP de referência, extraído somente para auditoria conforme o procedimento registrado em `docs/qa/browser-capability-check.md`, e o comportamento autenticado de `https://mx-gerente.base44.app` formam a referência de composição, conteúdo não conflitante, estados visuais, formulários, modais, gráficos, ações e fluxos.
 
-O MX permanece fonte de verdade apenas para a plataforma de execução: React 19, TypeScript, shell, autenticação, capabilities, Supabase, RLS, auditoria e design tokens. As entidades Base44 são implementadas por adaptadores sobre os contratos Supabase existentes; não há segundo router, sidebar, AuthProvider, SDK Base44 nem armazenamento empresarial no navegador.
+O MX permanece fonte de verdade apenas para a plataforma de execução: React 19, TypeScript, shell, autenticação, capabilities, Supabase, RLS, auditoria e design tokens, todos sujeitos à validação dos gates de segurança. As entidades Base44 são implementadas por adaptadores sobre os contratos Supabase existentes; não há segundo router, sidebar, AuthProvider, SDK Base44 nem armazenamento empresarial no navegador.
 
-Quando a implementação MX atual divergir do contrato Base44, o contrato Base44 vence. A única exceção visual autorizada é o sidebar escuro atual, preservado integralmente salvo pelos ícones de Rotina do Dia (`CalendarClock`) e Mentor Gerencial (`BrainCircuit`). Requisitos de segurança, autorização, isolamento por loja e auditoria permanecem inegociáveis e devem ser satisfeitos pelo adaptador sem alterar a experiência observável.
+Quando houver conflito, registrar na matriz, aplicar a especificação textual e criar teste de regressão. Para conflitos visuais/comportamentais sem impacto normativo, Base44 vence. A única exceção visual autorizada é o sidebar escuro atual, preservado integralmente salvo pelos ícones de Rotina do Dia (`CalendarClock`) e Mentor Gerencial (`BrainCircuit`). Requisitos de segurança, autorização, isolamento por loja e auditoria permanecem inegociáveis.
 
 ## Rotas canônicas
 

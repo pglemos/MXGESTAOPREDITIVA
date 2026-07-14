@@ -23,25 +23,22 @@ import {
   type BarRectangleItem,
 } from 'recharts'
 import { useNavigate } from 'react-router-dom'
-import { somarVendas } from '@/lib/calculations'
+import { getDiasInfo, somarVendas } from '@/lib/calculations'
 import { chartTokens } from '@/lib/charts/tokens'
 import { resolveIndividualGoal } from '@/lib/storeSalesRules'
 import {
-  AGENDAMENTOS_POR_VENDA,
   buildSuggestedAction,
   buildTodayReading,
   calculateAppointmentGap,
-  calculateAppointmentTarget,
   calculateForecastCoverage,
   calculateSalesForecast,
-  calculateSalesNeededToday,
   calculateSellerFinancialStatus,
-  countElapsedBusinessDays,
   formatSales,
   saleSuffix,
   sortTeamFocus,
   type ManagerTeamFocusItem,
 } from '@/features/manager/home/manager-home-parity'
+import { buildStoreGoalClosingRows, calculateSustainabilityPlan, operationalDayPredicate } from '@/features/manager/meta/manager-store-goal'
 import type { DailyCheckin, Store } from '@/types/database'
 import type { useDashboardLojaData } from '../hooks/useDashboardLojaData'
 import type { OwnerPerformanceAlert } from './PerformanceAlerts'
@@ -61,8 +58,6 @@ type AppointmentChartItem = {
   fullName: string
   appointments: number
 }
-
-const BUSINESS_DAYS_BASE44 = 22
 
 export function ManagerSellerParityHome({
   data,
@@ -88,16 +83,33 @@ export function ManagerSellerParityHome({
   const monthlyBySeller = groupCheckinsBySeller(monthlyCheckins)
 
   const appointmentsToday = sumAppointments(dailyCheckins)
-  const salesToday = somarVendas(dailyCheckins)
+  const projectionMode = data.operationalMetaRules?.projection_mode || 'calendar'
+  const monthDays = getDiasInfo(data.referenceDate, projectionMode)
   const monthlyGoal = Number(data.effectiveMonthlyGoal || data.metrics.goalValue || 0)
-  const salesForecastToday = calculateSalesForecast(appointmentsToday)
-  const salesNeededToday = calculateSalesNeededToday(monthlyGoal, BUSINESS_DAYS_BASE44, salesToday)
-  const appointmentTarget = calculateAppointmentTarget(salesNeededToday)
+  const monthlySales = somarVendas(monthlyCheckins)
+  const monthlyAppointments = sumAppointments(monthlyCheckins)
+  const appointmentsPerSale = monthlySales > 0 && monthlyAppointments > 0
+    ? monthlyAppointments / monthlySales
+    : null
+  const closingRows = buildStoreGoalClosingRows(monthlyCheckins)
+  const sustainabilityPlan = calculateSustainabilityPlan({
+    horizon: 'hoje',
+    goal: monthlyGoal,
+    realized: monthlySales,
+    referenceDate: data.referenceDate,
+    monthDays: { total: monthDays.total, elapsed: monthDays.decorridos, remaining: monthDays.restantes },
+    closings: closingRows,
+    agendaPerSale: appointmentsPerSale || undefined,
+    isOperationalDay: operationalDayPredicate(projectionMode),
+  })
+  const salesForecastToday = calculateSalesForecast(appointmentsToday, appointmentsPerSale)
+  const salesNeededToday = monthlyGoal > 0 ? sustainabilityPlan.faltam : null
+  const appointmentTarget = monthlyGoal > 0 ? sustainabilityPlan.necessidadeOperacional : null
   const appointmentGap = calculateAppointmentGap(appointmentsToday, appointmentTarget)
   const forecastCoverage = calculateForecastCoverage(salesForecastToday, salesNeededToday)
   const todayReading = buildTodayReading(salesForecastToday, salesNeededToday)
   const suggestedAction = buildSuggestedAction(appointmentGap, salesForecastToday, salesNeededToday)
-  const elapsedBusinessDays = countElapsedBusinessDays(data.referenceDate)
+  const elapsedBusinessDays = monthDays.decorridos
   const individualGoal = resolveIndividualGoal({
     mode: data.operationalMetaRules?.individual_goal_mode,
     storeMonthlyGoal: monthlyGoal,
@@ -108,10 +120,10 @@ export function ManagerSellerParityHome({
     const sellerDailyCheckins = dailyBySeller.get(seller.id) || []
     const sellerMonthlyCheckins = monthlyBySeller.get(seller.id) || []
     const sellerAppointments = sumAppointments(sellerDailyCheckins)
-    const sellerForecast = calculateSalesForecast(sellerAppointments)
+    const sellerForecast = calculateSalesForecast(sellerAppointments, appointmentsPerSale)
     const sellerMonthlySales = somarVendas(sellerMonthlyCheckins)
-    const proportionalGoal = individualGoal && BUSINESS_DAYS_BASE44 > 0
-      ? (individualGoal / BUSINESS_DAYS_BASE44) * elapsedBusinessDays
+    const proportionalGoal = individualGoal && monthDays.total > 0
+      ? (individualGoal / monthDays.total) * elapsedBusinessDays
       : 0
     const resultPercentage = proportionalGoal > 0 ? (sellerMonthlySales / proportionalGoal) * 100 : null
 
@@ -181,7 +193,7 @@ export function ManagerSellerParityHome({
         />
 
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Previsibilidade do dia">
-          <SalesForecastCard salesForecast={salesForecastToday} appointments={appointmentsToday} />
+          <SalesForecastCard salesForecast={salesForecastToday} appointments={appointmentsToday} appointmentsPerSale={appointmentsPerSale} />
           <SalesNeededCard salesNeeded={salesNeededToday} />
           <AppointmentTargetCard appointmentTarget={appointmentTarget} salesNeeded={salesNeededToday} />
           <AppointmentGapCard appointmentGap={appointmentGap} />
@@ -320,7 +332,7 @@ function HeaderAction({ icon: Icon, label, onClick, tone }: {
   )
 }
 
-function SalesForecastCard({ salesForecast, appointments }: { salesForecast: number; appointments: number }) {
+function SalesForecastCard({ salesForecast, appointments, appointmentsPerSale }: { salesForecast: number | null; appointments: number; appointmentsPerSale: number | null }) {
   return (
     <article className="flex min-h-[140px] flex-col justify-between rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-800 p-5 text-white shadow-md">
       <div className="flex items-start justify-between">
@@ -328,14 +340,16 @@ function SalesForecastCard({ salesForecast, appointments }: { salesForecast: num
         <span className="grid h-9 w-9 place-items-center rounded-xl bg-white/20"><TrendingUp size={18} /></span>
       </div>
       <div>
-        <p className="text-3xl font-bold leading-tight">{formatSales(salesForecast)} {saleSuffix(salesForecast)}</p>
+        <p className="text-3xl font-bold leading-tight">{salesForecast === null ? '—' : `${formatSales(salesForecast)} ${saleSuffix(salesForecast)}`}</p>
         <p className="mt-1 text-sm text-emerald-100">
-          {appointments === 0
+          {appointmentsPerSale === null
+            ? 'Base estatística insuficiente para projetar vendas.'
+            : appointments === 0
             ? 'Nenhum agendamento confirmado para hoje.'
             : `${appointments} agendamento${appointments === 1 ? '' : 's'} confirmado${appointments === 1 ? '' : 's'} hoje`}
         </p>
       </div>
-      <p className="mt-2 text-xs text-emerald-200">Regra atual: 1 venda a cada {AGENDAMENTOS_POR_VENDA} agendamentos</p>
+      <p className="mt-2 text-xs text-emerald-200">{appointmentsPerSale === null ? 'Regra oficial indisponível' : `Regra atual: 1 venda a cada ${formatSales(appointmentsPerSale)} agendamentos`}</p>
     </article>
   )
 }
@@ -355,7 +369,7 @@ function SalesNeededCard({ salesNeeded }: { salesNeeded: number | null }) {
         ) : fulfilled ? (
           <><p className="text-3xl font-bold text-emerald-600">0 vendas adicionais</p><p className="mt-1 text-sm text-gray-500">Necessidade do dia atendida</p></>
         ) : (
-          <><p className="text-3xl font-bold text-gray-800">{salesNeeded} vendas</p><p className="mt-1 text-sm text-gray-500">Para sustentar a meta da loja hoje</p></>
+          <><p className="text-3xl font-bold text-gray-800">{salesNeeded} {salesNeeded === 1 ? 'venda' : 'vendas'}</p><p className="mt-1 text-sm text-gray-500">Para sustentar a meta da loja hoje</p></>
         )}
       </div>
     </article>
@@ -417,20 +431,21 @@ function AppointmentGapCard({ appointmentGap }: { appointmentGap: number | null 
 }
 
 function TodayReading({ salesForecast, salesNeeded, coverage, message }: {
-  salesForecast: number
+  salesForecast: number | null
   salesNeeded: number | null
   coverage: number | null
   message: string
 }) {
   const missingGoal = salesNeeded === null
   const fulfilled = salesNeeded === 0
-  const deficit = !missingGoal && !fulfilled && salesForecast < salesNeeded
-  const fill = missingGoal || fulfilled ? 100 : Math.min((salesForecast / salesNeeded) * 100, 100)
+  const missingBase = salesForecast === null
+  const deficit = !missingGoal && !fulfilled && !missingBase && salesForecast < salesNeeded
+  const fill = missingGoal || fulfilled ? 100 : missingBase ? 0 : Math.min((salesForecast / salesNeeded) * 100, 100)
   return (
     <article className="h-full rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
       <h2 className="mb-4 text-sm font-bold text-gray-800">Leitura do Dia</h2>
       <div className="mb-3 flex items-center justify-between">
-        <div><p className="text-xs text-gray-500">Previsão</p><p className="text-xl font-bold text-gray-800">{formatSales(salesForecast)} {saleSuffix(salesForecast)}</p></div>
+        <div><p className="text-xs text-gray-500">Previsão</p><p className="text-xl font-bold text-gray-800">{missingBase ? '—' : `${formatSales(salesForecast)} ${saleSuffix(salesForecast)}`}</p></div>
         <div className="text-right"><p className="text-xs text-gray-500">Necessidade</p><p className="text-xl font-bold text-gray-800">{missingGoal ? '—' : fulfilled ? '0' : `${salesNeeded} vendas`}</p></div>
       </div>
       <div className="relative h-3 overflow-hidden rounded-full bg-gray-100">
@@ -525,7 +540,7 @@ function MobileMetric({ label, value }: { label: string; value: ReactNode }) {
 function FinancialRadar({ team, rulesConfigured }: { team: ManagerTeamFocusItem[]; rulesConfigured: boolean }) {
   const closeToBand = rulesConfigured ? team.filter(seller => (seller.missingCarsToNextBand || 0) > 0 && (seller.missingCarsToNextBand || 0) <= 2).length : 0
   const projectedAward = rulesConfigured ? team.reduce((sum, seller) => sum + (seller.projectedAward || 0), 0) : null
-  const canMoveUp = rulesConfigured ? team.filter(seller => (seller.missingCarsToNextBand || 0) > 0 && seller.salesForecastToday >= (seller.missingCarsToNextBand || 0)).length : 0
+  const canMoveUp = rulesConfigured ? team.filter(seller => (seller.missingCarsToNextBand || 0) > 0 && seller.salesForecastToday !== null && seller.salesForecastToday >= (seller.missingCarsToNextBand || 0)).length : 0
   return (
     <article className="h-full rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
       <h2 className="mb-4 text-sm font-bold text-gray-800">Radar Financeiro da Equipe</h2>

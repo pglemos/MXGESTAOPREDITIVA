@@ -60,6 +60,8 @@ test.describe('Módulo Gerencial canônico', () => {
 
   test('exibe exatamente os dez menus na ordem contratada e abre todas as rotas', async ({ page }) => {
     const expectedLabels = ['Início', 'Rotina do Dia', 'Fechamento Diário', 'Rotina da Equipe', 'Minha Equipe', 'Meta da Loja', 'Mentor Gerencial', 'Desenvolvimento', 'Ranking', 'Universidade MX']
+    const mobileMenu = page.getByRole('button', { name: 'Abrir menu principal' })
+    if (await mobileMenu.isVisible().catch(() => false)) await mobileMenu.click()
     const menu = page.getByRole('navigation', { name: 'Menu principal do Gerente' })
     await expect(menu.getByRole('link')).toHaveText(expectedLabels)
     for (const label of expectedLabels) {
@@ -117,6 +119,37 @@ test.describe('Módulo Gerencial canônico', () => {
         await page.screenshot({ path: `output/playwright/manager-design/final/${route.slug}-${viewport.name}.png`, fullPage: true })
       }
     }
+  })
+
+  test('mantém console e network limpos nas dez rotas', async ({ page }) => {
+    test.setTimeout(120_000)
+    const consoleErrors: string[] = []
+    const failedRequests: string[] = []
+    page.on('console', message => {
+      if (message.type() === 'error') consoleErrors.push(message.text())
+    })
+    page.on('response', response => {
+      if (response.status() < 400) return
+      const url = response.url()
+      if (!/favicon|\.map(?:\?|$)/i.test(url)) failedRequests.push(`${response.status()} ${url}`)
+    })
+    page.on('requestfailed', request => {
+      if (request.failure()?.errorText === 'net::ERR_ABORTED') return
+      failedRequests.push(`FAILED ${request.url()} ${request.failure()?.errorText || ''}`.trim())
+    })
+
+    await page.goto('/home')
+    await expect(page.getByText(routes[0].uniqueText).first()).toBeVisible({ timeout: 20000 })
+    consoleErrors.length = 0
+    failedRequests.length = 0
+
+    for (const route of routes) {
+      await page.goto(route.path)
+      await expect(page.getByText(route.uniqueText).first()).toBeVisible({ timeout: 20000 })
+    }
+
+    expect(consoleErrors, consoleErrors.join('\n')).toEqual([])
+    expect(failedRequests, failedRequests.join('\n')).toEqual([])
   })
 
   test('mantém os fluxos funcionais centrais do contrato gerencial', async ({ page }) => {
@@ -183,7 +216,10 @@ test.describe('Módulo Gerencial canônico', () => {
     await expectDialogAboveSidebar(feedbackDialog)
     await expect(feedbackDialog).toHaveCSS('opacity', '1')
     const feedbackPanel = feedbackDialog.locator(':scope > div').first()
-    await expect.poll(async () => (await feedbackPanel.boundingBox())?.width || 0).toBeGreaterThanOrEqual(640)
+    if ((page.viewportSize()?.width || 0) >= 640) {
+      await expect.poll(async () => (await feedbackPanel.boundingBox())?.width || 0).toBeGreaterThanOrEqual(640)
+    }
+    await expectWithinViewport(feedbackPanel)
     await page.screenshot({ path: 'output/playwright/manager-parity-20260712-fresh/local-desenvolvimento-v3-feedback-modal.png', fullPage: true })
     await page.keyboard.press('Escape')
 

@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePDISessions, type PDISessionSummary } from "@/hooks/usePDI_MX";
 import { useSellersByStore } from "@/hooks/useStores";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { ManagerDataErrorState } from './ManagerDataErrorState'
 
 type InternalTab = "mine" | "team";
 type StatusFilter = "all" | "none" | "active" | "overdue" | "completed";
@@ -25,8 +26,8 @@ const FIELD_CLASS =
 export default function ManagerPDIReference() {
   const navigate = useNavigate();
   const { profile, storeId } = useAuth();
-  const { pdis, loading, refetch } = usePDISessions();
-  const { sellers, loading: sellersLoading } = useSellersByStore(storeId);
+  const { pdis, loading, error, refetch } = usePDISessions();
+  const { sellers, loading: sellersLoading, error: sellersError } = useSellersByStore(storeId);
   const [tab, setTab] = useState<InternalTab>("team");
   const [sellerId, setSellerId] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -86,6 +87,12 @@ export default function ManagerPDIReference() {
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" />
       </div>
     );
+
+  if (sellersError)
+    return <ManagerDataErrorState title="Não foi possível carregar os vendedores." />
+
+  if (error)
+    return <ManagerDataErrorState title="Não foi possível carregar os PDIs." />
 
   return (
     <div className="space-y-4">

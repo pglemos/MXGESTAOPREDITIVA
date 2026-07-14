@@ -23,12 +23,14 @@ export function useStoreFeedback() {
   const {
     devolutivas,
     loading: devolutivasLoading,
+    error: devolutivasError,
     createFeedback,
     refetch: refetchFeedbacks,
   } = useFeedbacks()
   const {
     reports,
     loading: reportsLoading,
+    error: reportsError,
     refetch: refetchReports,
   } = useWeeklyFeedbackReports()
   const { sellers } = useTeam()
@@ -204,6 +206,7 @@ export function useStoreFeedback() {
 
   return {
     isLoading: devolutivasLoading || reportsLoading,
+    error: devolutivasError || reportsError || null,
     reports,
     sellers,
     activeTab,

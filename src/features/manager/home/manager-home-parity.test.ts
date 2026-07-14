@@ -64,6 +64,7 @@ describe('manager home Base44 parity', () => {
     expect(calculateSalesForecast(0)).toBe(0)
     expect(calculateSalesForecast(4)).toBeCloseTo(1.3333333333)
     expect(formatSales(calculateSalesForecast(4))).toBe('1,3')
+    expect(calculateSalesForecast(4, null)).toBeNull()
     expect(saleSuffix(1)).toBe('venda')
     expect(saleSuffix(1.3)).toBe('vendas')
   })
@@ -79,6 +80,7 @@ describe('manager home Base44 parity', () => {
   test('deriva meta, gap e cobertura pelos mesmos limites Base44', () => {
     expect(calculateAppointmentTarget(null)).toBeNull()
     expect(calculateAppointmentTarget(2)).toBe(6)
+    expect(calculateAppointmentTarget(2, null)).toBeNull()
     expect(calculateAppointmentGap(0, null)).toBeNull()
     expect(calculateAppointmentGap(4, 6)).toBe(-2)
     expect(calculateForecastCoverage(1, null)).toBeNull()
@@ -87,6 +89,7 @@ describe('manager home Base44 parity', () => {
   })
 
   test('reproduz todas as mensagens da Leitura do Dia', () => {
+    expect(buildTodayReading(null, 2)).toBe('Base estatística insuficiente para projetar vendas.')
     expect(buildTodayReading(0, null)).toBe('Cadastre a meta da loja para ativar a previsibilidade.')
     expect(buildTodayReading(0, 0)).toBe('A necessidade de vendas do dia já foi atendida.')
     expect(buildTodayReading(0, 2)).toBe('A projeção ainda está 2 vendas abaixo do necessário.')
@@ -96,6 +99,7 @@ describe('manager home Base44 parity', () => {
   })
 
   test('reproduz todas as ramificações da Ação sugerida', () => {
+    expect(buildSuggestedAction(null, null, 2)).toContain('Base estatística insuficiente')
     expect(buildSuggestedAction(null, 0, null)).toBe('Cadastre a meta da loja para ativar a previsibilidade.')
     expect(buildSuggestedAction(0, 0, 0)).toBe('Prioridade do gerente: manter a agenda ativa e antecipar o próximo objetivo da loja.')
     expect(buildSuggestedAction(-1, 1, 2)).toBe('Prioridade do gerente: elevar a agenda do dia e acompanhar negociações com maior chance de fechamento.')

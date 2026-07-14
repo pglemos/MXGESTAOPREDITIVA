@@ -2,6 +2,8 @@ import type { CheckinWithTotals } from '@/types/database'
 
 export type ManagerClosingStatus = 'Finalizado' | 'Pendente' | 'Fora do horário' | 'Aguardando aprovação'
 
+export type AppointmentCoverageLabel = 'Ruim' | 'Regular' | 'Bom' | 'Excelente'
+
 export function getClosingStatus(checkin: CheckinWithTotals | undefined, pendingRegularization = false): ManagerClosingStatus {
   if (pendingRegularization) return 'Aguardando aprovação'
   if (!checkin) return 'Pendente'
@@ -10,11 +12,27 @@ export function getClosingStatus(checkin: CheckinWithTotals | undefined, pending
 }
 
 export function classifyDiscipline(value: number) {
-  if (value >= 95) return 'Excelente'
-  if (value >= 85) return 'Muito boa'
+  if (value >= 90) return 'Excelente'
   if (value >= 70) return 'Boa'
-  if (value >= 50) return 'Baixa'
-  return 'Muito baixa'
+  if (value >= 40) return 'Baixa'
+  return 'Crítica'
+}
+
+/** Classificação oficial da cobertura de agendamentos do dia. */
+export function classifyAppointmentCoverage(
+  actual: number | null | undefined,
+  required: number | null | undefined,
+): AppointmentCoverageLabel | null {
+  if (
+    actual === null || actual === undefined || !Number.isFinite(actual) ||
+    required === null || required === undefined || !Number.isFinite(required) || required <= 0
+  ) return null
+
+  const coverage = (actual / required) * 100
+  if (coverage <= 50) return 'Ruim'
+  if (coverage < 100) return 'Regular'
+  if (coverage <= 150) return 'Bom'
+  return 'Excelente'
 }
 
 export function classifyRoutine(value: number) {

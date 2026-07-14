@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { isAdministradorMx, isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { calculateReferenceDate } from '@/hooks/useCheckins'
 import { isLancamentosViaRpcEnabled } from '@/lib/feature-flags'
+import { getSafeUserFacingDataError } from '@/lib/errors/user-facing-error'
 import type { User, Store, StorePartner } from '@/types/database'
 import { isStoreTeamRole } from './team/types'
 
@@ -395,15 +396,18 @@ export function useStoresStats() {
 export function useSellersByStore(storeId: string | null) {
   const [sellers, setSellers] = useState<(User & { checkin_today: boolean })[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const referenceDate = calculateReferenceDate()
 
   const fetch = useCallback(async () => {
     if (!storeId) {
       setSellers([])
+      setError(null)
       setLoading(false)
       return
     }
     setLoading(true)
+    setError(null)
     const [sellersRes, membershipsRes] = await Promise.all([
       supabase
         .from('vendedores_loja')
@@ -426,12 +430,14 @@ export function useSellersByStore(storeId: string | null) {
     if (sellersError) {
       console.error('Audit Error [useSellersByStore]: sellers fail ->', sellersError.message)
       setSellers([])
+      setError(getSafeUserFacingDataError(sellersError, 'Não foi possível carregar os vendedores.'))
       setLoading(false)
       return
     }
     if (membershipsError) {
       console.error('Audit Error [useSellersByStore]: memberships fail ->', membershipsError.message)
       setSellers([])
+      setError(getSafeUserFacingDataError(membershipsError, 'Não foi possível carregar os vendedores.'))
       setLoading(false)
       return
     }
@@ -488,7 +494,7 @@ export function useSellersByStore(storeId: string | null) {
   useEffect(() => {
     fetch()
   }, [fetch])
-  return { sellers, loading, refetch: fetch }
+  return { sellers, loading, error, refetch: fetch }
 }
 
 export function useAllSellers() {

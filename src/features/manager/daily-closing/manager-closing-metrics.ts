@@ -5,6 +5,19 @@ export function averageDiscipline(values: number[]) {
   return values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : null
 }
 
+export function formatClosingMetric(value: number | null | undefined, available: boolean) {
+  if (!available || value === null || value === undefined || !Number.isFinite(value)) return '—'
+  return String(value)
+}
+
+export function numericMetric(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0
+}
+
+export function sumNumericMetrics(...values: unknown[]): number {
+  return values.reduce<number>((sum, value) => sum + numericMetric(value), 0)
+}
+
 export function buildDisciplineTrend(checkins: CheckinWithTotals[], start: string, end: string) {
   return eachDayOfInterval({ start: parseISO(start), end: parseISO(end) }).map(day => {
     const key = format(day, 'yyyy-MM-dd')
@@ -17,12 +30,28 @@ export function buildDisciplineTrend(checkins: CheckinWithTotals[], start: strin
 }
 
 export function buildClosingSummary(checkins: CheckinWithTotals[]) {
-  return checkins.reduce((summary, checkin) => ({
-    showroomVisits: summary.showroomVisits + (checkin.visitas_porta_prev_day || 0),
-    carteiraLeads: summary.carteiraLeads + (checkin.leads_prev_day || 0),
-    carteiraVisits: summary.carteiraVisits + (checkin.visitas_cart_prev_day || 0),
-    internetLeads: summary.internetLeads + (checkin.leads_net_prev_day || 0),
-    internetVisits: summary.internetVisits + (checkin.visitas_net_prev_day || 0),
-    sales: summary.sales + (checkin.vnd_porta_prev_day || 0) + (checkin.vnd_cart_prev_day || 0) + (checkin.vnd_net_prev_day || 0),
-  }), { showroomVisits: 0, carteiraLeads: 0, carteiraVisits: 0, internetLeads: 0, internetVisits: 0, sales: 0 })
+  const sumField = (field: keyof CheckinWithTotals) => {
+    const values = checkins
+      .map((checkin) => checkin[field])
+      .filter((value): value is number => typeof value === 'number' && Number.isFinite(value))
+    return values.length ? values.reduce((sum, value) => sum + value, 0) : null
+  }
+
+  const sumSales = [
+    sumField('vnd_porta_prev_day'),
+    sumField('vnd_cart_prev_day'),
+    sumField('vnd_net_prev_day'),
+  ]
+  const sales = sumSales.some((value) => value !== null)
+    ? sumSales.reduce<number>((sum, value) => sum + (value ?? 0), 0)
+    : null
+
+  return {
+    showroomVisits: sumField('visitas_porta_prev_day'),
+    carteiraLeads: sumField('leads_prev_day'),
+    carteiraVisits: sumField('visitas_cart_prev_day'),
+    internetLeads: sumField('leads_net_prev_day'),
+    internetVisits: sumField('visitas_net_prev_day'),
+    sales,
+  }
 }

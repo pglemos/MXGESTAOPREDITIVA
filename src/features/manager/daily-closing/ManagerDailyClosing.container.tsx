@@ -23,6 +23,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCheckinsByDateRange } from "@/hooks/useCheckins";
 import { useSellersByStore } from "@/hooks/useStores";
 import { useCheckinAuditor } from "@/hooks/useCheckinAuditor";
+import { useStoreMetaRules } from "@/hooks/useGoals";
 import { useNotifications } from "@/hooks/useData";
 import { calculateReferenceDate } from "@/hooks/checkins/types";
 import { Button } from "@/components/atoms/Button";
@@ -33,8 +34,10 @@ import { Card } from "@/components/molecules/Card";
 import { Modal } from "@/components/organisms/Modal";
 import {
   classifyDiscipline,
+  classifyAppointmentCoverage,
   getClosingStatus,
 } from "@/features/manager/shared/manager-metrics";
+import { getDiasInfo } from "@/lib/calculations";
 import { AgendaD1Panel } from "@/features/manager/daily-closing/AgendaD1Panel";
 import { LeadConferenceModal } from "@/features/manager/daily-closing/LeadConferenceModal";
 import { ClosingDetailsModal } from "@/features/manager/daily-closing/ClosingDetailsModal";
@@ -55,6 +58,8 @@ import {
   averageDiscipline,
   buildClosingSummary,
   buildDisciplineTrend,
+  formatClosingMetric,
+  sumNumericMetrics,
 } from "./manager-closing-metrics";
 import {
   CartesianGrid,
@@ -94,6 +99,10 @@ export default function ManagerDailyClosing() {
     subDays(parseISO(date), historyRange - 1),
     "yyyy-MM-dd",
   );
+  const metricHistoryStart = format(
+    subDays(parseISO(date), 29),
+    "yyyy-MM-dd",
+  );
   const {
     sellers,
     loading: sellersLoading,
@@ -107,6 +116,11 @@ export default function ManagerDailyClosing() {
   } = useCheckinsByDateRange(storeId, date, date);
   const { checkins: historyCheckins, refetch: refetchHistory } =
     useCheckinsByDateRange(storeId, historyStart, date);
+  const {
+    checkins: metricHistoryCheckins,
+    refetch: refetchMetricHistory,
+  } = useCheckinsByDateRange(storeId, metricHistoryStart, date);
+  const { metaRules } = useStoreMetaRules(storeId || undefined);
   const auditor = useCheckinAuditor(storeId || undefined);
   const { sendNotification } = useNotifications();
 
@@ -136,10 +150,28 @@ export default function ManagerDailyClosing() {
   const pending = rows.length - submitted;
   const pendingRows = rows.filter((row) => !row.checkin);
   const movementState = getMovementState(rows.length, submitted);
-  const appointments = checkins.reduce(
-    (sum, item) => sum + item.agd_cart_today + item.agd_net_today,
-    0,
-  );
+  const appointments = checkins.length
+    ? checkins.reduce((sum, item) => sum + sumNumericMetrics(item.agd_cart_today, item.agd_net_today), 0)
+    : null;
+  const appointmentNeed = useMemo(() => {
+    const goal = Number(metaRules?.monthly_goal || 0);
+    if (!Number.isFinite(goal) || goal <= 0) return null;
+    const days = getDiasInfo(date, metaRules?.projection_mode || "calendar");
+    if (days.total <= 0) return null;
+    const sales = metricHistoryCheckins.reduce(
+      (sum, item) => sum + sumNumericMetrics(item.vnd_porta_prev_day, item.vnd_cart_prev_day, item.vnd_net_prev_day),
+      0,
+    );
+    if (sales <= 0) return null;
+    const appointmentsInBase = metricHistoryCheckins.reduce(
+      (sum, item) => sum + sumNumericMetrics(item.agd_cart_today, item.agd_net_today),
+      0,
+    );
+    const appointmentsPerSale = appointmentsInBase / sales;
+    if (!Number.isFinite(appointmentsPerSale) || appointmentsPerSale <= 0) return null;
+    return Math.ceil((goal / days.total) * appointmentsPerSale);
+  }, [date, metaRules, metricHistoryCheckins]);
+  const appointmentStatus = classifyAppointmentCoverage(appointments, appointmentNeed);
   const disciplineValues = checkins
     .map((item) => item.pontuacao_disciplina_final)
     .filter((value): value is number => typeof value === "number");
@@ -147,7 +179,7 @@ export default function ManagerDailyClosing() {
     ? Math.round(
         disciplineValues.reduce((a, b) => a + b, 0) / disciplineValues.length,
       )
-    : 0;
+    : null;
   const trend = useMemo(
     () => buildDisciplineTrend(historyCheckins, historyStart, date),
     [historyCheckins, historyStart, date],
@@ -163,6 +195,7 @@ export default function ManagerDailyClosing() {
     await Promise.all([
       refetch(),
       refetchHistory(),
+      refetchMetricHistory(),
       refetchSellers(),
       loadRequests(),
     ]);
@@ -287,13 +320,19 @@ export default function ManagerDailyClosing() {
         >
           <SummaryCard
             title="Agendamentos"
-            value={appointments}
+            value={formatClosingMetric(appointments, appointments !== null)}
             detail="agendamentos gerados hoje"
             icon={CalendarDays}
-            tone="danger"
-            status={
-              appointments === 0 ? "Ruim" : appointments < 2 ? "Atenção" : "Bom"
+            tone={
+              appointmentStatus === "Bom" || appointmentStatus === "Excelente"
+                ? "success"
+                : appointmentStatus === "Regular"
+                  ? "warning"
+                  : appointmentStatus === "Ruim"
+                    ? "danger"
+                    : "neutral"
             }
+            status={appointmentStatus || "—"}
             action="Ver Agenda D+1"
             onAction={() => setAgenda({ open: true })}
           />
@@ -405,15 +444,15 @@ export default function ManagerDailyClosing() {
               label="Showroom"
               icon={Store}
               tone="blue"
-              items={[["Atendimentos", summary.showroomVisits]]}
+                items={[["Atendimentos", formatClosingMetric(summary.showroomVisits, summary.showroomVisits !== null)]]}
             />
             <SummaryGroup
               label="Carteira"
               icon={WalletCards}
               tone="emerald"
               items={[
-                ["Leads", summary.carteiraLeads],
-                ["Atendimentos", summary.carteiraVisits],
+                ["Leads", formatClosingMetric(summary.carteiraLeads, summary.carteiraLeads !== null)],
+                ["Atendimentos", formatClosingMetric(summary.carteiraVisits, summary.carteiraVisits !== null)],
               ]}
             />
             <SummaryGroup
@@ -421,27 +460,27 @@ export default function ManagerDailyClosing() {
               icon={Globe2}
               tone="purple"
               items={[
-                ["Leads", summary.internetLeads],
-                ["Atendimentos", summary.internetVisits],
+                ["Leads", formatClosingMetric(summary.internetLeads, summary.internetLeads !== null)],
+                ["Atendimentos", formatClosingMetric(summary.internetVisits, summary.internetVisits !== null)],
               ]}
             />
             <SummaryGroup
               label="Vendas"
               icon={ShoppingCart}
               tone="emerald"
-              items={[["Total", summary.sales]]}
+              items={[["Total", formatClosingMetric(summary.sales, summary.sales !== null)]]}
             />
             <SummaryGroup
               label="Qualificados"
               icon={UserRoundCheck}
               tone="amber"
-              items={[["Total", 0]]}
+              items={[["Total", "—"]]}
             />
             <SummaryGroup
               label="Garantia"
               icon={ShieldCheck}
               tone="slate"
-              items={[["Total", 0]]}
+              items={[["Total", "—"]]}
             />
           </div>
           <p className="mt-mx-md text-center text-xs text-text-tertiary">
@@ -625,10 +664,10 @@ function SummaryCard({
   onAction,
 }: {
   title: string;
-  value: number;
+  value: number | string;
   detail: string;
   icon: typeof CalendarDays;
-  tone: "warning" | "danger" | "neutral";
+  tone: "warning" | "danger" | "success" | "neutral";
   status: string;
   action: string;
   actionDisabled?: boolean;
@@ -637,10 +676,11 @@ function SummaryCard({
   const colors = {
     warning: "border-amber-200 bg-amber-50 text-amber-600",
     danger: "border-red-200 bg-red-50 text-red-600",
+    success: "border-emerald-200 bg-emerald-50 text-emerald-600",
     neutral: "border-border-subtle bg-white text-text-secondary",
   }[tone];
   const actionColor =
-    tone === "danger"
+    tone === "danger" || tone === "success"
       ? "border-emerald-200 text-emerald-700"
       : tone === "warning"
         ? "border-amber-300 text-amber-700"
@@ -655,7 +695,13 @@ function SummaryCard({
           {title}
         </h2>
         {status !== "—" && (
-          <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
+          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
+            status === "Excelente" || status === "Bom"
+              ? "bg-emerald-100 text-emerald-700"
+              : status === "Regular"
+                ? "bg-amber-100 text-amber-700"
+                : "bg-red-100 text-red-700"
+          }`}>
             {status}
           </span>
         )}
@@ -677,9 +723,9 @@ function SummaryCard({
   );
 }
 
-function DisciplineCard({ value }: { value: number }) {
-  const normalized = Math.max(0, Math.min(100, Math.round(value)));
-  const label = classifyDiscipline(value)
+function DisciplineCard({ value }: { value: number | null }) {
+  const normalized = value === null ? 0 : Math.max(0, Math.min(100, Math.round(value)));
+  const label = value === null ? "Sem dados oficiais" : classifyDiscipline(value)
     .split(" ")
     .map((word) => word.charAt(0).toLocaleUpperCase("pt-BR") + word.slice(1))
     .join(" ");
@@ -704,7 +750,7 @@ function DisciplineCard({ value }: { value: number }) {
           style={{ background: `conic-gradient(rgb(239 68 68) ${normalized * 3.6}deg, white 0deg)` }}
         >
           <div className="grid h-full w-full place-items-center rounded-full bg-red-100">
-            <strong className="text-2xl font-bold text-red-500">{normalized}%</strong>
+            <strong className="text-2xl font-bold text-red-500">{value === null ? "—" : `${normalized}%`}</strong>
           </div>
         </div>
       </div>
@@ -921,7 +967,7 @@ function SummaryGroup({
   label: string;
   icon: typeof Store;
   tone: "blue" | "emerald" | "purple" | "amber" | "slate";
-  items: Array<[string, number]>;
+  items: Array<[string, number | string]>;
 }) {
   const iconTone = {
     blue: "bg-blue-50 text-blue-600",
@@ -971,14 +1017,12 @@ function ClosingRow({
   onOpenDetails: () => void;
 }) {
   const appointments = checkin
-    ? checkin.agd_cart_today + checkin.agd_net_today
-    : 0;
+    ? sumNumericMetrics(checkin.agd_cart_today, checkin.agd_net_today)
+    : null;
   const sales = checkin
-    ? checkin.vnd_porta_prev_day +
-      checkin.vnd_cart_prev_day +
-      checkin.vnd_net_prev_day
-    : 0;
-  const visits = checkin?.visit_prev_day || 0;
+    ? sumNumericMetrics(checkin.vnd_porta_prev_day, checkin.vnd_cart_prev_day, checkin.vnd_net_prev_day)
+    : null;
+  const visits = checkin ? sumNumericMetrics(checkin.visit_prev_day) : null;
   const discipline = checkin?.pontuacao_disciplina_final;
   return (
     <tr>
@@ -1003,18 +1047,18 @@ function ClosingRow({
       </td>
       <NumberCell
         value={
-          checkin ? checkin.leads_prev_day + checkin.leads_net_prev_day : 0
+          checkin ? sumNumericMetrics(checkin.leads_prev_day, checkin.leads_net_prev_day) : null
         }
       />
-      <NumberCell value={0} muted />
+      <NumberCell value="—" muted />
       <td className="px-mx-md py-mx-sm">
         <button
           type="button"
-          className={`rounded-mx-sm px-mx-xs font-black underline decoration-dotted underline-offset-4 hover:bg-surface-alt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mx-action ${appointments === 0 ? "text-status-error" : appointments === 1 ? "text-status-warning" : "text-status-success"}`}
+          className={`rounded-mx-sm px-mx-xs font-black underline decoration-dotted underline-offset-4 hover:bg-surface-alt focus-visible:outline-none focus-visible:ring-2 focus:ring-mx-action ${appointments === null ? "text-text-tertiary" : appointments === 0 ? "text-status-error" : appointments === 1 ? "text-status-warning" : "text-status-success"}`}
           aria-label={`Abrir Agenda D+1 de ${name}`}
           onClick={onOpenAgenda}
         >
-          {appointments}
+          {appointments === null ? "—" : appointments}
         </button>
       </td>
       <NumberCell value={visits} />
@@ -1056,7 +1100,7 @@ function ClosingRow({
   );
 }
 
-function NumberCell({ value, muted }: { value: number; muted?: boolean }) {
+function NumberCell({ value, muted }: { value: number | string | null; muted?: boolean }) {
   return (
     <td
       className={`px-mx-md py-mx-sm font-black ${muted ? "text-text-tertiary" : "text-text-primary"}`}

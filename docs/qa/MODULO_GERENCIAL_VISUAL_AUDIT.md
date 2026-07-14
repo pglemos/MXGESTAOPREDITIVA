@@ -2,6 +2,8 @@
 
 Data: 2026-07-12
 
+> Documento histórico. Os resultados desta captura foram supersedidos pela auditoria de 2026-07-14 em `MODULO_GERENCIAL_FINAL_REPORT.md`; os rótulos `aprovado` abaixo não representam o gate atual do módulo.
+
 ## Evidências MX
 
 Capturas renderizadas com login real de gerente em `output/playwright/manager-design/final/`:
@@ -41,7 +43,7 @@ O Base44 autenticado foi auditado ao vivo para inventário de telas, cards, aç�
 
 - Alias: `https://mxperformance.vercel.app`
 - Deployment funcional: `dpl_46UfPmzj6x84vnjADRtYsKKBRDzL`
-- Login real de gerente e 4/4 testes E2E aprovados após a promoção do alias.
+- Na execução histórica, login real de gerente e 4/4 testes E2E foram registrados após a promoção do alias; a reexecução de 2026-07-14 passou em Chromium `5/5` e mobile-chrome `5/5`. O documento continua histórico e não substitui a matriz final.
 - Nove rotas recapturadas em 1440×900 e 390×844 após reload e conteúdo exclusivo carregado.
 - HTTP 200 nas entradas públicas verificadas e nenhuma exceção JavaScript nas nove telas.
 - Único aviso de console: Sentry sem `VITE_SENTRY_DSN`, configuração de observabilidade independente do módulo gerencial.

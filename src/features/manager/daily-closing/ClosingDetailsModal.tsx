@@ -27,10 +27,10 @@ export function ClosingDetailsModal({
   const discipline = typeof checkin?.pontuacao_disciplina_final === "number"
     ? `${checkin.pontuacao_disciplina_final}%`
     : "—";
-  const appointments = (checkin?.agd_cart_today || 0) + (checkin?.agd_net_today || 0);
-  const sales = (checkin?.vnd_porta_prev_day || 0) + (checkin?.vnd_cart_prev_day || 0) + (checkin?.vnd_net_prev_day || 0);
-  const leads = (checkin?.leads_prev_day || 0) + (checkin?.leads_net_prev_day || 0);
-  const visits = checkin?.visit_prev_day || 0;
+  const appointments = sumMetrics(checkin?.agd_cart_today, checkin?.agd_net_today);
+  const sales = sumMetrics(checkin?.vnd_porta_prev_day, checkin?.vnd_cart_prev_day, checkin?.vnd_net_prev_day);
+  const leads = sumMetrics(checkin?.leads_prev_day, checkin?.leads_net_prev_day);
+  const visits = metric(checkin?.visit_prev_day);
 
   return (
     <Modal
@@ -59,9 +59,9 @@ export function ClosingDetailsModal({
 
         <Section title="Movimento por Canal">
           <div className="space-y-2">
-            <Channel name="Showroom" values={[["Atendimentos", checkin?.visit_prev_day || 0]]} />
-            <Channel name="Carteira" values={[["Leads", checkin?.leads_prev_day || 0], ["Agendamentos", checkin?.agd_cart_today || 0]]} />
-            <Channel name="Internet" values={[["Leads", checkin?.leads_net_prev_day || 0], ["Agendamentos", checkin?.agd_net_today || 0]]} />
+            <Channel name="Showroom" values={[["Atendimentos", metric(checkin?.visit_prev_day)]]} />
+            <Channel name="Carteira" values={[["Leads", metric(checkin?.leads_prev_day)], ["Agendamentos", metric(checkin?.agd_cart_today)]]} />
+            <Channel name="Internet" values={[["Leads", metric(checkin?.leads_net_prev_day)], ["Agendamentos", metric(checkin?.agd_net_today)]]} />
           </div>
         </Section>
 
@@ -86,8 +86,18 @@ function Field({ label, value }: { label: string; value: ReactNode }) {
   return <div className="rounded-xl bg-surface-alt p-2.5"><p className="mb-0.5 text-xs text-text-secondary">{label}</p><div className="text-sm font-medium text-text-primary">{value}</div></div>;
 }
 
-function Channel({ name, values }: { name: string; values: Array<[string, number]> }) {
+function Channel({ name, values }: { name: string; values: Array<[string, number | string]> }) {
   return <div className="rounded-xl bg-surface-alt p-3"><p className="mb-2 text-xs font-semibold text-text-secondary">{name}</p><div className="flex flex-wrap gap-4">{values.map(([label, value]) => <div key={label}><span className="text-xs text-text-secondary">{label}: </span><span className="text-sm font-semibold text-text-primary">{value}</span></div>)}</div></div>;
+}
+
+function metric(value: number | null | undefined): number | string {
+  return typeof value === "number" && Number.isFinite(value) ? value : "—";
+}
+
+function sumMetrics(...values: Array<number | null | undefined>): number | string {
+  return values.every(value => typeof value === "number" && Number.isFinite(value))
+    ? values.reduce<number>((sum, value) => sum + (typeof value === "number" ? value : 0), 0)
+    : "—";
 }
 
 function formatDate(value: string) {

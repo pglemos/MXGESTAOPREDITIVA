@@ -41,9 +41,9 @@ describe('ManagerSellerParityHome Base44 parity', () => {
     const { container } = renderHome(buildData())
 
     expect(screen.getAllByText('1,3 vendas').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('2 vendas').length).toBeGreaterThan(0)
-    expect(screen.getByText('6 agendamentos')).toBeTruthy()
-    expect(screen.getByText('-2')).toBeTruthy()
+    expect(screen.getAllByText('1 venda').length).toBeGreaterThan(0)
+    expect(screen.getByText('3 agendamentos')).toBeTruthy()
+    expect(screen.getByText('+1')).toBeTruthy()
     expect(container.querySelector('input[type="date"]')).toBeNull()
     expect(screen.getByText('13/07/2026')).toBeTruthy()
   })
@@ -107,7 +107,7 @@ function buildData(overrides: Record<string, unknown> = {}) {
     selectedStoreId: 'store-1',
     sellers: [seller(1)],
     checkins: [checkin(1, { appointments: 4 })],
-    managerMonthlyCheckins: [checkin(1, { sales: 1 })],
+    managerMonthlyCheckins: [checkin(1, { sales: 1, appointments: 3 })],
     loading: false,
     error: null,
     managerMonthlyError: null,

@@ -9,6 +9,7 @@ import {
   buildAutonomousFeedbackActionPayload,
   type AutonomousFeedbackPayload,
 } from '@/features/gerente-feedback/lib/autonomous-feedback'
+import { getSafeUserFacingDataError } from '@/lib/errors/user-facing-error'
 
 const FEEDBACK_SELECT = 'id, store_id, manager_id, seller_id, week_reference, leads_week, agd_week, visit_week, vnd_week, tx_lead_agd, tx_agd_visita, tx_visita_vnd, meta_compromisso, team_avg_json, diagnostic_json, commitment_suggested, positives, attention_points, action, caso_motivo, notes, acknowledged, acknowledged_at, seller_comment, seller_comment_at, created_at, seller:usuarios!devolutivas_vendedor_id_fkey(name), manager:usuarios!devolutivas_gerente_id_fkey(name)'
 
@@ -19,7 +20,7 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
   const storeId = role === 'dono' ? requestedStoreId : requestedStoreId || authStoreId
   const ownerStoreIds = role === 'dono' ? vinculos_loja.map(m => m.store_id) : []
 
-  const { data: devolutivas, isLoading: loading, refetch } = useQuery({
+  const { data: devolutivas, isLoading: loading, error: queryError, refetch } = useQuery({
     queryKey: ['devolutivas', requestedStoreId || (role === 'dono' ? ownerStoreIds.join(',') : storeId), role, profile?.id, filters?.sellerId],
     queryFn: async () => {
       if (!profile || (!storeId && !isPerfilInternoMx(role) && role !== 'dono')) return []
@@ -42,7 +43,10 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
       }
 
       const { data, error } = await query.order('created_at', { ascending: false })
-      if (error) throw error
+      if (error) {
+        console.error('Manager feedback query failed', { code: error.code })
+        throw error
+      }
       if (data) {
         return (data as (Record<string, unknown> & { seller?: { name?: string }; manager?: { name?: string } })[]).map((f) => {
           const { seller, manager, ...rest } = f
@@ -204,6 +208,7 @@ export function useFeedbacks(filters?: { storeId?: string; sellerId?: string }) 
   return {
     devolutivas: devolutivas || [],
     loading,
+    error: queryError ? getSafeUserFacingDataError(queryError, 'Não foi possível carregar os feedbacks.') : null,
     createFeedback: (data: FeedbackFormData & { store_id?: string }) => createFeedbackMut.mutateAsync(data),
     createAutonomousFeedback: (feedback: AutonomousFeedbackPayload) => createAutonomousFeedbackMut.mutateAsync(feedback),
     acknowledge: (input: string | { id: string; sellerComment?: string }) => acknowledgeMut.mutateAsync(input),
