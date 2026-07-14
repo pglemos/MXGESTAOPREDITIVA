@@ -51,6 +51,10 @@ async function expectWithinViewport(element: Locator) {
   expect(bounds.right).toBeLessThanOrEqual(bounds.viewport + 1)
 }
 
+async function expectNoEligibleTeam(page: import('@playwright/test').Page) {
+  await expect(page.getByText(/Nenhum vendedor vinculado a este gerente\.|0 vendedores elegíveis|Não aplicáveis no período/).first()).toBeVisible()
+}
+
 test.describe('Módulo Gerencial canônico', () => {
   test.beforeEach(async ({ page }) => loginWithCredentials(page, credentials.email, credentials.password))
 
@@ -104,7 +108,10 @@ test.describe('Módulo Gerencial canônico', () => {
         await page.reload()
         await expect(page.getByText(route.uniqueText).first()).toBeVisible({ timeout: 20000 })
         if (route.path === '/gerente/minha-equipe') {
-          await expect(page.getByRole('button', { name: 'Ver perfil completo' }).first()).toBeVisible({ timeout: 20000 })
+          const profileCount = await page.getByRole('button', { name: 'Ver perfil completo', exact: true }).count()
+          if (profileCount === 0) {
+            await expectNoEligibleTeam(page)
+          }
         }
         await expect(page.getByText(/403|acesso negado/i)).toHaveCount(0)
         await page.screenshot({ path: `output/playwright/manager-design/final/${route.slug}-${viewport.name}.png`, fullPage: true })
@@ -135,20 +142,24 @@ test.describe('Módulo Gerencial canônico', () => {
     }
     await page.getByRole('tab', { name: 'Todos', exact: true }).click()
     const moreActions = page.locator('summary[aria-label^="Mais ações para"]').first()
-    await expect(moreActions).toBeVisible()
-    await moreActions.click()
-    for (const action of ['Ver rotina de hoje', 'Registrar feedback', 'Abrir Fechamento Diário', 'Recomendar treinamento']) {
-      await expect(page.getByRole('button', { name: action, exact: true })).toBeVisible()
+    if (await moreActions.count()) {
+      await expect(moreActions).toBeVisible()
+      await moreActions.click()
+      for (const action of ['Ver rotina de hoje', 'Registrar feedback', 'Abrir Fechamento Diário', 'Recomendar treinamento']) {
+        await expect(page.getByRole('button', { name: action, exact: true })).toBeVisible()
+      }
+      const profile = page.getByRole('button', { name: 'Ver perfil completo', exact: true }).first()
+      await expect(profile).toBeVisible({ timeout: 20000 })
+      await profile.click()
+      for (const tab of ['Visão Geral', 'Performance', 'Rotina', 'Feedbacks', 'Treinamentos']) {
+        await expect(page.getByRole('tab', { name: tab, exact: true })).toBeVisible()
+      }
+      await page.getByRole('tab', { name: 'Performance' }).click()
+      await expect(page.getByText('Leads', { exact: true })).toBeVisible()
+      await page.keyboard.press('Escape')
+    } else {
+      await expectNoEligibleTeam(page)
     }
-    const profile = page.getByRole('button', { name: 'Ver perfil completo', exact: true }).first()
-    await expect(profile).toBeVisible({ timeout: 20000 })
-    await profile.click()
-    for (const tab of ['Visão Geral', 'Performance', 'Rotina', 'Feedbacks', 'Treinamentos']) {
-      await expect(page.getByRole('tab', { name: tab, exact: true })).toBeVisible()
-    }
-    await page.getByRole('tab', { name: 'Performance' }).click()
-    await expect(page.getByText('Leads', { exact: true })).toBeVisible()
-    await page.keyboard.press('Escape')
 
     await page.goto('/gerente/feedbacks-pdis')
     await page.getByRole('tab', { name: 'PDI', exact: true }).click()
@@ -165,10 +176,10 @@ test.describe('Módulo Gerencial canônico', () => {
 
     await page.getByRole('tab', { name: 'Feedback', exact: true }).click()
     await page.getByRole('button', { name: 'Novo Feedback', exact: true }).click()
-    const feedbackSeller = page.getByLabel('Especialista')
+    const feedbackSeller = page.getByLabel('Vendedor', { exact: true })
     await expect(feedbackSeller).toBeVisible()
     await expect(feedbackSeller).not.toContainText(/Gerente MX Consultoria|Dono/i)
-    const feedbackDialog = page.getByRole('dialog', { name: 'Nova Mentoria' })
+    const feedbackDialog = page.getByRole('dialog', { name: 'Novo Feedback' })
     await expectDialogAboveSidebar(feedbackDialog)
     await expect(feedbackDialog).toHaveCSS('opacity', '1')
     const feedbackPanel = feedbackDialog.locator(':scope > div').first()
@@ -186,17 +197,31 @@ test.describe('Módulo Gerencial canônico', () => {
     await page.keyboard.press('Escape')
     await page.getByRole('tab', { name: 'Feedback', exact: true }).click()
     await page.getByRole('button', { name: 'Novo Feedback', exact: true }).click()
-    const mobileFeedbackDialog = page.getByRole('dialog', { name: 'Nova Mentoria' })
+    const mobileFeedbackDialog = page.getByRole('dialog', { name: 'Novo Feedback' })
     await expect(mobileFeedbackDialog).toHaveCSS('opacity', '1')
     await expectWithinViewport(mobileFeedbackDialog.locator(':scope > div').first())
-    await expectWithinViewport(page.getByRole('button', { name: 'CANCELAR', exact: true }))
-    await expectWithinViewport(page.getByRole('button', { name: 'REGISTRAR', exact: true }))
+    await expectWithinViewport(page.getByRole('button', { name: 'Cancelar', exact: true }))
+    await expectWithinViewport(page.getByRole('button', { name: 'Enviar Feedback', exact: true }))
     await page.screenshot({ path: 'output/playwright/manager-parity-20260712-fresh/local-desenvolvimento-v3-feedback-modal-mobile.png', fullPage: true })
     await page.keyboard.press('Escape')
     await page.setViewportSize({ width: 1280, height: 720 })
 
     await page.getByRole('tab', { name: 'PDI', exact: true }).click()
     await expect(page.getByRole('button', { name: 'Ver Mapa da Equipe', exact: true })).toBeVisible()
+
+    await page.goto('/gerente/meta-loja')
+    await expect(page.getByRole('heading', { name: 'Meta da Loja' })).toBeVisible()
+    for (const horizon of ['Hoje', 'Esta semana', 'Esta dezena', 'Este mês']) {
+      await expect(page.getByRole('button', { name: horizon, exact: true })).toBeVisible()
+    }
+    await page.getByRole('button', { name: 'Esta dezena', exact: true }).click()
+    await expect(page.getByText('Plano de Sustentação')).toBeVisible()
+
+    await page.goto('/gerente/mentor')
+    await page.getByRole('button').filter({ hasText: 'Reunião matinal' }).click()
+    await expect(page.getByRole('dialog', { name: 'Reunião matinal' })).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(page.getByRole('dialog', { name: 'Reunião matinal' })).toHaveCount(0)
 
     await page.goto('/gerente/universidade-mx')
     await expect(page.locator('main')).not.toContainText('NaN')

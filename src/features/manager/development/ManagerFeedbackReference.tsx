@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from 'react-router-dom'
 import {
   addDays,
   endOfMonth,
@@ -16,12 +17,14 @@ import {
   TrendingUp,
   X,
 } from "lucide-react";
-import { StoreFeedbackModal } from "@/features/gerente-feedback/modals/StoreFeedbackModal";
 import { useStoreFeedback } from "@/features/gerente-feedback/hooks/useStoreFeedback";
 import {
   getFeedbackSellerName,
   type FeedbackListItem,
 } from "@/features/gerente-feedback/lib/helpers";
+import { ManagerFeedbackModal } from './ManagerFeedbackModal'
+import { buildManagerFeedbackFormData, type ManagerFeedbackDraft } from './manager-feedback-draft'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 type PeriodFilter = "current" | "previous" | "last30";
 type KindFilter = "all" | "positive" | "development";
@@ -31,6 +34,7 @@ const FIELD_CLASS =
 
 export default function ManagerFeedbackReference() {
   const vm = useStoreFeedback();
+  const [params] = useSearchParams()
   const sellers = useMemo(
     () => vm.sellers.filter((seller) => seller.role === "vendedor"),
     [vm.sellers],
@@ -41,6 +45,10 @@ export default function ManagerFeedbackReference() {
   const [competency, setCompetency] = useState("");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [detail, setDetail] = useState<FeedbackListItem | null>(null);
+  const preselectedSeller = useMemo(() => {
+    const requestedName = params.get('novoFeedback')?.trim().toLocaleLowerCase('pt-BR')
+    return requestedName ? sellers.find(seller => seller.name.toLocaleLowerCase('pt-BR') === requestedName)?.id || '' : ''
+  }, [params, sellers])
 
   const competencies = useMemo(
     () =>
@@ -300,16 +308,16 @@ export default function ManagerFeedbackReference() {
         )}
       </section>
 
-      <StoreFeedbackModal
+      <ManagerFeedbackModal
         open={vm.showForm}
         onClose={() => vm.setShowForm(false)}
         saving={vm.saving}
-        formData={vm.formData}
-        setFormData={vm.setFormData}
         sellers={sellers}
-        onSellerSelect={vm.handleSellerSelect}
-        onWeekReferenceChange={vm.handleWeekReferenceChange}
-        onSubmit={vm.handleSubmit}
+        initialDate={format(new Date(), 'yyyy-MM-dd')}
+        preselectedSeller={preselectedSeller}
+        onSubmit={(draft: ManagerFeedbackDraft) => {
+          void vm.handleSubmit(buildManagerFeedbackFormData(draft, vm.formData)).then(saved => { if (saved) vm.setShowForm(false) })
+        }}
       />
       {detail && (
         <FeedbackDetail feedback={detail} onClose={() => setDetail(null)} />
@@ -363,13 +371,24 @@ function Filter({
     </label>
   );
 }
-function FeedbackDetail({
+export function FeedbackDetail({
   feedback,
   onClose,
 }: {
   feedback: FeedbackListItem;
   onClose: () => void;
 }) {
+  const dialogRef = useRef<HTMLElement>(null)
+  useFocusTrap(dialogRef, true)
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
   return (
     <div
       className="fixed inset-0 z-[150] flex items-center justify-center bg-black/30 p-4"
@@ -377,6 +396,7 @@ function FeedbackDetail({
       onMouseDown={onClose}
     >
       <section
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label="Detalhes do Feedback"

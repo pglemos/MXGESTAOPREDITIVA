@@ -124,20 +124,28 @@ export function useStoreFeedback() {
     [calculateStoreSellerMetrics, formData.seller_id],
   )
 
-  const handleSubmit = useCallback(async () => {
-    const validation = validarFeedbackObrigatorio(formData)
+  const handleSubmit = useCallback(async (submittedData: FeedbackFormData = formData) => {
+    const validation = validarFeedbackObrigatorio(submittedData)
     if (!validation.ok) {
       toast.error(validation.message)
-      return
+      return false
     }
     setSaving(true)
-    const { error } = await createFeedback(formData)
-    setSaving(false)
-    if (error) toast.error(error)
-    else {
+    try {
+      const { error } = await createFeedback(submittedData)
+      if (error) {
+        toast.error(error)
+        return false
+      }
       toast.success('Mentoria registrada!')
       setShowForm(false)
       await refetchFeedbacks()
+      return true
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Falha ao salvar mentoria.')
+      return false
+    } finally {
+      setSaving(false)
     }
   }, [createFeedback, formData, refetchFeedbacks])
 

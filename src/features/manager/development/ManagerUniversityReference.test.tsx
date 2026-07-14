@@ -5,9 +5,11 @@ import type { TrainingWithProgress } from '@/hooks/useTrainings'
 import {
   AssignTrainingDialog,
   CatalogTrackDialog,
+  ManagerDevelopmentPanel,
   OfficialTrainingGrid,
   buildTeamRows,
   getSafeTrainingMaterialUrl,
+  TeamTrainingDetailDialog,
 } from './ManagerUniversityReference'
 
 globalThis.getComputedStyle ||= window.getComputedStyle.bind(window)
@@ -150,6 +152,56 @@ describe('OfficialTrainingGrid', () => {
     expect(getSafeTrainingMaterialUrl('javascript:alert(1)')).toBeNull()
     expect(getSafeTrainingMaterialUrl('data:text/html,unsafe')).toBeNull()
     expect(getSafeTrainingMaterialUrl('https://example.com/aula')).toBe('https://example.com/aula')
+  })
+})
+
+describe('ManagerDevelopmentPanel', () => {
+  test('mantém a aba gerencial restrita às trilhas Base44', () => {
+    render(
+      <ManagerDevelopmentPanel
+        progress={0}
+        pending={0}
+        completed={0}
+        catalogTracks={[]}
+        trainings={[]}
+        onSelectCatalogTrack={() => undefined}
+        onMarkWatched={async () => undefined}
+      />,
+    )
+
+    expect(screen.queryByRole('heading', { name: 'Aulas ao Vivo' })).toBeNull()
+  })
+})
+
+describe('TeamTrainingDetailDialog', () => {
+  test('exibe somente progresso e pendências vindos do acompanhamento real', async () => {
+    const onClose = mock()
+    const [member] = buildTeamRows([{
+      seller_id: 'seller-1',
+      seller_name: 'Ana',
+      avatar_url: null,
+      watched: [],
+      total_trainings: 1,
+      percentage: 0,
+      current_gap: 'LEAD_AGD',
+      gap_training_completed: false,
+    }], 1)
+
+    render(
+      <TeamTrainingDetailDialog
+        member={member}
+        allTrainings={[training()]}
+        storeName="Matriz"
+        onClose={onClose}
+      />,
+    )
+
+    expect(screen.getByRole('dialog', { name: 'Detalhes de Ana' })).toBeInTheDocument()
+    expect(screen.getByText('0%')).toBeInTheDocument()
+    expect(screen.getByText('Liderança aplicada')).toBeInTheDocument()
+    expect(screen.getByText('LEAD_AGD')).toBeInTheDocument()
+
+    expect(onClose).not.toHaveBeenCalled()
   })
 })
 

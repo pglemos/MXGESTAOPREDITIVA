@@ -140,7 +140,7 @@ export function DashboardLoja() {
           : <StoreGoalsPanel storeId={selectedStoreId} storeName={data.metrics.storeName} />
       ) : activeTab === 'equipe' ? (
         role === 'gerente'
-          ? <ManagerTeamPerformance data={data} storeName={data.metrics.storeName} />
+          ? <ManagerTeamPerformance data={data} storeName={data.metrics.storeName} selectableStores={selectableStores} onStoreChange={setActiveStoreId} />
           : <StoreTeamPanel storeId={selectedStoreId} storeName={data.metrics.storeName} />
       ) : selectedStoreId ? (
         <PerformanceTab

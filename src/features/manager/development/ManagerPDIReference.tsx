@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   Calendar,
@@ -15,6 +15,7 @@ import { WizardPDI } from "@/features/pdi/WizardPDI";
 import { useAuth } from "@/hooks/useAuth";
 import { usePDISessions, type PDISessionSummary } from "@/hooks/usePDI_MX";
 import { useSellersByStore } from "@/hooks/useStores";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 type InternalTab = "mine" | "team";
 type StatusFilter = "all" | "none" | "active" | "overdue" | "completed";
@@ -380,13 +381,24 @@ function MyManagerPDI({
     </section>
   );
 }
-function TeamCompetencyMap({
+export function TeamCompetencyMap({
   pdis,
   onClose,
 }: {
   pdis: PDISessionSummary[];
   onClose: () => void;
 }) {
+  const dialogRef = useRef<HTMLElement>(null)
+  useFocusTrap(dialogRef, true)
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
   const counts = new Map<string, number>();
   pdis
     .filter((item) => !isCompleted(item.status))
@@ -406,6 +418,7 @@ function TeamCompetencyMap({
       onMouseDown={onClose}
     >
       <section
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label="Mapa da Equipe"

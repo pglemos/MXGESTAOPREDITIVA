@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { format, endOfMonth, parseISO } from 'date-fns'
-import { BarChart3, CalendarDays, RefreshCw, ShoppingCart, Target, TrendingUp } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { Activity, CalendarDays, CheckCircle2, RefreshCw, ShoppingCart, Target, TrendingUp, Wrench, Zap } from 'lucide-react'
 import {
   CartesianGrid,
   Legend,
@@ -12,16 +11,16 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { calcularProjecao, getDiasInfo } from '@/lib/calculations'
+import { getDiasInfo } from '@/lib/calculations'
 import { chartTokens } from '@/lib/charts/tokens'
 import type { useDashboardLojaData } from '@/features/dashboard-loja/hooks/useDashboardLojaData'
 import { ManagerHomeReturnLink } from '@/features/manager/home/ManagerHomeReturnLink'
+import { calculateStoreGoalMetrics, calculateSustainabilityPlan, formatStoreGoalMetric, type StoreGoalClosing } from './manager-store-goal'
 
 type DashboardData = ReturnType<typeof useDashboardLojaData>
-type Horizon = 'hoje' | 'semana' | 'quinzena' | 'mes'
+type Horizon = 'hoje' | 'semana' | 'dezena' | 'mes'
 
 export function ManagerStoreGoalReference({ data }: { data: DashboardData }) {
-  const navigate = useNavigate()
   const [month, setMonth] = useState(data.referenceDate.slice(0, 7))
   const [horizon, setHorizon] = useState<Horizon>('semana')
 
@@ -39,13 +38,13 @@ export function ManagerStoreGoalReference({ data }: { data: DashboardData }) {
   const days = getDiasInfo(activeReferenceDate, projectionMode)
   const goal = data.metrics.goalValue || 0
   const sales = data.metrics.totalSales || 0
-  const gap = Math.max(goal - sales, 0)
+  const { proportionalGoal, gap, paceGap, projection, dailyPace } = calculateStoreGoalMetrics(goal, sales, {
+    elapsed: days.decorridos,
+    total: days.total,
+    remaining: days.restantes,
+  })
   const attainment = goal > 0 ? Math.round((sales / goal) * 100) : 0
-  const proportionalGoal = days.total > 0 ? Math.round((goal / days.total) * days.decorridos) : 0
-  const paceGap = Math.max(proportionalGoal - sales, 0)
-  const projection = calcularProjecao(sales, days.decorridos, days.total)
   const projectedPct = goal > 0 ? Math.round((projection / goal) * 100) : 0
-  const dailyPace = days.restantes > 0 ? gap / days.restantes : 0
 
   const chartData = useMemo(() => {
     const salesByDate = new Map<string, number>()
@@ -74,6 +73,40 @@ export function ManagerStoreGoalReference({ data }: { data: DashboardData }) {
     internet: totals.internet + (checkin.vnd_net_prev_day || 0),
   }), { showroom: 0, carteira: 0, internet: 0 }), [data.checkins])
 
+  const closingRows = useMemo<StoreGoalClosing[]>(() => {
+    const byDate = new Map<string, StoreGoalClosing>()
+    for (const checkin of data.checkins) {
+      const current = byDate.get(checkin.reference_date) || { date: checkin.reference_date, sales: 0, appointments: 0, visits: 0 }
+      current.sales += (checkin.vnd_porta_prev_day || 0) + (checkin.vnd_cart_prev_day || 0) + (checkin.vnd_net_prev_day || 0)
+      current.appointments += (checkin.agd_cart_today || 0) + (checkin.agd_net_today || 0)
+      current.visits += checkin.visit_prev_day || 0
+      byDate.set(checkin.reference_date, current)
+    }
+    return Array.from(byDate.values())
+  }, [data.checkins])
+
+  const operationalStats = useMemo(() => {
+    const salesInBase = closingRows.reduce((total, row) => total + row.sales, 0)
+    const appointmentsInBase = closingRows.reduce((total, row) => total + row.appointments, 0)
+    const visitsInBase = closingRows.reduce((total, row) => total + row.visits, 0)
+    return {
+      agendaPerSale: salesInBase > 0 ? appointmentsInBase / salesInBase : 0,
+      visitsPerSale: salesInBase > 0 ? visitsInBase / salesInBase : 0,
+    }
+  }, [closingRows])
+
+  const sustainabilityPlan = useMemo(() => calculateSustainabilityPlan({
+    horizon,
+    goal,
+    realized: sales,
+    referenceDate: activeReferenceDate,
+    monthDays: { total: days.total, elapsed: days.decorridos, remaining: days.restantes },
+    closings: closingRows,
+    agendaPerSale: operationalStats.agendaPerSale,
+    visitsPerSale: operationalStats.visitsPerSale,
+    isOperationalDay: projectionMode === 'calendar' ? () => true : (date) => date.getDay() !== 0,
+  }), [activeReferenceDate, closingRows, days.decorridos, days.restantes, days.total, goal, horizon, operationalStats.agendaPerSale, operationalStats.visitsPerSale, projectionMode, sales])
+
   const changeMonth = (value: string) => {
     if (!/^\d{4}-\d{2}$/.test(value)) return
     setMonth(value)
@@ -81,13 +114,6 @@ export function ManagerStoreGoalReference({ data }: { data: DashboardData }) {
     data.setStartDate(start)
     data.setEndDate(format(endOfMonth(parseISO(start)), 'yyyy-MM-dd'))
   }
-
-  const planText = {
-    hoje: gap > 0 ? `Converter o gap em uma ação imediata: buscar ${Math.max(1, Math.ceil(dailyPace))} venda(s) no ritmo de hoje.` : 'Proteger o resultado e reconhecer as entregas concluídas hoje.',
-    semana: paceGap > 0 ? `Recuperar ${paceGap} venda(s) para voltar ao ritmo proporcional da meta.` : 'Manter a cadência semanal e acompanhar os vendedores abaixo do ritmo.',
-    quinzena: projection < goal ? `A projeção atual é de ${projection} venda(s). Priorize os canais com conversão real e revisão diária.` : 'A projeção cobre a meta. Preserve disciplina e qualidade da carteira.',
-    mes: gap > 0 ? `Faltam ${gap} venda(s) no mês. O ritmo necessário é ${dailyPace.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} por dia operacional.` : 'Meta mensal atingida. Foque sustentabilidade, margem e consistência da equipe.',
-  }[horizon]
 
   return (
     <section className="min-h-full bg-gray-50" aria-labelledby="manager-store-goal-title">
@@ -111,23 +137,37 @@ export function ManagerStoreGoalReference({ data }: { data: DashboardData }) {
         </header>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <GoalCard icon={Target} label="Progresso da meta" tone="emerald"><strong className="text-2xl text-gray-800">{sales}<span className="text-sm font-medium text-gray-400"> de {goal}</span></strong><Progress value={attainment} /><CardFooter left={`${attainment}%`} right="atingido" /></GoalCard>
-          <GoalCard icon={CalendarDays} label="Meta proporcional até hoje" tone="blue"><strong className="text-2xl text-gray-800">{proportionalGoal}<span className="text-sm font-medium text-gray-400"> vendas</span></strong><p className="mt-2 text-xs text-gray-500">Realizado: <b>{sales}</b></p><p className={`mt-1 text-sm font-bold ${paceGap > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{paceGap > 0 ? `−${paceGap} abaixo do ritmo` : 'Dentro do ritmo'}</p></GoalCard>
-          <GoalCard icon={ShoppingCart} label="Faltam vender" tone="orange"><strong className="text-4xl text-gray-800">{gap}</strong><p className="mt-2 text-xs text-gray-500">vendas para atingir a meta mensal</p></GoalCard>
-          <GoalCard icon={TrendingUp} label="Projeção e ritmo necessário" tone="violet"><strong className="text-3xl text-gray-800">{projection}<span className="text-sm font-medium text-gray-400"> vendas</span></strong><p className="mt-1 text-sm font-bold text-violet-600">{projectedPct}% da meta</p><p className="mt-2 text-xs text-gray-500">Ritmo necessário: <b>{dailyPace.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} por dia</b></p></GoalCard>
+          <GoalCard icon={Target} label="Progresso da meta" tone="emerald">{goal > 0 ? <><strong className="text-2xl text-gray-800">{sales}<span className="text-sm font-medium text-gray-400"> de {goal}</span></strong><Progress value={attainment} /><CardFooter left={`${attainment}%`} right="atingido" /></> : <EmptyGoalState />}</GoalCard>
+          <GoalCard icon={CalendarDays} label="Meta proporcional até hoje" tone="blue">{goal > 0 ? <><strong className="text-2xl text-gray-800">{formatStoreGoalMetric(proportionalGoal)}<span className="text-sm font-medium text-gray-400"> vendas</span></strong><p className="mt-2 text-xs text-gray-500">Realizado: <b>{sales}</b></p><p className={`mt-1 text-sm font-bold ${paceGap > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{paceGap > 0 ? `−${formatStoreGoalMetric(paceGap)} abaixo do ritmo` : 'Dentro do ritmo'}</p></> : <EmptyGoalState />}</GoalCard>
+          <GoalCard icon={ShoppingCart} label="Faltam vender" tone="orange">{goal > 0 ? <><strong className="text-4xl text-gray-800">{gap}</strong><p className="mt-2 text-xs text-gray-500">vendas para atingir a meta mensal</p></> : <EmptyGoalState />}</GoalCard>
+          <GoalCard icon={TrendingUp} label="Projeção e ritmo necessário" tone="violet">{goal > 0 ? <><strong className="text-3xl text-gray-800">{formatStoreGoalMetric(projection)}<span className="text-sm font-medium text-gray-400"> vendas</span></strong><p className="mt-1 text-sm font-bold text-violet-600">{projectedPct}% da meta</p><p className="mt-2 text-xs text-gray-500">Ritmo necessário: <b>{formatStoreGoalMetric(dailyPace)} por dia</b></p></> : <EmptyGoalState />}</GoalCard>
         </div>
 
         <article className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
           <h2 className="font-semibold text-gray-800">Evolução da Meta</h2>
           <div className="mt-4 h-72">
-            {chartData.length ? <ResponsiveContainer width="100%" height="100%"><LineChart data={chartData} margin={{ top: 8, right: 20, left: 0, bottom: 0 }}><CartesianGrid strokeDasharray="3 3" stroke={chartTokens.grid()} /><XAxis dataKey="date" tick={{ fontSize: 11, fill: chartTokens.axisTick() }} /><YAxis allowDecimals={false} tick={{ fontSize: 11, fill: chartTokens.axisTick() }} /><Tooltip /><Legend /><Line type="monotone" dataKey="meta" name="Meta acumulada" stroke={chartTokens.series.s6()} strokeDasharray="4 4" dot={false} /><Line type="monotone" dataKey="realizado" name="Realizado" stroke={chartTokens.success()} strokeWidth={2} /><Line type="monotone" dataKey="projecao" name="Projeção" stroke={chartTokens.series.s7()} strokeDasharray="5 3" dot={false} /></LineChart></ResponsiveContainer> : <div className="grid h-full place-items-center rounded-xl bg-gray-50 text-sm text-gray-500">A evolução aparecerá quando houver lançamentos oficiais no período.</div>}
+            {goal <= 0 ? <div className="grid h-full place-items-center rounded-xl bg-gray-50 text-sm text-gray-500">Meta ainda não cadastrada.</div> : chartData.length ? <ResponsiveContainer width="100%" height="100%"><LineChart data={chartData} margin={{ top: 8, right: 20, left: 0, bottom: 0 }}><CartesianGrid strokeDasharray="3 3" stroke={chartTokens.grid()} /><XAxis dataKey="date" tick={{ fontSize: 11, fill: chartTokens.axisTick() }} /><YAxis allowDecimals={false} tick={{ fontSize: 11, fill: chartTokens.axisTick() }} /><Tooltip /><Legend /><Line type="monotone" dataKey="meta" name="Meta acumulada" stroke={chartTokens.series.s6()} strokeDasharray="4 4" dot={false} /><Line type="monotone" dataKey="realizado" name="Realizado" stroke={chartTokens.success()} strokeWidth={2} /><Line type="monotone" dataKey="projecao" name="Projeção" stroke={chartTokens.series.s7()} strokeDasharray="5 3" dot={false} /></LineChart></ResponsiveContainer> : <div className="grid h-full place-items-center rounded-xl bg-gray-50 text-sm text-gray-500">A evolução aparecerá quando houver lançamentos oficiais no período.</div>}
           </div>
         </article>
 
         <article className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-2"><BarChart3 size={18} className="text-emerald-600" /><h2 className="font-semibold text-gray-800">Plano de Sustentação</h2></div>
-          <div className="mt-4 flex flex-wrap gap-2">{([['hoje', 'Hoje'], ['semana', 'Esta semana'], ['quinzena', 'Esta quinzena'], ['mes', 'Este mês']] as const).map(([key, label]) => <button key={key} type="button" onClick={() => setHorizon(key)} className={`rounded-xl px-4 py-2 text-xs font-semibold ${horizon === key ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{label}</button>)}</div>
-          <div className="mt-4 flex flex-col gap-4 rounded-xl border border-emerald-100 bg-emerald-50 p-4 sm:flex-row sm:items-center sm:justify-between"><p className="text-sm leading-6 text-emerald-900">{planText}</p><button type="button" onClick={() => navigate('/gerente/rotina-equipe')} className="shrink-0 text-sm font-semibold text-emerald-700">Abrir Rotina da Equipe →</button></div>
+          <div className="mb-4 flex items-center gap-2"><span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-100"><Activity size={16} className="text-emerald-600" /></span><h2 className="font-semibold text-gray-800">Plano de Sustentação</h2></div>
+          <div className="mb-5 flex gap-1.5 overflow-x-auto pb-1">{([['hoje', 'Hoje'], ['semana', 'Esta semana'], ['dezena', 'Esta dezena'], ['mes', 'Este mês']] as const).map(([key, label]) => <button key={key} type="button" onClick={() => setHorizon(key)} className={`whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium transition-all ${horizon === key ? 'bg-emerald-600 text-white shadow-sm' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}>{label}</button>)}</div>
+          {goal <= 0 ? <p className="rounded-xl border border-gray-100 bg-gray-50 p-4 text-sm text-gray-500">Meta ainda não cadastrada.</p> : <>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <SustainabilityBlock icon={Zap} label="Faltam" tone="orange">
+                {sustainabilityPlan.objectiveReached ? <div className="flex items-center gap-1.5"><CheckCircle2 size={20} className="text-emerald-500" /><p className="text-sm font-semibold text-emerald-600">Objetivo atingido</p></div> : <><p className="text-2xl font-bold text-gray-800">{sustainabilityPlan.faltam} <span className="text-base font-medium text-gray-400">{sustainabilityPlan.faltam === 1 ? 'venda' : 'vendas'}</span></p><p className="mt-1 text-xs text-gray-400">{horizon === 'hoje' ? 'para hoje' : horizon === 'semana' ? 'nesta semana' : horizon === 'dezena' ? 'nesta dezena' : 'neste mês'}</p></>}
+              </SustainabilityBlock>
+              <SustainabilityBlock icon={Activity} label="Ritmo necessário" tone="blue">
+                {sustainabilityPlan.objectiveReached ? <p className="text-sm font-semibold text-emerald-600">Ritmo suficiente</p> : <p className="text-base font-semibold leading-snug text-gray-700">{sustainabilityPlan.ritmoLabel}</p>}
+              </SustainabilityBlock>
+              <SustainabilityBlock icon={Wrench} label="Necessidade operacional" tone="purple">
+                {sustainabilityPlan.objectiveReached ? <p className="text-sm font-semibold text-emerald-600">Necessidade atendida</p> : <><p className="text-lg font-bold text-gray-800">{sustainabilityPlan.necessidadeOperacional} <span className="text-sm font-medium text-gray-400">{sustainabilityPlan.tipoOperacional}</span></p><p className="mt-1 text-xs text-gray-400">para gerar {sustainabilityPlan.faltam} {sustainabilityPlan.faltam === 1 ? 'venda' : 'vendas'}</p></>}
+              </SustainabilityBlock>
+            </div>
+            <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50 p-3"><p className="text-sm font-medium leading-snug text-emerald-700">{sustainabilityPlan.mensagemFoco}</p></div>
+            {!sustainabilityPlan.hasStatisticalBase ? <p className="mt-3 text-xs text-gray-400">Sem histórico suficiente — usando valores de referência padrão.</p> : null}
+          </>}
         </article>
 
         <article className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
@@ -148,5 +188,12 @@ function GoalCard({ icon: Icon, label, tone, children }: { icon: typeof Target; 
 function Progress({ value }: { value: number }) { return <div className="mt-3 h-2 overflow-hidden rounded-full bg-gray-100"><div className={`h-full rounded-full ${value >= 80 ? 'bg-emerald-500' : value >= 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${Math.min(100, Math.max(0, value))}%` }} /></div> }
 function CardFooter({ left, right }: { left: string; right: string }) { return <div className="mt-2 flex justify-between text-xs text-gray-500"><b className="text-gray-700">{left}</b><span>{right}</span></div> }
 function Channel({ label, value }: { label: string; value: number }) { return <div className="rounded-xl bg-gray-50 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{label}</p><strong className="mt-2 block text-2xl text-gray-800">{value}</strong><span className="text-xs text-gray-500">vendas no período</span></div> }
+
+function EmptyGoalState() { return <p className="text-sm font-medium text-gray-500">Meta ainda não cadastrada.</p> }
+
+function SustainabilityBlock({ icon: Icon, label, tone, children }: { icon: typeof Activity; label: string; tone: 'orange' | 'blue' | 'purple'; children: ReactNode }) {
+  const tones = { orange: 'text-orange-500', blue: 'text-blue-500', purple: 'text-purple-500' }
+  return <div className="rounded-xl border border-gray-100 bg-gray-50 p-4"><div className="mb-2 flex items-center gap-1.5"><Icon size={16} className={tones[tone]} /><p className="text-xs font-medium uppercase tracking-wide text-gray-500">{label}</p></div>{children}</div>
+}
 
 export default ManagerStoreGoalReference

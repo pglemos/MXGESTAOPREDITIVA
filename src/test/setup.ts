@@ -27,6 +27,10 @@ globalAny.DocumentFragment = window.DocumentFragment;
 globalAny.Event = window.Event;
 globalAny.KeyboardEvent = window.KeyboardEvent;
 globalAny.MouseEvent = window.MouseEvent;
+globalAny.getComputedStyle = window.getComputedStyle.bind(window);
+globalAny.MutationObserver = window.MutationObserver;
+globalAny.window.getComputedStyle = globalAny.getComputedStyle;
+globalAny.window.MutationObserver = globalAny.MutationObserver;
 // CustomEvent faltava aqui — Radix (react-focus-scope/react-dismissable-layer)
 // despacha CustomEvent nos nós do happy-dom; sem esse alias, `instanceof`
 // falha contra o CustomEvent global do Bun e o dispatch quebra com

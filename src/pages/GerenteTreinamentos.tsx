@@ -1,6 +1,7 @@
 import { useContentSuggestions, useDevelopmentTracks, useTrainings, useTeamTrainings, useNotifications } from '@/hooks/useData'
 import { motion, AnimatePresence } from 'motion/react'
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
     GraduationCap, Play, CheckCircle, Search, BookOpen, TrendingUp,
     Filter, RefreshCw, X, Award, Users, LayoutDashboard, Target, Send, Star
@@ -22,7 +23,14 @@ import { ManagerUniversityReference } from '@/features/manager/development/Manag
 export default function GerenteTreinamentos() {
     const { role, membership } = useAuth()
     const isOwner = role === 'dono'
+    const [searchParams, setSearchParams] = useSearchParams()
     const [tab, setTab] = useState<'meus' | 'equipe' | 'matriz'>(() => role === 'gerente' ? 'meus' : isOwner ? 'matriz' : 'equipe')
+    useEffect(() => {
+        if (role !== 'gerente') return
+        const requestedTab = searchParams.get('tab')
+        if (requestedTab === 'team') setTab('equipe')
+        if (requestedTab === 'manager') setTab('meus')
+    }, [role, searchParams])
     const trainingTabs = useMemo(() => (
         isOwner
             ? [
@@ -153,7 +161,12 @@ export default function GerenteTreinamentos() {
     if (role === 'gerente') return (
         <ManagerUniversityReference
             tab={tab === 'meus' ? 'manager' : 'team'}
-            onTabChange={(next) => setTab(next === 'manager' ? 'meus' : 'equipe')}
+            onTabChange={(next) => {
+                const updated = new URLSearchParams(searchParams)
+                updated.set('tab', next)
+                setSearchParams(updated, { replace: true })
+                setTab(next === 'manager' ? 'meus' : 'equipe')
+            }}
             storeName={membership?.store?.name || 'Unidade vinculada'}
             trainings={filteredMe}
             allTrainings={treinamentos}

@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AlertTriangle, BookOpen, BrainCircuit, CheckSquare, MessageSquare, Target, Users, X } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { calcularProjecao, getDiasInfo } from '@/lib/calculations'
 import { useDashboardLojaData } from '@/features/dashboard-loja/hooks/useDashboardLojaData'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 const guidance = [
   { title: 'Reunião matinal', content: 'Alinhe a prioridade do dia, os clientes críticos e o ritmo necessário da loja. Termine a conversa com responsáveis e horários claros.', icon: Users },
@@ -16,8 +17,20 @@ type Guidance = (typeof guidance)[number]
 export default function ManagerMentor() {
   const { storeId, membership } = useAuth()
   const [selectedGuidance, setSelectedGuidance] = useState<Guidance | null>(null)
+  const mentorDialogRef = useRef<HTMLElement | null>(null)
   const data = useDashboardLojaData({ selectedStoreId: storeId, selectedStoreName: membership?.store?.name || 'Unidade MX' })
   const days = getDiasInfo(data.referenceDate, data.operationalMetaRules?.projection_mode || 'calendar')
+
+  useFocusTrap(mentorDialogRef, Boolean(selectedGuidance))
+
+  useEffect(() => {
+    if (!selectedGuidance) return
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSelectedGuidance(null)
+    }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [selectedGuidance])
 
   const recommendations = useMemo(() => {
     const items: Array<{ message: string; level: 'critical' | 'warning' }> = []
@@ -64,7 +77,7 @@ export default function ManagerMentor() {
         <section className="rounded-2xl border border-blue-100 bg-blue-50 p-5 text-center"><BrainCircuit className="mx-auto text-blue-400" size={32} /><p className="mt-2 text-sm font-medium text-blue-700">Orientações baseadas em regras oficiais</p><p className="mt-1 text-xs text-blue-500">O Mentor não inventa números nem executa ações no lugar do gerente.</p></section>
       </div>
 
-      {selectedGuidance && <div className="fixed inset-0 z-[140] flex items-center justify-center bg-black/30 p-4" role="presentation" onMouseDown={() => setSelectedGuidance(null)}><section role="dialog" aria-modal="true" aria-labelledby="mentor-dialog-title" className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onMouseDown={(event) => event.stopPropagation()}><button type="button" aria-label="Fechar orientação" onClick={() => setSelectedGuidance(null)} className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"><X size={18} /></button><h2 id="mentor-dialog-title" className="pr-8 font-semibold text-gray-800">{selectedGuidance.title}</h2><p className="mt-3 text-sm leading-6 text-gray-600">{selectedGuidance.content}</p></section></div>}
+      {selectedGuidance && <div className="fixed inset-0 z-[140] flex items-center justify-center bg-black/30 p-4" role="presentation" onMouseDown={() => setSelectedGuidance(null)}><section ref={mentorDialogRef} role="dialog" aria-modal="true" aria-labelledby="mentor-dialog-title" className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onMouseDown={(event) => event.stopPropagation()}><button type="button" aria-label="Fechar orientação" onClick={() => setSelectedGuidance(null)} className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"><X size={18} /></button><h2 id="mentor-dialog-title" className="pr-8 font-semibold text-gray-800">{selectedGuidance.title}</h2><p className="mt-3 text-sm leading-6 text-gray-600">{selectedGuidance.content}</p></section></div>}
     </main>
   )
 }

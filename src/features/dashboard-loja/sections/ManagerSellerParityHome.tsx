@@ -203,7 +203,7 @@ export function ManagerSellerParityHome({
 
         <TeamFocus
           team={focusedTeam}
-          showAll={activeSellers.length > 5}
+          showAll={activeSellers.length > 0}
           onSellerClick={() => navigateFromDashboard('/gerente/minha-equipe')}
           onViewAll={() => navigateFromDashboard('/gerente/minha-equipe')}
         />

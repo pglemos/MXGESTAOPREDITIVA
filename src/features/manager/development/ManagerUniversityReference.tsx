@@ -11,8 +11,6 @@ import {
   BookOpen,
   CheckCircle,
   GraduationCap,
-  RefreshCw,
-  Search,
   Send,
   TrendingUp,
   type LucideIcon,
@@ -27,7 +25,6 @@ import {
   useTeamTrainings,
   useTrainings,
 } from '@/hooks/useData'
-import { AulasAoVivoSection } from '@/features/universidade/sections/AulasAoVivoSection'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 type Trainings = ReturnType<typeof useTrainings>['treinamentos']
@@ -117,9 +114,6 @@ export function ManagerUniversityReference({
   progress,
   watched,
   searchTerm,
-  onSearchChange,
-  onRefresh,
-  isRefetching,
   onMarkWatched,
   onRemindSeller,
   isAssigning,
@@ -135,6 +129,7 @@ export function ManagerUniversityReference({
   savingInstitutional,
 }: ManagerUniversityReferenceProps) {
   const [selectedCatalogTrack, setSelectedCatalogTrack] = useState<ManagerCatalogTrack | null>(null)
+  const [selectedTeamMember, setSelectedTeamMember] = useState<TeamRow | null>(null)
   const catalogTracks = useMemo(
     () => MANAGER_CATALOG_TRACKS.filter(track =>
       `${track.title} ${track.description}`
@@ -162,12 +157,7 @@ export function ManagerUniversityReference({
   return (
     <main className="min-h-full bg-gray-50" id="main-content">
       <div className="mx-auto max-w-7xl space-y-5 px-4 py-6 pb-24">
-        <UniversityHeader
-          searchTerm={searchTerm}
-          onSearchChange={onSearchChange}
-          onRefresh={onRefresh}
-          isRefetching={isRefetching}
-        />
+        <UniversityHeader />
 
         <section className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
           <UniversityTabs tab={tab} onTabChange={onTabChange} />
@@ -193,6 +183,7 @@ export function ManagerUniversityReference({
               storeName={storeName}
               isAssigning={isAssigning}
               onRemindSeller={onRemindSeller}
+              onOpenDetails={setSelectedTeamMember}
               setAssigningTo={setAssigningTo}
               onAssignOnboarding={onAssignOnboarding}
               assignments={assignments}
@@ -216,6 +207,12 @@ export function ManagerUniversityReference({
           track={selectedCatalogTrack}
           onClose={() => setSelectedCatalogTrack(null)}
         />
+        <TeamTrainingDetailDialog
+          member={selectedTeamMember}
+          allTrainings={allTrainings}
+          storeName={storeName}
+          onClose={() => setSelectedTeamMember(null)}
+        />
       </div>
     </main>
   )
@@ -230,44 +227,18 @@ export function buildTeamRows(teamProgress: TeamProgress, trainingCount: number)
   }))
 }
 
-function UniversityHeader({
-  searchTerm,
-  onSearchChange,
-  onRefresh,
-  isRefetching,
-}: Pick<ManagerUniversityReferenceProps, 'searchTerm' | 'onSearchChange' | 'onRefresh' | 'isRefetching'>) {
+function UniversityHeader() {
   return (
     <header className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-50 text-emerald-600">
-            <GraduationCap size={20} />
-          </span>
-          <div>
-            <h1 className="text-xl font-bold text-gray-800">Universidade MX</h1>
-            <p className="text-sm text-gray-500">
-              Desenvolva suas habilidades de liderança e acompanhe a evolução da sua equipe.
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => void onRefresh()}
-            aria-label="Atualizar Universidade MX"
-            className="grid h-10 w-10 place-items-center rounded-xl border border-gray-200 text-gray-500"
-          >
-            <RefreshCw size={16} className={isRefetching ? 'animate-spin' : ''} />
-          </button>
-          <div className="relative">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <Input
-              value={searchTerm}
-              onChange={event => onSearchChange(event.target.value)}
-              placeholder="Buscar conteúdo..."
-              className="h-10 rounded-xl border-gray-200 pl-9"
-            />
-          </div>
+      <div className="flex items-center gap-3">
+        <span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-50 text-emerald-600">
+          <GraduationCap size={20} />
+        </span>
+        <div>
+          <h1 className="text-xl font-bold text-gray-800">Universidade MX</h1>
+          <p className="text-sm text-gray-500">
+            Desenvolva suas habilidades de liderança e acompanhe a evolução da sua equipe.
+          </p>
         </div>
       </div>
     </header>
@@ -323,7 +294,7 @@ type ManagerDevelopmentPanelProps = {
   onMarkWatched: (id: string) => Promise<unknown>
 }
 
-function ManagerDevelopmentPanel({
+export function ManagerDevelopmentPanel({
   progress,
   pending,
   completed,
@@ -344,7 +315,6 @@ function ManagerDevelopmentPanel({
       <h2 className="font-semibold text-gray-800">Trilhas Gerenciais</h2>
       <CatalogTrackGrid tracks={catalogTracks} onSelect={onSelectCatalogTrack} />
       <OfficialTrainingGrid trainings={trainings} onMarkWatched={onMarkWatched} />
-      <AulasAoVivoSection />
     </div>
   )
 }
@@ -501,6 +471,7 @@ type TeamDevelopmentPanelProps = {
   storeName: string
   isAssigning: boolean
   onRemindSeller: (sellerId: string, trainingTitle: string) => Promise<void>
+  onOpenDetails: (member: TeamRow) => void
   setAssigningTo: (sellerId: string | null) => void
   onAssignOnboarding: (sellerId: string) => Promise<void>
   assignments: Assignments
@@ -526,6 +497,7 @@ function TeamDevelopmentPanel(props: TeamDevelopmentPanelProps) {
         storeName={props.storeName}
         isAssigning={props.isAssigning}
         onRemindSeller={props.onRemindSeller}
+        onOpenDetails={props.onOpenDetails}
         setAssigningTo={props.setAssigningTo}
         onAssignOnboarding={props.onAssignOnboarding}
         assignments={props.assignments}
@@ -648,6 +620,7 @@ function UniversityTeamTable({
   storeName,
   isAssigning,
   onRemindSeller,
+  onOpenDetails,
   setAssigningTo,
   onAssignOnboarding,
   assignments,
@@ -657,6 +630,7 @@ function UniversityTeamTable({
   storeName: string
   isAssigning: boolean
   onRemindSeller: (sellerId: string, trainingTitle: string) => Promise<void>
+  onOpenDetails: (member: TeamRow) => void
   setAssigningTo: (sellerId: string | null) => void
   onAssignOnboarding: (sellerId: string) => Promise<void>
   assignments: Assignments
@@ -715,6 +689,13 @@ function UniversityTeamTable({
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onOpenDetails(member)}
+                      className="text-xs font-medium text-gray-600"
+                    >
+                      Ver detalhes
+                    </button>
                     {pendingTraining && (
                       <button
                         type="button"
@@ -842,5 +823,63 @@ export function CatalogTrackDialog({
         </button>
       </div>
     </Modal>
+  )
+}
+
+export function TeamTrainingDetailDialog({
+  member,
+  allTrainings,
+  storeName,
+  onClose,
+}: {
+  member: TeamRow | null
+  allTrainings: Trainings
+  storeName: string
+  onClose: () => void
+}) {
+  if (!member) return null
+  const pendingTraining = allTrainings.find(training => !member.watched.includes(training.id))
+  const status = allTrainings.length === 0
+    ? 'Sem conteúdo'
+    : member.progress >= 75
+      ? 'Em dia'
+      : 'Atenção'
+
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title={`Detalhes de ${member.seller_name}`}
+      description="Acompanhamento real dos treinamentos atribuídos à equipe."
+      size="sm"
+      referenceStyle
+      showClose={false}
+    >
+      <dl className="grid grid-cols-2 gap-3 text-sm">
+        <Detail label="Vendedor" value={member.seller_name} />
+        <Detail label="Unidade" value={storeName} />
+        <Detail label="Progresso" value={`${member.progress}%`} />
+        <Detail label="Status" value={status} />
+        <Detail label="Conteúdos concluídos" value={`${member.watched.length} de ${allTrainings.length}`} />
+        <Detail label="Última pendência" value={pendingTraining?.title || 'Nenhuma'} />
+        <Detail label="Gargalo atual" value={member.current_gap || 'Nenhum diagnóstico oficial'} />
+      </dl>
+      <button
+        type="button"
+        onClick={onClose}
+        className="mt-5 w-full rounded-xl border border-gray-200 py-2 text-sm font-medium text-gray-700"
+      >
+        Fechar
+      </button>
+    </Modal>
+  )
+}
+
+function Detail({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="text-xs font-medium text-gray-500">{label}</dt>
+      <dd className="mt-1 text-gray-700">{value}</dd>
+    </div>
   )
 }

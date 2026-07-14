@@ -64,6 +64,16 @@ describe('ManagerSellerParityHome Base44 parity', () => {
     expect(within(team).getAllByText('1').length).toBeGreaterThan(0)
   })
 
+  it('mantém o acesso à equipe completa mesmo quando os cinco vendedores já cabem na tabela', () => {
+    renderHome(buildData({
+      sellers: Array.from({ length: 5 }, (_, index) => seller(index + 1)),
+      checkins: [],
+      managerMonthlyCheckins: [],
+    }))
+
+    expect(within(screen.getByRole('region', { name: 'Equipe em foco' })).getByRole('button', { name: /ver toda a equipe/i })).toBeTruthy()
+  })
+
   it('salva o contexto gerencial antes de navegar para a Meta da Loja', () => {
     renderHome(buildData())
 

@@ -26,8 +26,9 @@ import {
   type ManagerTeamStatus,
   type ManagerTeamView,
 } from './manager-team-kanban'
+import type { ManagerTeamAction } from './manager-team-navigation'
 
-export type ManagerTeamAction = 'routine' | 'feedback' | 'closing' | 'training'
+export type { ManagerTeamAction }
 
 type ManagerTeamKanbanProps = {
   cards: ManagerTeamCard[]
