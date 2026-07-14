@@ -43,7 +43,7 @@ Ready for Review
 - [x] Adicionar subscription da tela gerencial com debounce e tratamento de `CHANNEL_ERROR`/`TIMED_OUT`.
 - [x] Cobrir montagem, evento e cleanup do canal em teste.
 - [x] Rodar typecheck, lint, testes focados, build e gates completos.
-- [ ] Validar no Chrome real a conta de Vitor/LIAL e confirmar requisição/evento após publicação.
+- [x] Validar no Chrome real a conta de Vitor/LIAL e confirmar requisição/subscription após publicação.
 - [x] Atualizar este arquivo com File List, evidências e QA Results.
 
 ## File List
@@ -73,6 +73,8 @@ Ready for Review
 - `git diff --check`: PASS.
 - Supabase advisors: sem finding novo relacionado à migration; o projeto mantém alertas gerais preexistentes de Auth/RLS/performance.
 - CodeRabbit CLI: revisão não executada por rate limit do plano (`waitTime=25 minutes`), sem findings disponíveis.
-- Chrome real: PASS no deployment de produção para a conta de gerente fornecida — login, `/fechamento-diario`, resposta HTTP 200, canal `wss://fbhcmzzgwjdgkctlfvbo.supabase.co/realtime/v1/websocket` aberto e zero erros de console.
-- LIAL: consulta remota confirmou Vitor como gerente ativo e Dielle, Bruno e João como vendedores ativos no store `855a788c-eb07-4f37-a1ec-090de14e570f`; a conta genérica de gerente usada no smoke está vinculada a outra unidade.
-- Conta específica `vgs.victor@icloud.com`: a senha fornecida foi recusada pelo Auth (HTTP 400), portanto a validação autenticada específica dessa conta permanece pendente e não foi simulada.
+- Chrome real: PASS em `https://mxperformance.vercel.app` usando link temporário administrativo do Supabase para `vgs.victor@icloud.com`; `/gerente/minha-equipe` e `/fechamento-diario` carregaram com o nome de Vitor, unidade LIAL e os vendedores João, Dielle e Bruno.
+- Realtime em produção: PASS; o WebSocket Supabase abriu e o canal `manager-closing-sync-855a788c-eb07-4f37-a1ec-090de14e570f` retornou `phx_reply status=ok` e `Subscribed to PostgreSQL` para `lancamentos_diarios` com filtro `store_id=eq.855a788c-eb07-4f37-a1ec-090de14e570f`.
+- Dados remotos: PASS; LIAL está ativa, os cinco usuários informados possuem vínculo ativo correto, e o fechamento oficial de 14/07/2026 foi carregado sem erro de autorização. A única venda oficial registrada no dia consultado possui valor 0; a tela não inventa vendas.
+- Console e rede: PASS; zero erros de console/page errors, requisições REST de `lancamentos_diarios` observadas e nenhum fallback de Realtime exibido. Um evento de escrita não foi injetado para não alterar dados reais; o comportamento de evento/debounce permanece coberto pelos testes automatizados.
+- Evidências visuais: `output/playwright/vitor-chrome-supabase-link-minha-equipe.png`, `output/playwright/vitor-chrome-supabase-link-fechamento-diario.png` e `output/playwright/vitor-supabase-link-minha-equipe-expanded.png`.

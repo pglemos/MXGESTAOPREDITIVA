@@ -22,13 +22,13 @@ const FILTERS = [
 
 export function NotificacoesFiltersBar({ searchTerm, setSearchTerm, filterType, setFilterType }: Props) {
   return (
-    <Card className="p-mx-lg md:p-10 border-none shadow-mx-lg bg-white space-y-mx-10">
-      <header className="border-b border-border-default pb-8">
-        <Typography variant="h3" className="uppercase tracking-tight">
-          Filtro Disciplinar
+    <Card className="space-y-mx-lg bg-white p-mx-md shadow-mx-sm sm:p-mx-lg">
+      <header className="border-b border-border-default pb-mx-md">
+        <Typography variant="h3">
+          Filtrar notificações
         </Typography>
-        <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black">
-          SEGMENTAÇÃO DE ALERTAS
+        <Typography variant="caption" tone="muted" className="mt-1 block">
+          Encontre alertas por assunto ou tipo.
         </Typography>
       </header>
 
@@ -38,15 +38,15 @@ export function NotificacoesFiltersBar({ searchTerm, setSearchTerm, filterType, 
           className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors"
         />
         <Input
-          placeholder="LOCALIZAR ALERTA..."
+          placeholder="Buscar notificações"
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
-          className="!pl-11 !h-12 uppercase tracking-widest text-xs"
+          className="!h-11 !pl-10 text-sm"
         />
       </div>
 
       <nav
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-mx-xs"
+        className="grid grid-cols-1 gap-mx-xs sm:grid-cols-2 lg:grid-cols-1"
         role="navigation"
         aria-label="Filtros de notificação"
       >
@@ -55,7 +55,7 @@ export function NotificacoesFiltersBar({ searchTerm, setSearchTerm, filterType, 
             key={f.label}
             onClick={() => setFilterType(filterType === f.type ? null : f.type)}
             className={cn(
-              'w-full p-mx-md rounded-mx-2xl border transition-all text-left flex items-center justify-between group/f',
+              'flex w-full items-center justify-between rounded-mx-xl border p-mx-sm text-left transition-all group/f',
               filterType === f.type
                 ? 'bg-brand-primary border-brand-primary text-white shadow-mx-lg'
                 : 'bg-surface-alt border-border-default hover:bg-white hover:border-brand-primary/20 shadow-inner',
@@ -65,7 +65,7 @@ export function NotificacoesFiltersBar({ searchTerm, setSearchTerm, filterType, 
               <f.icon size={16} className={cn(filterType === f.type ? 'text-white' : 'text-text-label')} />
               <Typography
                 variant="caption"
-                className={cn('font-black uppercase tracking-widest', filterType === f.type ? 'text-white' : 'text-text-primary')}
+                className={cn('font-bold', filterType === f.type ? 'text-white' : 'text-text-primary')}
               >
                 {f.label}
               </Typography>

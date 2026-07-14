@@ -15,7 +15,8 @@ export function Notificacoes() {
 
   return (
     <NotificacoesErrorBoundary sectionName="Notificacoes">
-      <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
+      <main className="h-full w-full overflow-y-auto bg-surface-alt px-mx-sm py-mx-md no-scrollbar sm:px-mx-md lg:px-mx-lg">
+        <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-mx-lg pb-32">
         <NotificacoesHeader
           isRefetching={state.isRefetching}
           handleRefresh={state.handleRefresh}
@@ -24,11 +25,9 @@ export function Notificacoes() {
 
         <NotificacoesRoleBanners
           isOwner={state.isOwner}
-          isSeller={state.isSeller}
-          unreadCount={state.unreadCount}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg flex-1 min-h-0 pb-32">
+        <div className="grid items-start grid-cols-1 gap-mx-lg lg:grid-cols-12">
           <section className="lg:col-span-8 flex flex-col order-2 lg:order-1">
             <NotificacoesErrorBoundary sectionName="Lista de Notificações">
               <NotificacoesListSection
@@ -56,6 +55,7 @@ export function Notificacoes() {
               />
             </NotificacoesErrorBoundary>
           </aside>
+        </div>
         </div>
       </main>
     </NotificacoesErrorBoundary>

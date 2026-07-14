@@ -1,7 +1,7 @@
 import { RefreshCw, CheckCheck } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { Button } from '@/components/atoms/Button'
-import { Typography } from '@/components/atoms/Typography'
+import { PageHeading } from '@/components/molecules/PageHeading'
 import { cn } from '@/lib/utils'
 
 type Props = {
@@ -12,26 +12,17 @@ type Props = {
 
 export function NotificacoesHeader({ isRefetching, handleRefresh, markAllAsRead }: Props) {
   return (
-    <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10 shrink-0">
-      <div className="flex flex-col gap-mx-tiny text-center lg:text-left">
-        <div className="flex items-center justify-center lg:justify-start gap-mx-sm">
-          <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-          <Typography variant="h1">
-            Central de <Typography as="span" className="text-brand-primary">Alertas</Typography>
-          </Typography>
-        </div>
-        <Typography variant="caption" className="pl-mx-md uppercase tracking-widest font-black">
-          MOTOR DE DISCIPLINA & INTELIGÊNCIA MX
-        </Typography>
-      </div>
-
-      <div className="flex items-center justify-center lg:justify-end gap-mx-sm shrink-0 w-full lg:w-auto">
+    <PageHeading
+      title="Notificações"
+      subtitle="Acompanhe alertas, pendências e comunicados da sua rotina"
+      actions={
+        <div className="flex w-full items-center justify-center gap-mx-sm sm:w-auto sm:justify-end">
         <Button
           variant="outline"
           size="icon"
           onClick={handleRefresh}
           aria-label="Atualizar"
-          className="w-mx-xl h-mx-xl rounded-mx-xl shadow-mx-sm bg-white"
+          className="rounded-mx-xl bg-white shadow-mx-sm"
         >
           <RefreshCw size={20} className={cn(isRefetching && 'animate-spin')} />
         </Button>
@@ -41,12 +32,13 @@ export function NotificacoesHeader({ isRefetching, handleRefresh, markAllAsRead 
             void markAllAsRead()
             toast.success('Tudo lido!')
           }}
-          className="h-mx-xl px-6 flex-1 lg:flex-none rounded-mx-full shadow-mx-sm uppercase font-black text-xs bg-white tracking-widest"
+          className="flex-1 rounded-mx-xl bg-white px-4 text-xs font-black uppercase tracking-wider shadow-mx-sm sm:flex-none"
         >
           <CheckCheck size={18} className="mr-2" /> MARCAR TUDO
         </Button>
-      </div>
-    </header>
+        </div>
+      }
+    />
   )
 }
 

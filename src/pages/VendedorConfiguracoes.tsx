@@ -43,20 +43,20 @@ export default function VendedorConfiguracoes() {
 
   return (
     <main className="h-full w-full overflow-y-auto bg-surface-alt px-mx-sm py-mx-md sm:px-mx-md lg:px-mx-lg no-scrollbar">
-      <div className="mx-auto w-full max-w-[1500px] flex flex-col gap-4 pb-28">
-<SellerPageHeader 
-icon={ShieldCheck}
-title="Configurações" 
-subtitle="Preferências e atalhos operacionais do vendedor." 
-actions={ 
+      <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-mx-lg pb-32">
+        <SellerPageHeader
+          icon={ShieldCheck}
+          title="Configurações"
+          subtitle="Preferências e atalhos operacionais do vendedor."
+          actions={
             <Badge variant="brand" className="rounded-mx-full px-mx-md py-mx-sm uppercase">
               {role || 'vendedor'}
             </Badge>
           }
         />
 
-        <section className="grid grid-cols-1 gap-mx-lg xl:grid-cols-[360px_minmax(0,1fr)]">
-          <Card className="rounded-mx-2xl border border-border-subtle bg-white p-mx-lg shadow-mx-md">
+        <section className="grid items-start grid-cols-1 gap-mx-lg xl:grid-cols-[320px_minmax(0,1fr)]">
+          <Card className="h-fit rounded-mx-2xl border border-border-subtle bg-white p-mx-lg shadow-mx-md">
             <div className="flex items-start gap-mx-md">
               <span className="grid h-mx-14 w-mx-14 shrink-0 place-items-center rounded-mx-2xl bg-brand-primary/10 text-brand-primary">
                 <ShieldCheck size={26} />
@@ -83,7 +83,7 @@ actions={
 
           <section className="grid grid-cols-1 gap-mx-md md:grid-cols-2" aria-label="Configurações do vendedor">
             {SETTINGS.map((item) => (
-              <Card key={item.title} className="rounded-mx-2xl border border-border-subtle bg-white p-mx-lg shadow-mx-md">
+              <Card key={item.title} className="rounded-mx-2xl border border-border-subtle bg-white p-mx-md shadow-mx-md sm:p-mx-lg">
                 <div className="flex h-full flex-col gap-mx-md">
                   <div className="flex items-start gap-mx-md">
                     <span className="grid h-mx-12 w-mx-12 shrink-0 place-items-center rounded-mx-2xl bg-status-success-surface text-mx-green-700">
@@ -98,7 +98,7 @@ actions={
                       </Typography>
                     </div>
                   </div>
-                  <Button asChild variant="outline" className="mt-auto justify-center">
+                  <Button asChild variant="outline" className="mt-auto min-h-10 justify-center rounded-mx-xl">
                     <Link to={item.to}>{item.cta}</Link>
                   </Button>
                 </div>

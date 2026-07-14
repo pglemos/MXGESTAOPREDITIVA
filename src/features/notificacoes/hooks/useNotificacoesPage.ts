@@ -20,7 +20,6 @@ export function useNotificacoesPage() {
   const { profile, role } = useAuth()
   const isAdminMx = isAdministradorMx(role)
   const isOwner = role === 'dono'
-  const isSeller = role === 'vendedor'
 
   const {
     notificacoes,
@@ -255,7 +254,6 @@ export function useNotificacoesPage() {
     // role flags
     isAdminMx,
     isOwner,
-    isSeller,
     // data
     unreadCount,
     grouped,

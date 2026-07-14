@@ -94,12 +94,13 @@ export default function MeuPerfilVendedorContainer() {
     }
 
     return (
-        <div className="space-y-mx-xl pb-28 md:pb-0">
+        <div className="h-full w-full overflow-y-auto bg-surface-alt px-mx-sm py-mx-md no-scrollbar sm:px-mx-md lg:px-mx-lg">
+            <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-mx-lg pb-32">
             <PageHeading
                 title="Meu Perfil"
                 subtitle="Gerencie suas informações pessoais e profissionais"
                 actions={
-                    <Button onClick={handleSave} disabled={saving} loading={saving} icon={<Save className="h-4 w-4" />}>
+                    <Button variant="brand" onClick={handleSave} disabled={saving} loading={saving} icon={<Save className="h-4 w-4" />}>
                         {saving ? 'Salvando...' : 'Salvar'}
                     </Button>
                 }
@@ -247,6 +248,7 @@ export default function MeuPerfilVendedorContainer() {
                         </Select>
                     </div>
                 </Section>
+            </div>
             </div>
         </div>
     )

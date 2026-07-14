@@ -83,47 +83,44 @@ export function NotificacoesListSection({
   const navigate = useNavigate()
 
   return (
-    <Card className="border-none shadow-mx-xl bg-white overflow-hidden h-full flex flex-col group relative">
-      <div className="absolute top-mx-0 right-mx-0 p-mx-14 text-surface-alt -rotate-12 pointer-events-none group-hover:text-mx-indigo-50/50 transition-colors hidden md:block">
-        <Bell size={240} strokeWidth={2} />
-      </div>
+    <Card className="flex min-h-[420px] flex-col overflow-hidden bg-white shadow-mx-sm">
 
-      <CardHeader className="bg-surface-alt/30 border-b border-border-default p-mx-lg md:p-10 flex flex-col sm:flex-row items-center justify-between relative z-10 gap-mx-md">
+      <CardHeader className="relative z-10 flex flex-col items-start justify-between gap-mx-md border-b border-border-default bg-surface-alt/30 p-mx-md sm:flex-row sm:items-center sm:p-mx-lg">
         <div className="flex items-center gap-mx-md">
-          <div className="w-mx-2xl h-mx-2xl rounded-mx-2xl bg-mx-black text-white flex items-center justify-center shadow-mx-xl shrink-0">
-            <Bell size={32} strokeWidth={2} />
+          <div className="flex h-mx-11 w-mx-11 shrink-0 items-center justify-center rounded-mx-xl bg-mx-black text-white shadow-mx-md">
+            <Bell size={22} strokeWidth={2} />
           </div>
           <div>
-            <Typography variant="h2" className="text-xl sm:text-2xl uppercase tracking-tighter leading-none">
-              Meu Inbox
+            <Typography variant="h2" className="text-lg sm:text-xl">
+              Minha caixa de entrada
             </Typography>
-            <Typography variant="caption" tone="muted" className="uppercase tracking-widest mt-1 font-black">
-              SINALIZAÇÕES DE AUDITORIA
+            <Typography variant="caption" tone="muted" className="mt-1 block">
+              Alertas e pendências da rotina
             </Typography>
           </div>
         </div>
-        <Badge variant="brand" className="px-6 py-2 rounded-mx-full font-black shadow-mx-sm uppercase text-xs w-full sm:w-auto text-center">
-          {unreadCount} NOVAS
+        <Badge variant="brand" className="w-full rounded-mx-full px-4 py-1 text-center font-black uppercase sm:w-auto">
+          {unreadCount} {unreadCount === 1 ? 'nova' : 'novas'}
         </Badge>
       </CardHeader>
 
-      <CardContent className="flex-1 overflow-y-auto no-scrollbar p-mx-lg md:p-14 relative z-10">
+      <CardContent className="relative z-10 flex-1 p-mx-md sm:p-mx-lg">
         <AnimatePresence mode="popLayout">
           {Object.entries(grouped).length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center py-20 text-text-label">
-              <ShieldCheck size={64} className="text-text-tertiary mb-8" />
-              <Typography variant="h2" className="uppercase tracking-tighter">
+            <div className="flex flex-col items-center justify-center py-16 text-center text-text-label">
+              <ShieldCheck size={48} className="mb-mx-md text-text-tertiary" />
+              <Typography variant="h2">
                 Inbox Limpo
               </Typography>
-              <Typography variant="caption" tone="muted" className="max-w-xs mt-4 uppercase font-black tracking-widest">
-                Nenhuma sinalização pendente na malha operacional.
+              <Typography variant="caption" tone="muted" className="mt-mx-xs max-w-xs">
+                Nenhuma notificação pendente.
               </Typography>
             </div>
           ) : (
             (Object.entries(grouped) as Array<[string, NotificationLike[]]>).map(([group, list]) => (
-              <div key={group} className="space-y-mx-md mb-14 last:mb-0">
-                <div className="flex items-center gap-mx-md px-4">
-                  <Typography variant="caption" tone="muted" className="font-black tracking-widest uppercase whitespace-nowrap">
+              <div key={group} className="mb-mx-lg space-y-mx-sm last:mb-0">
+                <div className="flex items-center gap-mx-sm px-mx-xs">
+                  <Typography variant="caption" tone="muted" className="whitespace-nowrap font-black uppercase tracking-wider">
                     {group}
                   </Typography>
                   <div className="h-px flex-1 bg-border-default opacity-50" />
@@ -143,14 +140,14 @@ export function NotificacoesListSection({
                         if (n.link && !approvalNotification) navigate(n.link)
                       }}
                       className={cn(
-                        'p-mx-lg rounded-mx-3xl border transition-all relative group/item flex flex-col sm:flex-row gap-mx-lg cursor-pointer',
-                        n.read ? 'bg-surface-alt/30 border-border-default opacity-60' : 'bg-white border-brand-primary/20 shadow-mx-lg',
+                        'relative flex cursor-pointer flex-col gap-mx-md rounded-mx-2xl border p-mx-md transition-all group/item sm:flex-row',
+                        n.read ? 'border-border-default bg-surface-alt/30 opacity-80' : 'border-brand-primary/20 bg-white shadow-mx-sm',
                         !n.read && n.priority === 'high' && 'border-status-error/20 bg-status-error-surface/30',
                       )}
                     >
                       <div
                         className={cn(
-                          'w-mx-2xl h-mx-2xl rounded-mx-2xl shrink-0 flex items-center justify-center shadow-inner transition-transform group-hover/item:scale-110',
+                          'flex h-mx-11 w-mx-11 shrink-0 items-center justify-center rounded-mx-xl shadow-inner transition-transform group-hover/item:scale-105',
                           n.read ? 'bg-surface-alt text-text-tertiary' : 'bg-white border border-border-default',
                         )}
                       >
@@ -159,7 +156,7 @@ export function NotificacoesListSection({
                       <div className="flex-1 min-w-0">
                         <header className="flex justify-between items-start mb-2 gap-mx-sm">
                           <div className="flex items-center gap-mx-sm min-w-0">
-                            <Typography variant="h3" className="text-base group-hover/item:text-brand-primary transition-colors truncate uppercase font-black tracking-tight">
+                            <Typography variant="h3" className="truncate text-base font-bold transition-colors group-hover/item:text-brand-primary">
                               {n.title}
                             </Typography>
                             {!n.read && n.priority === 'high' && (
@@ -168,12 +165,12 @@ export function NotificacoesListSection({
                               </Badge>
                             )}
                           </div>
-                          <Typography variant="mono" tone="muted" className="text-mx-tiny sm:text-xs font-black uppercase tracking-widest shrink-0">
+                          <Typography variant="mono" tone="muted" className="shrink-0 text-mx-tiny sm:text-xs">
                             {format(new Date(n.created_at), 'HH:mm')}
                           </Typography>
                         </header>
-                        <Typography variant="p" tone="muted" className="text-sm font-bold leading-relaxed italic line-clamp-2 uppercase tracking-tight opacity-60">
-                          "{n.message}"
+                        <Typography variant="p" tone="muted" className="line-clamp-2 text-sm leading-relaxed">
+                          {n.message}
                         </Typography>
                         {approval && (
                           <NotificacaoApprovalCard
@@ -183,12 +180,12 @@ export function NotificacoesListSection({
                             onReview={handleReviewPreRegistration}
                           />
                         )}
-                        <footer className="flex flex-wrap items-center gap-mx-md mt-6">
+                        <footer className="mt-mx-md flex flex-wrap items-center gap-mx-md">
                           {n.link && !approvalNotification && (
                             <Typography
                               variant="caption"
                               tone="brand"
-                              className="text-xs font-black uppercase tracking-widest flex items-center gap-mx-xs group-hover/item:translate-x-1 transition-transform"
+                              className="flex items-center gap-mx-xs text-xs font-black uppercase tracking-wider transition-transform group-hover/item:translate-x-1"
                             >
                               Ação Imediata <ChevronRight size={12} strokeWidth={3} />
                             </Typography>
@@ -206,7 +203,7 @@ export function NotificacoesListSection({
                                 toast.success('Alerta marcado como lido.')
                               }
                             }}
-                            className="text-xs font-black text-text-tertiary hover:text-brand-primary uppercase tracking-widest p-mx-0 h-auto hover:bg-transparent"
+                            className="h-auto p-mx-0 text-xs font-semibold text-text-tertiary hover:bg-transparent hover:text-brand-primary"
                           >
                             {n.read ? 'Marcar não lida' : 'Marcar lida'}
                           </Button>
@@ -219,7 +216,7 @@ export function NotificacoesListSection({
                                 void deleteNotification(n.id)
                                 toast.success('Alerta removido!')
                               }}
-                              className="text-xs font-black text-text-tertiary hover:text-status-error uppercase tracking-widest p-mx-0 h-auto hover:bg-transparent"
+                              className="h-auto p-mx-0 text-xs font-semibold text-text-tertiary hover:bg-transparent hover:text-status-error"
                             >
                               Remover
                             </Button>
