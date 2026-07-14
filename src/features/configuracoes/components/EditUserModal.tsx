@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase'
 import type { User, UserRole, Store } from '@/types/database'
 import type { TeamMemberUpdateFields } from '@/hooks/useTeam'
 import { requestToastConfirmation } from '@/lib/ui/confirmAction'
+import { requestPasswordRecovery } from '@/lib/auth/passwordRecovery'
 
 const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
     { value: 'administrador_geral', label: 'Admin Master MX' },
@@ -85,11 +86,12 @@ export function EditUserModal({ open, user, lojas, onClose, onSubmit, allowedRol
 
     const executeSendMagicLink = async () => {
         if (!user) return
-        const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
-            redirectTo: `${window.location.origin}/login?recovery=1`,
-        })
-        if (error) toast.error(error.message)
-        else toast.success(`E-mail de redefinição enviado para ${user.email}`)
+        try {
+            await requestPasswordRecovery(user.email)
+            toast.success(`E-mail de redefinição enviado para ${user.email}`)
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Não foi possível enviar o e-mail de redefinição.')
+        }
     }
 
     const handleSendMagicLink = () => {

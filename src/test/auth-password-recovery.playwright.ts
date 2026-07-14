@@ -27,7 +27,7 @@ test.describe('Password recovery login flow', () => {
   })
 
   test('forgot password request validates email and confirms a generic send message', async ({ page }) => {
-    await page.route('**/auth/v1/recover*', async route => {
+    await page.route('**/functions/v1/request-password-recovery*', async route => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -54,7 +54,7 @@ test.describe('Password recovery login flow', () => {
   })
 
   test('forgot password request handles Supabase resend rate limit as a neutral state', async ({ page }) => {
-    await page.route('**/auth/v1/recover*', async route => {
+    await page.route('**/functions/v1/request-password-recovery*', async route => {
       await route.fulfill({
         status: 429,
         contentType: 'application/json',

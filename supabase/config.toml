@@ -374,6 +374,9 @@ verify_jwt = false
 [functions.store-pre-registration]
 verify_jwt = false
 
+[functions.request-password-recovery]
+verify_jwt = false
+
 [functions.approve-store-registration]
 verify_jwt = true
 

@@ -216,13 +216,14 @@ serve(async (req) => {
   if (storeError) return jsonResponse({ success: false, error: storeError.message }, 500)
   if (!store) return jsonResponse({ success: false, error: 'Loja não localizada ou inativa.' }, 404)
 
-  const { data: existingUser, error: existingUserError } = await adminClient
+  const { data: existingUsers, error: existingUserError } = await adminClient
     .from('usuarios')
-    .select('id, active, role')
-    .eq('email', email)
-    .maybeSingle()
+    .select('id, email, active, role')
+    .limit(1000)
 
   if (existingUserError) return jsonResponse({ success: false, error: existingUserError.message }, 500)
+
+  const existingUser = (existingUsers || []).find((item: any) => normalizeEmail(item.email) === email) || null
 
   if (existingUser && protectedExistingRoles.includes(existingUser.role)) {
     return jsonResponse({
@@ -260,12 +261,20 @@ serve(async (req) => {
     }, 409)
   }
 
-  let userId = existingUser?.id || existingAuthUser?.id || ''
-  const isReusingExistingUser = Boolean(userId)
-  let createdAuthUser = false
+  if (existingUser || existingAuthUser) {
+    return jsonResponse({
+      success: false,
+      code: 'existing_user',
+      requires_password_reset: true,
+      login_email: email,
+      error: 'Este e-mail já possui cadastro. Não criamos outro usuário. Enviamos um link para redefinir sua senha.',
+    }, 409)
+  }
+
+  let userId = ''
+  const createdAuthUser = true
 
   const userMetadata = {
-    ...(existingAuthUser?.user_metadata || {}),
     name: fullName,
     role,
     phone,
@@ -273,30 +282,37 @@ serve(async (req) => {
     must_change_password: true,
   }
 
-  if (isReusingExistingUser) {
-    const { error: updateAuthError } = await adminClient.auth.admin.updateUserById(userId, {
-      email,
-      email_confirm: true,
-      user_metadata: userMetadata,
-    })
+  const temporaryPassword = generateTemporaryPassword()
+  const { data: createdUser, error: createUserError } = await adminClient.auth.admin.createUser({
+    email,
+    password: temporaryPassword,
+    email_confirm: true,
+    user_metadata: userMetadata,
+  })
 
-    if (updateAuthError) return jsonResponse({ success: false, error: updateAuthError.message }, 500)
-  } else {
-    const temporaryPassword = generateTemporaryPassword()
-    const { data: createdUser, error: createUserError } = await adminClient.auth.admin.createUser({
-      email,
-      password: temporaryPassword,
-      email_confirm: true,
-      user_metadata: userMetadata,
-    })
-
+  if (createUserError || !createdUser.user) {
+    const createMessage = createUserError?.message?.toLowerCase() || ''
+    let existingAuthAfterRace: any = null
     if (createUserError || !createdUser.user) {
-      return jsonResponse({ success: false, error: createUserError?.message || 'Não foi possível criar o login provisório.' }, 500)
+      try {
+        existingAuthAfterRace = await findAuthUserByEmail(adminClient, email)
+      } catch {
+        existingAuthAfterRace = null
+      }
     }
-
-    userId = createdUser.user.id
-    createdAuthUser = true
+    if (existingAuthAfterRace || createMessage.includes('already') || createMessage.includes('exists') || createMessage.includes('registered') || createMessage.includes('database error creating new user')) {
+      return jsonResponse({
+        success: false,
+        code: 'existing_user',
+        requires_password_reset: true,
+        login_email: email,
+        error: 'Este e-mail já possui cadastro. Não criamos outro usuário. Solicite a redefinição da senha para continuar.',
+      }, 409)
+    }
+    return jsonResponse({ success: false, error: createUserError?.message || 'Não foi possível criar o login provisório.' }, 500)
   }
+
+  userId = createdUser.user.id
 
   let avatarUrl: string | null = null
   let avatarStoragePath: string | null = null
@@ -380,6 +396,16 @@ serve(async (req) => {
 
   if (insertError) {
     await cleanupPendingUser(adminClient, userId, store.id, avatarStoragePath, createdAuthUser)
+    const insertMessage = insertError.message.toLowerCase()
+    if (insertMessage.includes('duplicate key') || insertMessage.includes('pre_cadastros_loja_active_email_normalized_uidx')) {
+      return jsonResponse({
+        success: false,
+        code: 'existing_user',
+        requires_password_reset: true,
+        login_email: email,
+        error: 'Este e-mail já possui cadastro. Não criamos outro usuário. Solicite a redefinição da senha para continuar.',
+      }, 409)
+    }
     return jsonResponse({ success: false, error: insertError.message }, 500)
   }
 

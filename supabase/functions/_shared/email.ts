@@ -188,7 +188,7 @@ export async function sendReportEmail({
   if (provider === "none") {
     return { status: "not_sent", warnings: ["Nenhum provedor de e-mail configurado"] };
   }
-  if (!resend) {
+  if (provider === "resend" && !resend) {
     return { status: "not_sent", warnings: ["Resend nao configurado"] };
   }
 
@@ -199,6 +199,10 @@ export async function sendReportEmail({
         return { status: "not_sent", warnings: [`Gmail API nao configurado: ${missing.join(", ")}`] };
       }
       return await sendWithGmail({ to, subject, html, attachments, logPrefix, storeName, fromName });
+    }
+
+    if (!resend) {
+      return { status: "not_sent", warnings: ["Resend nao configurado"] };
     }
 
     const message = {

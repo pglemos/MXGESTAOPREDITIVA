@@ -9,6 +9,7 @@ import MxLogo from '@/assets/mx-logo.png'
 import { supabase } from '@/lib/supabase'
 import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from '@/lib/auth/passwordPolicy'
 import { resolvePostLoginRedirect } from '@/lib/auth/postLoginRedirect'
+import { PasswordRecoveryRequestError, requestPasswordRecovery } from '@/lib/auth/passwordRecovery'
 
 type LoginMode = 'login' | 'forgot' | 'recovery'
 
@@ -26,6 +27,11 @@ function getInitialMode(): LoginMode {
 
 function isValidEmail(value: string) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
+}
+
+function getInitialEmail() {
+    if (typeof window === 'undefined') return ''
+    return new URLSearchParams(window.location.search).get('email') || ''
 }
 
 function getRecoverySessionFromHash(): { accessToken: string; refreshToken: string } | null {
@@ -59,7 +65,7 @@ export default function Login() {
         }
     }, [profile, role, mode, navigate, location.state])
 
-    const [email, setEmail] = useState('')
+    const [email, setEmail] = useState(getInitialEmail)
     const [password, setPassword] = useState('')
     const [newPassword, setNewPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
@@ -197,13 +203,11 @@ export default function Login() {
 
         setLoading(true)
         resetFeedback()
-        const redirectTo = `${window.location.origin}/login?recovery=1`
-        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo })
-        setLoading(false)
-
-        if (resetError) {
-            const resetErrorMessage = resetError.message.toLowerCase()
-            if (resetError.code === 'over_email_send_rate_limit' || resetError.status === 429 || resetErrorMessage.includes('only request this after')) {
+        try {
+            await requestPasswordRecovery(email)
+        } catch (resetError) {
+            setLoading(false)
+            if (resetError instanceof PasswordRecoveryRequestError && (resetError.status === 429 || resetError.code === 'rate_limited')) {
                 setSuccess('Já existe um link recente para este e-mail. Aguarde alguns instantes antes de solicitar novamente.')
                 return
             }
@@ -211,6 +215,7 @@ export default function Login() {
             return
         }
 
+        setLoading(false)
         setSuccess('Se o e-mail estiver autorizado, enviaremos um link para redefinir a senha.')
     }
 

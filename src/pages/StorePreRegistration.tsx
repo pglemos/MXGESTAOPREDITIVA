@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { ArrowLeft, ArrowRight, Building2, Camera, Check, CheckCircle2, FileText, LockKeyhole, Mail, MapPin, Phone, ShieldCheck, Upload, UserRound } from 'lucide-react'
 import { getSupabaseFunctionHeaders, getSupabaseFunctionUrl } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
+import { requestPasswordRecovery } from '@/lib/auth/passwordRecovery'
 
 type PublicStore = {
   id: string
@@ -126,6 +127,8 @@ export default function StorePreRegistration() {
   const [photo, setPhoto] = useState<PhotoState | null>(null)
   const [formErrors, setFormErrors] = useState<FormErrors>({})
   const [provisionalLogin, setProvisionalLogin] = useState<{ email: string } | null>(null)
+  const [existingLogin, setExistingLogin] = useState(false)
+  const [existingRecoveryStatus, setExistingRecoveryStatus] = useState<'sent' | 'unavailable' | null>(null)
   const [step, setStep] = useState(0)
   const [reloadKey, setReloadKey] = useState(0)
 
@@ -282,7 +285,26 @@ export default function StorePreRegistration() {
         }),
       })
       const payload = await response.json()
+      if (response.status === 409 && payload.code === 'existing_user') {
+        let recoveryStatus: 'sent' | 'unavailable' = 'unavailable'
+        try {
+          await requestPasswordRecovery(form.email)
+          recoveryStatus = 'sent'
+        } catch {
+          recoveryStatus = 'unavailable'
+        }
+        setExistingLogin(true)
+        setExistingRecoveryStatus(recoveryStatus)
+        setSuccess(true)
+        setProvisionalLogin({ email: form.email.trim().toLowerCase() })
+        setForm(initialForm)
+        setPhoto(null)
+        setStep(0)
+        return
+      }
       if (!response.ok || !payload.success) throw new Error(payload.error || 'Falha ao enviar cadastro.')
+      setExistingLogin(false)
+      setExistingRecoveryStatus(null)
       setSuccess(true)
       setProvisionalLogin({ email: payload.login_email || form.email })
       setForm(initialForm)
@@ -418,20 +440,32 @@ export default function StorePreRegistration() {
                     <CheckCircle2 size={42} />
                   </div>
                   <div>
-                    <h2>Cadastro recebido</h2>
-                    <p>
-                      O login foi criado como pendente. Admin MX ou MX Master precisa validar a hierarquia antes de liberar seu acesso.
-                    </p>
+                      <h2>{existingLogin ? 'Cadastro já existente' : 'Cadastro recebido'}</h2>
+                      <p>
+                        {existingLogin
+                          ? existingRecoveryStatus === 'sent'
+                            ? 'Este e-mail já possui usuário no MX. Não criamos duplicidade e encaminhamos a recuperação de senha. Verifique também spam e lixo eletrônico.'
+                            : 'Este e-mail já possui usuário no MX. Não criamos duplicidade. Abra a recuperação de senha abaixo para solicitar um novo link.'
+                          : 'O login foi criado como pendente. Admin MX ou MX Master precisa validar a hierarquia antes de liberar seu acesso.'}
+                      </p>
                   </div>
                   {provisionalLogin && (
                     <div className="mx-pre-login-box">
-                      <small>Login provisório após aprovação</small>
+                      <small>{existingLogin ? 'E-mail orientado para recuperação' : 'Login provisório após aprovação'}</small>
                       <p>{provisionalLogin.email}</p>
                     </div>
                   )}
+                  {existingLogin && provisionalLogin && (
+                    <a
+                      href={`/login?mode=forgot&email=${encodeURIComponent(provisionalLogin.email)}`}
+                      className="mx-pre-btn primary"
+                    >
+                      Abrir recuperação de senha
+                    </a>
+                  )}
                   <button
                     type="button"
-                    onClick={() => setSuccess(false)}
+                    onClick={() => { setSuccess(false); setExistingLogin(false); setExistingRecoveryStatus(null) }}
                     className="mx-pre-btn ghost"
                   >
                     Enviar outro cadastro
