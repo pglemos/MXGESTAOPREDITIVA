@@ -24,15 +24,6 @@ const modalSizeVariants = cva(
   },
 );
 
-const referenceModalWidths = {
-  sm: "sm:!max-w-[720px]",
-  md: "sm:!max-w-[1030px]",
-  lg: "sm:!max-w-[1156px]",
-  xl: "sm:!max-w-[1440px]",
-  "2xl": "sm:!max-w-[calc(100vw-64px)]",
-  "3xl": "sm:!max-w-[calc(100vw-64px)]",
-} as const;
-
 export interface ModalProps extends VariantProps<typeof modalSizeVariants> {
   open: boolean;
   onClose: () => void;
@@ -103,22 +94,19 @@ export function Modal({
               ? "fixed left-4 right-4 top-1/2 -translate-y-1/2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-[101] focus:outline-none"
               : "fixed left-mx-md right-mx-md top-mx-md bottom-mx-md sm:left-1/2 sm:right-auto sm:top-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 z-[101] focus:outline-none",
             modalSizeVariants({ size: resolvedSize }),
-            referenceStyle && [
-              "!max-h-[90vh] !rounded-[16px]",
-              referenceModalWidths[resolvedSize],
-            ],
+            referenceStyle && "!max-h-[90vh] !rounded-[16px]",
             className,
           )}
         >
           <div className={cn(
             "border-b flex justify-between gap-mx-md sticky top-mx-0 bg-white z-10 shrink-0",
             referenceStyle
-              ? "items-center border-gray-100 px-8 py-7"
+              ? "items-start border-gray-100 p-5"
               : "items-start border-border-default p-mx-md sm:p-mx-lg",
           )}>
             <div className="min-w-0">
               <Dialog.Title asChild>
-                <Typography variant="h3" className={referenceStyle ? "text-[32px] leading-9" : undefined}>
+                <Typography variant="h3">
                   {title}
                 </Typography>
               </Dialog.Title>
@@ -127,7 +115,7 @@ export function Modal({
                   <Typography
                     variant="tiny"
                     tone="muted"
-                    className={referenceStyle ? "mt-2 block !text-[18px] !leading-7" : "mt-1 block"}
+                    className={referenceStyle ? "mt-0.5 block !text-sm !leading-5" : "mt-1 block"}
                   >
                     {description}
                   </Typography>
@@ -142,7 +130,7 @@ export function Modal({
                   className={cn(
                     "flex items-center justify-center text-text-tertiary hover:text-text-primary transition-all shrink-0",
                     referenceStyle
-                      ? "h-8 w-8 !min-h-0 rounded-lg bg-transparent p-0"
+                      ? "mt-0.5 h-5 w-5 !min-h-0 rounded-none bg-transparent p-0"
                       : "h-mx-xl w-mx-xl rounded-mx-xl bg-surface-alt",
                   )}
                 >
@@ -155,7 +143,7 @@ export function Modal({
           <div className={cn(
             "min-h-0 flex-1 overflow-y-auto overscroll-contain",
             referenceStyle
-              ? "p-8 [&_input]:!text-base [&_select]:!text-base [&_textarea]:!text-base"
+              ? "p-5"
               : "p-mx-md sm:p-mx-lg",
           )}>
             {children}
@@ -166,7 +154,7 @@ export function Modal({
               className={cn(
                 "border-t flex sticky bottom-mx-0 bg-white shrink-0",
                 referenceStyle
-                  ? "flex-row justify-end gap-4 border-gray-100 px-8 py-6 [&>button]:!h-14 [&>button]:!min-h-0 [&>button]:!px-8 [&>button]:!text-xl"
+                  ? "flex-row justify-end gap-3 border-gray-100 p-5"
                   : "flex-col-reverse gap-mx-sm border-border-default sm:flex-row sm:justify-end p-mx-md sm:p-mx-lg",
               )}
               style={{

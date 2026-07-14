@@ -125,6 +125,8 @@ Codex GPT-5 — implementação coordenada por `aiox-master`/Orion.
 - `npm run typecheck` passou após as duas integrações.
 - Chrome DevTools real local: `Ver Regularizações` abriu 2 solicitações, `Detalhes Vendedor MX Consultoria 2` abriu o detalhe e `Ver Agenda D+1 deste vendedor` ficou disponível; viewport mobile `390×844` sem quebra visual no cabeçalho/cards.
 - Chrome DevTools real local após a correção: com 5 vendedores pendentes e 2 regularizações, Movimento da Equipe mostra exatamente `Ainda não há fechamentos enviados para a data selecionada.`; Cobrança, Agenda D+1, Regularizações e Conferência de Leads abriram com dados reais; Agenda e Cobrança fecharam por Escape; console sem erros.
+- Comparação autenticada Base44 × localhost em `1710×800`: conteúdo `1248px`, cabeçalho `148px`, cards `164px`, botões `30px`, Agenda D+1 `1152px` e tabela iniciando em `y=442` foram alinhados às medidas observadas; Cobrança, Agenda, Regularizações, Conferência, Detalhes, Aprovar e Recusar abriram e fecharam por Escape sem mutação remota.
+- Gates desta rodada: `npm test` 955 testes/0 falhas/3.166 assertions, `npm run typecheck`, `npm run lint:tokens` e `git diff --check` aprovados.
 
 ### Completion Notes List
 
@@ -133,6 +135,7 @@ Codex GPT-5 — implementação coordenada por `aiox-master`/Orion.
 - O movimento agora separa `sem vendedores`, `sem fechamentos enviados` e `tabela carregada`, sem inventar linhas pendentes quando o Base44 está vazio.
 - O heading de Movimento usa o mesmo nível semântico do Base44 e a validação mobile confirmou `390×844`, `scrollWidth=390` e ausência de overflow horizontal.
 - Persistência continua exclusivamente no auditor/RPC existente; nenhuma mutação remota foi executada durante a homologação.
+- O ajuste visual preserva o shell escuro protegido, RLS, RPCs e dados canônicos; apenas reduz as dimensões e a densidade visual do Fechamento Diário para o contrato Base44.
 
 ### File List
 
@@ -142,6 +145,8 @@ Codex GPT-5 — implementação coordenada por `aiox-master`/Orion.
 - `src/features/manager/daily-closing/ClosingDetailsModal.tsx`
 - `src/features/manager/daily-closing/ClosingDetailsModal.test.tsx`
 - `src/features/manager/daily-closing/ManagerDailyClosing.container.tsx`
+- `src/features/manager/daily-closing/AgendaD1Panel.tsx`
+- `src/components/organisms/Modal.tsx`
 
 ## QA Results
 

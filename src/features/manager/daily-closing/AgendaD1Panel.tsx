@@ -356,32 +356,32 @@ export function AgendaD1Panel({
     [confirming, registerLog, sendNotification, storeId],
   );
 
-  const filterSelectClass = "h-16 rounded-2xl px-5 text-[18px]";
+  const filterSelectClass = "h-10 rounded-[12px] px-3 text-sm";
 
   return (
     <Modal
       open={open}
       onClose={onClose}
       size="3xl"
-      className="sm:max-w-[1152px]"
+      className="sm:!max-w-[1152px]"
       referenceStyle
       title="Agenda D+1"
       description="Clientes agendados para amanhã a partir dos fechamentos da equipe."
     >
-      <div className="space-y-7">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="space-y-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <Badge variant="outline" className="border-0 bg-amber-100 px-4 py-2 text-[18px] text-amber-700 shadow-none">Agenda D+1 parcial</Badge>
-            <Typography variant="tiny" tone="muted" className="mt-2 block !text-[18px]">
+            <Badge variant="outline" className="border-0 bg-amber-100 px-2.5 py-1 text-xs text-amber-700 shadow-none">Agenda D+1 parcial</Badge>
+            <Typography variant="tiny" tone="muted" className="mt-1 block">
               Atualizada em tempo real até o encerramento da janela de ajuste.
             </Typography>
           </div>
           <Typography
             variant="p"
             tone="muted"
-            className="inline-flex items-center gap-2 !text-[18px]"
+            className="inline-flex items-center gap-1.5 !text-sm"
           >
-            <CalendarClock size={20} />
+            <CalendarClock size={14} />
             Data D+1:{" "}
             <strong className="text-text-primary">
               {format(parseISO(d1Date), "dd/MM/yyyy")}
@@ -389,15 +389,15 @@ export function AgendaD1Panel({
           </Typography>
         </div>
         <div
-          className="rounded-[28px] bg-slate-50 p-7"
+          className="rounded-[12px] bg-slate-50 p-4"
           role="group"
           aria-label="Filtros da Agenda D+1"
         >
-          <div className="mb-5 flex items-center gap-3 text-[19px] font-bold text-slate-600">
-            <Filter size={21} />
+          <div className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-600">
+            <Filter size={16} />
             Filtros
           </div>
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-5">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
             <Select
               aria-label="Vendedor"
               className={filterSelectClass}
@@ -475,15 +475,15 @@ export function AgendaD1Panel({
             </Select>
             <div className="relative">
               <Search
-                className="absolute left-5 top-1/2 -translate-y-1/2 text-text-tertiary"
-                size={20}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary"
+                size={16}
               />
               <Input
                 aria-label="Buscar agenda D+1"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Buscar (cliente, veículo, horário)..."
-                className={`${filterSelectClass} pl-12`}
+                className={`${filterSelectClass} pl-9`}
               />
             </div>
           </div>
@@ -522,7 +522,7 @@ export function AgendaD1Panel({
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1320px]">
+            <table className="w-full min-w-[1094px]">
               <thead className="bg-slate-50">
                 <tr>
                   {[
@@ -539,7 +539,7 @@ export function AgendaD1Panel({
                   ].map((label) => (
                     <th
                       key={label}
-                      className="px-7 py-6 text-left text-[16px] font-bold uppercase tracking-wider text-slate-500"
+                      className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500"
                     >
                       {label}
                     </th>
@@ -556,29 +556,29 @@ export function AgendaD1Panel({
                   return (
                     <FragmentRow key={row.id}>
                       <tr className="bg-white">
-                        <td className="px-7 py-7 text-[18px] font-bold text-slate-800">
+                        <td className="px-4 py-3 text-sm font-bold text-slate-800">
                           {format(parseISO(row.data_hora), "HH:mm")}
                         </td>
-                        <td className="px-7 py-7 text-[18px] font-bold text-slate-800">
+                        <td className="px-4 py-3 text-sm font-bold text-slate-800">
                           {row.cliente?.nome || "—"}
                         </td>
-                        <td className="px-7 py-7 text-[18px] text-slate-600">
+                        <td className="px-4 py-3 text-sm text-slate-600">
                           {row.cliente?.telefone || "—"}
                         </td>
-                        <td className="px-7 py-7 text-[18px] text-slate-600">
+                        <td className="px-4 py-3 text-sm text-slate-600">
                           {row.oportunidade?.veiculo_interesse || "—"}
                         </td>
-                        <td className="px-7 py-7 text-[18px] text-slate-600">
+                        <td className="px-4 py-3 text-sm text-slate-600">
                           {row.canal ? AGENDA_CANAL_LABEL[row.canal] : "—"}
                         </td>
-                        <td className="px-7 py-7 text-[18px] text-slate-600">
+                        <td className="px-4 py-3 text-sm text-slate-600">
                           {sellerNameById.get(row.seller_user_id) ||
                             "Vendedor da equipe"}
                         </td>
-                        <td className="px-7 py-7 text-[18px] text-slate-600">
+                        <td className="px-4 py-3 text-sm text-slate-600">
                           {AGENDA_TIPO_LABEL[row.tipo]}
                         </td>
-                        <td className="px-7 py-7">
+                        <td className="px-4 py-3">
                           <Badge
                             variant={
                               row.status === "confirmado"
@@ -591,13 +591,13 @@ export function AgendaD1Panel({
                             {AGENDA_STATUS_LABEL[row.status]}
                           </Badge>
                         </td>
-                        <td className="px-7 py-7 text-[18px] text-slate-600">
+                        <td className="px-4 py-3 text-sm text-slate-600">
                           {lastContact
                             ? format(parseISO(lastContact), "dd/MM HH:mm")
                             : "—"}
                         </td>
-                        <td className="px-7 py-7">
-                          <div className="flex min-w-max flex-wrap gap-3">
+                        <td className="px-4 py-3">
+                          <div className="flex min-w-max flex-wrap gap-2">
                             <Button
                               size="sm"
                               variant="outline"

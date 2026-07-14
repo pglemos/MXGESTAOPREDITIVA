@@ -338,28 +338,28 @@ export default function ManagerDailyClosing() {
 
   return (
     <main className="min-h-full bg-surface-alt px-3 py-6 sm:px-6" id="main-content">
-      <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-5 pb-20">
+      <div className="mx-auto flex w-full max-w-[1248px] flex-col gap-5 pb-20 xl:-translate-x-[18px]">
         <ManagerHomeReturnLink />
-        <section className="flex min-h-[148px] items-center rounded-[20px] border border-slate-100 bg-white p-5 shadow-sm">
-          <div className="flex flex-col gap-mx-sm xl:flex-row xl:items-center xl:justify-between xl:gap-mx-lg">
-            <div className="max-w-3xl">
-              <h1 className="text-[22px] font-bold leading-7 text-slate-800">
+        <section className="flex min-h-[148px] items-center rounded-[16px] border border-slate-100 bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h1 className="text-xl font-bold leading-7 text-slate-800">
                 Fechamento Diário
               </h1>
-              <p className="mt-1 text-[15px] leading-6 text-slate-500">
+              <p className="mt-1 text-sm leading-5 text-slate-500">
                 Acompanhe o movimento comercial informado pelos vendedores,
                 regularize fechamentos fora do horário e corrija volumes
                 oficiais de leads.
               </p>
             </div>
-            <div className="grid w-full grid-cols-2 gap-mx-xs xl:w-[320px] xl:grid-cols-[148px_164px] xl:gap-mx-sm">
+            <div className="flex flex-wrap items-end gap-2 lg:translate-x-4">
               <Field label="Data">
                 <input
                   id="manager-closing-date"
                   type="date"
                   value={date}
                   onChange={(event) => setDate(event.target.value)}
-                  className="h-mx-10 w-full rounded-xl border border-border-subtle bg-white px-3 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary xl:h-mx-11"
+                  className="h-[38px] rounded-xl border border-border-subtle bg-white px-3 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
                 />
               </Field>
               <Field label="Unidade">
@@ -367,7 +367,7 @@ export default function ManagerDailyClosing() {
                   aria-label="Unidade"
                   value={storeId || ""}
                   onChange={() => undefined}
-                  className="h-mx-10 w-full rounded-xl border border-border-subtle bg-white px-3 text-sm font-semibold xl:h-mx-11"
+                  className="h-[38px] min-w-[140px] rounded-xl border border-border-subtle bg-white px-3 text-sm font-semibold"
                 >
                   <option value={storeId || ""}>
                     {membership?.store?.name || "Unidade atual"}
@@ -377,7 +377,7 @@ export default function ManagerDailyClosing() {
               <Button
                 variant="success"
                 size="sm"
-                className="w-fit self-end rounded-xl bg-emerald-600 px-2.5 text-xs font-semibold hover:bg-emerald-700"
+                className="!h-[38px] !gap-1 !rounded-[12px] w-fit self-end bg-emerald-600 px-3 text-xs font-medium hover:bg-emerald-700"
                 onClick={refreshAll}
               >
                 <RefreshCw size={16} />
@@ -440,7 +440,7 @@ export default function ManagerDailyClosing() {
             title="Regularizações"
             value={requests.length}
             detail={
-              requests.length ? "aguardando decisão" : "nenhuma pendência"
+              requests.length ? "aguardando aprovação" : "nenhuma pendência"
             }
             icon={ShieldCheck}
             tone="info"
@@ -454,13 +454,13 @@ export default function ManagerDailyClosing() {
           <DisciplineCard value={discipline} />
         </section>
 
-        <ManagerSectionCard>
+        <ManagerSectionCard className="!rounded-[16px] !border-slate-100 !shadow-sm">
           <div id="manager-closing-movement" />
-          <div className="flex flex-col gap-mx-sm border-b border-slate-100 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
-              <Typography variant="h2" className="!text-[22px] !font-bold">
+          <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <Typography variant="h2" className="!text-base !font-semibold !leading-6">
               Movimento da Equipe — {format(parseISO(date), "dd/MM/yyyy")}
             </Typography>
-            <div className="flex flex-wrap items-center gap-mx-sm">
+            <div className="flex flex-wrap items-center gap-3">
               <Typography
                 variant="tiny"
                 tone="muted"
@@ -473,7 +473,7 @@ export default function ManagerDailyClosing() {
                 variant="outline"
                 size="sm"
                 onClick={() => setLeadConferenceOpen(true)}
-                className="border-purple-200 px-3 text-sm font-medium text-purple-700 hover:bg-purple-50"
+                className="!h-[32px] !min-h-0 !gap-1.5 !rounded-[12px] border-purple-200 px-3 text-xs font-medium text-purple-700 hover:bg-purple-50"
               >
                 <Wrench size={16} />
                 Corrigir Leads
@@ -504,15 +504,15 @@ export default function ManagerDailyClosing() {
           onRange={setHistoryRange}
         />
 
-        <ManagerSectionCard className="p-6">
-          <h2 className="flex items-center gap-mx-xs text-base font-bold text-text-primary">
+        <ManagerSectionCard className="!rounded-[16px] !border-slate-100 !shadow-sm p-5">
+          <h2 className="flex items-center gap-2 text-base font-semibold text-slate-800">
             <BarChart3 size={18} className="text-status-success" />
             Comparativo de Disciplina do Fechamento
           </h2>
-          <p className="mt-1 text-sm text-text-secondary">
+          <p className="mb-4 mt-0 text-xs text-slate-500">
             Comparação com equipes da rede da consultoria
           </p>
-          <div className="mt-mx-lg space-y-mx-sm">
+          <div className="space-y-4">
             <ComparisonRow
               label="Sua Equipe"
               value={historicalAverage}
@@ -521,17 +521,17 @@ export default function ManagerDailyClosing() {
             <ComparisonRow label="Média da Rede" value={null} tone="network" />
             <ComparisonRow label="Top 25% da Rede" value={null} tone="top" />
           </div>
-          <p className="mt-mx-md text-center text-xs italic text-text-tertiary">
+          <p className="pt-1 text-center text-xs italic text-slate-400">
             Comparativos de rede aparecem quando houver snapshots oficiais
             disponíveis.
           </p>
         </ManagerSectionCard>
 
-        <ManagerSectionCard className="p-6">
-          <h2 className="text-base font-bold text-text-primary">
+        <ManagerSectionCard className="!rounded-[16px] !border-slate-100 !shadow-sm p-5">
+          <h2 className="mb-4 text-base font-semibold text-slate-800">
             Resumo do Fechamento
           </h2>
-          <div className="mt-mx-lg grid grid-cols-2 gap-3 xl:grid-cols-6">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
             <SummaryGroup
               label="Showroom"
               icon={Store}
@@ -575,7 +575,7 @@ export default function ManagerDailyClosing() {
               items={[["Total", "—"]]}
             />
           </div>
-          <p className="mt-mx-md text-center text-xs text-text-tertiary">
+          <p className="mt-4 text-center text-xs text-slate-400">
             Os leads podem ser corrigidos pelo gerente com registro em
             auditoria. Demais dados permanecem sob responsabilidade do vendedor.
           </p>
@@ -748,7 +748,7 @@ export function getMovementState(
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <label className="block min-w-0 text-mx-tiny font-bold text-text-secondary">
+    <label className="block min-w-0 text-xs font-normal text-slate-500">
       <span className="mb-1 block">{label}</span>
       {children}
     </label>
@@ -787,21 +787,26 @@ function SummaryCard({
     tone === "danger" || tone === "success"
       ? "border-emerald-200 text-emerald-700"
       : tone === "warning"
-        ? "border-amber-300 text-amber-700"
+        ? "border-amber-200 text-amber-700"
         : tone === "info"
           ? "border-blue-200 text-blue-600"
           : "border-slate-200 text-slate-500";
+  const valueColor = {
+    warning: "text-amber-700",
+    danger: "text-red-700",
+    success: "text-emerald-800",
+    info: "text-blue-700",
+    neutral: "text-slate-800",
+  }[tone];
   return (
-    <Card
-      className={`flex min-h-[178px] flex-col !rounded-[20px] border p-5 shadow-sm ${colors}`}
-    >
-      <div className="flex items-center justify-between gap-mx-sm">
-        <h2 className="flex items-center gap-2 text-[16px] font-semibold text-slate-600">
-          <Icon size={19} className="shrink-0" />
+    <Card className={`min-h-[164px] !rounded-[16px] border p-3 shadow-sm ${colors}`}>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <h2 className="flex items-center gap-2 text-xs font-medium text-slate-600">
+          <Icon size={16} className="shrink-0" />
           {title}
         </h2>
         {status !== "—" && (
-          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
+          <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
             status === "Excelente" || status === "Bom"
               ? "bg-emerald-100 text-emerald-700"
               : status === "Regular"
@@ -812,17 +817,17 @@ function SummaryCard({
           </span>
         )}
       </div>
-      <strong className="mt-3 text-[42px] leading-none text-slate-800">{value}</strong>
-      <p className="mt-2 text-[16px] text-slate-500">{detail}</p>
+      <strong className={`text-3xl font-bold ${valueColor}`}>{value}</strong>
+      <p className="mt-0.5 text-xs text-slate-500">{detail}</p>
       <button
         type="button"
         disabled={actionDisabled}
         onClick={onAction}
-        className={`mt-auto inline-flex h-11 items-center justify-center gap-2 rounded-xl border bg-white px-3 text-[16px] font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${actionColor}`}
+        className={`mt-3 flex h-[30px] w-full items-center justify-center gap-1.5 rounded-[8px] border bg-white px-2 py-1.5 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-40 ${actionColor}`}
       >
-        {action === "Ver Agenda D+1" && <CalendarClock size={14} />}
-        {action === "Cobrar Pendentes" && <Megaphone size={14} />}
-        {action === "Ver Regularizações" && <Eye size={14} />}
+        {action === "Ver Agenda D+1" && <CalendarClock size={13} />}
+        {action === "Cobrar Pendentes" && <Megaphone size={13} />}
+        {action === "Ver Regularizações" && <Eye size={13} />}
         {action}
       </button>
     </Card>
@@ -836,28 +841,31 @@ function DisciplineCard({ value }: { value: number | null }) {
     .map((word) => word.charAt(0).toLocaleUpperCase("pt-BR") + word.slice(1))
     .join(" ");
   return (
-    <Card className="flex min-h-[178px] flex-col !rounded-[20px] border border-blue-100 bg-blue-50 p-5 shadow-sm">
-      <div className="flex items-center justify-between gap-mx-xs">
-        <h2 className="text-[16px] font-semibold text-slate-600">
+    <Card className="flex h-full min-h-[164px] flex-col !rounded-[16px] border border-slate-100 bg-blue-50 p-3 shadow-sm">
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <h2 className="text-xs font-medium text-slate-600">
           Disciplina Média
         </h2>
-        <span className="whitespace-nowrap rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+        <span className="whitespace-nowrap rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">
           {label}
         </span>
       </div>
-      <div className="mx-auto mt-mx-xs">
+      <div className="flex flex-1 items-center justify-center">
+        <div className="relative -translate-y-[3px]">
+          <div className="absolute inset-0 scale-110 rounded-full bg-gradient-to-br from-blue-400 to-blue-500 opacity-20 blur-lg" />
         <div
           role="progressbar"
           aria-label="Disciplina média da equipe"
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={normalized}
-          className="grid h-24 w-24 place-items-center rounded-full p-2"
+          className="relative grid h-[104px] w-[104px] place-items-center rounded-full p-2"
           style={{ background: `conic-gradient(rgb(59 130 246) ${normalized * 3.6}deg, rgb(219 234 254) 0deg)` }}
         >
           <div className="grid h-full w-full place-items-center rounded-full bg-blue-50">
             <strong className="text-2xl font-bold text-blue-500">{value === null ? "—" : `${normalized}%`}</strong>
           </div>
+        </div>
         </div>
       </div>
     </Card>
@@ -882,19 +890,7 @@ function ClosingTable({
 }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[1440px] table-fixed">
-        <colgroup>
-          <col className="w-[20%]" />
-          <col className="w-[18%]" />
-          <col className="w-[8%]" />
-          <col className="w-[6%]" />
-          <col className="w-[7%]" />
-          <col className="w-[7%]" />
-          <col className="w-[8%]" />
-          <col className="w-[7%]" />
-          <col className="w-[8%]" />
-          <col className="w-[17%]" />
-        </colgroup>
+      <table className="w-full text-sm">
         <thead className="bg-slate-50">
           <tr>
             {[
@@ -911,7 +907,7 @@ function ClosingTable({
             ].map((label) => (
               <th
                 key={label}
-                className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500"
+                className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"
               >
                 {label}
               </th>
@@ -950,32 +946,32 @@ function DisciplineTrendCard({
 }) {
   const hasData = trend.some((point) => point.value !== null);
   return (
-    <ManagerSectionCard className="p-mx-lg">
-      <div className="flex flex-col gap-mx-sm sm:flex-row sm:items-start sm:justify-between">
+    <ManagerSectionCard className="!rounded-[16px] !border-slate-100 !shadow-sm p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-              <h2 className="flex items-center gap-mx-xs text-base font-bold text-text-primary">
-            <TrendingUp size={19} className="text-status-success" />
+              <h2 className="flex items-center gap-2 text-base font-semibold text-slate-800">
+            <TrendingUp size={18} className="text-emerald-600" />
             Evolução da Disciplina do Fechamento
           </h2>
-          <p className="mt-1 text-sm text-text-secondary">
+          <p className="text-xs text-slate-500">
             Acompanhe se a equipe está mantendo consistência na prestação de
             contas diária.
           </p>
         </div>
-        <div className="flex rounded-xl bg-surface-alt p-1">
+        <div className="self-start rounded-xl bg-slate-100 p-1 sm:self-auto">
           {([7, 15, 30] as const).map((option) => (
             <button
               key={option}
               type="button"
               onClick={() => onRange(option)}
-              className={`rounded-lg px-3 py-2 text-xs font-bold ${range === option ? "bg-brand-primary text-white" : "text-text-secondary"}`}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium ${range === option ? "bg-emerald-600 text-white" : "text-slate-500 hover:text-slate-700"}`}
             >
               {option} dias
             </button>
           ))}
         </div>
       </div>
-      <div className="mt-mx-md h-[236px]">
+      <div className="mt-4 h-[280px]">
         {hasData ? (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
@@ -1030,7 +1026,7 @@ function DisciplineTrendCard({
           </div>
         )}
       </div>
-      <p className="mt-mx-sm text-center text-xs italic text-text-tertiary">
+      <p className="mt-2 text-center text-xs italic text-slate-400">
         O dia atual pode aparecer como parcial enquanto houver fechamentos
         pendentes ou regularizações em aberto.
       </p>
@@ -1054,20 +1050,20 @@ function ComparisonRow({
         ? "bg-emerald-700"
         : "bg-slate-400";
   return (
-    <div className="grid grid-cols-[150px_1fr] items-center gap-mx-sm">
-      <span className="flex items-center gap-mx-xs text-sm font-semibold text-text-secondary">
+    <div className="flex items-center gap-3">
+      <span className="flex w-40 shrink-0 items-center gap-2 text-sm text-slate-600">
         {tone === "top" && <Trophy size={14} />}
         {label}
       </span>
-      <div className="relative h-6 overflow-hidden rounded-full bg-surface-alt">
+      <div className="relative h-6 flex-1 overflow-hidden rounded-full bg-slate-100">
         <div
-          className={`flex h-full items-center justify-end rounded-full pr-2 text-xs font-black text-white ${color}`}
+          className={`flex h-full items-center justify-end rounded-full pr-2 text-xs font-bold text-white ${color}`}
           style={{ width: `${value || 0}%` }}
         >
           {value === null ? "" : `${value}%`}
         </div>
         {value === null && (
-          <span className="absolute inset-y-0 right-2 grid place-items-center text-xs font-bold text-text-tertiary">
+          <span className="absolute inset-y-0 right-2 grid place-items-center text-xs font-bold text-slate-400">
             —
           </span>
         )}
@@ -1095,19 +1091,19 @@ function SummaryGroup({
     slate: "bg-slate-50 text-slate-600",
   }[tone];
   return (
-    <div className="min-h-[88px] rounded-xl bg-surface-alt p-3">
-      <h3 className="flex items-center gap-2 text-xs font-semibold text-text-secondary">
+    <div className="rounded-xl bg-slate-50 p-3">
+      <h3 className="mb-2 flex items-center gap-1.5 text-xs font-medium text-slate-600">
         <span
           className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg ${iconTone}`}
         >
-          <Icon size={15} />
+          <Icon size={14} />
         </span>
         {label}
       </h3>
       {items.map(([item, value]) => (
-        <div key={item} className="mt-2 flex justify-between gap-mx-xs text-xs">
-          <span className="text-text-secondary">{item}</span>
-          <strong>{value}</strong>
+        <div key={item} className="mb-0.5 flex justify-between text-xs">
+          <span className="text-slate-500">{item}</span>
+          <strong className="text-slate-800">{value}</strong>
         </div>
       ))}
     </div>
@@ -1150,19 +1146,19 @@ function ClosingRow({
   const visits = checkin ? sumNumericMetrics(checkin.visit_prev_day) : null;
   const discipline = checkin?.pontuacao_disciplina_final;
   return (
-    <tr className="bg-white">
-      <td className="px-5 py-5 text-[16px] font-bold text-slate-800">
-        <span className="flex items-center gap-3"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700">{initials(name)}</span>{name}</span>
+    <tr className="h-[66px] bg-white">
+      <td className="px-4 py-3">
+        <span className="flex items-center gap-2"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">{initials(name)}</span><span className="font-medium text-slate-800">{name}</span></span>
       </td>
-      <td className="px-5 py-5">
+      <td className="px-4 py-3">
         <Badge
           variant="outline"
-          className={`w-fit whitespace-nowrap border-0 px-3 py-1.5 shadow-none ${status === "Finalizado" ? "bg-emerald-100 text-emerald-700" : status === "Pendente" ? "bg-amber-100 text-amber-700" : status === "Fora do horário" ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}
+          className={`w-fit whitespace-nowrap border-0 px-2 py-1 shadow-none ${status === "Finalizado" ? "bg-emerald-100 text-emerald-700" : status === "Pendente" ? "bg-amber-100 text-amber-700" : status === "Fora do horário" ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}
         >
           {status}
         </Badge>
       </td>
-      <td className="px-5 py-5 text-[16px] text-slate-600">
+      <td className="px-4 py-3 text-slate-600">
         {checkin?.submitted_at
           ? format(parseISO(checkin.submitted_at), "HH:mm")
           : "—"}
@@ -1173,10 +1169,10 @@ function ClosingRow({
         }
       />
       <NumberCell value="—" muted />
-      <td className="px-5 py-5">
+      <td className="px-4 py-3 font-semibold">
         <button
           type="button"
-          className={`rounded-mx-sm px-mx-xs font-black underline decoration-dotted underline-offset-4 hover:bg-surface-alt focus-visible:outline-none focus-visible:ring-2 focus:ring-mx-action ${appointments === null ? "text-text-tertiary" : appointments === 0 ? "text-status-error" : appointments === 1 ? "text-status-warning" : "text-status-success"}`}
+          className={`underline decoration-dotted underline-offset-2 hover:text-emerald-700 ${appointments === null ? "text-slate-400" : appointments === 0 ? "text-red-600" : appointments === 1 ? "text-orange-500" : "text-emerald-600"}`}
           aria-label={`Abrir Agenda D+1 de ${name}`}
           onClick={onOpenAgenda}
         >
@@ -1185,14 +1181,14 @@ function ClosingRow({
       </td>
       <NumberCell value={visits} />
       <NumberCell value={sales} />
-      <td className="px-5 py-5">
+      <td className="px-4 py-3">
         <DisciplineRing value={discipline} />
       </td>
-      <td className="px-5 py-5">
-        <div className="flex min-w-max items-center gap-4 whitespace-nowrap">
+      <td className="px-4 py-3">
+        <div className="flex min-w-max flex-wrap items-center justify-end gap-1.5">
           <button
             type="button"
-            className="inline-flex items-center gap-1 rounded-lg px-1 text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             aria-label={`Detalhes ${name}`}
             onClick={onOpenDetails}
           >
@@ -1200,8 +1196,8 @@ function ClosingRow({
           </button>
           {request ? (
             <>
-            <button type="button" className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-700 hover:text-emerald-800" onClick={() => onReview(request, "approve")}><Check size={16} /> Aprovar</button>
-            <button type="button" className="inline-flex items-center gap-1 text-sm font-semibold text-red-600 hover:text-red-700" onClick={() => onReview(request, "reject")}><X size={16} /> Recusar</button>
+            <button type="button" className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50" onClick={() => onReview(request, "approve")}><Check size={13} /> Aprovar</button>
+            <button type="button" className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50" onClick={() => onReview(request, "reject")}><X size={13} /> Recusar</button>
             </>
           ) : <Typography variant="tiny" tone="muted">Somente consulta</Typography>}
         </div>
@@ -1218,7 +1214,7 @@ function initials(name: string) {
 function NumberCell({ value, muted }: { value: number | string | null; muted?: boolean }) {
   return (
     <td
-      className={`px-5 py-5 text-[16px] font-semibold ${muted ? "text-slate-400" : "text-slate-700"}`}
+      className={`px-4 py-3 text-sm ${muted ? "text-slate-400" : "text-slate-700"}`}
     >
       {value}
     </td>
@@ -1227,8 +1223,8 @@ function NumberCell({ value, muted }: { value: number | string | null; muted?: b
 
 function Empty({ text }: { text: string }) {
   return (
-    <div className="grid min-h-[150px] place-items-center p-mx-xl text-center">
-      <Typography variant="p" tone="muted" className="font-semibold">
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <Typography variant="p" tone="muted" className="font-medium">
         {text}
       </Typography>
     </div>

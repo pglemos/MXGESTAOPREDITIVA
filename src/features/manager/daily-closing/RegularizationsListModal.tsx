@@ -81,7 +81,7 @@ export function RegularizationsListModal({
       <Modal
         open={open}
         onClose={onClose}
-        size="lg"
+        size="2xl"
         referenceStyle
         title="Regularizações Aguardando Aprovação"
         description={`${requests.length} regularização(ões) pendente(s)`}
