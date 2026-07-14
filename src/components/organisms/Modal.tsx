@@ -124,7 +124,12 @@ export function Modal({
             <div className="min-w-0">
               {referenceStyle ? (
                 <>
-                  <Dialog.Title className="text-lg font-semibold leading-6 text-gray-800">
+                  <Dialog.Title
+                    className={cn(
+                      "font-semibold leading-6 text-gray-800",
+                      size === "sm" ? "text-base" : "text-lg",
+                    )}
+                  >
                     {title}
                   </Dialog.Title>
                   {description && (
@@ -156,7 +161,7 @@ export function Modal({
                   className={cn(
                     "shrink-0 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30",
                     referenceStyle
-                      ? "mt-0.5 grid h-5 w-5 place-items-center rounded-md p-0 text-gray-400 hover:text-gray-600"
+                      ? "!min-h-0 mt-0.5 grid h-5 w-5 place-items-center rounded-md p-0 text-gray-400 hover:text-gray-600"
                       : "flex h-mx-xl w-mx-xl items-center justify-center rounded-mx-xl bg-surface-alt text-text-tertiary hover:text-text-primary",
                   )}
                 >
