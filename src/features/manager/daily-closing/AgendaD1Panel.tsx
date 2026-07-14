@@ -336,6 +336,7 @@ export function AgendaD1Panel({
       ) {
         const { error: notificationError } = await sendNotification({
           recipient_id: row.seller_user_id,
+          store_id: storeId || undefined,
           title:
             confirming.outcome === "Cancelou"
               ? "Cliente cancelou agendamento D+1"
@@ -352,7 +353,7 @@ export function AgendaD1Panel({
       setConfirming(null);
       setSaving(false);
     },
-    [confirming, registerLog, sendNotification],
+    [confirming, registerLog, sendNotification, storeId],
   );
 
   const filterSelectClass = "h-mx-10";

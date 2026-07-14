@@ -88,10 +88,23 @@ O sidebar escuro MX foi preservado; `CalendarClock` e `BrainCircuit` permanecem 
 - Meta da Loja e Início agora reutilizam o mesmo adaptador de linhas de fechamento e predicado de dia operacional; Fechamento Diário sanitiza campos inválidos antes das somas e calcula a necessidade sem arredondamento prematuro.
 - E2E recebeu gate explícito para console e responses/request failures.
 - `ManagerSellerProfileModal` deixou de ficar em `z-50` abaixo do sidebar `z-[80]`; o perfil usa overlay `z-[110]`, conteúdo `z-[120]`, limite de altura por viewport e desativa o close padrão duplicado.
+- **Regularização de fechamento (P0, produção estava quebrada):** `solicitar_regularizacao_fechamento` falhava sempre que a loja tinha `dono` vinculado — o trigger `trg_expandir_destino_notificacao_regularizacao` espalha a notificação para `gerente` e `dono`, mas a constraint `notifications_target_role_check` em `notificacoes` só aceitava `gerente/vendedor/todos`. Migration `20260714120000_fix_notificacoes_target_role_dono.sql` adiciona `dono` aos valores aceitos. Confirmado em produção com fixture autorizada (vendedor solicita → gerente aprova/rejeita), incluindo idempotência: repetir `solicitar_regularizacao_fechamento` com a mesma `idempotency_key` retorna `duplicate:true` sem nova linha; repetir `aplicar_regularizacao_fechamento` retorna `already_applied:true` sem reaplicar; `rejeitar_regularizacao_fechamento` numa solicitação já aprovada retorna erro explícito `Solicitação já processada`. Trilha em `checkin_audit_logs` confirmada (`change_type=approved_regularization`, valores antes/depois).
+- **Cobrança de rotina (P0, produção estava quebrada):** `sendNotification({recipient_id, ...})` chamado sem `store_id` em três pontos (`ManagerTeamRoutine.container.tsx` "Cobrar", `AgendaD1Panel.tsx` confirmação D+1, `ManagerDailyClosing.container.tsx` "Cobrar pendentes") violava a RLS de INSERT em `notificacoes` (`is_manager_of(store_id)` exige `store_id` não nulo). Corrigido passando `store_id: storeId` nos três call sites. Confirmado com fixture autorizada: notificação gravada com sucesso; **idempotência ainda não existe no servidor** — reenviar a mesma cobrança cria uma segunda linha em `notificacoes` (a UI só bloqueia reenvio dentro da mesma sessão do modal, via `disabled={sent}`); registrado como observação, não corrigido, por depender de decisão de produto sobre se cobranças repetidas são intencionais.
 
 ## Segurança e RLS
 
-Nenhuma migration foi criada, RLS não foi desabilitado e nenhuma mutação de produção foi executada. No Chrome local, o vendedor recebeu `Acesso não autorizado` em `/gerente/minha-equipe`; dono e admin autenticados carregaram seus escopos. A auditoria negativa formal cross-store em consultas/mutations ainda é pendência.
+RLS não foi desabilitado. Uma migration foi criada e aplicada em produção nesta rodada (`20260714120000_fix_notificacoes_target_role_dono.sql`, aditiva, reversível — ver seção de correções) para destravar a regularização de fechamento; nenhuma outra alteração de schema foi feita. Mutações de produção foram executadas via fixture autorizada com as contas de homologação (dono/gerente/vendedor@mxgestaopreditiva.com.br), conforme decisão do usuário nesta sessão — ver `## Fixtures de mutação` abaixo. No Chrome local, o vendedor recebeu `Acesso não autorizado` em `/gerente/minha-equipe`; dono e admin autenticados carregaram seus escopos. A auditoria negativa formal cross-store em consultas/mutations ainda é pendência.
+
+## Fixtures de mutação (2026-07-14)
+
+Executadas via script autenticado (`@supabase/supabase-js`, contas de homologação, sem senha digitada em UI) contra o Supabase de produção — não existe staging separado neste projeto. Nenhum dado de cliente real foi tocado; todos os registros de teste estão marcados `[TESTE QA]` no corpo/motivo e são rastreáveis por `requested_by`/`sender_id`/`changed_by`.
+
+| Fluxo | Resultado | Idempotência | Observação |
+|---|---|---|---|
+| Regularização (Fechamento Diário) | ✅ Corrigido e validado ponta a ponta | ✅ Confirmada nas 3 RPCs (`solicitar`/`aplicar`/`rejeitar`) | Bug de produção corrigido (ver acima) |
+| Cobrança (Rotina da Equipe / Fechamento) | ✅ Corrigido e validado | ⚠️ Não idempotente no servidor | Bug de produção corrigido; duplicidade em reenvio é achado aberto, não bug corrigido |
+| PDI (Desenvolvimento) | ⚠️ Funciona, mas com 2 achados | ❌ Não idempotente — repetir `create_pdi_session_bundle` cria segunda sessão | `create_pdi_session_bundle` grava `status='concluido'` fixo na criação (mesmo com plano de ação `pendente`), inconsistente com os 10 estados do ciclo PDI da especificação (17.2); não corrigido — depende de decisão de qual status inicial é correto (`ativo` é o candidato óbvio, mas é regra de negócio, não estou assumindo) |
+| Treinamento (Universidade MX) | ✅ Validado | ✅ Confirmada (upsert com `onConflict`) | Sem achados; quiz (`submeter_quiz_treinamento`) verificado só por leitura de código, não exercido ao vivo nesta rodada |
 
 ## Acessibilidade
 
@@ -139,7 +152,7 @@ warnings runtime descritos em Console e network permanecem pendentes. Evidência
 
 ## Pendências críticas
 
-1. Executar fixture autorizada em local/staging para validar gravação e idempotência: criação/conclusão de ação, cobrança, regularização, leads, feedback, PDI e conclusão de treinamento.
+1. ~~Executar fixture autorizada para validar gravação e idempotência: cobrança, regularização, PDI, treinamento.~~ **Feito em 2026-07-14** — ver `## Fixtures de mutação` acima. Achados abertos que restam desta pendência: (a) cobrança não é idempotente no servidor (duplicidade em reenvio); (b) `create_pdi_session_bundle` não é idempotente e grava `status='concluido'` fixo na criação, precisa decisão de produto sobre status inicial correto; (c) leads/feedback ainda não exercidos com fixture autorizada, só regularização/cobrança/PDI/treinamento.
 2. Completar auditoria RLS cross-store e por papel com fixture autorizada.
 3. Formalizar a decisão do Dono sobre a fórmula definitiva do Ranking; até lá a fórmula permanece provisória.
 4. Revisar os diffs carregados com dados determinísticos e limiar formal; a regressão MX local já está automatizada (`30/30`).

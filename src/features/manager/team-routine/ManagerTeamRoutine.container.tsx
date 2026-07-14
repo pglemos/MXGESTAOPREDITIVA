@@ -145,7 +145,7 @@ export default function ManagerTeamRoutine() {
     : [], [routineSources, historyStart, date])
 
   const remind = async (sellerId: string, message: string) => {
-    const { error: notificationError } = await sendNotification({ recipient_id: sellerId, title: 'Pendências na Rotina do Dia', message, type: 'routine', priority: 'high', link: '/central-execucao' })
+    const { error: notificationError } = await sendNotification({ recipient_id: sellerId, store_id: storeId || undefined, title: 'Pendências na Rotina do Dia', message, type: 'routine', priority: 'high', link: '/central-execucao' })
     if (notificationError) toast.error('Não foi possível registrar a cobrança.')
     else toast.success('Cobrança registrada e enviada.')
   }

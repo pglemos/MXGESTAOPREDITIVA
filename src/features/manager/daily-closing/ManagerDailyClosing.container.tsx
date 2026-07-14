@@ -209,6 +209,7 @@ export default function ManagerDailyClosing() {
       pendingRows.map(({ seller }) =>
         sendNotification({
           recipient_id: seller.id,
+          store_id: storeId || undefined,
           title: "Fechamento Diário pendente",
           message: PENDING_CLOSING_MESSAGE,
           type: "checkin",
