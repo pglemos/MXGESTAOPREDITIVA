@@ -24,6 +24,15 @@ const modalSizeVariants = cva(
   },
 );
 
+const referenceSizeClasses = {
+  sm: "max-w-md",
+  md: "max-w-lg",
+  lg: "max-w-xl",
+  xl: "max-w-3xl",
+  "2xl": "max-w-5xl",
+  "3xl": "max-w-[1280px]",
+} as const;
+
 export interface ModalProps extends VariantProps<typeof modalSizeVariants> {
   open: boolean;
   onClose: () => void;
@@ -56,27 +65,30 @@ export function Modal({
   const wasOpenRef = useRef(false);
 
   if (open && !wasOpenRef.current && typeof document !== "undefined") {
-    previouslyFocusedElementRef.current = document.activeElement instanceof HTMLElement
-      ? document.activeElement
-      : null;
+    previouslyFocusedElementRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
   }
   wasOpenRef.current = open;
+
+  const referenceSize = referenceSizeClasses[size || "md"];
 
   return (
     <Dialog.Root
       open={open}
-      onOpenChange={(o) => {
-        if (!o) onClose();
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onClose();
       }}
     >
       <Dialog.Portal>
         <Dialog.Overlay
+          data-reference-overlay={referenceStyle ? "true" : undefined}
           className={cn(
             "fixed inset-0 z-[100]",
             referenceStyle ? "bg-black/30" : "bg-mx-black/60 backdrop-blur-md",
           )}
         />
         <Dialog.Content
+          data-reference-modal={referenceStyle ? "true" : undefined}
           onEscapeKeyDown={(event) => {
             if (!closeOnEscape) event.preventDefault();
           }}
@@ -90,35 +102,50 @@ export function Modal({
           }}
           className={cn(
             referenceStyle
-              ? "fixed left-4 right-4 top-1/2 -translate-y-1/2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-[101] focus:outline-none"
-              : "fixed left-mx-md right-mx-md top-mx-md bottom-mx-md sm:left-1/2 sm:right-auto sm:top-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 z-[101] focus:outline-none",
-            modalSizeVariants({ size }),
-            referenceStyle && "!max-h-[90vh] !rounded-[16px]",
+              ? cn(
+                  "fixed left-4 right-4 top-1/2 z-[101] flex max-h-[90vh] -translate-y-1/2 flex-col overflow-hidden rounded-2xl bg-white shadow-xl focus:outline-none sm:left-1/2 sm:right-auto sm:w-full sm:-translate-x-1/2",
+                  referenceSize,
+                )
+              : cn(
+                  "fixed bottom-mx-md left-mx-md right-mx-md top-mx-md z-[101] focus:outline-none sm:bottom-auto sm:left-1/2 sm:right-auto sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2",
+                  modalSizeVariants({ size }),
+                ),
             className,
           )}
         >
-          <div className={cn(
-            "border-b flex justify-between gap-mx-md sticky top-mx-0 bg-white z-10 shrink-0",
-            referenceStyle
-              ? "items-center border-gray-100 px-5 py-4"
-              : "items-start border-border-default p-mx-md sm:p-mx-lg",
-          )}>
+          <div
+            className={cn(
+              "sticky top-0 z-10 flex shrink-0 justify-between bg-white",
+              referenceStyle
+                ? "items-start gap-4 border-b border-gray-100 p-5"
+                : "items-start gap-mx-md border-b border-border-default p-mx-md sm:p-mx-lg",
+            )}
+          >
             <div className="min-w-0">
-              <Dialog.Title asChild>
-                <Typography variant="h3" className={referenceStyle ? "text-base leading-6" : undefined}>
-                  {title}
-                </Typography>
-              </Dialog.Title>
-              {description && (
-                <Dialog.Description asChild>
-                  <Typography
-                    variant="tiny"
-                    tone="muted"
-                    className="mt-1 block"
-                  >
-                    {description}
-                  </Typography>
-                </Dialog.Description>
+              {referenceStyle ? (
+                <>
+                  <Dialog.Title className="text-lg font-semibold leading-6 text-gray-800">
+                    {title}
+                  </Dialog.Title>
+                  {description && (
+                    <Dialog.Description className="mt-0.5 text-sm leading-5 text-gray-500">
+                      {description}
+                    </Dialog.Description>
+                  )}
+                </>
+              ) : (
+                <>
+                  <Dialog.Title asChild>
+                    <Typography variant="h3">{title}</Typography>
+                  </Dialog.Title>
+                  {description && (
+                    <Dialog.Description asChild>
+                      <Typography variant="tiny" tone="muted" className="mt-1 block">
+                        {description}
+                      </Typography>
+                    </Dialog.Description>
+                  )}
+                </>
               )}
             </div>
             {showClose && (
@@ -127,37 +154,41 @@ export function Modal({
                   type="button"
                   aria-label="Fechar modal"
                   className={cn(
-                    "flex items-center justify-center text-text-tertiary hover:text-text-primary transition-all shrink-0",
+                    "shrink-0 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30",
                     referenceStyle
-                      ? "h-5 w-5 !min-h-0 rounded-lg bg-transparent p-0"
-                      : "h-mx-xl w-mx-xl rounded-mx-xl bg-surface-alt",
+                      ? "mt-0.5 grid h-5 w-5 place-items-center rounded-md p-0 text-gray-400 hover:text-gray-600"
+                      : "flex h-mx-xl w-mx-xl items-center justify-center rounded-mx-xl bg-surface-alt text-text-tertiary hover:text-text-primary",
                   )}
                 >
-                  <X size={20} />
+                  <X size={referenceStyle ? 18 : 20} />
                 </button>
               </Dialog.Close>
             )}
           </div>
 
-          <div className={cn(
-            "min-h-0 flex-1 overflow-y-auto overscroll-contain",
-            referenceStyle
-              ? "p-5 [&_input]:!text-sm [&_select]:!text-sm [&_textarea]:!text-sm"
-              : "p-mx-md sm:p-mx-lg",
-          )}>
+          <div
+            className={cn(
+              "min-h-0 flex-1 overflow-y-auto overscroll-contain",
+              referenceStyle
+                ? "p-5 [&_input]:!text-sm [&_select]:!text-sm [&_textarea]:!text-sm"
+                : "p-mx-md sm:p-mx-lg",
+            )}
+          >
             {children}
           </div>
 
           {footer && (
             <div
               className={cn(
-                "border-t flex sticky bottom-mx-0 bg-white shrink-0",
+                "sticky bottom-0 flex shrink-0 bg-white",
                 referenceStyle
-                  ? "flex-row justify-end gap-2 border-gray-100 px-5 py-4 [&>button]:!min-h-0"
-                  : "flex-col-reverse gap-mx-sm border-border-default sm:flex-row sm:justify-end p-mx-md sm:p-mx-lg",
+                  ? "border-t border-gray-100 p-5 [&>button]:!min-h-0"
+                  : "flex-col-reverse gap-mx-sm border-t border-border-default p-mx-md sm:flex-row sm:justify-end sm:p-mx-lg",
               )}
               style={{
-                paddingBottom: "max(env(safe-area-inset-bottom, 0px), 1rem)",
+                paddingBottom: referenceStyle
+                  ? "max(env(safe-area-inset-bottom, 0px), 1.25rem)"
+                  : "max(env(safe-area-inset-bottom, 0px), 1rem)",
               }}
             >
               {footer}
