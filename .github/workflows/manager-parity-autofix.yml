@@ -1,0 +1,84 @@
+name: Manager Parity Autofix
+
+on:
+  push:
+    branches:
+      - fix/manager-daily-closing-base44-parity-20260714
+    paths:
+      - '.github/workflows/manager-parity-autofix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/manager-daily-closing-base44-parity-20260714
+          fetch-depth: 0
+
+      - name: Apply deterministic source corrections
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          replacements = {
+              Path('src/features/manager/daily-closing/ManagerDailyClosingBase44.tsx'): [
+                  (
+                      'if (!checkin || checkin.submission_status === "draft") return "Pendente";',
+                      'if (!checkin) return "Pendente";',
+                  ),
+              ],
+              Path('src/features/manager/daily-closing/RegularizeLateModal.tsx'): [
+                  (
+                      '''function formatTime(value: string | null | undefined) {
+            if (!value) return "—";
+            try {
+              return format(parseISO(value), "HH:mm");
+            } catch {
+              return "—";
+            }
+          }''',
+                      '''function formatTime(value: string | null | undefined) {
+            if (!value) return "—";
+            const civilTime = value.match(/T(\\d{2}):(\\d{2})/);
+            if (civilTime) return `${civilTime[1]}:${civilTime[2]}`;
+            try {
+              return format(parseISO(value), "HH:mm");
+            } catch {
+              return "—";
+            }
+          }''',
+                  ),
+              ],
+              Path('src/components/organisms/Modal.tsx'): [
+                  (
+                      '"items-start gap-4 border-b border-gray-100 p-5"',
+                      '"items-start gap-4 border-b border-gray-100 px-5 py-4"',
+                  ),
+              ],
+          }
+
+          for path, pairs in replacements.items():
+              text = path.read_text(encoding='utf-8')
+              for old, new in pairs:
+                  count = text.count(old)
+                  if count != 1:
+                      raise SystemExit(f'{path}: expected exactly one match, found {count}')
+                  text = text.replace(old, new, 1)
+              path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit patched sources
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/features/manager/daily-closing/ManagerDailyClosingBase44.tsx \
+                  src/features/manager/daily-closing/RegularizeLateModal.tsx \
+                  src/components/organisms/Modal.tsx
+          git commit -m 'fix(manager): resolve parity verification failures'
+          git push origin HEAD:fix/manager-daily-closing-base44-parity-20260714
