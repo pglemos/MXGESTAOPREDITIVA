@@ -5,7 +5,7 @@ import { ManagerTeamPerformance } from './ManagerTeamPerformance'
 
 afterEach(() => cleanup())
 
-function dashboardData(loading: boolean) {
+function dashboardData(loading: boolean, ranking = []) {
   return {
     loading,
     referenceDate: '2026-07-14',
@@ -15,7 +15,7 @@ function dashboardData(loading: boolean) {
     setStartDate: vi.fn(),
     setEndDate: vi.fn(),
     selectedStoreId: 'store-1',
-    metrics: { ranking: [] },
+    metrics: { ranking },
   } as never
 }
 
@@ -40,5 +40,29 @@ describe('ManagerTeamPerformance loading state', () => {
     )
 
     expect(screen.getByText('Nenhum vendedor vinculado a este gerente.')).toBeTruthy()
+  })
+})
+
+describe('ManagerTeamPerformance Base44 parity', () => {
+  test('usa a tipografia, controles e raios da referência na composição renderizada', () => {
+    render(
+      <MemoryRouter>
+        <ManagerTeamPerformance
+          data={dashboardData(false, [{
+            user_id: 'seller-1', user_name: 'Vendedor MX', is_venda_loja: false,
+            vnd_total: 0, leads: 0, agd_total: 0, visitas: 0, meta: 10,
+            atingimento: 0, projecao: 0, ritmo: 0, efficiency: 0,
+            status: { label: '', color: '' }, gap: 10, position: 1,
+            routine_execution: null, discipline_score: null,
+          }])}
+          storeName="Matriz"
+        />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('region', { name: 'Performance da equipe' })).toHaveClass('font-reference-sans')
+    expect(screen.getByPlaceholderText('Vendedor...')).toHaveClass('w-44', 'rounded-xl', 'font-normal')
+    expect(screen.getByRole('region', { name: 'Visão do Kanban' })).toHaveClass('rounded-2xl')
+    expect(screen.getByRole('tab', { name: 'Todos' })).toHaveAttribute('aria-selected', 'true')
   })
 })

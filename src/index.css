@@ -1867,3 +1867,25 @@ body {
   from { background-position: 0 0; }
   to { background-position: 72px 72px; }
 }
+
+/* Base44 parity surface: the MX sidebar remains unchanged, while this content
+ * area uses the reference sans stack and Tailwind default radii. */
+.font-reference-sans {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-reference-sans .rounded-2xl {
+  border-radius: 16px;
+}
+
+.font-reference-sans .rounded-xl {
+  border-radius: 12px;
+}
+
+.font-reference-sans .rounded-lg {
+  border-radius: 8px;
+}
+
+.font-reference-sans .rounded-md {
+  border-radius: 6px;
+}

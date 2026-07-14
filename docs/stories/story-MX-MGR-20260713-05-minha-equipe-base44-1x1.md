@@ -62,6 +62,10 @@ Capturas Base44/MX e diff em `output/playwright/manager-parity/master-20260713/`
 - As requests reais de produção confirmaram cinco linhas em `vendedores_loja` e cinco em `vinculos_loja`; a ausência de elegibilidade decorre da falta de ações oficiais de rotina no período, não de vínculo ausente.
 - E2E autenticado real em Chromium: `4 passed (1.2m)` contra `http://127.0.0.1:3001`.
 - Capturas reais: Base44 com perfil aberto em `output/playwright/manager-parity/master-20260714/chrome/base44/minha-equipe-perfil-1440x900.png`; MX em `output/playwright/manager-design/final/equipe-desktop-1440.png` e `equipe-mobile-390.png`.
+- Paridade visual final da composição: Base44 e MX local medidos no Chrome em 1440x900 com header `100px`, busca `176x38px`, select `147x36,5px`, fonte `ui-sans-serif` e raios Base44 (`12px`/`16px`); a barra de resumo do Kanban deixou de usar o pill branco do MX e passou a seguir o resumo sticky da referência. O sidebar escuro MX permanece como exceção normativa.
+- Teste de paridade adicionado em `ManagerTeamPerformance.test.tsx`; focused suite `3 pass / 0 fail`. Regressão completa nesta rodada: `919 pass / 0 fail`, typecheck, lint (0 erros), build e `git diff --check` aprovados.
+- A tentativa de reexecutar o E2E autenticado nesta rodada foi bloqueada pelo ambiente sem `E2E_*`; a repetição com bypass e senha sintética não autenticou e foi interrompida sem alteração no código. A validação interativa autenticada no Chrome permanece a evidência principal desta correção.
+- Evidências Chrome desta rodada: `/private/tmp/base44-minha-equipe-final-1440x900.png`, `/private/tmp/mx-local-minha-equipe-final-1440x900-loaded.png`, `/private/tmp/mx-production-minha-equipe-final-1440x900.png` (produção antes do novo deploy ainda mostrava o pill legado).
 - Bloqueio mantido: a massa real MX possui cinco vendedores `Não aplicáveis no período` e zero vendedores elegíveis; não foi possível abrir o perfil no fluxo live para capturar a versão MX equivalente sem criar dados.
 
 ### File List
@@ -72,6 +76,7 @@ Capturas Base44/MX e diff em `output/playwright/manager-parity/master-20260713/`
 - `src/features/manager/team/ManagerTeamPerformance.test.tsx`
 - `src/features/manager/team/manager-team-kanban.ts`
 - `src/features/manager/team/ManagerTeamKanban.tsx`
+- `src/index.css`
 - `src/components/ui/dialog.jsx`
 - `src/test/setup.ts`
 - `src/test/manager-module.playwright.ts`

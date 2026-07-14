@@ -115,10 +115,12 @@ export function ManagerTeamKanban({ cards, view, storeName, onViewChange, onOpen
       <p className="mt-1.5 text-[11px] text-gray-400">A posição no Kanban muda conforme a visão selecionada.</p>
     </section>
 
-    <div className="flex flex-wrap items-center justify-center gap-2 rounded-xl bg-white px-3 py-2 shadow-sm">
+    <div className="sticky top-0 z-30 bg-gray-50 py-1">
+      <div className="flex items-center justify-center gap-2 py-2">
       <Users size={15} className="text-emerald-600"/>
       <p className="text-sm font-semibold text-gray-700"><span className="text-base text-emerald-600">{summary.onTrackPercentage}%</span> da equipe Em dia</p>
       <span className="text-xs text-gray-400">({summary.eligible} vendedores elegíveis)</span>
+      </div>
     </div>
 
     <div className="hidden items-start gap-4 lg:grid lg:grid-cols-3">

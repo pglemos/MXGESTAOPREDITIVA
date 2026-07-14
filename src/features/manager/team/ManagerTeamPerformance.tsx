@@ -3,7 +3,6 @@ import { endOfMonth, format, parseISO, startOfMonth, subDays, subMonths } from '
 import { Search, Users } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/atoms/Button'
-import { Input } from '@/components/atoms/Input'
 import { Typography } from '@/components/atoms/Typography'
 import { TabNavPill } from '@/components/molecules/TabNavPill'
 import type { RankingEntry, Store } from '@/types/database'
@@ -61,11 +60,11 @@ export function ManagerTeamPerformance({ data, storeName, selectableStores = [],
 
   if (data.loading) return <ManagerTeamLoadingState />
 
-  return <section className="min-h-full bg-gray-50" aria-label="Performance da equipe">
+  return <section className="font-reference-sans min-h-full bg-gray-50" aria-label="Performance da equipe">
     <div className="mx-auto max-w-7xl space-y-5 px-4 py-6 pb-24">
     <ManagerHomeReturnLink />
     <header className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><div><h1 className="text-xl font-bold text-gray-800">Minha Equipe</h1><p className="mt-0.5 text-sm text-gray-500">Acompanhe a evolução da equipe e identifique onde sua atuação gerencial é necessária.</p></div><div className="flex flex-wrap items-end gap-2"><label className="text-xs text-gray-500">Buscar<div className="relative mt-1 w-full sm:w-52"><Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={15}/><Input aria-label="Buscar vendedor" placeholder="Vendedor..." value={search} onChange={event => setSearch(event.target.value)} className="h-10 rounded-xl border-gray-200 pl-9"/></div></label><label className="text-xs text-gray-500">Período<select value={period} onChange={event => setPeriod(event.target.value as TeamPeriod)} aria-label="Período da equipe" className="mt-1 block h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-700"><option value="current">Mês atual</option><option value="previous">Mês anterior</option><option value="last30">Últimos 30 dias</option></select></label>{selectableStores.length > 1 && onStoreChange ? <label className="text-xs text-gray-500">Unidade<select aria-label="Unidade da equipe" value={data.selectedStoreId || ''} onChange={event => onStoreChange(event.target.value)} className="mt-1 block h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-700"><option value="">Todas</option>{selectableStores.map(store => <option key={store.id} value={store.id}>{store.name}</option>)}</select></label> : null}</div></div>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><div><h1 className="text-xl font-bold text-gray-800">Minha Equipe</h1><p className="mt-0.5 text-sm text-gray-500">Acompanhe a evolução da equipe e identifique onde sua atuação gerencial é necessária.</p></div><div className="flex flex-wrap items-end gap-2"><div><label className="mb-1 block text-xs text-gray-500" htmlFor="manager-team-search">Buscar</label><div className="relative"><Search className="pointer-events-none absolute left-3 top-2.5 text-gray-400" size={15}/><input id="manager-team-search" aria-label="Buscar vendedor" placeholder="Vendedor..." value={search} onChange={event => setSearch(event.target.value)} className="w-44 rounded-xl border border-gray-200 px-3 py-2 pl-9 text-sm font-normal leading-5 focus:outline-none focus:ring-2 focus:ring-emerald-500"/></div></div><div><label className="mb-1 block text-xs text-gray-500" htmlFor="manager-team-period">Período</label><select id="manager-team-period" value={period} onChange={event => setPeriod(event.target.value as TeamPeriod)} aria-label="Período da equipe" className="block rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"><option value="current">Mês atual</option><option value="previous">Mês anterior</option><option value="last30">Últimos 30 dias</option></select></div>{selectableStores.length > 1 && onStoreChange ? <div><label className="mb-1 block text-xs text-gray-500" htmlFor="manager-team-store">Unidade</label><select id="manager-team-store" aria-label="Unidade da equipe" value={data.selectedStoreId || ''} onChange={event => onStoreChange(event.target.value)} className="block min-w-[140px] rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"><option value="">Todas</option>{selectableStores.map(store => <option key={store.id} value={store.id}>{store.name}</option>)}</select></div> : null}</div></div>
     </header>
 
     {filtered.length ? <ManagerTeamKanban cards={cards} view={view} storeName={storeName} onViewChange={setView} onOpenProfile={openProfile} onAction={handleAction}/> : <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center"><Users className="mx-auto text-text-tertiary"/><Typography variant="p" tone="muted" className="mt-2">{rows.length === 0 ? 'Nenhum vendedor vinculado a este gerente.' : 'Nenhum vendedor corresponde à busca.'}</Typography></div>}
@@ -85,7 +84,7 @@ export function ManagerTeamPerformance({ data, storeName, selectableStores = [],
 }
 
 function ManagerTeamLoadingState() {
-  return <section className="min-h-full bg-gray-50" aria-label="Performance da equipe" aria-busy="true">
+  return <section className="font-reference-sans min-h-full bg-gray-50" aria-label="Performance da equipe" aria-busy="true">
     <div className="mx-auto max-w-7xl space-y-5 px-4 py-6 pb-24">
       <header className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
