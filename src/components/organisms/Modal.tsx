@@ -117,7 +117,7 @@ export function Modal({
             className={cn(
               "sticky top-0 z-10 flex shrink-0 justify-between bg-white",
               referenceStyle
-                ? "items-start gap-4 border-b border-gray-100 p-5"
+                ? "items-start gap-4 border-b border-gray-100 px-5 py-4"
                 : "items-start gap-mx-md border-b border-border-default p-mx-md sm:p-mx-lg",
             )}
           >

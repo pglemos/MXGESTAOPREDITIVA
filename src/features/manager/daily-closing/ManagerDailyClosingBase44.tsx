@@ -894,7 +894,7 @@ function deriveClosingStatus(
   checkin: CheckinWithTotals | undefined,
   request: ManagerCorrectionRequest | undefined,
 ): ClosingStatus {
-  if (!checkin || checkin.submission_status === "draft") return "Pendente";
+  if (!checkin) return "Pendente";
   if (request?.status === "pending") return "Aguardando aprovação";
   if (request?.status === "approved") return "Regularizado aprovado";
   if (request?.status === "rejected") return "Regularização recusada";
