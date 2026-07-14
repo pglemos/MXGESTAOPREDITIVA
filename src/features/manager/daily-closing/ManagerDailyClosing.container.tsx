@@ -5,6 +5,7 @@ import {
   CalendarDays,
   CalendarClock,
   BarChart3,
+  Check,
   Clock3,
   Eye,
   Globe2,
@@ -18,6 +19,7 @@ import {
   UserRoundCheck,
   WalletCards,
   Wrench,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCheckinsByDateRange } from "@/hooks/useCheckins";
@@ -92,6 +94,10 @@ export default function ManagerDailyClosing() {
   });
   const [leadConferenceOpen, setLeadConferenceOpen] = useState(false);
   const [regularizationsOpen, setRegularizationsOpen] = useState(false);
+  const [regularizationDecision, setRegularizationDecision] = useState<{
+    request: RegularizationRequest;
+    action: "approve" | "reject";
+  } | null>(null);
   const [closingDetail, setClosingDetail] = useState<{
     seller: { id: string; name: string };
     checkin?: CheckinWithTotals;
@@ -331,16 +337,16 @@ export default function ManagerDailyClosing() {
   if (sellersLoading || checkinsLoading) return <ManagerClosingSkeleton />;
 
   return (
-    <main className="min-h-full bg-surface-alt px-4 py-6" id="main-content">
-      <div className="mx-auto flex w-full max-w-[1248px] flex-col gap-5 pb-20">
+    <main className="min-h-full bg-surface-alt px-3 py-6 sm:px-6" id="main-content">
+      <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-5 pb-20">
         <ManagerHomeReturnLink />
-        <section className="flex min-h-[148px] items-center rounded-mx-xl border border-border-subtle bg-white p-5 shadow-mx-sm">
+        <section className="flex min-h-[148px] items-center rounded-[20px] border border-slate-100 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-mx-sm xl:flex-row xl:items-center xl:justify-between xl:gap-mx-lg">
             <div className="max-w-3xl">
-              <h1 className="text-xl font-bold leading-7 text-text-primary">
+              <h1 className="text-[22px] font-bold leading-7 text-slate-800">
                 Fechamento Diário
               </h1>
-              <p className="mt-mx-2xs text-[14px] leading-5 text-text-secondary">
+              <p className="mt-1 text-[15px] leading-6 text-slate-500">
                 Acompanhe o movimento comercial informado pelos vendedores,
                 regularize fechamentos fora do horário e corrija volumes
                 oficiais de leads.
@@ -437,7 +443,7 @@ export default function ManagerDailyClosing() {
               requests.length ? "aguardando decisão" : "nenhuma pendência"
             }
             icon={ShieldCheck}
-            tone="neutral"
+            tone="info"
             status="—"
             action="Ver Regularizações"
             actionDisabled={!requests.length}
@@ -450,8 +456,8 @@ export default function ManagerDailyClosing() {
 
         <ManagerSectionCard>
           <div id="manager-closing-movement" />
-          <div className="flex flex-col gap-mx-sm border-b border-border-subtle px-5 py-[14px] sm:flex-row sm:items-center sm:justify-between">
-            <Typography variant="h2" className="!text-base !font-semibold">
+          <div className="flex flex-col gap-mx-sm border-b border-slate-100 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+              <Typography variant="h2" className="!text-[22px] !font-bold">
               Movimento da Equipe — {format(parseISO(date), "dd/MM/yyyy")}
             </Typography>
             <div className="flex flex-wrap items-center gap-mx-sm">
@@ -482,7 +488,10 @@ export default function ManagerDailyClosing() {
             <ClosingTable
               rows={rows}
               requests={requests}
-              onDecide={decide}
+              onReview={(request, action) => {
+                setRegularizationsOpen(false);
+                setRegularizationDecision({ request, action });
+              }}
               onOpenAgenda={(sellerId) => setAgenda({ open: true, sellerId })}
               onOpenDetails={(detail) => setClosingDetail(detail)}
             />
@@ -495,7 +504,7 @@ export default function ManagerDailyClosing() {
           onRange={setHistoryRange}
         />
 
-        <ManagerSectionCard className="p-mx-lg">
+        <ManagerSectionCard className="p-6">
           <h2 className="flex items-center gap-mx-xs text-base font-bold text-text-primary">
             <BarChart3 size={18} className="text-status-success" />
             Comparativo de Disciplina do Fechamento
@@ -518,7 +527,7 @@ export default function ManagerDailyClosing() {
           </p>
         </ManagerSectionCard>
 
-        <ManagerSectionCard className="p-mx-lg">
+        <ManagerSectionCard className="p-6">
           <h2 className="text-base font-bold text-text-primary">
             Resumo do Fechamento
           </h2>
@@ -612,12 +621,15 @@ export default function ManagerDailyClosing() {
             setRegularizationsOpen(false);
             await decide(request as PendingRequest, "reject");
           }}
+          externalDecision={regularizationDecision}
+          onExternalDecisionHandled={() => setRegularizationDecision(null)}
         />
         <ClosingDetailsModal
           open={Boolean(closingDetail)}
           seller={closingDetail?.seller || { id: "", name: "" }}
           checkin={closingDetail?.checkin}
           status={closingDetail?.status || "—"}
+          storeName={membership?.store?.name || "—"}
           onClose={() => setClosingDetail(null)}
           onOpenAgenda={closingDetail ? () => {
             setClosingDetail(null);
@@ -672,8 +684,8 @@ export function PendingReminderModal({
   onConfirm: () => void;
 }) {
   const footer = (
-    <div className="grid w-full grid-cols-2 gap-mx-sm">
-      <Button variant="outline" onClick={onClose}>
+    <div className="grid w-full grid-cols-2 gap-4">
+      <Button variant="outline" onClick={onClose} className="border-slate-200 text-slate-950">
         Cancelar
       </Button>
       <Button
@@ -695,28 +707,28 @@ export function PendingReminderModal({
       description={`${pendingRows.length} vendedor(es) pendente(s)`}
       footer={footer}
     >
-      <div className="space-y-mx-md">
-        <div className="rounded-xl bg-surface-alt p-mx-md">
-          <p className="mb-mx-sm text-xs text-text-secondary">
+      <div className="space-y-8">
+        <div className="rounded-[24px] bg-slate-50 p-6">
+          <p className="mb-4 text-[18px] text-slate-500">
             Vendedores que serão cobrados:
           </p>
-          <ul className="space-y-mx-xs">
+          <ul className="space-y-3">
             {pendingRows.map(({ seller }) => (
               <li
                 key={seller.id}
-                className="flex items-center gap-mx-xs text-sm text-text-secondary"
+                className="flex items-center gap-3 text-[18px] font-medium text-slate-700"
               >
-                <Megaphone size={14} className="text-amber-500" />
+                <Megaphone size={18} className="text-amber-500" />
                 {seller.name}
               </li>
             ))}
           </ul>
         </div>
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-mx-md">
-          <p className="text-xs font-semibold text-amber-700">
+        <div className="rounded-[24px] border border-amber-200 bg-amber-50 p-6">
+          <p className="text-[18px] font-semibold text-amber-700">
             Mensagem padrão enviada:
           </p>
-          <p className="mt-mx-xs text-sm italic text-text-primary">
+          <p className="mt-3 text-[20px] italic leading-8 text-slate-700">
             “{PENDING_CLOSING_MESSAGE}”
           </p>
         </div>
@@ -758,7 +770,7 @@ function SummaryCard({
   value: number | string;
   detail: string;
   icon: typeof CalendarDays;
-  tone: "warning" | "danger" | "success" | "neutral";
+  tone: "warning" | "danger" | "success" | "info" | "neutral";
   status: string;
   action: string;
   actionDisabled?: boolean;
@@ -767,22 +779,25 @@ function SummaryCard({
   const colors = {
     warning: "border-amber-200 bg-amber-50 text-amber-600",
     danger: "border-red-200 bg-red-50 text-red-600",
-    success: "border-emerald-200 bg-emerald-50 text-emerald-600",
-    neutral: "border-border-subtle bg-white text-text-secondary",
+    success: "border-emerald-300 bg-emerald-100 text-emerald-700",
+    info: "border-blue-200 bg-blue-50 text-blue-600",
+    neutral: "border-slate-200 bg-white text-text-secondary",
   }[tone];
   const actionColor =
     tone === "danger" || tone === "success"
       ? "border-emerald-200 text-emerald-700"
       : tone === "warning"
         ? "border-amber-300 text-amber-700"
-        : "border-indigo-100 text-indigo-300";
+        : tone === "info"
+          ? "border-blue-200 text-blue-600"
+          : "border-slate-200 text-slate-500";
   return (
     <Card
-      className={`flex h-[164px] flex-col !rounded-[16px] border p-3 shadow-mx-sm ${colors}`}
+      className={`flex min-h-[178px] flex-col !rounded-[20px] border p-5 shadow-sm ${colors}`}
     >
       <div className="flex items-center justify-between gap-mx-sm">
-        <h2 className="flex items-center gap-mx-xs text-xs font-semibold text-text-secondary">
-          <Icon size={16} className="shrink-0" />
+        <h2 className="flex items-center gap-2 text-[16px] font-semibold text-slate-600">
+          <Icon size={19} className="shrink-0" />
           {title}
         </h2>
         {status !== "—" && (
@@ -797,13 +812,13 @@ function SummaryCard({
           </span>
         )}
       </div>
-      <strong className="mt-2 text-3xl text-text-primary">{value}</strong>
-      <p className="mt-1 text-xs text-text-secondary">{detail}</p>
+      <strong className="mt-3 text-[42px] leading-none text-slate-800">{value}</strong>
+      <p className="mt-2 text-[16px] text-slate-500">{detail}</p>
       <button
         type="button"
         disabled={actionDisabled}
         onClick={onAction}
-        className={`mt-auto inline-flex h-[30px] items-center justify-center gap-1.5 rounded-[8px] border bg-white px-2 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-40 ${actionColor}`}
+        className={`mt-auto inline-flex h-11 items-center justify-center gap-2 rounded-xl border bg-white px-3 text-[16px] font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${actionColor}`}
       >
         {action === "Ver Agenda D+1" && <CalendarClock size={14} />}
         {action === "Cobrar Pendentes" && <Megaphone size={14} />}
@@ -821,12 +836,12 @@ function DisciplineCard({ value }: { value: number | null }) {
     .map((word) => word.charAt(0).toLocaleUpperCase("pt-BR") + word.slice(1))
     .join(" ");
   return (
-    <Card className="flex h-[164px] flex-col !rounded-[16px] border border-red-100 bg-red-50 p-3 shadow-mx-sm">
+    <Card className="flex min-h-[178px] flex-col !rounded-[20px] border border-blue-100 bg-blue-50 p-5 shadow-sm">
       <div className="flex items-center justify-between gap-mx-xs">
-        <h2 className="text-xs font-semibold text-text-secondary">
+        <h2 className="text-[16px] font-semibold text-slate-600">
           Disciplina Média
         </h2>
-        <span className="whitespace-nowrap rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
+        <span className="whitespace-nowrap rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
           {label}
         </span>
       </div>
@@ -838,10 +853,10 @@ function DisciplineCard({ value }: { value: number | null }) {
           aria-valuemax={100}
           aria-valuenow={normalized}
           className="grid h-24 w-24 place-items-center rounded-full p-2"
-          style={{ background: `conic-gradient(rgb(239 68 68) ${normalized * 3.6}deg, white 0deg)` }}
+          style={{ background: `conic-gradient(rgb(59 130 246) ${normalized * 3.6}deg, rgb(219 234 254) 0deg)` }}
         >
-          <div className="grid h-full w-full place-items-center rounded-full bg-red-100">
-            <strong className="text-2xl font-bold text-red-500">{value === null ? "—" : `${normalized}%`}</strong>
+          <div className="grid h-full w-full place-items-center rounded-full bg-blue-50">
+            <strong className="text-2xl font-bold text-blue-500">{value === null ? "—" : `${normalized}%`}</strong>
           </div>
         </div>
       </div>
@@ -852,23 +867,35 @@ function DisciplineCard({ value }: { value: number | null }) {
 function ClosingTable({
   rows,
   requests,
-  onDecide,
+  onReview,
   onOpenAgenda,
   onOpenDetails,
 }: {
   rows: ReturnType<typeof getClosingRows>;
   requests: PendingRequest[];
-  onDecide: (
+  onReview: (
     request: PendingRequest,
     action: "approve" | "reject",
-  ) => Promise<void>;
+  ) => void;
   onOpenAgenda: (sellerId: string) => void;
   onOpenDetails: (detail: { seller: { id: string; name: string }; checkin?: CheckinWithTotals; status: string }) => void;
 }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[920px]">
-        <thead className="bg-surface-alt">
+      <table className="w-full min-w-[1440px] table-fixed">
+        <colgroup>
+          <col className="w-[20%]" />
+          <col className="w-[18%]" />
+          <col className="w-[8%]" />
+          <col className="w-[6%]" />
+          <col className="w-[7%]" />
+          <col className="w-[7%]" />
+          <col className="w-[8%]" />
+          <col className="w-[7%]" />
+          <col className="w-[8%]" />
+          <col className="w-[17%]" />
+        </colgroup>
+        <thead className="bg-slate-50">
           <tr>
             {[
               "Vendedor",
@@ -884,14 +911,14 @@ function ClosingTable({
             ].map((label) => (
               <th
                 key={label}
-                className="px-mx-md py-mx-sm text-left text-mx-tiny font-black uppercase tracking-wider text-text-tertiary"
+                className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500"
               >
                 {label}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-border-subtle">
+        <tbody className="divide-y divide-slate-100">
           {rows.map(({ seller, checkin, status }) => (
             <ClosingRow
               key={seller.id}
@@ -901,7 +928,7 @@ function ClosingTable({
               request={requests.find(
                 (request) => request.seller_id === seller.id,
               )}
-              onDecide={onDecide}
+              onReview={onReview}
               onOpenAgenda={() => onOpenAgenda(seller.id)}
               onOpenDetails={() => onOpenDetails({ seller, checkin, status })}
             />
@@ -1087,12 +1114,19 @@ function SummaryGroup({
   );
 }
 
+function DisciplineRing({ value }: { value: number | null | undefined }) {
+  if (typeof value !== "number") return <span className="text-slate-400">—</span>;
+  const normalized = Math.max(0, Math.min(100, Math.round(value)));
+  const color = normalized < 70 ? "rgb(249 115 22)" : normalized < 90 ? "rgb(59 130 246)" : "rgb(16 185 129)";
+  return <span className="grid h-11 w-11 place-items-center rounded-full p-1 text-[11px] font-bold" style={{ background: `conic-gradient(${color} ${normalized * 3.6}deg, rgb(241 245 249) 0deg)`, color }}><span className="grid h-full w-full place-items-center rounded-full bg-white">{normalized}%</span></span>;
+}
+
 function ClosingRow({
   name,
   checkin,
   status,
   request,
-  onDecide,
+  onReview,
   onOpenAgenda,
   onOpenDetails,
 }: {
@@ -1100,10 +1134,10 @@ function ClosingRow({
   checkin?: CheckinWithTotals;
   status: string;
   request?: PendingRequest;
-  onDecide: (
+  onReview: (
     request: PendingRequest,
     action: "approve" | "reject",
-  ) => Promise<void>;
+  ) => void;
   onOpenAgenda: () => void;
   onOpenDetails: () => void;
 }) {
@@ -1116,22 +1150,19 @@ function ClosingRow({
   const visits = checkin ? sumNumericMetrics(checkin.visit_prev_day) : null;
   const discipline = checkin?.pontuacao_disciplina_final;
   return (
-    <tr>
-      <td className="px-mx-md py-mx-sm font-bold text-text-primary">{name}</td>
-      <td className="px-mx-md py-mx-sm">
+    <tr className="bg-white">
+      <td className="px-5 py-5 text-[16px] font-bold text-slate-800">
+        <span className="flex items-center gap-3"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700">{initials(name)}</span>{name}</span>
+      </td>
+      <td className="px-5 py-5">
         <Badge
-          variant={
-            status === "Finalizado"
-              ? "success"
-              : status === "Pendente"
-                ? "danger"
-                : "warning"
-          }
+          variant="outline"
+          className={`w-fit whitespace-nowrap border-0 px-3 py-1.5 shadow-none ${status === "Finalizado" ? "bg-emerald-100 text-emerald-700" : status === "Pendente" ? "bg-amber-100 text-amber-700" : status === "Fora do horário" ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}
         >
           {status}
         </Badge>
       </td>
-      <td className="px-mx-md py-mx-sm text-sm">
+      <td className="px-5 py-5 text-[16px] text-slate-600">
         {checkin?.submitted_at
           ? format(parseISO(checkin.submitted_at), "HH:mm")
           : "—"}
@@ -1142,7 +1173,7 @@ function ClosingRow({
         }
       />
       <NumberCell value="—" muted />
-      <td className="px-mx-md py-mx-sm">
+      <td className="px-5 py-5">
         <button
           type="button"
           className={`rounded-mx-sm px-mx-xs font-black underline decoration-dotted underline-offset-4 hover:bg-surface-alt focus-visible:outline-none focus-visible:ring-2 focus:ring-mx-action ${appointments === null ? "text-text-tertiary" : appointments === 0 ? "text-status-error" : appointments === 1 ? "text-status-warning" : "text-status-success"}`}
@@ -1154,14 +1185,14 @@ function ClosingRow({
       </td>
       <NumberCell value={visits} />
       <NumberCell value={sales} />
-      <td className="px-mx-md py-mx-sm font-black">
-        {typeof discipline === "number" ? `${discipline}%` : "—"}
+      <td className="px-5 py-5">
+        <DisciplineRing value={discipline} />
       </td>
-      <td className="px-mx-md py-mx-sm">
-        <div className="flex flex-wrap gap-mx-xs">
+      <td className="px-5 py-5">
+        <div className="flex min-w-max items-center gap-4 whitespace-nowrap">
           <button
             type="button"
-            className="inline-flex items-center rounded-mx-sm px-mx-xs text-xs font-semibold text-text-secondary hover:bg-surface-alt hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mx-action"
+            className="inline-flex items-center gap-1 rounded-lg px-1 text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             aria-label={`Detalhes ${name}`}
             onClick={onOpenDetails}
           >
@@ -1169,20 +1200,8 @@ function ClosingRow({
           </button>
           {request ? (
             <>
-            <Button
-              size="xs"
-              variant="success"
-              onClick={() => onDecide(request, "approve")}
-            >
-              Aprovar
-            </Button>
-            <Button
-              size="xs"
-              variant="danger"
-              onClick={() => onDecide(request, "reject")}
-            >
-              Recusar
-            </Button>
+            <button type="button" className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-700 hover:text-emerald-800" onClick={() => onReview(request, "approve")}><Check size={16} /> Aprovar</button>
+            <button type="button" className="inline-flex items-center gap-1 text-sm font-semibold text-red-600 hover:text-red-700" onClick={() => onReview(request, "reject")}><X size={16} /> Recusar</button>
             </>
           ) : <Typography variant="tiny" tone="muted">Somente consulta</Typography>}
         </div>
@@ -1191,15 +1210,21 @@ function ClosingRow({
   );
 }
 
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  return parts.length > 1 ? `${parts[0][0]}${parts.at(-1)?.[0] || ""}` : parts[0]?.[0] || "?";
+}
+
 function NumberCell({ value, muted }: { value: number | string | null; muted?: boolean }) {
   return (
     <td
-      className={`px-mx-md py-mx-sm font-black ${muted ? "text-text-tertiary" : "text-text-primary"}`}
+      className={`px-5 py-5 text-[16px] font-semibold ${muted ? "text-slate-400" : "text-slate-700"}`}
     >
       {value}
     </td>
   );
 }
+
 function Empty({ text }: { text: string }) {
   return (
     <div className="grid min-h-[150px] place-items-center p-mx-xl text-center">

@@ -356,7 +356,7 @@ export function AgendaD1Panel({
     [confirming, registerLog, sendNotification, storeId],
   );
 
-  const filterSelectClass = "h-mx-10";
+  const filterSelectClass = "h-16 rounded-2xl px-5 text-[18px]";
 
   return (
     <Modal
@@ -368,20 +368,20 @@ export function AgendaD1Panel({
       title="Agenda D+1"
       description="Clientes agendados para amanhã a partir dos fechamentos da equipe."
     >
-      <div className="space-y-mx-md">
-        <div className="flex flex-col gap-mx-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="space-y-7">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <Badge variant="warning">Agenda D+1 parcial</Badge>
-            <Typography variant="tiny" tone="muted" className="mt-1 block">
+            <Badge variant="outline" className="border-0 bg-amber-100 px-4 py-2 text-[18px] text-amber-700 shadow-none">Agenda D+1 parcial</Badge>
+            <Typography variant="tiny" tone="muted" className="mt-2 block !text-[18px]">
               Atualizada em tempo real até o encerramento da janela de ajuste.
             </Typography>
           </div>
           <Typography
             variant="p"
             tone="muted"
-            className="inline-flex items-center gap-mx-xs"
+            className="inline-flex items-center gap-2 !text-[18px]"
           >
-            <CalendarClock size={17} />
+            <CalendarClock size={20} />
             Data D+1:{" "}
             <strong className="text-text-primary">
               {format(parseISO(d1Date), "dd/MM/yyyy")}
@@ -389,15 +389,15 @@ export function AgendaD1Panel({
           </Typography>
         </div>
         <div
-          className="rounded-mx-xl bg-surface-alt p-mx-md"
+          className="rounded-[28px] bg-slate-50 p-7"
           role="group"
           aria-label="Filtros da Agenda D+1"
         >
-          <div className="mb-mx-sm flex items-center gap-mx-xs text-sm font-bold text-text-secondary">
-            <Filter size={17} />
+          <div className="mb-5 flex items-center gap-3 text-[19px] font-bold text-slate-600">
+            <Filter size={21} />
             Filtros
           </div>
-          <div className="grid grid-cols-1 gap-mx-sm md:grid-cols-2 xl:grid-cols-5">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-5">
             <Select
               aria-label="Vendedor"
               className={filterSelectClass}
@@ -475,15 +475,15 @@ export function AgendaD1Panel({
             </Select>
             <div className="relative">
               <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary"
-                size={16}
+                className="absolute left-5 top-1/2 -translate-y-1/2 text-text-tertiary"
+                size={20}
               />
               <Input
                 aria-label="Buscar agenda D+1"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Buscar (cliente, veículo, horário)..."
-                className={`${filterSelectClass} pl-9`}
+                className={`${filterSelectClass} pl-12`}
               />
             </div>
           </div>
@@ -522,8 +522,8 @@ export function AgendaD1Panel({
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1080px]">
-              <thead className="bg-surface-alt">
+            <table className="w-full min-w-[1320px]">
+              <thead className="bg-slate-50">
                 <tr>
                   {[
                     "Horário",
@@ -539,14 +539,14 @@ export function AgendaD1Panel({
                   ].map((label) => (
                     <th
                       key={label}
-                      className="px-mx-md py-mx-sm text-left text-mx-tiny font-black uppercase tracking-wider text-text-tertiary"
+                      className="px-7 py-6 text-left text-[16px] font-bold uppercase tracking-wider text-slate-500"
                     >
                       {label}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border-subtle">
+              <tbody className="divide-y divide-slate-100">
                 {visible.map((row) => {
                   const lastContact = row.cliente
                     ? lastContactByCliente.get(row.cliente.id) ||
@@ -555,30 +555,30 @@ export function AgendaD1Panel({
                   const isConfirming = confirming?.rowId === row.id;
                   return (
                     <FragmentRow key={row.id}>
-                      <tr>
-                        <td className="px-mx-md py-mx-sm font-black">
+                      <tr className="bg-white">
+                        <td className="px-7 py-7 text-[18px] font-bold text-slate-800">
                           {format(parseISO(row.data_hora), "HH:mm")}
                         </td>
-                        <td className="px-mx-md py-mx-sm font-bold">
+                        <td className="px-7 py-7 text-[18px] font-bold text-slate-800">
                           {row.cliente?.nome || "—"}
                         </td>
-                        <td className="px-mx-md py-mx-sm">
+                        <td className="px-7 py-7 text-[18px] text-slate-600">
                           {row.cliente?.telefone || "—"}
                         </td>
-                        <td className="px-mx-md py-mx-sm">
+                        <td className="px-7 py-7 text-[18px] text-slate-600">
                           {row.oportunidade?.veiculo_interesse || "—"}
                         </td>
-                        <td className="px-mx-md py-mx-sm">
+                        <td className="px-7 py-7 text-[18px] text-slate-600">
                           {row.canal ? AGENDA_CANAL_LABEL[row.canal] : "—"}
                         </td>
-                        <td className="px-mx-md py-mx-sm">
+                        <td className="px-7 py-7 text-[18px] text-slate-600">
                           {sellerNameById.get(row.seller_user_id) ||
                             "Vendedor da equipe"}
                         </td>
-                        <td className="px-mx-md py-mx-sm">
+                        <td className="px-7 py-7 text-[18px] text-slate-600">
                           {AGENDA_TIPO_LABEL[row.tipo]}
                         </td>
-                        <td className="px-mx-md py-mx-sm">
+                        <td className="px-7 py-7">
                           <Badge
                             variant={
                               row.status === "confirmado"
@@ -591,39 +591,39 @@ export function AgendaD1Panel({
                             {AGENDA_STATUS_LABEL[row.status]}
                           </Badge>
                         </td>
-                        <td className="px-mx-md py-mx-sm text-sm">
+                        <td className="px-7 py-7 text-[18px] text-slate-600">
                           {lastContact
                             ? format(parseISO(lastContact), "dd/MM HH:mm")
                             : "—"}
                         </td>
-                        <td className="px-mx-md py-mx-sm">
-                          <div className="flex flex-wrap gap-mx-xs">
+                        <td className="px-7 py-7">
+                          <div className="flex min-w-max flex-wrap gap-3">
                             <Button
-                              size="xs"
+                              size="sm"
                               variant="outline"
                               aria-label={`WhatsApp para ${row.cliente?.nome || "cliente"}`}
                               onClick={() => void openWhatsapp(row)}
                             >
-                              <MessageCircle size={13} /> WhatsApp
+                              <MessageCircle size={17} /> WhatsApp
                             </Button>
                             <Button
-                              size="xs"
+                              size="sm"
                               variant="outline"
                               aria-label={`Ligar para ${row.cliente?.nome || "cliente"}`}
                               onClick={() => void callPhone(row)}
                             >
-                              <Phone size={13} /> Telefone
+                              <Phone size={17} /> Telefone
                             </Button>
                             <Button
-                              size="xs"
+                              size="sm"
                               variant="outline"
                               aria-label="Copiar telefone"
                               onClick={() => void copyPhone(row)}
                             >
-                              <Copy size={13} />
+                              <Copy size={17} />
                             </Button>
                             <Button
-                              size="xs"
+                              size="sm"
                               variant={isConfirming ? "primary" : "outline"}
                               onClick={() =>
                                 setConfirming(

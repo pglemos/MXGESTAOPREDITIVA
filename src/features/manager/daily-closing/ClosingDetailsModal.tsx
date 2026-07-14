@@ -10,6 +10,7 @@ type ClosingDetailsModalProps = {
   seller: { id: string; name: string };
   checkin?: Partial<CheckinWithTotals> | null;
   status: string;
+  storeName?: string;
   onOpenAgenda?: () => void;
   onCorrectLeads?: () => void;
   onClose: () => void;
@@ -20,6 +21,7 @@ export function ClosingDetailsModal({
   seller,
   checkin,
   status,
+  storeName = "—",
   onOpenAgenda,
   onCorrectLeads,
   onClose,
@@ -59,12 +61,13 @@ export function ClosingDetailsModal({
     >
       <div className="space-y-5">
         <Section title="Dados Gerais">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <Field label="Vendedor" value={seller.name} />
+            <Field label="Unidade" value={storeName} />
             <Field label="Data" value={referenceDate ? formatDate(referenceDate) : "—"} />
             <Field label="Status" value={status} />
             <Field label="Horário de entrega" value={delivery} />
-            <Field label="Disciplina" value={discipline} />
+            <Field label="Disciplina" value={<Discipline value={discipline} />} />
           </div>
         </Section>
 
@@ -90,15 +93,22 @@ export function ClosingDetailsModal({
 }
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
-  return <section><h3 className="mb-2 text-sm font-semibold text-text-secondary">{title}</h3>{children}</section>;
+  return <section><h3 className="mb-4 text-[22px] font-bold text-slate-700">{title}</h3>{children}</section>;
 }
 
 function Field({ label, value }: { label: string; value: ReactNode }) {
-  return <div className="rounded-xl bg-surface-alt p-2.5"><p className="mb-0.5 text-xs text-text-secondary">{label}</p><div className="text-sm font-medium text-text-primary">{value}</div></div>;
+  return <div className="min-h-[114px] rounded-[24px] bg-slate-50 p-5"><p className="mb-2 text-[16px] text-slate-500">{label}</p><div className="text-[20px] font-semibold text-slate-800">{value}</div></div>;
 }
 
 function Channel({ name, values }: { name: string; values: Array<[string, number | string]> }) {
-  return <div className="rounded-xl bg-surface-alt p-3"><p className="mb-2 text-xs font-semibold text-text-secondary">{name}</p><div className="flex flex-wrap gap-4">{values.map(([label, value]) => <div key={label}><span className="text-xs text-text-secondary">{label}: </span><span className="text-sm font-semibold text-text-primary">{value}</span></div>)}</div></div>;
+  return <div className="rounded-[24px] bg-slate-50 p-5"><p className="mb-4 text-[18px] font-semibold text-slate-600">{name}</p><div className="flex flex-wrap gap-5">{values.map(([label, value]) => <div key={label}><span className="text-[16px] text-slate-500">{label}: </span><span className="text-[16px] font-semibold text-slate-800">{value}</span></div>)}</div></div>;
+}
+
+function Discipline({ value }: { value: string }) {
+  const numeric = Number.parseInt(value, 10);
+  if (!Number.isFinite(numeric)) return <>{value}</>;
+  const color = numeric < 70 ? "rgb(249 115 22)" : numeric < 90 ? "rgb(59 130 246)" : "rgb(16 185 129)";
+  return <span className="grid h-14 w-14 place-items-center rounded-full p-1 text-xs font-bold" style={{ background: `conic-gradient(${color} ${numeric * 3.6}deg, rgb(241 245 249) 0deg)`, color }}><span className="grid h-full w-full place-items-center rounded-full bg-slate-50">{value}</span></span>;
 }
 
 function metric(value: number | null | undefined): number | string {

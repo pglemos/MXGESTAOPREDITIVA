@@ -12,7 +12,7 @@ globalThis.MutationObserver ||= class {
 describe("RegularizationsListModal", () => {
   afterEach(() => cleanup());
 
-  test("exibe a solicitação e encaminha aprovação ou recusa", () => {
+  test("exige confirmação explícita antes de encaminhar uma aprovação", () => {
     const onApprove = mock(() => undefined);
     const onReject = mock(() => undefined);
     const onClose = mock(() => undefined);
@@ -57,9 +57,13 @@ describe("RegularizationsListModal", () => {
     expect(dialogText).toContain("Atend.: 4");
 
     fireEvent.click(within(dialog).getByRole("button", { name: "Aprovar Ana Oliveira" }));
-    fireEvent.click(within(dialog).getByRole("button", { name: "Recusar Ana Oliveira" }));
+    expect(screen.getByRole("dialog", { name: "Aprovar regularização?" })).toBeTruthy();
+    expect(onApprove).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("checkbox", { name: "Confirmo a aprovação da regularização." }));
+    fireEvent.click(screen.getByRole("button", { name: "Aprovar" }));
 
     expect(onApprove).toHaveBeenCalledWith(request);
-    expect(onReject).toHaveBeenCalledWith(request);
+    expect(onReject).not.toHaveBeenCalled();
   });
 });

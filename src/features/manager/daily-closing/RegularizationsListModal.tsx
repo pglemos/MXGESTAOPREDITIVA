@@ -1,6 +1,8 @@
 import type { CheckinFormData } from "@/types/database";
+import { useEffect, useState } from "react";
 import { Check, X } from "lucide-react";
 import { Button } from "@/components/atoms/Button";
+import { Textarea } from "@/components/atoms/Textarea";
 import { Modal } from "@/components/organisms/Modal";
 import { format, parseISO } from "date-fns";
 
@@ -18,6 +20,11 @@ type RegularizationsListModalProps = {
   onClose: () => void;
   onApprove: (request: RegularizationRequest) => void | Promise<void>;
   onReject: (request: RegularizationRequest) => void | Promise<void>;
+  externalDecision?: {
+    request: RegularizationRequest;
+    action: "approve" | "reject";
+  } | null;
+  onExternalDecisionHandled?: () => void;
 };
 
 export function RegularizationsListModal({
@@ -26,16 +33,59 @@ export function RegularizationsListModal({
   onClose,
   onApprove,
   onReject,
+  externalDecision = null,
+  onExternalDecisionHandled,
 }: RegularizationsListModalProps) {
+  const [decision, setDecision] = useState<{
+    request: RegularizationRequest;
+    action: "approve" | "reject";
+  } | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setDecision(null);
+      setConfirmed(false);
+      setSaving(false);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!externalDecision) return;
+    setDecision(externalDecision);
+    setConfirmed(false);
+    onExternalDecisionHandled?.();
+  }, [externalDecision, onExternalDecisionHandled]);
+
+  const closeDecision = () => {
+    if (saving) return;
+    setDecision(null);
+    setConfirmed(false);
+  };
+
+  const submitDecision = async () => {
+    if (!decision || !confirmed) return;
+    setSaving(true);
+    try {
+      if (decision.action === "approve") await onApprove(decision.request);
+      else await onReject(decision.request);
+      closeDecision();
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      size="lg"
-      referenceStyle
-      title="Regularizações Aguardando Aprovação"
-      description={`${requests.length} regularização(ões) pendente(s)`}
-    >
+    <>
+      <Modal
+        open={open}
+        onClose={onClose}
+        size="lg"
+        referenceStyle
+        title="Regularizações Aguardando Aprovação"
+        description={`${requests.length} regularização(ões) pendente(s)`}
+      >
       {requests.length === 0 ? (
         <p className="py-8 text-center text-sm text-text-secondary">
           Nenhuma regularização aguardando aprovação.
@@ -74,7 +124,10 @@ export function RegularizationsListModal({
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <Button
                     type="button"
-                    onClick={() => void onApprove(request)}
+                    onClick={() => {
+                      setDecision({ request, action: "approve" });
+                      setConfirmed(false);
+                    }}
                     className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700"
                     aria-label={`Aprovar ${name}`}
                   >
@@ -83,7 +136,10 @@ export function RegularizationsListModal({
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => void onReject(request)}
+                    onClick={() => {
+                      setDecision({ request, action: "reject" });
+                      setConfirmed(false);
+                    }}
                     className="flex-1 rounded-xl border-red-200 text-red-700 hover:bg-red-50"
                     aria-label={`Recusar ${name}`}
                   >
@@ -95,6 +151,106 @@ export function RegularizationsListModal({
           })}
         </div>
       )}
+      </Modal>
+      <RegularizationDecisionModal
+        decision={decision}
+        confirmed={confirmed}
+        saving={saving}
+        onClose={closeDecision}
+        onConfirmedChange={setConfirmed}
+        onSwitchAction={() => {
+          setDecision((current) => current ? {
+            ...current,
+            action: current.action === "approve" ? "reject" : "approve",
+          } : current);
+          setConfirmed(false);
+        }}
+        onSubmit={() => void submitDecision()}
+      />
+    </>
+  );
+}
+
+function RegularizationDecisionModal({
+  decision,
+  confirmed,
+  saving,
+  onClose,
+  onConfirmedChange,
+  onSwitchAction,
+  onSubmit,
+}: {
+  decision: { request: RegularizationRequest; action: "approve" | "reject" } | null;
+  confirmed: boolean;
+  saving: boolean;
+  onClose: () => void;
+  onConfirmedChange: (value: boolean) => void;
+  onSwitchAction: () => void;
+  onSubmit: () => void;
+}) {
+  const approve = decision?.action === "approve";
+  const sellerName = decision?.request.seller?.name || decision?.request.seller_id || "Vendedor";
+  const referenceDate = decision?.request.requested_values.reference_date;
+  const actionLabel = approve ? "Aprovar" : "Recusar";
+  const confirmationLabel = approve
+    ? "Confirmo a aprovação da regularização."
+    : "Confirmo a recusa da regularização.";
+  const description = approve
+    ? "Confirme a aprovação da regularização deste fechamento. Após aprovada, ela passará a contar nos indicadores oficiais conforme as regras da loja."
+    : "Confirme a recusa da regularização deste fechamento. O fechamento permanecerá fora dos indicadores oficiais.";
+
+  return (
+    <Modal
+      open={Boolean(decision)}
+      onClose={onClose}
+      size="md"
+      referenceStyle
+      title={`${actionLabel} regularização?`}
+      description={`${sellerName} — ${referenceDate ? formatRequestDate("", referenceDate) : "—"}`}
+      footer={
+        <div className="grid w-full grid-cols-2 gap-4">
+          <Button
+            variant="outline"
+            onClick={onSwitchAction}
+            disabled={saving}
+            className="border-red-200 text-red-700 hover:bg-red-50"
+          >
+            {approve ? "Recusar" : "Aprovar"}
+          </Button>
+          <Button
+            variant={approve ? "success" : "danger"}
+            onClick={onSubmit}
+            disabled={!confirmed || saving}
+            className={approve ? "disabled:!bg-emerald-600 disabled:!text-white disabled:opacity-40" : "disabled:!bg-red-600 disabled:!text-white disabled:opacity-40"}
+          >
+            {saving ? "Processando..." : actionLabel}
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-7 text-slate-600">
+        <p className="text-[20px] leading-8">{description}</p>
+        <div>
+          <label className="mb-2 block text-[18px] font-semibold text-slate-600" htmlFor="regularization-comment">
+            Comentário (opcional)
+          </label>
+          <Textarea
+            id="regularization-comment"
+            rows={2}
+            placeholder={`Adicione um comentário sobre a ${approve ? "aprovação" : "recusa"}...`}
+            className="min-h-[116px] !rounded-[24px] !border-slate-200 !px-6 !py-4 !text-[18px]"
+          />
+        </div>
+        <label className="flex cursor-pointer items-center gap-3 text-[20px] leading-7 text-slate-600">
+          <input
+            type="checkbox"
+            checked={confirmed}
+            onChange={(event) => onConfirmedChange(event.target.checked)}
+            className="h-8 w-8 rounded-lg border-slate-300 text-emerald-600 focus:ring-emerald-500"
+          />
+          {confirmationLabel}
+        </label>
+      </div>
     </Modal>
   );
 }
