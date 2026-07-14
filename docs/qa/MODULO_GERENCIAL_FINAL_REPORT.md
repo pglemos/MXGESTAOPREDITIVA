@@ -39,7 +39,7 @@ Implementado e verificado nesta branch:
 - E2E produção somente leitura: menu/rotas `1/1`, conteúdo nos três viewports `1/1`, console/network `1/1`;
 - segurança de rota em Chrome real: vendedor bloqueado; dono/admin autenticados acessaram seus escopos;
 - regressão visual MX versionada: `30/30` (dez telas × `1440×900`, `768×1024`, `390×844`);
-- suíte completa: `918 pass`, `0 fail`;
+- suíte completa: `919 pass`, `0 fail`;
 - lint: `0` erros e 22 warnings preexistentes;
 - typecheck, build, `git diff --check`, validações AIOX e bundle budget passaram;
 - capturas local/produção versionadas nos três viewports mínimos;
@@ -47,6 +47,7 @@ Implementado e verificado nesta branch:
 - deploy automático Vercel concluído para o commit publicado; as dez rotas canônicas responderam HTTP 200 em produção;
 - `/gerente/rotina-equipe` validada no Chrome real pós-deploy, com conteúdo autenticado, sem erros JS/4xx/5xx e requests Supabase HTTP 200 escopadas por `store_id`; dois warnings runtime permanecem registrados abaixo.
 - modal de perfil da Minha Equipe protegido contra clipping pelo sidebar, com overlay/conteúdo em camadas superiores, altura responsiva e um único botão de fechar; teste unitário `2/2` e guarda E2E adicionados.
+- Minha Equipe fechou o ciclo de paridade visual em Chrome: Base44/MX local medidos em 1440×900 e 390×844; busca `176×38px`, select `147×36,5px`, fonte `ui-sans-serif`, raios `12px`/`16px`, resumo sem pill legado e `Todos` como aba inicial. Produção pós-deploy confirmou a mesma composição em `dpl_9Szz5MiSuLv4La2zmp8fEY7dMnVn`; evidências versionadas em `docs/qa/evidence/manager-parity/2026-07-14/`.
 
 O módulo não está aprovado porque ainda não houve fixture/staging autorizada para mutações críticas, auditoria RLS cross-store completa e decisão definitiva do Ranking.
 
@@ -66,7 +67,7 @@ O sidebar escuro MX foi preservado; `CalendarClock` e `BrainCircuit` permanecem 
 | Rotina do Dia | Sem nova mutação nesta rodada | Local capturado nos viewports mínimos | `execution_actions`/fontes canônicas | Não reauditado nesta rodada | Passa no conjunto de dez rotas | Deploy automático; somente leitura | EM AUDITORIA |
 | Fechamento Diário | Ausência não vira zero; mutações pendentes | Local capturado; Base44 instável | `lancamentos_diarios`/auditoria | Não reauditado nesta rodada | Passa local/produção existentes | Deploy automático; somente leitura | EM AUDITORIA |
 | Rotina da Equipe | Score oficial e série histórica canônica corrigidos; cobrança pendente | Base44 e MX carregados; diff versionado | Seis fontes canônicas por vendedor/data | Escopo existente; cobrança não rehomologada | Chromium `5/5` + mobile `5/5` | Deploy automático; Chrome pós-deploy | EM AUDITORIA |
-| Minha Equipe | Sem nova mutação nesta rodada | Capturada nos viewports mínimos | Dados reais do dashboard | Não reauditado nesta rodada | Passa no conjunto de dez rotas | Deploy automático; somente leitura | EM AUDITORIA |
+| Minha Equipe | Filtros, estados e composição Base44 validados; perfil live depende de vendedor elegível | Medidas iguais em Base44/MX local e produção nos viewports mínimos; sidebar MX é exceção autorizada | Dados reais do dashboard; cinco vendedores não aplicáveis no período | Consultas live escopadas por `store_id`; RLS de perfil não reexercitado nesta rodada | Chrome autenticado local/produção; E2E automatizado depende de `E2E_*` | `dpl_9Szz5MiSuLv4La2zmp8fEY7dMnVn` READY; alias validado | PRONTO PARA QA |
 | Meta da Loja | `NaN` corrigido; plano oficial coberto por testes | Base44 e MX carregados; diff versionado | Meta/calendário/check-ins | Não reauditado nesta rodada | Passa no conjunto de dez rotas | Deploy automático; somente leitura | EM AUDITORIA |
 | Desenvolvimento | Fluxos de produção não executados | Capturada nos viewports mínimos | Feedback/PDI canônicos | Mutação não executada | Passa no conjunto de dez rotas | Deploy automático; somente leitura | EM AUDITORIA |
 | Mentor | Conteúdo determinístico existente | Capturada nos viewports mínimos | Recomendações reais ainda não comparadas | Não reauditado nesta rodada | Passa no conjunto de dez rotas | Deploy automático; somente leitura | EM AUDITORIA |
