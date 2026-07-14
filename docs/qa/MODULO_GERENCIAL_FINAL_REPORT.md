@@ -94,7 +94,18 @@ O sidebar escuro MX foi preservado; `CalendarClock` e `BrainCircuit` permanecem 
 
 ## Segurança e RLS
 
-RLS não foi desabilitado. Uma migration foi criada e aplicada em produção nesta rodada (`20260714120000_fix_notificacoes_target_role_dono.sql`, aditiva, reversível — ver seção de correções) para destravar a regularização de fechamento; nenhuma outra alteração de schema foi feita. Mutações de produção foram executadas via fixture autorizada com as contas de homologação (dono/gerente/vendedor@mxgestaopreditiva.com.br), conforme decisão do usuário nesta sessão — ver `## Fixtures de mutação` abaixo. No Chrome local, o vendedor recebeu `Acesso não autorizado` em `/gerente/minha-equipe`; dono e admin autenticados carregaram seus escopos. A auditoria negativa formal cross-store em consultas/mutations ainda é pendência.
+RLS não foi desabilitado. Uma migration foi criada e aplicada em produção nesta rodada (`20260714120000_fix_notificacoes_target_role_dono.sql`, aditiva, reversível — ver seção de correções) para destravar a regularização de fechamento; nenhuma outra alteração de schema foi feita. Mutações de produção foram executadas via fixture autorizada com as contas de homologação (dono/gerente/vendedor@mxgestaopreditiva.com.br), conforme decisão do usuário nesta sessão — ver `## Fixtures de mutação` abaixo. No Chrome local, o vendedor recebeu `Acesso não autorizado` em `/gerente/minha-equipe`; dono e admin autenticados carregaram seus escopos.
+
+**Auditoria RLS cross-store/papel — concluída em 2026-07-14** (script autenticado, sem senha em UI, resultados só com contagens/booleanos, nenhum dado de cliente logado):
+
+- `is_manager_of(loja_própria)` → `true`; `is_manager_of(loja_de_terceiro_real)` → `false` para a conta gerente de homologação.
+- `SELECT ... WHERE store_id = <loja_de_terceiro>` em `lancamentos_diarios`, `vinculos_loja`, `solicitacoes_correcao_lancamento` e `execution_actions` retornou `count: 0` para o gerente — isolamento cross-store confirmado nessas 4 tabelas.
+- Vendedor: `is_manager_of` → `false`; vendedor só enxerga as próprias `solicitacoes_correcao_lancamento` (contagem idêntica com e sem filtro por `seller_id`); tentativa de `aplicar_regularizacao_fechamento` (RPC exclusiva de gestão) nega corretamente.
+- Dono: `is_manager_of` → `false` (esperado — dono usa `is_owner_of`, checado separadamente pelas RPCs via `OR`); `count: 0` em loja de terceiro.
+- `aplicar_regularizacao_fechamento` com `p_request_id` inexistente nega para gerente e vendedor com `"Solicitação não encontrada."`. **Ressalva:** não testamos com um `request_id` real pertencente a uma loja de terceiro (exigiria criar dado real em loja de cliente, fora do escopo de homologação); a garantia de bloqueio nesse caso vem da leitura do código-fonte da RPC (`NOT (eh_administrador_mx() OR is_manager_of(store_id) OR is_owner_of(store_id))`), não de execução ao vivo.
+- Segredos no bundle: `.env.example` só expõe `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` (+ Sentry) com prefixo `VITE_`; nenhuma service role key, senha de banco ou token de acesso tem esse prefixo — Vite não os inclui no bundle do cliente.
+
+Pendência residual: auditoria RLS **positiva** com um segundo gerente real de outra loja (não apenas negativa via loja alheia) ainda não foi feita — exigiria uma segunda conta de homologação vinculada a uma loja diferente, que não estava disponível nesta rodada.
 
 ## Fixtures de mutação (2026-07-14)
 
