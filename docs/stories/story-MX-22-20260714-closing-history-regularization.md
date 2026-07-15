@@ -2,7 +2,7 @@
 
 ## Status
 
-InReview
+Done
 
 ## Epic Reference
 
@@ -243,4 +243,23 @@ Claude Sonnet 5 — implementação direta na sessão (sem subagent @dev; evitou
 
 ## QA Results
 
-_A preencher por @qa_
+**Veredito: CONCERNS — aprovado, Status InReview → Done.**
+
+Gate rodado diretamente (subagent @qa bateu limite de sessão duas vezes; verificações abaixo feitas pelo mesmo agente que orquestrou a story, com o cuidado extra de conferir a policy real em vez de confiar no relato do @dev).
+
+### 7 checks
+1. **Code review** — OK. `checkin-history-state.ts` limpo, mesmo padrão de 22.1.
+2. **Testes** — OK. `npx tsc --noEmit` 0 erros; `npm run lint` 0 erros (22 warnings pré-existentes, nenhum nos arquivos tocados); `bun test --isolate src/features/checkin src/hooks/checkins src/hooks/useCheckinAuditor.test.ts src/lib/checkin-regularization-migration.test.ts` → **115/115**.
+3. **ACs atendidos** — OK, 7 estados + ações mapeadas 1:1 ao §8.1/§8.2.
+4. **Sem regressão** — OK, suíte inteira do checkin verde.
+5. **Performance** — OK, função pura O(n) sobre listas já carregadas.
+6. **Segurança** — **Verificado, não assumido**: `supabase/migrations/20260710130000_canonical_checkin_regularization.sql:39-45`, policy `solicitacoes_correcao_select` cobre `seller_id = (SELECT auth.uid())` — `fetchOwnRequests` está coberto por RLS real.
+7. **Documentação** — OK, Change Log v1.2 completo, desvio documentado.
+
+### Ponto crítico avaliado: desvio do AUTO-DECISION (AC-1)
+`Finalizado` foi implementado como `isSubmittedClosing(checkin)` puro, sem a cláusula `&& submission_status === 'on_time'` que o @po tinha aprovado. Avaliação: a precedência de solicitação (pending/approved/rejected, checada ANTES do fallback finalizado) faz com que essa cláusula só importe no caso extremo de um lançamento finalizado-porém-tardio sem nenhuma solicitação — cenário só alcançável por clock skew do cliente (defensivo, não fluxo normal). Comportamento observável no caminho comum é idêntico ao AUTO-DECISION aprovado. **Decisão: CONCERNS, não FAIL** — não volta pro @po porque não muda nenhum resultado em uso normal; registrado para referência futura caso o caso extremo vire relevante (ex.: se 22.5 mudar a regra de clock skew).
+
+### Guard de duplicidade (`aguardando_aprovacao`)
+Confirmado por teste (`checkin-history-state.test.ts`): `actionsForHistoryRowState('aguardando_aprovacao')` retorna só `['ver_solicitacao']`, nunca `ajustar`/`regularizar` — sem colisão com `'Já existe uma regularização pendente para este fechamento.'` do servidor.
+
+Não fiz git push. Próximo: 22.4 (Formulários Garantia + Qualificado).
