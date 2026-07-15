@@ -45,6 +45,15 @@ function minutesSinceSaoPauloStartOfDay(date: Date) {
     return parts.hour * 60 + parts.minute
 }
 
+// MX-22.5 (AC-7/AC-8; Spec §11.2 "às 09:31 é criado o snapshot oficial da
+// agenda e da Disciplina"): mesma régua de 09:30 já usada para o fechamento
+// (CHECKIN_DEADLINE_MINUTES), sem introduzir um segundo corte de horário —
+// "depois de 09:30" (09:31 em diante) é quando a Agenda D+1 deixa de poder
+// ser ajustada livremente.
+export function isAfterAgendaD1SnapshotCutoff(now = new Date()): boolean {
+    return minutesSinceSaoPauloStartOfDay(now) > CHECKIN_DEADLINE_MINUTES
+}
+
 // Regra MX (dia operacional): o fechamento de um dia D fica aberto de
 // D 12h00 até D+1 09h30 (com liberação do gerente até D+1 12h00). O dia
 // operacional avança às 12h00 — não à meia-noite. Antes das 12h00 ainda é

@@ -24,3 +24,19 @@ describe('useCheckinAuditor — fetchOwnRequests (MX-22.3)', () => {
     expect(fetchOwnBlock).not.toContain("eq('status', 'pending')")
   })
 })
+
+describe('useCheckinAuditor — fetchStoreRequests (MX-22.5)', () => {
+  test('existe e é exportado pelo hook', () => {
+    expect(source).toContain('const fetchStoreRequests = useCallback(')
+    expect(source).toMatch(/return \{[^}]*fetchStoreRequests[^}]*\}/)
+  })
+
+  test('filtra pelo storeId (escopo gestor/loja), sem restringir status — RLS já cobre todos os status para manager/owner', () => {
+    const block = source.slice(
+      source.indexOf('const fetchStoreRequests'),
+      source.indexOf('const fetchOwnRequests'),
+    )
+    expect(block).toContain("eq('store_id', storeId)")
+    expect(block).not.toContain("eq('status', 'pending')")
+  })
+})

@@ -55,3 +55,24 @@ describe('isCheckinLateForReferenceDate', () => {
     expect(isCheckinLateForReferenceDate('2026-07-31', late)).toBe(true)
   })
 })
+
+// MX-22.5 (AC-7/AC-8; Spec §11.2 "às 09:31 é criado o snapshot oficial da
+// agenda e da Disciplina"): mesma régua de 09:30 (CHECKIN_DEADLINE_MINUTES)
+// já usada para o Fechamento, sem inventar um segundo corte de horário.
+describe('isAfterAgendaD1SnapshotCutoff', () => {
+  // America/Sao_Paulo é UTC-3 o ano todo: 09:30 SP = 12:30 UTC.
+  test('09:30 SP ainda permite ajuste livre da Agenda D+1', async () => {
+    const { isAfterAgendaD1SnapshotCutoff } = await import('./types.ts?cb=9')
+    expect(isAfterAgendaD1SnapshotCutoff(new Date('2026-07-10T12:30:00.000Z'))).toBe(false)
+  })
+
+  test('09:31 SP já é depois do snapshot oficial', async () => {
+    const { isAfterAgendaD1SnapshotCutoff } = await import('./types.ts?cb=10')
+    expect(isAfterAgendaD1SnapshotCutoff(new Date('2026-07-10T12:31:00.000Z'))).toBe(true)
+  })
+
+  test('12:00 SP (limite do Fechamento) também é depois do snapshot da Agenda', async () => {
+    const { isAfterAgendaD1SnapshotCutoff } = await import('./types.ts?cb=11')
+    expect(isAfterAgendaD1SnapshotCutoff(new Date('2026-07-10T15:00:00.000Z'))).toBe(true)
+  })
+})

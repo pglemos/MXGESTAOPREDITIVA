@@ -61,6 +61,12 @@ import {
 } from "./manager-closing-metrics";
 import { subscribeToManagerClosingRealtime } from "./manager-closing-realtime";
 import {
+  resolveHistoryRowState,
+  actionsForHistoryRowState,
+  latestRequestForCheckin,
+  type HistoryRowState,
+} from "@/features/checkin/lib/checkin-history-state";
+import {
   CartesianGrid,
   Line,
   LineChart,
@@ -82,6 +88,10 @@ export default function ManagerDailyClosing() {
   const [historyRange, setHistoryRange] = useState<7 | 15 | 30>(7);
   const [requests, setRequests] = useState<PendingRequest[]>([]);
   const [requestError, setRequestError] = useState<string | null>(null);
+  // MX-22.5 (AC-6): todas as solicitações da loja (não só pending), para
+  // reconciliar a taxonomia de 7 estados de checkin-history-state.ts (22.3)
+  // sem alterar o contrato de `requests` (fila de aprovação, só pending).
+  const [storeRequests, setStoreRequests] = useState<CheckinCorrectionRequest[]>([]);
   const [agenda, setAgenda] = useState<{ open: boolean; sellerId?: string }>({
     open: false,
   });
@@ -148,9 +158,25 @@ export default function ManagerDailyClosing() {
     void loadRequests();
   }, [loadRequests]);
 
+  // MX-22.5 (AC-6): carrega todas as solicitações da loja (pending/approved/
+  // rejected) para a reconciliação de taxonomia — independente de `requests`
+  // (fila de aprovação, só pending), sem alterar seu contrato existente.
+  const loadStoreRequests = useCallback(async () => {
+    try {
+      setStoreRequests(await auditor.fetchStoreRequests());
+    } catch {
+      setStoreRequests([]);
+    }
+  }, [auditor.fetchStoreRequests]);
+
+  useEffect(() => {
+    void loadStoreRequests();
+  }, [loadStoreRequests]);
+
+  const isViewingToday = date === calculateReferenceDate();
   const rows = useMemo(
-    () => getClosingRows(sellers, checkins, requests),
-    [sellers, checkins, requests],
+    () => getClosingRows(sellers, checkins, requests, storeRequests, date, isViewingToday),
+    [sellers, checkins, requests, storeRequests, date, isViewingToday],
   );
   const submitted = rows.filter((row) => row.checkin).length;
   const pending = rows.length - submitted;
@@ -204,6 +230,7 @@ export default function ManagerDailyClosing() {
       refetchMetricHistory(),
       refetchSellers(),
       loadRequests(),
+      loadStoreRequests(),
     ]);
     toast.success("Fechamento da equipe atualizado.");
   }, [loadRequests, refetch, refetchHistory, refetchMetricHistory, refetchSellers]);
@@ -226,6 +253,7 @@ export default function ManagerDailyClosing() {
             refetchMetricHistory(),
             refetchSellers(),
             loadRequests(),
+            loadStoreRequests(),
           ])
             .then(() => setSyncWarning(null))
             .catch(() => setSyncWarning("Falha ao sincronizar automaticamente. Use Atualizar."));
@@ -296,7 +324,7 @@ export default function ManagerDailyClosing() {
         ? "Regularização aprovada."
         : "Regularização recusada.",
     );
-    await Promise.all([loadRequests(), refetch(), refetchHistory()]);
+    await Promise.all([loadRequests(), loadStoreRequests(), refetch(), refetchHistory()]);
   };
 
   const handleCorrectLeads = async (
@@ -323,7 +351,7 @@ export default function ManagerDailyClosing() {
     toast.success("Leads corrigidos e auditados.");
     setCorrectingLeads(false);
     setClosingDetail(null);
-    await Promise.all([loadRequests(), refetch(), refetchHistory()]);
+    await Promise.all([loadRequests(), loadStoreRequests(), refetch(), refetchHistory()]);
     return { error: null };
   };
 
@@ -634,10 +662,16 @@ export default function ManagerDailyClosing() {
   );
 }
 
-function getClosingRows(
+export function getClosingRows(
   sellers: Array<{ id: string; name: string }>,
   checkins: CheckinWithTotals[],
   requests: PendingRequest[],
+  // MX-22.5 (AC-6): parâmetros aditivos — nenhum consumidor existente de
+  // `status`/`checkin` muda de comportamento; `historyState`/`historyActions`
+  // são campos novos ao lado, reaproveitando a taxonomia de 22.3.
+  storeRequests: CheckinCorrectionRequest[] = [],
+  date?: string,
+  isToday = false,
 ) {
   const requestsBySeller = new Set(
     requests.map((request) => request.seller_id),
@@ -645,14 +679,23 @@ function getClosingRows(
   const checkinBySeller = new Map(
     checkins.map((checkin) => [checkin.seller_user_id, checkin]),
   );
-  return sellers.map((seller) => ({
-    seller,
-    checkin: checkinBySeller.get(seller.id),
-    status: getClosingStatus(
-      checkinBySeller.get(seller.id),
-      requestsBySeller.has(seller.id),
-    ),
-  }));
+  return sellers.map((seller) => {
+    const checkin = checkinBySeller.get(seller.id) ?? null;
+    const latestRequest = latestRequestForCheckin(storeRequests, checkin?.id);
+    const historyState: HistoryRowState | null = date
+      ? resolveHistoryRowState({ date, checkin, latestRequest, now: new Date(), isToday })
+      : null;
+    return {
+      seller,
+      checkin: checkin ?? undefined,
+      status: getClosingStatus(
+        checkin ?? undefined,
+        requestsBySeller.has(seller.id),
+      ),
+      historyState,
+      historyActions: historyState ? actionsForHistoryRowState(historyState) : [],
+    };
+  });
 }
 
 export function PendingReminderModal({

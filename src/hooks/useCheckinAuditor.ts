@@ -37,6 +37,24 @@ export function useCheckinAuditor(storeIdOverride?: string) {
         return data || []
     }, [storeId])
 
+    // MX-22.5 (AC-6; Spec §10 "pendência gerencial"): fetchPendingRequests é
+    // deliberadamente só 'pending' (fila de aprovação). Reconciliar a
+    // taxonomia de 7 estados de checkin-history-state.ts (22.3) na visão do
+    // gestor exige também 'approved'/'rejected' — a RLS já permite
+    // (solicitacoes_correcao_select cobre is_manager_of/is_owner_of para
+    // qualquer status, não só pending), então é só remover o filtro de
+    // status, sem migration nova.
+    const fetchStoreRequests = useCallback(async (): Promise<CheckinCorrectionRequest[]> => {
+        if (!storeId) return []
+        const { data, error } = await supabase
+            .from('solicitacoes_correcao_lancamento')
+            .select('*, seller:usuarios!checkin_correction_requests_seller_id_fkey(name, avatar_url)')
+            .eq('store_id', storeId)
+            .order('created_at', { ascending: false })
+        if (error) throw error
+        return (data || []) as CheckinCorrectionRequest[]
+    }, [storeId])
+
     // MX-22.3 (GAP 2; Spec §8.1/§8.2): o vendedor precisa enxergar o próprio
     // ciclo de vida da regularização (pending/approved/rejected) no
     // Histórico, não só o gerente. fetchPendingRequests é escopo de loja e
@@ -102,5 +120,5 @@ export function useCheckinAuditor(storeIdOverride?: string) {
         return { error: error?.message || result?.error || null }
     }
 
-    return { loading, requestCorrection, fetchPendingRequests, fetchOwnRequests, approveRequest, rejectRequest, cancelRequest }
+    return { loading, requestCorrection, fetchPendingRequests, fetchStoreRequests, fetchOwnRequests, approveRequest, rejectRequest, cancelRequest }
 }

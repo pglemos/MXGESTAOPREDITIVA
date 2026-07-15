@@ -50,4 +50,17 @@ describe('canonical checkin regularization migration', () => {
   test('bloqueia uma segunda solicitação enquanto já existe uma pending para o mesmo fechamento', () => {
     expect(sql).toContain("'Já existe uma regularização pendente para este fechamento.'")
   })
+
+  // MX-22.5 (AC-5; Spec §10.2 "Regularização recusada: não contabiliza;
+  // preserva dados e motivo da decisão"): regressão explícita — recusa nunca
+  // toca lancamentos_diarios, só atualiza a própria solicitação.
+  test('rejeitar_regularizacao_fechamento nunca contabiliza (não toca lancamentos_diarios)', () => {
+    const rejectStart = sql.indexOf('FUNCTION public.rejeitar_regularizacao_fechamento')
+    const cancelStart = sql.indexOf('FUNCTION public.cancelar_regularizacao_fechamento')
+    const rejectSql = sql.slice(rejectStart, cancelStart)
+    expect(rejectSql).not.toContain('UPDATE public.lancamentos_diarios')
+    expect(rejectSql).toContain("status = 'rejected'")
+    expect(rejectSql).toContain('rejection_reason')
+    expect(rejectSql).toContain('reviewed_at')
+  })
 })
