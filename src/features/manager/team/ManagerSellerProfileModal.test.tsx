@@ -59,6 +59,7 @@ describe('ManagerSellerProfileModal Base44 parity', () => {
     expect(screen.queryByRole('button', { name: 'Close' })).toBeNull()
     expect(screen.getByText('Álvaro Souza')).toBeTruthy()
     expect(screen.getByText('Composição do Status')).toBeTruthy()
+    expect(screen.getByText('Motivo:')).toBeTruthy()
     expect(screen.getByText('Consistência parcial — aguardando fechamentos oficiais.')).toBeTruthy()
     expect(screen.getByRole('tab', { name: 'Visão Geral' })).toBeTruthy()
     expect(screen.getByRole('tab', { name: 'Performance' })).toBeTruthy()
@@ -66,6 +67,8 @@ describe('ManagerSellerProfileModal Base44 parity', () => {
     expect(screen.getByRole('tab', { name: 'Feedbacks' })).toBeTruthy()
     expect(screen.getByRole('tab', { name: 'Treinamentos' })).toBeTruthy()
     expect(screen.getByText('Data da última venda')).toBeTruthy()
+    expect(screen.getByText('Próximo compromisso do PDI')).toBeTruthy()
+    expect(screen.getByText('Último acesso à Universidade MX')).toBeTruthy()
     expect(screen.getAllByText('—').length).toBeGreaterThan(0)
   })
 

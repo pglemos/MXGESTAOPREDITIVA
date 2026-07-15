@@ -41,6 +41,19 @@ describe('ManagerTeamPerformance loading state', () => {
 
     expect(screen.getByText('Nenhum vendedor vinculado a este gerente.')).toBeTruthy()
   })
+
+  test('reproduz o estado vazio Base44 sem componente visual genérico', () => {
+    render(
+      <MemoryRouter>
+        <ManagerTeamPerformance data={dashboardData(false)} storeName="Matriz" />
+      </MemoryRouter>,
+    )
+
+    const message = screen.getByText('Nenhum vendedor vinculado a este gerente.')
+    const emptyState = message.parentElement
+    expect(emptyState).toHaveClass('rounded-2xl', 'border-gray-100', 'shadow-sm', 'py-16')
+    expect(emptyState).not.toHaveClass('border-dashed')
+  })
 })
 
 describe('ManagerTeamPerformance Base44 parity', () => {
