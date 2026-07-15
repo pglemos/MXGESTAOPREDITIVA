@@ -515,7 +515,7 @@ export function AgendaD1Panel({
                     "Vendedor",
                     "Tipo",
                     "Status",
-                    "Último contato",
+                    "Últ. contato",
                     "Ações",
                   ].map((label) => (
                     <th
