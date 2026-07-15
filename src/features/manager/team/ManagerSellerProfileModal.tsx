@@ -1,12 +1,19 @@
 import { useState } from 'react'
 import {
   Activity,
+  Award,
   BarChart3,
   BookOpen,
   CalendarClock,
   CheckCircle2,
+  Clock,
   ChevronDown,
+  Eye,
+  FileText,
+  GraduationCap,
   MessageSquarePlus,
+  MessageSquare,
+  Plus,
   ShieldCheck,
   TrendingUp,
   UserRound,
@@ -86,10 +93,10 @@ export function ManagerSellerProfileModal({
 
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-6">
             {tab === 'overview' && <OverviewTab seller={seller} card={card} result={result} consistency={consistency} sellerTarget={sellerTarget} status={status} />}
-            {tab === 'performance' && <PerformanceTab seller={seller} />}
+            {tab === 'performance' && <PerformanceTab seller={seller} card={card} />}
             {tab === 'routine' && <RoutineTab card={card} onOpenRoutine={onOpenRoutine} />}
-            {tab === 'feedbacks' && <ActionTab icon={MessageSquarePlus} title="Feedbacks do vendedor" detail="Consulte devolutivas e registre novos compromissos na central gerencial." action="Abrir Feedbacks" onClick={onOpenFeedback} />}
-            {tab === 'training' && <ActionTab icon={BookOpen} title="Treinamentos do vendedor" detail="Acompanhe progresso, trilhas e planos de reforço da equipe." action="Abrir Universidade MX" onClick={onOpenTraining} />}
+            {tab === 'feedbacks' && <FeedbacksTab onOpenFeedback={onOpenFeedback} />}
+            {tab === 'training' && <TrainingTab onOpenTraining={onOpenTraining} />}
         </div>
       </section>
     </div>
@@ -105,7 +112,13 @@ function OverviewTab({ seller, card, result, consistency, sellerTarget, status }
 
     <details className="group overflow-hidden rounded-xl border border-gray-200">
       <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-gray-700 [&::-webkit-details-marker]:hidden"><span className="flex items-center gap-2"><Activity size={15} className="text-emerald-600" /> Composição da Consistência</span><ChevronDown size={16} className="text-gray-400 transition-transform group-open:rotate-180" /></summary>
-      <div className="grid gap-3 border-t border-gray-100 bg-gray-50 p-4 sm:grid-cols-2"><MiniMetric label="Rotina" value={card.routine} /><MiniMetric label="Disciplina" value={card.discipline} /></div>
+      <div className="divide-y divide-gray-100 border-t border-gray-100 bg-gray-50 px-4 text-sm text-gray-600">
+        <ConsistencyLine label="Rotina (peso 70%)" value={card.routine} />
+        <ConsistencyLine label="Disciplina do Fechamento (peso 30%)" value={card.discipline} />
+        <ConsistencyLine label="Consistência final" value={consistency} strong />
+        <p className="pt-3 text-[11px] text-gray-400">Fórmula: Rotina × 0,70 + Disciplina × 0,30</p>
+        <p className="pb-1 pt-1 text-xs italic text-gray-500">A Consistência combina a execução da rotina com a disciplina do fechamento.</p>
+      </div>
     </details>
 
     <section className="rounded-xl border border-gray-200 p-4">
@@ -123,16 +136,34 @@ function OverviewTab({ seller, card, result, consistency, sellerTarget, status }
   </>
 }
 
-function PerformanceTab({ seller }: { seller: RankingEntry }) {
-  return <div className="space-y-5"><div className="grid grid-cols-2 gap-3 sm:grid-cols-4"><Metric label="Leads" value={seller.leads} /><Metric label="Agendamentos" value={seller.agd_total} /><Metric label="Visitas" value={seller.visitas} /><Metric label="Vendas" value={seller.vnd_total} /></div><section className="rounded-xl border border-gray-200 p-4"><h3 className="text-sm font-bold text-gray-700">Vendas por canal</h3><div className="mt-4 flex items-center justify-between rounded-lg bg-gray-50 px-3 py-3 text-sm"><span className="text-gray-600">Atendimento anterior / Sem canal confirmado</span><strong className="text-gray-800">{seller.vnd_total}</strong></div></section></div>
+function PerformanceTab({ seller, card }: { seller: RankingEntry; card: ManagerTeamCard }) {
+  const target = seller.meta > 0 ? seller.meta : null
+  return <div className="space-y-5">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <Metric icon={TrendingUp} label="Vendas no período" value={seller.vnd_total} />
+      <Metric icon={BarChart3} label="Meta proporcional" value={target === null ? '—' : formatNumber(target)} />
+      <Metric icon={TrendingUp} label="% da meta" value={formatPercent(card.result)} tone="critical" />
+      <Metric icon={Activity} label="Conversão geral" value="—" />
+      <Metric icon={CalendarClock} label="Dias desde última venda" value="—" />
+    </div>
+    <section className="rounded-xl border border-gray-100 bg-white p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3"><h3 className="text-sm font-bold text-gray-800">Vendas acumuladas × Meta acumulada</h3><div className="inline-flex rounded-xl bg-gray-50 p-1"><span className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white">Mês atual</span><span className="px-3 py-1.5 text-xs font-semibold text-gray-500">Últimos 3 meses</span></div></div>
+      <div className="mt-4 grid h-52 place-items-center rounded-lg border border-dashed border-gray-100 bg-[linear-gradient(#f3f4f6_1px,transparent_1px),linear-gradient(90deg,#f3f4f6_1px,transparent_1px)] bg-[size:32px_32px]"><p className="text-sm text-gray-400">Série diária indisponível no contrato atual.</p></div>
+    </section>
+    <section className="rounded-xl border border-gray-100 bg-white p-4"><div className="flex items-center justify-between gap-3"><h3 className="text-sm font-bold text-gray-800">Resultado por canal</h3><span className="text-xs text-gray-400">Leads registrados no MX</span></div><div className="mt-4 grid gap-3 md:grid-cols-2"><ChannelMetric label="Showroom" base="atendimentos" /><ChannelMetric label="Carteira" base="contatos/leads" /><ChannelMetric label="Internet" base="leads" /><ChannelMetric label="Atendimento anterior / Sem canal confirmado" base="Base" sales={seller.vnd_total} /></div><div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3 text-sm font-semibold text-gray-700"><span>Total de vendas no período</span><span>{seller.vnd_total}</span></div></section>
+  </div>
 }
 
 function RoutineTab({ card, onOpenRoutine }: { card: ManagerTeamCard; onOpenRoutine: () => void }) {
-  return <section className="rounded-xl bg-gray-50 p-5"><div className="flex items-start gap-3"><span className="grid h-11 w-11 place-items-center rounded-xl bg-white text-emerald-700 shadow-sm"><CheckCircle2 /></span><div><h3 className="text-base font-bold text-gray-800">Rotina do período</h3><p className="mt-1 text-sm text-gray-600">{card.routine === null ? 'Ainda não há ações oficiais suficientes para calcular a execução da rotina.' : `Execução verificada: ${Math.round(card.routine)}%.`}</p></div></div><button type="button" className="mt-5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50" onClick={onOpenRoutine}>Abrir Rotina da Equipe</button></section>
+  return <div className="space-y-5"><section className="grid min-h-44 place-items-center rounded-xl bg-gray-50 px-5 py-12 text-center"><div><Activity className="mx-auto mb-3 h-10 w-10 text-gray-300"/><p className="text-sm text-gray-500">{card.routine === null ? 'Não há dados de rotina para o período selecionado.' : `Execução verificada: ${Math.round(card.routine)}%.`}</p></div></section><button type="button" className="inline-flex h-9 items-center gap-1 rounded-xl bg-emerald-600 px-3 text-xs font-medium text-white hover:bg-emerald-700" onClick={onOpenRoutine}>Abrir Rotina da Equipe <span aria-hidden="true">→</span></button></div>
 }
 
-function ActionTab({ icon: Icon, title, detail, action, onClick }: { icon: typeof MessageSquarePlus; title: string; detail: string; action: string; onClick: () => void }) {
-  return <section className="rounded-xl bg-gray-50 p-5"><div className="flex items-start gap-3"><span className="grid h-11 w-11 place-items-center rounded-xl bg-white text-emerald-700 shadow-sm"><Icon /></span><div><h3 className="text-base font-bold text-gray-800">{title}</h3><p className="mt-1 text-sm text-gray-600">{detail}</p></div></div><button type="button" className="mt-5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700" onClick={onClick}>{action}</button></section>
+function FeedbacksTab({ onOpenFeedback }: { onOpenFeedback: () => void }) {
+  return <div className="space-y-5"><div className="flex flex-wrap gap-2"><button type="button" className="inline-flex h-9 items-center gap-1 rounded-xl bg-emerald-600 px-3 text-xs font-medium text-white hover:bg-emerald-700" onClick={onOpenFeedback}><Plus size={14}/>Novo Feedback</button><button type="button" className="inline-flex h-9 items-center gap-1 rounded-xl border border-gray-200 px-3 text-xs font-medium text-gray-700 hover:bg-gray-50" onClick={onOpenFeedback}><Eye size={14}/>Ver histórico completo</button></div><section className="rounded-xl border border-gray-100 bg-white p-4"><h3 className="text-sm font-semibold text-gray-800">PDI ativo</h3><EmptyPanel icon={FileText} text="Nenhum PDI ativo." compact /></section><section className="rounded-xl border border-gray-100 bg-white p-4"><h3 className="text-sm font-semibold text-gray-800">Histórico de feedbacks</h3><EmptyPanel icon={MessageSquare} text="Nenhum feedback registrado para este vendedor." action="Registrar feedback" onAction={onOpenFeedback} compact /></section></div>
+}
+
+function TrainingTab({ onOpenTraining }: { onOpenTraining: () => void }) {
+  return <div className="space-y-5"><div className="flex flex-wrap gap-2"><button type="button" className="inline-flex h-9 items-center gap-1 rounded-xl bg-emerald-600 px-3 text-xs font-medium text-white hover:bg-emerald-700" onClick={onOpenTraining}><Plus size={14}/>Recomendar treinamento</button><button type="button" className="inline-flex h-9 items-center gap-1 rounded-xl border border-gray-200 px-3 text-xs font-medium text-gray-700 hover:bg-gray-50" onClick={onOpenTraining}><Eye size={14}/>Ver acompanhamento completo</button></div><section className="rounded-xl border border-gray-100 bg-white p-4"><h3 className="mb-3 text-sm font-semibold text-gray-800">Acompanhamento de treinamentos</h3><div className="grid grid-cols-2 gap-3 md:grid-cols-4"><Metric icon={BookOpen} label="Trilha atual" value="—" compact /><Metric icon={CheckCircle2} label="Progresso geral" value="—" compact /><Metric icon={Award} label="Certificados" value="—" compact /><Metric icon={Clock} label="Último acesso" value="—" compact /></div></section><section className="rounded-xl bg-gray-50"><EmptyPanel icon={GraduationCap} text="Nenhum treinamento atribuído a este vendedor." action="Recomendar treinamento" onAction={onOpenTraining} /></section></div>
 }
 
 function HeroMetric({ icon: Icon, label, value, detail, tone }: { icon: typeof TrendingUp; label: string; value: string; detail: string; tone: 'critical' | 'attention' | 'success' | 'muted' }) {
@@ -140,8 +171,10 @@ function HeroMetric({ icon: Icon, label, value, detail, tone }: { icon: typeof T
   return <div className={`rounded-xl border p-4 ${theme}`}><div className="flex items-center gap-2 text-sm font-bold"><Icon size={15} />{label}</div><p className="mt-3 text-2xl font-black">{value}</p><p className="mt-1 text-xs text-gray-500">{detail}</p></div>
 }
 
-function MiniMetric({ label, value }: { label: string; value: number | null }) { return <div className="rounded-lg border border-gray-200 bg-white p-3"><p className="text-xs text-gray-500">{label}</p><p className="mt-1 text-lg font-bold text-gray-800">{formatPercent(value)}</p></div> }
-function Metric({ label, value }: { label: string; value: number }) { return <div className="rounded-xl border border-gray-200 bg-white p-4"><p className="text-xs font-bold uppercase tracking-wide text-gray-500">{label}</p><p className="mt-2 text-2xl font-black text-gray-800">{value}</p></div> }
+function ConsistencyLine({ label, value, strong = false }: { label: string; value: number | null; strong?: boolean }) { return <div className="flex items-center justify-between gap-3 py-2"><span>{label}:</span><strong className={strong ? 'text-gray-800' : 'font-semibold text-gray-700'}>{formatPercent(value)}</strong></div> }
+function Metric({ icon: Icon, label, value, compact = false, tone = 'default' }: { icon: typeof TrendingUp; label: string; value: string | number; compact?: boolean; tone?: 'default' | 'critical' }) { return <div className={`rounded-xl bg-gray-50 ${compact ? 'p-3' : 'p-3.5'}`}><Icon size={16} className={tone === 'critical' ? 'text-red-500' : 'text-gray-400'}/><p className={`mt-1 font-bold ${compact ? 'text-lg' : 'text-2xl'} ${tone === 'critical' ? 'text-red-600' : 'text-gray-800'}`}>{value}</p><p className="text-xs text-gray-500">{label}</p></div> }
+function ChannelMetric({ label, base, sales = '—' }: { label: string; base: string; sales?: string | number }) { return <div className="rounded-xl bg-gray-50 p-3"><p className="font-semibold text-gray-800">{label}</p><div className="mt-3 grid grid-cols-3 gap-2 text-xs"><span className="text-gray-500">{base}<strong className="mt-1 block text-gray-800">—</strong></span><span className="text-gray-500">Vendas<strong className="mt-1 block text-gray-800">{sales}</strong></span><span className="text-gray-500">Conversão<strong className="mt-1 block text-gray-800">—</strong></span></div></div> }
+function EmptyPanel({ icon: Icon, text, action, onAction, compact = false }: { icon: typeof FileText; text: string; action?: string; onAction?: () => void; compact?: boolean }) { return <div className={`flex flex-col items-center justify-center text-center ${compact ? 'py-8' : 'px-5 py-12'}`}><Icon className="mb-2 h-8 w-8 text-gray-300"/><p className="text-sm text-gray-500">{text}</p>{action && onAction ? <button type="button" className="mt-3 inline-flex h-9 items-center gap-1 rounded-xl border border-gray-200 bg-white px-3 text-xs font-medium text-gray-700 hover:bg-gray-50" onClick={onAction}><Plus size={14}/>{action}</button> : null}</div> }
 function StatusLine({ label, value, helper }: { label: string; value: string; helper?: string }) { return <div className="flex items-start justify-between gap-4"><span className="text-gray-500">{label}:</span><span className="text-right font-semibold text-gray-700">{value}{helper && <small className="mt-0.5 block text-[11px] font-normal text-gray-400">{helper}</small>}</span></div> }
 function Info({ label, value }: { label: string; value: string }) { return <div><p className="text-xs text-gray-500">{label}</p><p className="mt-1 text-sm font-semibold text-gray-700">{value}</p></div> }
 function formatPercent(value: number | null) { return value === null ? '—' : `${Math.round(value)}%` }

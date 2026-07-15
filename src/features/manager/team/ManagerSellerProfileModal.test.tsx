@@ -76,19 +76,39 @@ describe('ManagerSellerProfileModal Base44 parity', () => {
     const actions = renderProfile({ vnd_total: 2, routine_execution: 80, discipline_score: 70 })
 
     fireEvent.click(screen.getByRole('tab', { name: 'Performance' }))
-    expect(screen.getByText('Vendas por canal')).toBeTruthy()
+    expect(screen.getByText('Resultado por canal')).toBeTruthy()
     expect(screen.getByText('Atendimento anterior / Sem canal confirmado')).toBeTruthy()
 
     fireEvent.click(screen.getByRole('tab', { name: 'Rotina' }))
-    expect(screen.getByText('Rotina do período')).toBeTruthy()
+    expect(screen.getByText('Execução verificada: 80%.')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Abrir Rotina da Equipe' }))
     expect(actions.onOpenRoutine).toHaveBeenCalledTimes(1)
 
     fireEvent.click(screen.getByRole('tab', { name: 'Feedbacks' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Abrir Feedbacks' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Novo Feedback' }))
     expect(actions.onOpenFeedback).toHaveBeenCalledTimes(1)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Registrar feedback' }))
+    fireEvent.click(screen.getAllByRole('button', { name: 'Registrar feedback' })[0])
     expect(actions.onOpenFeedback).toHaveBeenCalledTimes(2)
+  })
+
+  test('reproduz os painéis vazios observados no Base44 nas abas Rotina, Feedbacks e Treinamentos', () => {
+    renderProfile({ vnd_total: 2, meta: 5, routine_execution: null, discipline_score: null })
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Rotina' }))
+    expect(screen.getByText('Não há dados de rotina para o período selecionado.')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Abrir Rotina da Equipe' })).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Feedbacks' }))
+    expect(screen.getByRole('button', { name: 'Novo Feedback' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Ver histórico completo' })).toBeTruthy()
+    expect(screen.getByText('PDI ativo')).toBeTruthy()
+    expect(screen.getByText('Histórico de feedbacks')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Treinamentos' }))
+    expect(screen.getAllByRole('button', { name: 'Recomendar treinamento' })).toHaveLength(2)
+    expect(screen.getByRole('button', { name: 'Ver acompanhamento completo' })).toBeTruthy()
+    expect(screen.getByText('Acompanhamento de treinamentos')).toBeTruthy()
+    expect(screen.getByText('Nenhum treinamento atribuído a este vendedor.')).toBeTruthy()
   })
 })
