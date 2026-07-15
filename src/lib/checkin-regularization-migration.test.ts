@@ -38,4 +38,16 @@ describe('canonical checkin regularization migration', () => {
     expect(sql).toContain('INSERT INTO public.notificacoes')
     expect(sql).toContain('REVOKE ALL ON FUNCTION public.solicitar_regularizacao_fechamento')
   })
+
+  // MX-22.3 (AC-4/Spec §8.3): "gera o diff automaticamente" e "bloqueia
+  // duplicidade pending" já existem no servidor — testes de regressão
+  // explícitos que a story pedia e que não existiam neste arquivo ainda.
+  test('calcula o delta automaticamente comparando valores originais vs solicitados', () => {
+    expect(sql).toContain('v_delta jsonb')
+    expect(sql).toContain("IF v_delta = '{}'::jsonb THEN")
+  })
+
+  test('bloqueia uma segunda solicitação enquanto já existe uma pending para o mesmo fechamento', () => {
+    expect(sql).toContain("'Já existe uma regularização pendente para este fechamento.'")
+  })
 })

@@ -53,3 +53,26 @@ describe('CheckinHeader — regularização (P0-02/P0-06)', () => {
         expect(formSource).not.toContain('Observações Operacionais (Justificativa)')
     })
 })
+
+// MX-22.3 (AC-1/2/4; Spec §8.1/§8.2/§8.3) — 7 estados do Histórico +
+// regra do botão Ajustar/Regularizar sempre sobre a data exata da linha.
+describe('CheckinHeader — Histórico com 7 estados e ações por estado (MX-22.3)', () => {
+    test('combina lancamentos_diarios com solicitacoes_correcao_lancamento via resolveHistoryRowState (não mais binário Finalizado/Pendente)', () => {
+        expect(headerSource).toContain('resolveHistoryRowState')
+        expect(headerSource).toContain('latestRequestForCheckin')
+        expect(headerSource).toContain('fetchOwnRequests')
+    })
+
+    test('inclui hoje no loop do Histórico (i=0), viabilizando o estado "Em andamento"', () => {
+        expect(headerSource).toContain('for (let i = 0; i <= 7; i++)')
+    })
+
+    test('Aguardando aprovação nunca reabre Ajustar/Regularizar — evita colisão com o guard de pending do servidor', () => {
+        expect(headerSource).toContain("action === 'ajustar' || action === 'regularizar' || action === 'criar_nova_versao'")
+    })
+
+    test('handleSelectRow/handleAdjustPrevious carregam exatamente a data da linha/card selecionado (§8.3)', () => {
+        expect(headerSource).toContain('const date = previousCard.date')
+        expect(headerSource).toContain('checkins.find(c => c.reference_date === date && c.metric_scope')
+    })
+})

@@ -37,6 +37,22 @@ export function useCheckinAuditor(storeIdOverride?: string) {
         return data || []
     }, [storeId])
 
+    // MX-22.3 (GAP 2; Spec §8.1/§8.2): o vendedor precisa enxergar o próprio
+    // ciclo de vida da regularização (pending/approved/rejected) no
+    // Histórico, não só o gerente. fetchPendingRequests é escopo de loja e
+    // só 'pending' — este lê todas as solicitações do PRÓPRIO seller_id,
+    // usando a RLS já existente (seller_id = auth.uid()), sem migration nova.
+    const fetchOwnRequests = useCallback(async (): Promise<CheckinCorrectionRequest[]> => {
+        if (!profile?.id) return []
+        const { data, error } = await supabase
+            .from('solicitacoes_correcao_lancamento')
+            .select('*')
+            .eq('seller_id', profile.id)
+            .order('created_at', { ascending: false })
+        if (error) throw error
+        return (data || []) as CheckinCorrectionRequest[]
+    }, [profile?.id])
+
     /** Gerente aprova e aplica a correção via RPC Segura */
     const approveRequest = async (request: CheckinCorrectionRequest) => {
         if (!profile?.id) return { error: 'Não autorizado' }
@@ -86,5 +102,5 @@ export function useCheckinAuditor(storeIdOverride?: string) {
         return { error: error?.message || result?.error || null }
     }
 
-    return { loading, requestCorrection, fetchPendingRequests, approveRequest, rejectRequest, cancelRequest }
+    return { loading, requestCorrection, fetchPendingRequests, fetchOwnRequests, approveRequest, rejectRequest, cancelRequest }
 }
