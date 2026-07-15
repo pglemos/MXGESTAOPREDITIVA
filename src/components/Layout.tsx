@@ -25,7 +25,6 @@ import {
 } from 'lucide-react'
 import { slugify } from '@/lib/utils'
 import SellerLayoutShell, { type SellerLayoutNavItem, type SellerLayoutNavSection } from './SellerSidebar'
-import ManagerReferenceShell from './ManagerReferenceShell'
 import { ForcePasswordChange } from '@/features/auth/components/ForcePasswordChange'
 import { canAccessPath } from '@/lib/auth/routeAccess'
 import { MotionPage } from '@/design/motion'
@@ -284,16 +283,6 @@ export default function Layout() {
       <div className="min-h-screen bg-mx-black flex items-center justify-center p-mx-lg">
         <ForcePasswordChange />
       </div>
-    )
-  }
-
-  if (role === 'gerente') {
-    return (
-      <ManagerReferenceShell navSections={sidebarSections}>
-        <MotionPage key={location.pathname} className="h-full">
-          <Outlet />
-        </MotionPage>
-      </ManagerReferenceShell>
     )
   }
 
