@@ -41,8 +41,10 @@ Implementado nesta iteração:
 File list:
 
 - `src/features/manager/meta/ManagerStoreGoalReference.tsx`
+- `src/features/manager/meta/ManagerStoreGoalReference.test.tsx`
 - `src/features/manager/meta/manager-store-goal.ts`
 - `src/features/manager/meta/manager-store-goal.test.ts`
+- `src/lib/charts/tokens.ts`
 - `docs/qa/MODULO_GERENCIAL_PARITY_MATRIX.md`
 
 Reteste E2E autenticado real em Chromium após a verificação adicional dos quatro horizontes: `4 passed (1.2m)`; o clique em `Esta dezena` abriu e manteve o `Plano de Sustentação`.

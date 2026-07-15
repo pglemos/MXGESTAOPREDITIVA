@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   buildStoreGoalClosingRows,
+  buildStoreGoalChannelRows,
+  buildStoreGoalTeamRows,
   calculateStoreGoalMetrics,
   calculateSustainabilityPlan,
   formatStoreGoalMetric,
@@ -18,6 +20,34 @@ describe('manager store goal shared adapters', () => {
   it('uses the official calendar mode predicate consistently', () => {
     expect(operationalDayPredicate('calendar')(new Date('2026-07-12T12:00:00'))).toBe(true)
     expect(operationalDayPredicate('business')(new Date('2026-07-12T12:00:00'))).toBe(false)
+  })
+})
+
+describe('manager store goal Base44 presentation adapters', () => {
+  it('derives the Base44 team contribution columns from canonical ranking metrics', () => {
+    expect(buildStoreGoalTeamRows([
+      { user_id: 'ana', user_name: 'Ana', vnd_total: 4, meta: 20, routine_execution: 80 },
+      { user_id: 'bia', user_name: 'Bia', vnd_total: 1, meta: 20, routine_execution: null },
+    ], { elapsed: 10, total: 20 })).toEqual([
+      {
+        sellerId: 'bia', sellerName: 'Bia', realized: 1, proportionalGoal: 10,
+        result: 10, gap: 19, projection: 2, consistency: null,
+      },
+      {
+        sellerId: 'ana', sellerName: 'Ana', realized: 4, proportionalGoal: 10,
+        result: 40, gap: 16, projection: 8, consistency: 80,
+      },
+    ])
+  })
+
+  it('keeps channel fields unavailable when MX has no canonical opportunity source', () => {
+    expect(buildStoreGoalChannelRows([
+      { vnd_porta_prev_day: 1, vnd_cart_prev_day: 2, vnd_net_prev_day: 3 },
+    ])).toEqual([
+      { name: 'Showroom', opportunities: null, sales: 1, conversion: null, participation: 17, perSale: null, situation: null },
+      { name: 'Internet', opportunities: null, sales: 3, conversion: null, participation: 50, perSale: null, situation: null },
+      { name: 'Carteira', opportunities: null, sales: 2, conversion: null, participation: 33, perSale: null, situation: null },
+    ])
   })
 })
 

@@ -31,6 +31,36 @@ export type StoreGoalClosingSource = {
   visit_prev_day?: unknown
 }
 
+export type StoreGoalRankingSource = {
+  user_id: string
+  user_name: string
+  vnd_total: number
+  meta: number
+  routine_execution?: number | null
+  discipline_score?: number | null
+}
+
+export type StoreGoalTeamRow = {
+  sellerId: string
+  sellerName: string
+  realized: number
+  proportionalGoal: number | null
+  result: number | null
+  gap: number | null
+  projection: number | null
+  consistency: number | null
+}
+
+export type StoreGoalChannelRow = {
+  name: 'Showroom' | 'Internet' | 'Carteira' | 'Atend. anterior / Sem canal'
+  opportunities: number | null
+  sales: number
+  conversion: number | null
+  participation: number
+  perSale: string | null
+  situation: 'Bom' | 'Regular' | 'Ruim' | null
+}
+
 export type SustainabilityPlan = {
   horizonte: StoreGoalHorizon
   faltam: number
@@ -57,6 +87,86 @@ export function buildStoreGoalClosingRows(checkins: StoreGoalClosingSource[]): S
     byDate.set(checkin.reference_date, current)
   }
   return Array.from(byDate.values())
+}
+
+/**
+ * Adapta o ranking oficial para as mesmas colunas de contribuição exibidas no
+ * Base44. Não cria metas individuais: uma coluna só aparece quando o ranking
+ * canônico trouxe uma meta para o vendedor.
+ */
+export function buildStoreGoalTeamRows(
+  ranking: StoreGoalRankingSource[],
+  days: Pick<StoreGoalDayWindow, 'elapsed' | 'total'>,
+): StoreGoalTeamRow[] {
+  const elapsed = Number.isFinite(days.elapsed) && days.elapsed > 0 ? days.elapsed : 0
+  const total = Number.isFinite(days.total) && days.total > 0 ? days.total : 0
+
+  return ranking
+    .map((seller) => {
+      const realized = finiteOrZero(seller.vnd_total)
+      const individualGoal = finiteOrZero(seller.meta)
+      const proportionalGoal = individualGoal > 0 && total > 0
+        ? individualGoal * elapsed / total
+        : null
+      const result = proportionalGoal !== null && proportionalGoal > 0
+        ? Math.round(realized / proportionalGoal * 100)
+        : null
+      const projection = elapsed > 0 ? Math.round(realized / elapsed * total) : null
+      const consistency = Number.isFinite(seller.routine_execution)
+        ? seller.routine_execution as number
+        : Number.isFinite(seller.discipline_score)
+          ? seller.discipline_score as number
+          : null
+
+      return {
+        sellerId: seller.user_id,
+        sellerName: seller.user_name,
+        realized,
+        proportionalGoal: proportionalGoal === null ? null : Math.round(proportionalGoal),
+        result,
+        gap: individualGoal > 0 ? Math.max(individualGoal - realized, 0) : null,
+        projection,
+        consistency,
+      }
+    })
+    .sort((left, right) => {
+      const leftBelowPace = left.proportionalGoal !== null && left.realized < left.proportionalGoal ? 0 : 1
+      const rightBelowPace = right.proportionalGoal !== null && right.realized < right.proportionalGoal ? 0 : 1
+      if (leftBelowPace !== rightBelowPace) return leftBelowPace - rightBelowPace
+      if ((left.projection ?? Number.POSITIVE_INFINITY) !== (right.projection ?? Number.POSITIVE_INFINITY)) {
+        return (left.projection ?? Number.POSITIVE_INFINITY) - (right.projection ?? Number.POSITIVE_INFINITY)
+      }
+      return (left.consistency ?? Number.POSITIVE_INFINITY) - (right.consistency ?? Number.POSITIVE_INFINITY)
+    })
+}
+
+/**
+ * O MX registra vendas por canal, mas não possui oportunidade equivalente por
+ * canal neste contrato. Os campos sem origem explícita permanecem indisponíveis.
+ */
+export function buildStoreGoalChannelRows(checkins: StoreGoalClosingSource[], officialTotalSales?: number): StoreGoalChannelRow[] {
+  const sales = checkins.reduce((totals, checkin) => ({
+    showroom: totals.showroom + finiteOrZero(checkin.vnd_porta_prev_day),
+    internet: totals.internet + finiteOrZero(checkin.vnd_net_prev_day),
+    carteira: totals.carteira + finiteOrZero(checkin.vnd_cart_prev_day),
+  }), { showroom: 0, internet: 0, carteira: 0 })
+  const identifiedSales = sales.showroom + sales.internet + sales.carteira
+  const totalSales = Math.max(identifiedSales, finiteOrZero(officialTotalSales))
+  const participation = (value: number) => totalSales > 0 ? Math.round(value / totalSales * 100) : 0
+
+  const channels: StoreGoalChannelRow[] = [
+    { name: 'Showroom' as const, opportunities: null, sales: sales.showroom, conversion: null, participation: participation(sales.showroom), perSale: null, situation: null },
+    { name: 'Internet' as const, opportunities: null, sales: sales.internet, conversion: null, participation: participation(sales.internet), perSale: null, situation: null },
+    { name: 'Carteira' as const, opportunities: null, sales: sales.carteira, conversion: null, participation: participation(sales.carteira), perSale: null, situation: null },
+  ].filter((channel) => channel.sales > 0)
+  const untrackedSales = Math.max(totalSales - identifiedSales, 0)
+  if (untrackedSales > 0) {
+    channels.push({
+      name: 'Atend. anterior / Sem canal', opportunities: null, sales: untrackedSales,
+      conversion: null, participation: participation(untrackedSales), perSale: null, situation: null,
+    })
+  }
+  return channels
 }
 
 export function operationalDayPredicate(projectionMode: string | null | undefined): (date: Date) => boolean {
