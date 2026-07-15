@@ -2,7 +2,7 @@
 
 ## Status
 
-InReview
+Done
 
 ## Epic Reference
 
@@ -209,6 +209,7 @@ Nenhum código novo desta story deve introduzir `new Date().getHours()`/`Date.no
 | 2026-07-14 | 1.0 | Story criada a partir do EPIC-MX-22 §10/§11, com exploração real de código. Achado principal: contabilização (§10.2) é majoritariamente REUSE via `vendedor_performance_oficial` (read model de uma story não relacionada, MX-AUDIT-20260710/Fase 4), já consumido por Home/Dashboard/Funil/Relatórios/Ranking-por-loja; gap real e concreto no Ranking de rede (`useGlobalRanking`/`useStorePerformance`, não filtra `submission_status='draft'`); REL-001 (bug de produção já documentado por 22.1/22.2, não resolvido) identificado como bloqueio direto do AC-16 desta story especificamente (penalização de atraso na Disciplina) — recomendação de tratamento como ação de infraestrutura paralela documentada explicitamente para decisão de @po, não decidida unilateralmente. Snapshot da Agenda D+1 (§11) confirmado como CREATE 100% novo, sem nenhum precedente de schema/lógica no repositório. | @sm (River) |
 | 2026-07-15 | 1.1 | **@po `*validate-story-draft`: GO (10/10), Status Draft→Ready.** Checklist: título claro (1/1), descrição completa com exploração real (1/1), ACs testáveis Given/When/Then (1/1), escopo IN/OUT bem definido (1/1), dependências mapeadas incl. coordenação externa @architect/@data-engineer (1/1), estimativa de complexidade justificada — L/8pts (1/1), valor de negócio implícito porém claro — integridade de dado do Ranking/Disciplina (1/1), riscos documentados (1/1), DoD presente (1/1), alinhamento com epic/spec §10/§11 (1/1). Verificação direta de código confirmou os achados do @sm sem invenção, com 2 refinamentos: (a) o gap do Ranking de rede em `useRanking.ts` existe nos **dois** caminhos — tanto no SELECT direto legado quanto nas RPCs `get_lancamentos_rede_periodo`/`get_lancamentos_referencia_dia` (`supabase/migrations/20260518110000_rpcs_get_lancamentos.sql`, atrás da flag `isLancamentosViaRpcEnabled`, hoje OFF por padrão) — nenhuma das duas filtra `submission_status<>'draft'`; Dev Notes do AC-2 devem cobrir ambos os caminhos, não só o legado; (b) `src/features/manager/daily-closing/agenda-d1.ts`/`AgendaD1Panel.tsx` **já existem** como camada de exibição/filtro/confirmação (WhatsApp, dedupe por cliente) da Agenda D+1 — isso é REUSE para os ACs 7/8, não CREATE; o que de fato é 100% CREATE (confirmado, nenhum campo/coluna equivalente encontrado) é especificamente o snapshot/lock às 09:31 e o log de alterações tardias. **Decisão sobre REL-001 (ratificando a recomendação do @sm):** não bloqueia esta story nem o fluxo formal SDC — é uma correção mecânica (reaplicar função já revisada em QA duas vezes) tratável como ação de infraestrutura paralela (@data-engineer/@devops, migration `CREATE OR REPLACE FUNCTION` avulsa), fora do ciclo `*draft`/`*validate-story-draft`. Isso NÃO dispensa o AC-4 desta story nem permite silenciá-lo: o gate desta story deve reportar o status real de REL-001 em produção (ainda não resolvido, confirmado nesta validação — nenhuma migration após `20260714150000` toca `normalize_daily_closing_window`) como CONCERNS, seguindo o mesmo padrão já usado em 22.1/22.2, nunca como PASS silencioso. | @po (Pax) |
 | 2026-07-15 | 1.2 | **@dev `*dev-develop-story`: Status Ready→InProgress→InReview.** Implementado AC-1/2/3/5 (Ranking de rede via `isOfficialLancamento`, decisão ARCH-002 registrada), AC-4 (REL-001 confirmado ainda aberto em produção, documentado sem correção — fora do escopo desta story), AC-6 (`getClosingRows` estendido aditivamente, nova `fetchStoreRequests`), AC-7/8 (escopo mínimo: log append-only `agenda_d1_late_changes` + trigger + corte 09:31 puro testado, decisão ARCH-002 registrada; surfacing em `AgendaD1Panel.tsx` **não implementado**, documentado como follow-up). `npx tsc --noEmit` limpo, `npm run lint` 0 erros, suite do escopo 80/80 verde. Nenhuma migration aplicada em produção (git commit local apenas, push segue bloqueado até autorização explícita do usuário). | @dev |
+| 2026-07-15 | 1.3 | **@qa `*qa-gate`: CONCERNS, Status InReview→Done.** 7 checks executados (ver QA Results). 3 achados registrados (REL-001/alta, ARCH-002/média, AGENDA-D1-UI-GAP/média), nenhum bloqueante — todos documentados, nenhum AC falso silenciado. Gate: `docs/qa/gates/MX-22.5-closing-managerial-integration.yml`. | @qa (Quinn) |
 
 ## Dev Agent Record
 
@@ -247,4 +248,15 @@ Claude (sessão contínua — @dev/@sm/@po atuando como o mesmo agente, ver ARCH
 
 ## QA Results
 
-_A preencher por @qa_
+**Gate: CONCERNS** — `docs/qa/gates/MX-22.5-closing-managerial-integration.yml`
+
+7 checks:
+1. **Code review** — OK. Filtro `isOfficialLancamento` aditivo e de baixo raio de impacto (não toca RPCs compartilhadas); `getClosingRows` estende sem quebrar `status`/`checkin` existentes; trigger de log nunca bloqueia/reescreve `agendamentos` (bloco `EXCEPTION` sempre `RETURN NEW`).
+2. **Testes unitários** — OK. 80 testes no escopo tocado (13 arquivos), 0 falhas; suite completa do repo (`src/hooks src/features/manager src/features/ranking src/features/checkin src/lib`) 662/662 verde.
+3. **Acceptance Criteria** — AC-1/2/3/5/6 PASS. AC-4 PASS no código/teste, mas **depende de REL-001** (ver REL-001 abaixo) para ser verdadeiro em produção. AC-7/8 PASS no escopo mínimo definido (log + corte de horário), mas a superfície visível ao gestor (§11.3) não foi construída — ver AGENDA-D1-UI-GAP.
+4. **Sem regressões** — OK, confirmado (item 2).
+5. **Performance** — OK. Filtro client-side é um `.filter()` sobre arrays já em memória (sem query adicional); trigger de log é `AFTER` (não bloqueia a transação de escrita do agendamento) e só insere quando a condição de horário é satisfeita (maioria das escritas não gera linha de log).
+6. **Segurança** — OK. Tabela nova (`agenda_d1_late_changes`) com RLS habilitada, policy de leitura restrita a `seller_user_id = auth.uid() OR admin MX OR is_manager_of/is_owner_of(loja_id)`; nenhuma policy de escrita para `authenticated` — só a função `SECURITY DEFINER` (com `search_path` fixo) grava, mesmo padrão de `contar_vendedores_ativos_loja`/`listar_responsaveis_tratativa_loja`.
+7. **Documentação** — OK. Dev Notes documentam as duas decisões de arquitetura auto-tomadas (ARCH-002) e o gap de UI (AGENDA-D1-UI-GAP) explicitamente, sem silenciar nenhum dos três achados.
+
+**Decisão:** CONCERNS → Done. Nenhum dos 3 issues é uma regressão ou um AC falso silenciado — todos documentados e rastreáveis, mesmo padrão já aplicado em 22.2/22.3/22.4 desta epic. REL-001 é o único de severidade alta, mas seu tratamento (ação de infra paralela) já foi decidido explicitamente por @po no Change Log v1.1.
