@@ -77,7 +77,7 @@ describe('ManagerSellerProfileModal Base44 parity', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: 'Performance' }))
     expect(screen.getByText('Resultado por canal')).toBeTruthy()
-    expect(screen.getByText('Atendimento anterior / Sem canal confirmado')).toBeTruthy()
+    expect(screen.getByText('Atendimento anterior / Sem canal')).toBeTruthy()
 
     fireEvent.click(screen.getByRole('tab', { name: 'Rotina' }))
     expect(screen.getByText('Execução verificada: 80%.')).toBeTruthy()
@@ -110,5 +110,25 @@ describe('ManagerSellerProfileModal Base44 parity', () => {
     expect(screen.getByRole('button', { name: 'Ver acompanhamento completo' })).toBeTruthy()
     expect(screen.getByText('Acompanhamento de treinamentos')).toBeTruthy()
     expect(screen.getByText('Nenhum treinamento atribuído a este vendedor.')).toBeTruthy()
+  })
+
+  test('mantém os nomes completos das abas e a troca de período da Performance do Base44', () => {
+    renderProfile({ vnd_total: 2, meta: 5, routine_execution: null, discipline_score: null })
+
+    expect(screen.queryByText('Geral')).toBeNull()
+    expect(screen.queryByText('Feedback')).toBeNull()
+    expect(screen.queryByText('Trilha')).toBeNull()
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Performance' }))
+
+    const monthButton = screen.getByRole('button', { name: 'Mês atual' })
+    const quarterButton = screen.getByRole('button', { name: 'Últimos 3 meses' })
+    expect(monthButton.getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByText('Atendimento anterior / Sem canal')).toBeTruthy()
+    expect(screen.queryByText('Atendimento anterior / Sem canal confirmado')).toBeNull()
+
+    fireEvent.click(quarterButton)
+    expect(quarterButton.getAttribute('aria-pressed')).toBe('true')
+    expect(monthButton.getAttribute('aria-pressed')).toBe('false')
   })
 })
