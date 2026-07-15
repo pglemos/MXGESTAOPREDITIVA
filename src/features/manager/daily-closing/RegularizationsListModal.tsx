@@ -95,7 +95,7 @@ export function RegularizationsListModal({
             const name = request.seller?.name || request.seller_id;
             const metrics = getRequestedMetrics(request.requested_values);
             return (
-              <article key={request.id} className="rounded-[12px] bg-gray-50 p-4">
+              <article key={request.id} className="rounded-xl bg-gray-50 p-4">
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-2">
                     <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
@@ -117,21 +117,21 @@ export function RegularizationsListModal({
                   </div>
                 </div>
 
-                <div className="mb-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+                <div className="mb-3 grid grid-cols-4 gap-2 text-xs">
                   <Metric label="Leads" value={metrics.leads} />
                   <Metric label="Agend." value={metrics.appointments} />
                   <Metric label="Vendas" value={metrics.sales} />
                   <Metric label="Atend." value={metrics.visits} />
                 </div>
 
-                <div className="flex flex-col gap-2 sm:flex-row">
+                <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => {
                       setDecision({ request, action: "approve" });
                       setConfirmed(false);
                     }}
-                    className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-[12px] bg-emerald-600 px-3 text-sm font-medium text-white hover:bg-emerald-700"
+                    className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-xl bg-emerald-600 px-3 text-sm font-medium text-white hover:bg-emerald-700"
                     aria-label={`Aprovar ${name}`}
                   >
                     <Check size={14} /> Aprovar
@@ -142,7 +142,7 @@ export function RegularizationsListModal({
                       setDecision({ request, action: "reject" });
                       setConfirmed(false);
                     }}
-                    className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-[12px] border border-red-200 bg-white px-3 text-sm font-medium text-red-700 hover:bg-red-50"
+                    className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-xl border border-red-200 bg-white px-3 text-sm font-medium text-red-700 hover:bg-red-50"
                     aria-label={`Recusar ${name}`}
                   >
                     <X size={14} /> Recusar
