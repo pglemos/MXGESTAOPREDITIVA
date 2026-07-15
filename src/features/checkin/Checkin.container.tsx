@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
-import { RefreshCw, ShieldCheck, Sparkles } from 'lucide-react'
+import { RefreshCw, ShieldCheck, Sparkles, WifiOff } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 import { Typography } from '@/components/atoms/Typography'
 import { CheckinHeader } from './sections/CheckinHeader'
 import { CheckinForm } from './sections/CheckinForm'
@@ -29,6 +30,10 @@ export function Checkin() {
     // Modal de Histórico de Fechamentos — controlado aqui para que o aviso de
     // pendência (no formulário) e o cabeçalho possam abri-lo.
     const [historyOpen, setHistoryOpen] = useState(false)
+    // MX-22.6 (Spec §13 "sem conexão"): banner informativo — não bloqueia a
+    // submissão, o erro real de rede já é tratado pelos catch/toast.error
+    // existentes em useCheckinsSubmit.ts/useCheckinPage.ts.
+    const isOnline = useOnlineStatus()
 
     useEffect(() => {
         // Disabled scroll lock to follow the standard scroll pattern of other pages.
@@ -89,6 +94,13 @@ const previousCard = ctx.activeClosingContext.previousCard
             {checkinLoadError && (
                 <div role="alert" className="rounded-mx-2xl border border-status-error/20 bg-status-error-surface px-mx-md py-mx-sm text-sm font-bold text-status-error">
                     {checkinLoadError}
+                </div>
+            )}
+
+            {!isOnline && (
+                <div role="status" className="flex items-center gap-2 rounded-mx-2xl border border-status-warning/20 bg-status-warning-surface px-mx-md py-mx-sm text-sm font-bold text-status-warning">
+                    <WifiOff className="h-mx-md w-mx-md shrink-0" aria-hidden="true" />
+                    Sem conexão. Suas alterações serão salvas assim que a conexão voltar.
                 </div>
             )}
 
