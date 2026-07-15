@@ -333,26 +333,26 @@ export default function ManagerDailyClosing() {
     <main className="min-h-full bg-gray-50" id="main-content">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-6 pb-20">
         <ManagerHomeReturnLink />
-        <section className="flex min-h-[148px] items-center rounded-[16px] border border-slate-100 bg-white p-5 shadow-sm">
+        <section className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h1 className="text-xl font-bold leading-7 text-slate-800">
+              <h1 className="text-xl font-bold text-gray-800">
                 Fechamento Diário
               </h1>
-              <p className="mt-1 text-sm leading-5 text-slate-500">
+              <p className="text-sm text-gray-500 mt-0.5">
                 Acompanhe o movimento comercial informado pelos vendedores,
                 regularize fechamentos fora do horário e corrija volumes
                 oficiais de leads.
               </p>
             </div>
-            <div className="flex flex-wrap items-end gap-2 lg:translate-x-4">
+            <div className="flex flex-wrap items-end gap-2">
               <Field label="Data">
                 <input
                   id="manager-closing-date"
                   type="date"
                   value={date}
                   onChange={(event) => setDate(event.target.value)}
-                  className="h-[38px] rounded-xl border border-border-subtle bg-white px-3 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                  className="h-10 border border-gray-200 rounded-[12px] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </Field>
               <Field label="Unidade">
@@ -360,7 +360,7 @@ export default function ManagerDailyClosing() {
                   aria-label="Unidade"
                   value={storeId || ""}
                   onChange={() => undefined}
-                  className="h-[38px] min-w-[140px] rounded-xl border border-border-subtle bg-white px-3 text-sm font-semibold"
+                  className="border border-gray-200 rounded-[12px] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 min-w-[140px]"
                 >
                   <option value={storeId || ""}>
                     {membership?.store?.name || "Unidade atual"}
@@ -369,7 +369,7 @@ export default function ManagerDailyClosing() {
               </Field>
               <button
                 type="button"
-                className="h-[38px] w-fit self-end rounded-[12px] bg-emerald-600 px-3 text-xs font-medium text-white transition-colors hover:bg-emerald-700"
+                className="inline-flex h-[38px] items-center gap-1 rounded-[12px] bg-emerald-600 px-3 text-xs font-medium text-white shadow-sm transition-colors hover:bg-emerald-700"
                 onClick={refreshAll}
               >
                 <RefreshCw size={16} />
@@ -444,14 +444,14 @@ export default function ManagerDailyClosing() {
           <DisciplineCard value={discipline} />
         </section>
 
-        <section className="overflow-hidden rounded-[16px] border border-slate-100 bg-white shadow-sm">
+        <section className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
           <div id="manager-closing-movement" />
-          <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <h2 className="text-base font-semibold leading-6 text-slate-800">
+          <div className="flex flex-col gap-3 border-b border-gray-100 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="text-base font-semibold text-gray-800">
               Movimento da Equipe — {format(parseISO(date), "dd/MM/yyyy")}
             </h2>
             <div className="flex flex-wrap items-center gap-3">
-              <span className="inline-flex items-center gap-1 text-xs text-slate-500">
+              <span className="inline-flex items-center gap-1 text-xs text-gray-500">
                 <RefreshCw size={13} />
                 Ordenado por entrega (mais recente)
               </span>
@@ -489,12 +489,12 @@ export default function ManagerDailyClosing() {
           onRange={setHistoryRange}
         />
 
-        <section className="rounded-[16px] border border-slate-100 bg-white p-5 shadow-sm">
-          <h2 className="flex items-center gap-2 text-base font-semibold text-slate-800">
+        <section className="rounded-[16px] border border-gray-100 bg-white p-5 shadow-sm">
+          <h2 className="flex items-center gap-2 text-base font-semibold text-gray-800">
             <BarChart3 size={18} className="text-status-success" />
             Comparativo de Disciplina do Fechamento
           </h2>
-          <p className="mb-4 mt-0 text-xs text-slate-500">
+          <p className="mb-4 mt-0 text-xs text-gray-500">
             Comparação com equipes da rede da consultoria
           </p>
           <div className="space-y-4">
@@ -506,14 +506,14 @@ export default function ManagerDailyClosing() {
             <ComparisonRow label="Média da Rede" value={null} tone="network" />
             <ComparisonRow label="Top 25% da Rede" value={null} tone="top" />
           </div>
-          <p className="pt-1 text-center text-xs italic text-slate-400">
+          <p className="pt-1 text-center text-xs italic text-gray-400">
             Comparativos de rede aparecem quando houver snapshots oficiais
             disponíveis.
           </p>
         </section>
 
-        <section className="rounded-[16px] border border-slate-100 bg-white p-5 shadow-sm">
-          <h2 className="mb-4 text-base font-semibold text-slate-800">
+        <section className="rounded-[16px] border border-gray-100 bg-white p-5 shadow-sm">
+          <h2 className="mb-4 text-base font-semibold text-gray-800">
             Resumo do Fechamento
           </h2>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
@@ -556,11 +556,11 @@ export default function ManagerDailyClosing() {
             <SummaryGroup
               label="Garantia"
               icon={ShieldCheck}
-              tone="slate"
+              tone="gray"
               items={[["Total", "—"]]}
             />
           </div>
-          <p className="mt-4 text-center text-xs text-slate-400">
+          <p className="mt-4 text-center text-xs text-gray-400">
             Os leads podem ser corrigidos pelo gerente com registro em
             auditoria. Demais dados permanecem sob responsabilidade do vendedor.
           </p>
@@ -694,15 +694,15 @@ export function PendingReminderModal({
       footer={footer}
     >
       <div className="space-y-8">
-        <div className="rounded-[24px] bg-slate-50 p-6">
-          <p className="mb-4 text-[18px] text-slate-500">
+        <div className="rounded-[24px] bg-gray-50 p-6">
+          <p className="mb-4 text-[18px] text-gray-500">
             Vendedores que serão cobrados:
           </p>
           <ul className="space-y-3">
             {pendingRows.map(({ seller }) => (
               <li
                 key={seller.id}
-                className="flex items-center gap-3 text-[18px] font-medium text-slate-700"
+                className="flex items-center gap-3 text-[18px] font-medium text-gray-700"
               >
                 <Megaphone size={18} className="text-amber-500" />
                 {seller.name}
@@ -714,7 +714,7 @@ export function PendingReminderModal({
           <p className="text-[18px] font-semibold text-amber-700">
             Mensagem padrão enviada:
           </p>
-          <p className="mt-3 text-[20px] italic leading-8 text-slate-700">
+          <p className="mt-3 text-[20px] italic leading-8 text-gray-700">
             “{PENDING_CLOSING_MESSAGE}”
           </p>
         </div>
@@ -734,7 +734,7 @@ export function getMovementState(
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <label className="block min-w-0 text-xs font-normal text-slate-500">
+    <label className="block min-w-0 text-xs font-normal text-gray-500">
       <span className="mb-1 block">{label}</span>
       {children}
     </label>
@@ -767,7 +767,7 @@ function SummaryCard({
     danger: "border-red-200 bg-red-50 text-red-600",
     success: "border-emerald-300 bg-emerald-100 text-emerald-700",
     info: "border-blue-200 bg-blue-50 text-blue-600",
-    neutral: "border-slate-200 bg-white text-text-secondary",
+    neutral: "border-gray-100 bg-white text-gray-400",
   }[tone];
   const actionColor =
     tone === "danger" || tone === "success"
@@ -776,22 +776,22 @@ function SummaryCard({
         ? "border-amber-200 text-amber-700"
         : tone === "info"
           ? "border-blue-200 text-blue-600"
-          : "border-slate-200 text-slate-500";
+          : "border-gray-200 text-gray-500";
   const valueColor = {
     warning: "text-amber-700",
     danger: "text-red-700",
     success: "text-emerald-800",
     info: "text-blue-700",
-    neutral: "text-slate-800",
+    neutral: "text-gray-800",
   }[tone];
   return (
-    <div className={`min-h-[164px] rounded-[16px] border p-3 shadow-sm ${colors}`}>
+    <div className={`min-h-[164px] rounded-[16px] border shadow-sm p-3 ${colors}`}>
       <div className="mb-2 flex items-center justify-between gap-2">
-        <h2 className="flex items-center gap-2 text-xs font-medium text-slate-600">
+        <h2 className="flex items-center gap-2 text-xs font-medium text-gray-600">
           <Icon size={16} className="shrink-0" />
           {title}
         </h2>
-        {status !== "—" && (
+        {status !== "—" ? (
           <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
             status === "Excelente" || status === "Bom"
               ? "bg-emerald-100 text-emerald-700"
@@ -801,10 +801,10 @@ function SummaryCard({
           }`}>
             {status}
           </span>
-        )}
+        ) : <span className="px-2.5 py-1 rounded-full text-xs font-semibold opacity-0">—</span>}
       </div>
       <strong className={`text-3xl font-bold ${valueColor}`}>{value}</strong>
-      <p className="mt-0.5 text-xs text-slate-500">{detail}</p>
+      <p className="mt-0.5 text-xs text-gray-500">{detail}</p>
       <button
         type="button"
         disabled={actionDisabled}
@@ -827,9 +827,9 @@ function DisciplineCard({ value }: { value: number | null }) {
     .map((word) => word.charAt(0).toLocaleUpperCase("pt-BR") + word.slice(1))
     .join(" ");
   return (
-    <div className="flex h-full min-h-[164px] flex-col rounded-[16px] border border-slate-100 bg-blue-50 p-3 shadow-sm">
+    <div className="flex h-full min-h-[164px] flex-col rounded-[16px] border border-gray-100 bg-blue-50 p-3 shadow-sm">
       <div className="mb-1 flex items-center justify-between gap-2">
-        <h2 className="text-xs font-medium text-slate-600">
+        <h2 className="text-xs font-medium text-gray-600">
           Disciplina Média
         </h2>
         <span className="whitespace-nowrap rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">
@@ -837,7 +837,7 @@ function DisciplineCard({ value }: { value: number | null }) {
         </span>
       </div>
       <div className="flex flex-1 items-center justify-center">
-        <div className="relative -translate-y-[3px]">
+        <div className="relative">
           <div className="absolute inset-0 scale-110 rounded-full bg-gradient-to-br from-blue-400 to-blue-500 opacity-20 blur-lg" />
         <div
           role="progressbar"
@@ -877,7 +877,7 @@ function ClosingTable({
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
-        <thead className="bg-slate-50">
+        <thead className="bg-gray-50">
           <tr>
             {[
               "Vendedor",
@@ -893,14 +893,14 @@ function ClosingTable({
             ].map((label) => (
               <th
                 key={label}
-                className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"
+                className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500"
               >
                 {label}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody className="divide-y divide-gray-100">
           {rows.map(({ seller, checkin, status }) => (
             <ClosingRow
               key={seller.id}
@@ -932,25 +932,25 @@ function DisciplineTrendCard({
 }) {
   const hasData = trend.some((point) => point.value !== null);
   return (
-    <section className="rounded-[16px] border border-slate-100 bg-white p-5 shadow-sm">
+    <section className="rounded-[16px] border border-gray-100 bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-              <h2 className="flex items-center gap-2 text-base font-semibold text-slate-800">
+              <h2 className="flex items-center gap-2 text-base font-semibold text-gray-800">
             <TrendingUp size={18} className="text-emerald-600" />
             Evolução da Disciplina do Fechamento
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-gray-500">
             Acompanhe se a equipe está mantendo consistência na prestação de
             contas diária.
           </p>
         </div>
-        <div className="self-start rounded-xl bg-slate-100 p-1 sm:self-auto">
+        <div className="self-start rounded-xl bg-gray-100 p-1 sm:self-auto">
           {([7, 15, 30] as const).map((option) => (
             <button
               key={option}
               type="button"
               onClick={() => onRange(option)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium ${range === option ? "bg-emerald-600 text-white" : "text-slate-500 hover:text-slate-700"}`}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium ${range === option ? "bg-emerald-600 text-white" : "text-gray-500 hover:text-gray-700"}`}
             >
               {option} dias
             </button>
@@ -1007,12 +1007,12 @@ function DisciplineTrendCard({
             </LineChart>
           </ResponsiveContainer>
         ) : (
-          <div className="grid h-full place-items-center text-center text-sm text-text-secondary">
+          <div className="grid h-full place-items-center text-center text-sm text-gray-500">
             Ainda não há histórico de disciplina no período selecionado.
           </div>
         )}
       </div>
-      <p className="mt-2 text-center text-xs italic text-slate-400">
+      <p className="mt-2 text-center text-xs italic text-gray-400">
         O dia atual pode aparecer como parcial enquanto houver fechamentos
         pendentes ou regularizações em aberto.
       </p>
@@ -1034,14 +1034,14 @@ function ComparisonRow({
       ? "bg-emerald-500"
       : tone === "top"
         ? "bg-emerald-700"
-        : "bg-slate-400";
+        : "bg-gray-400";
   return (
     <div className="flex items-center gap-3">
-      <span className="flex w-40 shrink-0 items-center gap-2 text-sm text-slate-600">
+      <span className="flex w-40 shrink-0 items-center gap-2 text-sm text-gray-600">
         {tone === "top" && <Trophy size={14} />}
         {label}
       </span>
-      <div className="relative h-6 flex-1 overflow-hidden rounded-full bg-slate-100">
+      <div className="relative h-6 flex-1 overflow-hidden rounded-full bg-gray-100">
         <div
           className={`flex h-full items-center justify-end rounded-full pr-2 text-xs font-bold text-white ${color}`}
           style={{ width: `${value || 0}%` }}
@@ -1049,7 +1049,7 @@ function ComparisonRow({
           {value === null ? "" : `${value}%`}
         </div>
         {value === null && (
-          <span className="absolute inset-y-0 right-2 grid place-items-center text-xs font-bold text-slate-400">
+          <span className="absolute inset-y-0 right-2 grid place-items-center text-xs font-bold text-gray-400">
             —
           </span>
         )}
@@ -1066,7 +1066,7 @@ function SummaryGroup({
 }: {
   label: string;
   icon: typeof Store;
-  tone: "blue" | "emerald" | "purple" | "amber" | "slate";
+  tone: "blue" | "emerald" | "purple" | "amber" | "gray";
   items: Array<[string, number | string]>;
 }) {
   const iconTone = {
@@ -1074,11 +1074,11 @@ function SummaryGroup({
     emerald: "bg-emerald-50 text-emerald-600",
     purple: "bg-purple-50 text-purple-600",
     amber: "bg-amber-50 text-amber-600",
-    slate: "bg-slate-50 text-slate-600",
+    gray: "bg-gray-50 text-gray-600",
   }[tone];
   return (
-    <div className="rounded-xl bg-slate-50 p-3">
-      <h3 className="mb-2 flex items-center gap-1.5 text-xs font-medium text-slate-600">
+    <div className="rounded-xl bg-gray-50 p-3">
+      <h3 className="mb-2 flex items-center gap-1.5 text-xs font-medium text-gray-600">
         <span
           className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg ${iconTone}`}
         >
@@ -1088,8 +1088,8 @@ function SummaryGroup({
       </h3>
       {items.map(([item, value]) => (
         <div key={item} className="mb-0.5 flex justify-between text-xs">
-          <span className="text-slate-500">{item}</span>
-          <strong className="text-slate-800">{value}</strong>
+          <span className="text-gray-500">{item}</span>
+          <strong className="text-gray-800">{value}</strong>
         </div>
       ))}
     </div>
@@ -1097,7 +1097,7 @@ function SummaryGroup({
 }
 
 function DisciplineRing({ value }: { value: number | null | undefined }) {
-  if (typeof value !== "number") return <span className="text-slate-400">—</span>;
+  if (typeof value !== "number") return <span className="text-gray-400">—</span>;
   const normalized = Math.max(0, Math.min(100, Math.round(value)));
   const color = normalized < 70 ? "rgb(249 115 22)" : normalized < 90 ? "rgb(59 130 246)" : "rgb(16 185 129)";
   return <span className="grid h-11 w-11 place-items-center rounded-full p-1 text-[11px] font-bold" style={{ background: `conic-gradient(${color} ${normalized * 3.6}deg, rgb(241 245 249) 0deg)`, color }}><span className="grid h-full w-full place-items-center rounded-full bg-white">{normalized}%</span></span>;
@@ -1134,14 +1134,14 @@ function ClosingRow({
   return (
     <tr className="h-[66px] bg-white">
       <td className="px-4 py-3">
-        <span className="flex items-center gap-2"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">{initials(name)}</span><span className="font-medium text-slate-800">{name}</span></span>
+        <span className="flex items-center gap-2"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">{initials(name)}</span><span className="font-medium text-gray-800">{name}</span></span>
       </td>
       <td className="px-4 py-3">
         <span className={`inline-flex w-fit whitespace-nowrap rounded-[8px] px-2 py-1 text-xs font-medium ${status === "Finalizado" ? "bg-emerald-100 text-emerald-700" : status === "Pendente" ? "bg-amber-100 text-amber-700" : status === "Fora do horário" ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}>
           {status}
         </span>
       </td>
-      <td className="px-4 py-3 text-slate-600">
+      <td className="px-4 py-3 text-gray-600">
         {checkin?.submitted_at
           ? format(parseISO(checkin.submitted_at), "HH:mm")
           : "—"}
@@ -1155,7 +1155,7 @@ function ClosingRow({
       <td className="px-4 py-3 font-semibold">
         <button
           type="button"
-          className={`underline decoration-dotted underline-offset-2 hover:text-emerald-700 ${appointments === null ? "text-slate-400" : appointments === 0 ? "text-red-600" : appointments === 1 ? "text-orange-500" : "text-emerald-600"}`}
+          className={`underline decoration-dotted underline-offset-2 hover:text-emerald-700 ${appointments === null ? "text-gray-400" : appointments === 0 ? "text-red-600" : appointments === 1 ? "text-orange-500" : "text-emerald-600"}`}
           aria-label={`Abrir Agenda D+1 de ${name}`}
           onClick={onOpenAgenda}
         >
@@ -1171,7 +1171,7 @@ function ClosingRow({
         <div className="flex min-w-max flex-wrap items-center justify-end gap-1.5">
           <button
             type="button"
-            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             aria-label={`Detalhes ${name}`}
             onClick={onOpenDetails}
           >
@@ -1182,7 +1182,7 @@ function ClosingRow({
             <button type="button" className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50" onClick={() => onReview(request, "approve")}><Check size={13} /> Aprovar</button>
             <button type="button" className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50" onClick={() => onReview(request, "reject")}><X size={13} /> Recusar</button>
             </>
-          ) : <span className="text-xs text-slate-500">Somente consulta</span>}
+          ) : <span className="text-xs text-gray-500">Somente consulta</span>}
         </div>
       </td>
     </tr>
@@ -1197,7 +1197,7 @@ function initials(name: string) {
 function NumberCell({ value, muted }: { value: number | string | null; muted?: boolean }) {
   return (
     <td
-      className={`px-4 py-3 text-sm ${muted ? "text-slate-400" : "text-slate-700"}`}
+      className={`px-4 py-3 text-sm ${muted ? "text-gray-400" : "text-gray-700"}`}
     >
       {value}
     </td>
@@ -1207,7 +1207,7 @@ function NumberCell({ value, muted }: { value: number | string | null; muted?: b
 function Empty({ text }: { text: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-      <p className="text-sm font-medium text-slate-500">
+      <p className="text-sm font-medium text-gray-500">
         {text}
       </p>
     </div>

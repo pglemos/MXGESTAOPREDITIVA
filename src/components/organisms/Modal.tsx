@@ -162,7 +162,7 @@ export function Modal({
                   ? "flex-row justify-end gap-3 border-gray-100 p-5"
                   : "flex-col-reverse gap-mx-sm border-border-default sm:flex-row sm:justify-end p-mx-md sm:p-mx-lg",
               )}
-              style={{
+              style={referenceStyle ? undefined : {
                 paddingBottom: "max(env(safe-area-inset-bottom, 0px), 1rem)",
               }}
             >

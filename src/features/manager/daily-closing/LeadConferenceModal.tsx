@@ -234,7 +234,7 @@ export function LeadConferenceModal({
                 </select>
               </label>
               {periodType === "custom" && (
-                <div className="grid grid-cols-2 gap-mx-sm">
+                <div className="grid grid-cols-2 gap-3">
                   <PeriodInput
                     label="Início"
                     value={customPeriod.start}
@@ -296,19 +296,19 @@ export function LeadConferenceModal({
             </div>
           )}
           {loading ? (
-            <div className="space-y-mx-sm" aria-busy="true">
-              <Skeleton className="h-mx-12" />
-              <Skeleton className="h-mx-12" />
-              <Skeleton className="h-mx-12" />
+            <div className="space-y-3" aria-busy="true">
+              <Skeleton className="h-12" />
+              <Skeleton className="h-12" />
+              <Skeleton className="h-12" />
             </div>
           ) : rows.length === 0 ? (
             <div className="py-12 text-center text-sm text-gray-500">
               Nenhum vendedor ativo encontrado nesta unidade.
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-[16px] border border-gray-200">
-              <table className="w-full min-w-[1120px]">
-                <thead className="bg-gray-50">
+            <div className="overflow-x-auto rounded-[16px] border border-gray-100">
+              <table className="w-full text-sm min-w-[1120px]">
+                <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
                     {[
                       "Vendedor",
@@ -325,14 +325,14 @@ export function LeadConferenceModal({
                     ].map((label) => (
                       <th
                         key={label}
-                        className="px-3 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-gray-500"
+                        className="text-left px-3 py-3 whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-gray-500"
                       >
                         {label}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 bg-white">
+                <tbody className="divide-y divide-gray-50 bg-white">
                   {rows.map((row) => (
                     <ConferenceRow
                       key={row.sellerId}
@@ -362,26 +362,26 @@ export function LeadConferenceModal({
         ) : history.length === 0 ? (
           <div className="grid min-h-52 place-items-center text-center">
             <div>
-              <History size={42} className="mx-auto text-border-default" />
+              <History size={42} className="mx-auto text-gray-300" />
               <p className="mt-3 text-sm text-gray-500">
                 Nenhuma conferência de leads foi realizada.
               </p>
             </div>
           </div>
         ) : (
-          <div className="space-y-mx-sm">
+          <div className="space-y-3">
             {history.map((item) => (
               <article
                 key={item.id}
                 className="rounded-[12px] border border-gray-200 p-4"
               >
-                <div className="flex flex-wrap items-start justify-between gap-mx-sm">
+                <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <strong>
                       {format(parseISO(item.period_start), "dd/MM/yyyy")} a{" "}
                       {format(parseISO(item.period_end), "dd/MM/yyyy")}
                     </strong>
-                    <p className="mt-1 text-xs text-text-tertiary">
+                    <p className="mt-1 text-xs text-gray-400">
                       {item.manager?.name || "Gestor"} ·{" "}
                       {format(parseISO(item.created_at), "dd/MM/yyyy HH:mm")}
                     </p>
@@ -390,7 +390,7 @@ export function LeadConferenceModal({
                     {item.divergent_sellers} divergência(s)
                   </span>
                 </div>
-                <div className="mt-mx-sm grid grid-cols-3 gap-mx-sm text-sm">
+                <div className="mt-3 grid grid-cols-3 gap-3 text-sm">
                   <span>
                     MX <strong className="block">{item.total_mx}</strong>
                   </span>
@@ -424,13 +424,13 @@ function PeriodInput({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="text-xs font-semibold text-text-secondary">
+    <label className="text-xs text-gray-500">
       <span className="mb-1 block">{label}</span>
       <input
         type="date"
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-mx-11 rounded-xl border border-border-subtle bg-white px-3 text-sm"
+        className="h-10 rounded-[12px] border border-gray-200 bg-white px-3 text-sm"
       />
     </label>
   );
@@ -452,11 +452,11 @@ function ConferenceMetric({
         ? "border-emerald-200 bg-emerald-50"
       : tone === "orange"
         ? "border-orange-200 bg-orange-50"
-        : "border-border-subtle bg-white";
+        : "border-gray-100 bg-white text-gray-800";
   return (
-    <div className={`rounded-mx-xl border p-mx-md ${colors}`}>
-      <p className="text-xs font-semibold text-text-secondary">{label}</p>
-      <strong className="mt-mx-xs block text-2xl text-text-primary">
+    <div className={`rounded-[16px] border p-4 ${colors}`}>
+      <p className="text-xs font-medium text-gray-500 mb-1">{label}</p>
+      <strong className="block text-2xl font-bold">
         {value === null ? "—" : value}
       </strong>
     </div>
@@ -490,15 +490,15 @@ function ConferenceRow({
   const complete = totalDiff !== null;
   return (
     <tr>
-      <td className="px-mx-sm py-mx-sm">
-        <div className="flex items-center gap-mx-xs">
-          <span className="grid h-8 w-8 place-items-center rounded-full bg-emerald-100 text-[11px] font-black text-emerald-700">
+      <td className="px-3 py-3">
+        <div className="flex items-center gap-2">
+          <span className="grid h-7 w-7 place-items-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">
             {getInitials(row.sellerName)}
           </span>
-          <strong className="text-sm">{row.sellerName}</strong>
+          <strong className="text-sm font-medium text-gray-800 whitespace-nowrap">{row.sellerName}</strong>
         </div>
       </td>
-      <td className="px-mx-sm py-mx-sm text-sm text-text-secondary">
+      <td className="px-3 py-3 text-sm text-gray-600 whitespace-nowrap">
         {storeName}
       </td>
       <NumberValue value={row.internetMx} />
@@ -516,9 +516,9 @@ function ConferenceRow({
       />
       <DifferenceValue value={carteiraDiff} />
       <DifferenceValue value={totalDiff} />
-      <td className="px-mx-sm py-mx-sm">
+      <td className="px-3 py-3">
         {!complete ? (
-          <span className="inline-flex rounded-lg bg-surface-alt px-2 py-1 text-xs font-semibold text-text-secondary">
+          <span className="inline-flex rounded-lg bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-500">
             Não conferido
           </span>
         ) : (
@@ -527,11 +527,11 @@ function ConferenceRow({
           </span>
         )}
       </td>
-      <td className="px-mx-sm py-mx-sm">
+      <td className="px-3 py-3">
         <button
           type="button"
           onClick={() => onClear(row.sellerId)}
-          className="inline-flex items-center gap-1 text-xs font-semibold text-text-secondary hover:text-text-primary"
+          className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-2 py-1 rounded-lg"
         >
           <RotateCcw size={13} />
           Limpar
@@ -542,7 +542,7 @@ function ConferenceRow({
 }
 
 function NumberValue({ value }: { value: number }) {
-  return <td className="px-mx-sm py-mx-sm text-sm font-semibold">{value}</td>;
+  return <td className="px-3 py-3 text-sm text-gray-700">{value}</td>;
 }
 function OfficialInput({
   value,
@@ -554,7 +554,7 @@ function OfficialInput({
   onChange: (value: string) => void;
 }) {
   return (
-    <td className="px-mx-sm py-mx-sm">
+    <td className="px-3 py-3">
       <input
         type="number"
         min={0}
@@ -563,7 +563,7 @@ function OfficialInput({
         placeholder="—"
         value={value ?? ""}
         onChange={(event) => onChange(event.target.value)}
-        className="h-9 w-20 rounded-lg border border-border-subtle px-2 text-sm"
+        className="h-9 w-20 rounded-lg border border-gray-200 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
       />
     </td>
   );
@@ -571,7 +571,7 @@ function OfficialInput({
 function DifferenceValue({ value }: { value: number | null }) {
   return (
     <td
-      className={`px-mx-sm py-mx-sm text-sm font-bold ${value === null ? "text-text-tertiary" : value === 0 ? "text-status-success" : "text-status-warning"}`}
+      className={`px-3 py-3 text-sm font-semibold ${value === null ? "text-gray-400" : value === 0 ? "text-emerald-600" : "text-orange-600"}`}
     >
       {formatDifference(value)}
     </td>
