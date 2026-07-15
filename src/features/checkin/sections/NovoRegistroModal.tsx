@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, CalendarCheck, HelpCircle, ShieldCheck, ShoppingCart, UserCheck, X } from 'lucide-react'
 import { toast } from '@/lib/toast'
 import { Button } from '@/components/atoms/Button'
@@ -8,12 +9,18 @@ import { Typography } from '@/components/atoms/Typography'
 import { useClientes } from '@/features/crm/hooks/useClientes'
 import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
 import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
-import type { CrmCanal, CrmEtapaFunil } from '@/lib/schemas/crm.schema'
+import { CRM_ETAPA_LABEL, type Cliente, type CrmCanal, type CrmEtapaFunil } from '@/lib/schemas/crm.schema'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { addDaysDateOnly } from '../lib/crm-derived-totals'
 import { mapResponsaveisTratativaOptions, type ResponsavelTratativa } from '../lib/responsaveis-tratativa'
 import { resolveGarantiaPositionDefaults } from '../lib/garantia-position-defaults'
+import {
+  buildExistingClientFormPatch,
+  findMostRecentClientAppointment,
+  findRecentClientAppointment,
+  type ExistingAppointmentRecord,
+} from '../lib/existing-client-lookup'
 
 /**
  * Modal unico "Novo Registro" — porta 1:1 de components/fechamento/
@@ -125,6 +132,28 @@ function TipoSelector({ onSelect }: { onSelect: (t: RegistroTipo) => void }) {
 
 function ClienteEncontradoBadge({ jaVendido }: { jaVendido?: boolean }) {
   return <p className="mt-0.5 text-[10px] font-semibold text-green-600">✓ Cliente encontrado na Carteira{jaVendido ? ' (já vendido)' : ''}.</p>
+}
+
+function formatAppointmentDate(value: string): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'Data não informada'
+  return date.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+}
+
+function ClienteFichaResumo({ form, ultimoAgendamento }: { form: FormState; ultimoAgendamento: ExistingAppointmentRecord | null }) {
+  return (
+    <section aria-label="Ficha do cliente carregada" className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50/60 p-3">
+      <p className="text-[11px] font-black uppercase tracking-wide text-emerald-800">Ficha carregada da Carteira</p>
+      <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11px] text-slate-600">
+        <p><strong className="text-slate-700">Veículo:</strong> {form.veiculo_texto || 'Não informado'}</p>
+        <p><strong className="text-slate-700">Negociação:</strong> {CRM_ETAPA_LABEL[form.negociacao as CrmEtapaFunil] || 'Não informada'}</p>
+        <p><strong className="text-slate-700">Financiamento:</strong> {form.financiamento || 'Não informado'}</p>
+        <p><strong className="text-slate-700">Troca:</strong> {form.possui_troca || 'Não informado'}</p>
+        <p className="col-span-2"><strong className="text-slate-700">Observações:</strong> {form.observacao || 'Sem observações'}</p>
+        <p className="col-span-2"><strong className="text-slate-700">Último agendamento:</strong> {ultimoAgendamento ? formatAppointmentDate(ultimoAgendamento.data_hora) : 'Sem agendamento registrado'}</p>
+      </div>
+    </section>
+  )
 }
 
 // MX-22.4 (AC-5/AC-6; Spec §9.2 "Não usar tooltip genérico"): o ícone de
@@ -379,15 +408,18 @@ interface NovoRegistroModalProps {
 }
 
 export function NovoRegistroModal({ open, onClose, onSaved, defaultDate }: NovoRegistroModalProps) {
+  const navigate = useNavigate()
   const { storeId, activeStoreId } = useAuth()
   const effectiveStoreId = activeStoreId || storeId || null
-  const { buscarClienteExistentePorTelefone, createCliente, updateCliente } = useClientes()
-  const { createOportunidade, registrarVendaDireta } = useOportunidades()
-  const { createAgendamento } = useAgendamentos()
+  const { buscarClienteExistentePorTelefone, buscarClienteDetalhadoPorTelefone, createCliente, updateCliente } = useClientes()
+  const { oportunidades = [], createOportunidade, registrarVendaDireta } = useOportunidades()
+  const { agendamentos = [], createAgendamento } = useAgendamentos()
 
   const [tipo, setTipo] = useState<RegistroTipo | null>(null)
   const [form, setFormState] = useState<FormState>({})
   const [clienteEncontradoId, setClienteEncontradoId] = useState<string | null>(null)
+  const [clienteFicha, setClienteFicha] = useState<Cliente | null>(null)
+  const [ultimoAgendamento, setUltimoAgendamento] = useState<ExistingAppointmentRecord | null>(null)
   const [clienteJaVendido, setClienteJaVendido] = useState(false)
   const [buscando, setBuscando] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -421,16 +453,35 @@ export function NovoRegistroModal({ open, onClose, onSaved, defaultDate }: NovoR
 
   const setF = (key: string, val: string) => {
     setFormState(f => ({ ...f, [key]: val }))
-    if (key === 'whatsapp') { setClienteEncontradoId(null); setClienteJaVendido(false) }
+    if (key === 'whatsapp') {
+      setClienteEncontradoId(null)
+      setClienteFicha(null)
+      setUltimoAgendamento(null)
+      setClienteJaVendido(false)
+    }
   }
 
   const handleWhatsAppBlur = async () => {
     const tel = normalizePhone(form.whatsapp || '')
     if (tel.length < 10) return
     setBuscando(true)
-    const id = await buscarClienteExistentePorTelefone(form.whatsapp || '')
-    setClienteEncontradoId(id)
-    setBuscando(false)
+    try {
+      const cliente = await buscarClienteDetalhadoPorTelefone?.(form.whatsapp || '')
+      const id = cliente?.id ?? await buscarClienteExistentePorTelefone(form.whatsapp || '')
+      const oportunidade = cliente
+        ? oportunidades
+          .filter(item => item.cliente_id === cliente.id)
+          .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0]
+        : null
+      const ultimo = cliente ? findMostRecentClientAppointment(agendamentos, cliente.id) : null
+      setClienteEncontradoId(id)
+      setClienteFicha(cliente)
+      setUltimoAgendamento(ultimo)
+      setClienteJaVendido(oportunidade?.etapa === 'ganho')
+      if (cliente) setFormState(current => ({ ...current, ...buildExistingClientFormPatch({ cliente, oportunidade }) }))
+    } finally {
+      setBuscando(false)
+    }
   }
 
   const handleSelectTipo = (t: RegistroTipo) => {
@@ -445,11 +496,13 @@ export function NovoRegistroModal({ open, onClose, onSaved, defaultDate }: NovoR
     if (t === 'agendamento') defaults.data_hora_agendamento = `${amanha}T09:00`
     setFormState(defaults)
     setClienteEncontradoId(null)
+    setClienteFicha(null)
+    setUltimoAgendamento(null)
     setClienteJaVendido(false)
   }
 
-  const handleVoltar = () => { setTipo(null); setClienteEncontradoId(null) }
-  const handleClose = () => { setTipo(null); setFormState({}); setClienteEncontradoId(null); onClose() }
+  const handleVoltar = () => { setTipo(null); setClienteEncontradoId(null); setClienteFicha(null); setUltimoAgendamento(null) }
+  const handleClose = () => { setTipo(null); setFormState({}); setClienteEncontradoId(null); setClienteFicha(null); setUltimoAgendamento(null); onClose() }
 
   async function resolverCliente(): Promise<{ id: string; error: string | null }> {
     if (clienteEncontradoId) return { id: clienteEncontradoId, error: null }
@@ -501,6 +554,13 @@ export function NovoRegistroModal({ open, onClose, onSaved, defaultDate }: NovoR
       if (clienteError) { toast.error(clienteError); setSaving(false); return }
 
       if (tipo === 'agendamento') {
+        const agendamentoRecente = findRecentClientAppointment(agendamentos, clienteId, hoje)
+        if (agendamentoRecente) {
+          const mensagem = 'Cliente já teve agendamento nos últimos 90 dias. Abrir Carteira'
+          toast.info(mensagem)
+          navigate(`/carteira-clientes?cliente_id=${encodeURIComponent(clienteId)}`)
+          return
+        }
         const { error: opError, id: opId } = await createOportunidade({
           cliente_id: clienteId,
           veiculo_interesse: form.veiculo_texto,
@@ -609,6 +669,8 @@ export function NovoRegistroModal({ open, onClose, onSaved, defaultDate }: NovoR
         {tipo === 'venda' && <FormVenda {...formProps} />}
         {tipo === 'garantia' && <FormGarantia {...formProps} />}
         {tipo === 'qualificado' && <FormQualificado {...formProps} />}
+
+        {clienteFicha && <ClienteFichaResumo form={form} ultimoAgendamento={ultimoAgendamento} />}
 
         {buscando && <p className="mt-1 text-[11px] text-slate-400">Buscando cliente…</p>}
 

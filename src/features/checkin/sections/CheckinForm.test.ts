@@ -45,6 +45,15 @@ describe('Produção Zero — ação exclusiva no Histórico', () => {
     })
 })
 
+describe('Card de observações operacionais', () => {
+    test('não renderiza o card, textarea ou contador no fechamento diário', () => {
+        expect(formSource).not.toContain('Observações Operacionais')
+        expect(formSource).not.toContain('checkin-note')
+        expect(formSource).not.toContain('Digite suas observações...')
+        expect(formSource).not.toContain('caracteres')
+    })
+})
+
 // Auditoria 2026-07-10 (P0-01): a reunião de produto de 09/07 decidiu que a
 // janela 09h30-12h00 com bloqueio/liberação de gerente é evolução futura —
 // a fase atual não pode travar envio nem aplicar penalidade por horário.

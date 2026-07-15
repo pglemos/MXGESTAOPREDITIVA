@@ -109,6 +109,20 @@ export function useClientes() {
     return data?.id ?? null
   }, [supabaseUser])
 
+  const buscarClienteDetalhadoPorTelefone = useCallback(async (telefone: string | null | undefined): Promise<Cliente | null> => {
+    const normalizado = normalizarTelefone(telefone)
+    if (!supabaseUser || !normalizado) return null
+    const { data, error: fetchError } = await supabase
+      .from('clientes')
+      .select('*')
+      .eq('seller_user_id', supabaseUser.id)
+      .eq('telefone_normalizado', normalizado)
+      .limit(1)
+      .maybeSingle()
+    if (fetchError) return null
+    return parseClientes(data ? [data] : [])[0] ?? null
+  }, [supabaseUser])
+
   const createCliente = useCallback(async (input: ClienteInput): Promise<{ error: string | null; id?: string; existed?: boolean }> => {
     if (!supabaseUser) return { error: 'Sessão inválida.' }
     if (!effectiveStoreId) return { error: 'Loja não identificada para o vendedor.' }
@@ -189,6 +203,6 @@ export function useClientes() {
   return {
     clientes, metrics, loading, error, refetch: fetchClientes,
     createCliente, updateCliente, deleteCliente, registrarStatusCadencia,
-    buscarClienteExistentePorTelefone,
+    buscarClienteExistentePorTelefone, buscarClienteDetalhadoPorTelefone,
   }
 }

@@ -38,4 +38,12 @@ describe('NovoRegistroModal — critérios FEV-FORM', () => {
     expect(source).toContain('Temperatura/prioridade:')
     expect(source).toContain('Métricas:')
   })
+
+  test('hidrata ficha CRM e redireciona cliente com agendamento recente para a Carteira', () => {
+    expect(source).toContain('buscarClienteDetalhadoPorTelefone')
+    expect(source).toContain('buildExistingClientFormPatch')
+    expect(source).toContain('findRecentClientAppointment')
+    expect(source).toContain('Cliente já teve agendamento nos últimos 90 dias. Abrir Carteira')
+    expect(source).toContain('carteira-clientes?cliente_id=')
+  })
 })

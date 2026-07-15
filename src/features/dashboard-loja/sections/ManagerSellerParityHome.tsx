@@ -23,22 +23,26 @@ import {
   type BarRectangleItem,
 } from 'recharts'
 import { useNavigate } from 'react-router-dom'
-import { getDiasInfo, somarVendas } from '@/lib/calculations'
+import { somarVendas } from '@/lib/calculations'
 import { chartTokens } from '@/lib/charts/tokens'
 import { resolveIndividualGoal } from '@/lib/storeSalesRules'
 import {
   buildSuggestedAction,
   buildTodayReading,
+  DIAS_UTEIS_MES_PADRAO,
+  AGENDAMENTOS_POR_VENDA,
   calculateAppointmentGap,
   calculateForecastCoverage,
   calculateSalesForecast,
+  calculateSalesNeededToday,
+  countElapsedBusinessDays,
+  calculateAppointmentTarget,
   calculateSellerFinancialStatus,
   formatSales,
   saleSuffix,
   sortTeamFocus,
   type ManagerTeamFocusItem,
 } from '@/features/manager/home/manager-home-parity'
-import { buildStoreGoalClosingRows, calculateSustainabilityPlan, operationalDayPredicate } from '@/features/manager/meta/manager-store-goal'
 import type { DailyCheckin, Store } from '@/types/database'
 import type { useDashboardLojaData } from '../hooks/useDashboardLojaData'
 import type { OwnerPerformanceAlert } from './PerformanceAlerts'
@@ -86,36 +90,16 @@ export function ManagerSellerParityHome({
   )
 
   const appointmentsToday = sumAppointments(dailyCheckins)
-  const projectionMode = data.operationalMetaRules?.projection_mode || 'calendar'
-  const monthDays = getDiasInfo(data.referenceDate, projectionMode)
   const monthlyGoal = Number(data.effectiveMonthlyGoal || data.metrics.goalValue || 0)
-  const monthlySales = activeSellers.reduce(
-    (total, seller) => total + (officialMonthlySalesBySeller.get(seller.id) ?? somarVendas(monthlyBySeller.get(seller.id) || [])),
-    0,
-  )
-  const monthlyAppointments = sumAppointments(monthlyCheckins)
-  const appointmentsPerSale = monthlySales > 0 && monthlyAppointments > 0
-    ? monthlyAppointments / monthlySales
-    : null
-  const closingRows = buildStoreGoalClosingRows(monthlyCheckins)
-  const sustainabilityPlan = calculateSustainabilityPlan({
-    horizon: 'hoje',
-    goal: monthlyGoal,
-    realized: monthlySales,
-    referenceDate: data.referenceDate,
-    monthDays: { total: monthDays.total, elapsed: monthDays.decorridos, remaining: monthDays.restantes },
-    closings: closingRows,
-    agendaPerSale: appointmentsPerSale || undefined,
-    isOperationalDay: operationalDayPredicate(projectionMode),
-  })
-  const salesForecastToday = calculateSalesForecast(appointmentsToday, appointmentsPerSale)
-  const salesNeededToday = monthlyGoal > 0 ? sustainabilityPlan.faltam : null
-  const appointmentTarget = monthlyGoal > 0 ? sustainabilityPlan.necessidadeOperacional : null
+  const salesToday = somarVendas(dailyCheckins)
+  const salesForecastToday = calculateSalesForecast(appointmentsToday)
+  const salesNeededToday = calculateSalesNeededToday(monthlyGoal, DIAS_UTEIS_MES_PADRAO, salesToday)
+  const appointmentTarget = calculateAppointmentTarget(salesNeededToday)
   const appointmentGap = calculateAppointmentGap(appointmentsToday, appointmentTarget)
   const forecastCoverage = calculateForecastCoverage(salesForecastToday, salesNeededToday)
   const todayReading = buildTodayReading(salesForecastToday, salesNeededToday)
   const suggestedAction = buildSuggestedAction(appointmentGap, salesForecastToday, salesNeededToday)
-  const elapsedBusinessDays = monthDays.decorridos
+  const elapsedBusinessDays = countElapsedBusinessDays(data.referenceDate)
   const individualGoal = resolveIndividualGoal({
     mode: data.operationalMetaRules?.individual_goal_mode,
     storeMonthlyGoal: monthlyGoal,
@@ -126,10 +110,10 @@ export function ManagerSellerParityHome({
     const sellerDailyCheckins = dailyBySeller.get(seller.id) || []
     const sellerMonthlyCheckins = monthlyBySeller.get(seller.id) || []
     const sellerAppointments = sumAppointments(sellerDailyCheckins)
-    const sellerForecast = calculateSalesForecast(sellerAppointments, appointmentsPerSale)
+    const sellerForecast = calculateSalesForecast(sellerAppointments)
     const sellerMonthlySales = officialMonthlySalesBySeller.get(seller.id) ?? somarVendas(sellerMonthlyCheckins)
-    const proportionalGoal = individualGoal && monthDays.total > 0
-      ? (individualGoal / monthDays.total) * elapsedBusinessDays
+    const proportionalGoal = individualGoal && DIAS_UTEIS_MES_PADRAO > 0
+      ? (individualGoal / DIAS_UTEIS_MES_PADRAO) * elapsedBusinessDays
       : 0
     const resultPercentage = proportionalGoal > 0 ? (sellerMonthlySales / proportionalGoal) * 100 : null
 
@@ -199,7 +183,7 @@ export function ManagerSellerParityHome({
         />
 
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Previsibilidade do dia">
-          <SalesForecastCard salesForecast={salesForecastToday} appointments={appointmentsToday} appointmentsPerSale={appointmentsPerSale} />
+          <SalesForecastCard salesForecast={salesForecastToday} appointments={appointmentsToday} appointmentsPerSale={AGENDAMENTOS_POR_VENDA} />
           <SalesNeededCard salesNeeded={salesNeededToday} />
           <AppointmentTargetCard appointmentTarget={appointmentTarget} salesNeeded={salesNeededToday} />
           <AppointmentGapCard appointmentGap={appointmentGap} />

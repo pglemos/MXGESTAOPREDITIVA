@@ -52,6 +52,12 @@ describe('CheckinHeader — regularização (P0-02/P0-06)', () => {
         expect(headerSource).not.toContain('onNoteChange')
         expect(formSource).not.toContain('Observações Operacionais (Justificativa)')
     })
+
+    test('usa razão interna auditável sem exigir motivo no formulário visual', () => {
+        expect(headerSource).toContain('Regularização do fechamento diário')
+        expect(headerSource).not.toContain('Por favor, selecione o motivo da alteração.')
+        expect(formSource).not.toContain('Motivo do Ajuste')
+    })
 })
 
 // MX-22.3 (AC-1/2/4; Spec §8.1/§8.2/§8.3) — 7 estados do Histórico +

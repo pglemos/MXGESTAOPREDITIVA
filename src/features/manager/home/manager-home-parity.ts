@@ -1,4 +1,5 @@
 export const AGENDAMENTOS_POR_VENDA = 3
+export const DIAS_UTEIS_MES_PADRAO = 22
 export const MANAGER_TIMEZONE = 'America/Sao_Paulo'
 
 export type ManagerFinancialStatus = {
@@ -68,9 +69,8 @@ export function saleSuffix(value: number) {
   return Math.round(value * 10) / 10 === 1 ? 'venda' : 'vendas'
 }
 
-export function calculateSalesForecast(appointmentsToday: number, appointmentsPerSale: number | null = AGENDAMENTOS_POR_VENDA) {
-  if (appointmentsPerSale === null || !Number.isFinite(appointmentsPerSale) || appointmentsPerSale <= 0) return null
-  return (appointmentsToday || 0) / appointmentsPerSale
+export function calculateSalesForecast(appointmentsToday: number) {
+  return (appointmentsToday || 0) / AGENDAMENTOS_POR_VENDA
 }
 
 export function calculateSalesNeededToday(monthlyGoal: number, businessDays: number, salesToday: number): number | null {
@@ -79,9 +79,9 @@ export function calculateSalesNeededToday(monthlyGoal: number, businessDays: num
   return Math.max(Math.ceil(dailyGoal) - (salesToday || 0), 0)
 }
 
-export function calculateAppointmentTarget(salesNeededToday: number | null, appointmentsPerSale: number | null = AGENDAMENTOS_POR_VENDA): number | null {
-  if (salesNeededToday === null || appointmentsPerSale === null || !Number.isFinite(appointmentsPerSale) || appointmentsPerSale <= 0) return null
-  return Math.ceil(salesNeededToday * appointmentsPerSale)
+export function calculateAppointmentTarget(salesNeededToday: number | null): number | null {
+  if (salesNeededToday === null) return null
+  return Math.ceil(salesNeededToday * AGENDAMENTOS_POR_VENDA)
 }
 
 export function calculateAppointmentGap(appointmentsToday: number, appointmentTarget: number | null): number | null {
@@ -95,9 +95,9 @@ export function calculateForecastCoverage(salesForecastToday: number | null, sal
 }
 
 export function buildTodayReading(salesForecastToday: number | null, salesNeededToday: number | null) {
-  if (salesForecastToday === null) return 'Base estatística insuficiente para projetar vendas.'
   if (salesNeededToday === null) return 'Cadastre a meta da loja para ativar a previsibilidade.'
   if (salesNeededToday === 0) return 'A necessidade de vendas do dia já foi atendida.'
+  if (salesForecastToday === null) return 'Base estatística insuficiente para projetar vendas.'
   const difference = Math.round((salesNeededToday - salesForecastToday) * 10) / 10
   if (difference > 0) {
     return `A projeção ainda está ${formatSales(difference)} ${difference === 1 ? 'venda' : 'vendas'} abaixo do necessário.`
@@ -108,9 +108,9 @@ export function buildTodayReading(salesForecastToday: number | null, salesNeeded
 }
 
 export function buildSuggestedAction(appointmentGap: number | null, salesForecastToday: number | null, salesNeededToday: number | null) {
-  if (salesForecastToday === null) return 'Base estatística insuficiente para projetar vendas; valide os agendamentos e vendas oficiais.'
   if (salesNeededToday === null) return 'Cadastre a meta da loja para ativar a previsibilidade.'
   if (salesNeededToday === 0) return 'Prioridade do gerente: manter a agenda ativa e antecipar o próximo objetivo da loja.'
+  if (salesForecastToday === null) return 'Base estatística insuficiente para projetar vendas; valide os agendamentos e vendas oficiais.'
   if (appointmentGap !== null && appointmentGap < 0) return 'Prioridade do gerente: elevar a agenda do dia e acompanhar negociações com maior chance de fechamento.'
   if (appointmentGap !== null && appointmentGap >= 0 && salesForecastToday < salesNeededToday) return 'Prioridade do gerente: proteger o comparecimento dos agendamentos e atuar nas negociações prioritárias.'
   if (salesForecastToday === salesNeededToday) return 'Prioridade do gerente: confirmar a agenda e acompanhar a execução para sustentar o resultado previsto.'

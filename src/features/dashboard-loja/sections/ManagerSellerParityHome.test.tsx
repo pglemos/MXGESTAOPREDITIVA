@@ -41,11 +41,21 @@ describe('ManagerSellerParityHome Base44 parity', () => {
     const { container } = renderHome(buildData())
 
     expect(screen.getAllByText('1,3 vendas').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('1 venda').length).toBeGreaterThan(0)
-    expect(screen.getByText('3 agendamentos')).toBeTruthy()
-    expect(screen.getByText('+1')).toBeTruthy()
+    expect(screen.getAllByText('2 vendas').length).toBeGreaterThan(0)
+    expect(screen.getByText('6 agendamentos')).toBeTruthy()
+    expect(screen.getByText('-2')).toBeTruthy()
     expect(container.querySelector('input[type="date"]')).toBeNull()
     expect(screen.getByText('13/07/2026')).toBeTruthy()
+  })
+
+  it('não troca a constante Base44 por uma conversão histórica do mês', () => {
+    renderHome(buildData({
+      checkins: [checkin(1, { appointments: 2 })],
+      managerMonthlyCheckins: [checkin(1, { appointments: 1, sales: 5 })],
+    }))
+
+    expect(screen.getAllByText('0,7 vendas').length).toBeGreaterThan(0)
+    expect(screen.getByText('Regra atual: 1 venda a cada 3 agendamentos')).toBeTruthy()
   })
 
   it('mostra no maximo cinco vendedores e o realizado mensal real', () => {

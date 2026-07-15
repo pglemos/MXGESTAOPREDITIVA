@@ -5,7 +5,7 @@ import { useCheckinAuditor } from '@/hooks/useCheckinAuditor'
 import { toast } from '@/lib/toast'
 import type { CheckinCorrectionRequest, DailyCheckin } from '@/types/database'
 import { addDaysDateOnly } from '../lib/crm-derived-totals'
-import { RegularizarFechamentoDrawer } from './RegularizarFechamentoDrawer'
+import { RegularizarFechamentoDrawer, type RegularizarCrmValues } from './RegularizarFechamentoDrawer'
 import { NotificationBellButton } from '@/components/NotificationBellButton'
 import { isSubmittedClosing, type PreviousClosingCard } from '../lib/active-closing-context'
 import {
@@ -17,6 +17,8 @@ import {
 } from '../lib/checkin-history-state'
 import { SellerPageHeader } from '@/components/seller/SellerPageHeader'
 import { CHECKIN_ZERO_REASONS } from '@/hooks/useCheckins'
+
+const REGULARIZACAO_REASON = 'Regularização do fechamento diário'
 
 interface PillarProgress {
   key: string
@@ -91,7 +93,6 @@ const { requestCorrection, fetchOwnRequests, loading: auditorLoading } = useChec
     vnd_porta: 0,
     vnd_cart: 0,
     vnd_net: 0,
-    reason: '',
   })
 
   // Generate last 7 days of history (starting from yesterday backwards)
@@ -203,7 +204,6 @@ const { requestCorrection, fetchOwnRequests, loading: auditorLoading } = useChec
           vnd_porta: checkin.vnd_porta_prev_day || 0,
           vnd_cart: checkin.vnd_cart_prev_day || 0,
           vnd_net: checkin.vnd_net_prev_day || 0,
-          reason: '',
         })
       } else {
         setFormValues({
@@ -211,7 +211,6 @@ const { requestCorrection, fetchOwnRequests, loading: auditorLoading } = useChec
           visitas_porta: 0, visitas_cart: 0, visitas_net: 0,
           agd_cart: 0, agd_net: 0,
           vnd_porta: 0, vnd_cart: 0, vnd_net: 0,
-          reason: '',
         })
       }
     } else {
@@ -220,7 +219,6 @@ const { requestCorrection, fetchOwnRequests, loading: auditorLoading } = useChec
         visitas_porta: 0, visitas_cart: 0, visitas_net: 0,
         agd_cart: 0, agd_net: 0,
         vnd_porta: 0, vnd_cart: 0, vnd_net: 0,
-        reason: '',
       })
     }
     setActiveView('form')
@@ -262,12 +260,8 @@ const { requestCorrection, fetchOwnRequests, loading: auditorLoading } = useChec
     }))
   }
 
-  const handleSubmitCorrection = async () => {
+  const handleSubmitCorrection = async (crmValues: RegularizarCrmValues) => {
     if (!selectedRow) return
-    if (!formValues.reason) {
-      toast.error('Por favor, selecione o motivo da alteração.')
-      return
-    }
 
     try {
       let checkinId = ''
@@ -333,18 +327,18 @@ const { requestCorrection, fetchOwnRequests, loading: auditorLoading } = useChec
         visitas_porta_prev_day: Number(formValues.visitas_porta),
         visitas_cart_prev_day: Number(formValues.visitas_cart),
         visitas_net_prev_day: Number(formValues.visitas_net),
-        agd_cart: Number(formValues.agd_cart),
-        agd_net: Number(formValues.agd_net),
-        agd_cart_today: Number(formValues.agd_cart),
-        agd_net_today: Number(formValues.agd_net),
-        vnd_porta_prev_day: Number(formValues.vnd_porta),
-        vnd_cart_prev_day: Number(formValues.vnd_cart),
-        vnd_net_prev_day: Number(formValues.vnd_net),
+        agd_cart: Number(crmValues.agd_cart),
+        agd_net: Number(crmValues.agd_net),
+        agd_cart_today: Number(crmValues.agd_cart),
+        agd_net_today: Number(crmValues.agd_net),
+        vnd_porta_prev_day: Number(crmValues.vnd_porta),
+        vnd_cart_prev_day: Number(crmValues.vnd_cart),
+        vnd_net_prev_day: Number(crmValues.vnd_net),
         visit_prev_day: Number(formValues.visitas_porta) + Number(formValues.visitas_cart) + Number(formValues.visitas_net),
-        zero_reason: (Number(formValues.leads_cart) + Number(formValues.leads_net) + Number(formValues.visitas_porta) + Number(formValues.visitas_cart) + Number(formValues.visitas_net) + Number(formValues.agd_cart) + Number(formValues.agd_net) + Number(formValues.vnd_porta) + Number(formValues.vnd_cart) + Number(formValues.vnd_net) === 0) ? 'Outro' : undefined,
+        zero_reason: (Number(formValues.leads_cart) + Number(formValues.leads_net) + Number(formValues.visitas_porta) + Number(formValues.visitas_cart) + Number(formValues.visitas_net) + Number(crmValues.agd_cart) + Number(crmValues.agd_net) + Number(crmValues.vnd_porta) + Number(crmValues.vnd_cart) + Number(crmValues.vnd_net) === 0) ? 'Outro' : undefined,
       }
       
-      const res = await requestCorrection(checkinId, requestedValues, formValues.reason)
+      const res = await requestCorrection(checkinId, requestedValues, REGULARIZACAO_REASON)
       if (res.error) {
         toast.error(`Erro ao enviar solicitação: ${res.error}`)
       } else {
@@ -809,11 +803,10 @@ return (
           finalized={Boolean(selectedRow.finalized)}
           formValues={formValues}
           onFieldChange={handleFieldChange}
-          onReasonChange={(value) => setFormValues((prev) => ({ ...prev, reason: value }))}
           saving={auditorLoading}
           onVoltar={() => setActiveView('list')}
           onClose={() => { setHistoryOpen(false); setActiveView('list') }}
-          onSubmit={handleSubmitCorrection}
+          onSubmit={(crmValues) => void handleSubmitCorrection(crmValues)}
         />
       )}
 

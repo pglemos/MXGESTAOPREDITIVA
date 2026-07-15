@@ -8,6 +8,7 @@
 import { toDateOnlyBR } from '@/lib/schemas/crm.schema'
 import { calcularTipoRegistro } from '../hooks/useCheckinPage'
 import type { ClienteRow } from '../hooks/useCheckinPage'
+import { addDaysDateOnly } from './crm-derived-totals'
 
 export interface OportunidadeForClienteRow {
   id: string
@@ -33,6 +34,29 @@ export interface AgendamentoForClienteRow {
   canal: string | null
   status: string
   observacoes: string | null
+}
+
+export interface DeriveClientesListOptions {
+  /**
+   * Fechamentos pendentes não têm uma data de competência persistida. Nessa
+   * situação, a Agenda D+1 é a fonte da data que está sendo regularizada.
+   */
+  fechamentoPendente?: boolean
+}
+
+export interface RegularizacaoCrmMetrics {
+  vendas: {
+    porta: number
+    carteira: number
+    internet: number
+    total: number
+  }
+  agendamentosD1: {
+    carteira: number
+    internet: number
+    total: number
+  }
+  creditosValidos: number
 }
 
 export const CANAL_LABEL: Record<string, ClienteRow['canal']> = {
@@ -71,6 +95,7 @@ export function deriveClientesListFromCrm(
   oportunidades: readonly OportunidadeForClienteRow[],
   agendamentos: readonly AgendamentoForClienteRow[],
   selectedDate: string,
+  options: DeriveClientesListOptions = {},
 ): ClienteRow[] {
   const agendamentoPorOportunidade = new Map<string, AgendamentoForClienteRow>()
   for (const ag of agendamentos) {
@@ -81,8 +106,16 @@ export function deriveClientesListFromCrm(
     }
   }
 
+  const dataD1 = addDaysDateOnly(selectedDate, 1)
   return oportunidades
-    .filter(op => op.data_competencia === selectedDate || (!op.data_competencia && timestampMatchesDateOnly(op.created_at, selectedDate)))
+    .filter(op => {
+      const pertenceAoFechamento = op.data_competencia === selectedDate
+        || (!op.data_competencia && timestampMatchesDateOnly(op.created_at, selectedDate))
+      const agendamentoD1DoFechamento = options.fechamentoPendente
+        && agendamentoPorOportunidade.has(op.id)
+        && timestampMatchesDateOnly(agendamentoPorOportunidade.get(op.id)?.data_hora, dataD1)
+      return pertenceAoFechamento || agendamentoD1DoFechamento
+    })
     .map(op => {
       const agendamento = agendamentoPorOportunidade.get(op.id)
       const vendaRealizada = vendaRealizadaFromEtapa(op.etapa)
@@ -113,4 +146,30 @@ export function deriveClientesListFromCrm(
       }
       return row
     })
+}
+
+export function deriveRegularizacaoCrmMetrics(
+  oportunidades: readonly OportunidadeForClienteRow[],
+  agendamentos: readonly AgendamentoForClienteRow[],
+  selectedDate: string,
+  options: DeriveClientesListOptions = {},
+): RegularizacaoCrmMetrics {
+  const clientes = deriveClientesListFromCrm(oportunidades, agendamentos, selectedDate, options)
+  const vendas = clientes.filter(cliente => cliente.vendaRealizada === 'Sim')
+  const vendasPorCanal = {
+    porta: vendas.filter(cliente => cliente.canal === 'Showroom').length,
+    carteira: vendas.filter(cliente => cliente.canal === 'Carteira').length,
+    internet: vendas.filter(cliente => cliente.canal === 'Internet').length,
+  }
+  const agendamentosD1 = clientes.filter(cliente => cliente.tipoRegistroCalculado === 'Agendamento D+1')
+  const agendamentosD1PorCanal = {
+    carteira: agendamentosD1.filter(cliente => cliente.canal === 'Carteira').length,
+    internet: agendamentosD1.filter(cliente => cliente.canal === 'Internet').length,
+  }
+
+  return {
+    vendas: { ...vendasPorCanal, total: vendas.length },
+    agendamentosD1: { ...agendamentosD1PorCanal, total: agendamentosD1.length },
+    creditosValidos: agendamentosD1.length,
+  }
 }

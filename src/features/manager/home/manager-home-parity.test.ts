@@ -64,7 +64,7 @@ describe('manager home Base44 parity', () => {
     expect(calculateSalesForecast(0)).toBe(0)
     expect(calculateSalesForecast(4)).toBeCloseTo(1.3333333333)
     expect(formatSales(calculateSalesForecast(4))).toBe('1,3')
-    expect(calculateSalesForecast(4, null)).toBeNull()
+    expect(calculateSalesForecast(6)).toBe(2)
     expect(saleSuffix(1)).toBe('venda')
     expect(saleSuffix(1.3)).toBe('vendas')
   })
@@ -80,7 +80,7 @@ describe('manager home Base44 parity', () => {
   test('deriva meta, gap e cobertura pelos mesmos limites Base44', () => {
     expect(calculateAppointmentTarget(null)).toBeNull()
     expect(calculateAppointmentTarget(2)).toBe(6)
-    expect(calculateAppointmentTarget(2, null)).toBeNull()
+    expect(calculateAppointmentTarget(2)).toBe(6)
     expect(calculateAppointmentGap(0, null)).toBeNull()
     expect(calculateAppointmentGap(4, 6)).toBe(-2)
     expect(calculateForecastCoverage(1, null)).toBeNull()

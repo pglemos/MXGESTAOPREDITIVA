@@ -35,7 +35,7 @@ describe('Checkin sticky header layout contract', () => {
     expect(checkinHookSource).toContain('...declaredForm')
     expect(checkinHookSource).toContain('hasCrmActivity')
     expect(checkinHookSource).toContain('saveCheckin(checkinPayload')
-    expect(checkinFormSource).toContain('const productionZeroActive = declaredAllZero')
+    expect(checkinFormSource).not.toContain('Observações Operacionais')
   })
 
   test('keeps mobile CRM readable without desktop table overflow', () => {
