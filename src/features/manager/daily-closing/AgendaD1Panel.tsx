@@ -341,7 +341,7 @@ export function AgendaD1Panel({
     ? rows.find((row) => row.id === confirming.rowId) || null
     : null;
 
-  const filterSelectClass = "h-10 rounded-[12px] border border-gray-200 bg-white px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500";
+  const filterSelectClass = "w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500";
 
   return (
     <>
@@ -457,15 +457,15 @@ export function AgendaD1Panel({
             </select>
             <div className="relative">
               <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary"
-                size={16}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                size={14}
               />
               <input
                 aria-label="Buscar agenda D+1"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Buscar (cliente, veículo, horário)..."
-                className={`${filterSelectClass} pl-9`}
+                className={`${filterSelectClass} pl-8`}
               />
             </div>
           </div>
@@ -533,6 +533,9 @@ export function AgendaD1Panel({
                     ? lastContactByCliente.get(row.cliente.id) ||
                       row.cliente.ultima_interacao
                     : null;
+                  const managerConfirmationStatus = row.cliente
+                    ? lastStatusByCliente.get(row.cliente.id) || "Pendente"
+                    : "Pendente";
                   return (
                     <FragmentRow key={row.id}>
                       <tr className="align-top bg-white transition-colors hover:bg-gray-50">
@@ -555,12 +558,16 @@ export function AgendaD1Panel({
                           {sellerNameById.get(row.seller_user_id) ||
                             "Vendedor da equipe"}
                         </td>
-                        <td className="px-4 py-3 text-gray-600">
-                          {AGENDA_TIPO_LABEL[row.tipo]}
+                        <td className="px-4 py-3">
+                          <span className="rounded-lg bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700">
+                            {AGENDA_TIPO_LABEL[row.tipo] === "Visita"
+                              ? "Visita Presencial"
+                              : AGENDA_TIPO_LABEL[row.tipo]}
+                          </span>
                         </td>
                         <td className="px-4 py-3">
-                          <span className={`rounded-lg px-2 py-1 text-xs font-medium ${row.status === "confirmado" ? "bg-emerald-100 text-emerald-700" : row.status === "aguardando" ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-600"}`}>
-                            {AGENDA_STATUS_LABEL[row.status]}
+                          <span className={`rounded-lg px-2 py-1 text-xs font-medium ${confirmationStatusClass(managerConfirmationStatus)}`}>
+                            {managerConfirmationStatus}
                           </span>
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-gray-500">
@@ -684,4 +691,16 @@ function normalizeManagerConfirmationStatus(
       (status) => value.startsWith(status),
     ) || "Reforço enviado"
   );
+}
+
+function confirmationStatusClass(status: string) {
+  return {
+    "Pendente": "bg-amber-100 text-amber-700",
+    "WhatsApp aberto": "bg-blue-100 text-blue-700",
+    "Reforço enviado": "bg-indigo-100 text-indigo-700",
+    "Confirmado": "bg-emerald-100 text-emerald-700",
+    "Sem resposta": "bg-gray-200 text-gray-600",
+    "Solicitou reagendamento": "bg-orange-100 text-orange-700",
+    "Cancelou": "bg-red-100 text-red-700",
+  }[status] || "bg-gray-100 text-gray-600";
 }

@@ -215,7 +215,7 @@ function RegularizationDecisionModal({
             type="button"
             onClick={onSwitchAction}
             disabled={saving}
-            className="h-10 rounded-[12px] border border-red-200 bg-white px-4 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-40"
+            className="h-9 rounded-[12px] border border-red-200 bg-white px-4 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-40"
           >
             {approve ? "Recusar" : "Aprovar"}
           </button>
@@ -223,7 +223,7 @@ function RegularizationDecisionModal({
             type="button"
             onClick={onSubmit}
             disabled={!confirmed || saving}
-            className={`h-10 rounded-[12px] px-4 text-sm font-medium text-white disabled:opacity-40 ${approve ? "bg-emerald-600 hover:bg-emerald-700" : "bg-red-600 hover:bg-red-700"}`}
+            className={`h-9 rounded-[12px] px-4 text-sm font-medium text-white disabled:opacity-40 ${approve ? "bg-emerald-600 hover:bg-emerald-700" : "bg-red-600 hover:bg-red-700"}`}
           >
             {saving ? "Processando..." : actionLabel}
           </button>
@@ -231,7 +231,7 @@ function RegularizationDecisionModal({
       }
     >
       <div className="space-y-4 text-gray-600">
-        <p className="text-sm leading-6">{description}</p>
+        <p className="text-sm">{description}</p>
         <div>
           <label className="mb-1 block text-xs font-medium text-gray-600" htmlFor="regularization-comment">
             Comentário (opcional)
@@ -240,15 +240,15 @@ function RegularizationDecisionModal({
             id="regularization-comment"
             rows={2}
             placeholder={`Adicione um comentário sobre a ${approve ? "aprovação" : "recusa"}...`}
-            className="min-h-[80px] w-full resize-none rounded-[12px] border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full resize-none rounded-[12px] border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
-        <label className="flex cursor-pointer items-center gap-2 text-sm leading-5 text-gray-600">
+        <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-600">
           <input
             type="checkbox"
             checked={confirmed}
             onChange={(event) => onConfirmedChange(event.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
           />
           {confirmationLabel}
         </label>
