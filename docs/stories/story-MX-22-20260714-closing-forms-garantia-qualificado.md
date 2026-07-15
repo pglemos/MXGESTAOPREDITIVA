@@ -2,7 +2,7 @@
 
 ## Status
 
-InReview
+Done
 
 ## Epic Reference
 
@@ -174,6 +174,7 @@ Nenhum código novo desta story deve introduzir `new Date().getHours()`/`Date.no
 |------|---------|--------------|--------|
 | 2026-07-15 | 1.0 | Story criada a partir do EPIC-MX-22 e da spec-fonte §9.1/§9.2/§14 FEV-FORM-01/02. Exploração real de código confirmou que o commit `cc338e13` já implementou a maior parte do conteúdo dos dois formulários (Responsável como combo real, Data/Hora D+1 09:00 via `reference_date` de 22.1, catálogo Motivo→Descrição, texto de ajuda operacional completo por status de Qualificado) — REUSE/ADAPT, não CREATE do zero. Dois gaps reais identificados e confirmados no schema: (1) GAP CRÍTICO — a RLS de `vinculos_loja_select`/`usuarios_select` (`tem_papel_loja`/`pode_ver_usuario`) bloqueia um vendedor comum de ver colegas, tornando o combo "Responsável pela Tratativa" inoperante em produção para o próprio persona que o usa; mesmo diagnóstico já documentado e resolvido para outro caso em `contar_vendedores_ativos_loja.sql`, que serve de padrão a seguir; (2) o ícone de ajuda de Qualificado usa o atributo HTML `title` nativo — exatamente o "tooltip genérico" que o spec pede para não usar, inacessível em touch — apesar do conteúdo textual já estar correto e completo. Escopo desta story fechado nesses dois gaps reais (uma migration nova + um novo mecanismo de UI), sem reabrir 22.1/22.2/22.3 nem reescrever conteúdo já aprovado. | @sm (River) |
 | 2026-07-15 | 1.1 | Validação `*validate-story-draft` (checklist 10 pontos): **GO 10/10**. Status Draft → Ready. Claims load-bearing verificados na fonte pelo @po: precedente `contar_vendedores_ativos_loja.sql` confirmado (`SECURITY DEFINER`, `SET search_path=public`, gate `EXISTS(self.user_id=auth.uid() AND is_active)`, retorna só o necessário, `GRANT EXECUTE ... authenticated`) — AC-1 é ADAPT fiel desse padrão, não invenção (Art. IV No Invention OK). `GlossaryHint.tsx:13` (`title={definition}`) e atom `Tooltip.tsx` (hover `onMouseEnter`/`onFocus`, `whitespace-nowrap`, string única) confirmados NÃO reuse-ready — story justifica corretamente por que não servem e defere create-vs-generalizar a @architect. `NovoRegistroModal.tsx:310` `title` nativo + `SITUACOES_OPORTUNIDADE_TITLE` concatenado confirmados. Mapeamento AC verificado: Epic AC-14→ACs 1-4, Epic AC-15→ACs 5-6; spec §9.2 linha 546 "Não usar tooltip genérico" confirmada. Story não reabre trabalho correto de `cc338e13` (ACs 2/3/4/6 = ADAPT/regressão, conteúdo preservado literalmente, OUT explícito). RPC do AC-1 aprovada para permanecer NESTA story (é condição habilitadora do requisito central; DDL concreto delegado a @data-engineer via Dependencies/Task 2, sem desenhar SQL na story). Nenhum fix requerido. | @po (Pax) |
+| 2026-07-15 | 1.3 | QA Gate CONCERNS — Status: InReview → Done. 7 checks verdes; 6/6 ACs verificados na fonte (RPC, testes de comportamento reais, popover acionável). 1 concern médio (ARCH-001: decisão create-vs-generalize sem consulta a @architect — aceita, baixo risco, revisão pós-hoc) + 2 low (ARCH-002 paridade documental da migration; REL-001 erro da RPC não logado). Gates rodados por @qa: `npx tsc --noEmit` 0 erros, `npm run lint` 0 erros (22 warnings a11y pré-existentes, nenhum no componente novo), `bun test --isolate src/features/checkin src/hooks/checkins src/lib` 438/438. | @qa (Quinn) |
 | 2026-07-15 | 1.2 | Status: Ready → InProgress → InReview. **AC-1**: nova migration `20260715124852_listar_responsaveis_tratativa_loja.sql` (RPC `SECURITY DEFINER`, mesmo padrão de `contar_vendedores_ativos_loja.sql` — gate de membership ativo, retorna só `id/name/role`); `NovoRegistroModal.tsx` trocou a query direta a `vinculos_loja` (bloqueada por RLS pra vendedor comum) pela RPC; mapeamento extraído pra `responsaveis-tratativa.ts` (função pura testável sem montar o modal inteiro). **AC-5/6**: `title` nativo trocado por `QualificadoStatusHelp` (popover acionado por clique/toque, cada status em bloco próprio, conteúdo de `SITUACOES_OPORTUNIDADE_AJUDA` preservado literalmente). **Decisão de implementação não pré-aprovada pelo @po** (a story deferia create-vs-generalizar a @architect): optei por um componente novo e pequeno local ao arquivo, não por generalizar `Tooltip.tsx`/`GlossaryHint.tsx` — nenhum dos dois suporta hoje "clique + múltiplos blocos", generalizá-los tocaria outros consumidores fora do escopo desta story; registrado aqui para @architect revisar se depois quiser consolidar. **AC-3**: fórmula D+1/09:00 extraída pra `resolveGarantiaPositionDefaults` (antes inline em `handleSelectTipo`) — mesmo resultado, agora testável com comportamento real. Dead code removido como efeito direto da mudança: `SITUACOES_OPORTUNIDADE_TITLE` e `SITUACAO_OPORTUNIDADE_DESCRICAO` (ambos órfãos após a troca do `title`). Testes novos: `listar-responsaveis-tratativa-loja-migration.test.ts`, `responsaveis-tratativa.test.ts` (comportamento — múltiplos colegas sobrevivem, não colapsa self-only), `QualificadoStatusHelp.test.tsx` (render real, clique não hover), `garantia-position-defaults.test.ts`, `FormGarantia.test.tsx` (render real do cascade Motivo→Descrição + "Outro"). `NovoRegistroModal.test.ts` atualizado (query antiga não existe mais). `npx tsc --noEmit` limpo, `npm run lint` 0 erros, `bun test --isolate src/features/checkin src/hooks/checkins src/lib` → 438/438 verdes. | @dev (Dex) |
 
 ## Dev Agent Record
@@ -206,4 +207,36 @@ _Nenhum — YOLO direto, sem checkpoints intermediários registrados._
 
 ## QA Results
 
-_A preencher por @qa_
+### Review Date: 2026-07-15
+
+### Reviewed By: Quinn (Test Architect & Quality Advisor)
+
+### Escopo revisado
+
+Commit local `f4f4bab5` (não pushado). Migration nova, `NovoRegistroModal.tsx` + 6 arquivos de lib/teste. O commit atrasado `15801cda` (registro da 22.2) foi ignorado por não pertencer a esta story.
+
+### 7 Quality Checks
+
+1. **Code review — PASS.** Boa separação: lógica extraída para funções puras (`mapResponsaveisTratativaOptions`, `resolveGarantiaPositionDefaults`) testáveis sem montar o modal. Dead code (`SITUACOES_OPORTUNIDADE_TITLE`, `SITUACAO_OPORTUNIDADE_DESCRICAO`) removido — confirmado ausente por grep. `QualificadoStatusHelp` usa `<button>` nativo + `role="dialog"` (a11y-limpo, 0 warnings de lint no range 136-166).
+2. **Unit tests — PASS.** 438/438 verdes. Testes são de comportamento real, não string: `responsaveis-tratativa.test.ts` prova que múltiplos colegas sobrevivem ao mapeamento; `garantia-position-defaults.test.ts` prova D+1/09:00 (incl. virada de mês/ano); `QualificadoStatusHelp.test.tsx` e `FormGarantia.test.tsx` renderizam de fato (`render` + `fireEvent`, clique não hover). O teste de migration é regex-sobre-SQL — aceito por norma do time (sem harness Postgres/pgTAP no CI por ausência de secrets).
+3. **Acceptance criteria — PASS (6/6, verificados na fonte).** AC-1: migration `20260715124852` conferida linha a linha — `SECURITY DEFINER`, `SET search_path = public`, gate `EXISTS(self.user_id=auth.uid() AND is_active)`, retorna só `id/name/role`, `GRANT ... authenticated`; consumida em `NovoRegistroModal.tsx:409`. AC-2: `RESPONSAVEIS_TRATATIVA`/"Outro"/texto livre ausentes (grep). AC-3: `resolveGarantiaPositionDefaults(hoje)` a partir de `defaultDate`, campos editáveis. AC-4: cascade Motivo→Descrição + reset + "Outro" exige texto (`FormGarantia.test.tsx`). AC-5: `title` nativo substituído por popover clicável. AC-6: `SITUACOES_OPORTUNIDADE_AJUDA` preservado literalmente, por status individual.
+4. **No regressions — PASS.** `NovoRegistroModal.test.ts` atualizado (query antiga removida); suíte inteira verde.
+5. **Performance — PASS.** Uma única chamada RPC no mount; sem impacto.
+6. **Security — PASS.** RPC segue o precedente endurecido `contar_vendedores_ativos_loja`: `SECURITY DEFINER` com `search_path` fixo (anti-hijack), gate de membership ativo (defesa em profundidade), colunas mínimas, `GRANT` só a `authenticated`. Não abre `vinculos_loja`/`usuarios` crus. Migration NÃO aplicada no Supabase por instrução — revisão estática.
+7. **Documentation — PASS.** Story/Change Log/Dev Agent Record atualizados.
+
+### Avaliação da decisão de UI não pré-validada (ponto central)
+
+A story (Task 5) deferia a @architect a escolha "componente novo vs. generalizar `Tooltip.tsx`/`GlossaryHint.tsx`". @dev decidiu por conta própria criar um componente novo local (`QualificadoStatusHelp`) sem consultar @architect. **Veredito: aceitável como CONCERNS, não FAIL.** Razões: (a) é a alternativa de MENOR risco — componente local ao arquivo, blast radius zero sobre outros consumidores; generalizar `Tooltip`/`GlossaryHint` tocaria consumidores fora do escopo desta story; (b) satisfaz IDS CREATE — `evaluated_patterns`/`rejection_reasons`/`new_capability` documentados e já confirmados pela validação v1.1 do @po (ambos os candidatos NÃO reuse-ready: hover/`title`, string única); (c) a decisão está documentada e é reversível. Forçar round-trip a @architect antes de Done seria processo sem ganho de qualidade. Registrado ARCH-001 (medium) para revisão pós-hoc caso @architect queira consolidar um mecanismo reutilizável em story futura — convite que o próprio @dev já deixou.
+
+### Gates executados por @qa
+
+- `npx tsc --noEmit` → 0 erros
+- `npm run lint` → 0 erros (22 warnings a11y pré-existentes, nenhum no código novo)
+- `bun test --isolate src/features/checkin src/hooks/checkins src/lib` → **438 pass / 0 fail**
+
+### Gate Status
+
+Gate: CONCERNS → docs/qa/gates/MX-22.4-closing-forms-garantia-qualificado.yml
+
+**Veredito: CONCERNS** (não bloqueante). Status InReview → Done. Concerns: ARCH-001 (medium, aceito), ARCH-002 + REL-001 (low, opcionais).

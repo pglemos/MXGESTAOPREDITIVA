@@ -1,0 +1,20 @@
+schema: 1
+story: 'MX-22.4'
+gate: CONCERNS
+status_reason: 'Todos os 6 ACs implementados e verdes (RPC SECURITY DEFINER fiel ao precedente, popover acionável por clique, testes de comportamento reais). Concern único: decisão create-vs-generalize tomada sem consulta a @architect (Task 5) — documentada e de baixo risco, liberada para Done com revisão pós-hoc.'
+reviewer: 'Quinn'
+updated: '2026-07-15T00:00:00Z'
+top_issues:
+  - id: 'ARCH-001'
+    severity: medium
+    finding: 'Task 5 da story deferia a @architect a decisão "novo componente vs. generalizar Tooltip.tsx/GlossaryHint.tsx". @dev decidiu unilateralmente criar componente novo local (QualificadoStatusHelp) sem consulta a @architect. A decisão está documentada (Change Log v1.2, Dev Agent Record) mas o passo de processo de consulta foi pulado.'
+    suggested_action: 'ACEITAR e prosseguir para Done: a escolha (componente local isolado) é a MENOS arriscada — não toca nenhum consumidor de Tooltip/GlossaryHint, blast radius zero fora do NovoRegistroModal, e satisfaz IDS CREATE (evaluated_patterns/rejection_reasons/new_capability já documentados e confirmados pela validação v1.1 do @po). @architect deve revisar pós-hoc apenas se quiser consolidar um mecanismo de "help acionável" reutilizável no design system em story futura — @dev já registrou esse convite.'
+  - id: 'ARCH-002'
+    severity: low
+    finding: 'A nova migration não replica dois elementos cosméticos do precedente contar_vendedores_ativos_loja.sql: COMMENT ON FUNCTION e o bloco DOWN (reversão manual) comentado. A lógica de segurança (SECURITY DEFINER, search_path fixo, gate de membership ativo, colunas mínimas, GRANT authenticated) está idêntica ao padrão.'
+    suggested_action: 'Não bloqueante. Opcional: adicionar COMMENT ON FUNCTION e bloco DOWN comentado para paridade documental com o precedente antes de aplicar em prod.'
+  - id: 'REL-001'
+    severity: low
+    finding: 'A chamada supabase.rpc(...).then(({ data }) => ...) em NovoRegistroModal.tsx:409 não trata o ramo de erro — em falha da RPC, data vem null e o mapper degrada para lista vazia sem logar. Defensivo, mas silencioso.'
+    suggested_action: 'Não bloqueante. Opcional: logar erro da RPC (ex.: console.warn) para diagnóstico de combo vazio em produção.'
+waiver: { active: false }
