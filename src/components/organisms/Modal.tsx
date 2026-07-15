@@ -108,7 +108,7 @@ export function Modal({
           )}
         >
           <div className={cn(
-            "border-b flex justify-between gap-mx-md sticky top-mx-0 bg-white z-10 shrink-0",
+            "border-b flex justify-between gap-mx-md bg-white z-10 shrink-0",
             referenceStyle
               ? "items-start border-gray-100 p-5"
               : "items-start border-border-default p-mx-md sm:p-mx-lg",
@@ -157,7 +157,7 @@ export function Modal({
           {footer && (
             <div
               className={cn(
-                "border-t flex sticky bottom-mx-0 bg-white shrink-0",
+                "border-t flex bg-white shrink-0",
                 referenceStyle
                   ? "flex-row justify-end gap-3 border-gray-100 p-5"
                   : "flex-col-reverse gap-mx-sm border-border-default sm:flex-row sm:justify-end p-mx-md sm:p-mx-lg",

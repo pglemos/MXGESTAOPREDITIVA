@@ -669,13 +669,13 @@ export function PendingReminderModal({
   onConfirm: () => void;
 }) {
   const footer = (
-    <div className="grid w-full grid-cols-2 gap-4">
-      <button type="button" onClick={onClose} className="h-10 rounded-[12px] border border-gray-200 bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50">
+    <div className="flex w-full gap-2">
+      <button type="button" onClick={onClose} className="h-9 flex-1 rounded-[12px] border border-gray-200 bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50">
         Cancelar
       </button>
       <button
         type="button"
-        className="h-10 rounded-[12px] bg-amber-600 px-4 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-40"
+        className="h-9 flex-1 rounded-[12px] bg-amber-600 px-4 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-40"
         disabled={reminding}
         onClick={onConfirm}
       >
@@ -693,29 +693,29 @@ export function PendingReminderModal({
       description={`${pendingRows.length} vendedor(es) pendente(s)`}
       footer={footer}
     >
-      <div className="space-y-8">
-        <div className="rounded-[24px] bg-gray-50 p-6">
-          <p className="mb-4 text-[18px] text-gray-500">
+      <div className="space-y-4">
+        {pendingRows.length > 1 && <div className="rounded-[12px] bg-gray-50 p-3">
+          <p className="mb-2 text-xs text-gray-500">
             Vendedores que serão cobrados:
           </p>
-          <ul className="space-y-3">
+          <ul className="space-y-1">
             {pendingRows.map(({ seller }) => (
               <li
                 key={seller.id}
-                className="flex items-center gap-3 text-[18px] font-medium text-gray-700"
+                className="flex items-center gap-2 text-sm text-gray-700"
               >
-                <Megaphone size={18} className="text-amber-500" />
+                <Megaphone size={14} className="text-amber-500" />
                 {seller.name}
               </li>
             ))}
           </ul>
-        </div>
-        <div className="rounded-[24px] border border-amber-200 bg-amber-50 p-6">
-          <p className="text-[18px] font-semibold text-amber-700">
+        </div>}
+        <div className="rounded-[12px] border border-amber-100 bg-amber-50 p-3">
+          <p className="mb-1 text-xs font-medium text-amber-700">
             Mensagem padrão enviada:
           </p>
-          <p className="mt-3 text-[20px] italic leading-8 text-gray-700">
-            “{PENDING_CLOSING_MESSAGE}”
+          <p className="text-sm italic text-gray-700">
+            "{PENDING_CLOSING_MESSAGE}"
           </p>
         </div>
       </div>

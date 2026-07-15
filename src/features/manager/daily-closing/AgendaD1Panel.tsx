@@ -3,6 +3,8 @@ import { addDays, format, parseISO } from "date-fns";
 import {
   CalendarClock,
   CalendarDays,
+  CheckCircle,
+  ChevronDown,
   Filter,
   MessageCircle,
   Phone,
@@ -82,6 +84,7 @@ export function AgendaD1Panel({
     outcome: ConfirmationOutcome | "";
     note: string;
   } | null>(null);
+  const [confirmMenuRowId, setConfirmMenuRowId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -92,6 +95,8 @@ export function AgendaD1Panel({
       });
       setConfirmationStatus("all");
       setSearch("");
+      setConfirmMenuRowId(null);
+      setConfirming(null);
     }
   }, [open, initialSellerId]);
 
@@ -286,17 +291,15 @@ export function AgendaD1Panel({
   );
 
   const saveConfirmation = useCallback(
-    async (row: AgendaD1Row) => {
-      if (!confirming || confirming.rowId !== row.id || !confirming.outcome)
-        return;
-      if (confirming.outcome === "Outro" && !confirming.note.trim()) {
+    async (row: AgendaD1Row, outcome: ConfirmationOutcome, note = "") => {
+      if (outcome === "Outro" && !note.trim()) {
         toast.error('Descreva a observação para o resultado "Outro".');
         return;
       }
       setSaving(true);
-      const valorNovo = confirming.note.trim()
-        ? `${confirming.outcome} — ${confirming.note.trim()}`
-        : confirming.outcome;
+      const valorNovo = note.trim()
+        ? `${outcome} — ${note.trim()}`
+        : outcome;
       const { error: logError } = await registerLog(
         row,
         "agenda_d1_confirmacao",
@@ -309,14 +312,14 @@ export function AgendaD1Panel({
         return;
       }
       if (
-        confirming.outcome === "Solicitou reagendamento" ||
-        confirming.outcome === "Cancelou"
+        outcome === "Solicitou reagendamento" ||
+        outcome === "Cancelou"
       ) {
         const { error: notificationError } = await sendNotification({
           recipient_id: row.seller_user_id,
           store_id: storeId || undefined,
           title:
-            confirming.outcome === "Cancelou"
+            outcome === "Cancelou"
               ? "Cliente cancelou agendamento D+1"
               : "Cliente pediu reagendamento (D+1)",
           message: `${row.cliente?.nome || "Cliente"} — ${format(parseISO(row.data_hora), "dd/MM HH:mm")}. ${valorNovo}. A agenda original não foi alterada: atualize pela Carteira.`,
@@ -331,12 +334,17 @@ export function AgendaD1Panel({
       setConfirming(null);
       setSaving(false);
     },
-    [confirming, registerLog, sendNotification, storeId],
+    [registerLog, sendNotification, storeId],
   );
+
+  const confirmationRow = confirming
+    ? rows.find((row) => row.id === confirming.rowId) || null
+    : null;
 
   const filterSelectClass = "h-10 rounded-[12px] border border-gray-200 bg-white px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500";
 
   return (
+    <>
     <Modal
       open={open}
       onClose={onClose}
@@ -525,7 +533,6 @@ export function AgendaD1Panel({
                     ? lastContactByCliente.get(row.cliente.id) ||
                       row.cliente.ultima_interacao
                     : null;
-                  const isConfirming = confirming?.rowId === row.id;
                   return (
                     <FragmentRow key={row.id}>
                       <tr className="align-top bg-white transition-colors hover:bg-gray-50">
@@ -579,101 +586,39 @@ export function AgendaD1Panel({
                             >
                               <Phone size={13} /> Telefone
                             </button>
-                            <button
-                              type="button"
-                              className={`flex items-center rounded-lg px-2 py-1 text-xs font-medium ${isConfirming ? "bg-emerald-600 text-white" : "text-emerald-700 hover:bg-emerald-50"}`}
-                              onClick={() =>
-                                setConfirming(
-                                  isConfirming
-                                    ? null
-                                    : { rowId: row.id, outcome: "", note: "" },
-                                )
-                              }
-                            >
-                              Confirmar
-                            </button>
+                            <div className="relative">
+                              <button
+                                type="button"
+                                className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
+                                onClick={() => setConfirmMenuRowId((current) => current === row.id ? null : row.id)}
+                              >
+                                <CheckCircle size={13} /> Confirmar <ChevronDown size={12} />
+                              </button>
+                              {confirmMenuRowId === row.id && (
+                                <>
+                                  <button type="button" aria-label="Fechar opções de confirmação" className="fixed inset-0 z-40 cursor-default" onClick={() => setConfirmMenuRowId(null)} />
+                                  <div className="absolute right-0 top-full z-50 mt-1 min-w-[210px] rounded-[12px] border border-gray-200 bg-white py-1 shadow-lg">
+                                    {CONFIRMATION_OUTCOMES.map((outcome) => (
+                                      <button
+                                        key={outcome}
+                                        type="button"
+                                        className="block w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700"
+                                        onClick={() => {
+                                          setConfirmMenuRowId(null);
+                                          if (outcome === "Outro") setConfirming({ rowId: row.id, outcome, note: "" });
+                                          else void saveConfirmation(row, outcome);
+                                        }}
+                                      >
+                                        {outcome}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </>
+                              )}
+                            </div>
                           </div>
                         </td>
                       </tr>
-                      {isConfirming && (
-                        <tr className="bg-surface-alt/60">
-                          <td colSpan={10} className="px-mx-md py-mx-sm">
-                            <div className="flex flex-wrap items-end gap-mx-sm">
-                              <select
-                                aria-label="Resultado do contato"
-                                className="h-10 min-w-[220px] rounded-[12px] border border-gray-200 bg-white px-3 text-sm"
-                                value={confirming.outcome}
-                                onChange={(event) =>
-                                  setConfirming((prev) =>
-                                    prev
-                                      ? {
-                                          ...prev,
-                                          outcome: event.target
-                                            .value as ConfirmationOutcome,
-                                        }
-                                      : prev,
-                                  )
-                                }
-                              >
-                                <option value="" disabled>
-                                  Selecione…
-                                </option>
-                                {CONFIRMATION_OUTCOMES.map((outcome) => (
-                                  <option key={outcome} value={outcome}>
-                                    {outcome}
-                                  </option>
-                                ))}
-                              </select>
-                              <div className="min-w-[260px] flex-1">
-                                <label
-                                  className="mb-1 block text-xs font-medium text-gray-500"
-                                  htmlFor={`agenda-d1-note-${row.id}`}
-                                >
-                                  {confirming.outcome === "Outro"
-                                    ? "Observação (obrigatória)"
-                                    : "Observação (opcional)"}
-                                </label>
-                                <input
-                                  id={`agenda-d1-note-${row.id}`}
-                                  className="h-10 w-full rounded-[12px] border border-gray-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                  value={confirming.note}
-                                  onChange={(event) =>
-                                    setConfirming((prev) =>
-                                      prev
-                                        ? { ...prev, note: event.target.value }
-                                        : prev,
-                                    )
-                                  }
-                                  placeholder="Detalhe do contato com o cliente"
-                                />
-                              </div>
-                              <button
-                                type="button"
-                                className="h-9 rounded-[8px] bg-emerald-600 px-3 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-40"
-                                disabled={saving || !confirming.outcome}
-                                onClick={() => void saveConfirmation(row)}
-                              >
-                                {saving ? "Salvando…" : "Salvar registro"}
-                              </button>
-                              <button
-                                type="button"
-                                className="h-9 rounded-[8px] px-3 text-xs font-medium text-gray-600 hover:bg-gray-100"
-                                onClick={() => setConfirming(null)}
-                              >
-                                Cancelar
-                              </button>
-                            </div>
-                            {(confirming.outcome ===
-                              "Solicitou reagendamento" ||
-                              confirming.outcome === "Cancelou") && (
-                              <p className="mt-2 text-xs text-gray-500">
-                                A agenda original não será alterada. O vendedor
-                                recebe um aviso para atualizar pela Carteira.
-                              </p>
-                            )}
-                          </td>
-                        </tr>
-                      )}
                     </FragmentRow>
                   );
                 })}
@@ -688,11 +633,44 @@ export function AgendaD1Panel({
         </p>
       </div>
     </Modal>
+    <Modal
+      open={Boolean(confirmationRow && confirming)}
+      onClose={() => setConfirming(null)}
+      size="sm"
+      referenceStyle
+      title="Confirmar agendamento — Outro"
+    >
+      {confirmationRow && confirming && <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <ConfirmationInfo label="Cliente" value={confirmationRow.cliente?.nome || "—"} />
+          <ConfirmationInfo label="Vendedor" value={sellerNameById.get(confirmationRow.seller_user_id) || "—"} />
+          <ConfirmationInfo label="Tipo de agendamento" value={AGENDA_TIPO_LABEL[confirmationRow.tipo] || "—"} />
+          <ConfirmationInfo label="Data / Horário" value={format(parseISO(confirmationRow.data_hora), "dd/MM/yyyy HH:mm")} />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-gray-600" htmlFor="agenda-other-status">Status da confirmação</label>
+          <select id="agenda-other-status" value="Outro" disabled className="w-full rounded-[12px] border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"><option>Outro</option></select>
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-gray-600" htmlFor="agenda-other-note">Descreva a situação *</label>
+          <textarea id="agenda-other-note" rows={3} value={confirming.note} onChange={(event) => setConfirming((current) => current ? { ...current, note: event.target.value } : current)} placeholder="Observações gerenciais (opcional)..." className="w-full resize-none rounded-[12px] border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </div>
+        <div className="flex justify-end gap-2 pt-1">
+          <button type="button" onClick={() => setConfirming(null)} className="rounded-[12px] px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">Cancelar</button>
+          <button type="button" disabled={saving} onClick={() => void saveConfirmation(confirmationRow, "Outro", confirming.note)} className="rounded-[12px] bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-40">{saving ? "Salvando..." : "Registrar"}</button>
+        </div>
+      </div>}
+    </Modal>
+    </>
   );
 }
 
 function FragmentRow({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
+}
+
+function ConfirmationInfo({ label, value }: { label: string; value: string }) {
+  return <div className="rounded-[12px] bg-gray-50 p-3"><p className="mb-0.5 text-xs text-gray-500">{label}</p><p className="font-medium text-gray-800">{value}</p></div>;
 }
 
 function normalizeManagerConfirmationStatus(

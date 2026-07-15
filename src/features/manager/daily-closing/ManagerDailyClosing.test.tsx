@@ -37,7 +37,7 @@ describe("PendingReminderModal", () => {
 
     expect(screen.getByText("2 vendedor(es) pendente(s)")).toBeTruthy();
     expect(screen.getByText("Ana Oliveira")).toBeTruthy();
-    expect(screen.getByText(`“${PENDING_CLOSING_MESSAGE}”`)).toBeTruthy();
+    expect(screen.getByText(`"${PENDING_CLOSING_MESSAGE}"`)).toBeTruthy();
     expect(screen.getByRole("dialog", { name: "Cobrar Fechamentos Pendentes" })).toBeTruthy();
     expect(onConfirm).not.toHaveBeenCalled();
 

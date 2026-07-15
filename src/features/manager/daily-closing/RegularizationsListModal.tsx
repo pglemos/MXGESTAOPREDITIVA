@@ -79,8 +79,9 @@ export function RegularizationsListModal({
       <Modal
         open={open}
         onClose={onClose}
-        size="2xl"
+        size="lg"
         referenceStyle
+        className="sm:!max-w-2xl"
         title="Regularizações Aguardando Aprovação"
         description={`${requests.length} regularização(ões) pendente(s)`}
       >
@@ -103,12 +104,16 @@ export function RegularizationsListModal({
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-gray-800">{name}</p>
                       <p className="text-xs text-gray-500">
-                        Enviado: {formatRequestDate(request.created_at, request.requested_values.reference_date)}
+                        Entrega: {formatRequestDate(request.created_at)}
                       </p>
                     </div>
                   </div>
-                  <div className="grid h-9 w-9 place-items-center rounded-full border-4 border-blue-100 text-xs font-bold text-blue-700" aria-label={`Disciplina ${metrics.discipline}%`}>
-                    {metrics.discipline}%
+                  <div
+                    className="grid h-8 w-8 place-items-center rounded-full p-[3px] text-[10px] font-bold text-blue-700"
+                    style={{ background: `conic-gradient(rgb(59 130 246) ${metrics.discipline * 3.6}deg, rgb(219 234 254) 0deg)` }}
+                    aria-label={`Disciplina ${metrics.discipline}%`}
+                  >
+                    <span className="grid h-full w-full place-items-center rounded-full bg-gray-50">{metrics.discipline}%</span>
                   </div>
                 </div>
 
@@ -126,7 +131,7 @@ export function RegularizationsListModal({
                       setDecision({ request, action: "approve" });
                       setConfirmed(false);
                     }}
-                    className="inline-flex h-9 flex-1 items-center justify-center gap-1 rounded-[12px] bg-emerald-600 px-3 text-sm font-medium text-white hover:bg-emerald-700"
+                    className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-[12px] bg-emerald-600 px-3 text-sm font-medium text-white hover:bg-emerald-700"
                     aria-label={`Aprovar ${name}`}
                   >
                     <Check size={14} /> Aprovar
@@ -137,7 +142,7 @@ export function RegularizationsListModal({
                       setDecision({ request, action: "reject" });
                       setConfirmed(false);
                     }}
-                    className="inline-flex h-9 flex-1 items-center justify-center gap-1 rounded-[12px] border border-red-200 bg-white px-3 text-sm font-medium text-red-700 hover:bg-red-50"
+                    className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-[12px] border border-red-200 bg-white px-3 text-sm font-medium text-red-700 hover:bg-red-50"
                     aria-label={`Recusar ${name}`}
                   >
                     <X size={14} /> Recusar
