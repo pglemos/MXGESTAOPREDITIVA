@@ -12,6 +12,8 @@ import type { CrmCanal, CrmEtapaFunil } from '@/lib/schemas/crm.schema'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { addDaysDateOnly } from '../lib/crm-derived-totals'
+import { mapResponsaveisTratativaOptions, type ResponsavelTratativa } from '../lib/responsaveis-tratativa'
+import { resolveGarantiaPositionDefaults } from '../lib/garantia-position-defaults'
 
 /**
  * Modal unico "Novo Registro" — porta 1:1 de components/fechamento/
@@ -26,14 +28,6 @@ const CANAIS_UI = ['Showroom', 'Internet', 'Carteira'] as const
 const CANAL_UI_TO_DB: Record<string, CrmCanal> = { Showroom: 'showroom', Internet: 'internet', Carteira: 'carteira' }
 const MODALIDADES = ['Visita na loja', 'Atendimento externo', 'Videochamada'] as const
 const SITUACOES_OPORTUNIDADE = ['Nova', 'Validação', 'Construção', 'Compromisso', 'Decisão', 'Recuperação'] as const
-const SITUACAO_OPORTUNIDADE_DESCRICAO: Record<string, string> = {
-  Nova: 'Oportunidade recém identificada, ainda sem contato qualificado com o cliente.',
-  Validação: 'Interesse e necessidade do cliente já foram confirmados.',
-  Construção: 'Proposta e condições comerciais estão sendo estruturadas com o cliente.',
-  Compromisso: 'Cliente sinalizou intenção clara de fechar negócio.',
-  Decisão: 'Cliente está decidindo entre finalizar ou não a compra.',
-  Recuperação: 'Oportunidade esfriada que está sendo retrabalhada pelo vendedor.',
-}
 const SITUACOES_OPORTUNIDADE_AJUDA: Record<string, string> = {
   Nova: 'Significado: oportunidade identificada. Quando usar: primeiro registro antes de validar a necessidade. Mentor Comercial: inicia a cadência. Próxima ação: fazer o primeiro contato. Agendamento: não cria automaticamente. Temperatura/prioridade: neutra. Rotina: entra como prospecção pendente. Métricas: conta como oportunidade aberta.',
   Validação: 'Significado: interesse e necessidade confirmados. Quando usar: após conversa qualificada. Mentor Comercial: avança para qualificação. Próxima ação: confirmar necessidade, orçamento e prazo. Agendamento: não cria automaticamente. Temperatura/prioridade: aumenta a prioridade. Rotina: entra como contato de validação. Métricas: conta na taxa de qualificação.',
@@ -42,14 +36,10 @@ const SITUACOES_OPORTUNIDADE_AJUDA: Record<string, string> = {
   Decisão: 'Significado: cliente está decidindo a compra. Quando usar: proposta apresentada e aguardando decisão. Mentor Comercial: recomenda follow-up de fechamento. Próxima ação: remover objeção e combinar prazo de retorno. Agendamento: crie se o retorno tiver horário. Temperatura/prioridade: alta, com risco de perda. Rotina: aparece como retorno prioritário. Métricas: conta na conversão do funil.',
   Recuperação: 'Significado: oportunidade esfriada em retrabalho. Quando usar: contato perdido, sem resposta ou objeção não resolvida. Mentor Comercial: inicia recuperação. Próxima ação: definir nova abordagem e data de contato. Agendamento: não cria automaticamente. Temperatura/prioridade: reduzida até nova interação. Rotina: aparece como pendência de recuperação. Métricas: conta em recuperação, sem inflar oportunidades novas.',
 }
-const SITUACOES_OPORTUNIDADE_TITLE = SITUACOES_OPORTUNIDADE
-  .map(s => SITUACOES_OPORTUNIDADE_AJUDA[s] || `${s}: ${SITUACAO_OPORTUNIDADE_DESCRICAO[s]}`)
-  .join('\n')
 const PASSO_TO_ETAPA: Record<string, CrmEtapaFunil> = {
   Nova: 'prospeccao', Validação: 'qualificacao', Construção: 'apresentacao', Compromisso: 'negociacao', Decisão: 'fechamento', Recuperação: 'prospeccao',
 }
 const MOTIVOS_GARANTIA = ['Mecânica', 'Documentação', 'Acessório', 'Acabamento', 'Promessa comercial', 'Outro'] as const
-type ResponsavelTratativa = { id: string; name: string; role: string }
 const DESCRICOES_GARANTIA_POR_MOTIVO: Record<string, readonly string[]> = {
   'Mecânica': ['Barulho no motor', 'Problema elétrico', 'Vazamento de óleo', 'Freios', 'Suspensão', 'Ar-condicionado', 'Outro'],
   'Documentação': ['Pendência de transferência', 'Nota fiscal', 'IPVA/Licenciamento', 'Contrato/Financiamento', 'Outro'],
@@ -137,7 +127,44 @@ function ClienteEncontradoBadge({ jaVendido }: { jaVendido?: boolean }) {
   return <p className="mt-0.5 text-[10px] font-semibold text-green-600">✓ Cliente encontrado na Carteira{jaVendido ? ' (já vendido)' : ''}.</p>
 }
 
-interface FormProps {
+// MX-22.4 (AC-5/AC-6; Spec §9.2 "Não usar tooltip genérico"): o ícone de
+// ajuda do Qualificado usava `title` nativo — só hover, inacessível em
+// touch (dispositivo real do vendedor), e um bloco único concatenado de
+// todos os status. Este popover é acionável por clique/toque e mostra a
+// ajuda de cada status individualmente, preservando SITUACOES_OPORTUNIDADE_AJUDA
+// literalmente (nenhum texto reescrito).
+export function QualificadoStatusHelp() {
+  const [open, setOpen] = useState(false)
+  return (
+    <span className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        aria-label="Ajuda sobre os passos da oportunidade"
+        className="grid h-4 w-4 place-items-center rounded-full text-slate-400 transition-colors hover:text-slate-600"
+      >
+        <HelpCircle size={13} />
+      </button>
+      {open && (
+        <div
+          role="dialog"
+          aria-label="Ajuda: passos da oportunidade"
+          className="absolute left-0 top-5 z-50 max-h-64 w-72 overflow-y-auto rounded-lg border border-slate-200 bg-white p-3 text-left shadow-lg"
+        >
+          {SITUACOES_OPORTUNIDADE.map(s => (
+            <div key={s} className="mb-2 last:mb-0">
+              <p className="text-[11px] font-black text-slate-700">{s}</p>
+              <p className="text-[11px] text-slate-500">{SITUACOES_OPORTUNIDADE_AJUDA[s]}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </span>
+  )
+}
+
+export interface FormProps {
   form: FormState
   setF: (key: string, value: string) => void
   clienteEncontrado: boolean
@@ -217,7 +244,7 @@ function FormVenda({ form, setF, clienteEncontrado, clienteJaVendido, onPhoneBlu
   )
 }
 
-function FormGarantia({ form, setF, clienteEncontrado, clienteJaVendido, onPhoneBlur, responsaveis }: FormProps) {
+export function FormGarantia({ form, setF, clienteEncontrado, clienteJaVendido, onPhoneBlur, responsaveis }: FormProps) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <FormField label="WhatsApp / Telefone *" value={form.whatsapp || ''} onChange={e => setF('whatsapp', formatPhone(e.target.value))} onBlur={onPhoneBlur} placeholder="(11) 98765-4321" maxLength={15} />
@@ -307,9 +334,7 @@ function FormQualificado({ form, setF, clienteEncontrado, clienteJaVendido, onPh
       <div className="space-y-1">
         <div className="ml-2 flex items-center gap-1">
           <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Passo Atual da Oportunidade *</span>
-          <span title={SITUACOES_OPORTUNIDADE_TITLE} className="shrink-0 cursor-help">
-            <HelpCircle size={13} className="text-slate-400" />
-          </span>
+          <QualificadoStatusHelp />
         </div>
         <Select value={form.passo_atual || ''} onChange={e => setF('passo_atual', e.target.value)}>
           <option value="">Selecione</option>
@@ -374,21 +399,17 @@ export function NovoRegistroModal({ open, onClose, onSaved, defaultDate }: NovoR
       return
     }
     let cancelled = false
+    // MX-22.4 (AC-1; Spec §9.1): a RLS de vinculos_loja_select/usuarios_select
+    // (tem_papel_loja/pode_ver_usuario) só libera ver outra pessoa pra área
+    // interna MX ou dono/gerente da loja — um vendedor comum, o único
+    // persona real que abre este formulário, recebia de volta só a própria
+    // linha. A RPC listar_responsaveis_tratativa_loja (SECURITY DEFINER,
+    // mesmo padrão de contar_vendedores_ativos_loja) resolve isso.
     void supabase
-      .from('vinculos_loja')
-      .select('user_id, user:usuarios!user_id(id, name, role, active)')
-      .eq('store_id', effectiveStoreId)
-      .eq('is_active', true)
-      .in('role', ['vendedor', 'gerente', 'dono'])
+      .rpc('listar_responsaveis_tratativa_loja', { p_store_id: effectiveStoreId })
       .then(({ data }) => {
         if (cancelled) return
-        const options = (data || []).flatMap(row => {
-          const user = (row as unknown as { user?: { id?: string; name?: string; role?: string; active?: boolean } | null }).user
-          return user?.id && user.active !== false && user.name
-            ? [{ id: user.id, name: user.name, role: user.role || 'vendedor' }]
-            : []
-        })
-        setResponsaveis(options.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')))
+        setResponsaveis(mapResponsaveisTratativaOptions(data as Array<{ id: string; name: string; role: string }> | null))
       })
     return () => { cancelled = true }
   }, [effectiveStoreId, open])
@@ -414,7 +435,13 @@ export function NovoRegistroModal({ open, onClose, onSaved, defaultDate }: NovoR
 
   const handleSelectTipo = (t: RegistroTipo) => {
     setTipo(t)
-    const defaults: FormState = { data_venda: hoje, data_garantia: hoje, data_posicionamento: amanha, hora_posicionamento: '09:00' }
+    const garantiaDefaults = resolveGarantiaPositionDefaults(hoje)
+    const defaults: FormState = {
+      data_venda: hoje,
+      data_garantia: hoje,
+      data_posicionamento: garantiaDefaults.dataPosicionamento,
+      hora_posicionamento: garantiaDefaults.horaPosicionamento,
+    }
     if (t === 'agendamento') defaults.data_hora_agendamento = `${amanha}T09:00`
     setFormState(defaults)
     setClienteEncontradoId(null)
