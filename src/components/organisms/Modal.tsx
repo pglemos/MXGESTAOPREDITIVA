@@ -110,12 +110,12 @@ export function Modal({
           <div className={cn(
             "border-b flex justify-between gap-mx-md bg-white z-10 shrink-0",
             referenceStyle
-              ? "items-start border-gray-100 p-5"
+              ? "items-center border-gray-100 px-5 py-4"
               : "items-start border-border-default p-mx-md sm:p-mx-lg",
           )}>
             <div className="min-w-0">
               <Dialog.Title asChild>
-                <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
+                <h2 className={referenceStyle ? "text-base leading-6 font-semibold text-gray-800" : "text-lg font-semibold text-gray-800"}>{title}</h2>
               </Dialog.Title>
               {description && (
                 <Dialog.Description asChild>
@@ -135,7 +135,7 @@ export function Modal({
                   className={cn(
                     "flex items-center justify-center transition-colors shrink-0",
                     referenceStyle
-                      ? "mt-0.5 h-auto w-auto !min-h-0 rounded-none bg-transparent p-0 text-gray-400 hover:text-gray-600"
+                      ? "h-5 w-5 !min-h-0 rounded-none bg-transparent p-0 text-gray-400 hover:text-gray-600"
                       : "h-mx-xl w-mx-xl rounded-mx-xl bg-surface-alt",
                   )}
                 >
@@ -148,7 +148,7 @@ export function Modal({
           <div className={cn(
             "min-h-0 flex-1 overflow-y-auto overscroll-contain",
             referenceStyle
-              ? "p-5"
+              ? "p-5 [&_input]:!text-sm [&_select]:!text-sm [&_textarea]:!text-sm"
               : "p-mx-md sm:p-mx-lg",
           )}>
             {children}
@@ -159,7 +159,7 @@ export function Modal({
               className={cn(
                 "border-t flex bg-white shrink-0",
                 referenceStyle
-                  ? "flex-row justify-end gap-3 border-gray-100 p-5"
+                  ? "flex-row justify-end gap-3 border-gray-100 px-5 py-4"
                   : "flex-col-reverse gap-mx-sm border-border-default sm:flex-row sm:justify-end p-mx-md sm:p-mx-lg",
               )}
               style={referenceStyle ? undefined : {
