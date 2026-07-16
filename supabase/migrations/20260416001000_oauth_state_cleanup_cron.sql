@@ -18,3 +18,13 @@ SELECT cron.schedule(
     AND created_at < now() - interval '1 hour'
   $$
 );
+
+-- ============================================================
+-- DOWN
+-- ============================================================
+-- The only change here is CREATE EXTENSION IF NOT EXISTS pg_cron, added so a
+-- from-scratch database replay (supabase db reset) doesn't fail before the
+-- schedule call below. pg_cron is already enabled in prod independently of
+-- this migration (toggled via the dashboard) and may be relied on by other
+-- schedules, so DROP EXTENSION is not a safe rollback here. To undo just the
+-- cron job itself: SELECT cron.unschedule('cleanup-oauth-states');
