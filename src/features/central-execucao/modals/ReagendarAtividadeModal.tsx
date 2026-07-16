@@ -43,6 +43,7 @@ export function ReagendarAtividadeModal({
   }, [open, action?.id])
 
   if (!action) return null
+  const currentAction = action
 
   async function handleSubmit() {
     if (!dueAt) return
@@ -51,7 +52,7 @@ export function ReagendarAtividadeModal({
     const response = await onSubmit({
       dueAt: `${dueAt}:00-03:00`,
       note: note.trim() || null,
-      idempotencyKey: `central:reschedule:${action.id}:${crypto.randomUUID()}`,
+      idempotencyKey: `central:reschedule:${currentAction.id}:${crypto.randomUUID()}`,
     })
     setSaving(false)
     if (response.error) {
@@ -61,14 +62,14 @@ export function ReagendarAtividadeModal({
     onClose()
   }
 
-  const clientName = action.client?.nome || action.snapshots.name || '—'
+  const clientName = currentAction.client?.nome || currentAction.snapshots.name || '—'
 
   return (
     <Modal
       open={open}
       onClose={() => { if (!saving) onClose() }}
       title="Reagendar atividade"
-      description={`${clientName} · ${action.title}`}
+      description={`${clientName} · ${currentAction.title}`}
       size="sm"
       referenceStyle
       closeOnEscape={!saving}
