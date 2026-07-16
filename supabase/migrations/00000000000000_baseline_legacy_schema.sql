@@ -1815,23 +1815,6 @@ BEGIN
 END;
 $function$;
 
-CREATE OR REPLACE FUNCTION public.can_access_consulting_client(p_client_id uuid)
- RETURNS boolean
- LANGUAGE sql
- STABLE SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-    SELECT
-        public.is_admin()
-        OR EXISTS (
-            SELECT 1
-            FROM public.consulting_assignments ca
-            WHERE ca.client_id = p_client_id
-              AND ca.user_id = auth.uid()
-              AND ca.active = true
-        )
-$function$;
-
 CREATE OR REPLACE FUNCTION public.check_orphan_users_after_membership_deletion()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -2267,6 +2250,21 @@ BEGIN
 END;
 $function$;
 
+CREATE OR REPLACE FUNCTION public.normalize_mx_role(p_role text)
+ RETURNS text
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$
+    SELECT CASE
+        WHEN p_role = 'consultor' THEN 'admin'
+        WHEN p_role = 'owner' THEN 'dono'
+        WHEN p_role = 'manager' THEN 'gerente'
+        WHEN p_role = 'seller' THEN 'vendedor'
+        ELSE p_role
+    END
+$function$;
+
+
 CREATE OR REPLACE FUNCTION public.has_store_role(p_store_id uuid, p_roles text[])
  RETURNS boolean
  LANGUAGE sql
@@ -2305,6 +2303,23 @@ AS $function$
     FROM public.users 
     WHERE id = auth.uid() 
     LIMIT 1;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.can_access_consulting_client(p_client_id uuid)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+    SELECT
+        public.is_admin()
+        OR EXISTS (
+            SELECT 1
+            FROM public.consulting_assignments ca
+            WHERE ca.client_id = p_client_id
+              AND ca.user_id = auth.uid()
+              AND ca.active = true
+        )
 $function$;
 
 CREATE OR REPLACE FUNCTION public.is_consultor()
@@ -2359,20 +2374,6 @@ BEGIN
     VALUES (NEW.store_id, NEW.updated_by, to_jsonb(OLD), to_jsonb(NEW));
     RETURN NEW;
 END;
-$function$;
-
-CREATE OR REPLACE FUNCTION public.normalize_mx_role(p_role text)
- RETURNS text
- LANGUAGE sql
- IMMUTABLE
-AS $function$
-    SELECT CASE
-        WHEN p_role = 'consultor' THEN 'admin'
-        WHEN p_role = 'owner' THEN 'dono'
-        WHEN p_role = 'manager' THEN 'gerente'
-        WHEN p_role = 'seller' THEN 'vendedor'
-        ELSE p_role
-    END
 $function$;
 
 CREATE OR REPLACE FUNCTION public.process_import_data(p_log_id uuid)
