@@ -12,8 +12,7 @@ WHERE visit_number = 1 AND program_key IN ('pmr_7', 'pmr_9');
 
 -- Se por algum motivo não houver steps no template, atualizar a tabela base também
 UPDATE public.consulting_methodology_steps
-SET 
+SET
   objective = 'Diagnóstico',
-  evidence_required = '1 e 2. Formulários preenchidos; 3. Dados enviados',
-  checklist_template = '["Entrevista Vendedores, Gerentes e Sócios", "Análise de Processos", "Levantamento de dados"]'::jsonb
+  evidence_required = '1 e 2. Formulários preenchidos; 3. Dados enviados'
 WHERE visit_number = 1;
