@@ -29,7 +29,7 @@ DROP TRIGGER IF EXISTS reunioes_google_meet_atas_updated_at ON public.reunioes_g
 CREATE TRIGGER reunioes_google_meet_atas_updated_at
   BEFORE UPDATE ON public.reunioes_google_meet_atas
   FOR EACH ROW
-  EXECUTE FUNCTION public.update_updated_at();
+  EXECUTE FUNCTION public.update_updated_at_column_canonical();
 
 ALTER TABLE public.reunioes_google_meet_atas ENABLE ROW LEVEL SECURITY;
 
@@ -90,3 +90,10 @@ REVOKE ALL ON FUNCTION public.configure_google_meet_ata_cron(text, text, text) F
 GRANT EXECUTE ON FUNCTION public.configure_google_meet_ata_cron(text, text, text) TO service_role;
 
 NOTIFY pgrst, 'reload schema';
+
+-- ============================================================
+-- DOWN
+-- ============================================================
+-- Only change here: the updated_at trigger now calls
+-- update_updated_at_column_canonical() instead of the already-dropped
+-- update_updated_at(). Same behavior, nothing to roll back for this edit.

@@ -211,7 +211,6 @@ BEGIN
       seller_user_id,
       nome,
       telefone,
-      telefone_normalizado,
       canal_origem,
       status,
       proxima_acao,
@@ -230,7 +229,6 @@ BEGIN
       v_user,
       COALESCE(NULLIF(BTRIM(p_payload->>'nome'), ''), 'Cliente sem nome'),
       v_phone,
-      NULLIF(v_phone_normalized, ''),
       COALESCE(NULLIF(p_payload->>'canal_origem', '')::crm_canal, 'carteira'::crm_canal),
       COALESCE(NULLIF(p_payload->>'cliente_status', '')::crm_cliente_status, 'oportunidade'::crm_cliente_status),
       NULLIF(p_payload->>'proxima_acao', ''),
@@ -251,7 +249,6 @@ BEGIN
     SET
       nome = CASE WHEN p_payload ? 'nome' THEN COALESCE(NULLIF(BTRIM(p_payload->>'nome'), ''), nome) ELSE nome END,
       telefone = CASE WHEN p_payload ? 'telefone' OR p_payload ? 'whatsapp' THEN v_phone ELSE telefone END,
-      telefone_normalizado = CASE WHEN p_payload ? 'telefone' OR p_payload ? 'whatsapp' THEN NULLIF(v_phone_normalized, '') ELSE telefone_normalizado END,
       canal_origem = CASE WHEN p_payload ? 'canal_origem' THEN (p_payload->>'canal_origem')::crm_canal ELSE canal_origem END,
       status = CASE WHEN p_payload ? 'cliente_status' THEN (p_payload->>'cliente_status')::crm_cliente_status ELSE status END,
       proxima_acao = CASE WHEN p_payload ? 'proxima_acao' THEN NULLIF(p_payload->>'proxima_acao', '') ELSE proxima_acao END,

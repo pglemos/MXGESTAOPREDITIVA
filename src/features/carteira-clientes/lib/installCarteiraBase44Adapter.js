@@ -9,6 +9,28 @@ import {
 const INSTALLED_KEY = '__mxCarteiraBase44AdapterInstalled'
 const pendingEvents = new Map()
 
+// Cacheado em vez de chamar supabase.auth.getUser() a cada operação: fazer
+// isso logo após um supabase.rpc() (ex.: saveClient -> getVisualClient) faz o
+// getUser() travar indefinidamente — a chamada RPC e o getUser() disputam o
+// mesmo lock interno de sessão do supabase-js quando encadeados na mesma
+// tick. useExecutionActions (Central de Execução) evita o problema lendo o
+// id do usuário já resolvido via useAuth(); este módulo roda fora de
+// componentes React (instalado uma vez no import), então cacheamos aqui.
+let cachedUserIdPromise = null
+
+supabase.auth.onAuthStateChange((event) => {
+  if (event === 'SIGNED_OUT' || event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+    cachedUserIdPromise = null
+  }
+})
+
+function getCurrentUserId() {
+  if (!cachedUserIdPromise) {
+    cachedUserIdPromise = supabase.auth.getUser().then(({ data }) => data.user?.id ?? null)
+  }
+  return cachedUserIdPromise
+}
+
 function mutationKey(scope) {
   const uuid = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
     ? crypto.randomUUID()
@@ -128,8 +150,7 @@ function buildRpcPayload(data, clientId) {
 }
 
 async function listVisualClients(query, order, limit) {
-  const { data: authData } = await supabase.auth.getUser()
-  const userId = authData.user?.id
+  const userId = await getCurrentUserId()
   if (!userId) return []
 
   const { data, error } = await supabase
@@ -159,6 +180,13 @@ async function saveClient(data, clientId) {
 
   if (error) throw error
   if (!result?.ok) throw new Error(result?.error || 'Não foi possível salvar o cliente.')
+
+  // Chamar supabase.from(...) ou supabase.auth.* na mesma tick logo após um
+  // supabase.rpc() trava indefinidamente (sem erro, sem rejeição — reproduzido
+  // e confirmado com um listener global de unhandledrejection). Cede uma
+  // macrotask para o cliente supabase-js liberar seu lock de sessão interno
+  // antes da leitura de hidratação abaixo.
+  await new Promise(resolve => setTimeout(resolve, 0))
 
   if (result.evento_id && result.cliente_id) {
     pendingEvents.set(result.cliente_id, { eventId: result.evento_id, createdAt: Date.now() })
@@ -267,8 +295,7 @@ export function installCarteiraBase44Adapter(base44) {
 
   base44.entities.CarteiraHistorico = {
     filter: async (query, order, limit) => {
-      const { data: authData } = await supabase.auth.getUser()
-      const userId = authData.user?.id
+      const userId = await getCurrentUserId()
       if (!userId) return []
 
       let request = supabase
@@ -286,8 +313,7 @@ export function installCarteiraBase44Adapter(base44) {
 
   base44.entities.CarteiraMissao = {
     filter: async (query, order, limit) => {
-      const { data: authData } = await supabase.auth.getUser()
-      const userId = authData.user?.id
+      const userId = await getCurrentUserId()
       if (!userId) return []
       const { data, error } = await supabase
         .from('carteira_missoes')

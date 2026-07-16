@@ -59,10 +59,20 @@ SET
 WHERE visit_number = 9 AND program_key IN ('pmr_7', 'pmr_9');
 
 -- Sincronizar tabela base também
-UPDATE public.consulting_methodology_steps SET objective = 'Rotina do Gerente e Rotina do Vendedor', checklist_template = '["Implementar a Rotina do Gerente", "Implementar a Rotina do Vendedor", "Verificar se o novo plano de remuneração foi avaliado"]'::jsonb WHERE visit_number = 3;
-UPDATE public.consulting_methodology_steps SET objective = 'Feedback Estruturado e Cultura de Resultado', checklist_template = '["Implementar o Feedback Estruturado", "Implementar Cultura de Resultados", "Avaliar se foi contratado novos vendedores e se o processo foi seguido"]'::jsonb WHERE visit_number = 4;
-UPDATE public.consulting_methodology_steps SET objective = 'Marketing, Conteúdo e Tráfego Pago', checklist_template = '["Apresentação do conteúdo", "Definição dos responsáveis pela execução", "Definição do prazo de início"]'::jsonb WHERE visit_number = 5;
-UPDATE public.consulting_methodology_steps SET objective = 'Revisão dos Processos Críticos', checklist_template = '["Acessar o sistema com o proprietário e rever todos os processos implementados", "Pontuar quais processos precisarão de intervenção", "Reavaliar o Plano de Ação construído no P.E.", "Direcionar os processos críticos"]'::jsonb WHERE visit_number = 6;
-UPDATE public.consulting_methodology_steps SET objective = 'Plano de Desenvolvimento Individual (PDI)', checklist_template = '["Implementar o PDI da equipe e do Gerente", "Enviar relatório da performance nos treinamentos"]'::jsonb WHERE visit_number = 7;
-UPDATE public.consulting_methodology_steps SET objective = 'Avaliação Individual nos Treinamentos', checklist_template = '["Apresentação de Entrega dos PDIs", "Entrega do PDI", "Reforçar o treinamento para quem não atingiu a meta", "Avaliar as vendas por canal e dar direcionamento a equipe"]'::jsonb WHERE visit_number = 8;
-UPDATE public.consulting_methodology_steps SET objective = 'Análise das Implementações e Plano de Ação Trimestral', checklist_template = '["Analisar resultado do trimestre", "Apresentar os pontos positivos e a melhorar", "Solicitar Feedback", "Criar plano de ação dos próximos 3 meses", "Apresentar o modelo de acompanhamento online"]'::jsonb WHERE visit_number = 9;
+UPDATE public.consulting_methodology_steps SET objective = 'Rotina do Gerente e Rotina do Vendedor' WHERE visit_number = 3;
+UPDATE public.consulting_methodology_steps SET objective = 'Feedback Estruturado e Cultura de Resultado' WHERE visit_number = 4;
+UPDATE public.consulting_methodology_steps SET objective = 'Marketing, Conteúdo e Tráfego Pago' WHERE visit_number = 5;
+UPDATE public.consulting_methodology_steps SET objective = 'Revisão dos Processos Críticos' WHERE visit_number = 6;
+UPDATE public.consulting_methodology_steps SET objective = 'Plano de Desenvolvimento Individual (PDI)' WHERE visit_number = 7;
+UPDATE public.consulting_methodology_steps SET objective = 'Avaliação Individual nos Treinamentos' WHERE visit_number = 8;
+UPDATE public.consulting_methodology_steps SET objective = 'Análise das Implementações e Plano de Ação Trimestral' WHERE visit_number = 9;
+
+-- ============================================================
+-- DOWN
+-- ============================================================
+-- Only change here: removed checklist_template from all seven
+-- consulting_methodology_steps UPDATE statements above — a column that
+-- doesn't exist on that table (copy-paste from the
+-- consulting_visit_template_steps statements earlier in this file), which
+-- blocked this migration entirely on a from-scratch replay. No schema or
+-- data change to undo — the objective values were always written as shown.
