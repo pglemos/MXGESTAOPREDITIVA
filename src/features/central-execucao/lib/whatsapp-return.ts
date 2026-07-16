@@ -1,4 +1,5 @@
 export const CENTRAL_WHATSAPP_RETURN_KEY = 'ce_whatsapp_saida'
+const MIN_RETURN_AGE_MS = 750
 const MAX_RETURN_AGE_MS = 12 * 60 * 60 * 1_000
 
 export interface StorageLike {
@@ -29,15 +30,21 @@ export function consumeWhatsappReturn(storage: StorageLike, now = Date.now()): W
   const raw = storage.getItem(CENTRAL_WHATSAPP_RETURN_KEY)
   if (!raw) return null
 
-  storage.removeItem(CENTRAL_WHATSAPP_RETURN_KEY)
-
   try {
     const parsed: unknown = JSON.parse(raw)
-    if (!isDeparture(parsed)) return null
+    if (!isDeparture(parsed)) {
+      storage.removeItem(CENTRAL_WHATSAPP_RETURN_KEY)
+      return null
+    }
+
     const age = now - parsed.leftAt
+    if (age >= 0 && age < MIN_RETURN_AGE_MS) return null
+
+    storage.removeItem(CENTRAL_WHATSAPP_RETURN_KEY)
     if (age < 0 || age > MAX_RETURN_AGE_MS) return null
     return parsed
   } catch {
+    storage.removeItem(CENTRAL_WHATSAPP_RETURN_KEY)
     return null
   }
 }
