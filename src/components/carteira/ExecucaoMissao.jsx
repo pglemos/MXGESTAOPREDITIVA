@@ -1,13 +1,18 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, MessageCircle, Copy, Check, ChevronRight, SkipForward } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { getScriptParaMissao, preencherScript, resultadoParaMomento, calcularProximaAcao, RESULTADOS } from "./carteiraUtils";
 
 export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida }) {
-  const [indice, setIndice] = useState(0);
-  const [enviados, setEnviados] = useState(0);
-  const [pulados, setPulados] = useState(0);
+  const [indice, setIndice] = useState(missao?.indice_atual || 0);
+  const [enviados, setEnviados] = useState(missao?.mensagens_enviadas || 0);
+  const [pulados, setPulados] = useState(missao?.pulados || 0);
+  const [concluidos, setConcluidos] = useState(missao?.concluidos || 0);
+  const [visitasAgendadas, setVisitasAgendadas] = useState(missao?.visitas_agendadas || 0);
+  const [propostasSolicitadas, setPropostasSolicitadas] = useState(missao?.propostas_solicitadas || 0);
+  const [semInteresse, setSemInteresse] = useState(missao?.sem_interesse || 0);
+  const [naoResponderam, setNaoResponderam] = useState(missao?.nao_responderam || 0);
   const [copiado, setCopiado] = useState(false);
   const [scriptEditado, setScriptEditado] = useState("");
   const [etapa, setEtapa] = useState("enviando"); // "enviando" | "resultado" | "resumo"
@@ -23,6 +28,31 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
   const script = scriptEditado || scriptPreenchido;
   const tel = (clienteAtual?.whatsapp || "").replace(/\D/g, "");
   const waUrl = tel ? `https://wa.me/55${tel}?text=${encodeURIComponent(script)}` : null;
+
+  async function persistirMissao(patch) {
+    if (!missao?.id) return;
+    try {
+      await base44.entities.CarteiraMissao.update(missao.id, patch);
+    } catch (error) {
+      console.error("Falha ao persistir missão:", error);
+    }
+  }
+
+  useEffect(() => {
+    if (etapa !== "resumo") return;
+    persistirMissao({
+      status: "Aguardando respostas",
+      indice_atual: Math.min(indice, Math.max(total - 1, 0)),
+      mensagens_enviadas: enviados,
+      pulados,
+      concluidos,
+      visitas_agendadas: visitasAgendadas,
+      propostas_solicitadas: propostasSolicitadas,
+      sem_interesse: semInteresse,
+      nao_responderam: naoResponderam,
+      aguardando_resposta: enviados,
+    });
+  }, [etapa]);
 
   function copiar() {
     navigator.clipboard.writeText(script);
@@ -41,13 +71,26 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
     }
   }
 
-  function marcarEnviado() {
-    setEnviados(e => e + 1);
+  async function marcarEnviado() {
+    const next = enviados + 1;
+    setEnviados(next);
+    await persistirMissao({
+      status: "Enviando mensagens",
+      mensagens_enviadas: next,
+      indice_atual: indice,
+    });
     setEtapa("resultado");
   }
 
-  function pularCliente() {
-    setPulados(p => p + 1);
+  async function pularCliente() {
+    const next = pulados + 1;
+    const nextIndex = Math.min(indice + 1, Math.max(total - 1, 0));
+    setPulados(next);
+    await persistirMissao({
+      status: "Enviando mensagens",
+      pulados: next,
+      indice_atual: nextIndex,
+    });
     avancar();
     if (indice + 1 >= total) setEtapa("resumo");
   }
@@ -55,27 +98,75 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
   async function registrarResultado() {
     if (!resultado || !clienteAtual) return;
     setSalvando(true);
-    const { momento, temperatura } = resultadoParaMomento(resultado);
-    const update = { ultimo_contato: new Date().toISOString() };
-    if (momento) update.momento = momento;
-    if (temperatura) update.temperatura = temperatura;
-    update.proxima_acao = calcularProximaAcao({ ...clienteAtual, ...update });
-    await base44.entities.CarteiraCliente.update(clienteAtual.id, update);
-    await base44.entities.CarteiraHistorico.create({
-      cliente_id: clienteAtual.id,
-      tipo: "Missão: " + missao.nome,
-      descricao: `Resultado: ${resultado}`,
-      momento_anterior: clienteAtual.momento,
-      momento_novo: momento || clienteAtual.momento,
-    });
-    setSalvando(false);
-    avancar();
+    try {
+      const { momento, temperatura } = resultadoParaMomento(resultado);
+      const update = { ultimo_contato: new Date().toISOString() };
+      if (momento) update.momento = momento;
+      if (temperatura) update.temperatura = temperatura;
+      update.proxima_acao = calcularProximaAcao({ ...clienteAtual, ...update });
+      await base44.entities.CarteiraCliente.update(clienteAtual.id, update);
+      await base44.entities.CarteiraHistorico.create({
+        cliente_id: clienteAtual.id,
+        missao_id: missao.id,
+        tipo: "Missão: " + missao.nome,
+        descricao: `Resultado: ${resultado}`,
+        resultado,
+        momento_anterior: clienteAtual.momento,
+        momento_novo: momento || clienteAtual.momento,
+      });
+
+      const nextConcluidos = concluidos + 1;
+      const nextVisitas = visitasAgendadas + (["Agendou visita", "Reagendou visita"].includes(resultado) ? 1 : 0);
+      const nextPropostas = propostasSolicitadas + (resultado === "Pediu proposta" ? 1 : 0);
+      const nextSemInteresse = semInteresse + (["Sem interesse", "Comprou em outra loja"].includes(resultado) ? 1 : 0);
+      const nextNaoResponderam = naoResponderam + (resultado === "Cliente não respondeu" ? 1 : 0);
+      const nextIndex = Math.min(indice + 1, Math.max(total - 1, 0));
+
+      setConcluidos(nextConcluidos);
+      setVisitasAgendadas(nextVisitas);
+      setPropostasSolicitadas(nextPropostas);
+      setSemInteresse(nextSemInteresse);
+      setNaoResponderam(nextNaoResponderam);
+
+      await persistirMissao({
+        status: indice + 1 >= total ? "Aguardando respostas" : "Enviando mensagens",
+        indice_atual: nextIndex,
+        mensagens_enviadas: enviados,
+        pulados,
+        concluidos: nextConcluidos,
+        visitas_agendadas: nextVisitas,
+        propostas_solicitadas: nextPropostas,
+        sem_interesse: nextSemInteresse,
+        nao_responderam: nextNaoResponderam,
+        aguardando_resposta: Math.max(enviados - nextConcluidos, 0),
+      });
+      avancar();
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  async function handleVoltar() {
+    if (etapa !== "resumo") {
+      await persistirMissao({
+        status: "Pausada",
+        indice_atual: indice,
+        mensagens_enviadas: enviados,
+        pulados,
+        concluidos,
+        visitas_agendadas: visitasAgendadas,
+        propostas_solicitadas: propostasSolicitadas,
+        sem_interesse: semInteresse,
+        nao_responderam: naoResponderam,
+      });
+    }
+    onVoltar();
   }
 
   if (etapa === "resumo") {
     return (
       <div className="space-y-6">
-        <button onClick={onVoltar} className="flex items-center gap-1.5 text-sm text-[#005BFF] hover:underline">
+        <button onClick={handleVoltar} className="flex items-center gap-1.5 text-sm text-[#005BFF] hover:underline">
           <ArrowLeft className="w-4 h-4" /> Plano de Ataque
         </button>
         <div className="bg-white border border-slate-100 rounded-2xl p-8 text-center space-y-4">
@@ -100,7 +191,7 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
             <p className="text-xs font-bold text-amber-600 uppercase tracking-wide">Status da Missão</p>
             <p className="text-sm font-semibold text-amber-700 mt-0.5">Aguardando respostas</p>
           </div>
-          <Button onClick={onVoltar} className="w-full rounded-xl bg-[#005BFF] hover:bg-blue-700 text-white mt-2">
+          <Button onClick={handleVoltar} className="w-full rounded-xl bg-[#005BFF] hover:bg-blue-700 text-white mt-2">
             Voltar ao Plano de Ataque
           </Button>
         </div>
@@ -110,16 +201,14 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-xs text-slate-400">
-        <button onClick={onVoltar} className="hover:text-[#005BFF] transition-colors">Carteira de Clientes</button>
+        <button onClick={handleVoltar} className="hover:text-[#005BFF] transition-colors">Carteira de Clientes</button>
         <ChevronRight className="w-3 h-3" />
         <span>Plano de Ataque</span>
         <ChevronRight className="w-3 h-3" />
         <span className="text-[#031B3D] font-semibold">{missao.nome}</span>
       </div>
 
-      {/* Card de progresso */}
       <div className="bg-white border border-slate-100 rounded-2xl p-5 space-y-3">
         <div className="flex items-start justify-between">
           <div>
@@ -138,7 +227,7 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
             <p className="text-xs text-slate-400">Enviadas</p>
           </div>
           <div className="text-center">
-            <p className="text-xl font-black text-slate-400">{total - enviados - pulados}</p>
+            <p className="text-xl font-black text-slate-400">{Math.max(total - enviados - pulados, 0)}</p>
             <p className="text-xs text-slate-400">Pendentes</p>
           </div>
         </div>
@@ -153,7 +242,6 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
         </div>
       </div>
 
-      {/* Cliente atual */}
       {clienteAtual && etapa === "enviando" && (
         <div className="bg-white border border-slate-100 rounded-2xl p-5 space-y-4">
           <div className="flex items-center justify-between">
@@ -201,7 +289,6 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
         </div>
       )}
 
-      {/* Registrar resultado */}
       {clienteAtual && etapa === "resultado" && (
         <div className="bg-white border border-slate-100 rounded-2xl p-5 space-y-4">
           <div>
