@@ -62,3 +62,17 @@ DROP FUNCTION IF EXISTS public.set_manager_routine_logs_updated_at();
 -- optimization. Monitoring threshold: 200 concurrent users or LGPD
 -- compliance requirement. pg_stat_statements enabled for monitoring.
 -- No code change needed — this is documentation only.
+
+-- ============================================================
+-- DOWN
+-- ============================================================
+-- ALTER TABLE public.pdi_sessoes DROP CONSTRAINT IF EXISTS pdi_sessoes_loja_id_fkey;
+-- CREATE INDEX IF NOT EXISTS idx_checkins_store_date ON public.daily_checkins (store_id, reference_date);
+-- CREATE INDEX IF NOT EXISTS idx_checkins_seller_date ON public.daily_checkins (seller_user_id, reference_date);
+-- DROP INDEX IF EXISTS public.consulting_visits_client_visit_idx;
+-- DROP INDEX IF EXISTS public.consulting_financials_client_date_idx;
+-- Trigger consolidation (goals/pdis/daily_checkins/manager_routine_logs to
+-- update_updated_at_column_canonical) and the two dropped legacy functions
+-- (update_updated_at, set_manager_routine_logs_updated_at) are not restored
+-- by this rollback — the canonical function is a strict behavioral superset,
+-- so there is nothing functionally to undo.
