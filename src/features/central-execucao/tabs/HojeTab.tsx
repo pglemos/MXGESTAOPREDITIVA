@@ -69,7 +69,7 @@ export function HojeTab({
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-[14px] font-black text-[#0F172A]">O que você não pode deixar de fazer hoje</h2>
+          <h2 className="text-[14px] font-black text-mx-text">O que você não pode deixar de fazer hoje</h2>
           <p className="text-[12px] text-slate-400">Atividades previstas para hoje. Execute e registre o resultado.</p>
         </div>
         <div className="flex items-center gap-2">
@@ -77,14 +77,14 @@ export function HojeTab({
             aria-label="Ordenar atividades"
             value={order}
             onChange={event => setOrder(event.target.value as CentralOrder)}
-            className="h-8 w-[150px] rounded-xl border border-slate-200 bg-white px-3 text-[12px] font-semibold text-slate-600 outline-none focus:border-[#005BFF] focus:ring-2 focus:ring-[#005BFF]/15"
+            className="h-8 w-[150px] rounded-xl border border-slate-200 bg-white px-3 text-[12px] font-semibold text-slate-600 outline-none focus:border-status-info focus:ring-2 focus:ring-status-info/15"
           >
             <option value="prioridade">Prioridade</option>
             <option value="horario">Horário</option>
             <option value="tipo">Tipo</option>
             <option value="cliente">Cliente</option>
           </select>
-          <button type="button" onClick={onCreate} className="flex items-center gap-1.5 rounded-xl bg-[#005BFF] px-4 py-2 text-[12px] font-bold text-white shadow-sm shadow-blue-100 transition-colors hover:bg-blue-700">
+          <button type="button" onClick={onCreate} className="flex items-center gap-1.5 rounded-xl bg-status-info px-4 py-2 text-[12px] font-bold text-white shadow-sm shadow-blue-100 transition-colors hover:bg-blue-700">
             <Plus className="h-4 w-4" aria-hidden="true" /> Nova atividade
           </button>
         </div>

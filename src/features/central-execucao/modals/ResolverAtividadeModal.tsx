@@ -137,7 +137,7 @@ export function ResolverAtividadeModal({
           <button type="button" onClick={onClose} disabled={saving} className="rounded-xl border border-slate-200 px-5 py-2.5 text-[13px] font-semibold text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-50">
             Cancelar
           </button>
-          <button type="button" onClick={() => void handleConfirm()} disabled={!canConfirm || saving} className="rounded-xl bg-[#005BFF] px-6 py-2.5 text-[13px] font-bold text-white transition-colors hover:bg-blue-700 disabled:opacity-50">
+          <button type="button" onClick={() => void handleConfirm()} disabled={!canConfirm || saving} className="rounded-xl bg-status-info px-6 py-2.5 text-[13px] font-bold text-white transition-colors hover:bg-blue-700 disabled:opacity-50">
             {saving ? 'Salvando...' : 'Confirmar'}
           </button>
         </>
@@ -145,7 +145,7 @@ export function ResolverAtividadeModal({
     >
       <div className="space-y-5">
         <div className="space-y-1">
-          <p className="text-[13px] font-semibold text-[#0F172A]">{clientName}</p>
+          <p className="text-[13px] font-semibold text-mx-text">{clientName}</p>
           <p className="text-[12px] text-slate-400">{currentAction.title}{currentAction.description ? ` · ${currentAction.description}` : ''}</p>
           {vehicle && <p className="text-[12px] text-slate-500">{vehicle}</p>}
           <p className="text-[11px] text-slate-400">{formatDateTime(currentAction.dueAt)}</p>
@@ -157,7 +157,7 @@ export function ResolverAtividadeModal({
             id="central-result"
             value={resultCode}
             onChange={event => setResultCode(event.target.value as CentralResultCode)}
-            className="mt-1.5 h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-[13px] text-slate-700 outline-none focus:border-[#005BFF] focus:ring-2 focus:ring-[#005BFF]/15"
+            className="mt-1.5 h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-[13px] text-slate-700 outline-none focus:border-status-info focus:ring-2 focus:ring-status-info/15"
           >
             <option value="">Selecionar resultado</option>
             {options.map(option => <option key={option.code} value={option.code}>{option.label}</option>)}
@@ -167,14 +167,14 @@ export function ResolverAtividadeModal({
         {resultCode === 'sale_completed' && (
           <div>
             <label htmlFor="central-sale-value" className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Valor negociado</label>
-            <input id="central-sale-value" type="number" min="0" step="0.01" value={value} onChange={event => setValue(event.target.value)} placeholder="R$ 0,00" className="mt-1.5 h-10 w-full rounded-md border border-slate-200 px-3 text-[13px] outline-none focus:border-[#005BFF] focus:ring-2 focus:ring-[#005BFF]/15" />
+            <input id="central-sale-value" type="number" min="0" step="0.01" value={value} onChange={event => setValue(event.target.value)} placeholder="R$ 0,00" className="mt-1.5 h-10 w-full rounded-md border border-slate-200 px-3 text-[13px] outline-none focus:border-status-info focus:ring-2 focus:ring-status-info/15" />
           </div>
         )}
 
         {resultCode === 'sale_lost' && (
           <div>
             <label htmlFor="central-loss-reason" className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Motivo da perda</label>
-            <select id="central-loss-reason" value={lossReason} onChange={event => setLossReason(event.target.value)} className="mt-1.5 h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-[13px] outline-none focus:border-[#005BFF] focus:ring-2 focus:ring-[#005BFF]/15">
+            <select id="central-loss-reason" value={lossReason} onChange={event => setLossReason(event.target.value)} className="mt-1.5 h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-[13px] outline-none focus:border-status-info focus:ring-2 focus:ring-status-info/15">
               <option value="">Selecionar motivo</option>
               {LOSS_REASONS.map(reason => <option key={reason} value={reason}>{reason}</option>)}
             </select>
@@ -184,7 +184,7 @@ export function ResolverAtividadeModal({
         {selected?.requiresSchedule && (
           <div>
             <label htmlFor="central-reschedule" className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Nova data e horário</label>
-            <input id="central-reschedule" type="datetime-local" value={dueAt} onChange={event => setDueAt(event.target.value)} className="mt-1.5 h-10 w-full rounded-md border border-slate-200 px-3 text-[13px] outline-none focus:border-[#005BFF] focus:ring-2 focus:ring-[#005BFF]/15" />
+            <input id="central-reschedule" type="datetime-local" value={dueAt} onChange={event => setDueAt(event.target.value)} className="mt-1.5 h-10 w-full rounded-md border border-slate-200 px-3 text-[13px] outline-none focus:border-status-info focus:ring-2 focus:ring-status-info/15" />
           </div>
         )}
 
@@ -192,7 +192,7 @@ export function ResolverAtividadeModal({
           <label htmlFor="central-result-note" className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
             Observação {selected?.requiresNote ? '' : '(opcional)'}
           </label>
-          <textarea id="central-result-note" rows={3} value={note} onChange={event => setNote(event.target.value)} placeholder="Ex: cliente vai pensar até amanhã..." className="mt-1.5 w-full resize-none rounded-md border border-slate-200 px-3 py-2 text-[13px] outline-none focus:border-[#005BFF] focus:ring-2 focus:ring-[#005BFF]/15" />
+          <textarea id="central-result-note" rows={3} value={note} onChange={event => setNote(event.target.value)} placeholder="Ex: cliente vai pensar até amanhã..." className="mt-1.5 w-full resize-none rounded-md border border-slate-200 px-3 py-2 text-[13px] outline-none focus:border-status-info focus:ring-2 focus:ring-status-info/15" />
         </div>
 
         {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[12px] font-semibold text-red-700">{error}</p>}

@@ -152,7 +152,7 @@ export function CentralExecucaoPage() {
   }, [createManualAction, refetch, showSuccess])
 
   return (
-    <div className="min-h-full bg-[#F8FAFC] text-[#0F172A]">
+    <div className="min-h-full bg-mx-bg text-mx-text">
       <CentralHeader />
       <CentralTabs value={tab} onChange={setTab} />
 

@@ -54,10 +54,10 @@ export function FiltrosAtividade({
             aria-pressed={active}
             onClick={() => onChange(filter.id)}
             className={cn(
-              'flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[12px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#005BFF]/30',
+              'flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[12px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-info/30',
               active
-                ? 'border-[#005BFF] bg-[#005BFF] text-white'
-                : 'border-slate-200 bg-white text-slate-600 hover:border-[#005BFF] hover:text-[#005BFF]',
+                ? 'border-status-info bg-status-info text-white'
+                : 'border-slate-200 bg-white text-slate-600 hover:border-status-info hover:text-status-info',
             )}
           >
             {filter.label}

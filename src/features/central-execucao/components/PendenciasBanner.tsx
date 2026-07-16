@@ -9,7 +9,7 @@ export function PendenciasBanner({ count, onOpen }: { count: number; onOpen: () 
       <p className="flex-1 text-[13px] font-semibold text-amber-800">
         Você possui {count} pendência{count > 1 ? 's' : ''} de dias anteriores.
       </p>
-      <button type="button" onClick={onOpen} className="shrink-0 text-[12px] font-bold text-[#005BFF] hover:underline">
+      <button type="button" onClick={onOpen} className="shrink-0 text-[12px] font-bold text-status-info hover:underline">
         Ver pendências
       </button>
     </div>

@@ -151,7 +151,7 @@ export function AtividadeCard({
               {initials(clientName)}
             </div>
             <div className="min-w-0">
-              <p className="truncate text-[14px] font-bold text-[#0F172A]">{clientName}</p>
+              <p className="truncate text-[14px] font-bold text-mx-text">{clientName}</p>
               {vehicle && <p className="truncate text-[12px] text-slate-400">{vehicle}</p>}
             </div>
           </div>
@@ -174,11 +174,11 @@ export function AtividadeCard({
               </a>
             )}
             {action.clientId && (
-              <button type="button" onClick={() => onOpenClient(action)} className="flex items-center gap-1 rounded-lg border border-blue-200 px-3 py-1.5 text-[11px] font-bold text-[#005BFF] transition-colors hover:bg-blue-50">
+              <button type="button" onClick={() => onOpenClient(action)} className="flex items-center gap-1 rounded-lg border border-blue-200 px-3 py-1.5 text-[11px] font-bold text-status-info transition-colors hover:bg-blue-50">
                 <UserRound className="h-3 w-3" aria-hidden="true" /> Cliente
               </button>
             )}
-            <button type="button" onClick={() => onResolve(action)} className="ml-auto rounded-lg bg-[#005BFF] px-4 py-1.5 text-[12px] font-bold text-white transition-colors hover:bg-blue-700">
+            <button type="button" onClick={() => onResolve(action)} className="ml-auto rounded-lg bg-status-info px-4 py-1.5 text-[12px] font-bold text-white transition-colors hover:bg-blue-700">
               Resolver
             </button>
           </div>
@@ -201,7 +201,7 @@ export function AtividadeCard({
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <p className="truncate text-[14px] font-bold text-[#0F172A]">{clientName}</p>
+                <p className="truncate text-[14px] font-bold text-mx-text">{clientName}</p>
                 <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold', TYPE_BADGE[action.activityType])}>{typeLabel}</span>
                 {overdue && <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-500">Vencido</span>}
               </div>
@@ -222,11 +222,11 @@ export function AtividadeCard({
               </a>
             )}
             {action.clientId && (
-              <button type="button" title="Abrir cliente" aria-label={`Abrir cliente ${clientName}`} onClick={() => onOpenClient(action)} className="rounded-xl bg-blue-50 p-2 text-[#005BFF] transition-colors hover:bg-blue-100">
+              <button type="button" title="Abrir cliente" aria-label={`Abrir cliente ${clientName}`} onClick={() => onOpenClient(action)} className="rounded-xl bg-blue-50 p-2 text-status-info transition-colors hover:bg-blue-100">
                 <UserRound className="h-4 w-4" aria-hidden="true" />
               </button>
             )}
-            <button type="button" onClick={() => onResolve(action)} className="ml-1 rounded-xl bg-[#005BFF] px-4 py-2 text-[12px] font-bold text-white transition-colors hover:bg-blue-700">
+            <button type="button" onClick={() => onResolve(action)} className="ml-1 rounded-xl bg-status-info px-4 py-2 text-[12px] font-bold text-white transition-colors hover:bg-blue-700">
               Resolver
             </button>
           </div>

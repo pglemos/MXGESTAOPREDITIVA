@@ -41,10 +41,10 @@ export function FichaClienteSheet({
     <Dialog.Root open={open} onOpenChange={next => { if (!next) onClose() }}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-[110] bg-black/30" />
-        <Dialog.Content className="fixed inset-y-0 right-0 z-[111] flex w-full max-w-[560px] flex-col bg-[#F8FAFC] shadow-2xl focus:outline-none">
+        <Dialog.Content className="fixed inset-y-0 right-0 z-[111] flex w-full max-w-[560px] flex-col bg-mx-bg shadow-2xl focus:outline-none">
           <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-5">
             <div className="min-w-0">
-              <Dialog.Title className="truncate text-[17px] font-black text-[#0F172A]">Ficha do cliente</Dialog.Title>
+              <Dialog.Title className="truncate text-[17px] font-black text-mx-text">Ficha do cliente</Dialog.Title>
               <Dialog.Description className="truncate text-[12px] text-slate-400">Histórico comercial sem sair da Central</Dialog.Description>
             </div>
             <Dialog.Close asChild>
@@ -68,42 +68,42 @@ export function FichaClienteSheet({
                 <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <h2 className="truncate text-[18px] font-black text-[#0F172A]">{client.nome}</h2>
+                      <h2 className="truncate text-[18px] font-black text-mx-text">{client.nome}</h2>
                       <p className="mt-1 flex items-center gap-1.5 text-[13px] text-slate-500"><Phone className="h-3.5 w-3.5" aria-hidden="true" />{client.telefone || 'Sem telefone'}</p>
                     </div>
-                    <span className="rounded-full bg-blue-50 px-3 py-1 text-[11px] font-bold capitalize text-[#005BFF]">{humanize(client.status)}</span>
+                    <span className="rounded-full bg-blue-50 px-3 py-1 text-[11px] font-bold capitalize text-status-info">{humanize(client.status)}</span>
                   </div>
                   {client.observacoes && <p className="mt-4 rounded-xl bg-slate-50 p-3 text-[12px] leading-5 text-slate-600">{client.observacoes}</p>}
                 </section>
 
                 <section className="grid grid-cols-2 gap-3">
                   <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                    <Car className="mb-2 h-4 w-4 text-[#005BFF]" aria-hidden="true" />
+                    <Car className="mb-2 h-4 w-4 text-status-info" aria-hidden="true" />
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Veículo</p>
-                    <p className="mt-1 text-[13px] font-bold text-[#0F172A]">{opportunity?.veiculo_interesse || '—'}</p>
+                    <p className="mt-1 text-[13px] font-bold text-mx-text">{opportunity?.veiculo_interesse || '—'}</p>
                   </div>
                   <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                    <CircleDollarSign className="mb-2 h-4 w-4 text-[#005BFF]" aria-hidden="true" />
+                    <CircleDollarSign className="mb-2 h-4 w-4 text-status-info" aria-hidden="true" />
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Valor</p>
-                    <p className="mt-1 text-[13px] font-bold text-[#0F172A]">{formatCurrency(opportunity?.valor_negociado)}</p>
+                    <p className="mt-1 text-[13px] font-bold text-mx-text">{formatCurrency(opportunity?.valor_negociado)}</p>
                   </div>
                   <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Etapa</p>
-                    <p className="mt-1 text-[13px] font-bold capitalize text-[#0F172A]">{humanize(opportunity?.etapa)}</p>
+                    <p className="mt-1 text-[13px] font-bold capitalize text-mx-text">{humanize(opportunity?.etapa)}</p>
                     <p className="mt-1 text-[11px] text-slate-400">Financiamento: {humanize(opportunity?.financiamento)}</p>
                   </div>
                   <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                    <CalendarClock className="mb-2 h-4 w-4 text-[#005BFF]" aria-hidden="true" />
+                    <CalendarClock className="mb-2 h-4 w-4 text-status-info" aria-hidden="true" />
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Próxima ação</p>
-                    <p className="mt-1 text-[13px] font-bold text-[#0F172A]">{client.proxima_acao || '—'}</p>
+                    <p className="mt-1 text-[13px] font-bold text-mx-text">{client.proxima_acao || '—'}</p>
                     <p className="mt-1 text-[11px] text-slate-400">{formatDate(client.proxima_acao_em)}</p>
                   </div>
                 </section>
 
                 <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                   <div className="mb-4 flex items-center gap-2">
-                    <History className="h-4 w-4 text-[#005BFF]" aria-hidden="true" />
-                    <h3 className="text-[14px] font-black text-[#0F172A]">Histórico</h3>
+                    <History className="h-4 w-4 text-status-info" aria-hidden="true" />
+                    <h3 className="text-[14px] font-black text-mx-text">Histórico</h3>
                   </div>
 
                   {timeline.length === 0 ? (
@@ -113,13 +113,13 @@ export function FichaClienteSheet({
                       {timeline.map((item, index) => (
                         <li key={item.id} className="relative flex gap-3 pb-5 last:pb-0">
                           {index < timeline.length - 1 && <span className="absolute left-[5px] top-3 h-full w-px bg-slate-200" />}
-                          <span className="relative mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-white bg-[#005BFF] ring-1 ring-blue-200" />
+                          <span className="relative mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-white bg-status-info ring-1 ring-blue-200" />
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center justify-between gap-2">
-                              <p className="text-[12px] font-bold capitalize text-[#0F172A]">{humanize(item.title)}</p>
+                              <p className="text-[12px] font-bold capitalize text-mx-text">{humanize(item.title)}</p>
                               <time className="text-[10px] text-slate-400">{formatDate(item.date)}</time>
                             </div>
-                            {item.status && <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-[#005BFF]">{humanize(item.status)}</p>}
+                            {item.status && <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-status-info">{humanize(item.status)}</p>}
                             {item.description && <p className="mt-1 text-[12px] leading-5 text-slate-500">{item.description}</p>}
                           </div>
                         </li>
