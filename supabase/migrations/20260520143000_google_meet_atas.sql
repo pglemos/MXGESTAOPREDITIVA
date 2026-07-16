@@ -29,7 +29,7 @@ DROP TRIGGER IF EXISTS reunioes_google_meet_atas_updated_at ON public.reunioes_g
 CREATE TRIGGER reunioes_google_meet_atas_updated_at
   BEFORE UPDATE ON public.reunioes_google_meet_atas
   FOR EACH ROW
-  EXECUTE FUNCTION public.update_updated_at();
+  EXECUTE FUNCTION public.update_updated_at_column_canonical();
 
 ALTER TABLE public.reunioes_google_meet_atas ENABLE ROW LEVEL SECURITY;
 
