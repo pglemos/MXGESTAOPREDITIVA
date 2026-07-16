@@ -90,3 +90,10 @@ REVOKE ALL ON FUNCTION public.configure_google_meet_ata_cron(text, text, text) F
 GRANT EXECUTE ON FUNCTION public.configure_google_meet_ata_cron(text, text, text) TO service_role;
 
 NOTIFY pgrst, 'reload schema';
+
+-- ============================================================
+-- DOWN
+-- ============================================================
+-- Only change here: the updated_at trigger now calls
+-- update_updated_at_column_canonical() instead of the already-dropped
+-- update_updated_at(). Same behavior, nothing to roll back for this edit.
