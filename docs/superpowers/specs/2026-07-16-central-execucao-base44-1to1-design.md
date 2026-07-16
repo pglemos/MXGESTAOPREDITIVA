@@ -6,7 +6,7 @@
 **Referência visual e funcional:** Base44 app `6a3b2a814401f8c6bf1653df`, rota `/execucao`  
 **Rotas de produção:** `/central-execucao` e `/central-de-execucao`  
 **Data:** 16 de julho de 2026  
-**Status:** Aprovado para planejamento de implementação
+**Status:** Aprovado conceitualmente e aguardando revisão desta especificação escrita
 
 ---
 
@@ -15,16 +15,40 @@
 A implementação seguirá a **Opção B**:
 
 - reproduzir o design, a experiência, os fluxos e os estados da rota `/execucao` do Base44 com fidelidade visual e comportamental 1:1;
-- manter a arquitetura normalizada do MX Gestão Preditiva;
-- não importar entidades legadas ou concorrentes do Base44 como fonte paralela;
-- integrar a Central diretamente com Carteira, Fechamento Diário, CRM, agendamentos, oportunidades, eventos comerciais, WhatsApp, módulo gerencial, Supabase e Vercel;
-- substituir a Central atual diretamente no `main`, sem feature flag.
+- manter e evoluir a arquitetura normalizada do MX Gestão Preditiva;
+- não importar entidades legadas ou concorrentes do Base44 como fontes paralelas;
+- integrar a Central diretamente com Carteira, Fechamento Diário, CRM, agendamentos, oportunidades, eventos comerciais, PDI, feedbacks, WhatsApp e módulo gerencial;
+- substituir a Central atual diretamente no `main`, sem feature flag;
+- aplicar migrations aditivas e reversíveis antes da troca do frontend;
+- publicar no projeto Vercel `mxperformance` somente após os gates de banco, testes, build e validação visual.
 
-A implementação não deverá copiar defeitos arquiteturais do Base44. O Base44 será a referência de experiência, interface, conteúdo e comportamento. O Supabase do MX será a fonte de verdade operacional.
+O Base44 será a referência de interface, conteúdo e comportamento. O Supabase do MX será a fonte de verdade operacional.
 
 ---
 
-## 2. Objetivo
+## 2. Correção arquitetural da auto-revisão
+
+O banco atual já possui a tabela `public.execution_actions`, o hook `useExecutionActions`, RPCs de conclusão e integrações existentes com PDI, feedback, funil e rotina gerencial.
+
+Portanto, esta especificação **não criará uma segunda tabela `atividades_execucao`**. Criar outra tabela produziria exatamente o problema que esta migração pretende eliminar: duas filas concorrentes afirmando representar a execução do vendedor.
+
+A decisão final é:
+
+> **Evoluir `public.execution_actions` para ser a fila operacional canônica da Central de Execução.**
+
+As tabelas de domínio continuam responsáveis pelos fatos que representam:
+
+- `clientes`: identidade e carteira;
+- `oportunidades`: negociação e funil;
+- `agendamentos`: compromissos comerciais com data e hora;
+- `eventos_comerciais`: fatos comerciais imutáveis;
+- `execution_actions`: trabalho operacional a executar, resolver, reagendar ou escalar.
+
+A fila será ligada aos fatos por chaves estrangeiras e idempotência. Ela não duplicará a responsabilidade de `agendamentos` nem transformará `execution_actions` em um cadastro monolítico de cliente.
+
+---
+
+## 3. Objetivo
 
 Transformar a Central de Execução em uma área operacional completa para o vendedor, capaz de:
 
@@ -32,20 +56,20 @@ Transformar a Central de Execução em uma área operacional completa para o ven
 2. priorizar atividades por atraso, tipo, importância e contexto comercial;
 3. permitir resolução específica por tipo de atividade;
 4. registrar resultado, observação, responsável e horário;
-5. reagendar sem duplicar registros;
+5. reagendar sem duplicar compromisso ou oportunidade;
 6. abrir a ficha completa do cliente sem perder o contexto da execução;
 7. retomar o registro automaticamente após o retorno do WhatsApp;
-8. escalar situações para o gerente;
-9. sincronizar Carteira, Fechamento, CRM, Funil, indicadores e eventos;
+8. escalar situações ao gerente;
+9. sincronizar Carteira, Fechamento, CRM, Funil, PDI, feedbacks e indicadores;
 10. reproduzir visualmente a experiência Base44 sem interpretações livres.
 
 ---
 
-## 3. Definição obrigatória de “design 1:1”
+## 4. Definição obrigatória de design 1:1
 
 “1:1” não significa “inspirado”, “parecido” ou “mesma ideia”. Significa correspondência verificável entre a referência Base44 e o MX.
 
-### 3.1 Elementos obrigatórios de fidelidade
+### 4.1 Elementos obrigatórios de fidelidade
 
 A reprodução deverá cobrir:
 
@@ -55,71 +79,61 @@ A reprodução deverá cobrir:
 - margens externas;
 - espaçamentos internos;
 - altura e densidade dos componentes;
-- tipografia por nível;
-- peso, tamanho e altura de linha;
+- família, peso, tamanho e altura de linha da tipografia;
 - cores de fundo, texto, borda e estados;
 - raios de borda;
 - sombras;
 - divisores;
-- ícones;
-- espessura dos ícones;
-- tamanhos dos ícones;
-- badges;
-- chips;
-- estados ativos, hover, focus, pressed e disabled;
-- filtros;
-- ordenação;
-- cards;
-- banners;
+- ícones, tamanhos e espessuras;
+- badges e chips;
+- estados active, hover, focus, pressed e disabled;
+- filtros e ordenação;
+- cards e banners;
 - dropdowns;
 - modais;
 - sheets laterais;
 - estados vazios;
-- estados de carregamento;
-- estados de erro;
+- carregamento;
+- erro;
 - animações e transições;
 - comportamento responsivo;
-- conteúdo textual exibido;
+- conteúdo textual;
 - sequência dos fluxos;
 - resultado de cada clique.
 
-### 3.2 Matriz de validação visual
+### 4.2 Matriz de validação
 
-A validação deverá ser realizada, no mínimo, nas seguintes larguras:
-
-| Perfil | Largura de validação |
+| Perfil | Largura mínima de validação |
 |---|---:|
 | Desktop amplo | 1440 px |
 | Notebook | 1280 px |
 | Tablet | 768 px |
 | Mobile | 390 px |
 
-Cada tela e estado deverá ter comparação lado a lado com a referência Base44.
+Cada estado deverá possuir captura da referência Base44 e captura do MX no mesmo viewport.
 
-### 3.3 Tolerância visual
-
-Para elementos mensuráveis, a tolerância máxima será:
+### 4.3 Tolerância visual
 
 - posição e dimensão: até 2 px;
 - espaçamento: até 2 px;
-- raio: correspondência exata ao token ou valor da referência;
-- cor: correspondência visual e, quando possível, hexadecimal/RGB equivalente;
-- tipografia: mesma família ou substituta aprovada com métricas equivalentes;
-- ícone: mesmo desenho ou equivalente visual validado;
+- raio: valor correspondente à referência;
+- cor: equivalente hexadecimal ou RGB quando mensurável;
+- tipografia: mesma família ou substituta com métricas equivalentes;
+- ícone: mesmo desenho ou equivalente validado;
 - animação: mesma intenção, duração e curva perceptível.
 
-### 3.4 Inventário obrigatório de estados
+### 4.4 Inventário obrigatório de estados
 
-A implementação não será considerada 1:1 se reproduzir somente o estado inicial. Deverão ser capturados e validados:
+A validação incluirá, no mínimo:
 
 - aba Hoje vazia;
 - aba Hoje com atividades;
 - atividade vencida;
-- atividade por tipo;
+- cada tipo de atividade;
 - filtros ativos;
 - ordenação alterada;
 - pendências anteriores;
-- nova atividade, etapa de escolha de tipo;
+- nova atividade, seleção de tipo;
 - nova atividade, formulário;
 - cliente encontrado;
 - cliente não encontrado;
@@ -128,50 +142,52 @@ A implementação não será considerada 1:1 se reproduzir somente o estado inic
 - resolver entrega;
 - resolver garantia;
 - resolver pós-venda;
+- resolver documentação;
 - registrar venda;
 - registrar perda;
 - reagendar;
-- escalar para gerente;
+- cancelar;
+- escalar ao gerente;
 - ficha lateral do cliente;
 - retorno do WhatsApp;
 - aba Rotina do Dia;
 - etapa atual;
 - etapa futura;
 - etapa concluída;
-- conflito entre rotina e cliente agendado;
-- estado de carregamento;
+- conflito com cliente agendado;
+- carregamento;
 - erro recuperável;
-- modo mobile.
+- offline;
+- desktop, tablet e mobile.
 
 ---
 
-## 4. Escopo funcional
+## 5. Escopo funcional
 
-### 4.1 Aba Hoje
+### 5.1 Aba Hoje
 
 A aba Hoje deverá apresentar:
 
 - cabeçalho da página;
 - data atual;
-- navegação entre Hoje e Rotina do Dia;
+- navegação Hoje e Rotina do Dia;
 - banner de pendências anteriores;
-- título operacional;
-- texto de apoio;
+- título operacional e texto de apoio;
 - seletor de ordenação;
 - botão Nova atividade;
 - filtros por tipo;
 - contadores por filtro;
-- lista priorizada de atividades;
+- lista priorizada;
 - estado vazio;
 - ações rápidas;
-- modal de resolução;
+- modal de resolução por tipo;
 - modal de reagendamento;
 - modal de venda;
 - modal de perda;
 - modal de escalonamento;
 - ficha lateral do cliente.
 
-### 4.2 Aba Rotina do Dia
+### 5.2 Aba Rotina do Dia
 
 A aba Rotina do Dia deverá apresentar:
 
@@ -185,16 +201,17 @@ A aba Rotina do Dia deverá apresentar:
 - atalhos;
 - ações de prospecção;
 - roteiro “Ver como fazer”;
-- alerta de conflito com cliente agendado;
+- alerta de conflito;
 - linha do tempo lateral no desktop;
 - versão compacta no mobile;
 - recomendações contextuais baseadas em dados reais.
 
-### 4.3 Tipos de atividade
+### 5.3 Tipos canônicos de execução
 
-Tipos canônicos:
+`execution_actions.activity_type` aceitará:
 
 - `atendimento`;
+- `visita`;
 - `retorno`;
 - `documentacao`;
 - `entrega`;
@@ -202,33 +219,34 @@ Tipos canônicos:
 - `aniversario`;
 - `garantia`;
 - `comercial`;
-- `visita`;
 - `test_drive`;
-- `negociacao`.
+- `negociacao`;
+- `pdi`;
+- `feedback`;
+- `funil`.
 
-Tipos semelhantes poderão compartilhar componentes, mas deverão permanecer filtráveis, mensuráveis e distinguíveis.
+Tipos semelhantes poderão compartilhar componentes, mas continuarão filtráveis, mensuráveis e distinguíveis.
 
 ---
 
-## 5. Não objetivos
+## 6. Não objetivos
 
 Não faz parte deste trabalho:
 
 - importar o banco Base44;
 - manter sincronização bidirecional com Base44;
-- copiar `Client`, `CarteiraCliente`, `ExecutionOpportunity` e `AtividadeExecucao` como fontes concorrentes;
+- copiar `Client`, `CarteiraCliente`, `ExecutionOpportunity` ou `AtividadeExecucao` como fontes concorrentes;
+- criar uma segunda fila operacional;
+- apagar `execution_actions` existente;
 - alterar módulos não relacionados sem necessidade comprovada;
 - redesenhar a identidade global do MX;
 - substituir o Supabase;
-- criar uma segunda Central paralela;
-- manter feature flag após a publicação;
-- esconder funcionalidades incompletas atrás de botões sem ação.
+- esconder funcionalidades incompletas atrás de botões sem ação;
+- permitir que o frontend faça mutações críticas em várias tabelas sem transação.
 
 ---
 
-## 6. Arquitetura de frontend
-
-A atual concentração de responsabilidades deverá ser substituída por módulos com responsabilidades claras.
+## 7. Arquitetura de frontend
 
 ```text
 src/features/central-execucao/
@@ -260,8 +278,8 @@ src/features/central-execucao/
 │   ├── RegistrarPerdaModal.tsx
 │   └── EscalarGerenteModal.tsx
 ├── hooks/
-│   ├── useAtividadesExecucao.ts
-│   ├── useAtividadeMutations.ts
+│   ├── useExecutionActions.ts
+│   ├── useExecutionActionMutations.ts
 │   ├── useRotinaContextual.ts
 │   ├── useWhatsappReturn.ts
 │   └── useCentralFilters.ts
@@ -275,380 +293,470 @@ src/features/central-execucao/
     └── central-execucao.types.ts
 ```
 
-### 6.1 Regras de componentização
+### 7.1 Regras de componentização
 
 - componentes visuais não acessam Supabase diretamente;
-- hooks encapsulam leitura e mutação;
-- regras de negócio puras ficam em `lib`;
+- hooks encapsulam consultas e RPCs;
+- regras puras ficam em `lib`;
 - modais recebem dados e callbacks tipados;
-- nenhum componente deverá conhecer detalhes internos de mais de um domínio;
-- componentes devem ser testáveis de forma isolada;
-- a página apenas compõe os módulos.
+- a página apenas compõe módulos;
+- o arquivo atual `CentralExecucao.container.tsx` será reduzido progressivamente, sem refatoração paralela sem teste;
+- o hook atual `src/features/crm/hooks/useExecutionActions.ts` será evoluído, não duplicado com outro hook concorrente.
 
 ---
 
-## 7. Arquitetura de dados
+## 8. Modelo canônico de dados
 
-### 7.1 Fonte única
-
-A Central terá uma única fonte canônica de execução:
+### 8.1 Fonte operacional
 
 ```text
-atividades_execucao
+public.execution_actions
 ```
 
-A tabela não substituirá clientes, oportunidades ou agendamentos. Ela representará o trabalho operacional que precisa ser executado e o histórico de sua resolução.
+### 8.2 Responsabilidade de cada tabela
 
-### 7.2 Relacionamentos
+| Tabela | Responsabilidade |
+|---|---|
+| `clientes` | identidade, contato, carteira, resumo da próxima ação |
+| `oportunidades` | negociação, etapa do funil, venda e perda |
+| `agendamentos` | compromisso comercial com data e hora |
+| `eventos_comerciais` | fatos comerciais imutáveis |
+| `execution_actions` | fila operacional e ciclo de execução |
 
-```text
-atividades_execucao
-├── cliente_id → clientes.id
-├── oportunidade_id → oportunidades.id
-├── agendamento_id → agendamentos.id
-├── evento_id → eventos_comerciais.id
-├── loja_id → lojas.id
-├── seller_user_id → auth.users.id
-├── gerente_id → auth.users.id
-└── resolvido_por → auth.users.id
-```
+### 8.3 Campos existentes preservados
 
-### 7.3 Campos
+- `id`;
+- `store_id`;
+- `seller_id`;
+- `source_type`;
+- `source_id`;
+- `title`;
+- `description`;
+- `due_at`;
+- `status`;
+- `priority`;
+- `alert_tone`;
+- `created_by`;
+- `completed_at`;
+- `completed_by`;
+- `justificativa`;
+- `metadata`;
+- `created_at`;
+- `updated_at`;
+- `updated_by`.
+
+### 8.4 Campos aditivos propostos
 
 ```sql
-id uuid primary key
-cliente_id uuid null
-oportunidade_id uuid null
-agendamento_id uuid null
-evento_id uuid null
-loja_id uuid not null
-seller_user_id uuid not null
+client_id uuid null references public.clientes(id)
+opportunity_id uuid null references public.oportunidades(id)
+appointment_id uuid null references public.agendamentos(id)
+event_id uuid null references public.eventos_comerciais(id)
+parent_action_id uuid null references public.execution_actions(id)
 
-tipo text not null
-titulo text not null
-descricao text null
-objetivo text null
-prioridade integer not null default 5
+activity_type text not null default 'comercial'
+objective text null
+result_code text null
+result_observation text null
 
-data_hora_execucao timestamptz not null
-status_execucao text not null default 'pendente'
-resultado text null
-observacao_resultado text null
+client_name_snapshot text null
+phone_snapshot text null
+vehicle_snapshot text null
 
-nome_cliente_snapshot text null
-telefone_snapshot text null
-veiculo_snapshot text null
-
-origem_modulo text not null
+origin_module text not null default 'central_execucao'
 source_record_id text null
-criado_automaticamente boolean not null default false
-ativo boolean not null default true
+idempotency_key text null
+is_automatic boolean not null default false
+active boolean not null default true
+started_at timestamptz null
 
-resolvido_em timestamptz null
-resolvido_por uuid null
-
-necessita_gerente boolean not null default false
-motivo_escalonamento text null
-gerente_id uuid null
-escalado_em timestamptz null
-
-created_at timestamptz not null default now()
-updated_at timestamptz not null default now()
+manager_required boolean not null default false
+manager_id uuid null references public.usuarios(id)
+escalation_reason text null
+escalated_at timestamptz null
 ```
 
-### 7.4 Status
+`completed_at` e `completed_by` continuarão representando o encerramento. Não serão criados pares redundantes `resolved_at` e `resolved_by`.
 
-Valores permitidos:
+### 8.5 Expansão de `source_type`
+
+Valores existentes serão preservados:
+
+- `pdi`;
+- `feedback`;
+- `funil`;
+- `manual`.
+
+Novos valores:
+
+- `agendamento`;
+- `fechamento`;
+- `carteira`;
+- `cadencia`;
+- `sistema`.
+
+### 8.6 Ciclo de status
+
+Valores existentes preservados:
 
 - `pendente`;
 - `em_andamento`;
-- `resolvida`;
-- `reagendada`;
+- `concluida`;
+- `justificada`;
 - `cancelada`.
 
-### 7.5 Índices
+Novo valor:
 
-Índices mínimos:
+- `reagendada`.
+
+Regras:
+
+- `concluida`: resultado operacional confirmado;
+- `justificada`: ação de PDI ou feedback não concluída, mas formalmente justificada;
+- `reagendada`: ocorrência original encerrada por mudança de data, vinculada à sucessora por `parent_action_id`;
+- `cancelada`: encerrada sem sucessora;
+- uma ação concluída, justificada, reagendada ou cancelada não pode voltar a pendente por update comum.
+
+### 8.7 Data resumida do cliente
+
+`clientes.proxima_acao_em` é atualmente `date`. Ela continuará como resumo diário da próxima ação.
+
+A hora exata será mantida em:
+
+- `execution_actions.due_at`;
+- `agendamentos.data_hora`, quando houver compromisso comercial.
+
+A migration não mudará silenciosamente `clientes.proxima_acao_em` para `timestamptz`. Qualquer mudança desse tipo exigiria auditoria de todos os consumidores do campo.
+
+### 8.8 Índices e unicidade
 
 ```sql
-(loja_id, seller_user_id, data_hora_execucao)
-(seller_user_id, status_execucao, data_hora_execucao)
-(cliente_id, data_hora_execucao desc)
-(oportunidade_id)
-(agendamento_id)
-(source_record_id)
-(necessita_gerente, gerente_id, status_execucao)
+CREATE INDEX ... ON execution_actions (seller_id, status, due_at);
+CREATE INDEX ... ON execution_actions (store_id, status, due_at);
+CREATE INDEX ... ON execution_actions (client_id, due_at DESC);
+CREATE INDEX ... ON execution_actions (appointment_id);
+CREATE INDEX ... ON execution_actions (opportunity_id);
+CREATE INDEX ... ON execution_actions (manager_required, manager_id, status);
+CREATE UNIQUE INDEX ... ON execution_actions (source_record_id)
+  WHERE source_record_id IS NOT NULL;
+CREATE UNIQUE INDEX ... ON execution_actions (idempotency_key)
+  WHERE idempotency_key IS NOT NULL;
 ```
 
-`source_record_id` deverá possuir restrição única quando preenchido, evitando duplicação em rotinas automáticas e retries.
+### 8.9 Snapshots
 
-### 7.6 Snapshots
+Atividades avulsas e históricos preservarão:
 
-Atividades avulsas e registros históricos deverão preservar:
-
-- nome do cliente;
+- nome;
 - telefone;
 - veículo.
 
-Esses dados não serão armazenados dentro de `observacoes` como texto improvisado. Campos estruturados permitirão busca, relatórios e vinculação posterior.
+Esses dados não serão concatenados dentro de `description` ou `observacoes` como substituto de modelagem.
 
 ---
 
-## 8. Segurança e RLS
+## 9. Compatibilidade com integrações existentes
 
-### 8.1 Vendedor
+### 9.1 PDI
+
+O fluxo atual que envia `pdi_plano_acao` para `execution_actions` será preservado.
+
+A migration deverá:
+
+- manter `source_type = 'pdi'`;
+- manter `source_id` apontando para a ação do PDI;
+- preencher `activity_type = 'pdi'`;
+- não criar uma segunda ação para registros já enviados;
+- preservar `central_enviada_at`.
+
+### 9.2 Feedback e devolutivas
+
+`devolutiva_acoes` continuará como registro de domínio do feedback. A Central receberá ou atualizará uma linha correspondente em `execution_actions` com idempotência.
+
+### 9.3 Funil
+
+Ações atuais de funil continuarão válidas. O novo modelo apenas acrescentará vínculos explícitos com cliente e oportunidade quando disponíveis.
+
+### 9.4 Agendamentos
+
+`agendamentos` continuará representando compromissos. Cada compromisso pendente elegível terá uma ação canônica em `execution_actions`.
+
+A relação será um para um por `appointment_id` para a ocorrência ativa.
+
+### 9.5 Fonte da listagem
+
+Após o backfill e a validação, a aba Hoje lerá `execution_actions` como fila principal.
+
+Dados de cliente, oportunidade e agendamento serão carregados por relacionamentos. O frontend não mesclará três listas e depois tentará deduplicar por nome ou tipo.
+
+---
+
+## 10. Segurança e RLS
+
+### 10.1 Vendedor
 
 O vendedor poderá:
 
-- listar atividades próprias;
-- criar atividade própria;
-- atualizar atividade própria;
-- resolver atividade própria;
-- visualizar dados relacionados permitidos pela política atual.
+- listar ações próprias;
+- criar ações próprias permitidas;
+- iniciar, resolver, reagendar ou cancelar ações próprias por RPC;
+- visualizar relacionamentos permitidos pelas políticas atuais.
 
-### 8.2 Gerente
+### 10.2 Gerente
 
 O gerente poderá:
 
-- visualizar atividades da própria loja;
+- visualizar ações da própria loja;
 - visualizar escalonamentos direcionados;
-- assumir ou devolver escalonamento;
-- registrar orientação;
-- concluir intervenção gerencial quando permitido.
+- assumir, orientar ou concluir intervenção gerencial;
+- não editar livremente fatos comerciais do vendedor sem RPC de negócio.
 
-### 8.3 Dono e Admin MX
+### 10.3 Dono e área interna MX
 
-Acesso conforme regras atuais de loja, rede e perfil interno.
+Acesso conforme as funções e políticas existentes de loja e área interna.
 
-### 8.4 Requisitos de segurança
+### 10.4 Requisitos técnicos
 
-- nenhuma mutação crítica deverá confiar apenas no frontend;
-- RPCs deverão validar `auth.uid()`;
-- RPCs deverão validar vínculo com loja;
-- RPCs `SECURITY DEFINER` deverão definir `search_path` explícito;
-- não usar `SELECT *` em funções sensíveis;
-- não permitir que vendedor altere `seller_user_id` ou `loja_id` arbitrariamente;
-- registrar autor e horário de cada resolução.
+- mutações críticas não confiarão somente no frontend;
+- RPCs validarão `auth.uid()`;
+- RPCs validarão vínculo com loja;
+- funções `SECURITY DEFINER` usarão `SET search_path = public`;
+- não usar `SELECT *` em novas funções sensíveis;
+- vendedor não poderá trocar `seller_id` ou `store_id` arbitrariamente;
+- cada resolução registrará autor e horário;
+- conflitos concorrentes retornarão erro estável.
 
 ---
 
-## 9. RPCs e transações
+## 11. RPCs transacionais
 
-### 9.1 Criar atividade
+### 11.1 Criar ação
 
 ```text
-criar_atividade_execucao(payload, idempotency_key)
+create_execution_action(payload jsonb, idempotency_key text)
 ```
 
 Responsabilidades:
 
-1. validar sessão e loja;
+1. validar sessão, vendedor e loja;
 2. validar tipo e data;
-3. localizar cliente e oportunidade quando informados;
-4. criar ou vincular agendamento quando necessário;
-5. criar atividade;
+3. localizar cliente, oportunidade e agendamento quando informados;
+4. criar agendamento quando o fluxo exigir;
+5. criar `execution_actions`;
 6. criar evento comercial aplicável;
-7. atualizar próximo passo do cliente quando aplicável;
-8. retornar IDs criados;
+7. atualizar resumo da próxima ação do cliente;
+8. retornar IDs;
 9. fazer rollback em qualquer falha.
 
-### 9.2 Resolver atividade
+### 11.2 Resolver ação
 
 ```text
-resolver_atividade_execucao(atividade_id, resultado, observacao, payload_especifico)
+resolve_execution_action(action_id uuid, result_code text, observation text, payload jsonb)
 ```
 
 Responsabilidades:
 
-1. bloquear atividade com `FOR UPDATE`;
+1. bloquear a ação com `FOR UPDATE`;
 2. impedir resolução dupla;
 3. validar resultado permitido para o tipo;
-4. atualizar status e auditoria;
-5. atualizar agendamento, cliente e oportunidade;
+4. atualizar status, resultado e auditoria;
+5. atualizar agendamento, cliente ou oportunidade conforme o catálogo;
 6. registrar evento comercial;
-7. criar próxima atividade quando a regra exigir;
-8. criar escalonamento quando necessário;
-9. fazer rollback em qualquer falha.
+7. criar próxima ação quando a regra exigir;
+8. criar escalonamento quando aplicável;
+9. fazer rollback integral.
 
-### 9.3 Reagendar atividade
+### 11.3 Reagendar ação
 
 ```text
-reagendar_atividade_execucao(atividade_id, nova_data_hora, motivo)
+reschedule_execution_action(action_id uuid, new_due_at timestamptz, reason text)
 ```
 
 Responsabilidades:
 
-- atualizar o mesmo agendamento;
-- atualizar a atividade atual para `reagendada`;
-- criar a nova ocorrência operacional apenas quando a modelagem exigir histórico separado;
-- manter vínculo por `source_record_id` ou `atividade_origem_id`;
-- atualizar o próximo passo do cliente;
+- bloquear a ação atual;
+- atualizar o mesmo `agendamentos.id`, quando vinculado;
+- marcar a ação original como `reagendada`;
+- criar uma única ação sucessora ligada por `parent_action_id`;
+- atualizar o resumo da próxima ação;
 - registrar evento de reagendamento;
-- impedir duplicidade por retry.
+- impedir duplicação por retry.
 
-### 9.4 Escalar ao gerente
+### 11.4 Escalar ao gerente
 
 ```text
-escalar_atividade_gerente(atividade_id, motivo, gerente_id)
+escalate_execution_action(action_id uuid, reason text, manager_id uuid)
 ```
 
 Responsabilidades:
 
 - validar gerente da loja;
-- marcar `necessita_gerente`;
+- marcar `manager_required`;
 - registrar motivo e horário;
-- criar alerta gerencial;
-- manter a atividade visível para o vendedor;
-- evitar múltiplos escalonamentos ativos para o mesmo caso.
+- criar notificação gerencial;
+- manter a ação visível ao vendedor;
+- impedir múltiplos escalonamentos ativos para o mesmo caso.
+
+### 11.5 Conclusão simples existente
+
+A RPC atual `vendedor_concluir_execution_action` será preservada para compatibilidade, mas passará a delegar à regra canônica ou será mantida somente para tipos simples de PDI e feedback. Ela não será usada para venda, perda, garantia ou reagendamento.
 
 ---
 
-## 10. Catálogo de resultados por tipo
+## 12. Catálogo de resultados por tipo
 
-O catálogo será centralizado em código e validado também no banco.
+O catálogo será centralizado no frontend e validado no backend.
 
-### 10.1 Atendimento e visita
+### Atendimento e visita
 
-- Confirmado;
-- Compareceu;
-- Não compareceu;
-- Remarcado;
-- Venda realizada;
-- Venda perdida.
+- `confirmado`;
+- `compareceu`;
+- `nao_compareceu`;
+- `remarcado`;
+- `venda_realizada`;
+- `venda_perdida`.
 
-### 10.2 Retorno
+### Retorno
 
-- Falei com o cliente;
-- Não atendeu;
-- Não respondeu;
-- Reagendar retorno;
-- Avançou para negociação;
-- Precisa de gerente.
+- `falou_cliente`;
+- `nao_atendeu`;
+- `nao_respondeu`;
+- `reagendar_retorno`;
+- `avancou_negociacao`;
+- `precisa_gerente`.
 
-### 10.3 Entrega
+### Entrega
 
-- Entrega realizada;
-- Entrega confirmada;
-- Entrega remarcada;
-- Pendência de documentação;
-- Cliente não compareceu.
+- `entrega_realizada`;
+- `entrega_confirmada`;
+- `entrega_remarcada`;
+- `documentacao_pendente`;
+- `cliente_nao_compareceu`.
 
-### 10.4 Garantia
+### Garantia
 
-- Retorno realizado;
-- Aguardando oficina;
-- Aguardando peça;
-- Resolvido;
-- Precisa de gerente;
-- Reagendar acompanhamento.
+- `retorno_realizado`;
+- `aguardando_oficina`;
+- `aguardando_peca`;
+- `resolvido`;
+- `precisa_gerente`;
+- `reagendar_acompanhamento`.
 
-### 10.5 Pós-venda
+### Pós-venda
 
-- Cliente satisfeito;
-- Cliente com dúvida;
-- Cliente com reclamação;
-- Oportunidade de recompra;
-- Indicação recebida;
-- Reagendar contato.
+- `cliente_satisfeito`;
+- `cliente_com_duvida`;
+- `cliente_com_reclamacao`;
+- `oportunidade_recompra`;
+- `indicacao_recebida`;
+- `reagendar_contato`.
 
-### 10.6 Documentação
+### Documentação
 
-- Documentação recebida;
-- Documentação pendente;
-- Documento incorreto;
-- Aguardando terceiro;
-- Resolvido;
-- Precisa de gerente.
+- `documentacao_recebida`;
+- `documentacao_pendente`;
+- `documento_incorreto`;
+- `aguardando_terceiro`;
+- `resolvido`;
+- `precisa_gerente`.
 
-### 10.7 Aniversário
+### Aniversário
 
-- Mensagem enviada;
-- Ligação realizada;
-- Cliente respondeu;
-- Oportunidade identificada;
-- Não contatado.
+- `mensagem_enviada`;
+- `ligacao_realizada`;
+- `cliente_respondeu`;
+- `oportunidade_identificada`;
+- `nao_contatado`.
 
-### 10.8 Comercial
+### Comercial
 
-- Contato realizado;
-- Proposta enviada;
-- Sem interesse;
-- Retorno agendado;
-- Oportunidade criada;
-- Precisa de gerente.
+- `contato_realizado`;
+- `proposta_enviada`;
+- `sem_interesse`;
+- `retorno_agendado`;
+- `oportunidade_criada`;
+- `precisa_gerente`.
+
+### PDI e feedback
+
+- `concluida`;
+- `em_andamento`;
+- `justificada`;
+- `precisa_gerente` quando aplicável.
 
 ---
 
-## 11. Fluxos integrados
+## 13. Fluxos integrados
 
-### 11.1 Fechamento Diário → Central
+### 13.1 Fechamento Diário → Central
 
-Ao registrar agendamento, entrega, garantia, retorno ou pós-venda no Fechamento:
+Ao registrar agendamento, entrega, garantia, retorno ou pós-venda:
 
-1. persistir o registro de domínio;
-2. criar ou atualizar a atividade;
+1. persistir o fato de domínio;
+2. criar ou atualizar a ação canônica;
 3. criar evento comercial;
-4. atualizar o próximo passo do cliente;
-5. preservar `fechamento_id` e `source_record_id`;
-6. impedir criação duplicada.
+4. atualizar o resumo da próxima ação;
+5. preservar `fechamento_id` nos registros que já possuem esse campo;
+6. usar `source_record_id` e `idempotency_key`;
+7. impedir criação duplicada.
 
-### 11.2 Central → Carteira
+### 13.2 Central → Carteira
 
 Ao resolver ou reagendar:
 
 - atualizar próxima ação;
-- atualizar data da próxima ação;
+- atualizar a data-resumo;
 - atualizar situação comercial quando aplicável;
-- registrar histórico;
+- registrar histórico em eventos;
 - manter uma única ficha de cliente.
 
-### 11.3 Central → Oportunidade e Funil
-
-Registrar venda ou perda deverá atualizar a oportunidade correta, sem selecionar “a primeira oportunidade encontrada”.
+### 13.3 Central → Oportunidade e Funil
 
 Venda:
 
+- atualizar a oportunidade vinculada;
 - etapa `ganho`;
-- valor;
-- sinal;
-- financiamento;
-- troca;
+- valor, sinal, financiamento e troca;
 - data de fechamento;
 - evento de venda;
-- conclusão da atividade.
+- conclusão da ação.
 
 Perda:
 
-- etapa `perdido` ou oportunidade futura;
+- atualizar a oportunidade vinculada;
+- etapa `perdido` ou oportunidade futura conforme escolha explícita;
 - motivo estruturado;
 - observação;
-- data de fechamento;
 - evento de perda;
-- próxima atividade quando aplicável.
+- próxima ação quando aplicável.
 
-### 11.4 Central → Gerente
+Não será permitido escolher a oportunidade apenas por posição na lista.
 
-Escalonamentos deverão aparecer em:
+### 13.4 Central → Gerente
+
+Escalonamentos aparecerão em:
 
 - Rotina da Equipe;
 - Mentor Gerencial;
-- Alertas;
+- notificações e alertas;
 - ficha do vendedor;
 - histórico do cliente.
 
-### 11.5 Carteira → Central
+### 13.5 Carteira → Central
 
-Novo próximo passo com data e hora deverá criar ou atualizar atividade correspondente quando representar compromisso operacional.
+Um próximo passo com data operacional deverá criar ou atualizar uma ação correspondente.
 
-Não será permitido que Carteira e Central exibam datas divergentes para o mesmo compromisso.
+Quando também representar compromisso comercial, deverá manter vínculo com `agendamentos`.
+
+Carteira e Central não poderão exibir datas divergentes para o mesmo compromisso.
 
 ---
 
-## 12. Ficha lateral do cliente
+## 14. Ficha lateral do cliente
 
-A ficha será aberta dentro da Central, sem navegar para outra página.
+A ficha abrirá dentro da Central, por `client_id`, sem navegar para outra rota.
 
-### 12.1 Conteúdo
+### Conteúdo
 
 - nome;
 - telefone;
@@ -661,254 +769,262 @@ A ficha será aberta dentro da Central, sem navegar para outra página.
 - temperatura;
 - situação atual;
 - próxima ação;
-- data da próxima ação;
 - oportunidade ativa;
 - observações;
 - agendamentos;
-- atividades;
+- ações de execução;
 - eventos comerciais;
 - histórico cronológico;
 - pendências;
 - ações rápidas.
 
-### 12.2 Navegação
+### Comportamento
 
-- abrir pelo `cliente_id`;
-- fechar e retornar à mesma posição da lista;
-- manter filtro, ordenação e scroll;
-- permitir abrir WhatsApp, ligar, reagendar e resolver;
-- não usar busca por nome como identificador.
+- fechar retorna à mesma posição da lista;
+- filtros, ordenação, aba e scroll são preservados;
+- permite WhatsApp, ligação, reagendamento e resolução;
+- não usa nome como identificador;
+- usa focus trap e Escape;
+- reproduz visualmente a sheet do Base44.
 
 ---
 
-## 13. Fluxo WhatsApp
+## 15. Fluxo WhatsApp
 
-### 13.1 Abertura
+### Abertura
 
-Ao abrir WhatsApp:
+1. salvar no `sessionStorage` o ID da ação;
+2. salvar horário de saída e canal;
+3. abrir número normalizado;
+4. incluir mensagem sugerida quando houver.
 
-1. registrar em `sessionStorage` o ID da atividade;
-2. registrar horário de saída;
-3. registrar canal escolhido;
-4. abrir a URL com telefone normalizado;
-5. incluir mensagem sugerida quando houver.
+### Retorno
 
-### 13.2 Retorno
+Ao retornar dentro da janela configurada:
 
-Ao retornar à aba dentro da janela configurada:
-
-- reabrir contexto da atividade;
-- apresentar modal “Como foi o contato?”;
-- exibir resultados compatíveis com o tipo;
-- permitir ignorar sem alterar o registro;
+- restaurar a ação correta;
+- abrir “Como foi o contato?”;
+- mostrar resultados compatíveis com o tipo;
+- permitir fechar sem alteração;
 - limpar o estado após resolução ou expiração.
 
-### 13.3 Regras
+### Regras
 
-- não marcar atividade como resolvida apenas por abrir WhatsApp;
-- não criar evento de contato sem confirmação;
-- permitir retomada após refresh quando o estado ainda for válido;
-- impedir que uma atividade antiga abra modal incorreto.
+- abrir WhatsApp não conclui ação;
+- evento de contato só nasce após confirmação;
+- refresh preserva o retorno enquanto válido;
+- uma ação antiga não pode abrir o modal de outra;
+- o comportamento será coberto por teste de visibilidade da página e expiração.
 
 ---
 
-## 14. Rotina contextual
+## 16. Rotina contextual
 
-A Rotina do Dia usará templates existentes e contexto operacional real.
+A Rotina do Dia continuará usando:
 
-### 14.1 Entradas
+- `routine_activity_templates`;
+- `prospecting_schedule`;
+- `story_ideas`;
+- horários de `vendedor_perfil`.
+
+Serão acrescentadas entradas:
 
 - meta mensal;
 - vendas realizadas;
-- faltante para meta;
-- ritmo necessário;
+- faltante e ritmo necessário;
 - clientes quentes;
 - clientes sem retorno;
-- agendamentos do dia;
+- compromissos do dia;
 - pendências anteriores;
 - perdas dos últimos 30 dias;
 - objeção predominante;
 - PDI;
-- dia da semana;
-- semana do mês;
-- horário de trabalho;
-- conflitos de agenda.
+- feedbacks pendentes;
+- dia e semana do mês;
+- conflito de agenda.
 
-### 14.2 Saídas
+Saídas:
 
 - prioridade do dia;
-- objetivo da etapa;
+- objetivo adaptado;
 - instruções adaptadas;
 - meta sugerida;
-- lista de clientes recomendados;
+- lista recomendada;
 - roteiro de objeção;
 - ação de prospecção;
-- conteúdo sugerido;
 - alerta de desvio;
 - preparação D+1.
 
-### 14.3 Princípio
-
-A rotina deverá ser determinística e auditável. Recomendações não poderão alterar dados automaticamente. A ação final dependerá do vendedor.
+As recomendações serão determinísticas e auditáveis. Não alterarão dados automaticamente.
 
 ---
 
-## 15. Design system e implementação visual
+## 17. Design system e acessibilidade
 
-### 15.1 Estratégia
+### Estratégia
 
-O Base44 será capturado e medido. Os valores serão convertidos para tokens do MX ou tokens locais da feature quando não houver equivalente.
+- medir a referência Base44;
+- converter valores para tokens existentes;
+- criar tokens locais somente quando não houver equivalente;
+- proibir valores mágicos repetidos;
+- manter a identidade visual da tela 1:1 sem alterar o restante do produto.
 
-### 15.2 Tokens locais permitidos
+### Acessibilidade
 
-Tokens locais poderão ser criados para:
-
-- superfícies;
-- azul principal da Central;
-- cores por tipo;
-- sombras;
-- raios;
-- densidade;
-- largura máxima;
-- transições.
-
-Não será permitido espalhar valores mágicos repetidos em componentes.
-
-### 15.3 Acessibilidade
-
-Mesmo com fidelidade 1:1:
-
-- navegação por teclado deverá funcionar;
-- modais e sheets terão focus trap;
-- Escape fechará camadas quando apropriado;
-- ícones terão `aria-label` ou texto acessível;
-- contraste não poderá ficar abaixo do mínimo aceitável;
-- animações respeitarão `prefers-reduced-motion`;
-- botões não dependerão apenas de cor.
+- navegação por teclado;
+- focus trap em modal e sheet;
+- Escape;
+- nomes acessíveis;
+- contraste mínimo;
+- `prefers-reduced-motion`;
+- estados não dependem apenas de cor;
+- foco visível equivalente ao design.
 
 ---
 
-## 16. Priorização
+## 18. Priorização
 
 Ordem padrão:
 
-1. atividade vencida;
-2. prioridade manual;
-3. prioridade base do tipo;
+1. vencida;
+2. prioridade explícita;
+3. prioridade-base do tipo;
 4. horário;
-5. data de criação.
+5. criação.
 
-Prioridade base sugerida:
-
-| Tipo | Prioridade |
+| Tipo | Base |
 |---|---:|
-| Visita/atendimento/negociação | 1 |
+| Visita, atendimento, negociação | 1 |
 | Entrega | 2 |
 | Garantia | 3 |
-| Retorno/documentação | 4 |
-| Pós-venda/comercial | 5 |
+| Retorno, documentação | 4 |
+| Pós-venda, comercial, PDI, feedback | 5 |
 | Aniversário | 6 |
 
-A prioridade específica do registro poderá sobrescrever a prioridade base.
+Mapeamento de prioridade existente:
+
+- `urgent` = 1;
+- `high` = 2;
+- `medium` = 3;
+- `low` = 4.
 
 ---
 
-## 17. Backfill
+## 19. Backfill e migração
 
-A migração deverá criar atividades para registros existentes elegíveis:
+### 19.1 Fontes elegíveis
 
 - agendamentos pendentes;
 - entregas futuras;
 - garantias abertas;
-- retornos agendados;
-- pós-vendas pendentes;
-- compromissos ainda não tratados.
+- retornos;
+- pós-vendas;
+- ações de PDI já enviadas;
+- ações de feedback;
+- ações de funil;
+- ações manuais existentes.
 
-### 17.1 Regras de idempotência
-
-Cada item deverá receber `source_record_id`, por exemplo:
+### 19.2 Chaves de origem
 
 ```text
-agendamento:<uuid>
-entrega:<oportunidade_uuid>:<data>
-garantia:<evento_uuid>
-pos_venda:<agendamento_uuid>
+appointment:<uuid>
+pdi:<uuid>
+feedback:<uuid>
+funnel:<uuid>
+delivery:<opportunity_uuid>:<timestamp>
+warranty:<event_uuid>
 ```
 
 Executar o backfill mais de uma vez não poderá criar duplicatas.
 
-### 17.2 Registros legados inconsistentes
+### 19.3 Registros existentes em `execution_actions`
 
-Registros sem cliente poderão usar snapshots. Registros sem loja ou vendedor válido deverão ser reportados e não associados arbitrariamente.
+A migration deverá enriquecer linhas existentes sem apagar:
+
+- status;
+- conclusão;
+- justificativa;
+- origem;
+- metadados;
+- vínculos com PDI, feedback e funil.
+
+### 19.4 Registros inconsistentes
+
+- sem cliente: usar snapshot;
+- sem loja ou vendedor válido: registrar em relatório de migração e não associar arbitrariamente;
+- mais de uma ação para a mesma origem: preservar histórico, escolher a ativa por regra documentada e impedir novas duplicatas.
 
 ---
 
-## 18. Observabilidade e auditoria
+## 20. Observabilidade e auditoria
 
 Eventos mínimos:
 
-- atividade criada;
-- atividade aberta;
+- ação criada;
+- ação aberta;
 - WhatsApp aberto;
-- atividade resolvida;
-- atividade reagendada;
-- atividade cancelada;
+- ação iniciada;
+- ação concluída;
+- ação justificada;
+- ação reagendada;
+- ação cancelada;
 - venda registrada;
 - perda registrada;
 - escalonamento criado;
 - escalonamento resolvido;
+- conflito de idempotência;
 - erro de RPC;
-- erro de sincronização;
-- conflito de idempotência.
+- erro de sincronização.
 
-Logs não deverão conter telefone completo, observação sensível ou dados pessoais desnecessários.
+Logs não conterão telefone completo, observações sensíveis ou dados pessoais desnecessários.
 
 ---
 
-## 19. Tratamento de erros
+## 21. Tratamento de erros
 
-### 19.1 Frontend
+### Frontend
 
 - mensagens específicas;
 - preservar formulário após falha;
 - impedir duplo envio;
 - permitir retry;
 - não fechar modal antes da confirmação;
-- mostrar estado offline;
-- atualizar lista após sucesso confirmado.
+- mostrar offline;
+- atualizar a lista apenas após sucesso confirmado.
 
-### 19.2 Backend
+### Backend
 
 - transações atômicas;
-- erros com códigos estáveis;
+- códigos de erro estáveis;
 - rollback integral;
 - idempotência;
 - validação de status anterior;
 - bloqueio contra resolução concorrente.
 
-### 19.3 Conflito concorrente
+### Concorrência
 
-Se outro usuário resolver ou reagendar a atividade:
+Se outro usuário resolver ou reagendar:
 
-- o segundo envio deverá falhar com conflito;
-- a interface deverá recarregar o registro;
-- nenhuma duplicação será criada.
+- o segundo envio retorna conflito;
+- a interface recarrega a ação;
+- nenhuma duplicação é criada.
 
 ---
 
-## 20. Testes
+## 22. Testes
 
-### 20.1 Funções puras
+### 22.1 Funções puras
 
 - ordenação;
 - prioridade;
 - filtros;
 - catálogo de resultados;
-- mapeamento de atividade;
+- mapeadores;
 - contexto da rotina;
-- expiração do retorno WhatsApp.
+- expiração do retorno WhatsApp;
+- chaves de idempotência.
 
-### 20.2 Componentes
+### 22.2 Componentes
 
 - cada estado visual;
 - ações do card;
@@ -917,20 +1033,21 @@ Se outro usuário resolver ou reagendar a atividade:
 - responsividade;
 - acessibilidade.
 
-### 20.3 Integração
+### 22.3 Integração
 
-- criar atividade;
+- criar ação;
 - resolver por tipo;
 - reagendar sem duplicar;
 - venda na oportunidade correta;
 - perda com motivo;
 - garantia sem reabrir venda;
-- escalonamento para gerente;
+- escalonamento;
 - atividade avulsa com snapshots;
-- Carteira e Central sincronizadas;
-- Fechamento e Central sincronizados.
+- PDI existente continua funcionando;
+- feedback existente continua funcionando;
+- Carteira, Fechamento e Central sincronizados.
 
-### 20.4 Banco
+### 22.4 Banco
 
 - RLS por perfil;
 - RPCs;
@@ -938,158 +1055,186 @@ Se outro usuário resolver ou reagendar a atividade:
 - idempotência;
 - concorrência;
 - backfill repetido;
+- compatibilidade de linhas antigas;
 - índices e consultas.
 
-### 20.5 E2E
-
-Fluxos mínimos:
+### 22.5 E2E
 
 1. login vendedor;
 2. abrir Central;
-3. filtrar;
+3. filtrar e ordenar;
 4. resolver retorno;
 5. reagendar visita;
 6. abrir WhatsApp e retornar;
 7. registrar venda;
-8. abrir ficha lateral;
-9. criar atividade avulsa;
-10. escalar garantia ao gerente;
-11. login gerente;
-12. visualizar escalonamento;
-13. validar reflexo na Carteira e no Fechamento.
+8. registrar perda;
+9. abrir ficha lateral;
+10. criar atividade avulsa;
+11. escalar garantia;
+12. login gerente;
+13. visualizar escalonamento;
+14. validar Carteira e Fechamento;
+15. validar ação de PDI existente.
 
-### 20.6 Regressão visual
+### 22.6 Regressão visual
 
-Capturas automatizadas nas quatro larguras definidas, comparadas com baselines aprovadas.
-
----
-
-## 21. Estratégia de publicação direta
-
-O usuário aprovou substituição direta no `main` e produção, sem feature flag.
-
-### 21.1 Sequência obrigatória
-
-1. criar migrations aditivas;
-2. aplicar migrations no Supabase;
-3. validar RLS e RPCs;
-4. executar backfill em modo de diagnóstico;
-5. executar backfill definitivo;
-6. validar contagens e duplicidades;
-7. implementar frontend;
-8. executar testes;
-9. executar lint e typecheck;
-10. executar build;
-11. realizar commit no `main`;
-12. aguardar deploy Vercel;
-13. validar deployment;
-14. realizar smoke test autenticado;
-15. comparar visualmente com Base44;
-16. monitorar erros e logs.
-
-### 21.2 Rollback
-
-- migrations serão aditivas;
-- colunas e tabelas antigas não serão removidas nesta entrega;
-- frontend poderá voltar ao deployment anterior;
-- backfill deverá ser reversível por origem e lote;
-- atividade criada pelo backfill deverá carregar identificador de lote;
-- nenhuma exclusão destrutiva será executada sem auditoria posterior.
+Capturas automatizadas nas quatro larguras, comparadas com baselines aprovadas do Base44.
 
 ---
 
-## 22. Critérios de aceite
+## 23. Estratégia de publicação direta
 
-A entrega será aceita somente quando todos os itens abaixo forem comprovados:
+O usuário aprovou substituição direta no `main`, sem feature flag.
+
+### Sequência obrigatória
+
+1. capturar inventário visual completo do Base44;
+2. criar testes que falham para os gaps funcionais;
+3. criar migrations aditivas no repositório;
+4. revisar SQL e políticas;
+5. aplicar migrations no Supabase;
+6. validar RLS e RPCs;
+7. executar backfill diagnóstico;
+8. executar backfill definitivo;
+9. validar contagens e duplicidades;
+10. implementar frontend 1:1;
+11. executar testes unitários e integração;
+12. executar E2E;
+13. executar regressão visual;
+14. executar lint, typecheck e build;
+15. commit no `main`;
+16. aguardar deployment Vercel;
+17. validar deployment e logs;
+18. smoke test autenticado;
+19. comparação final com Base44;
+20. monitoramento pós-publicação.
+
+### Rollback
+
+- migrations aditivas;
+- nenhuma tabela existente removida nesta entrega;
+- nenhum campo antigo removido nesta entrega;
+- frontend volta ao deployment anterior;
+- backfill identificado por chave de origem e lote;
+- rollback de lote não apaga ações manuais ou históricas;
+- restauração da Central anterior disponível pelo Git.
+
+---
+
+## 24. Critérios de aceite
 
 ### Visual
 
-- design 1:1 nas larguras definidas;
-- todos os estados inventariados reproduzidos;
+- design 1:1 nos viewports definidos;
+- todos os estados inventariados;
 - comparação visual aprovada;
 - responsividade equivalente;
-- animações e interações equivalentes.
+- interações e animações equivalentes.
 
 ### Funcional
 
-- filtros funcionam;
-- ordenação funciona;
-- pendências anteriores não são resolvidas automaticamente como comparecimento;
+- filtros e ordenação funcionam;
+- pendência não é marcada automaticamente como comparecimento;
 - resultados variam por tipo;
 - observação é persistida;
-- reagendamento não duplica;
+- reagendamento preserva o mesmo compromisso e não duplica;
 - venda atualiza a oportunidade correta;
 - perda exige motivo;
 - garantia não reabre venda;
 - ficha abre sem abandonar a Central;
-- WhatsApp retoma o registro;
-- atividade avulsa usa campos estruturados;
+- retorno do WhatsApp funciona;
+- atividade avulsa usa snapshots estruturados;
 - escalonamento chega ao gerente;
-- Carteira, Fechamento e Central permanecem sincronizados.
+- PDI, feedback e funil existentes continuam integrados;
+- Carteira, Fechamento e Central permanecem coerentes.
 
 ### Dados e segurança
 
+- `execution_actions` é a única fila operacional;
 - RLS validada;
 - RPCs transacionais;
 - idempotência validada;
 - backfill sem duplicação;
-- nenhuma fonte concorrente criada;
-- nenhum dado pessoal exposto em logs.
+- linhas existentes preservadas;
+- dados pessoais não aparecem em logs.
 
 ### Qualidade
 
 - testes unitários aprovados;
-- testes de integração aprovados;
-- testes E2E aprovados;
+- integração aprovada;
+- E2E aprovado;
 - regressão visual aprovada;
 - typecheck aprovado;
 - lint aprovado;
 - build aprovado;
-- deploy saudável;
+- deployment saudável;
 - smoke test autenticado aprovado.
 
 ---
 
-## 23. Riscos e controles
+## 25. Riscos e controles
 
 | Risco | Controle |
 |---|---|
-| Publicação direta no `main` | migrations aditivas, testes completos e rollback de deployment |
-| Duplicação no backfill | `source_record_id` único e execução idempotente |
-| Divergência Carteira/Central | RPC transacional e fonte canônica |
-| Resolução concorrente | bloqueio `FOR UPDATE` e verificação de status |
-| Reprodução visual incompleta | inventário de estados e regressão visual |
-| Importação de legado Base44 | proibição explícita de fontes concorrentes |
+| Publicação direta no `main` | migrations aditivas, gates completos e rollback de deployment |
+| Segunda fila de execução | evolução obrigatória de `execution_actions`, proibição de nova tabela concorrente |
+| Duplicação no backfill | `source_record_id` e idempotência únicos |
+| Regressão do PDI | preservar RPCs, fontes e teste de compatibilidade |
+| Divergência Carteira/Central | RPC transacional e vínculos explícitos |
+| Resolução concorrente | `FOR UPDATE` e validação de status |
+| Visual incompleto | inventário de estados e regressão visual |
 | Atividade avulsa sem identidade | snapshots estruturados |
 | Escalonamento sem responsável | validação de gerente da loja |
-| Erro após abrir WhatsApp | estado temporário recuperável e confirmação explícita |
+| Erro após WhatsApp | estado recuperável e confirmação explícita |
 | Regressão em Fechamento | integração e E2E obrigatórios |
 
 ---
 
-## 24. Decisões finais
+## 26. Questão de segurança preexistente identificada
+
+A inspeção do Supabase identificou RLS desabilitada em:
+
+- `public.user_roles`;
+- `public.migration_backup_vendedores_loja_duplicates_20260503`;
+- `public.migration_backup_lancamentos_diarios_duplicates_20260503`.
+
+Essa condição é preexistente e não será alterada automaticamente dentro da implementação da Central. Habilitar RLS sem políticas apropriadas pode bloquear acessos necessários; deixar desabilitado pode expor tabelas ao papel autenticado ou anônimo conforme grants existentes.
+
+Deverá existir uma tarefa de segurança separada para:
+
+1. auditar grants;
+2. determinar consumidores;
+3. definir políticas;
+4. habilitar RLS;
+5. testar acesso por perfil.
+
+---
+
+## 27. Decisões finais
 
 1. Base44 é referência visual e funcional, não fonte de dados.
 2. Supabase do MX é a fonte de verdade.
 3. Design será validado 1:1, estado por estado.
-4. A Central utilizará uma única tabela operacional.
-5. Mutações críticas serão transacionais.
-6. Reagendamento preservará identidade.
-7. Pendência não será tratada como comparecimento por padrão.
-8. A ficha abrirá por ID dentro da Central.
-9. WhatsApp exigirá confirmação de resultado no retorno.
-10. Escalonamento será integrado ao gerente.
-11. Rotina contextual será baseada em dados reais e auditáveis.
-12. Publicação será direta no `main`, com rollback preparado.
+4. `execution_actions` será evoluída como fila canônica.
+5. `agendamentos` continua sendo a fonte do compromisso comercial.
+6. PDI, feedback e funil existentes serão preservados.
+7. Mutações críticas serão transacionais.
+8. Reagendamento preservará identidade e histórico.
+9. Pendência não será tratada como comparecimento por padrão.
+10. A ficha abrirá por ID dentro da Central.
+11. WhatsApp exigirá confirmação de resultado no retorno.
+12. Escalonamento será integrado ao gerente.
+13. Rotina contextual será baseada em dados reais e auditáveis.
+14. Publicação será direta no `main`, com rollback preparado.
 
 ---
 
-## 25. Gate para implementação
+## 28. Gate para implementação
 
 A implementação só poderá começar depois de:
 
 1. revisão deste documento pelo usuário;
 2. aprovação explícita da especificação escrita;
-3. criação de um plano de implementação detalhado;
+3. criação de plano de implementação detalhado;
 4. decomposição em tarefas testáveis;
 5. definição dos comandos de verificação e rollback.
