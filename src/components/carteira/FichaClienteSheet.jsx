@@ -6,6 +6,7 @@ import { base44 } from "@/api/base44Client";
 import { Zap, X, Edit2, ChevronDown, ChevronUp, AlertCircle, Clock, CheckCircle2, Pencil } from "lucide-react";
 import AlterarProximoPasso from "./AlterarProximoPasso";
 import moment from "moment";
+import { toast } from "@/components/ui/use-toast";
 import {
   SITUACOES_ATUAIS, TEMPERATURAS, CANAIS_COMERCIAIS, STATUS_COMERCIAIS,
   calcularObjetivoEProximoPasso, calcularScore, explicacaoCliente, tempColor,
@@ -252,20 +253,34 @@ export default function FichaClienteSheet({ clienteId, open, onClose, onAtualiza
       ...form,
       objetivo_atual: form.objetivo_atual || objetivo,
       proximo_passo: form.proximo_passo || proximoPasso,
+      historico: {
+        tipo: "Ficha atualizada",
+        descricao: "Dados do cliente editados manualmente.",
+        momento_anterior: cliente?.situacao_atual,
+        momento_novo: form.situacao_atual,
+      },
     };
-    await base44.entities.CarteiraCliente.update(clienteId, atualizado);
-    await base44.entities.CarteiraHistorico.create({
-      cliente_id: clienteId,
-      tipo: "Ficha atualizada",
-      descricao: "Dados do cliente editados manualmente.",
-      momento_anterior: cliente?.situacao_atual,
-      momento_novo: atualizado.situacao_atual,
-    });
-    setCliente(atualizado);
-    setForm(atualizado);
+
+    let persistido;
+    try {
+      persistido = await base44.entities.CarteiraCliente.update(clienteId, atualizado);
+    } catch (error) {
+      toast({
+        title: "Não foi possível salvar a ficha.",
+        description: "As alterações foram preservadas. Tente novamente.",
+        variant: "destructive",
+      });
+      return;
+    } finally {
+      setSalvando(false);
+    }
+
+    setCliente(persistido);
+    setForm(persistido);
+    base44.entities.CarteiraHistorico.filter({ cliente_id: clienteId }, "-created_date", 30)
+      .then(h => setHistorico(h || [])).catch(() => {});
     setEditando(false);
-    setSalvando(false);
-    if (onAtualizado) onAtualizado(atualizado);
+    if (onAtualizado) onAtualizado(persistido);
   }
 
   function handlePassoSalvo(atualizado) {
