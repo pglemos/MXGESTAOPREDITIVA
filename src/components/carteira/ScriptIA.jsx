@@ -88,6 +88,7 @@ export default function ScriptIA({ cliente, objetivo, proximoPasso, scriptPadrao
   const [gerando, setGerando] = useState(false);
   const [copiado, setCOpiado] = useState(false);
   const [tentativas, setTentativas] = useState(0);
+  const [iaIndisponivel, setIaIndisponivel] = useState(false);
 
   useEffect(() => {
     if (!cliente) return;
@@ -100,10 +101,19 @@ export default function ScriptIA({ cliente, objetivo, proximoPasso, scriptPadrao
     setGerando(true);
     const tom = tomOverride || tomSelecionado;
     const prompt = buildPrompt({ cliente, objetivo, proximoPasso, scriptPadrao, tom, historico });
-    const resultado = await base44.integrations.Core.InvokeLLM({ prompt });
-    setScriptIA(resultado);
-    setTentativas(t => t + 1);
-    setGerando(false);
+    try {
+      const invokeLLM = base44.integrations?.Core?.InvokeLLM;
+      if (typeof invokeLLM !== "function") throw new Error("Integração de IA indisponível.");
+      const resultado = await invokeLLM({ prompt });
+      setScriptIA(resultado);
+      setIaIndisponivel(false);
+    } catch (error) {
+      setScriptIA(scriptPadrao || "");
+      setIaIndisponivel(true);
+    } finally {
+      setTentativas(t => t + 1);
+      setGerando(false);
+    }
   }
 
   function copiar() {
@@ -165,6 +175,11 @@ export default function ScriptIA({ cliente, objetivo, proximoPasso, scriptPadrao
       {scriptIA && (
         <>
           <div>
+            {iaIndisponivel && (
+              <p className="text-[11px] font-semibold text-amber-600 mb-1.5">
+                Geração por IA indisponível no momento — usando o script padrão.
+              </p>
+            )}
             <textarea
               value={scriptIA}
               onChange={e => setScriptIA(e.target.value)}
