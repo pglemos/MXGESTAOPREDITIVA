@@ -3314,3 +3314,21 @@ CREATE TRIGGER weekly_feedback_reports_set_updated_at BEFORE UPDATE ON public.we
 -- ============================================================
 -- END OF BASELINE MIGRATION
 -- ============================================================
+
+-- ============================================================
+-- DOWN
+-- ============================================================
+-- This is the foundational baseline (timestamp 0) and is already applied
+-- to every environment; a real rollback would mean dropping the entire
+-- schema, which is intentionally not automated here.
+--
+-- The only change ever made to this file post-baseline was a pure
+-- reordering of two function definitions (public.is_admin() and
+-- public.normalize_mx_role()) moved earlier so that
+-- can_access_consulting_client() and has_store_role() — LANGUAGE sql
+-- functions in this same file — stop forward-referencing them. Postgres
+-- validates LANGUAGE sql bodies against the catalog at CREATE time, so a
+-- fresh database provisioned from this file (as CI's ephemeral Supabase
+-- stack does) failed before any later migration ran. No object was
+-- added, removed, or redefined — same functions, same bodies, different
+-- creation order. There is nothing to roll back.
