@@ -1,6 +1,6 @@
 {
   "framework": "vite",
-  "buildCommand": "npm run typecheck && npm run build",
+  "buildCommand": "npm run typecheck && node scripts/verify_carteira_base44_parity.mjs && npm run build",
   "outputDirectory": "dist",
   "github": {
     "silent": true
