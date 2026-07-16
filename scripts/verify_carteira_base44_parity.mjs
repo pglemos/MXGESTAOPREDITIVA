@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 
 function read(path) {
@@ -97,3 +98,5 @@ if (process.exitCode) {
 }
 
 console.log('\nCarteira Base44 1:1 static verification passed.')
+console.log('\nRunning atomic design token lint...')
+execFileSync(process.execPath, ['scripts/lint-tokens-ast.mjs'], { stdio: 'inherit' })
