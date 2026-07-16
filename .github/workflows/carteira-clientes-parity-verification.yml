@@ -87,7 +87,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          bun test > /tmp/bun-test.log 2>&1
+          npm test > /tmp/bun-test.log 2>&1
           status=$?
           tail -n 300 /tmp/bun-test.log
           exit $status
