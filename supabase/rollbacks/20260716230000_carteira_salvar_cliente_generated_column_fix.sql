@@ -1,0 +1,16 @@
+-- DOWN for 20260716230000_carteira_salvar_cliente_generated_column_fix.sql
+--
+-- Blindly restoring the previous body would reintroduce the confirmed
+-- production bug (HTTP 400 / SQLSTATE 428C9 on every carteira_salvar_cliente
+-- call, since telefone_normalizado is a GENERATED ALWAYS column and cannot
+-- be written). That previous body was never itself a committed migration —
+-- it only existed live, applied out-of-band — so there is no earlier
+-- version-controlled definition to mechanically restore either.
+--
+-- If this migration ever needs to be undone, the safe path is to inspect
+-- what changed on public.clientes since this was applied (particularly
+-- whether telefone_normalizado is still GENERATED) and hand-author a new
+-- forward migration from the current live definition, the same way this
+-- fix itself was produced. There is no destructive DDL to revert here —
+-- this migration only replaces a function body.
+SELECT 1;
