@@ -231,6 +231,12 @@ function mapHistory(row) {
 }
 
 async function createHistory(data) {
+  // Mesma race do supabase-js documentada em saveClient(): chamadores como
+  // WhatsAppRoteiro.registrar() encadeiam CarteiraCliente.update() e
+  // CarteiraHistorico.create() sem yield entre eles, e o segundo supabase.from()
+  // trava indefinidamente sem essa macrotask de por meio.
+  await new Promise(resolve => setTimeout(resolve, 0))
+
   const pending = pendingEvents.get(data.cliente_id)
   const metadata = {
     tipo: data.tipo || null,
