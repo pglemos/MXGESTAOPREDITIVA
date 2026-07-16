@@ -1,6 +1,7 @@
 name: Central Execucao Parity Verification
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
