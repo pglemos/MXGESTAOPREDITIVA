@@ -78,7 +78,7 @@ for (const token of [
   'mapMxClientToCarteiraVisual',
 ]) assert(adapter.includes(token), `normalized adapter includes ${token}`)
 
-const migration = read('supabase/migrations/20260716190000_carteira_base44_parity.sql')
+const migration = read('supabase/migrations/20260716190050_carteira_base44_parity.sql')
 for (const token of [
   'CREATE TABLE IF NOT EXISTS public.carteira_missoes',
   'CREATE TABLE IF NOT EXISTS public.carteira_missao_itens',

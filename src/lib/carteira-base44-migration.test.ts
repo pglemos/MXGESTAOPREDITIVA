@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 
-const sql = readFileSync('supabase/migrations/20260716190000_carteira_base44_parity.sql', 'utf8')
+const sql = readFileSync('supabase/migrations/20260716190050_carteira_base44_parity.sql', 'utf8')
 
 describe('carteira Base44 parity migration', () => {
   test('creates persistent missions without importing the monolithic Base44 entity', () => {
