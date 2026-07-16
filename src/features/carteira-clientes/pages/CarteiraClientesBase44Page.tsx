@@ -1,4 +1,8 @@
+import { base44 } from '@/api/base44Client'
 import CarteiraClientesReference from '@/base44-reference/pages/CarteiraClientes.jsx'
+import { installCarteiraBase44Adapter } from '@/features/carteira-clientes/lib/installCarteiraBase44Adapter'
+
+installCarteiraBase44Adapter(base44)
 
 /**
  * Interaction surface preserved from the Base44 reference implementation.
