@@ -1,32 +1,95 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import type { ExecutionActionHydratedRow } from '@/features/central-execucao/lib/activity-mappers'
 
-export type ExecutionActionStatus = 'pendente' | 'em_andamento' | 'concluida' | 'justificada' | 'cancelada'
-export type ExecutionActionSource = 'pdi' | 'feedback' | 'funil' | 'manual'
+export type ExecutionActionStatus =
+  | 'pendente'
+  | 'em_andamento'
+  | 'concluida'
+  | 'justificada'
+  | 'reagendada'
+  | 'cancelada'
+
+export type ExecutionActionSource =
+  | 'pdi'
+  | 'feedback'
+  | 'funil'
+  | 'manual'
+  | 'agendamento'
+  | 'cliente'
+  | 'sistema'
+
 export type ExecutionActionPriority = 'low' | 'medium' | 'high' | 'urgent'
 export type ExecutionActionTone = 'info' | 'warning' | 'error'
+export type ExecutionActionRow = ExecutionActionHydratedRow
 
-export type ExecutionActionRow = {
-  id: string
-  store_id: string | null
-  seller_id: string
-  source_type: ExecutionActionSource
-  source_id: string | null
-  title: string
-  description: string | null
-  due_at: string
-  status: ExecutionActionStatus
-  priority: ExecutionActionPriority
-  alert_tone: ExecutionActionTone
-  created_by: string | null
-  completed_at: string | null
-  completed_by: string | null
-  justificativa: string | null
-  metadata: Record<string, unknown>
-  created_at: string
-  updated_at: string
-}
+const EXECUTION_ACTION_SELECT = `
+  id,
+  store_id,
+  seller_id,
+  source_type,
+  source_id,
+  cliente_id,
+  oportunidade_id,
+  agendamento_id,
+  evento_id,
+  activity_type,
+  title,
+  description,
+  objective,
+  due_at,
+  status,
+  priority,
+  priority_rank,
+  alert_tone,
+  result_code,
+  result_note,
+  origin_module,
+  active,
+  automatic,
+  manager_required,
+  escalation_reason,
+  manager_id,
+  escalated_at,
+  completed_at,
+  client_name_snapshot,
+  phone_snapshot,
+  vehicle_snapshot,
+  metadata,
+  created_at,
+  updated_at,
+  cliente:clientes (
+    id,
+    nome,
+    telefone,
+    canal_origem,
+    status,
+    proxima_acao,
+    proxima_acao_em
+  ),
+  oportunidade:oportunidades (
+    id,
+    cliente_id,
+    veiculo_interesse,
+    valor_negociado,
+    etapa,
+    financiamento,
+    carro_avaliado,
+    sinal,
+    motivo_perda
+  ),
+  agendamento:agendamentos (
+    id,
+    cliente_id,
+    oportunidade_id,
+    data_hora,
+    tipo,
+    status,
+    canal,
+    observacoes
+  )
+`
 
 export function useExecutionActions() {
   const { profile } = useAuth()
@@ -43,23 +106,28 @@ export function useExecutionActions() {
 
     setLoading(true)
     setError(null)
+
     const { data, error: fetchError } = await supabase
       .from('execution_actions')
-      .select('*')
+      .select(EXECUTION_ACTION_SELECT)
       .eq('seller_id', profile.id)
-      .in('status', ['pendente', 'em_andamento'])
+      .in('status', ['pendente', 'em_andamento', 'reagendada'])
       .order('due_at', { ascending: true })
 
     if (fetchError) {
       setError(fetchError.message)
       setAcoes([])
     } else {
-      setAcoes((data ?? []) as ExecutionActionRow[])
+      const rows = (data ?? []) as unknown as ExecutionActionRow[]
+      setAcoes(rows.filter(row => row.active !== false))
     }
+
     setLoading(false)
   }, [profile?.id])
 
-  useEffect(() => { void refetch() }, [refetch])
+  useEffect(() => {
+    void refetch()
+  }, [refetch])
 
   const concluirExecutionAction = useCallback(async (id: string): Promise<{ error: string | null }> => {
     if (!profile?.id) return { error: 'Sessão inválida.' }
@@ -68,6 +136,7 @@ export function useExecutionActions() {
       p_action_id: id,
     })
     if (updateError) return { error: updateError.message }
+
     await refetch()
     return { error: null }
   }, [profile?.id, refetch])
