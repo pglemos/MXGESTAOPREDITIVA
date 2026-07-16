@@ -1,11 +1,15 @@
 type SortableCentralAction = {
   due_at: string
-  priority_rank: number
+  priority_rank: number | null
 }
 
 function toSortableTimestamp(value: string): number {
   const timestamp = new Date(value).getTime()
   return Number.isFinite(timestamp) ? timestamp : Number.NEGATIVE_INFINITY
+}
+
+function priorityRank(value: number | null) {
+  return value ?? 5
 }
 
 /**
@@ -25,7 +29,10 @@ export function sortCentralActions<T extends SortableCentralAction>(items: reado
     const rightLate = rightTimestamp < nowTimestamp
 
     if (leftLate !== rightLate) return leftLate ? -1 : 1
-    if (left.priority_rank !== right.priority_rank) return left.priority_rank - right.priority_rank
+
+    const leftPriority = priorityRank(left.priority_rank)
+    const rightPriority = priorityRank(right.priority_rank)
+    if (leftPriority !== rightPriority) return leftPriority - rightPriority
     if (leftTimestamp !== rightTimestamp) return leftTimestamp - rightTimestamp
     return 0
   })
