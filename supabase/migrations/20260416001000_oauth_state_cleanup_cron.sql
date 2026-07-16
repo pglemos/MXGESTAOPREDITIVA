@@ -4,6 +4,11 @@
 -- every 15 minutes from consulting_google_oauth_states
 -- ============================================================
 
+-- Already enabled in prod (toggled via dashboard); missing only on a fresh
+-- database replay (supabase db reset), which is what CI's RLS Regression
+-- Matrix does. No-op where it already exists.
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+
 SELECT cron.schedule(
   'cleanup-oauth-states',
   '*/15 * * * *',
