@@ -81,16 +81,21 @@ export function ResolverAtividadeModal({
     setError(null)
   }, [open, action?.id])
 
-  const options = useMemo(() => action ? getResultOptions(action.activityType) : [], [action])
+  const options = useMemo(() => {
+    if (!action) return []
+    return getResultOptions(action.activityType).filter(option => !option.requiresOpportunity || Boolean(action.opportunityId))
+  }, [action])
   const selected = options.find(option => option.code === resultCode) ?? null
   const clientName = action?.client?.nome || action?.snapshots.name || '—'
   const vehicle = action?.opportunity?.veiculo_interesse || action?.snapshots.vehicle
 
   if (!action) return null
+  const currentAction = action
 
   const canConfirm = Boolean(resultCode)
     && (!selected?.requiresSchedule || Boolean(dueAt))
     && (!selected?.requiresNote || Boolean(note.trim()))
+    && (!selected?.requiresOpportunity || Boolean(currentAction.opportunityId))
     && (resultCode !== 'sale_lost' || Boolean(lossReason))
     && (resultCode !== 'sale_completed' || Number(value) > 0)
 
@@ -108,7 +113,7 @@ export function ResolverAtividadeModal({
       resultCode,
       note: note.trim() || null,
       payload,
-      idempotencyKey: `central:resolve:${action.id}:${crypto.randomUUID()}`,
+      idempotencyKey: `central:resolve:${currentAction.id}:${crypto.randomUUID()}`,
     })
 
     setSaving(false)
@@ -141,9 +146,9 @@ export function ResolverAtividadeModal({
       <div className="space-y-5">
         <div className="space-y-1">
           <p className="text-[13px] font-semibold text-[#0F172A]">{clientName}</p>
-          <p className="text-[12px] text-slate-400">{action.title}{action.description ? ` · ${action.description}` : ''}</p>
+          <p className="text-[12px] text-slate-400">{currentAction.title}{currentAction.description ? ` · ${currentAction.description}` : ''}</p>
           {vehicle && <p className="text-[12px] text-slate-500">{vehicle}</p>}
-          <p className="text-[11px] text-slate-400">{formatDateTime(action.dueAt)}</p>
+          <p className="text-[11px] text-slate-400">{formatDateTime(currentAction.dueAt)}</p>
         </div>
 
         <div>
