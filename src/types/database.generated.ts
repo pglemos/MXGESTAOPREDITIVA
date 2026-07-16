@@ -43,6 +43,61 @@ export type Database = {
         }
         Relationships: []
       }
+      agenda_d1_late_changes: {
+        Row: {
+          agendamento_id: string
+          changed_at: string
+          data_hora: string
+          id: string
+          loja_id: string
+          operation: string
+          seller_user_id: string
+          snapshot: Json
+        }
+        Insert: {
+          agendamento_id: string
+          changed_at?: string
+          data_hora: string
+          id?: string
+          loja_id: string
+          operation: string
+          seller_user_id: string
+          snapshot: Json
+        }
+        Update: {
+          agendamento_id?: string
+          changed_at?: string
+          data_hora?: string
+          id?: string
+          loja_id?: string
+          operation?: string
+          seller_user_id?: string
+          snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agenda_d1_late_changes_agendamento_id_fkey"
+            columns: ["agendamento_id"]
+            isOneToOne: false
+            referencedRelation: "agendamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agenda_d1_late_changes_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agenda_d1_late_changes_seller_user_id_fkey"
+            columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agenda_estrategica_marketing: {
         Row: {
           acao: string
@@ -1388,6 +1443,194 @@ export type Database = {
           },
         ]
       }
+      carteira_missao_itens: {
+        Row: {
+          cliente_id: string
+          concluido_em: string | null
+          created_at: string
+          id: string
+          mensagem_enviada_em: string | null
+          metadata: Json
+          missao_id: string
+          ordem: number
+          respondido_em: string | null
+          resultado: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          cliente_id: string
+          concluido_em?: string | null
+          created_at?: string
+          id?: string
+          mensagem_enviada_em?: string | null
+          metadata?: Json
+          missao_id: string
+          ordem?: number
+          respondido_em?: string | null
+          resultado?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string
+          concluido_em?: string | null
+          created_at?: string
+          id?: string
+          mensagem_enviada_em?: string | null
+          metadata?: Json
+          missao_id?: string
+          ordem?: number
+          respondido_em?: string | null
+          resultado?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carteira_missao_itens_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "carteira_missao_itens_missao_id_fkey"
+            columns: ["missao_id"]
+            isOneToOne: false
+            referencedRelation: "carteira_missoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      carteira_missao_mutations: {
+        Row: {
+          created_at: string
+          idempotency_key: string
+          missao_id: string
+          payload_hash: string
+          result: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          idempotency_key: string
+          missao_id: string
+          payload_hash: string
+          result: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          idempotency_key?: string
+          missao_id?: string
+          payload_hash?: string
+          result?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carteira_missao_mutations_missao_id_fkey"
+            columns: ["missao_id"]
+            isOneToOne: false
+            referencedRelation: "carteira_missoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      carteira_missoes: {
+        Row: {
+          aguardando_resposta: number
+          aguardando_sua_resposta: number
+          clientes_ids: string[]
+          concluida_em: string | null
+          concluidos: number
+          created_at: string
+          id: string
+          idempotency_key: string | null
+          indice_atual: number
+          iniciada_em: string
+          last_mutation_key: string | null
+          last_mutation_result: Json | null
+          loja_id: string
+          mensagens_enviadas: number
+          metadata: Json
+          nao_responderam: number
+          pausada_em: string | null
+          propostas_solicitadas: number
+          pulados: number
+          revision: number
+          seller_user_id: string
+          sem_interesse: number
+          status: string
+          tipo_missao: string
+          total_clientes: number
+          updated_at: string
+          updated_by: string | null
+          visitas_agendadas: number
+        }
+        Insert: {
+          aguardando_resposta?: number
+          aguardando_sua_resposta?: number
+          clientes_ids?: string[]
+          concluida_em?: string | null
+          concluidos?: number
+          created_at?: string
+          id?: string
+          idempotency_key?: string | null
+          indice_atual?: number
+          iniciada_em?: string
+          last_mutation_key?: string | null
+          last_mutation_result?: Json | null
+          loja_id: string
+          mensagens_enviadas?: number
+          metadata?: Json
+          nao_responderam?: number
+          pausada_em?: string | null
+          propostas_solicitadas?: number
+          pulados?: number
+          revision?: number
+          seller_user_id: string
+          sem_interesse?: number
+          status?: string
+          tipo_missao: string
+          total_clientes?: number
+          updated_at?: string
+          updated_by?: string | null
+          visitas_agendadas?: number
+        }
+        Update: {
+          aguardando_resposta?: number
+          aguardando_sua_resposta?: number
+          clientes_ids?: string[]
+          concluida_em?: string | null
+          concluidos?: number
+          created_at?: string
+          id?: string
+          idempotency_key?: string | null
+          indice_atual?: number
+          iniciada_em?: string
+          last_mutation_key?: string | null
+          last_mutation_result?: Json | null
+          loja_id?: string
+          mensagens_enviadas?: number
+          metadata?: Json
+          nao_responderam?: number
+          pausada_em?: string | null
+          propostas_solicitadas?: number
+          pulados?: number
+          revision?: number
+          seller_user_id?: string
+          sem_interesse?: number
+          status?: string
+          tipo_missao?: string
+          total_clientes?: number
+          updated_at?: string
+          updated_by?: string | null
+          visitas_agendadas?: number
+        }
+        Relationships: []
+      }
       catalogo_indicadores_planejamento: {
         Row: {
           active: boolean
@@ -1629,6 +1872,9 @@ export type Database = {
           created_at: string
           created_by: string | null
           data_competencia: string | null
+          do_not_contact: boolean
+          do_not_contact_at: string | null
+          do_not_contact_reason: string | null
           empresa: string | null
           fechamento_id: string | null
           id: string
@@ -1639,6 +1885,7 @@ export type Database = {
           potencial_negocio: number
           proxima_acao: string | null
           proxima_acao_em: string | null
+          reactivation_at: string | null
           relacionamento: Database["public"]["Enums"]["crm_relacionamento"]
           seller_user_id: string
           status: Database["public"]["Enums"]["crm_cliente_status"]
@@ -1653,6 +1900,9 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           data_competencia?: string | null
+          do_not_contact?: boolean
+          do_not_contact_at?: string | null
+          do_not_contact_reason?: string | null
           empresa?: string | null
           fechamento_id?: string | null
           id?: string
@@ -1663,6 +1913,7 @@ export type Database = {
           potencial_negocio?: number
           proxima_acao?: string | null
           proxima_acao_em?: string | null
+          reactivation_at?: string | null
           relacionamento?: Database["public"]["Enums"]["crm_relacionamento"]
           seller_user_id: string
           status?: Database["public"]["Enums"]["crm_cliente_status"]
@@ -1677,6 +1928,9 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           data_competencia?: string | null
+          do_not_contact?: boolean
+          do_not_contact_at?: string | null
+          do_not_contact_reason?: string | null
           empresa?: string | null
           fechamento_id?: string | null
           id?: string
@@ -1687,6 +1941,7 @@ export type Database = {
           potencial_negocio?: number
           proxima_acao?: string | null
           proxima_acao_em?: string | null
+          reactivation_at?: string | null
           relacionamento?: Database["public"]["Enums"]["crm_relacionamento"]
           seller_user_id?: string
           status?: Database["public"]["Enums"]["crm_cliente_status"]
@@ -3451,6 +3706,7 @@ export type Database = {
           id: string
           idempotency_key: string | null
           loja_id: string
+          metadata: Json
           modalidade:
             | Database["public"]["Enums"]["crm_evento_modalidade"]
             | null
@@ -3472,6 +3728,7 @@ export type Database = {
           id?: string
           idempotency_key?: string | null
           loja_id: string
+          metadata?: Json
           modalidade?:
             | Database["public"]["Enums"]["crm_evento_modalidade"]
             | null
@@ -3493,6 +3750,7 @@ export type Database = {
           id?: string
           idempotency_key?: string | null
           loja_id?: string
+          metadata?: Json
           modalidade?:
             | Database["public"]["Enums"]["crm_evento_modalidade"]
             | null
@@ -3675,69 +3933,152 @@ export type Database = {
       }
       execution_actions: {
         Row: {
+          active: boolean
+          activity_type: string
+          agendamento_id: string | null
           alert_tone: string
+          automatic: boolean
+          client_name_snapshot: string | null
+          cliente_id: string | null
           completed_at: string | null
           completed_by: string | null
           created_at: string
           created_by: string | null
           description: string | null
           due_at: string
+          escalated_at: string | null
+          escalation_reason: string | null
+          evento_id: string | null
           id: string
+          idempotency_key: string | null
           justificativa: string | null
+          last_mutation_key: string | null
+          last_mutation_result: Json | null
+          manager_id: string | null
+          manager_required: boolean
           metadata: Json
+          objective: string | null
+          oportunidade_id: string | null
+          origin_module: string
+          phone_snapshot: string | null
           priority: string
+          priority_rank: number
+          result_code: string | null
+          result_note: string | null
           seller_id: string
           source_id: string | null
+          source_record_id: string | null
           source_type: string
           status: string
           store_id: string | null
           title: string
           updated_at: string
           updated_by: string | null
+          vehicle_snapshot: string | null
         }
         Insert: {
+          active?: boolean
+          activity_type: string
+          agendamento_id?: string | null
           alert_tone?: string
+          automatic?: boolean
+          client_name_snapshot?: string | null
+          cliente_id?: string | null
           completed_at?: string | null
           completed_by?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           due_at: string
+          escalated_at?: string | null
+          escalation_reason?: string | null
+          evento_id?: string | null
           id?: string
+          idempotency_key?: string | null
           justificativa?: string | null
+          last_mutation_key?: string | null
+          last_mutation_result?: Json | null
+          manager_id?: string | null
+          manager_required?: boolean
           metadata?: Json
+          objective?: string | null
+          oportunidade_id?: string | null
+          origin_module?: string
+          phone_snapshot?: string | null
           priority?: string
+          priority_rank?: number
+          result_code?: string | null
+          result_note?: string | null
           seller_id: string
           source_id?: string | null
+          source_record_id?: string | null
           source_type: string
           status?: string
           store_id?: string | null
           title: string
           updated_at?: string
           updated_by?: string | null
+          vehicle_snapshot?: string | null
         }
         Update: {
+          active?: boolean
+          activity_type?: string
+          agendamento_id?: string | null
           alert_tone?: string
+          automatic?: boolean
+          client_name_snapshot?: string | null
+          cliente_id?: string | null
           completed_at?: string | null
           completed_by?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           due_at?: string
+          escalated_at?: string | null
+          escalation_reason?: string | null
+          evento_id?: string | null
           id?: string
+          idempotency_key?: string | null
           justificativa?: string | null
+          last_mutation_key?: string | null
+          last_mutation_result?: Json | null
+          manager_id?: string | null
+          manager_required?: boolean
           metadata?: Json
+          objective?: string | null
+          oportunidade_id?: string | null
+          origin_module?: string
+          phone_snapshot?: string | null
           priority?: string
+          priority_rank?: number
+          result_code?: string | null
+          result_note?: string | null
           seller_id?: string
           source_id?: string | null
+          source_record_id?: string | null
           source_type?: string
           status?: string
           store_id?: string | null
           title?: string
           updated_at?: string
           updated_by?: string | null
+          vehicle_snapshot?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "execution_actions_agendamento_id_fkey"
+            columns: ["agendamento_id"]
+            isOneToOne: false
+            referencedRelation: "agendamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "execution_actions_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "execution_actions_completed_by_fkey"
             columns: ["completed_by"]
@@ -3750,6 +4091,34 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "execution_actions_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos_comerciais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "execution_actions_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "execution_actions_oportunidade_id_fkey"
+            columns: ["oportunidade_id"]
+            isOneToOne: false
+            referencedRelation: "clientes_oportunidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "execution_actions_oportunidade_id_fkey"
+            columns: ["oportunidade_id"]
+            isOneToOne: false
+            referencedRelation: "oportunidades"
             referencedColumns: ["id"]
           },
           {
@@ -9993,6 +10362,7 @@ export type Database = {
           created_by: string
           data_entrada: string
           id: string
+          idempotency_key: string | null
           loja_id: string
           marca: string
           modelo: string
@@ -10008,6 +10378,7 @@ export type Database = {
           created_by: string
           data_entrada?: string
           id?: string
+          idempotency_key?: string | null
           loja_id: string
           marca: string
           modelo: string
@@ -10023,6 +10394,7 @@ export type Database = {
           created_by?: string
           data_entrada?: string
           id?: string
+          idempotency_key?: string | null
           loja_id?: string
           marca?: string
           modelo?: string
@@ -10822,6 +11194,87 @@ export type Database = {
         Args: { p_request_id: string }
         Returns: Json
       }
+      carteira_atualizar_missao: {
+        Args: { p_missao_id: string; p_payload: Json }
+        Returns: Json
+      }
+      carteira_atualizar_missao_v2:
+        | { Args: { p_missao_id: string; p_payload: Json }; Returns: Json }
+        | {
+            Args: {
+              p_idempotency_key: string
+              p_missao_id: string
+              p_payload: Json
+            }
+            Returns: Json
+          }
+      carteira_iniciar_missao: {
+        Args: { p_idempotency_key?: string; p_payload: Json }
+        Returns: Json
+      }
+      carteira_iniciar_missao_v2: {
+        Args: { p_idempotency_key: string; p_payload: Json }
+        Returns: Json
+      }
+      carteira_salvar_cliente: {
+        Args: { p_idempotency_key?: string; p_payload: Json }
+        Returns: Json
+      }
+      carteira_salvar_cliente_v2: {
+        Args: { p_idempotency_key: string; p_payload: Json }
+        Returns: Json
+      }
+      central_can_access_store: {
+        Args: { p_store_id: string }
+        Returns: boolean
+      }
+      central_can_manage_action: {
+        Args: { p_seller_id: string; p_store_id: string }
+        Returns: boolean
+      }
+      central_create_manual_action: {
+        Args: { p_idempotency_key: string; p_payload: Json }
+        Returns: string
+      }
+      central_escalate_action: {
+        Args: {
+          p_action_id: string
+          p_idempotency_key: string
+          p_reason: string
+        }
+        Returns: string
+      }
+      central_reschedule_action: {
+        Args: {
+          p_action_id: string
+          p_due_at: string
+          p_idempotency_key: string
+          p_note: string
+        }
+        Returns: string
+      }
+      central_resolve_action: {
+        Args: {
+          p_action_id: string
+          p_idempotency_key: string
+          p_note: string
+          p_payload: Json
+          p_result_code: string
+        }
+        Returns: Json
+      }
+      central_result_allowed: {
+        Args: { p_activity_type: string; p_result_code: string }
+        Returns: boolean
+      }
+      central_sync_appointment_action: {
+        Args: { p_agendamento_id: string; p_idempotency_key?: string }
+        Returns: string
+      }
+      central_upsert_appointment_action_internal: {
+        Args: { p_agendamento_id: string; p_idempotency_key?: string }
+        Returns: string
+      }
       check_user_role_in_store: {
         Args: { p_roles: string[]; p_store_id: string }
         Returns: boolean
@@ -11520,6 +11973,14 @@ export type Database = {
           total_leads: number
           total_vendas: number
           total_visitas: number
+        }[]
+      }
+      listar_responsaveis_tratativa_loja: {
+        Args: { p_store_id: string }
+        Returns: {
+          id: string
+          name: string
+          role: string
         }[]
       }
       log_rpc_error: {

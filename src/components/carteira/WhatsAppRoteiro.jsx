@@ -11,6 +11,7 @@ import {
   getResultados, aplicarTransicao, detectarCodigo, PASSOS,
 } from "./proximoPassoLib";
 import ScriptIA from "./ScriptIA";
+import { toast } from "@/components/ui/use-toast";
 
 const COR_MAP = {
   green:  { sel: "bg-green-50 border-green-400 text-green-700",    base: "bg-white border-slate-200 hover:bg-green-50 hover:border-green-300" },
@@ -83,49 +84,39 @@ export default function WhatsAppRoteiro({ open, onClose, cliente, missaoId, onRe
 
   async function registrar() {
     if (!resultado || !cliente) return;
+    if (precisaDataVisita && !novaDataVisita) return;
     setSalvando(true);
-
     const { patch, novoPassoLabel, criarAgendamento } = aplicarTransicao(passoAtual, resultado);
 
     if (motivoPerda) patch.motivo_perda = motivoPerda;
+    // A RPC transacional já cria ou atualiza o agendamento. Criar também uma
+    // AtividadeExecucao gerava um segundo registro em agendamentos.
     if (novaDataVisita && criarAgendamento) patch.visita_agendada_em = novaDataVisita;
 
-    await base44.entities.CarteiraCliente.update(cliente.id, patch);
-
-    await base44.entities.CarteiraHistorico.create({
-      cliente_id: cliente.id,
-      vendedor_id: cliente.vendedor_id,
+    patch.historico = {
       tipo: "Resultado registrado",
       descricao: `Passo executado: ${passoAtual}. Resultado: ${resultado}.${observacao ? " " + observacao : ""}${novoPassoLabel ? ` → Próximo: ${novoPassoLabel}` : ""}`,
       resultado,
       momento_anterior: situacao,
       momento_novo: patch.situacao_atual || situacao,
-    });
+    };
 
-    // Criar atividade de agendamento se necessário
-    if (criarAgendamento && novaDataVisita) {
-      const me = await base44.auth.me().catch(() => null);
-      await base44.entities.AtividadeExecucao.create({
-        cliente_id: cliente.id,
-        vendedor_id: me?.id || cliente.vendedor_id,
-        tipo_atividade: "agendamento",
-        titulo: `Agendamento — ${cliente.nome}`,
-        descricao: observacao || "",
-        data_hora_execucao: novaDataVisita,
-        data_execucao: novaDataVisita.split("T")[0],
-        status_atividade: "Pendente",
-        prioridade: 1,
-        nome_cliente_snapshot: cliente.nome,
-        telefone_snapshot: cliente.whatsapp || cliente.telefone || "",
-        veiculo_snapshot: cliente.veiculo_interesse || "",
-        origem_atividade: "CarteiraClientes",
-        ativo: true,
-      }).catch(() => {});
+    let persistido;
+    try {
+      persistido = await base44.entities.CarteiraCliente.update(cliente.id, patch);
+    } catch (error) {
+      toast({
+        title: "Não foi possível registrar o resultado.",
+        description: "Seus dados foram preservados. Tente novamente.",
+        variant: "destructive",
+      });
+      return;
+    } finally {
+      setSalvando(false);
     }
 
     sessionStorage.removeItem(WA_KEY);
-    setSalvando(false);
-    onResultadoRegistrado({ ...cliente, ...patch });
+    onResultadoRegistrado(persistido);
     onClose();
   }
 
@@ -258,7 +249,7 @@ export default function WhatsAppRoteiro({ open, onClose, cliente, missaoId, onRe
                 <Button variant="outline" onClick={onClose} className="flex-1 rounded-xl">Cancelar</Button>
                 <Button
                   onClick={registrar}
-                  disabled={!resultado || salvando || (precisaMotivo && !motivoPerda)}
+                  disabled={!resultado || salvando || (precisaMotivo && !motivoPerda) || (precisaDataVisita && !novaDataVisita)}
                   className="flex-1 rounded-xl bg-[#005BFF] hover:bg-blue-700 text-white"
                 >
                   {salvando ? "Salvando..." : "Registrar resultado"}

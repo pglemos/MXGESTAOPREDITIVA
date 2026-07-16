@@ -18,6 +18,8 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
   const [etapa, setEtapa] = useState("enviando"); // "enviando" | "resultado" | "resumo"
   const [resultado, setResultado] = useState("");
   const [salvando, setSalvando] = useState(false);
+  const [persistindo, setPersistindo] = useState(false);
+  const [erro, setErro] = useState("");
 
   const total = clientes.length;
   const clienteAtual = clientes[indice];
@@ -30,11 +32,18 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
   const waUrl = tel ? `https://wa.me/55${tel}?text=${encodeURIComponent(script)}` : null;
 
   async function persistirMissao(patch) {
-    if (!missao?.id) return;
+    if (!missao?.id) return false;
+    setPersistindo(true);
     try {
       await base44.entities.CarteiraMissao.update(missao.id, patch);
+      setErro("");
+      return true;
     } catch (error) {
       console.error("Falha ao persistir missão:", error);
+      setErro("Não foi possível salvar o progresso da missão. Tente novamente.");
+      return false;
+    } finally {
+      setPersistindo(false);
     }
   }
 
@@ -73,24 +82,34 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
 
   async function marcarEnviado() {
     const next = enviados + 1;
-    setEnviados(next);
-    await persistirMissao({
+    const persisted = await persistirMissao({
       status: "Enviando mensagens",
       mensagens_enviadas: next,
       indice_atual: indice,
+      item: {
+        cliente_id: clienteAtual.id,
+        status: "Mensagem enviada",
+      },
     });
+    if (!persisted) return;
+    setEnviados(next);
     setEtapa("resultado");
   }
 
   async function pularCliente() {
     const next = pulados + 1;
     const nextIndex = Math.min(indice + 1, Math.max(total - 1, 0));
-    setPulados(next);
-    await persistirMissao({
+    const persisted = await persistirMissao({
       status: "Enviando mensagens",
       pulados: next,
       indice_atual: nextIndex,
+      item: {
+        cliente_id: clienteAtual.id,
+        status: "Pulado",
+      },
     });
+    if (!persisted) return;
+    setPulados(next);
     avancar();
     if (indice + 1 >= total) setEtapa("resumo");
   }
@@ -104,16 +123,15 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
       if (momento) update.momento = momento;
       if (temperatura) update.temperatura = temperatura;
       update.proxima_acao = calcularProximaAcao({ ...clienteAtual, ...update });
-      await base44.entities.CarteiraCliente.update(clienteAtual.id, update);
-      await base44.entities.CarteiraHistorico.create({
-        cliente_id: clienteAtual.id,
+      update.historico = {
         missao_id: missao.id,
         tipo: "Missão: " + missao.nome,
         descricao: `Resultado: ${resultado}`,
         resultado,
         momento_anterior: clienteAtual.momento,
         momento_novo: momento || clienteAtual.momento,
-      });
+      };
+      await base44.entities.CarteiraCliente.update(clienteAtual.id, update);
 
       const nextConcluidos = concluidos + 1;
       const nextVisitas = visitasAgendadas + (["Agendou visita", "Reagendou visita"].includes(resultado) ? 1 : 0);
@@ -122,13 +140,12 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
       const nextNaoResponderam = naoResponderam + (resultado === "Cliente não respondeu" ? 1 : 0);
       const nextIndex = Math.min(indice + 1, Math.max(total - 1, 0));
 
-      setConcluidos(nextConcluidos);
-      setVisitasAgendadas(nextVisitas);
-      setPropostasSolicitadas(nextPropostas);
-      setSemInteresse(nextSemInteresse);
-      setNaoResponderam(nextNaoResponderam);
-
-      await persistirMissao({
+      const itemStatus = resultado === "Cliente não respondeu"
+        ? "Não respondeu"
+        : ["Sem interesse", "Comprou em outra loja"].includes(resultado)
+        ? "Sem interesse"
+        : "Concluído";
+      const persisted = await persistirMissao({
         status: indice + 1 >= total ? "Aguardando respostas" : "Enviando mensagens",
         indice_atual: nextIndex,
         mensagens_enviadas: enviados,
@@ -139,8 +156,21 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
         sem_interesse: nextSemInteresse,
         nao_responderam: nextNaoResponderam,
         aguardando_resposta: Math.max(enviados - nextConcluidos, 0),
+        item: {
+          cliente_id: clienteAtual.id,
+          status: itemStatus,
+          resultado,
+        },
       });
+      if (!persisted) return;
+      setConcluidos(nextConcluidos);
+      setVisitasAgendadas(nextVisitas);
+      setPropostasSolicitadas(nextPropostas);
+      setSemInteresse(nextSemInteresse);
+      setNaoResponderam(nextNaoResponderam);
       avancar();
+    } catch (error) {
+      setErro("Não foi possível registrar o resultado. Tente novamente.");
     } finally {
       setSalvando(false);
     }
@@ -148,7 +178,7 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
 
   async function handleVoltar() {
     if (etapa !== "resumo") {
-      await persistirMissao({
+      const persisted = await persistirMissao({
         status: "Pausada",
         indice_atual: indice,
         mensagens_enviadas: enviados,
@@ -159,6 +189,7 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
         sem_interesse: semInteresse,
         nao_responderam: naoResponderam,
       });
+      if (!persisted) return;
     }
     onVoltar();
   }
@@ -166,6 +197,11 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
   if (etapa === "resumo") {
     return (
       <div className="space-y-6">
+        {erro && (
+          <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {erro}
+          </div>
+        )}
         <button onClick={handleVoltar} className="flex items-center gap-1.5 text-sm text-[#005BFF] hover:underline">
           <ArrowLeft className="w-4 h-4" /> Plano de Ataque
         </button>
@@ -201,6 +237,11 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
 
   return (
     <div className="space-y-6">
+      {erro && (
+        <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {erro}
+        </div>
+      )}
       <div className="flex items-center gap-1.5 text-xs text-slate-400">
         <button onClick={handleVoltar} className="hover:text-[#005BFF] transition-colors">Carteira de Clientes</button>
         <ChevronRight className="w-3 h-3" />
@@ -279,10 +320,10 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
           </div>
 
           <div className="flex gap-2">
-            <Button variant="outline" onClick={pularCliente} className="rounded-xl gap-1.5 text-sm text-slate-500">
+            <Button variant="outline" onClick={pularCliente} disabled={persistindo} className="rounded-xl gap-1.5 text-sm text-slate-500">
               <SkipForward className="w-4 h-4" /> Pular
             </Button>
-            <Button onClick={marcarEnviado} className="flex-1 rounded-xl bg-blue-50 text-[#005BFF] hover:bg-blue-100 font-bold gap-1.5 text-sm border border-blue-100">
+            <Button onClick={marcarEnviado} disabled={persistindo} className="flex-1 rounded-xl bg-blue-50 text-[#005BFF] hover:bg-blue-100 font-bold gap-1.5 text-sm border border-blue-100">
               Mensagem enviada →
             </Button>
           </div>
@@ -305,8 +346,8 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
             ))}
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={avancar} className="flex-1 rounded-xl text-sm">Pular resultado</Button>
-            <Button onClick={registrarResultado} disabled={!resultado || salvando}
+            <Button variant="outline" onClick={avancar} disabled={salvando || persistindo} className="flex-1 rounded-xl text-sm">Pular resultado</Button>
+            <Button onClick={registrarResultado} disabled={!resultado || salvando || persistindo}
               className="flex-1 rounded-xl bg-[#005BFF] hover:bg-blue-700 text-white text-sm">
               {salvando ? "Salvando..." : "Confirmar e avançar"}
             </Button>

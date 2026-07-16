@@ -26,15 +26,36 @@ function listMigrations() {
 }
 
 function listChangedMigrations() {
+  let baseSha;
   try {
-    const out = execSync('git diff --name-only origin/main...HEAD -- "supabase/migrations/*.sql"', { encoding: 'utf8' });
-    return out
-      .split('\n')
-      .filter(Boolean)
-      .filter(p => !p.includes(`/${TEMPLATES_DIR}/`) && !p.includes(`/${ARCHIVED_DIR}/`));
+    baseSha = execSync('git rev-parse --verify origin/main^{commit}', { encoding: 'utf8' }).trim();
   } catch {
-    return [];
+    console.error('❌ Não foi possível resolver origin/main para validar migrations alteradas.');
+    process.exit(1);
   }
+
+  const files = new Set(
+    execSync(`git diff --name-only ${baseSha}...HEAD -- "supabase/migrations/*.sql"`, { encoding: 'utf8' })
+      .split('\n')
+      .filter(Boolean),
+  );
+  const commands = [
+    'git diff --name-only --cached -- "supabase/migrations/*.sql"',
+    'git diff --name-only -- "supabase/migrations/*.sql"',
+    'git ls-files --others --exclude-standard -- "supabase/migrations/*.sql"',
+  ];
+
+  for (const command of commands) {
+    try {
+      const out = execSync(command, { encoding: 'utf8' });
+      out.split('\n').filter(Boolean).forEach(file => files.add(file));
+    } catch {
+      // Índice/worktree sem alterações não invalida as demais fontes.
+    }
+  }
+
+  return [...files]
+    .filter(p => !p.includes(`/${TEMPLATES_DIR}/`) && !p.includes(`/${ARCHIVED_DIR}/`));
 }
 
 function hasDownBlock(content) {

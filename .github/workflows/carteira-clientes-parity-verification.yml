@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - codex/carteira-base44-1to1
+      - 'codex/carteira-*'
     paths:
       - 'src/pages/CarteiraClientes.tsx'
       - 'src/features/carteira-clientes/**'
@@ -14,8 +14,8 @@ on:
       - 'src/api/base44Client.js'
       - 'scripts/verify_carteira_base44_parity.mjs'
       - 'scripts/check_migration_reversibility.mjs'
-      - 'supabase/migrations/2026071619*.sql'
-      - 'supabase/rollbacks/2026071619*.sql'
+      - 'supabase/migrations/*carteira*.sql'
+      - 'supabase/rollbacks/*carteira*.sql'
       - '.github/workflows/carteira-clientes-parity-verification.yml'
   pull_request:
     branches:
@@ -29,8 +29,8 @@ on:
       - 'src/api/base44Client.js'
       - 'scripts/verify_carteira_base44_parity.mjs'
       - 'scripts/check_migration_reversibility.mjs'
-      - 'supabase/migrations/2026071619*.sql'
-      - 'supabase/rollbacks/2026071619*.sql'
+      - 'supabase/migrations/*carteira*.sql'
+      - 'supabase/rollbacks/*carteira*.sql'
       - '.github/workflows/carteira-clientes-parity-verification.yml'
   workflow_dispatch:
 
@@ -49,6 +49,8 @@ jobs:
       VITE_SUPABASE_ANON_KEY: test-anon-key
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -65,17 +67,23 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Lint
+        run: npm run lint
+
       - name: Verify route contract
         run: bun test src/features/carteira-clientes/pages/CarteiraClientesBase44Page.test.tsx
 
       - name: Verify exact visual source parity
-        run: bun test src/features/carteira-clientes/components/carteira-source-parity.test.ts
+        run: bun test --isolate src/features/carteira-clientes/components/carteira-source-parity.test.ts src/features/carteira-clientes/components/carteira-rendered-parity.test.tsx
 
       - name: Verify normalized mapping
         run: bun test src/features/carteira-clientes/lib/carteira-mappers.test.ts
 
       - name: Verify migration contract
-        run: bun test src/lib/carteira-base44-migration.test.ts
+        run: bun test --isolate src/lib/carteira-base44-migration.test.ts src/lib/carteira-base44-hardening-migration.test.ts
+
+      - name: Verify mutation concurrency and error resilience
+        run: bun test --isolate src/features/carteira-clientes/lib/carteira-adapter-contract.test.ts src/features/carteira-clientes/lib/carteira-mutation-coordinator.test.ts src/features/carteira-clientes/components/carteira-resilience.test.tsx
 
       - name: Verify deploy-blocking parity and design tokens
         run: node scripts/verify_carteira_base44_parity.mjs
