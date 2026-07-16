@@ -3,11 +3,12 @@
 // Uso: node scripts/check_migration_reversibility.mjs [--changed-only]
 // Exit codes: 0 = ok, 1 = falha (migration sem DOWN)
 
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { execSync } from 'node:child_process';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 
 const MIGRATIONS_DIR = 'supabase/migrations';
+const ROLLBACKS_DIR = 'supabase/rollbacks';
 const TEMPLATES_DIR = '_templates';
 const ARCHIVED_DIR = '_archived';
 
@@ -40,6 +41,18 @@ function hasDownBlock(content) {
   return DOWN_PATTERN.test(content) || DOWN_ALT_PATTERN.test(content);
 }
 
+function rollbackCompanionFor(file) {
+  return join(ROLLBACKS_DIR, basename(file));
+}
+
+function hasExecutableRollbackCompanion(file) {
+  const companion = rollbackCompanionFor(file);
+  if (!existsSync(companion)) return false;
+
+  const content = readFileSync(companion, 'utf8');
+  return hasDownBlock(content) && /\b(?:DROP|ALTER|REVOKE|GRANT|DELETE|UPDATE)\b/i.test(content);
+}
+
 const files = onlyChanged ? listChangedMigrations() : listMigrations();
 
 if (files.length === 0) {
@@ -48,6 +61,7 @@ if (files.length === 0) {
 }
 
 const failures = [];
+const companionRollbacks = [];
 for (const file of files) {
   let content;
   try {
@@ -57,19 +71,26 @@ for (const file of files) {
     if (err.code === 'ENOENT') continue;
     throw err;
   }
-  if (!hasDownBlock(content)) {
-    failures.push(file);
+
+  if (hasDownBlock(content)) continue;
+  if (hasExecutableRollbackCompanion(file)) {
+    companionRollbacks.push(rollbackCompanionFor(file));
+    continue;
   }
+  failures.push(file);
 }
 
 if (failures.length > 0) {
-  console.error('❌ Migrations sem bloco DOWN documentado:');
+  console.error('❌ Migrations sem rollback documentado ou executável:');
   failures.forEach(f => console.error(`   - ${f}`));
   console.error('');
-  console.error('Adicione um bloco "-- DOWN" comentado descrevendo como reverter.');
-  console.error('Veja template em supabase/migrations/_templates/template_reversible_migration.sql');
+  console.error('Adicione um bloco "-- DOWN" na migration ou um rollback executável em:');
+  failures.forEach(f => console.error(`   - ${rollbackCompanionFor(f)}`));
   process.exit(1);
 }
 
-console.log(`✅ Todas as ${files.length} migration${files.length === 1 ? '' : 's'} têm bloco DOWN documentado.`);
+if (companionRollbacks.length > 0) {
+  console.log(`↩️  ${companionRollbacks.length} rollback(s) executável(is) validado(s) em ${ROLLBACKS_DIR}.`);
+}
+console.log(`✅ Todas as ${files.length} migration${files.length === 1 ? '' : 's'} têm rollback documentado.`);
 process.exit(0);
