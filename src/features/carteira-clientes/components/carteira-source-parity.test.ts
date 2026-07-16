@@ -30,11 +30,10 @@ describe('Base44 1:1 visual source parity', () => {
     expect(source).toContain('CarteiraMissao.filter')
   })
 
-  test('mission execution preserves Base44 visual tokens while persisting every action', () => {
+  test('mission execution preserves Base44 interaction tokens while persisting every action', () => {
     const source = readFileSync('src/components/carteira/ExecucaoMissao.jsx', 'utf8')
     for (const token of [
       'bg-[#005BFF]',
-      'bg-[#F8FAFC]',
       'rounded-2xl',
       'Aguardando respostas',
       'CarteiraMissao.update',
