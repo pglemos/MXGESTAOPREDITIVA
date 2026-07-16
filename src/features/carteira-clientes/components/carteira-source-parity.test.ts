@@ -3,10 +3,7 @@ import { readFileSync } from 'node:fs'
 
 const EXACT_COMPONENTS = [
   'CarteiraAtivaTab.jsx',
-  'FichaClienteSheet.jsx',
   'ModoAtaque.jsx',
-  'NovoClienteModal.jsx',
-  'WhatsAppRoteiro.jsx',
   'ProximaOportunidadeModal.jsx',
   'RetornoWhatsAppModal.jsx',
   'carteiraUtils.jsx',
@@ -14,12 +11,46 @@ const EXACT_COMPONENTS = [
   'VeiculosChegaram.jsx',
 ]
 
+const INTEGRATED_COMPONENTS = {
+  'FichaClienteSheet.jsx': [
+    'w-full sm:max-w-xl overflow-y-auto p-0 flex flex-col',
+    'Mentor Comercial',
+    'Alterar próximo passo',
+    'sticky bottom-0 bg-white border-t border-slate-100',
+  ],
+  'NovoClienteModal.jsx': [
+    'max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl',
+    'Novo Cliente',
+    'Em que momento esse cliente está?',
+    'Adicionar cliente',
+  ],
+  'WhatsAppRoteiro.jsx': [
+    'max-w-md rounded-2xl max-h-[92vh] overflow-y-auto',
+    'Registrar resultado do contato',
+    'animate-in slide-in-from-top-2 duration-200',
+    'Registrar resultado',
+  ],
+}
+
 describe('Base44 1:1 visual source parity', () => {
   for (const filename of EXACT_COMPONENTS) {
     test(`${filename} remains byte-for-byte equal to the Base44 reference`, () => {
       const runtime = readFileSync(`src/components/carteira/${filename}`, 'utf8')
       const reference = readFileSync(`src/base44-reference/components/carteira/${filename}`, 'utf8')
       expect(runtime).toBe(reference)
+    })
+  }
+
+  for (const [filename, visualTokens] of Object.entries(INTEGRATED_COMPONENTS)) {
+    test(`${filename} preserves the Base44 visual contract around MX persistence`, () => {
+      const runtime = readFileSync(`src/components/carteira/${filename}`, 'utf8')
+      const reference = readFileSync(`src/base44-reference/components/carteira/${filename}`, 'utf8')
+      for (const token of visualTokens) {
+        expect(reference, `${filename} reference token: ${token}`).toContain(token)
+        expect(runtime, `${filename} runtime token: ${token}`).toContain(token)
+      }
+      expect(runtime).toContain('finally')
+      expect(runtime).toContain('toast({')
     })
   }
 
