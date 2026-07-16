@@ -84,16 +84,19 @@ const RESULT_OPTIONS: Partial<Record<CentralActivityType, readonly CentralResult
     { code: 'task_justified', label: 'Justificar impedimento', requiresNote: true },
     { code: 'reschedule', label: 'Reagendar', requiresSchedule: true },
     { code: 'manager_required', label: 'Precisa de gerente', requiresNote: true },
+    { code: 'cancelled', label: 'Cancelada', requiresNote: true, destructive: true },
   ],
   pdi: [
     { code: 'task_completed', label: 'Ação concluída' },
     { code: 'task_justified', label: 'Justificar impedimento', requiresNote: true },
     { code: 'reschedule', label: 'Reagendar', requiresSchedule: true },
+    { code: 'cancelled', label: 'Cancelada', requiresNote: true, destructive: true },
   ],
   feedback: [
     { code: 'task_completed', label: 'Ação concluída' },
     { code: 'task_justified', label: 'Justificar impedimento', requiresNote: true },
     { code: 'manager_required', label: 'Precisa de gerente', requiresNote: true },
+    { code: 'cancelled', label: 'Cancelada', requiresNote: true, destructive: true },
   ],
   funil: [
     { code: 'advanced', label: 'Avançou no funil' },

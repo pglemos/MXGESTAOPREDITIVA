@@ -31,4 +31,11 @@ describe('getResultOptions', () => {
   test('retorna lista vazia para tipo desconhecido em dados legados', () => {
     expect(getResultOptions('legacy_unknown' as never)).toEqual([])
   })
+
+  test('comercial, pdi e feedback oferecem cancelar, espelhando central_result_allowed no banco', () => {
+    expect(isResultAllowedForActivity('comercial', 'cancelled')).toBe(true)
+    expect(isResultAllowedForActivity('pdi', 'cancelled')).toBe(true)
+    expect(isResultAllowedForActivity('feedback', 'cancelled')).toBe(true)
+    expect(getResultOptions('comercial').find(item => item.code === 'cancelled')?.requiresNote).toBe(true)
+  })
 })

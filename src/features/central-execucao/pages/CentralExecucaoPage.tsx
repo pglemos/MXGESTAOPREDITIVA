@@ -7,6 +7,7 @@ import { PendenciasDrawer } from '@/features/central-execucao/components/Pendenc
 import { useCentralExecutionActions } from '@/features/central-execucao/hooks/useCentralExecutionActions'
 import { useCentralMutations } from '@/features/central-execucao/hooks/useCentralMutations'
 import { useWhatsappReturn } from '@/features/central-execucao/hooks/useWhatsappReturn'
+import { EscalarAtividadeModal } from '@/features/central-execucao/modals/EscalarAtividadeModal'
 import { NovaAtividadeModal, type ClientLookupItem } from '@/features/central-execucao/modals/NovaAtividadeModal'
 import { ReagendarAtividadeModal } from '@/features/central-execucao/modals/ReagendarAtividadeModal'
 import { ResolverAtividadeModal, type ResolveModalSubmission } from '@/features/central-execucao/modals/ResolverAtividadeModal'
@@ -44,7 +45,7 @@ export function CentralExecucaoPage() {
   const { profile } = useAuth()
   const { actions, loading, error, refetch } = useCentralExecutionActions()
   const { clientes } = useClientes()
-  const { createManualAction, resolveAction, rescheduleAction } = useCentralMutations()
+  const { createManualAction, resolveAction, rescheduleAction, escalateAction } = useCentralMutations()
 
   const [tab, setTab] = useState<CentralTab>('hoje')
   const [newActivityOpen, setNewActivityOpen] = useState(false)
@@ -52,6 +53,7 @@ export function CentralExecucaoPage() {
   const [resolverAction, setResolverAction] = useState<CentralExecutionAction | null>(null)
   const [resolverFromWhatsapp, setResolverFromWhatsapp] = useState(false)
   const [rescheduleActionItem, setRescheduleActionItem] = useState<CentralExecutionAction | null>(null)
+  const [escalateActionItem, setEscalateActionItem] = useState<CentralExecutionAction | null>(null)
   const [clientSheetId, setClientSheetId] = useState<string | null>(null)
   const [flash, setFlash] = useState<FlashMessage | null>(null)
 
@@ -64,16 +66,19 @@ export function CentralExecucaoPage() {
 
   const clientsForLookup = useMemo<ClientLookupItem[]>(() => {
     const latestVehicleByClient = new Map<string, string>()
+    const latestOpportunityByClient = new Map<string, string>()
     for (const action of actions) {
       if (!action.clientId) continue
       const vehicle = action.opportunity?.veiculo_interesse || action.snapshots.vehicle
       if (vehicle && !latestVehicleByClient.has(action.clientId)) latestVehicleByClient.set(action.clientId, vehicle)
+      if (action.opportunityId && !latestOpportunityByClient.has(action.clientId)) latestOpportunityByClient.set(action.clientId, action.opportunityId)
     }
     return clientes.map(client => ({
       id: client.id,
       name: client.nome,
       phone: client.telefone,
       vehicle: latestVehicleByClient.get(client.id) ?? null,
+      opportunityId: latestOpportunityByClient.get(client.id) ?? null,
     }))
   }, [actions, clientes])
 
@@ -143,6 +148,19 @@ export function CentralExecucaoPage() {
     return { error: null }
   }, [refetch, rescheduleAction, rescheduleActionItem, showSuccess])
 
+  const handleEscalate = useCallback(async (input: { reason: string; idempotencyKey: string }) => {
+    if (!escalateActionItem) return { error: 'Atividade não identificada.' }
+    const response = await escalateAction({
+      actionId: escalateActionItem.id,
+      reason: input.reason,
+      idempotencyKey: input.idempotencyKey,
+    })
+    if (response.error) return { error: response.error }
+    await refetch()
+    showSuccess('Gerente notificado. Apoio solicitado com sucesso.')
+    return { error: null }
+  }, [escalateAction, escalateActionItem, refetch, showSuccess])
+
   const handleCreate = useCallback(async (input: Parameters<typeof createManualAction>[0]) => {
     const response = await createManualAction(input)
     if (response.error) return { error: response.error }
@@ -172,6 +190,7 @@ export function CentralExecucaoPage() {
               onCreate={() => setNewActivityOpen(true)}
               onOpenRoutine={() => setTab('rotina')}
               onResolve={handleResolveOpen}
+              onEscalate={action => setEscalateActionItem(action)}
               onOpenClient={action => setClientSheetId(action.clientId)}
               onWhatsapp={handleWhatsapp}
             />
@@ -206,6 +225,13 @@ export function CentralExecucaoPage() {
         onSubmit={handleReschedule}
       />
 
+      <EscalarAtividadeModal
+        action={escalateActionItem}
+        open={Boolean(escalateActionItem)}
+        onClose={() => setEscalateActionItem(null)}
+        onSubmit={handleEscalate}
+      />
+
       <PendenciasDrawer
         open={pendingOpen}
         actions={pendingPrevious}
@@ -217,6 +243,10 @@ export function CentralExecucaoPage() {
         onReschedule={action => {
           setPendingOpen(false)
           setRescheduleActionItem(action)
+        }}
+        onEscalate={action => {
+          setPendingOpen(false)
+          setEscalateActionItem(action)
         }}
         onOpenClient={action => setClientSheetId(action.clientId)}
         onWhatsapp={handleWhatsapp}

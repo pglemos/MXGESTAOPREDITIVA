@@ -13,6 +13,7 @@ export interface ClientLookupItem {
   name: string
   phone: string | null
   vehicle?: string | null
+  opportunityId?: string | null
 }
 
 const TYPES: Array<{ label: string; value: CentralActivityType }> = [
@@ -78,6 +79,7 @@ export function NovaAtividadeModal({
   const [time, setTime] = useState(timeSP())
   const [vehicle, setVehicle] = useState('')
   const [priorityRank, setPriorityRank] = useState(5)
+  const [objective, setObjective] = useState('')
   const [description, setDescription] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -97,6 +99,7 @@ export function NovaAtividadeModal({
     setTime(timeSP())
     setVehicle('')
     setPriorityRank(5)
+    setObjective('')
     setDescription('')
     setSaving(false)
     setError(null)
@@ -146,6 +149,8 @@ export function NovaAtividadeModal({
       description: description.trim() || selectedType?.label || null,
       dueAt: `${date}T${time}:00-03:00`,
       clientId: client?.id ?? null,
+      opportunityId: client?.opportunityId ?? null,
+      objective: objective.trim() || null,
       nameSnapshot: resolvedName,
       phoneSnapshot: resolvedPhone,
       vehicleSnapshot: vehicle.trim() || client?.vehicle || null,
@@ -215,7 +220,9 @@ export function NovaAtividadeModal({
 
           <div><label htmlFor="central-activity-priority" className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Prioridade</label><select id="central-activity-priority" value={priorityRank} onChange={event => setPriorityRank(Number(event.target.value))} className="mt-1.5 h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-[13px] outline-none focus:border-status-info">{PRIORITIES.map(priority => <option key={priority.rank} value={priority.rank}>{priority.label}</option>)}</select></div>
 
-          <div><label htmlFor="central-activity-description" className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Observação</label><input id="central-activity-description" value={description} onChange={event => setDescription(event.target.value)} placeholder="Descreva o objetivo desta atividade..." className="mt-1.5 h-10 w-full rounded-md border border-slate-200 px-3 text-[13px] outline-none focus:border-status-info" /></div>
+          <div><label htmlFor="central-activity-objective" className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Objetivo</label><input id="central-activity-objective" value={objective} onChange={event => setObjective(event.target.value)} placeholder="O que você quer alcançar com esta atividade?" className="mt-1.5 h-10 w-full rounded-md border border-slate-200 px-3 text-[13px] outline-none focus:border-status-info" /></div>
+
+          <div><label htmlFor="central-activity-description" className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Observação (opcional)</label><input id="central-activity-description" value={description} onChange={event => setDescription(event.target.value)} placeholder="Detalhes adicionais..." className="mt-1.5 h-10 w-full rounded-md border border-slate-200 px-3 text-[13px] outline-none focus:border-status-info" /></div>
 
           {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[12px] font-semibold text-red-700">{error}</p>}
 

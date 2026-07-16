@@ -40,6 +40,7 @@ export function HojeTab({
   onCreate,
   onOpenRoutine,
   onResolve,
+  onEscalate,
   onOpenClient,
   onWhatsapp,
 }: {
@@ -51,6 +52,7 @@ export function HojeTab({
   onCreate: () => void
   onOpenRoutine: () => void
   onResolve: (action: CentralExecutionAction) => void
+  onEscalate: (action: CentralExecutionAction) => void
   onOpenClient: (action: CentralExecutionAction) => void
   onWhatsapp: (action: CentralExecutionAction) => void
 }) {
@@ -113,6 +115,7 @@ export function HojeTab({
               key={action.id}
               action={action}
               onResolve={onResolve}
+              onEscalate={onEscalate}
               onOpenClient={onOpenClient}
               onWhatsapp={onWhatsapp}
             />

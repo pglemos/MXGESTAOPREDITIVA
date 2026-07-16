@@ -3,6 +3,7 @@ import {
   Clock,
   FileText,
   Gift,
+  Headphones,
   MessageCircle,
   MoreVertical,
   Phone,
@@ -88,6 +89,28 @@ const TYPE_ICON: Record<CentralActivityType, LucideIcon> = {
   funil: MoreVertical,
 }
 
+const PRIORITY_LABEL: Record<CentralExecutionAction['priority'], string> = {
+  urgent: 'Alta',
+  high: 'Alta',
+  medium: 'Média',
+  low: 'Baixa',
+}
+
+const PRIORITY_BADGE: Record<CentralExecutionAction['priority'], string> = {
+  urgent: 'bg-red-50 text-red-600',
+  high: 'bg-red-50 text-red-600',
+  medium: 'bg-amber-50 text-amber-600',
+  low: 'bg-slate-100 text-slate-500',
+}
+
+function formatPhoneDisplay(value: string | null | undefined) {
+  const digits = onlyDigits(value)
+  if (!digits) return null
+  if (digits.length === 11) return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
+  if (digits.length === 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`
+  return value ?? null
+}
+
 function initials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean)
   if (!parts.length) return '?'
@@ -111,11 +134,13 @@ function formatHour(value: string) {
 export function AtividadeCard({
   action,
   onResolve,
+  onEscalate,
   onOpenClient,
   onWhatsapp,
 }: {
   action: CentralExecutionAction
   onResolve: (action: CentralExecutionAction) => void
+  onEscalate: (action: CentralExecutionAction) => void
   onOpenClient: (action: CentralExecutionAction) => void
   onWhatsapp: (action: CentralExecutionAction) => void
 }) {
@@ -125,8 +150,10 @@ export function AtividadeCard({
   const clientPhone = action.client?.telefone || action.snapshots.phone
   const vehicle = action.opportunity?.veiculo_interesse || action.snapshots.vehicle
   const phoneDigits = onlyDigits(clientPhone)
+  const phoneDisplay = formatPhoneDisplay(clientPhone)
   const overdue = Number.isFinite(new Date(action.dueAt).getTime()) && new Date(action.dueAt).getTime() < Date.now()
   const hour = formatHour(action.dueAt)
+  const alreadyEscalated = action.managerRequired
 
   return (
     <article className={cn(
@@ -139,7 +166,9 @@ export function AtividadeCard({
           <div className="mb-2 flex items-start justify-between gap-2">
             <div className="flex flex-wrap items-center gap-2">
               <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold', TYPE_BADGE[action.activityType])}>{typeLabel}</span>
+              <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold', PRIORITY_BADGE[action.priority])}>{PRIORITY_LABEL[action.priority]}</span>
               {overdue && <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-500">Vencido</span>}
+              {alreadyEscalated && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">Aguardando gerente</span>}
             </div>
             <div className="flex items-center gap-1 text-[11px] font-bold text-slate-400">
               <Clock className="h-3 w-3" aria-hidden="true" />{hour}
@@ -153,9 +182,11 @@ export function AtividadeCard({
             <div className="min-w-0">
               <p className="truncate text-[14px] font-bold text-mx-text">{clientName}</p>
               {vehicle && <p className="truncate text-[12px] text-slate-400">{vehicle}</p>}
+              {phoneDisplay && <p className="truncate text-[11px] text-slate-400">{phoneDisplay}</p>}
             </div>
           </div>
 
+          {action.objective && <p className="mb-1 text-[12px] font-semibold text-slate-600">{action.objective}</p>}
           {action.description && <p className="mb-3 text-[12px] text-slate-500">{action.description}</p>}
 
           <div className="flex flex-wrap items-center gap-2">
@@ -176,6 +207,11 @@ export function AtividadeCard({
             {action.clientId && (
               <button type="button" onClick={() => onOpenClient(action)} className="flex items-center gap-1 rounded-lg border border-blue-200 px-3 py-1.5 text-[11px] font-bold text-status-info transition-colors hover:bg-blue-50">
                 <UserRound className="h-3 w-3" aria-hidden="true" /> Cliente
+              </button>
+            )}
+            {!alreadyEscalated && (
+              <button type="button" onClick={() => onEscalate(action)} className="flex items-center gap-1 rounded-lg border border-amber-200 px-3 py-1.5 text-[11px] font-bold text-amber-700 transition-colors hover:bg-amber-50">
+                <Shield className="h-3 w-3" aria-hidden="true" /> Apoio
               </button>
             )}
             <button type="button" onClick={() => onResolve(action)} className="ml-auto rounded-lg bg-status-info px-4 py-1.5 text-[12px] font-bold text-white transition-colors hover:bg-blue-700">
@@ -203,14 +239,25 @@ export function AtividadeCard({
               <div className="flex flex-wrap items-center gap-2">
                 <p className="truncate text-[14px] font-bold text-mx-text">{clientName}</p>
                 <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold', TYPE_BADGE[action.activityType])}>{typeLabel}</span>
+                <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold', PRIORITY_BADGE[action.priority])}>{PRIORITY_LABEL[action.priority]}</span>
                 {overdue && <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-500">Vencido</span>}
+                {alreadyEscalated && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">Aguardando gerente</span>}
               </div>
-              {vehicle && <p className="truncate text-[12px] text-slate-400">{vehicle}</p>}
+              <div className="flex flex-wrap items-center gap-2 text-[12px] text-slate-400">
+                {vehicle && <span className="truncate">{vehicle}</span>}
+                {phoneDisplay && <span className="truncate">{phoneDisplay}</span>}
+              </div>
+              {action.objective && <p className="truncate text-[12px] font-semibold text-slate-600">{action.objective}</p>}
               {action.description && <p className="truncate text-[12px] text-slate-500">{action.description}</p>}
             </div>
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5">
+            {!alreadyEscalated && (
+              <button type="button" title="Pedir apoio do gerente" aria-label={`Pedir apoio do gerente para ${clientName}`} onClick={() => onEscalate(action)} className="rounded-xl bg-amber-50 p-2 text-amber-700 transition-colors hover:bg-amber-100">
+                <Shield className="h-4 w-4" aria-hidden="true" />
+              </button>
+            )}
             {phoneDigits && (
               <button type="button" title="WhatsApp" aria-label={`Abrir WhatsApp de ${clientName}`} onClick={() => onWhatsapp(action)} className="rounded-xl bg-green-50 p-2 text-green-600 transition-colors hover:bg-green-100">
                 <MessageCircle className="h-4 w-4" aria-hidden="true" />

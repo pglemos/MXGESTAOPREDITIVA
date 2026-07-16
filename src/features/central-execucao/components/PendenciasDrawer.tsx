@@ -39,6 +39,7 @@ export function PendenciasDrawer({
   onClose,
   onResolve,
   onReschedule,
+  onEscalate,
   onOpenClient,
   onWhatsapp,
 }: {
@@ -47,6 +48,7 @@ export function PendenciasDrawer({
   onClose: () => void
   onResolve: (action: CentralExecutionAction) => void
   onReschedule: (action: CentralExecutionAction) => void
+  onEscalate: (action: CentralExecutionAction) => void
   onOpenClient: (action: CentralExecutionAction) => void
   onWhatsapp: (action: CentralExecutionAction) => void
 }) {
@@ -104,6 +106,9 @@ export function PendenciasDrawer({
                   )}
                   <button type="button" onClick={() => onReschedule(action)} className="flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[11px] font-bold text-slate-500 hover:bg-slate-50">
                     <Calendar className="h-3 w-3" aria-hidden="true" /> Reagendar
+                  </button>
+                  <button type="button" onClick={() => onEscalate(action)} className="flex items-center gap-1 rounded-lg border border-amber-200 px-2.5 py-1.5 text-[11px] font-bold text-amber-700 hover:bg-amber-50">
+                    <AlertTriangle className="h-3 w-3" aria-hidden="true" /> Pedir apoio
                   </button>
                   <button type="button" onClick={() => onResolve(action)} className="ml-auto rounded-lg bg-status-info px-2.5 py-1.5 text-[11px] font-bold text-white hover:bg-blue-700">Resolver</button>
                 </div>
