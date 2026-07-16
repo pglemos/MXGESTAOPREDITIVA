@@ -1,0 +1,53 @@
+name: Carteira Base44 1:1 Verification
+
+on:
+  push:
+    branches:
+      - main
+      - codex/carteira-base44-1to1
+    paths:
+      - 'src/pages/CarteiraClientes.tsx'
+      - 'src/features/carteira-clientes/**'
+      - 'src/components/carteira/**'
+      - 'src/base44-reference/pages/CarteiraClientes.jsx'
+      - 'src/base44-reference/components/carteira/**'
+      - 'src/api/base44Client.js'
+      - 'supabase/migrations/20260716190000_carteira_base44_parity.sql'
+      - '.github/workflows/carteira-clientes-parity-verification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Verify route, source parity, mappings and migration contract
+        run: >-
+          bun test --isolate
+          src/features/carteira-clientes/pages/CarteiraClientesBase44Page.test.tsx
+          src/features/carteira-clientes/components/carteira-source-parity.test.ts
+          src/features/carteira-clientes/lib/carteira-mappers.test.ts
+          src/lib/carteira-base44-migration.test.ts
+
+      - name: Production build
+        run: npm run build
