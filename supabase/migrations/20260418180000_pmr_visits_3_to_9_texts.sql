@@ -66,3 +66,13 @@ UPDATE public.consulting_methodology_steps SET objective = 'Revisão dos Process
 UPDATE public.consulting_methodology_steps SET objective = 'Plano de Desenvolvimento Individual (PDI)' WHERE visit_number = 7;
 UPDATE public.consulting_methodology_steps SET objective = 'Avaliação Individual nos Treinamentos' WHERE visit_number = 8;
 UPDATE public.consulting_methodology_steps SET objective = 'Análise das Implementações e Plano de Ação Trimestral' WHERE visit_number = 9;
+
+-- ============================================================
+-- DOWN
+-- ============================================================
+-- Only change here: removed checklist_template from all seven
+-- consulting_methodology_steps UPDATE statements above — a column that
+-- doesn't exist on that table (copy-paste from the
+-- consulting_visit_template_steps statements earlier in this file), which
+-- blocked this migration entirely on a from-scratch replay. No schema or
+-- data change to undo — the objective values were always written as shown.

@@ -16,3 +16,12 @@ SET
   objective = 'Diagnóstico',
   evidence_required = '1 e 2. Formulários preenchidos; 3. Dados enviados'
 WHERE visit_number = 1;
+
+-- ============================================================
+-- DOWN
+-- ============================================================
+-- Only change here: removed a reference to checklist_template, a column
+-- that doesn't exist on consulting_methodology_steps (copy-paste from the
+-- consulting_visit_template_steps statement above), which blocked this
+-- migration entirely on a from-scratch replay. No schema or data change to
+-- undo — objective/evidence_required were always written as shown above.
