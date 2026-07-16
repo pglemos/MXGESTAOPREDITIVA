@@ -12,4 +12,11 @@ ALTER TABLE public.feedbacks
 
 ALTER TABLE public.automation_configs
   ADD CONSTRAINT automation_configs_ai_context_is_string
-  CHECK (ai_context IS NULL OR jsonb_typeof(ai_context::jsonb) IS NOT NULL OR pg_typeof(ai_context) = 'text');
+  CHECK (ai_context IS NULL OR jsonb_typeof(ai_context::jsonb) IS NOT NULL OR pg_typeof(ai_context) = 'text'::regtype);
+
+-- ============================================================
+-- DOWN
+-- ============================================================
+-- ALTER TABLE public.automation_configs DROP CONSTRAINT IF EXISTS automation_configs_ai_context_is_string;
+-- ALTER TABLE public.feedbacks DROP CONSTRAINT IF EXISTS feedbacks_diagnostic_json_structure;
+-- ALTER TABLE public.feedbacks DROP CONSTRAINT IF EXISTS feedbacks_team_avg_json_has_keys;
