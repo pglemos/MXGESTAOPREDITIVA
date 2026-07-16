@@ -12,7 +12,25 @@ on:
       - 'src/base44-reference/pages/CarteiraClientes.jsx'
       - 'src/base44-reference/components/carteira/**'
       - 'src/api/base44Client.js'
-      - 'supabase/migrations/20260716190000_carteira_base44_parity.sql'
+      - 'scripts/verify_carteira_base44_parity.mjs'
+      - 'scripts/check_migration_reversibility.mjs'
+      - 'supabase/migrations/2026071619*.sql'
+      - 'supabase/rollbacks/2026071619*.sql'
+      - '.github/workflows/carteira-clientes-parity-verification.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/pages/CarteiraClientes.tsx'
+      - 'src/features/carteira-clientes/**'
+      - 'src/components/carteira/**'
+      - 'src/base44-reference/pages/CarteiraClientes.jsx'
+      - 'src/base44-reference/components/carteira/**'
+      - 'src/api/base44Client.js'
+      - 'scripts/verify_carteira_base44_parity.mjs'
+      - 'scripts/check_migration_reversibility.mjs'
+      - 'supabase/migrations/2026071619*.sql'
+      - 'supabase/rollbacks/2026071619*.sql'
       - '.github/workflows/carteira-clientes-parity-verification.yml'
   workflow_dispatch:
 
@@ -48,6 +66,12 @@ jobs:
           src/features/carteira-clientes/components/carteira-source-parity.test.ts
           src/features/carteira-clientes/lib/carteira-mappers.test.ts
           src/lib/carteira-base44-migration.test.ts
+
+      - name: Verify deploy-blocking parity and design tokens
+        run: node scripts/verify_carteira_base44_parity.mjs
+
+      - name: Verify reversible migrations
+        run: node scripts/check_migration_reversibility.mjs --changed-only
 
       - name: Production build
         run: npm run build
