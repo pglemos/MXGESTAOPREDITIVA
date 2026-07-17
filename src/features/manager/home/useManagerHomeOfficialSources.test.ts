@@ -2,8 +2,16 @@ import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 
 const hookSource = readFileSync(new URL('./useManagerHomeOfficialSources.ts', import.meta.url), 'utf8')
-const dashboardSource = readFileSync(
-  new URL('../../dashboard-loja/sections/ManagerSellerParityHome.tsx', import.meta.url),
+const canonicalDashboardSource = readFileSync(
+  new URL('../../dashboard-loja/sections/ManagerSellerParityHomeCanonical.tsx', import.meta.url),
+  'utf8',
+)
+const performanceTabSource = readFileSync(
+  new URL('../../dashboard-loja/sections/PerformanceTab.tsx', import.meta.url),
+  'utf8',
+)
+const dashboardContainerSource = readFileSync(
+  new URL('../../dashboard-loja/DashboardLoja.tsx', import.meta.url),
   'utf8',
 )
 
@@ -22,16 +30,30 @@ describe('Manager Dashboard official sources', () => {
     expect(hookSource).toContain(".not('cliente_id', 'is', null)")
   })
 
+  test('activates the canonical Dashboard in every manager entry path', () => {
+    expect(performanceTabSource).toContain("import { ManagerSellerParityHomeCanonical } from './ManagerSellerParityHomeCanonical'")
+    expect(performanceTabSource).toContain('<ManagerSellerParityHomeCanonical')
+    expect(dashboardContainerSource).toContain("import { ManagerSellerParityHomeCanonical } from './sections/ManagerSellerParityHomeCanonical'")
+    expect(dashboardContainerSource).toContain('<ManagerSellerParityHomeCanonical')
+  })
+
   test('uses plan need and ratio instead of the fixed 22-day competing formula', () => {
-    expect(dashboardSource).toContain('useManagerHomeOfficialSources')
-    expect(dashboardSource).toContain('officialSources.plan?.required_sales')
-    expect(dashboardSource).toContain('officialSources.plan?.appointments_per_sale')
-    expect(dashboardSource).not.toContain('calculateSalesNeededToday(monthlyGoal, DIAS_UTEIS_MES_PADRAO, salesToday)')
+    expect(canonicalDashboardSource).toContain('useManagerHomeOfficialSources')
+    expect(canonicalDashboardSource).toContain('plan?.required_sales')
+    expect(canonicalDashboardSource).toContain('plan?.appointments_per_sale')
+    expect(canonicalDashboardSource).not.toContain('calculateSalesNeededToday(monthlyGoal, DIAS_UTEIS_MES_PADRAO, salesToday)')
   })
 
   test('reconciles total appointments with the seller breakdown', () => {
     expect(hookSource).toContain('appointmentsBySeller')
     expect(hookSource).toContain('totalAppointments: appointmentRows.length')
-    expect(dashboardSource).toContain('officialSources.appointmentsBySeller.get(seller.id)')
+    expect(canonicalDashboardSource).toContain('officialSources.appointmentsBySeller.get(seller.id)')
+  })
+
+  test('renders the canonical financial status object without parallel labels', () => {
+    expect(canonicalDashboardSource).toContain('item.financialStatus.className')
+    expect(canonicalDashboardSource).toContain('item.financialStatus.label')
+    expect(canonicalDashboardSource).not.toContain('function financialLabel')
+    expect(canonicalDashboardSource).not.toContain('function financialTone')
   })
 })

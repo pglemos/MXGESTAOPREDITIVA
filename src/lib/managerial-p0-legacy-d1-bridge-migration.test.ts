@@ -5,6 +5,7 @@ const sql = readFileSync(
   new URL('../../supabase/migrations/20260717042000_managerial_p0_legacy_d1_bridge.sql', import.meta.url),
   'utf8',
 )
+const compactSql = sql.replace(/\s+/g, ' ')
 
 describe('legacy Agenda D+1 compatibility bridge', () => {
   test('bridges current manager UI audit events into canonical appointment state', () => {
@@ -16,7 +17,8 @@ describe('legacy Agenda D+1 compatibility bridge', () => {
   })
 
   test('never changes the official appointment date for a reschedule request', () => {
-    expect(sql).toContain("canonical_status := 'solicitou_reagendamento'")
+    expect(compactSql).toContain("LIKE 'solicitou reagendamento%' THEN 'solicitou_reagendamento'")
+    expect(sql).toContain("IF canonical_status = 'solicitou_reagendamento' THEN")
     expect(sql).not.toContain('SET data_hora =')
   })
 
