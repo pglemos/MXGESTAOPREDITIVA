@@ -126,6 +126,32 @@ revertida (zero resíduo) + boundary HTTP real com a anon key.
 **Browser (deploy prod `mxperformance.com.br`):** landing e boot do SPA renderizam;
 `0` erros no console (runtime limpo). Rotas autenticadas não percorridas (login por senha).
 
+## 9-ter. Revisão adversarial (Fase 10) — executada
+
+| # | Pergunta | Resultado |
+|---|---|---|
+| q1 | Vendedor acessa dado de outro? | **Bloqueado.** `central_can_manage_action` só libera o próprio seller OU manager/owner/admin da loja. Testado (ataque aborta). |
+| q3/q13 | Reabrir/reprocessar atividade concluída → evento duplicado? | **Era possível** (idempotência só por chave) → **corrigido** (migration `20260717280000`, guard de estado terminal). Testado: chave nova em atividade concluída aborta, `events` fica 1. |
+| q4 | Idempotência falha com payload diferente? | Replay com mesma chave retorna resultado cacheado (sem duplicar). Testado. |
+| q5 | Duas abas disputam missão? | `carteira_atualizar_missao_v2(uuid,jsonb,text)` — usada pelo frontend — tem `FOR UPDATE` + ledger `carteira_missao_mutations` + detecção de conflito. |
+| q6 | Gerente altera loja errada? | **Bloqueado.** `central_can_manage_action` gata em `is_manager_of(store da ação)`. |
+| q7 | anon alcança tabela/função? | **Não.** 6/6 negados no boundary HTTP + guard pgTAP. |
+| q14 | Update parcial deixa inconsistência? | Cada mutação relacionada tem filtro `loja_id`+`seller_user_id` + abort `NOT FOUND` (5 RPCs auditadas). |
+
+**RPCs da Central — cobertura de escopo confirmada:** `resolve`/`reschedule` (guards completos em entidades relacionadas), `escalate` (só muta a própria action + can_manage), `sync_appointment` (deriva escopo do agendamento + can_manage), `create_manual` (valida ownership de cliente/oportunidade + consistência + `seller_id=auth.uid()`).
+
+**Legado (Fase 3.3):** `carteira_atualizar_missao`/`iniciar_missao`/`salvar_cliente` (v1) e o overload `carteira_atualizar_missao_v2(uuid,jsonb)` têm 0 referências no frontend. Não são anon-executáveis (sem exposição). Candidatos a cleanup **P3** — não removidos nesta sessão por possível uso não-óbvio (cron/trigger/shim).
+
+## 9-quater. Performance (Fase 9) — escopo
+
+Advisor: 198 unindexed_foreign_keys **project-wide** (majoritariamente consultoria/legado fora de
+escopo; 64 índices já são `unused_index` — não adicionar às cegas). Tabelas do escopo já bem
+indexadas. `EXPLAIN ANALYZE` dos hot paths:
+- Central "Hoje": `Index Scan using execution_actions_seller_status_due_idx`, exec **0.087 ms**.
+- Venda realizada (read model): `Index Scan using idx_eventos_comerciais_loja_canal`, exec **0.100 ms**.
+
+Sem gap de performance no escopo.
+
 ## 10. Matriz de aceite (gate final)
 
 | Gate | Status | Nota |
