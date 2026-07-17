@@ -79,3 +79,30 @@ COMMENT ON VIEW public.view_store_daily_production IS
   'Store daily production projection with caller RLS enforced through security_invoker.';
 
 COMMIT;
+
+-- DOWN
+-- Manual rollback only. Reverting this migration intentionally restores the
+-- former security-definer behavior and broad legacy grants, so it must require
+-- an incident-approved maintenance window.
+-- BEGIN;
+-- CREATE OR REPLACE VIEW public.indice_felicidade_agregado AS
+-- SELECT
+--   r.loja_id,
+--   r.ciclo,
+--   round(avg(r.nota_clima), 2) AS media_clima,
+--   round(avg(r.nota_lideranca), 2) AS media_lideranca,
+--   round(avg(r.nota_carreira), 2) AS media_carreira,
+--   count(*) AS total_respostas
+-- FROM public.indice_felicidade_respostas AS r
+-- GROUP BY r.loja_id, r.ciclo;
+-- ALTER VIEW public.view_daily_team_status RESET (security_invoker);
+-- ALTER VIEW public.view_seller_tenure_status RESET (security_invoker);
+-- ALTER VIEW public.indice_felicidade_agregado RESET (security_invoker);
+-- ALTER VIEW public.view_sem_registro RESET (security_invoker);
+-- ALTER VIEW public.view_store_daily_production RESET (security_invoker);
+-- GRANT ALL ON public.view_daily_team_status TO anon, authenticated, service_role;
+-- GRANT ALL ON public.view_seller_tenure_status TO anon, authenticated, service_role;
+-- GRANT ALL ON public.indice_felicidade_agregado TO anon, authenticated, service_role;
+-- GRANT ALL ON public.view_sem_registro TO anon, authenticated, service_role;
+-- GRANT ALL ON public.view_store_daily_production TO anon, authenticated, service_role;
+-- COMMIT;
