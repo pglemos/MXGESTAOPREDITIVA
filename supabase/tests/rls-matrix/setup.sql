@@ -139,6 +139,23 @@ VALUES (
 )
 ON CONFLICT (id) DO NOTHING;
 
+-- RLS tests need table privileges in order to reach the policy layer.  The
+-- grants are scoped to this ephemeral test database; production access stays
+-- governed by the migration-owned grants and RLS policies.
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON
+  public.lojas,
+  public.usuarios,
+  public.vinculos_loja,
+  public.vendedores_loja,
+  public.lancamentos_diarios,
+  public.metas,
+  public.logs_auditoria,
+  public.role_assignments_audit,
+  public.clientes,
+  public.oportunidades
+TO anon, authenticated;
+
 CREATE SCHEMA IF NOT EXISTS rls_matrix;
 
 CREATE OR REPLACE FUNCTION rls_matrix.assume(p_user_id uuid)
