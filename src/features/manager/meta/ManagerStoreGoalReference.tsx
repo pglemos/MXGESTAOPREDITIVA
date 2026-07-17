@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ComponentType, type ReactNode } from 'react'
 import { eachDayOfInterval, endOfMonth, format, isWeekend, parseISO } from 'date-fns'
 import { useNavigate } from 'react-router-dom'
 import { Activity, CalendarClock, CalendarDays, CheckCircle2, MessageSquarePlus, MoreVertical, RefreshCw, ShoppingCart, Target, TrendingUp, UserCircle, Wrench, Zap } from 'lucide-react'
@@ -14,21 +14,51 @@ import {
 } from 'recharts'
 import { getDiasInfo } from '@/lib/calculations'
 import { chartTokens } from '@/lib/charts/tokens'
+import { supabase } from '@/lib/supabase'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import type { useDashboardLojaData } from '@/features/dashboard-loja/hooks/useDashboardLojaData'
 import { ManagerHomeReturnLink } from '@/features/manager/home/ManagerHomeReturnLink'
-import { buildStoreGoalChannelRows, buildStoreGoalClosingRows, buildStoreGoalTeamRows, calculateStoreGoalMetrics, calculateSustainabilityPlan, formatStoreGoalMetric, operationalDayPredicate } from './manager-store-goal'
+import { buildStoreGoalChannelRows, buildStoreGoalClosingRows, buildStoreGoalTeamRows, calculateStoreGoalMetrics, calculateSustainabilityPlan, formatStoreGoalMetric, operationalDayPredicate, type SustainabilityPlan } from './manager-store-goal'
 
 type DashboardData = ReturnType<typeof useDashboardLojaData>
 type Horizon = 'hoje' | 'semana' | 'dezena' | 'mes'
+type PersistedHorizon = 'hoje' | 'esta_semana' | 'esta_dezena' | 'este_mes'
+
+type PersistedTargetPlan = {
+  id: string
+  horizon: PersistedHorizon
+  version: number
+  monthly_goal: number | string | null
+  realized: number | string
+  proportional_goal: number | string | null
+  monthly_gap: number | string | null
+  projected_sales: number | string | null
+  required_sales: number | string | null
+  required_pace: number | string | null
+  pace_label: string | null
+  appointments_per_sale: number | string | null
+  operational_need: number | string | null
+  operational_basis: string | null
+  focus_message: string | null
+  source_hash: string | null
+}
 
 const Base44DropdownContent = DropdownMenuContent as unknown as ComponentType<{ children: ReactNode; align?: 'end'; className?: string }>
 const Base44DropdownItem = DropdownMenuItem as unknown as ComponentType<{ children: ReactNode; className?: string; role?: 'menuitem'; onSelect: () => void }>
+
+const persistedHorizonByView: Record<Horizon, PersistedHorizon> = {
+  hoje: 'hoje',
+  semana: 'esta_semana',
+  dezena: 'esta_dezena',
+  mes: 'este_mes',
+}
 
 export function ManagerStoreGoalReference({ data }: { data: DashboardData }) {
   const navigate = useNavigate()
   const [month, setMonth] = useState(data.referenceDate.slice(0, 7))
   const [horizon, setHorizon] = useState<Horizon>('semana')
+  const [persistedPlans, setPersistedPlans] = useState<Partial<Record<PersistedHorizon, PersistedTargetPlan>>>({})
+  const [targetPlanRefreshing, setTargetPlanRefreshing] = useState(false)
 
   useEffect(() => {
     data.setViewMode('month')
@@ -44,14 +74,62 @@ export function ManagerStoreGoalReference({ data }: { data: DashboardData }) {
     : data.referenceDate > data.endDate
       ? data.endDate
       : data.referenceDate
+
+  const refreshTargetPlans = useCallback(async () => {
+    if (!data.selectedStoreId) {
+      setPersistedPlans({})
+      return
+    }
+
+    setTargetPlanRefreshing(true)
+    try {
+      const consolidated = await supabase.rpc('consolidate_store_target_plan', {
+        p_store_id: data.selectedStoreId,
+        p_reference_date: activeReferenceDate,
+      })
+      if (consolidated.error) throw consolidated.error
+
+      const { data: rows, error } = await supabase
+        .from('store_target_plans')
+        .select('id,horizon,version,monthly_goal,realized,proportional_goal,monthly_gap,projected_sales,required_sales,required_pace,pace_label,appointments_per_sale,operational_need,operational_basis,focus_message,source_hash')
+        .eq('store_id', data.selectedStoreId)
+        .eq('reference_date', activeReferenceDate)
+        .order('version', { ascending: false })
+      if (error) throw error
+
+      const latest: Partial<Record<PersistedHorizon, PersistedTargetPlan>> = {}
+      for (const row of (rows || []) as PersistedTargetPlan[]) {
+        if (!latest[row.horizon]) latest[row.horizon] = row
+      }
+      setPersistedPlans(latest)
+    } catch (error) {
+      console.error('Audit Error [ManagerStoreGoalReference]: target plan persistence failed ->', error)
+      setPersistedPlans({})
+    } finally {
+      setTargetPlanRefreshing(false)
+    }
+  }, [activeReferenceDate, data.selectedStoreId])
+
+  useEffect(() => {
+    void refreshTargetPlans()
+  }, [refreshTargetPlans])
+
   const days = getDiasInfo(activeReferenceDate, projectionMode)
-  const goal = data.metrics.goalValue || 0
-  const sales = data.metrics.totalSales || 0
-  const { proportionalGoal, gap, paceGap, projection, dailyPace } = calculateStoreGoalMetrics(goal, sales, {
+  const persistedMonth = persistedPlans.este_mes
+  const fallbackGoal = data.metrics.goalValue || 0
+  const fallbackSales = data.metrics.totalSales || 0
+  const fallbackMetrics = calculateStoreGoalMetrics(fallbackGoal, fallbackSales, {
     elapsed: days.decorridos,
     total: days.total,
     remaining: days.restantes,
   })
+  const goal = numberOrFallback(persistedMonth?.monthly_goal, fallbackGoal)
+  const sales = numberOrFallback(persistedMonth?.realized, fallbackSales)
+  const proportionalGoal = numberOrFallback(persistedMonth?.proportional_goal, fallbackMetrics.proportionalGoal)
+  const gap = numberOrFallback(persistedMonth?.monthly_gap, fallbackMetrics.gap)
+  const paceGap = Math.max(proportionalGoal - sales, 0)
+  const projection = numberOrFallback(persistedMonth?.projected_sales, fallbackMetrics.projection)
+  const dailyPace = numberOrFallback(persistedMonth?.required_pace, fallbackMetrics.dailyPace)
   const attainment = goal > 0 ? Math.round((sales / goal) * 100) : 0
   const projectedPct = goal > 0 ? Math.round((projection / goal) * 100) : 0
 
@@ -107,7 +185,7 @@ export function ManagerStoreGoalReference({ data }: { data: DashboardData }) {
     }
   }, [closingRows])
 
-  const sustainabilityPlan = useMemo(() => calculateSustainabilityPlan({
+  const fallbackSustainabilityPlan = useMemo(() => calculateSustainabilityPlan({
     horizon,
     goal,
     realized: sales,
@@ -119,12 +197,36 @@ export function ManagerStoreGoalReference({ data }: { data: DashboardData }) {
     isOperationalDay: operationalDayPredicate(projectionMode),
   }), [activeReferenceDate, closingRows, days.decorridos, days.restantes, days.total, goal, horizon, operationalStats.agendaPerSale, operationalStats.visitsPerSale, projectionMode, sales])
 
+  const selectedPersistedPlan = persistedPlans[persistedHorizonByView[horizon]]
+  const sustainabilityPlan = useMemo<SustainabilityPlan>(() => {
+    if (!selectedPersistedPlan) return fallbackSustainabilityPlan
+    const requiredSales = numberOrFallback(selectedPersistedPlan.required_sales, 0)
+    const requiredPace = numberOrFallback(selectedPersistedPlan.required_pace, 0)
+    const operationalNeed = nullableNumber(selectedPersistedPlan.operational_need)
+    const basis = selectedPersistedPlan.operational_basis || ''
+    return {
+      horizonte: horizon,
+      faltam: requiredSales,
+      ritmo: requiredPace,
+      ritmoLabel: selectedPersistedPlan.pace_label || fallbackSustainabilityPlan.ritmoLabel,
+      necessidadeOperacional: operationalNeed,
+      tipoOperacional: basis.includes('atendimentos') ? 'atendimentos' : operationalNeed === null ? null : 'agendamentos',
+      objectiveReached: requiredSales <= 0,
+      mensagemFoco: selectedPersistedPlan.focus_message || fallbackSustainabilityPlan.mensagemFoco,
+      hasStatisticalBase: selectedPersistedPlan.appointments_per_sale !== null,
+    }
+  }, [fallbackSustainabilityPlan, horizon, selectedPersistedPlan])
+
   const changeMonth = (value: string) => {
     if (!/^\d{4}-\d{2}$/.test(value)) return
     setMonth(value)
     const start = `${value}-01`
     data.setStartDate(start)
     data.setEndDate(format(endOfMonth(parseISO(start)), 'yyyy-MM-dd'))
+  }
+
+  const handleRefresh = async () => {
+    await Promise.all([data.handleRefresh(), refreshTargetPlans()])
   }
 
   const handleSellerAction = (action: 'perfil' | 'rotina' | 'orientacao', sellerId: string, sellerName: string) => {
@@ -151,8 +253,8 @@ export function ManagerStoreGoalReference({ data }: { data: DashboardData }) {
               <label className="text-xs text-gray-500">Período
                 <input type="month" value={month} onChange={(event) => changeMonth(event.target.value)} className="mt-1 block rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500" />
               </label>
-              <button type="button" onClick={() => void data.handleRefresh()} disabled={data.isRefetching} className="inline-flex h-[38px] items-center gap-1 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60">
-                <RefreshCw size={15} className={data.isRefetching ? 'animate-spin' : ''} /> Atualizar
+              <button type="button" onClick={() => void handleRefresh()} disabled={data.isRefetching || targetPlanRefreshing} className="inline-flex h-[38px] items-center gap-1 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60">
+                <RefreshCw size={15} className={data.isRefetching || targetPlanRefreshing ? 'animate-spin' : ''} /> Atualizar
               </button>
             </div>
           </div>
@@ -161,8 +263,8 @@ export function ManagerStoreGoalReference({ data }: { data: DashboardData }) {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
           <GoalCard icon={Target} label="Progresso da meta" tone="emerald">{goal > 0 ? <><strong className="text-2xl text-gray-800">{sales} <span className="text-base font-medium text-gray-400">de {goal}</span></strong><Progress value={attainment} /><CardFooter left={`${attainment}%`} right="atingido" tone={attainment >= 100 ? 'emerald' : attainment >= 50 ? 'amber' : 'red'} /></> : <EmptyGoalState />}</GoalCard>
           <GoalCard icon={CalendarDays} label="Meta proporcional até hoje" tone="blue">{goal > 0 ? <><p className="text-sm text-gray-500">Meta proporcional: <b className="text-gray-700">{formatStoreGoalMetric(proportionalGoal)} vendas</b></p><p className="mt-1 text-sm text-gray-500">Realizado: <b className="text-gray-700">{sales}</b></p><p className={`mt-2 text-lg font-bold ${paceGap > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{paceGap > 0 ? `−${formatStoreGoalMetric(paceGap)} abaixo do ritmo` : 'Dentro do ritmo'}</p></> : <EmptyGoalState />}</GoalCard>
-          <GoalCard icon={ShoppingCart} label="Faltam vender" tone="orange">{goal > 0 ? <><strong className="text-3xl text-gray-800">{gap}</strong><p className="mt-1 text-sm text-gray-400">{gap === 1 ? 'venda' : 'vendas'}</p><p className="mt-2 text-xs text-gray-400">Para atingir a meta mensal</p></> : <EmptyGoalState />}</GoalCard>
-          <GoalCard icon={TrendingUp} label="Projeção e ritmo necessário" tone="violet">{goal > 0 ? <><strong className="text-2xl text-gray-800">{formatStoreGoalMetric(projection)} <span className="text-sm font-medium text-gray-400">vendas</span></strong><p className="text-sm font-medium text-violet-600">{projectedPct}% da meta</p><div className="mt-2 border-t border-gray-50 pt-2"><p className="mb-0.5 text-xs text-gray-400">Ritmo necessário:</p><p className="text-sm font-semibold text-gray-700">{formatStoreGoalMetric(dailyPace)} {dailyPace === 1 ? 'venda' : 'vendas'} por dia útil</p></div></> : <EmptyGoalState />}</GoalCard>
+          <GoalCard icon={ShoppingCart} label="Faltam vender" tone="orange">{goal > 0 ? <><strong className="text-3xl text-gray-800">{formatStoreGoalMetric(gap)}</strong><p className="mt-1 text-sm text-gray-400">{gap === 1 ? 'venda' : 'vendas'}</p><p className="mt-2 text-xs text-gray-400">Para atingir a meta mensal</p></> : <EmptyGoalState />}</GoalCard>
+          <GoalCard icon={TrendingUp} label="Projeção e ritmo necessário" tone="violet">{goal > 0 ? <><strong className="text-2xl text-gray-800">{formatStoreGoalMetric(projection)} <span className="text-sm font-medium text-gray-400">vendas</span></strong><p className="text-sm font-medium text-violet-600">{projectedPct}% da meta</p><div className="mt-2 border-t border-gray-50 pt-2"><p className="mb-0.5 text-xs text-gray-400">Ritmo necessário:</p><p className="text-sm font-semibold text-gray-700">{persistedMonth?.pace_label || `${formatStoreGoalMetric(dailyPace)} ${dailyPace === 1 ? 'venda' : 'vendas'} por dia útil`}</p></div></> : <EmptyGoalState />}</GoalCard>
         </div>
 
         <article className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
@@ -173,18 +275,18 @@ export function ManagerStoreGoalReference({ data }: { data: DashboardData }) {
         </article>
 
         <article className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-          <div className="mb-4 flex items-center gap-2"><span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-100"><Activity size={16} className="text-emerald-600" /></span><h2 className="font-semibold text-gray-800">Plano de Sustentação</h2></div>
+          <div className="mb-4 flex flex-wrap items-center gap-2"><span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-100"><Activity size={16} className="text-emerald-600" /></span><h2 className="font-semibold text-gray-800">Plano de Sustentação</h2>{selectedPersistedPlan ? <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">Oficial v{selectedPersistedPlan.version}</span> : null}</div>
           <div className="mb-5 flex gap-1.5 overflow-x-auto pb-1">{([['hoje', 'Hoje'], ['semana', 'Esta semana'], ['dezena', 'Esta dezena'], ['mes', 'Este mês']] as const).map(([key, label]) => <button key={key} type="button" onClick={() => setHorizon(key)} className={`whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium transition-all ${horizon === key ? 'bg-emerald-600 text-white shadow-sm' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}>{label}</button>)}</div>
           {goal <= 0 ? <p className="rounded-xl border border-gray-100 bg-gray-50 p-4 text-sm text-gray-500">Meta ainda não cadastrada.</p> : <>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <SustainabilityBlock icon={Zap} label="Faltam" tone="orange">
-                {sustainabilityPlan.objectiveReached ? <div className="flex items-center gap-1.5"><CheckCircle2 size={20} className="text-emerald-500" /><p className="text-sm font-semibold text-emerald-600">Objetivo atingido</p></div> : <><p className="text-2xl font-bold text-gray-800">{sustainabilityPlan.faltam} <span className="text-base font-medium text-gray-400">{sustainabilityPlan.faltam === 1 ? 'venda' : 'vendas'}</span></p><p className="mt-1 text-xs text-gray-400">{horizon === 'hoje' ? 'para hoje' : horizon === 'semana' ? 'nesta semana' : horizon === 'dezena' ? 'nesta dezena' : 'neste mês'}</p></>}
+                {sustainabilityPlan.objectiveReached ? <div className="flex items-center gap-1.5"><CheckCircle2 size={20} className="text-emerald-500" /><p className="text-sm font-semibold text-emerald-600">Objetivo atingido</p></div> : <><p className="text-2xl font-bold text-gray-800">{formatStoreGoalMetric(sustainabilityPlan.faltam)} <span className="text-base font-medium text-gray-400">{sustainabilityPlan.faltam === 1 ? 'venda' : 'vendas'}</span></p><p className="mt-1 text-xs text-gray-400">{horizon === 'hoje' ? 'para hoje' : horizon === 'semana' ? 'nesta semana' : horizon === 'dezena' ? 'nesta dezena' : 'neste mês'}</p></>}
               </SustainabilityBlock>
               <SustainabilityBlock icon={Activity} label="Ritmo necessário" tone="blue">
                 {sustainabilityPlan.objectiveReached ? <p className="text-sm font-semibold text-emerald-600">Ritmo suficiente</p> : <p className="text-base font-semibold leading-snug text-gray-700">{sustainabilityPlan.ritmoLabel}</p>}
               </SustainabilityBlock>
               <SustainabilityBlock icon={Wrench} label="Necessidade operacional" tone="purple">
-                {sustainabilityPlan.objectiveReached ? <p className="text-sm font-semibold text-emerald-600">Necessidade atendida</p> : sustainabilityPlan.necessidadeOperacional === null ? <p className="text-sm font-semibold text-amber-700">Base estatística insuficiente</p> : <><p className="text-lg font-bold text-gray-800">{sustainabilityPlan.necessidadeOperacional} <span className="text-sm font-medium text-gray-400">{sustainabilityPlan.tipoOperacional}</span></p><p className="mt-1 text-xs text-gray-400">para gerar {sustainabilityPlan.faltam} {sustainabilityPlan.faltam === 1 ? 'venda' : 'vendas'}</p></>}
+                {sustainabilityPlan.objectiveReached ? <p className="text-sm font-semibold text-emerald-600">Necessidade atendida</p> : sustainabilityPlan.necessidadeOperacional === null ? <p className="text-sm font-semibold text-amber-700">Base estatística insuficiente</p> : <><p className="text-lg font-bold text-gray-800">{formatStoreGoalMetric(sustainabilityPlan.necessidadeOperacional)} <span className="text-sm font-medium text-gray-400">{sustainabilityPlan.tipoOperacional}</span></p><p className="mt-1 text-xs text-gray-400">para gerar {formatStoreGoalMetric(sustainabilityPlan.faltam)} {sustainabilityPlan.faltam === 1 ? 'venda' : 'vendas'}</p></>}
               </SustainabilityBlock>
             </div>
             <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50 p-3"><p className="text-sm font-medium leading-snug text-emerald-700">{sustainabilityPlan.mensagemFoco}</p></div>
@@ -203,6 +305,18 @@ export function ManagerStoreGoalReference({ data }: { data: DashboardData }) {
   )
 }
 
+function numberOrFallback(value: number | string | null | undefined, fallback: number): number {
+  if (value === null || value === undefined) return fallback
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : fallback
+}
+
+function nullableNumber(value: number | string | null | undefined): number | null {
+  if (value === null || value === undefined) return null
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
 function GoalCard({ icon: Icon, label, tone, children }: { icon: typeof Target; label: string; tone: 'emerald' | 'blue' | 'orange' | 'violet'; children: ReactNode }) {
   const tones = { emerald: 'bg-emerald-50 text-emerald-600', blue: 'bg-blue-50 text-blue-600', orange: 'bg-orange-50 text-orange-600', violet: 'bg-violet-50 text-violet-600' }
   return <article className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm"><div className="mb-4 flex items-center gap-2"><span className={`grid h-8 w-8 place-items-center rounded-lg ${tones[tone]}`}><Icon size={16} /></span><p className="text-xs font-medium uppercase tracking-wide text-gray-500">{label}</p></div>{children}</article>
@@ -210,9 +324,7 @@ function GoalCard({ icon: Icon, label, tone, children }: { icon: typeof Target; 
 function Progress({ value }: { value: number }) { return <div className="mt-3 h-2 overflow-hidden rounded-full bg-gray-100"><div className={`h-full rounded-full ${value >= 80 ? 'bg-emerald-500' : value >= 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${Math.min(100, Math.max(0, value))}%` }} /></div> }
 function CardFooter({ left, right, tone }: { left: string; right: string; tone: 'emerald' | 'amber' | 'red' }) { const colors = { emerald: 'text-emerald-600', amber: 'text-amber-600', red: 'text-red-600' }; return <div className="mt-2 flex justify-between text-xs text-gray-400"><span>{right}</span><b className={colors[tone]}>{left}</b></div> }
 function MetricPill({ value }: { value: number | null }) { if (value === null) return <span className="text-gray-400">—</span>; const tone = value >= 100 ? 'bg-emerald-100 text-emerald-700' : value >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'; return <span className={`rounded-lg px-2 py-1 text-xs font-medium ${tone}`}>{value}%</span> }
-
 function EmptyGoalState() { return <p className="text-sm font-medium text-gray-500">Meta ainda não cadastrada.</p> }
-
 function SustainabilityBlock({ icon: Icon, label, tone, children }: { icon: typeof Activity; label: string; tone: 'orange' | 'blue' | 'purple'; children: ReactNode }) {
   const tones = { orange: 'text-orange-500', blue: 'text-blue-500', purple: 'text-purple-500' }
   return <div className="rounded-xl border border-gray-100 bg-gray-50 p-4"><div className="mb-2 flex items-center gap-1.5"><Icon size={16} className={tones[tone]} /><p className="text-xs font-medium uppercase tracking-wide text-gray-500">{label}</p></div>{children}</div>
