@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:test-driven-development and superpowers:verification-before-completion task by task.
 
-**Goal:** Protect PDI and feedback recommendation generation from anonymous, cross-store, self-service, duplicate execution, and source-existence disclosure while preserving the current frontend contracts.
+**Goal:** Protect PDI and feedback recommendation generation from anonymous, cross-store, self-service, duplicate execution, source-existence disclosure, and recommendations for competencies already at target, while preserving the current frontend contracts.
 
-**Architecture:** Keep the existing RPC signatures and return types. Make each `SECURITY DEFINER` function enforce identity and source scope internally, authorize inside the source lookup, validate the seller/store relationship, derive the audit actor from the authenticated caller, serialize generation per source, and use database uniqueness for durable idempotency. Revoke anonymous execution from the two generators and from the sensitive PDI print bundle. Preserve `authenticated` and `service_role` entry points, with explicit service-role handling inside the functions.
+**Architecture:** Keep the existing RPC signatures and return types. Make each `SECURITY DEFINER` function enforce identity and source scope internally, authorize inside the source lookup, validate the seller/store relationship, derive the audit actor from the authenticated caller, serialize generation per source, use database uniqueness for durable idempotency, and select only positive development gaps. Revoke anonymous execution from the two generators and from the sensitive PDI print bundle. Preserve `authenticated` and `service_role` entry points, with explicit service-role handling inside the functions.
 
 **Tech Stack:** PostgreSQL 17, Supabase Auth helpers, PL/pgSQL, Bun tests, GitHub Actions.
 
@@ -16,6 +16,7 @@
   - `gerar_recomendacoes_desenvolvimento_pdi(uuid) returns integer`;
   - `get_pdi_print_bundle(uuid) returns jsonb`.
 - Do not reveal whether a feedback or PDI source exists outside the caller's authorized scope.
+- Generate PDI recommendations only when `alvo > nota_atribuida`.
 - Do not change recommendation status vocabulary or frontend query shape.
 - Do not delete historical recommendations.
 - Do not create test recommendations in production outside rollback-safe probes.
@@ -26,15 +27,18 @@
 Create `src/lib/pdi-development-recommendation-authorization.test.ts` against the planned migrations:
 
 - `20260717292000_harden_pdi_development_recommendations.sql`;
-- `20260717293000_fix_pdi_source_existence_disclosure.sql`.
+- `20260717293000_fix_pdi_source_existence_disclosure.sql`;
+- `20260717294000_fix_pdi_positive_gap_recommendations.sql`.
 
 The contract must require:
 
 - authenticated identity or explicit `service_role` handling in both generators and the print bundle;
 - feedback generation restricted to source manager, store management, Owner/Admin MX, or service role;
 - PDI generation restricted to assigned manager, store management, Owner/Admin MX, or service role;
-- authorization included in each source `SELECT`, with the same SQLSTATE `42501` for nonexistent and out-of-scope sources;
-- source seller must have an active seller relationship in the source store;
+- every authorization predicate remains between the source filter and `FOR SHARE`;
+- nonexistent and out-of-scope sources return the same SQLSTATE `42501` and generic message;
+- source seller has an active seller relationship in the source store;
+- PDI recommendations are limited to positive gaps before ordering and `LIMIT 5`;
 - recommendation `created_by` is derived from the authenticated actor, with source-manager fallback only for service role;
 - transaction advisory lock per source before duplicate checks;
 - a unique partial index for one feedback recommendation per feedback source;
@@ -101,11 +105,22 @@ Because the base migration reached production before the manual review identifie
 
 For both recommendation generators:
 
-1. include the authorization predicate inside the source `SELECT`;
+1. include all authorization predicates inside the source `SELECT`;
 2. return SQLSTATE `42501` with `nao encontrado ou sem acesso` when no authorized row is selected;
 3. preserve all idempotency, audit, ACL, return-type, and service-role behavior from the base migration.
 
-## Task 4: Verify and release
+## Task 4: Restrict recommendations to positive gaps
+
+The review found that the previous query could include competencies already at or above the target when fewer than five positive gaps existed. Because the prior definitions were already applied, add `supabase/migrations/20260717294000_fix_pdi_positive_gap_recommendations.sql`.
+
+The replacement PDI generator must:
+
+1. preserve scoped source lookup and generic `42501` behavior;
+2. filter with `av.alvo > av.nota_atribuida` before ordering;
+3. apply `LIMIT 5` only after the positive-gap filter;
+4. preserve idempotency, audit, ACLs, signatures, and return type.
+
+## Task 5: Verify and release
 
 1. Run the focused test, typecheck, full unit suite, build, migration reversibility and pgTAP RLS matrix.
 2. Apply each migration to Supabase production only after permanent CI passes.
@@ -116,8 +131,9 @@ For both recommendation generators:
    - nonexistent and out-of-scope source IDs produce the same SQLSTATE and generic message;
    - manager can generate for own store;
    - same source called twice returns no duplicate rows;
+   - active PDI definition contains the positive-gap filter;
    - service-role path remains available;
    - print bundle is readable only by authorized roles.
 5. Confirm recommendation and audit counts are unchanged after aborted probes.
 6. Re-run security advisors.
-7. Open/review the PR, resolve findings, merge only with fresh green gates, and inspect automatic Vercel status without a manual deploy.
+7. Resolve review findings, merge only with fresh green gates, and inspect automatic Vercel status without a manual deploy.
