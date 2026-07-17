@@ -8,10 +8,11 @@ on:
     paths:
       - 'supabase/migrations/20260717190000_security_invoker_views.sql'
       - 'src/lib/security-invoker-views-migration.test.ts'
+      - 'src/types/database.generated.ts'
       - '.github/workflows/security-invoker-views-development.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   verify:
@@ -80,6 +81,17 @@ jobs:
             database-types-command.log
           if-no-files-found: warn
           retention-days: 2
+
+      - name: Synchronize committed database types
+        if: steps.types.outputs.command_exit == '0' && steps.types.outputs.diff_exit == '1'
+        shell: bash
+        run: |
+          cp database.generated.production.ts src/types/database.generated.ts
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/types/database.generated.ts
+          git commit -m "chore(db): synchronize generated production types"
+          git push origin HEAD:fix/security-invoker-views
 
       - name: Rebuild local Supabase and capture migration log
         id: local_supabase
