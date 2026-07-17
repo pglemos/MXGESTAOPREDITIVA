@@ -6,8 +6,8 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'src/features/manager/closing/AgendaD1Panel.tsx'
-      - 'src/features/manager/closing/AgendaD1Panel-rpc-contract.test.ts'
+      - 'src/features/manager/daily-closing/AgendaD1Panel.tsx'
+      - 'src/features/manager/daily-closing/AgendaD1Panel-rpc-contract.test.ts'
       - '.github/workflows/agenda-d1-rpc-development.yml'
 
 permissions:
@@ -34,10 +34,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: agenda-d1-source
-          path: src/features/manager/closing/AgendaD1Panel.tsx
+          path: src/features/manager/daily-closing/AgendaD1Panel.tsx
+          if-no-files-found: error
           retention-days: 2
       - name: RPC contract test
-        run: bun test --isolate src/features/manager/closing/AgendaD1Panel-rpc-contract.test.ts
+        run: bun test --isolate src/features/manager/daily-closing/AgendaD1Panel-rpc-contract.test.ts
       - name: Typecheck
         run: npm run typecheck
       - name: Build
