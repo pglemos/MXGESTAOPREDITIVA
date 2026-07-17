@@ -14,7 +14,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,6 +38,17 @@ jobs:
 
       - name: Targeted tests
         run: bun test --isolate --max-concurrency=1 src/features/manager/home/manager-home-parity.test.ts src/features/manager/home/manager-home-official-ratio.test.ts src/features/manager/home/useManagerHomeOfficialSources.test.ts
+
+      - name: Full unit suite with concise failure log
+        shell: bash
+        run: |
+          if npm test > /tmp/mx-unit-tests.log 2>&1; then
+            tail -n 80 /tmp/mx-unit-tests.log
+          else
+            status=$?
+            tail -n 320 /tmp/mx-unit-tests.log
+            exit "$status"
+          fi
 
       - name: Build
         run: npm run build
