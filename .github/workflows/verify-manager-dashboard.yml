@@ -39,16 +39,31 @@ jobs:
       - name: Targeted tests
         run: bun test --isolate --max-concurrency=1 src/features/manager/home/manager-home-parity.test.ts src/features/manager/home/manager-home-official-ratio.test.ts src/features/manager/home/useManagerHomeOfficialSources.test.ts
 
-      - name: Full unit suite with concise failure log
+      - name: Run full unit suite
+        id: full_tests
         shell: bash
         run: |
-          if npm test > /tmp/mx-unit-tests.log 2>&1; then
-            tail -n 80 /tmp/mx-unit-tests.log
-          else
-            status=$?
-            tail -n 320 /tmp/mx-unit-tests.log
-            exit "$status"
-          fi
+          set +e
+          npm test > mx-unit-tests.log 2>&1
+          status=$?
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload full unit log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: manager-dashboard-full-unit-log
+          path: mx-unit-tests.log
+          if-no-files-found: error
+          retention-days: 2
+
+      - name: Fail when full unit suite fails
+        if: steps.full_tests.outputs.exit_code != '0'
+        shell: bash
+        run: |
+          tail -n 120 mx-unit-tests.log
+          exit 1
 
       - name: Build
         run: npm run build
