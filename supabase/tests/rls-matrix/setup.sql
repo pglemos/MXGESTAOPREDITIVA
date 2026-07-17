@@ -168,3 +168,10 @@ BEGIN
   EXECUTE 'SET LOCAL ROLE anon';
 END;
 $$;
+
+-- The matrix runs its assertions as anon/authenticated, so the test-only
+-- helper schema must be callable after SET LOCAL ROLE.  These grants do not
+-- change any application table or policy privilege.
+GRANT USAGE ON SCHEMA rls_matrix TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION rls_matrix.assume(uuid) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION rls_matrix.assume_anon() TO anon, authenticated;

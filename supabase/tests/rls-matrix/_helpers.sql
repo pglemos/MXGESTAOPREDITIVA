@@ -40,3 +40,6 @@ EXCEPTION
     RAISE;
 END;
 $$;
+
+GRANT EXECUTE ON FUNCTION rls_matrix.visible_count(regclass) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION rls_matrix.try_insert(text) TO anon, authenticated;
