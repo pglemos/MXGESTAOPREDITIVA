@@ -12,6 +12,9 @@ export interface AgendaD1Row {
   status: AgendaStatus
   observacoes: string | null
   seller_user_id: string
+  confirmation_status?: string | null
+  confirmation_note?: string | null
+  last_contact_at?: string | null
   cliente: {
     id: string
     nome: string
