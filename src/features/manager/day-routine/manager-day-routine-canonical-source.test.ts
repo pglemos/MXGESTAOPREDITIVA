@@ -2,24 +2,35 @@ import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 
 const containerSource = readFileSync(
-  new URL('./ManagerDayRoutine.container.tsx', import.meta.url),
+  new URL('./ManagerDayRoutineCanonical.container.tsx', import.meta.url),
+  'utf8',
+)
+const routeSource = readFileSync(
+  new URL('../../../pages/RotinaGerente.tsx', import.meta.url),
   'utf8',
 )
 
 describe('ManagerDayRoutine canonical sources', () => {
-  test('uses the canonical correction requests instead of the legacy regularization table', () => {
-    expect(containerSource).toContain(".from('solicitacoes_correcao_lancamento')")
-    expect(containerSource).not.toContain(".from('regularizacao_fechamento')")
-  })
-
-  test('uses the explicit D+1 confirmation taxonomy instead of attendance status', () => {
-    expect(containerSource).toContain(".select('id,confirmation_status')")
-    expect(containerSource).toContain('status: row.confirmation_status')
+  test('routes the manager page through the canonical container', () => {
+    expect(routeSource).toContain('ManagerDayRoutineCanonical')
+    expect(routeSource).not.toContain('ManagerDayRoutine as RotinaGerente')
   })
 
   test('refreshes persisted automatic manager tasks through the canonical RPC', () => {
     expect(containerSource).toContain("supabase.rpc('refresh_manager_daily_tasks'")
     expect(containerSource).toContain('p_manager_user_id: profile.id')
     expect(containerSource).toContain('p_store_id: storeId')
+  })
+
+  test('reads automatic tasks from the canonical table instead of reconstructing them from legacy rows', () => {
+    expect(containerSource).toContain(".from('manager_daily_tasks')")
+    expect(containerSource).not.toContain(".from('regularizacao_fechamento')")
+    expect(containerSource).not.toContain('composeManagerRoutineSourceData')
+  })
+
+  test('keeps personal manual activities separate from official score', () => {
+    expect(containerSource).toContain(".from('execution_actions')")
+    expect(containerSource).toContain(".eq('source_type', 'manual')")
+    expect(containerSource).toContain('countsForScore: row.counts_for_score')
   })
 })
