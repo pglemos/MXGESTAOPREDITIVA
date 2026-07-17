@@ -89,12 +89,14 @@ VALUES
   ('aaaaaaaa-0000-0000-0000-000000000005', 'vendedor', 'Outsider Fixture')
 ON CONFLICT (id) DO UPDATE SET role = EXCLUDED.role;
 
--- memberships: dono+gerente+vendedor em Loja A; outsider em Loja B
+-- memberships: dono+gerente+vendedor em Loja A; outsider em Loja B e
+-- também em Loja A para exercitar cliente compartilhado entre vendedores.
 INSERT INTO public.memberships (user_id, store_id, role)
 VALUES
   ('aaaaaaaa-0000-0000-0000-000000000002', '11111111-1111-1111-1111-111111111111', 'dono'),
   ('aaaaaaaa-0000-0000-0000-000000000003', '11111111-1111-1111-1111-111111111111', 'gerente'),
   ('aaaaaaaa-0000-0000-0000-000000000004', '11111111-1111-1111-1111-111111111111', 'vendedor'),
+  ('aaaaaaaa-0000-0000-0000-000000000005', '11111111-1111-1111-1111-111111111111', 'vendedor'),
   ('aaaaaaaa-0000-0000-0000-000000000005', '22222222-2222-2222-2222-222222222222', 'vendedor')
 ON CONFLICT (user_id, store_id) DO NOTHING;
 
@@ -115,6 +117,23 @@ INSERT INTO public.vendedores_loja (id, loja_id, nome, ativo)
 VALUES
   ('cccccccc-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', 'Vendedor Fixture A', true),
   ('cccccccc-0000-0000-0000-000000000002', '22222222-2222-2222-2222-222222222222', 'Vendedor Fixture B', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- clientes/oportunidades: fixtures para o contrato compartilhado da Carteira,
+-- Central e Funil. O vendedor A só lê a ficha do vendedor B enquanto existe
+-- oportunidade própria aberta; uma oportunidade terminal não prolonga acesso.
+INSERT INTO public.clientes (id, loja_id, seller_user_id, nome, telefone)
+VALUES
+  ('12111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', 'aaaaaaaa-0000-0000-0000-000000000004', 'Cliente Fixture Próprio', '5511999990001'),
+  ('12111111-1111-1111-1111-111111111112', '11111111-1111-1111-1111-111111111111', 'aaaaaaaa-0000-0000-0000-000000000005', 'Cliente Fixture Compartilhado Aberto', '5511999990002'),
+  ('12111111-1111-1111-1111-111111111113', '11111111-1111-1111-1111-111111111111', 'aaaaaaaa-0000-0000-0000-000000000005', 'Cliente Fixture Compartilhado Fechado', '5511999990003'),
+  ('12111111-1111-1111-1111-111111111114', '22222222-2222-2222-2222-222222222222', 'aaaaaaaa-0000-0000-0000-000000000005', 'Cliente Fixture Outra Loja', '5511999990004')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.oportunidades (id, cliente_id, loja_id, seller_user_id, etapa, closed_at)
+VALUES
+  ('13111111-1111-1111-1111-111111111111', '12111111-1111-1111-1111-111111111112', '11111111-1111-1111-1111-111111111111', 'aaaaaaaa-0000-0000-0000-000000000004', 'prospeccao', NULL),
+  ('13111111-1111-1111-1111-111111111112', '12111111-1111-1111-1111-111111111113', '11111111-1111-1111-1111-111111111111', 'aaaaaaaa-0000-0000-0000-000000000004', 'ganho', now())
 ON CONFLICT (id) DO NOTHING;
 
 -- lançamento canônico em Loja A

@@ -80,6 +80,7 @@ quality_gate_tools:
 - [x] Validar no navegador em desktop, incluindo reload e perfis (AC: 2, 3, 5, 8, 12) — vendedor@ testado; dono/gerente/admin_mx pendentes
 - [x] Publicar via `@devops`, acompanhar checks/merge/deploy e executar smoke pós-deploy (AC: 10–12) — PR #99, #100, #101 mergeados; smoke real encontrou e corrigiu 3 bugs de produção
 - [x] Atualizar checkboxes, File List, Dev Agent Record e evidências desta story.
+- [x] Remediar o seed de payroll que quebrava `supabase db reset` em stack fresh e adicionar regressão pgTAP para o isolamento de `clientes` (AC: 6, 10).
 
 ## Dev Notes
 
@@ -138,9 +139,9 @@ Claude Code (Sonnet 5), continuando trabalho iniciado em sessão anterior via Co
   - `carteira_salvar_cliente` (a função base por trás de `_v2`) estava, ao vivo, tentando escrever em `telefone_normalizado`, que é `GENERATED ALWAYS`. Essa versão nunca existiu em nenhuma migration commitada — divergiu do controle de versão em algum momento fora de qualquer migration rastreada. Resultado: TODO o "salvar cliente" (editar ficha, criar cliente, alterar próximo passo, registrar resultado do WhatsApp) retornava 400 desde o merge do PR #99. Corrigido em PR #101, aplicado direto em produção antes do merge pra parar o sangramento.
   - `carteira_salvar_cliente_v2` (minha própria migration 210000, PR #99) exigia que `agendamento.oportunidade_id` batesse exatamente com o payload — mas agendamento sem oportunidade vinculada (`oportunidade_id IS NULL`) é estado legítimo e comum. Reproduzido ao vivo via FichaClienteSheet real. Corrigido em PR #101: aceita agendamento sem vínculo, mantém rejeição pra vínculo com oportunidade *diferente*.
   - Todos os 4 fluxos de escrita (Executar próximo passo/WhatsAppRoteiro, Abrir ficha/editar, Novo Cliente, Alterar próximo passo) testados manualmente em produção após os 2 PRs de hotfix — confirmados funcionando com persistência real (reload + query direta no banco).
-- **Achados fora do escopo desta story, documentados e não corrigidos aqui:**
-  - `pgTAP RLS Matrix` falha em 100% dos runs recentes (inclusive antes desta branch, já na `codex/carteira-base44-1to1` pré-merge) por FK violation em `remuneracao_planos` — a migration `20260707142000_seed_remuneracao_brothers_car_mx_consultoria.sql` insere dado hardcoded para a loja de produção `467a19d1-...` que não existe num stack local fresh. Bug de seed de payroll, não de RLS/Carteira — não está no Implementation Surface desta story.
-  - RLS de `clientes` (`clientes_related_opportunity_read` / `pode_ler_cliente_por_oportunidade`) permite um vendedor ler clientes de outro vendedor da mesma loja via REST direto — reproduzido ao vivo (`vendedor@` viu registros de `jose.vendedor@`). Pré-existente, tabela compartilhada por Carteira/Central/Funil, fora do Implementation Surface.
+- **Achados pós-merge e remediações desta continuidade:**
+  - `pgTAP RLS Matrix` falhava em 100% dos runs recentes por FK violation em `remuneracao_planos`; corrigido com guard idempotente para stack fresh na migration `20260707142000_seed_remuneracao_brothers_car_mx_consultoria.sql`.
+  - RLS de `clientes` permitia leitura indefinida de ficha de outro vendedor após oportunidade `ganho/perdido`; corrigido em `20260716240000_clientes_shared_read_expires_on_terminal_stage.sql`, mantendo leitura compartilhada apenas durante oportunidade aberta.
   - `TestSprite Pre-Check` e `Supabase Preview` (checks de apps/integrações externas ao repo, não listados nos gates da story) falham por config de plataforma (app sem testes configurados; limite de branches concorrentes do marketplace Vercel↔Supabase) — não bloqueantes, não relacionados ao código desta PR.
 
 ### File List
@@ -171,6 +172,11 @@ Claude Code (Sonnet 5), continuando trabalho iniciado em sessão anterior via Co
 - `supabase/migrations/20260716215500_carteira_mission_ledger_user_fk_index.sql` (+ rollback)
 - `supabase/migrations/20260716220000_carteira_disable_legacy_rpc_entrypoints.sql` (+ rollback)
 - `supabase/migrations/20260716221000_carteira_missoes_grant_cleanup.sql` (+ rollback)
+- `supabase/migrations/20260707142000_seed_remuneracao_brothers_car_mx_consultoria.sql`
+- `supabase/migrations/20260716240000_clientes_shared_read_expires_on_terminal_stage.sql` (+ rollback)
+- `supabase/tests/rls-matrix/clientes.test.sql`
+- `supabase/tests/rls-matrix/setup.sql`
+- `supabase/tests/rls-matrix/runner.sql`
 
 ## Change Log
 

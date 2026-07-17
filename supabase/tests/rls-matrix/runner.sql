@@ -16,6 +16,9 @@
 \echo === RLS Matrix: lancamentos_diarios ===
 \i supabase/tests/rls-matrix/lancamentos_diarios.test.sql
 
+\echo === RLS Matrix: clientes ===
+\i supabase/tests/rls-matrix/clientes.test.sql
+
 \echo === RLS Matrix: usuarios ===
 \i supabase/tests/rls-matrix/usuarios.test.sql
 
