@@ -2,7 +2,7 @@
   "_comment": "Congelamento forward-only das migrations aplicadas. NÃO editar à mão. Regenerar apenas ao adicionar migrations novas: node scripts/gen_migration_checksums.mjs",
   "generated_at": "2026-07-17",
   "algorithm": "sha256",
-  "count": 253,
+  "count": 254,
   "checksums": {
     "00000000000000_baseline_legacy_schema.sql": "3a519e3804095af5e9f7d8a7cb70dcc388b04530b6a7911ee1e3cb76af10b0fc",
     "00000000000001_mark_existing_migrations_applied.sql": "a8183b5cc5bd56b549ce8d8d302eb0c5d4f7b20381438586e02dd7353d6f2a45",
@@ -256,6 +256,7 @@
     "20260717270000_revoke_anon_all_public_tables_and_defaults.sql": "b4f5c2a61af9a406f6aa9c6e3688a3a3a52b3bbb4c2d2a0727cec9fac4682776",
     "20260717271000_revoke_rls_bypass_privs_on_views.sql": "bb012696b40ebe8af968a2a4258f05291f7ed909d7e61b2ada8e3e5891b2981a",
     "20260717272000_revoke_anon_execute_scope_rpcs.sql": "57f5fa930f846f2a3de8ed765329c69f60c0a05e3d06e50d83c9d1200036d2fb",
-    "20260717273000_revoke_public_execute_scope_rpcs.sql": "f2be1688ec15c26d40451395c6770f0a201b643dce6d0c28678c430460e3effa"
+    "20260717273000_revoke_public_execute_scope_rpcs.sql": "f2be1688ec15c26d40451395c6770f0a201b643dce6d0c28678c430460e3effa",
+    "20260717280000_central_resolve_terminal_state_guard.sql": "7b4db4a9f715b58df10bc44cbc41cef5589959e8f6077d81b66f58edfdfb2a20"
   }
 }
