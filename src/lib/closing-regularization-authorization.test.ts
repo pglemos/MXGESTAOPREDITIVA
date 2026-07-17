@@ -20,8 +20,8 @@ describe('closing regularization authorization migration', () => {
   test('requires authenticated identity in all mutating implementations', () => {
     expect(compactSql).toMatch(/CREATE OR REPLACE FUNCTION public\.aplicar_regularizacao_fechamento\(p_request_id uuid\)/)
     expect(compactSql).toMatch(/CREATE OR REPLACE FUNCTION public\.cancelar_regularizacao_fechamento\(p_request_id uuid\)/)
-    expect(compactSql).toMatch(/CREATE OR REPLACE FUNCTION public\.rejeitar_regularizacao_fechamento\(p_request_id uuid, p_reason text/)
-    expect(compactSql).toMatch(/CREATE OR REPLACE FUNCTION public\.enviar_cobranca_diaria\(p_recipient_id uuid, p_store_id uuid/)
+    expect(compactSql).toMatch(/CREATE OR REPLACE FUNCTION public\.rejeitar_regularizacao_fechamento\(\s*p_request_id uuid, p_reason text/)
+    expect(compactSql).toMatch(/CREATE OR REPLACE FUNCTION public\.enviar_cobranca_diaria\(\s*p_recipient_id uuid, p_store_id uuid/)
 
     const authGuards = compactSql.match(/IF v_caller IS NULL THEN RETURN jsonb_build_object\('ok', false, 'error', 'Não autenticado\.'\); END IF;/g) ?? []
     expect(authGuards.length).toBe(4)
@@ -52,7 +52,7 @@ describe('closing regularization authorization migration', () => {
     expect(compactSql).toContain('changed_by, old_values, new_values, change_type')
     expect(compactSql).toContain('v_request.checkin_id, v_request.id, v_caller, v_old, v_new')
     expect(compactSql).toContain('auditor_id = v_caller')
-    expect(compactSql).toContain('VALUES (v_caller, v_request.seller_id')
+    expect(compactSql).toMatch(/VALUES \(\s*v_caller, v_request\.seller_id/)
   })
 
   test('removes anonymous execution from all entry points', () => {
