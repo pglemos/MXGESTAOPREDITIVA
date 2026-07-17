@@ -107,7 +107,7 @@ function Discipline({ value }: { value: string }) {
   const numeric = Number.parseInt(value, 10);
   if (!Number.isFinite(numeric)) return <>{value}</>;
   const color = numeric < 70 ? "rgb(249 115 22)" : numeric < 90 ? "rgb(59 130 246)" : "rgb(16 185 129)";
-  return <span className="grid h-14 w-14 place-items-center rounded-full p-1 text-xs font-bold" style={{ background: `conic-gradient(${color} ${numeric * 3.6}deg, rgb(241 245 249) 0deg)`, color }}><span className="grid h-full w-full place-items-center rounded-full bg-gray-50">{value}</span></span>;
+  return <span aria-label={`Disciplina ${value}`} className="grid h-14 w-14 place-items-center rounded-full p-1 text-xs font-bold" style={{ background: `conic-gradient(${color} ${numeric * 3.6}deg, rgb(241 245 249) 0deg)`, color }}><span className="grid h-full w-full place-items-center rounded-full bg-gray-50">{value}</span></span>;
 }
 
 function metric(value: number | null | undefined): number | string {

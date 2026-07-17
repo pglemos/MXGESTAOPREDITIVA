@@ -9,41 +9,50 @@ globalThis.MutationObserver ||= class {
   takeRecords() { return []; }
 } as unknown as typeof MutationObserver;
 
+mock.module("@/hooks/useAuth", () => ({
+  useAuth: () => ({ membership: null }),
+}));
+
 describe("ClosingDetailsModal", () => {
   afterEach(() => cleanup());
 
-  test("exibe os dados do fechamento e abre a agenda do vendedor", () => {
+  test("exibe dados gerais, movimento por canal e abre Agenda D+1", () => {
     const onOpenAgenda = mock(() => undefined);
-    const onClose = mock(() => undefined);
 
     render(
       <ClosingDetailsModal
         open
         seller={{ id: "seller-1", name: "Ana Oliveira" }}
+        storeName="Matriz"
+        status="Fora do horário"
         checkin={{
-          reference_date: "2026-07-13",
-          submitted_at: "2026-07-13T18:30:00.000Z",
-          leads_prev_day: 5,
-          leads_net_prev_day: 2,
-          agd_cart_today: 1,
+          reference_date: "2026-07-14",
+          submitted_at: "2026-07-14T18:14:00-03:00",
+          pontuacao_disciplina_final: 62,
+          visit_prev_day: 6,
+          leads_prev_day: 4,
+          leads_net_prev_day: 6,
+          agd_cart_today: 3,
           agd_net_today: 2,
           vnd_porta_prev_day: 1,
           vnd_cart_prev_day: 1,
           vnd_net_prev_day: 0,
-          visit_prev_day: 4,
-          pontuacao_disciplina_final: 72,
-          pontuacao_disciplina_base: 72,
-        } as never}
-        status="Finalizado"
+        }}
+        onClose={() => undefined}
         onOpenAgenda={onOpenAgenda}
-        onClose={onClose}
       />,
     );
 
-    expect(screen.getByText("Detalhes do Fechamento — Ana Oliveira")).toBeTruthy();
+    expect(screen.getByText("Matriz")).toBeTruthy();
+    expect(screen.getByText("Fora do horário")).toBeTruthy();
+    expect(screen.getByLabelText("Disciplina 62%")).toBeTruthy();
     expect(screen.getByText("Movimento por Canal")).toBeTruthy();
-    expect(screen.getByRole("dialog").textContent).toContain("72%");
-    fireEvent.click(screen.getByRole("button", { name: /Ver Agenda D\+1 deste vendedor/i }));
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Ver Agenda D+1 deste vendedor",
+      }),
+    );
     expect(onOpenAgenda).toHaveBeenCalledTimes(1);
   });
 });

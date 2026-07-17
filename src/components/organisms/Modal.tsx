@@ -80,12 +80,14 @@ export function Modal({
     >
       <Dialog.Portal>
         <Dialog.Overlay
+          data-reference-overlay={referenceStyle ? "true" : undefined}
           className={cn(
             "fixed inset-0 z-[100]",
             referenceStyle ? "bg-black/30" : "bg-mx-black/60 backdrop-blur-md",
           )}
         />
         <Dialog.Content
+          data-reference-modal={referenceStyle ? "true" : undefined}
           onEscapeKeyDown={(event) => {
             if (!closeOnEscape) event.preventDefault();
           }}
@@ -102,7 +104,7 @@ export function Modal({
               ? "fixed left-4 right-4 top-1/2 -translate-y-1/2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-[101] focus:outline-none"
               : "fixed left-mx-md right-mx-md top-mx-md bottom-mx-md sm:left-1/2 sm:right-auto sm:top-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 z-[101] focus:outline-none",
             referenceStyle
-              ? `w-full max-h-[90vh] flex flex-col bg-white shadow-xl rounded-[16px] ${referenceModalSizes[resolvedSize]}`
+              ? `w-full max-h-[90vh] flex flex-col bg-white shadow-xl rounded-2xl ${referenceModalSizes[resolvedSize]}`
               : modalSizeVariants({ size: resolvedSize }),
             className,
           )}
@@ -115,7 +117,7 @@ export function Modal({
           )}>
             <div className="min-w-0">
               <Dialog.Title asChild>
-                <h2 className={referenceStyle ? "text-base leading-6 font-semibold text-gray-800" : "text-lg font-semibold text-gray-800"}>{title}</h2>
+                <h2 className={referenceStyle ? (resolvedSize === "sm" ? "text-base leading-6 font-semibold text-gray-800" : "text-lg leading-6 font-semibold text-gray-800") : "text-lg font-semibold text-gray-800"}>{title}</h2>
               </Dialog.Title>
               {description && (
                 <Dialog.Description asChild>

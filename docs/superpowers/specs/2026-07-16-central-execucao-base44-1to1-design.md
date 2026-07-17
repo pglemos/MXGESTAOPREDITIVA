@@ -1,11 +1,11 @@
 # Especificação de Design — Central de Execução Base44 1:1
 
-**Projeto:** MX Gestão Preditiva  
-**Repositório:** `pglemos/MXGESTAOPREDITIVA`  
-**Branch de destino:** `main`  
-**Referência visual e funcional:** Base44 app `6a3b2a814401f8c6bf1653df`, rota `/execucao`  
-**Rotas de produção:** `/central-execucao` e `/central-de-execucao`  
-**Data:** 16 de julho de 2026  
+**Projeto:** MX Gestão Preditiva
+**Repositório:** `pglemos/MXGESTAOPREDITIVA`
+**Branch de destino:** `main`
+**Referência visual e funcional:** Base44 app `6a3b2a814401f8c6bf1653df`, rota `/execucao`
+**Rotas de produção:** `/central-execucao` e `/central-de-execucao`
+**Data:** 16 de julho de 2026
 **Status:** Aprovado conceitualmente e aguardando revisão desta especificação escrita
 
 ---

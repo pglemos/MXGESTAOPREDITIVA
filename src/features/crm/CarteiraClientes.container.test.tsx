@@ -112,23 +112,6 @@ mock.module('@/features/crm/hooks/useAgendamentos', () => ({
   }),
 }))
 
-mock.module('@/components/organisms/Modal', () => ({
-  Modal: ({ open, title, description, children, footer }: {
-    open: boolean
-    title: string
-    description?: string
-    children: React.ReactNode
-    footer?: React.ReactNode
-  }) => open ? (
-    <section role="dialog" aria-label={title}>
-      <h2>{title}</h2>
-      {description && <p>{description}</p>}
-      {children}
-      {footer}
-    </section>
-  ) : null,
-}))
-
 const { CarteiraClientes } = await import('./CarteiraClientes.container')
 
 afterEach(() => {
