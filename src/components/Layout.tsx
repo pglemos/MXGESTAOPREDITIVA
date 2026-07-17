@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import { slugify } from '@/lib/utils'
 import SellerLayoutShell, { type SellerLayoutNavItem, type SellerLayoutNavSection } from './SellerSidebar'
+import ManagerSidebarShell from './ManagerSidebarShell'
 import { ForcePasswordChange } from '@/features/auth/components/ForcePasswordChange'
 import { canAccessPath } from '@/lib/auth/routeAccess'
 import { MotionPage } from '@/design/motion'
@@ -286,6 +287,40 @@ export default function Layout() {
     )
   }
 
+  const pageContent = (
+    <MotionPage key={location.pathname} className="h-full">
+      <Outlet />
+    </MotionPage>
+  )
+
+  const stopCurrentSimulation = () => {
+    stopSimulation()
+    navigate('/painel', { replace: true })
+  }
+
+  if (role === 'gerente') {
+    return (
+      <ManagerSidebarShell
+        profileName={profile.name}
+        profileRoleLabel={perfilVisivel}
+        avatarUrl={profile.avatar_url}
+        navSections={sidebarSections}
+        onSignOut={signOut}
+        profilePath="/perfil"
+        settingsPath="/configuracoes"
+        notificationsPath="/notificacoes"
+        sidebarLabel={`Menu principal do ${perfilVisivel}`}
+        isSimulating={isSimulating}
+        simulationLabel={simulationRole ? rotulosPerfil[simulationRole] : 'MX'}
+        simulationBase={perfilBaseVisivel}
+        simulationStore={membership?.store?.name || 'Sandbox MX'}
+        onStopSimulation={stopCurrentSimulation}
+      >
+        {pageContent}
+      </ManagerSidebarShell>
+    )
+  }
+
   return (
     <SellerLayoutShell
       profileName={profile.name}
@@ -299,14 +334,9 @@ export default function Layout() {
       simulationLabel={simulationRole ? rotulosPerfil[simulationRole] : 'MX'}
       simulationBase={perfilBaseVisivel}
       simulationStore={membership?.store?.name || 'Sandbox MX'}
-      onStopSimulation={() => {
-        stopSimulation()
-        navigate('/painel', { replace: true })
-      }}
+      onStopSimulation={stopCurrentSimulation}
     >
-      <MotionPage key={location.pathname} className="h-full">
-        <Outlet />
-      </MotionPage>
+      {pageContent}
     </SellerLayoutShell>
   )
 }
