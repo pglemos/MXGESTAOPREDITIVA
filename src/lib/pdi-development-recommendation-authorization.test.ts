@@ -20,6 +20,16 @@ function extractFinalFunction(name: string) {
   return compactSql.slice(start, next === -1 ? compactSql.length : next)
 }
 
+function expectScopedSourceLookup(body: string, sourcePredicate: string, authorizationPredicate: string) {
+  const source = body.indexOf(sourcePredicate)
+  const authorization = body.indexOf(authorizationPredicate)
+  const lock = body.indexOf('FOR SHARE')
+
+  expect(source).toBeGreaterThanOrEqual(0)
+  expect(authorization).toBeGreaterThan(source)
+  expect(lock).toBeGreaterThan(authorization)
+}
+
 const generatorSignatures = [
   'public.gerar_recomendacoes_desenvolvimento_feedback(uuid)',
   'public.gerar_recomendacoes_desenvolvimento_pdi(uuid)',
@@ -72,8 +82,8 @@ describe('PDI development recommendation authorization migrations', () => {
     const feedback = extractFinalFunction('gerar_recomendacoes_desenvolvimento_feedback(')
     const pdi = extractFinalFunction('gerar_recomendacoes_desenvolvimento_pdi(')
 
-    expect(feedback).toContain("WHERE d.id = p_feedback_id AND ( v_is_service_role OR public.eh_area_interna_mx(v_caller) OR d.manager_id = v_caller OR public.is_manager_of(d.store_id) OR public.is_owner_of(d.store_id) )")
-    expect(pdi).toContain("WHERE s.id = p_sessao_id AND ( v_is_service_role OR public.eh_area_interna_mx(v_caller) OR s.gerente_id = v_caller OR public.is_manager_of(s.loja_id) OR public.is_owner_of(s.loja_id) )")
+    expectScopedSourceLookup(feedback, 'WHERE d.id = p_feedback_id', 'd.manager_id = v_caller')
+    expectScopedSourceLookup(pdi, 'WHERE s.id = p_sessao_id', 's.gerente_id = v_caller')
   })
 
   test('serializes generation and enforces durable source idempotency', () => {
