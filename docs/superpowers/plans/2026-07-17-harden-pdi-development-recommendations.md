@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:test-driven-development and superpowers:verification-before-completion task by task.
 
-**Goal:** Protect PDI and feedback recommendation generation from anonymous, cross-store, self-service, and duplicate execution while preserving the current frontend contracts.
+**Goal:** Protect PDI and feedback recommendation generation from anonymous, cross-store, self-service, duplicate execution, and source-existence disclosure while preserving the current frontend contracts.
 
-**Architecture:** Keep the existing RPC signatures and return types. Make each `SECURITY DEFINER` function enforce identity and source scope internally, validate the seller/store relationship, derive the audit actor from the authenticated caller, serialize generation per source, and use database uniqueness for durable idempotency. Revoke anonymous execution from the two generators and from the sensitive PDI print bundle. Preserve `authenticated` and `service_role` entry points, with explicit service-role handling inside the functions.
+**Architecture:** Keep the existing RPC signatures and return types. Make each `SECURITY DEFINER` function enforce identity and source scope internally, authorize inside the source lookup, validate the seller/store relationship, derive the audit actor from the authenticated caller, serialize generation per source, and use database uniqueness for durable idempotency. Revoke anonymous execution from the two generators and from the sensitive PDI print bundle. Preserve `authenticated` and `service_role` entry points, with explicit service-role handling inside the functions.
 
 **Tech Stack:** PostgreSQL 17, Supabase Auth helpers, PL/pgSQL, Bun tests, GitHub Actions.
 
@@ -15,6 +15,7 @@
   - `gerar_recomendacoes_desenvolvimento_feedback(uuid) returns integer`;
   - `gerar_recomendacoes_desenvolvimento_pdi(uuid) returns integer`;
   - `get_pdi_print_bundle(uuid) returns jsonb`.
+- Do not reveal whether a feedback or PDI source exists outside the caller's authorized scope.
 - Do not change recommendation status vocabulary or frontend query shape.
 - Do not delete historical recommendations.
 - Do not create test recommendations in production outside rollback-safe probes.
@@ -22,13 +23,17 @@
 
 ## Task 1: Define the failing contract
 
-Create `src/lib/pdi-development-recommendation-authorization.test.ts` against the planned migration `20260717292000_harden_pdi_development_recommendations.sql`.
+Create `src/lib/pdi-development-recommendation-authorization.test.ts` against the planned migrations:
+
+- `20260717292000_harden_pdi_development_recommendations.sql`;
+- `20260717293000_fix_pdi_source_existence_disclosure.sql`.
 
 The contract must require:
 
 - authenticated identity or explicit `service_role` handling in both generators and the print bundle;
 - feedback generation restricted to source manager, store management, Owner/Admin MX, or service role;
 - PDI generation restricted to assigned manager, store management, Owner/Admin MX, or service role;
+- authorization included in each source `SELECT`, with the same SQLSTATE `42501` for nonexistent and out-of-scope sources;
 - source seller must have an active seller relationship in the source store;
 - recommendation `created_by` is derived from the authenticated actor, with source-manager fallback only for service role;
 - transaction advisory lock per source before duplicate checks;
@@ -40,9 +45,9 @@ The contract must require:
 - `authenticated` and `service_role` grants preserved;
 - transaction boundaries and rollback documentation.
 
-Run the focused test and confirm RED because the migration does not exist yet.
+Run the focused test and confirm RED before each missing migration is implemented.
 
-## Task 2: Implement the migration
+## Task 2: Implement the base migration
 
 Create `supabase/migrations/20260717292000_harden_pdi_development_recommendations.sql`.
 
@@ -51,11 +56,7 @@ Create `supabase/migrations/20260717292000_harden_pdi_development_recommendation
 1. Resolve `auth.uid()` and `auth.role()`.
 2. Reject unauthenticated non-service calls with SQLSTATE `42501`.
 3. Lock and load the feedback source.
-4. Authorize before exposing source details:
-   - service role;
-   - internal MX;
-   - source manager;
-   - manager or owner of the source store.
+4. Authorize service role, internal MX, source manager, manager or owner of the source store.
 5. Require the source seller to be an active seller in the same store.
 6. Acquire a transaction advisory lock keyed by `feedback/source_id`.
 7. Generate the deterministic theme/training/reason.
@@ -94,17 +95,27 @@ GRANT EXECUTE ... TO authenticated, service_role;
 
 Wrap in `BEGIN`/`COMMIT`, set `search_path = public`, and document `-- DOWN`.
 
-## Task 3: Verify and release
+## Task 3: Hide source existence across scopes
+
+Because the base migration reached production before the manual review identified the existence oracle, add `supabase/migrations/20260717293000_fix_pdi_source_existence_disclosure.sql` instead of rewriting applied history.
+
+For both recommendation generators:
+
+1. include the authorization predicate inside the source `SELECT`;
+2. return SQLSTATE `42501` with `nao encontrado ou sem acesso` when no authorized row is selected;
+3. preserve all idempotency, audit, ACL, return-type, and service-role behavior from the base migration.
+
+## Task 4: Verify and release
 
 1. Run the focused test, typecheck, full unit suite, build, migration reversibility and pgTAP RLS matrix.
-2. Apply the migration to Supabase production only after permanent CI passes.
+2. Apply each migration to Supabase production only after permanent CI passes.
 3. Verify active definitions and ACLs.
 4. Run rollback-safe behavioral probes:
    - anon cannot generate or print;
    - unrelated seller cannot generate another user's recommendation;
+   - nonexistent and out-of-scope source IDs produce the same SQLSTATE and generic message;
    - manager can generate for own store;
    - same source called twice returns no duplicate rows;
-   - cross-store manager is denied before source state is exposed;
    - service-role path remains available;
    - print bundle is readable only by authorized roles.
 5. Confirm recommendation and audit counts are unchanged after aborted probes.
