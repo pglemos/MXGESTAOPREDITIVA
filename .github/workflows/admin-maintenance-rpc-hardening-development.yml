@@ -1,0 +1,38 @@
+name: Admin Maintenance RPC Hardening Development
+
+on:
+  push:
+    branches: [fix/revoke-anon-admin-maintenance-rpcs]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/20260717210000_revoke_anon_admin_maintenance_rpcs.sql'
+      - 'src/lib/admin-maintenance-rpc-acl-hardening.test.ts'
+      - '.github/workflows/admin-maintenance-rpc-hardening-development.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VITE_SUPABASE_URL: https://example.supabase.co
+      VITE_SUPABASE_ANON_KEY: test-anon-key
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: npm ci
+      - name: Admin maintenance RPC ACL contract
+        run: bun test --isolate src/lib/admin-maintenance-rpc-acl-hardening.test.ts
+      - name: Migration reversibility
+        run: node scripts/check_migration_reversibility.mjs --changed-only
