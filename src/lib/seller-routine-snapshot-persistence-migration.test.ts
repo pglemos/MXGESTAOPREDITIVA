@@ -8,20 +8,20 @@ const sql = readFileSync(
 
 describe('official SellerRoutineSnapshot persistence', () => {
   test('implements the exact 10/10/20/20/20/20 blocks', () => {
-    expect(sql).toContain('access_points_value := CASE WHEN accessed THEN 10 ELSE 0 END')
-    expect(sql).toContain('10.0 * pending_resolved_value / pending_expected_value')
-    expect(sql).toContain('20.0 * attack_executed_value / attack_expected_value')
-    expect(sql).toContain('20.0 * prospecting_executed_value / prospecting_expected_value')
-    expect(sql).toContain('20.0 * updates_completed_value / updates_expected_value')
-    expect(sql).toContain('closing_points_value := CASE WHEN closing_official THEN 20 ELSE 0 END')
+    expect(sql).toContain('access_points_value:=CASE WHEN accessed THEN 10 ELSE 0 END')
+    expect(sql).toContain('10.0*pending_resolved_value/pending_expected_value')
+    expect(sql).toContain('20.0*attack_executed_value/attack_expected_value')
+    expect(sql).toContain('20.0*prospecting_executed_value/prospecting_expected_value')
+    expect(sql).toContain('20.0*updates_completed_value/updates_expected_value')
+    expect(sql).toContain('closing_points_value:=CASE WHEN closing_official THEN 20 ELSE 0 END')
   })
 
   test('models non-applicable days and technical diagnostics without penalization', () => {
     expect(sql).toContain('CREATE TABLE IF NOT EXISTS public.seller_day_eligibility')
     expect(sql).toContain('CREATE TABLE IF NOT EXISTS public.seller_routine_block_diagnostics')
-    expect(sql).toContain("diagnostic_status = 'erro_geracao'")
-    expect(sql).toContain("routine_status='nao_aplicavel'")
-    expect(sql).toContain('score_denominator_value := score_denominator_value - block_weight')
+    expect(sql).toContain("diagnostic_status IN ('erro_geracao','nao_aplicavel')")
+    expect(sql).toContain("routine_status_value:='nao_aplicavel'")
+    expect(sql).toContain('score_denominator_value:=score_denominator_value-block_weight')
   })
 
   test('does not apply a global prospecting schedule to every seller', () => {
@@ -32,12 +32,13 @@ describe('official SellerRoutineSnapshot persistence', () => {
   })
 
   test('gives 0 for update 0/0 on an eligible day', () => {
-    expect(sql).toContain('updates_expected_value = 0 THEN 0')
+    expect(sql).toContain('ELSIF updates_expected_value = 0 THEN')
+    expect(sql).toContain('update_points_value:=0')
   })
 
   test('writes immutable versions only when the source hash changes', () => {
     expect(sql).toContain('source_hash text')
-    expect(sql).toContain('latest_source_hash = calculated_source_hash')
+    expect(sql).toContain('latest_source_hash=calculated_source_hash')
     expect(sql).toContain('COALESCE(MAX(srs.version),0)+1')
     expect(sql).not.toContain('UPDATE public.seller_routine_snapshots')
     expect(sql).not.toContain('DELETE FROM public.seller_routine_snapshots')
