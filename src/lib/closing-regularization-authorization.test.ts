@@ -1,10 +1,14 @@
 import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 
-const sql = readFileSync(
-  new URL('../../supabase/migrations/20260717280000_harden_closing_regularization_authorization.sql', import.meta.url),
-  'utf8',
-)
+const migrationFiles = [
+  '../../supabase/migrations/20260717280000_harden_closing_regularization_authorization.sql',
+  '../../supabase/migrations/20260717290000_fix_closing_review_findings.sql',
+]
+
+const sql = migrationFiles
+  .map(path => readFileSync(new URL(path, import.meta.url), 'utf8'))
+  .join('\n')
 const compactSql = sql.replace(/\s+/g, ' ').trim()
 
 const signatures = [
@@ -16,9 +20,9 @@ const signatures = [
   'public.enviar_cobranca_diaria(uuid,uuid,text,text,text,text,text)',
 ]
 
-function extractFunction(name: string) {
+function extractFinalFunction(name: string) {
   const marker = `CREATE OR REPLACE FUNCTION public.${name}`
-  const start = compactSql.indexOf(marker)
+  const start = compactSql.lastIndexOf(marker)
   expect(start).toBeGreaterThanOrEqual(0)
 
   const next = compactSql.indexOf('CREATE OR REPLACE FUNCTION public.', start + marker.length)
@@ -27,15 +31,16 @@ function extractFunction(name: string) {
 
 const authGuard = "IF v_caller IS NULL THEN RETURN jsonb_build_object('ok', false, 'error', 'Não autenticado.'); END IF;"
 
-describe('closing regularization authorization migration', () => {
+describe('closing regularization authorization migrations', () => {
   test('requires authenticated identity and local authorization in every mutating implementation', () => {
-    const approval = extractFunction('aplicar_regularizacao_fechamento(')
-    const rejection = extractFunction('rejeitar_regularizacao_fechamento(')
-    const cancellation = extractFunction('cancelar_regularizacao_fechamento(')
-    const charge = extractFunction('enviar_cobranca_diaria(')
+    const approval = extractFinalFunction('aplicar_regularizacao_fechamento(')
+    const rejection = extractFinalFunction('rejeitar_regularizacao_fechamento(')
+    const cancellation = extractFinalFunction('cancelar_regularizacao_fechamento(')
+    const charge = extractFinalFunction('enviar_cobranca_diaria(')
 
     for (const body of [approval, rejection, cancellation, charge]) {
       expect(body).toContain(authGuard)
+      expect(body).toContain("SECURITY DEFINER SET search_path TO 'public'")
     }
 
     for (const body of [approval, rejection]) {
@@ -51,8 +56,8 @@ describe('closing regularization authorization migration', () => {
   })
 
   test('authorizes request processors before revealing request status', () => {
-    const approval = extractFunction('aplicar_regularizacao_fechamento(')
-    const rejection = extractFunction('rejeitar_regularizacao_fechamento(')
+    const approval = extractFinalFunction('aplicar_regularizacao_fechamento(')
+    const rejection = extractFinalFunction('rejeitar_regularizacao_fechamento(')
 
     const approvalAuthorization = approval.indexOf('public.eh_administrador_mx(v_caller)')
     expect(approvalAuthorization).toBeGreaterThanOrEqual(0)
@@ -65,7 +70,7 @@ describe('closing regularization authorization migration', () => {
   })
 
   test('uses null-safe positive ownership checks for cancellation', () => {
-    const cancellation = extractFunction('cancelar_regularizacao_fechamento(')
+    const cancellation = extractFinalFunction('cancelar_regularizacao_fechamento(')
 
     expect(cancellation).toContain(
       'IF (v_request.seller_id = v_caller OR v_request.requested_by = v_caller) IS NOT TRUE THEN',
@@ -75,25 +80,28 @@ describe('closing regularization authorization migration', () => {
   })
 
   test('reconciles the correction request with the linked daily closing before approval', () => {
-    const approval = extractFunction('aplicar_regularizacao_fechamento(')
+    const approval = extractFinalFunction('aplicar_regularizacao_fechamento(')
 
     expect(approval).toContain('WHERE ld.id = v_request.checkin_id AND ld.store_id = v_request.store_id AND ld.seller_user_id = v_request.seller_id')
     expect(approval).toContain("'Fechamento original não encontrado ou fora do escopo da solicitação.'")
   })
 
   test('serializes daily charge idempotency before checking for an existing notification', () => {
-    const charge = extractFunction('enviar_cobranca_diaria(')
+    const charge = extractFinalFunction('enviar_cobranca_diaria(')
     const lock = charge.indexOf('PERFORM pg_advisory_xact_lock(v_charge_lock_key)')
     const lookup = charge.indexOf('SELECT id INTO v_existing_id')
 
     expect(charge).toContain("v_business_date date := (now() AT TIME ZONE 'America/Sao_Paulo')::date")
+    expect(charge).toContain("hashtextextended( concat_ws( '|', 'enviar_cobranca_diaria'")
     expect(lock).toBeGreaterThanOrEqual(0)
     expect(lookup).toBeGreaterThan(lock)
+    expect(charge).toContain("created_at >= (v_business_date::timestamp AT TIME ZONE 'America/Sao_Paulo')")
+    expect(charge).toContain("created_at < ((v_business_date + 1)::timestamp AT TIME ZONE 'America/Sao_Paulo')")
   })
 
   test('uses the authenticated caller for audit and notification sender fields', () => {
-    const approval = extractFunction('aplicar_regularizacao_fechamento(')
-    const rejection = extractFunction('rejeitar_regularizacao_fechamento(')
+    const approval = extractFinalFunction('aplicar_regularizacao_fechamento(')
+    const rejection = extractFinalFunction('rejeitar_regularizacao_fechamento(')
 
     expect(approval).toContain('changed_by, old_values, new_values, change_type')
     expect(approval).toContain('v_request.checkin_id, v_request.id, v_caller, v_old, v_new')
@@ -110,11 +118,9 @@ describe('closing regularization authorization migration', () => {
     }
   })
 
-  test('uses fixed search paths and documents rollback', () => {
-    const searchPathCount = (compactSql.match(/SECURITY DEFINER SET search_path TO 'public'/g) ?? []).length
-    expect(searchPathCount).toBe(6)
-    expect(compactSql.startsWith('BEGIN;')).toBe(true)
-    expect(compactSql).toContain('-- DOWN')
-    expect(compactSql).toContain('COMMIT;')
+  test('wraps both migrations in transactions and documents rollback', () => {
+    expect((compactSql.match(/BEGIN;/g) ?? []).length).toBe(2)
+    expect((compactSql.match(/COMMIT;/g) ?? []).length).toBe(2)
+    expect((compactSql.match(/-- DOWN/g) ?? []).length).toBe(2)
   })
 })
