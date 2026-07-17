@@ -79,9 +79,15 @@ export function calculateSalesNeededToday(monthlyGoal: number, businessDays: num
   return Math.max(Math.ceil(dailyGoal) - (salesToday || 0), 0)
 }
 
-export function calculateAppointmentTarget(salesNeededToday: number | null): number | null {
+export function calculateAppointmentTarget(
+  salesNeededToday: number | null,
+  appointmentsPerSale = AGENDAMENTOS_POR_VENDA,
+): number | null {
   if (salesNeededToday === null) return null
-  return Math.ceil(salesNeededToday * AGENDAMENTOS_POR_VENDA)
+  const validRatio = Number.isFinite(appointmentsPerSale) && appointmentsPerSale > 0
+    ? appointmentsPerSale
+    : AGENDAMENTOS_POR_VENDA
+  return Math.ceil(salesNeededToday * validRatio)
 }
 
 export function calculateAppointmentGap(appointmentsToday: number, appointmentTarget: number | null): number | null {
