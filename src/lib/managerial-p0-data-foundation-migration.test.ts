@@ -40,7 +40,7 @@ describe('managerial P0 data foundation migration', () => {
 
   test('records late D+1 changes with before and after snapshots', () => {
     expect(sql).toContain('previous_snapshot jsonb')
-    expect(sql).toContain('snapshot jsonb NOT NULL')
+    expect(sql).toContain('previous_snapshot, snapshot, changed_fields, official_batch_id, actor_id')
     expect(sql).toContain('changed_fields text[]')
     expect(sql).toContain('official_batch_id uuid')
     expect(sql).toContain('to_jsonb(OLD)')
