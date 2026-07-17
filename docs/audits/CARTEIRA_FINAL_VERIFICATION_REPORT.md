@@ -107,3 +107,11 @@ Desktop (1568×734) foi verificado extensivamente ao vivo: Carteira Ativa, ficha
 [ ] PRs mesclados — aguardando sua revisão
 [ ] Smoke pós-merge em produção — pendente do merge
 ```
+
+## 16. Merge e deploy (atualização pós-merge)
+
+- PR #105 merged (`4c1d1243`), PR #107 merged (`741ccba9`). `main` local sincronizado.
+- **Vercel bloqueado por rate limit de build de 24h** no plano atual — confirmado via `gh api repos/pglemos/MXGESTAOPREDITIVA/commits/741ccba9.../status`: contexto `Vercel` = `failure`, descrição `Deployment rate limited — retry in 24 hours.`. Não é falha transitória (não adianta retry); não é do meu código.
+- **Isso não bloqueia o fix de segurança**: a migration do P0-04 foi aplicada diretamente no Supabase (não depende de build do Vercel) e já estava confirmada live antes do merge. Nenhuma das duas PRs mescladas tocou frontend (`src/`) — só `supabase/migrations`, `supabase/tests` e `docs/`.
+- O que fica pendente de deploy é o **frontend de outras PRs** (módulo Manager, mescladas por outro processo durante esta sessão), não o meu trabalho.
+- Decisão do responsável: não insistir em retry, não fazer upgrade pra Vercel Pro. Aguardar reset do limite (24h).
