@@ -91,11 +91,10 @@ SET cliente_id = EXCLUDED.cliente_id,
     closed_at = EXCLUDED.closed_at;
 
 INSERT INTO public.lancamentos_diarios (
-  id, user_id, store_id, seller_user_id, reference_date, metric_scope
+  id, store_id, seller_user_id, reference_date, metric_scope
 )
 VALUES (
   'dddddddd-0000-0000-0000-000000000001',
-  'aaaaaaaa-0000-0000-0000-000000000004',
   '11111111-1111-1111-1111-111111111111',
   'aaaaaaaa-0000-0000-0000-000000000004',
   CURRENT_DATE,
