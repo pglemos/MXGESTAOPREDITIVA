@@ -1,0 +1,43 @@
+name: Verify Manager Dashboard
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/features/manager/home/**'
+      - 'src/features/dashboard-loja/**'
+      - '.github/workflows/verify-manager-dashboard.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Targeted tests
+        run: bun test --isolate --max-concurrency=1 src/features/manager/home/manager-home-parity.test.ts src/features/manager/home/manager-home-official-ratio.test.ts src/features/manager/home/useManagerHomeOfficialSources.test.ts
+
+      - name: Build
+        run: npm run build
