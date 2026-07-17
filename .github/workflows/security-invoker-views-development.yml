@@ -1,0 +1,26 @@
+name: Security Invoker Views Development
+
+on:
+  push:
+    branches: [fix/security-invoker-views]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/20260717190000_security_invoker_views.sql'
+      - 'src/lib/security-invoker-views-migration.test.ts'
+      - '.github/workflows/security-invoker-views-development.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Migration contract
+        run: bun test --isolate src/lib/security-invoker-views-migration.test.ts
