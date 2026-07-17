@@ -45,36 +45,61 @@ export type Database = {
       }
       agenda_d1_late_changes: {
         Row: {
+          actor_id: string | null
           agendamento_id: string
+          authorization_note: string | null
+          authorized: boolean
           changed_at: string
+          changed_fields: string[] | null
           data_hora: string
           id: string
           loja_id: string
+          official_batch_id: string | null
           operation: string
+          previous_snapshot: Json | null
           seller_user_id: string
           snapshot: Json
         }
         Insert: {
+          actor_id?: string | null
           agendamento_id: string
+          authorization_note?: string | null
+          authorized?: boolean
           changed_at?: string
+          changed_fields?: string[] | null
           data_hora: string
           id?: string
           loja_id: string
+          official_batch_id?: string | null
           operation: string
+          previous_snapshot?: Json | null
           seller_user_id: string
           snapshot: Json
         }
         Update: {
+          actor_id?: string | null
           agendamento_id?: string
+          authorization_note?: string | null
+          authorized?: boolean
           changed_at?: string
+          changed_fields?: string[] | null
           data_hora?: string
           id?: string
           loja_id?: string
+          official_batch_id?: string | null
           operation?: string
+          previous_snapshot?: Json | null
           seller_user_id?: string
           snapshot?: Json
         }
         Relationships: [
+          {
+            foreignKeyName: "agenda_d1_late_changes_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "agenda_d1_late_changes_agendamento_id_fkey"
             columns: ["agendamento_id"]
@@ -87,6 +112,13 @@ export type Database = {
             columns: ["loja_id"]
             isOneToOne: false
             referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agenda_d1_late_changes_official_batch_id_fkey"
+            columns: ["official_batch_id"]
+            isOneToOne: false
+            referencedRelation: "d1_snapshot_batches"
             referencedColumns: ["id"]
           },
           {
@@ -162,13 +194,21 @@ export type Database = {
         Row: {
           canal: Database["public"]["Enums"]["crm_canal"] | null
           cliente_id: string | null
+          confirmation_note: string | null
+          confirmation_status: string
+          confirmed_at: string | null
+          confirmed_by: string | null
           created_at: string
           created_by: string | null
           data_competencia: string | null
           data_hora: string
           fechamento_id: string | null
           id: string
+          last_contact_at: string | null
           loja_id: string
+          modalidade:
+            | Database["public"]["Enums"]["crm_evento_modalidade"]
+            | null
           observacoes: string | null
           oportunidade_id: string | null
           origem_modulo: string
@@ -182,13 +222,21 @@ export type Database = {
         Insert: {
           canal?: Database["public"]["Enums"]["crm_canal"] | null
           cliente_id?: string | null
+          confirmation_note?: string | null
+          confirmation_status?: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
           created_at?: string
           created_by?: string | null
           data_competencia?: string | null
           data_hora: string
           fechamento_id?: string | null
           id?: string
+          last_contact_at?: string | null
           loja_id: string
+          modalidade?:
+            | Database["public"]["Enums"]["crm_evento_modalidade"]
+            | null
           observacoes?: string | null
           oportunidade_id?: string | null
           origem_modulo?: string
@@ -202,13 +250,21 @@ export type Database = {
         Update: {
           canal?: Database["public"]["Enums"]["crm_canal"] | null
           cliente_id?: string | null
+          confirmation_note?: string | null
+          confirmation_status?: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
           created_at?: string
           created_by?: string | null
           data_competencia?: string | null
           data_hora?: string
           fechamento_id?: string | null
           id?: string
+          last_contact_at?: string | null
           loja_id?: string
+          modalidade?:
+            | Database["public"]["Enums"]["crm_evento_modalidade"]
+            | null
           observacoes?: string | null
           oportunidade_id?: string | null
           origem_modulo?: string
@@ -225,6 +281,13 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agendamentos_confirmed_by_fkey"
+            columns: ["confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
           {
@@ -2594,6 +2657,289 @@ export type Database = {
           },
         ]
       }
+      d1_contact_audit: {
+        Row: {
+          action_type: string
+          appointment_id: string
+          created_at: string
+          id: string
+          manager_user_id: string
+          message_preview: string | null
+          metadata: Json
+          new_confirmation_status: string | null
+          note: string | null
+          previous_confirmation_status: string | null
+          seller_user_id: string
+          store_id: string
+        }
+        Insert: {
+          action_type: string
+          appointment_id: string
+          created_at?: string
+          id?: string
+          manager_user_id: string
+          message_preview?: string | null
+          metadata?: Json
+          new_confirmation_status?: string | null
+          note?: string | null
+          previous_confirmation_status?: string | null
+          seller_user_id: string
+          store_id: string
+        }
+        Update: {
+          action_type?: string
+          appointment_id?: string
+          created_at?: string
+          id?: string
+          manager_user_id?: string
+          message_preview?: string | null
+          metadata?: Json
+          new_confirmation_status?: string | null
+          note?: string | null
+          previous_confirmation_status?: string | null
+          seller_user_id?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "d1_contact_audit_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "agendamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "d1_contact_audit_manager_user_id_fkey"
+            columns: ["manager_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "d1_contact_audit_seller_user_id_fkey"
+            columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "d1_contact_audit_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      d1_snapshot_batches: {
+        Row: {
+          agenda_date: string
+          appointments_detailed: number
+          appointments_informed: number
+          appointments_valid: number
+          closing_id: string
+          consolidated_at: string
+          consolidated_by: string | null
+          created_at: string
+          discipline_score: number
+          id: string
+          reference_date: string
+          seller_user_id: string
+          source_hash: string
+          store_id: string
+          version: number
+        }
+        Insert: {
+          agenda_date: string
+          appointments_detailed?: number
+          appointments_informed?: number
+          appointments_valid?: number
+          closing_id: string
+          consolidated_at?: string
+          consolidated_by?: string | null
+          created_at?: string
+          discipline_score?: number
+          id?: string
+          reference_date: string
+          seller_user_id: string
+          source_hash: string
+          store_id: string
+          version: number
+        }
+        Update: {
+          agenda_date?: string
+          appointments_detailed?: number
+          appointments_informed?: number
+          appointments_valid?: number
+          closing_id?: string
+          consolidated_at?: string
+          consolidated_by?: string | null
+          created_at?: string
+          discipline_score?: number
+          id?: string
+          reference_date?: string
+          seller_user_id?: string
+          source_hash?: string
+          store_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "d1_snapshot_batches_closing_id_fkey"
+            columns: ["closing_id"]
+            isOneToOne: false
+            referencedRelation: "lancamentos_diarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "d1_snapshot_batches_closing_id_fkey"
+            columns: ["closing_id"]
+            isOneToOne: false
+            referencedRelation: "view_daily_team_status"
+            referencedColumns: ["checkin_id"]
+          },
+          {
+            foreignKeyName: "d1_snapshot_batches_consolidated_by_fkey"
+            columns: ["consolidated_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "d1_snapshot_batches_seller_user_id_fkey"
+            columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "d1_snapshot_batches_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      d1_snapshot_items: {
+        Row: {
+          appointment_at: string
+          appointment_id: string | null
+          appointment_type: string | null
+          batch_id: string
+          channel: string | null
+          client_id: string | null
+          client_name: string | null
+          confirmation_status: string
+          created_at: string
+          id: string
+          last_contact_at: string | null
+          modality: string | null
+          opportunity_id: string | null
+          phone: string | null
+          seller_user_id: string
+          source_updated_at: string | null
+          store_id: string
+          valid_for_discipline: boolean
+          valid_for_forecast: boolean
+          vehicle: string | null
+        }
+        Insert: {
+          appointment_at: string
+          appointment_id?: string | null
+          appointment_type?: string | null
+          batch_id: string
+          channel?: string | null
+          client_id?: string | null
+          client_name?: string | null
+          confirmation_status: string
+          created_at?: string
+          id?: string
+          last_contact_at?: string | null
+          modality?: string | null
+          opportunity_id?: string | null
+          phone?: string | null
+          seller_user_id: string
+          source_updated_at?: string | null
+          store_id: string
+          valid_for_discipline?: boolean
+          valid_for_forecast?: boolean
+          vehicle?: string | null
+        }
+        Update: {
+          appointment_at?: string
+          appointment_id?: string | null
+          appointment_type?: string | null
+          batch_id?: string
+          channel?: string | null
+          client_id?: string | null
+          client_name?: string | null
+          confirmation_status?: string
+          created_at?: string
+          id?: string
+          last_contact_at?: string | null
+          modality?: string | null
+          opportunity_id?: string | null
+          phone?: string | null
+          seller_user_id?: string
+          source_updated_at?: string | null
+          store_id?: string
+          valid_for_discipline?: boolean
+          valid_for_forecast?: boolean
+          vehicle?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "d1_snapshot_items_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "agendamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "d1_snapshot_items_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "d1_snapshot_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "d1_snapshot_items_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "d1_snapshot_items_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "clientes_oportunidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "d1_snapshot_items_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "oportunidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "d1_snapshot_items_seller_user_id_fkey"
+            columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "d1_snapshot_items_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_lead_volumes: {
         Row: {
           agency_id: string | null
@@ -3978,7 +4324,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
-          activity_type: string
+          activity_type?: string
           agendamento_id?: string | null
           alert_tone?: string
           automatic?: boolean
@@ -5584,6 +5930,129 @@ export type Database = {
           },
         ]
       }
+      manager_daily_tasks: {
+        Row: {
+          automatic: boolean
+          category: string
+          client_id: string | null
+          completed_at: string | null
+          completed_by: string | null
+          completion_mode: string | null
+          counts_for_score: boolean
+          created_at: string
+          description: string | null
+          due_at: string
+          id: string
+          manager_user_id: string
+          observation: string | null
+          origin_module: string
+          origin_record_id: string | null
+          priority: string
+          reference_date: string
+          result: string | null
+          routine_block: string
+          seller_user_id: string | null
+          source_payload: Json
+          status: string
+          store_id: string
+          task_key: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          automatic?: boolean
+          category: string
+          client_id?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          completion_mode?: string | null
+          counts_for_score?: boolean
+          created_at?: string
+          description?: string | null
+          due_at: string
+          id?: string
+          manager_user_id: string
+          observation?: string | null
+          origin_module: string
+          origin_record_id?: string | null
+          priority: string
+          reference_date: string
+          result?: string | null
+          routine_block: string
+          seller_user_id?: string | null
+          source_payload?: Json
+          status?: string
+          store_id: string
+          task_key: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          automatic?: boolean
+          category?: string
+          client_id?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          completion_mode?: string | null
+          counts_for_score?: boolean
+          created_at?: string
+          description?: string | null
+          due_at?: string
+          id?: string
+          manager_user_id?: string
+          observation?: string | null
+          origin_module?: string
+          origin_record_id?: string | null
+          priority?: string
+          reference_date?: string
+          result?: string | null
+          routine_block?: string
+          seller_user_id?: string | null
+          source_payload?: Json
+          status?: string
+          store_id?: string
+          task_key?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manager_daily_tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manager_daily_tasks_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manager_daily_tasks_manager_user_id_fkey"
+            columns: ["manager_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manager_daily_tasks_seller_user_id_fkey"
+            columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manager_daily_tasks_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       manager_lead_conference_items: {
         Row: {
           carteira_difference: number
@@ -5697,6 +6166,84 @@ export type Database = {
           },
           {
             foreignKeyName: "manager_lead_conferences_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manager_routine_snapshots: {
+        Row: {
+          closing_points: number
+          completed_tasks: number
+          consolidated_at: string
+          eligible_tasks: number
+          execution_points: number
+          execution_score: number
+          final_status: string
+          id: string
+          manager_user_id: string
+          opening_points: number
+          overdue_tasks: number
+          people_process_points: number
+          reference_date: string
+          result_points: number
+          source_payload: Json
+          store_id: string
+          technical_errors: number
+          version: number
+        }
+        Insert: {
+          closing_points?: number
+          completed_tasks?: number
+          consolidated_at?: string
+          eligible_tasks?: number
+          execution_points?: number
+          execution_score?: number
+          final_status: string
+          id?: string
+          manager_user_id: string
+          opening_points?: number
+          overdue_tasks?: number
+          people_process_points?: number
+          reference_date: string
+          result_points?: number
+          source_payload?: Json
+          store_id: string
+          technical_errors?: number
+          version: number
+        }
+        Update: {
+          closing_points?: number
+          completed_tasks?: number
+          consolidated_at?: string
+          eligible_tasks?: number
+          execution_points?: number
+          execution_score?: number
+          final_status?: string
+          id?: string
+          manager_user_id?: string
+          opening_points?: number
+          overdue_tasks?: number
+          people_process_points?: number
+          reference_date?: string
+          result_points?: number
+          source_payload?: Json
+          store_id?: string
+          technical_errors?: number
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manager_routine_snapshots_manager_user_id_fkey"
+            columns: ["manager_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manager_routine_snapshots_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "lojas"
@@ -7788,7 +8335,9 @@ export type Database = {
           periodicidade: string | null
           publico: string | null
           quantidade: number | null
+          seller_user_id: string | null
           semana_mes: number | null
+          store_id: string | null
           tipo_acao: string
         }
         Insert: {
@@ -7802,7 +8351,9 @@ export type Database = {
           periodicidade?: string | null
           publico?: string | null
           quantidade?: number | null
+          seller_user_id?: string | null
           semana_mes?: number | null
+          store_id?: string | null
           tipo_acao: string
         }
         Update: {
@@ -7816,10 +8367,27 @@ export type Database = {
           periodicidade?: string | null
           publico?: string | null
           quantidade?: number | null
+          seller_user_id?: string | null
           semana_mes?: number | null
+          store_id?: string | null
           tipo_acao?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "prospecting_schedule_seller_user_id_fkey"
+            columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prospecting_schedule_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       push_notifications_log: {
         Row: {
@@ -8062,6 +8630,7 @@ export type Database = {
       }
       regras_metas_loja: {
         Row: {
+          appointments_per_sale: number
           bench_agd_visita: number
           bench_lead_agd: number
           bench_visita_vnd: number
@@ -8076,6 +8645,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          appointments_per_sale?: number
           bench_agd_visita?: number
           bench_lead_agd?: number
           bench_visita_vnd?: number
@@ -8090,6 +8660,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          appointments_per_sale?: number
           bench_agd_visita?: number
           bench_lead_agd?: number
           bench_visita_vnd?: number
@@ -8994,6 +9565,67 @@ export type Database = {
           },
         ]
       }
+      seller_day_eligibility: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_eligible: boolean
+          reason: string
+          reference_date: string
+          seller_user_id: string
+          source: string
+          store_id: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_eligible: boolean
+          reason: string
+          reference_date: string
+          seller_user_id: string
+          source?: string
+          store_id: string
+          version: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_eligible?: boolean
+          reason?: string
+          reference_date?: string
+          seller_user_id?: string
+          source?: string
+          store_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_day_eligibility_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_day_eligibility_seller_user_id_fkey"
+            columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_day_eligibility_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       seller_product_categories: {
         Row: {
           category_key: string
@@ -9067,6 +9699,181 @@ export type Database = {
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seller_routine_block_diagnostics: {
+        Row: {
+          block_key: string
+          created_at: string
+          created_by: string | null
+          diagnostic_status: string
+          id: string
+          reason: string | null
+          reference_date: string
+          seller_user_id: string
+          store_id: string
+          version: number
+        }
+        Insert: {
+          block_key: string
+          created_at?: string
+          created_by?: string | null
+          diagnostic_status: string
+          id?: string
+          reason?: string | null
+          reference_date: string
+          seller_user_id: string
+          store_id: string
+          version: number
+        }
+        Update: {
+          block_key?: string
+          created_at?: string
+          created_by?: string | null
+          diagnostic_status?: string
+          id?: string
+          reason?: string | null
+          reference_date?: string
+          seller_user_id?: string
+          store_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_routine_block_diagnostics_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_routine_block_diagnostics_seller_user_id_fkey"
+            columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_routine_block_diagnostics_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seller_routine_snapshots: {
+        Row: {
+          access_denominator: number | null
+          access_numerator: number | null
+          access_points: number | null
+          attack_executed: number | null
+          attack_expected: number | null
+          attack_points: number | null
+          closing_points: number | null
+          consolidated_at: string
+          eligible: boolean
+          execution_score: number | null
+          id: string
+          not_applicable_reason: string | null
+          pending_expected: number | null
+          pending_points: number | null
+          pending_resolved: number | null
+          prospecting_executed: number | null
+          prospecting_expected: number | null
+          prospecting_points: number | null
+          reference_date: string
+          reliable_work_base: boolean
+          routine_status: string
+          score_denominator: number | null
+          seller_user_id: string
+          source_hash: string | null
+          source_payload: Json
+          store_id: string
+          update_points: number | null
+          updates_completed: number | null
+          updates_expected: number | null
+          version: number
+        }
+        Insert: {
+          access_denominator?: number | null
+          access_numerator?: number | null
+          access_points?: number | null
+          attack_executed?: number | null
+          attack_expected?: number | null
+          attack_points?: number | null
+          closing_points?: number | null
+          consolidated_at?: string
+          eligible?: boolean
+          execution_score?: number | null
+          id?: string
+          not_applicable_reason?: string | null
+          pending_expected?: number | null
+          pending_points?: number | null
+          pending_resolved?: number | null
+          prospecting_executed?: number | null
+          prospecting_expected?: number | null
+          prospecting_points?: number | null
+          reference_date: string
+          reliable_work_base?: boolean
+          routine_status: string
+          score_denominator?: number | null
+          seller_user_id: string
+          source_hash?: string | null
+          source_payload?: Json
+          store_id: string
+          update_points?: number | null
+          updates_completed?: number | null
+          updates_expected?: number | null
+          version: number
+        }
+        Update: {
+          access_denominator?: number | null
+          access_numerator?: number | null
+          access_points?: number | null
+          attack_executed?: number | null
+          attack_expected?: number | null
+          attack_points?: number | null
+          closing_points?: number | null
+          consolidated_at?: string
+          eligible?: boolean
+          execution_score?: number | null
+          id?: string
+          not_applicable_reason?: string | null
+          pending_expected?: number | null
+          pending_points?: number | null
+          pending_resolved?: number | null
+          prospecting_executed?: number | null
+          prospecting_expected?: number | null
+          prospecting_points?: number | null
+          reference_date?: string
+          reliable_work_base?: boolean
+          routine_status?: string
+          score_denominator?: number | null
+          seller_user_id?: string
+          source_hash?: string | null
+          source_payload?: Json
+          store_id?: string
+          update_points?: number | null
+          updates_completed?: number | null
+          updates_expected?: number | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_routine_snapshots_seller_user_id_fkey"
+            columns: ["seller_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_routine_snapshots_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
             referencedColumns: ["id"]
           },
         ]
@@ -9278,6 +10085,146 @@ export type Database = {
             columns: ["requested_by"]
             isOneToOne: false
             referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_calendar_exceptions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          exception_date: string
+          id: string
+          is_operational: boolean
+          reason: string | null
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          exception_date: string
+          id?: string
+          is_operational: boolean
+          reason?: string | null
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          exception_date?: string
+          id?: string
+          is_operational?: boolean
+          reason?: string | null
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_calendar_exceptions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_calendar_exceptions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_target_plans: {
+        Row: {
+          appointments_per_sale: number | null
+          business_days_elapsed: number | null
+          business_days_remaining: number | null
+          business_days_total: number | null
+          consolidated_at: string
+          focus_message: string | null
+          horizon: string
+          id: string
+          monthly_gap: number | null
+          monthly_goal: number | null
+          operational_basis: string | null
+          operational_need: number | null
+          pace_label: string | null
+          period_end: string
+          period_start: string
+          projected_sales: number | null
+          proportional_goal: number | null
+          realized: number
+          reference_date: string
+          required_pace: number | null
+          required_sales: number | null
+          source_hash: string | null
+          source_payload: Json
+          store_id: string
+          version: number
+        }
+        Insert: {
+          appointments_per_sale?: number | null
+          business_days_elapsed?: number | null
+          business_days_remaining?: number | null
+          business_days_total?: number | null
+          consolidated_at?: string
+          focus_message?: string | null
+          horizon: string
+          id?: string
+          monthly_gap?: number | null
+          monthly_goal?: number | null
+          operational_basis?: string | null
+          operational_need?: number | null
+          pace_label?: string | null
+          period_end: string
+          period_start: string
+          projected_sales?: number | null
+          proportional_goal?: number | null
+          realized?: number
+          reference_date: string
+          required_pace?: number | null
+          required_sales?: number | null
+          source_hash?: string | null
+          source_payload?: Json
+          store_id: string
+          version: number
+        }
+        Update: {
+          appointments_per_sale?: number | null
+          business_days_elapsed?: number | null
+          business_days_remaining?: number | null
+          business_days_total?: number | null
+          consolidated_at?: string
+          focus_message?: string | null
+          horizon?: string
+          id?: string
+          monthly_gap?: number | null
+          monthly_goal?: number | null
+          operational_basis?: string | null
+          operational_need?: number | null
+          pace_label?: string | null
+          period_end?: string
+          period_start?: string
+          projected_sales?: number | null
+          proportional_goal?: number | null
+          realized?: number
+          reference_date?: string
+          required_pace?: number | null
+          required_sales?: number | null
+          source_hash?: string | null
+          source_payload?: Json
+          store_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_target_plans_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
             referencedColumns: ["id"]
           },
         ]
@@ -11178,6 +12125,16 @@ export type Database = {
         Args: { p_telefone: string }
         Returns: Json
       }
+      calculate_seller_routine_component: {
+        Args: {
+          p_diagnostic_status: string
+          p_executed: number
+          p_planned: number
+          p_reliable_base: boolean
+          p_weight: number
+        }
+        Returns: number
+      }
       can_access_consulting_client: {
         Args: { p_client_id: string }
         Returns: boolean
@@ -11433,6 +12390,124 @@ export type Database = {
       consolidar_dashboard_departamento: {
         Args: { p_code: string; p_loja_id: string; p_period?: string }
         Returns: Json
+      }
+      consolidate_d1_snapshot: {
+        Args: {
+          p_force?: boolean
+          p_reference_date?: string
+          p_store_id?: string
+        }
+        Returns: Json
+      }
+      consolidate_manager_routine_snapshot: {
+        Args: {
+          p_manager_user_id: string
+          p_reference_date?: string
+          p_store_id: string
+        }
+        Returns: {
+          closing_points: number
+          completed_tasks: number
+          consolidated_at: string
+          eligible_tasks: number
+          execution_points: number
+          execution_score: number
+          final_status: string
+          id: string
+          manager_user_id: string
+          opening_points: number
+          overdue_tasks: number
+          people_process_points: number
+          reference_date: string
+          result_points: number
+          source_payload: Json
+          store_id: string
+          technical_errors: number
+          version: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "manager_routine_snapshots"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      consolidate_seller_routine_snapshots: {
+        Args: { p_reference_date?: string; p_store_id: string }
+        Returns: {
+          access_denominator: number | null
+          access_numerator: number | null
+          access_points: number | null
+          attack_executed: number | null
+          attack_expected: number | null
+          attack_points: number | null
+          closing_points: number | null
+          consolidated_at: string
+          eligible: boolean
+          execution_score: number | null
+          id: string
+          not_applicable_reason: string | null
+          pending_expected: number | null
+          pending_points: number | null
+          pending_resolved: number | null
+          prospecting_executed: number | null
+          prospecting_expected: number | null
+          prospecting_points: number | null
+          reference_date: string
+          reliable_work_base: boolean
+          routine_status: string
+          score_denominator: number | null
+          seller_user_id: string
+          source_hash: string | null
+          source_payload: Json
+          store_id: string
+          update_points: number | null
+          updates_completed: number | null
+          updates_expected: number | null
+          version: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "seller_routine_snapshots"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      consolidate_store_target_plan: {
+        Args: { p_reference_date?: string; p_store_id: string }
+        Returns: {
+          appointments_per_sale: number | null
+          business_days_elapsed: number | null
+          business_days_remaining: number | null
+          business_days_total: number | null
+          consolidated_at: string
+          focus_message: string | null
+          horizon: string
+          id: string
+          monthly_gap: number | null
+          monthly_goal: number | null
+          operational_basis: string | null
+          operational_need: number | null
+          pace_label: string | null
+          period_end: string
+          period_start: string
+          projected_sales: number | null
+          proportional_goal: number | null
+          realized: number
+          reference_date: string
+          required_pace: number | null
+          required_sales: number | null
+          source_hash: string | null
+          source_payload: Json
+          store_id: string
+          version: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "store_target_plans"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       consultar_liberacao_por_token: {
         Args: { p_token: string }
@@ -11916,6 +12991,15 @@ export type Database = {
           value: number
         }[]
       }
+      get_seller_routine_block_diagnostic: {
+        Args: {
+          p_block_key: string
+          p_reference_date: string
+          p_seller_user_id: string
+          p_store_id: string
+        }
+        Returns: Json
+      }
       get_suggested_actions: {
         Args: { p_competencia_id: string }
         Returns: Json
@@ -11941,6 +13025,10 @@ export type Database = {
       is_manager_of: { Args: { p_store_id: string }; Returns: boolean }
       is_member_of: { Args: { p_store_id: string }; Returns: boolean }
       is_owner_of: { Args: { p_store_id: string }; Returns: boolean }
+      is_store_operational_date: {
+        Args: { p_date: string; p_store_id: string }
+        Returns: boolean
+      }
       liberar_fechamento_por_token: {
         Args: { p_motivo?: string; p_token: string }
         Returns: Json
@@ -12074,6 +13162,76 @@ export type Database = {
         Returns: boolean
       }
       process_import_data: { Args: { p_log_id: string }; Returns: undefined }
+      record_d1_contact_action: {
+        Args: {
+          p_action_type: string
+          p_appointment_id: string
+          p_message_preview?: string
+          p_metadata?: Json
+          p_note?: string
+        }
+        Returns: {
+          action_type: string
+          appointment_id: string
+          created_at: string
+          id: string
+          manager_user_id: string
+          message_preview: string | null
+          metadata: Json
+          new_confirmation_status: string | null
+          note: string | null
+          previous_confirmation_status: string | null
+          seller_user_id: string
+          store_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "d1_contact_audit"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      refresh_manager_daily_tasks: {
+        Args: {
+          p_manager_user_id: string
+          p_reference_date?: string
+          p_store_id: string
+        }
+        Returns: {
+          automatic: boolean
+          category: string
+          client_id: string | null
+          completed_at: string | null
+          completed_by: string | null
+          completion_mode: string | null
+          counts_for_score: boolean
+          created_at: string
+          description: string | null
+          due_at: string
+          id: string
+          manager_user_id: string
+          observation: string | null
+          origin_module: string
+          origin_record_id: string | null
+          priority: string
+          reference_date: string
+          result: string | null
+          routine_block: string
+          seller_user_id: string | null
+          source_payload: Json
+          status: string
+          store_id: string
+          task_key: string
+          title: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "manager_daily_tasks"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       registrar_acesso_sensivel: {
         Args: {
           p_entidade: string
@@ -12139,6 +13297,12 @@ export type Database = {
         }
         Returns: string
       }
+      run_d1_consolidation_clock: { Args: never; Returns: undefined }
+      run_seller_routine_snapshot_refresh_clock: {
+        Args: never
+        Returns: undefined
+      }
+      run_store_target_plan_refresh_clock: { Args: never; Returns: undefined }
       save_manager_lead_conference: {
         Args: {
           p_items: Json
@@ -12187,6 +13351,47 @@ export type Database = {
       tem_papel_loja: {
         Args: { p_loja_id: string; p_papeis: string[]; uid?: string }
         Returns: boolean
+      }
+      update_d1_confirmation: {
+        Args: {
+          p_appointment_id: string
+          p_confirmation_status: string
+          p_note?: string
+        }
+        Returns: {
+          canal: Database["public"]["Enums"]["crm_canal"] | null
+          cliente_id: string | null
+          confirmation_note: string | null
+          confirmation_status: string
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          created_by: string | null
+          data_competencia: string | null
+          data_hora: string
+          fechamento_id: string | null
+          id: string
+          last_contact_at: string | null
+          loja_id: string
+          modalidade:
+            | Database["public"]["Enums"]["crm_evento_modalidade"]
+            | null
+          observacoes: string | null
+          oportunidade_id: string | null
+          origem_modulo: string
+          proxima_acao: string | null
+          seller_user_id: string
+          status: Database["public"]["Enums"]["crm_agendamento_status"]
+          tipo: Database["public"]["Enums"]["crm_agendamento_tipo"]
+          updated_at: string
+          updated_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "agendamentos"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       update_my_profile: { Args: { p_updates: Json }; Returns: Json }
       upsert_funnel_metrics_snapshot: {
