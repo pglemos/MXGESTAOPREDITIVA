@@ -46,4 +46,7 @@
 \echo === RLS Matrix: feature_flags ===
 \i supabase/tests/rls-matrix/feature_flags.test.sql
 
+\echo === Grants Guard: anon/authenticated/execute invariants ===
+\i supabase/tests/rls-matrix/grants_guard.test.sql
+
 \echo === RLS Matrix: COMPLETE ===
