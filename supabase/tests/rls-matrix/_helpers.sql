@@ -21,6 +21,28 @@ BEGIN
 END;
 $$;
 
+-- Executes a DML probe as the current matrix role and returns the number of
+-- rows affected.  RLS-denied writes can either affect zero rows or raise
+-- insufficient_privilege depending on the command and policy shape; both
+-- outcomes represent a blocked matrix scenario.
+CREATE OR REPLACE FUNCTION rls_matrix.dml_count(p_sql text)
+RETURNS bigint
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = public, pg_catalog
+AS $$
+DECLARE
+  v_count bigint;
+BEGIN
+  EXECUTE p_sql;
+  GET DIAGNOSTICS v_count = ROW_COUNT;
+  RETURN v_count;
+EXCEPTION
+  WHEN insufficient_privilege OR check_violation THEN
+    RETURN 0;
+END;
+$$;
+
 -- Tenta INSERT mínimo na tabela e retorna true se sucedeu (rollback aplicado fora).
 -- Caller deve estar dentro de um SAVEPOINT para reverter efeito colateral.
 CREATE OR REPLACE FUNCTION rls_matrix.try_insert(p_sql text)
@@ -42,4 +64,5 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION rls_matrix.visible_count(regclass) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION rls_matrix.dml_count(text) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION rls_matrix.try_insert(text) TO anon, authenticated;

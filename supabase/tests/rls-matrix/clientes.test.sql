@@ -15,15 +15,13 @@ SELECT is((SELECT count(*) FROM public.clientes WHERE id = '12111111-1111-1111-1
           'vendedor: SELECT cliente compartilhado bloqueado após oportunidade terminal');
 SELECT is((SELECT count(*) FROM public.clientes WHERE id = '12111111-1111-1111-1111-111111111114'), 0::bigint,
           'vendedor: SELECT cliente de outra loja bloqueado');
-SELECT is((WITH u AS (
+SELECT is(rls_matrix.dml_count($$
             UPDATE public.clientes SET observacoes = 'nao deve alterar'
-             WHERE id = '12111111-1111-1111-1111-111111111112' RETURNING 1)
-          SELECT count(*) FROM u), 0::bigint,
+             WHERE id = '12111111-1111-1111-1111-111111111112'$$), 0::bigint,
           'vendedor: UPDATE ficha compartilhada bloqueado');
-SELECT is((WITH d AS (
+SELECT is(rls_matrix.dml_count($$
             DELETE FROM public.clientes
-             WHERE id = '12111111-1111-1111-1111-111111111112' RETURNING 1)
-          SELECT count(*) FROM d), 0::bigint,
+             WHERE id = '12111111-1111-1111-1111-111111111112'$$), 0::bigint,
           'vendedor: DELETE ficha compartilhada bloqueado');
 SELECT is((SELECT count(*) FROM public.clientes), 2::bigint,
           'vendedor: conjunto visível limitado ao próprio e ao compartilhado aberto');
@@ -41,10 +39,8 @@ SELECT throws_ok($$
           '11111111-1111-1111-1111-111111111111',
           'aaaaaaaa-0000-0000-0000-000000000004', 'anon')
 $$, NULL, 'anon: INSERT clientes bloqueado');
-SELECT is((WITH u AS (UPDATE public.clientes SET nome = 'anon' RETURNING 1)
-          SELECT count(*) FROM u), 0::bigint, 'anon: UPDATE clientes bloqueado');
-SELECT is((WITH d AS (DELETE FROM public.clientes RETURNING 1)
-          SELECT count(*) FROM d), 0::bigint, 'anon: DELETE clientes bloqueado');
+SELECT is(rls_matrix.dml_count($$UPDATE public.clientes SET nome = 'anon'$$), 0::bigint, 'anon: UPDATE clientes bloqueado');
+SELECT is(rls_matrix.dml_count($$DELETE FROM public.clientes$$), 0::bigint, 'anon: DELETE clientes bloqueado');
 
 SELECT * FROM finish();
 ROLLBACK;
