@@ -1,6 +1,7 @@
 /**
- * Rota canônica da Rotina do Dia do gerente, reconstruída a partir da
- * referência Base44 e persistida nas entidades operacionais do MX.
+ * Rota canônica da Rotina do Dia do gerente.
+ * A UI continua Base44-compatible, mas as tarefas automáticas e o histórico
+ * oficial passam a vir das entidades canônicas do Supabase.
  */
-export { ManagerDayRoutine as RotinaGerente } from '@/features/manager/day-routine/ManagerDayRoutine.container'
-export { ManagerDayRoutine as default } from '@/features/manager/day-routine/ManagerDayRoutine.container'
+export { ManagerDayRoutineCanonical as RotinaGerente } from '@/features/manager/day-routine/ManagerDayRoutineCanonical.container'
+export { ManagerDayRoutineCanonical as default } from '@/features/manager/day-routine/ManagerDayRoutineCanonical.container'
