@@ -16,36 +16,97 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
+    env:
+      VITE_SUPABASE_URL: https://example.supabase.co
+      VITE_SUPABASE_ANON_KEY: test-anon-key
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
       - run: npm ci
+
       - name: Run migration contract
-        id: contract
+        run: bun test --isolate src/lib/security-invoker-views-migration.test.ts
+
+      - name: Check migration rollback documentation
+        run: node scripts/check_migration_reversibility.mjs --changed-only
+
+      - name: Generate production database types and diff
+        id: types
         shell: bash
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
         run: |
           set +e
-          bun test --isolate src/lib/security-invoker-views-migration.test.ts > security-view-test.log 2>&1
+          supabase gen types typescript \
+            --project-id "$SUPABASE_PROJECT_ID" \
+            --schema public \
+            > database.generated.production.ts 2> database-types-command.log
           status=$?
-          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          if [ "$status" -eq 0 ]; then
+            diff -u src/types/database.generated.ts database.generated.production.ts > database-types.diff
+            diff_status=$?
+          else
+            diff_status=2
+          fi
+          echo "command_exit=$status" >> "$GITHUB_OUTPUT"
+          echo "diff_exit=$diff_status" >> "$GITHUB_OUTPUT"
           exit 0
-      - name: Upload contract log
+
+      - name: Upload database type diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: security-view-test-log
-          path: security-view-test.log
+          name: security-view-database-types
+          path: |
+            database.generated.production.ts
+            database-types.diff
+            database-types-command.log
+          if-no-files-found: warn
+          retention-days: 2
+
+      - name: Rebuild local Supabase and capture migration log
+        id: local_supabase
+        shell: bash
+        run: |
+          set +e
+          supabase start > supabase-start.log 2>&1
+          status=$?
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          supabase status > supabase-status.log 2>&1
+          supabase stop --no-backup >> supabase-start.log 2>&1
+          exit 0
+
+      - name: Upload local Supabase diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-view-local-supabase
+          path: |
+            supabase-start.log
+            supabase-status.log
           if-no-files-found: error
           retention-days: 2
-      - name: Fail on contract error
-        if: steps.contract.outputs.exit_code != '0'
+
+      - name: Summarize diagnostic status
+        shell: bash
         run: |
-          cat security-view-test.log
-          exit 1
+          echo "Types command exit: ${{ steps.types.outputs.command_exit }}"
+          echo "Types diff exit: ${{ steps.types.outputs.diff_exit }}"
+          echo "Local Supabase exit: ${{ steps.local_supabase.outputs.exit_code }}"
