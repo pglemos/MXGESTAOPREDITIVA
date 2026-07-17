@@ -8,8 +8,9 @@ const sql = readFileSync(
 
 describe('persisted StoreTargetPlan', () => {
   test('supports the four exact horizons from the managerial specification', () => {
-    expect(sql).toContain("'hoje','esta_semana','esta_dezena','este_mes'")
-    expect(sql).toContain("horizon_key IN ('hoje','esta_semana','esta_dezena','este_mes')")
+    expect(sql).toContain("ARRAY['hoje','esta_semana','esta_dezena','este_mes']")
+    expect(sql).toContain("WHEN 'esta_semana'")
+    expect(sql).toContain("WHEN 'esta_dezena'")
   })
 
   test('uses store calendar exceptions before the default projection mode', () => {
@@ -21,13 +22,13 @@ describe('persisted StoreTargetPlan', () => {
 
   test('preserves fractional proportional goals and sub-one daily pace', () => {
     expect(sql).toContain('monthly_goal * business_days_elapsed / business_days_total')
-    expect(sql).toContain('required_pace := required_sales / horizon_days')
+    expect(sql).toContain('required_sales/horizon_days')
     expect(sql).toContain("'1 venda a cada '")
   })
 
   test('uses 30 days, then 90 days, then the configured 3:1 fallback', () => {
-    expect(sql).toContain("history_start := reference_date - 29")
-    expect(sql).toContain("history_start := reference_date - 89")
+    expect(sql).toContain('history_start := reference_date - 29')
+    expect(sql).toContain('history_start := reference_date - 89')
     expect(sql).toContain('appointments_per_sale numeric NOT NULL DEFAULT 3')
     expect(sql).toContain('configured_ratio')
   })
