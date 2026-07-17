@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs'
 const migrationFiles = [
   '../../supabase/migrations/20260717292000_harden_pdi_development_recommendations.sql',
   '../../supabase/migrations/20260717293000_fix_pdi_source_existence_disclosure.sql',
+  '../../supabase/migrations/20260717294000_fix_pdi_positive_gap_recommendations.sql',
 ]
 
 const sql = migrationFiles
@@ -20,14 +21,21 @@ function extractFinalFunction(name: string) {
   return compactSql.slice(start, next === -1 ? compactSql.length : next)
 }
 
-function expectScopedSourceLookup(body: string, sourcePredicate: string, authorizationPredicate: string) {
+function expectScopedSourceLookup(
+  body: string,
+  sourcePredicate: string,
+  authorizationPredicates: string[],
+) {
   const source = body.indexOf(sourcePredicate)
-  const authorization = body.indexOf(authorizationPredicate)
-  const lock = body.indexOf('FOR SHARE')
+  const lock = body.indexOf('FOR SHARE', source)
 
   expect(source).toBeGreaterThanOrEqual(0)
-  expect(authorization).toBeGreaterThan(source)
-  expect(lock).toBeGreaterThan(authorization)
+  expect(lock).toBeGreaterThan(source)
+
+  const sourceLookup = body.slice(source, lock)
+  for (const predicate of authorizationPredicates) {
+    expect(sourceLookup).toContain(predicate)
+  }
 }
 
 const generatorSignatures = [
@@ -78,12 +86,37 @@ describe('PDI development recommendation authorization migrations', () => {
     expect(body).not.toContain("RAISE EXCEPTION 'PDI nao encontrado.' USING ERRCODE = 'P0002'")
   })
 
-  test('authorizes while selecting the source so existence is not disclosed', () => {
+  test('keeps every source authorization predicate inside the protected lookup', () => {
     const feedback = extractFinalFunction('gerar_recomendacoes_desenvolvimento_feedback(')
     const pdi = extractFinalFunction('gerar_recomendacoes_desenvolvimento_pdi(')
 
-    expectScopedSourceLookup(feedback, 'WHERE d.id = p_feedback_id', 'd.manager_id = v_caller')
-    expectScopedSourceLookup(pdi, 'WHERE s.id = p_sessao_id', 's.gerente_id = v_caller')
+    expectScopedSourceLookup(feedback, 'WHERE d.id = p_feedback_id', [
+      'v_is_service_role',
+      'public.eh_area_interna_mx(v_caller)',
+      'd.manager_id = v_caller',
+      'public.is_manager_of(d.store_id)',
+      'public.is_owner_of(d.store_id)',
+    ])
+    expectScopedSourceLookup(pdi, 'WHERE s.id = p_sessao_id', [
+      'v_is_service_role',
+      'public.eh_area_interna_mx(v_caller)',
+      's.gerente_id = v_caller',
+      'public.is_manager_of(s.loja_id)',
+      'public.is_owner_of(s.loja_id)',
+    ])
+  })
+
+  test('generates PDI recommendations only for positive gaps', () => {
+    const pdi = extractFinalFunction('gerar_recomendacoes_desenvolvimento_pdi(')
+    const sessionFilter = pdi.indexOf('WHERE av.sessao_id = p_sessao_id')
+    const positiveGap = pdi.indexOf('AND av.alvo > av.nota_atribuida', sessionFilter)
+    const ordering = pdi.indexOf('ORDER BY (av.alvo - av.nota_atribuida) DESC', sessionFilter)
+    const limit = pdi.indexOf('LIMIT 5', sessionFilter)
+
+    expect(sessionFilter).toBeGreaterThanOrEqual(0)
+    expect(positiveGap).toBeGreaterThan(sessionFilter)
+    expect(ordering).toBeGreaterThan(positiveGap)
+    expect(limit).toBeGreaterThan(ordering)
   })
 
   test('serializes generation and enforces durable source idempotency', () => {
@@ -149,9 +182,9 @@ describe('PDI development recommendation authorization migrations', () => {
     }
   })
 
-  test('wraps both migrations and documents rollback', () => {
-    expect((compactSql.match(/BEGIN;/g) ?? []).length).toBe(2)
-    expect((compactSql.match(/COMMIT;/g) ?? []).length).toBe(2)
-    expect((compactSql.match(/-- DOWN/g) ?? []).length).toBe(2)
+  test('wraps all migrations and documents rollback', () => {
+    expect((compactSql.match(/BEGIN;/g) ?? []).length).toBe(3)
+    expect((compactSql.match(/COMMIT;/g) ?? []).length).toBe(3)
+    expect((compactSql.match(/-- DOWN/g) ?? []).length).toBe(3)
   })
 })
