@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/features/manager/home/**'
       - 'src/features/dashboard-loja/**'
+      - 'src/lib/managerial-p0-*-migration.test.ts'
       - '.github/workflows/verify-manager-dashboard.yml'
 
 permissions:
@@ -15,6 +16,9 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      VITE_SUPABASE_URL: https://example.supabase.co
+      VITE_SUPABASE_ANON_KEY: test-anon-key
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,7 +41,7 @@ jobs:
         run: npm run typecheck
 
       - name: Targeted tests
-        run: bun test --isolate --max-concurrency=1 src/features/manager/home/manager-home-parity.test.ts src/features/manager/home/manager-home-official-ratio.test.ts src/features/manager/home/useManagerHomeOfficialSources.test.ts
+        run: bun test --isolate --max-concurrency=1 src/features/manager/home/manager-home-parity.test.ts src/features/manager/home/manager-home-official-ratio.test.ts src/features/manager/home/useManagerHomeOfficialSources.test.ts src/lib/managerial-p0-data-foundation-migration.test.ts src/lib/managerial-p0-d1-runtime-fix-migration.test.ts src/lib/managerial-p0-legacy-d1-bridge-migration.test.ts
 
       - name: Run full unit suite
         id: full_tests
