@@ -99,6 +99,13 @@ describe('closing regularization authorization migrations', () => {
     expect(charge).toContain("created_at < ((v_business_date + 1)::timestamp AT TIME ZONE 'America/Sao_Paulo')")
   })
 
+  test('writes direct charge notifications with a target allowed by the active schema', () => {
+    const charge = extractFinalFunction('enviar_cobranca_diaria(')
+
+    expect(charge).toContain("p_link, 'all', false")
+    expect(charge).not.toContain("p_link, 'user', false")
+  })
+
   test('uses the authenticated caller for audit and notification sender fields', () => {
     const approval = extractFinalFunction('aplicar_regularizacao_fechamento(')
     const rejection = extractFinalFunction('rejeitar_regularizacao_fechamento(')
