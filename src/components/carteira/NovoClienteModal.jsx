@@ -57,15 +57,28 @@ export default function NovoClienteModal({ open, onClose, onCriado, vendedorId }
       vendedor_id: vendedorId || "",
       ativo: true,
       ultimo_contato: new Date().toISOString(),
+      historico: {
+        tipo: "Cadastro",
+        descricao: "Cliente cadastrado na carteira.",
+        momento_novo: form.momento,
+      },
     };
     payload.proxima_acao = calcularProximaAcao(payload);
-    const criado = await base44.entities.CarteiraCliente.create(payload);
-    await base44.entities.CarteiraHistorico.create({
-      cliente_id: criado.id, vendedor_id: vendedorId || "",
-      tipo: "Cadastro", descricao: "Cliente cadastrado na carteira.",
-      momento_novo: form.momento,
-    });
-    setSaving(false);
+
+    let criado;
+    try {
+      criado = await base44.entities.CarteiraCliente.create(payload);
+    } catch (error) {
+      toast({
+        title: "Não foi possível adicionar o cliente.",
+        description: "Confira sua conexão e tente novamente.",
+        variant: "destructive",
+      });
+      return;
+    } finally {
+      setSaving(false);
+    }
+
     onCriado(criado);
     onClose();
     setForm({ nome: "", whatsapp: "", canal_comercial: "Internet", canal_origem: "Internet", veiculo_interesse: "", momento: "Novo contato", situacao_atual: "Lead sem resposta", visita_agendada_em: "", proposta_enviada: false, interesse_troca: false, interesse_financiamento: false, observacoes: "" });

@@ -1,0 +1,4 @@
+-- Rollback manual: manter a versão canônica do trigger.
+-- A versão anterior referencia daily_checkins.user_id/date, colunas removidas
+-- pela migration 20260417000001 e portanto não pode ser restaurada com
+-- segurança em uma stack fresh.

@@ -41,11 +41,21 @@ describe('ManagerSellerParityHome Base44 parity', () => {
     const { container } = renderHome(buildData())
 
     expect(screen.getAllByText('1,3 vendas').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('1 venda').length).toBeGreaterThan(0)
-    expect(screen.getByText('3 agendamentos')).toBeTruthy()
-    expect(screen.getByText('+1')).toBeTruthy()
+    expect(screen.getAllByText('2 vendas').length).toBeGreaterThan(0)
+    expect(screen.getByText('6 agendamentos')).toBeTruthy()
+    expect(screen.getByText('-2')).toBeTruthy()
     expect(container.querySelector('input[type="date"]')).toBeNull()
     expect(screen.getByText('13/07/2026')).toBeTruthy()
+  })
+
+  it('não troca a constante Base44 por uma conversão histórica do mês', () => {
+    renderHome(buildData({
+      checkins: [checkin(1, { appointments: 2 })],
+      managerMonthlyCheckins: [checkin(1, { appointments: 1, sales: 5 })],
+    }))
+
+    expect(screen.getAllByText('0,7 vendas').length).toBeGreaterThan(0)
+    expect(screen.getByText('Regra atual: 1 venda a cada 3 agendamentos')).toBeTruthy()
   })
 
   it('mostra no maximo cinco vendedores e o realizado mensal real', () => {
@@ -61,6 +71,24 @@ describe('ManagerSellerParityHome Base44 parity', () => {
     expect(within(team).queryByText('Vendedor 6')).toBeNull()
     expect(within(team).queryByText('Vendedor 7')).toBeNull()
     expect(within(team).getByRole('button', { name: /ver toda a equipe/i })).toBeTruthy()
+    expect(within(team).getAllByText('1').length).toBeGreaterThan(0)
+  })
+
+  it('usa o acumulado oficial de vendas quando os fechamentos diarios estao zerados', () => {
+    renderHome(buildData({
+      sellers: [seller(1), seller(2), seller(3)],
+      checkins: [],
+      managerMonthlyCheckins: [],
+      officialMonthlyPerformance: [
+        { seller_user_id: 'seller-1', vendas_realizadas: 2 },
+        { seller_user_id: 'seller-2', vendas_realizadas: 3 },
+        { seller_user_id: 'seller-3', vendas_realizadas: 1 },
+      ],
+    }))
+
+    const team = screen.getByRole('region', { name: 'Equipe em foco' })
+    expect(within(team).getAllByText('2').length).toBeGreaterThan(0)
+    expect(within(team).getAllByText('3').length).toBeGreaterThan(0)
     expect(within(team).getAllByText('1').length).toBeGreaterThan(0)
   })
 

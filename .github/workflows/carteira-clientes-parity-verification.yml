@@ -1,0 +1,104 @@
+name: Carteira Base44 1:1 Verification
+
+on:
+  push:
+    branches:
+      - main
+      - 'codex/carteira-*'
+    paths:
+      - 'src/pages/CarteiraClientes.tsx'
+      - 'src/features/carteira-clientes/**'
+      - 'src/components/carteira/**'
+      - 'src/base44-reference/pages/CarteiraClientes.jsx'
+      - 'src/base44-reference/components/carteira/**'
+      - 'src/api/base44Client.js'
+      - 'scripts/verify_carteira_base44_parity.mjs'
+      - 'scripts/check_migration_reversibility.mjs'
+      - 'supabase/migrations/*carteira*.sql'
+      - 'supabase/rollbacks/*carteira*.sql'
+      - '.github/workflows/carteira-clientes-parity-verification.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/pages/CarteiraClientes.tsx'
+      - 'src/features/carteira-clientes/**'
+      - 'src/components/carteira/**'
+      - 'src/base44-reference/pages/CarteiraClientes.jsx'
+      - 'src/base44-reference/components/carteira/**'
+      - 'src/api/base44Client.js'
+      - 'scripts/verify_carteira_base44_parity.mjs'
+      - 'scripts/check_migration_reversibility.mjs'
+      - 'supabase/migrations/*carteira*.sql'
+      - 'supabase/rollbacks/*carteira*.sql'
+      - '.github/workflows/carteira-clientes-parity-verification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    # O cliente Supabase e inicializado no import. Estes valores sao apenas
+    # placeholders publicos para testes unitarios (mesmo padrao de
+    # typecheck-and-unit-tests.yml); nenhuma chamada real depende deles.
+    env:
+      VITE_SUPABASE_URL: https://example.supabase.co
+      VITE_SUPABASE_ANON_KEY: test-anon-key
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Verify route contract
+        run: bun test src/features/carteira-clientes/pages/CarteiraClientesBase44Page.test.tsx
+
+      - name: Verify exact visual source parity
+        run: bun test --isolate src/features/carteira-clientes/components/carteira-source-parity.test.ts src/features/carteira-clientes/components/carteira-rendered-parity.test.tsx
+
+      - name: Verify normalized mapping
+        run: bun test src/features/carteira-clientes/lib/carteira-mappers.test.ts
+
+      - name: Verify migration contract
+        run: bun test --isolate src/lib/carteira-base44-migration.test.ts src/lib/carteira-base44-hardening-migration.test.ts
+
+      - name: Verify mutation concurrency and error resilience
+        run: bun test --isolate src/features/carteira-clientes/lib/carteira-adapter-contract.test.ts src/features/carteira-clientes/lib/carteira-mutation-coordinator.test.ts src/features/carteira-clientes/components/carteira-resilience.test.tsx
+
+      - name: Verify deploy-blocking parity and design tokens
+        run: node scripts/verify_carteira_base44_parity.mjs
+
+      - name: Verify reversible migrations
+        run: node scripts/check_migration_reversibility.mjs --changed-only
+
+      - name: Run complete unit suite with concise failure output
+        shell: bash
+        run: |
+          set +e
+          npm test > /tmp/bun-test.log 2>&1
+          status=$?
+          tail -n 300 /tmp/bun-test.log
+          exit $status
+
+      - name: Production build
+        run: npm run build

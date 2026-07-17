@@ -1,21 +1,11 @@
 import { useMemo, useState } from 'react'
-import { AlertTriangle, ArrowLeft, CalendarClock, CalendarDays, DollarSign, Globe, Send, ShoppingCart, Store, Users, X } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, CalendarDays, Globe, Send, Store, Users, X } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
 import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
-import { deriveClientesListFromCrm } from '../lib/clientes-list-from-crm'
+import { deriveClientesListFromCrm, deriveRegularizacaoCrmMetrics, type RegularizacaoCrmMetrics } from '../lib/clientes-list-from-crm'
 import { calcularDisciplina } from '../lib/disciplina'
 import { CheckinCrmSection } from './CheckinCrmSection'
-
-const ADJUSTMENT_REASONS = [
-  'Correção de registro',
-  'Inclusão de dado',
-  'Ajuste de contagem',
-  'Erro operacional',
-  'Duplicidade removida',
-  'Fechamento esquecido',
-  'Outro motivo',
-]
 
 const BRL = (value: number) =>
   value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 })
@@ -31,19 +21,25 @@ export interface RegularizarFormValues {
   vnd_porta: number
   vnd_cart: number
   vnd_net: number
-  reason: string
+}
+
+export interface RegularizarCrmValues {
+  agd_cart: number
+  agd_net: number
+  vnd_porta: number
+  vnd_cart: number
+  vnd_net: number
 }
 
 interface RegularizarFechamentoDrawerProps {
   date: string
   finalized: boolean
   formValues: RegularizarFormValues
-  onFieldChange: (field: keyof Omit<RegularizarFormValues, 'reason' | 'note'>, value: number) => void
-  onReasonChange: (value: string) => void
+  onFieldChange: (field: keyof Omit<RegularizarFormValues, 'vnd_porta' | 'vnd_cart' | 'vnd_net'>, value: number) => void
   saving: boolean
   onVoltar: () => void
   onClose: () => void
-  onSubmit: () => void
+  onSubmit: (crmValues: RegularizarCrmValues) => void
 }
 
 /** Stepper numérico — mesmo padrão visual do StepperInput em FluxoFechamento.tsx. */
@@ -107,7 +103,6 @@ export function RegularizarFechamentoDrawer({
   finalized,
   formValues,
   onFieldChange,
-  onReasonChange,
   saving,
   onVoltar,
   onClose,
@@ -118,20 +113,33 @@ export function RegularizarFechamentoDrawer({
   const { agendamentos, refetch: refetchAgendamentos } = useAgendamentos()
 
   const clientesList = useMemo(
-    () => deriveClientesListFromCrm(oportunidades, agendamentos, date),
-    [oportunidades, agendamentos, date],
+    () => deriveClientesListFromCrm(oportunidades, agendamentos, date, { fechamentoPendente: !finalized }),
+    [oportunidades, agendamentos, date, finalized],
   )
   const refetchClientesList = async () => { await Promise.all([refetchOportunidades(), refetchAgendamentos()]) }
 
   const totalLeads = formValues.leads_cart + formValues.leads_net
   const totalAtendimentos = formValues.visitas_porta + formValues.visitas_cart + formValues.visitas_net
-  const totalAgendamentosD1 = formValues.agd_cart + formValues.agd_net
-  const totalVendas = formValues.vnd_porta + formValues.vnd_cart + formValues.vnd_net
+  const crmMetrics: RegularizacaoCrmMetrics = useMemo(
+    () => deriveRegularizacaoCrmMetrics(oportunidades, agendamentos, date, { fechamentoPendente: !finalized }),
+    [oportunidades, agendamentos, date, finalized],
+  )
+  const effectiveAgendamentosD1 = {
+    carteira: Math.max(formValues.agd_cart, crmMetrics.agendamentosD1.carteira),
+    internet: Math.max(formValues.agd_net, crmMetrics.agendamentosD1.internet),
+  }
+  const effectiveSales = {
+    porta: Math.max(formValues.vnd_porta, crmMetrics.vendas.porta),
+    carteira: Math.max(formValues.vnd_cart, crmMetrics.vendas.carteira),
+    internet: Math.max(formValues.vnd_net, crmMetrics.vendas.internet),
+  }
+  const totalAgendamentosD1 = effectiveAgendamentosD1.carteira + effectiveAgendamentosD1.internet
+  const totalVendas = effectiveSales.porta + effectiveSales.carteira + effectiveSales.internet
   const totalFaturamento = clientesList
     .filter((c) => c.vendaRealizada === 'Sim')
     .reduce((acc, c) => acc + (c.valorNegociado || 0), 0)
 
-  const creditosValidos = clientesList.filter((c) => c.tipoRegistroCalculado === 'Agendamento D+1').length
+  const creditosValidos = Math.min(crmMetrics.creditosValidos, totalAgendamentosD1)
   const disciplina = calcularDisciplina({ totalAgendamentosD1, creditosValidos, finalizadoAposPrazo: true })
 
   const dataObj = new Date(`${date}T12:00:00`)
@@ -140,8 +148,6 @@ export function RegularizarFechamentoDrawer({
 
   const ringColor = disciplina.pontuacaoDisciplinaFinal >= 80 ? '#22C55E' : disciplina.pontuacaoDisciplinaFinal >= 50 ? '#F59E0B' : '#EF4444'
   const ringColorClass = disciplina.pontuacaoDisciplinaFinal >= 80 ? 'text-[#22C55E]' : disciplina.pontuacaoDisciplinaFinal >= 50 ? 'text-[#F59E0B]' : 'text-[#EF4444]'
-
-  const canSubmit = !!formValues.reason
 
   const crmCtx = {
     clientesList,
@@ -155,11 +161,11 @@ export function RegularizarFechamentoDrawer({
       leads_net: formValues.leads_net,
       agd_cart_prev: 0,
       agd_net_prev: 0,
-      agd_cart: formValues.agd_cart,
-      agd_net: formValues.agd_net,
-      vnd_porta: formValues.vnd_porta,
-      vnd_cart: formValues.vnd_cart,
-      vnd_net: formValues.vnd_net,
+      agd_cart: effectiveAgendamentosD1.carteira,
+      agd_net: effectiveAgendamentosD1.internet,
+      vnd_porta: effectiveSales.porta,
+      vnd_cart: effectiveSales.carteira,
+      vnd_net: effectiveSales.internet,
       visitas: totalAtendimentos,
       visitas_porta: formValues.visitas_porta,
       visitas_cart: formValues.visitas_cart,
@@ -235,15 +241,6 @@ export function RegularizarFechamentoDrawer({
                   <FieldRow label="Agendamentos D+1" value={formValues.agd_net} onChange={(v) => onFieldChange('agd_net', v)} disabled={false} />
                 </div>
 
-                <div className="space-y-3 rounded-xl border border-purple-200 bg-purple-50 p-4">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-purple-600"><ShoppingCart className="h-4 w-4 text-white" /></div>
-                    <span className="text-[13px] font-black uppercase tracking-wide text-purple-700">Vendas</span>
-                  </div>
-                  <FieldRow label="Porta" value={formValues.vnd_porta} onChange={(v) => onFieldChange('vnd_porta', v)} disabled={false} />
-                  <FieldRow label="Carteira" value={formValues.vnd_cart} onChange={(v) => onFieldChange('vnd_cart', v)} disabled={false} />
-                  <FieldRow label="Internet" value={formValues.vnd_net} onChange={(v) => onFieldChange('vnd_net', v)} disabled={false} />
-                </div>
               </div>
             </div>
 
@@ -313,21 +310,6 @@ export function RegularizarFechamentoDrawer({
               </div>
             </div>
 
-            {/* Motivo da regularização — separado dos dados operacionais auditados. */}
-            <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="adjustment-reason" className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Motivo do Ajuste</label>
-                <select
-                  id="adjustment-reason"
-                  value={formValues.reason}
-                  onChange={(e) => onReasonChange(e.target.value)}
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-[#071822] outline-none focus:border-[#005BFF] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
-                >
-                  <option value="">Selecione o motivo...</option>
-                  {ADJUSTMENT_REASONS.map((reason) => <option key={reason} value={reason}>{reason}</option>)}
-                </select>
-              </div>
-            </div>
           </div>
 
           {/* Footer */}
@@ -337,8 +319,14 @@ export function RegularizarFechamentoDrawer({
             </button>
             <button
               type="button"
-              disabled={saving || !canSubmit}
-              onClick={onSubmit}
+              disabled={saving}
+              onClick={() => onSubmit({
+                agd_cart: effectiveAgendamentosD1.carteira,
+                agd_net: effectiveAgendamentosD1.internet,
+                vnd_porta: effectiveSales.porta,
+                vnd_cart: effectiveSales.carteira,
+                vnd_net: effectiveSales.internet,
+              })}
  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#005BFF] px-5 py-2.5 text-center text-[13px] font-bold leading-snug text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 sm:px-6"
             >
               <Send className="h-4 w-4" /> {saving ? 'Enviando...' : 'Solicitar aprovação do gerente'}

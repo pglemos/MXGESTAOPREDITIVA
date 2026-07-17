@@ -3,13 +3,22 @@ import { AlertTriangle, CalendarDays, CheckCircle2, X, CalendarClock, CheckSquar
 import { Button } from '@/components/atoms/Button'
 import { useCheckinAuditor } from '@/hooks/useCheckinAuditor'
 import { toast } from '@/lib/toast'
-import type { DailyCheckin } from '@/types/database'
+import type { CheckinCorrectionRequest, DailyCheckin } from '@/types/database'
 import { addDaysDateOnly } from '../lib/crm-derived-totals'
-import { RegularizarFechamentoDrawer } from './RegularizarFechamentoDrawer'
+import { RegularizarFechamentoDrawer, type RegularizarCrmValues } from './RegularizarFechamentoDrawer'
 import { NotificationBellButton } from '@/components/NotificationBellButton'
 import { isSubmittedClosing, type PreviousClosingCard } from '../lib/active-closing-context'
+import {
+  actionsForHistoryRowState,
+  HISTORY_ROW_STATE_LABEL,
+  latestRequestForCheckin,
+  resolveHistoryRowState,
+  type HistoryRowAction,
+} from '../lib/checkin-history-state'
 import { SellerPageHeader } from '@/components/seller/SellerPageHeader'
 import { CHECKIN_ZERO_REASONS } from '@/hooks/useCheckins'
+
+const REGULARIZACAO_REASON = 'Regularização do fechamento diário'
 
 interface PillarProgress {
   key: string
@@ -53,10 +62,23 @@ setHistoryOpen,
  saveCheckin,
   ..._props
 }: CheckinHeaderProps) {
-const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
+const { requestCorrection, fetchOwnRequests, loading: auditorLoading } = useCheckinAuditor()
+    // MX-22.3 (GAP 2): solicitações de regularização do PRÓPRIO vendedor,
+    // pra combinar com lancamentos_diarios e expor os 7 estados do §8.1.
+    const [ownRequests, setOwnRequests] = useState<CheckinCorrectionRequest[]>([])
+    const [detailRequest, setDetailRequest] = useState<CheckinCorrectionRequest | null>(null)
 
-  const [activeView, setActiveView] = useState<'list' | 'form'>('list')
+  const [activeView, setActiveView] = useState<'list' | 'form' | 'detail'>('list')
   const [selectedRow, setSelectedRow] = useState<any | null>(null)
+
+  useEffect(() => {
+    if (!historyOpen) return
+    let cancelled = false
+    fetchOwnRequests()
+      .then(reqs => { if (!cancelled) setOwnRequests(reqs) })
+      .catch(() => { if (!cancelled) setOwnRequests([]) })
+    return () => { cancelled = true }
+  }, [historyOpen, fetchOwnRequests])
   const [productionZeroModalOpen, setProductionZeroModalOpen] = useState(false)
   const [productionZeroReason, setProductionZeroReason] = useState('')
   const [productionZeroSaving, setProductionZeroSaving] = useState(false)
@@ -71,7 +93,6 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
     vnd_porta: 0,
     vnd_cart: 0,
     vnd_net: 0,
-    reason: '',
   })
 
   // Generate last 7 days of history (starting from yesterday backwards)
@@ -85,9 +106,14 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
       day: '2-digit'
     }).format(new Date(spString))
 
-    for (let i = 1; i <= 7; i++) {
+    // MX-22.3 (AC-1; §8.1 "Em andamento"): i=0 inclui hoje, único jeito de
+    // "Em andamento" existir/ser testável — hoje o loop começava em ontem.
+    for (let i = 0; i <= 7; i++) {
       const date = addDaysDateOnly(todaySP, -i)
+      const isToday = i === 0
       const checkin = checkins.find(c => c.reference_date === date && c.metric_scope === 'daily')
+      const latestRequest = latestRequestForCheckin(ownRequests, checkin?.id)
+      const state = resolveHistoryRowState({ date, checkin: checkin ?? null, latestRequest, now: new Date(), isToday })
 
       if (checkin) {
         // Read sales count (merge localStorage & DB)
@@ -125,7 +151,9 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
         list.push({
           date,
           finalized,
-          status: finalized ? 'Finalizado' : 'Pendente de Fechamento',
+          status: HISTORY_ROW_STATE_LABEL[state],
+          state,
+          latestRequest,
           score: finalized ? (score.includes('%') ? score : `${score}%`) : '—',
           time: formattedTime,
           sales: salesCount,
@@ -138,7 +166,9 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
         list.push({
           date,
           finalized: false,
-          status: 'Pendente de Fechamento',
+          status: HISTORY_ROW_STATE_LABEL[state],
+          state,
+          latestRequest,
           score: '—',
           time: '—',
           sales: 0,
@@ -150,7 +180,7 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
       }
     }
     return list
-  }, [checkins, userId])
+  }, [checkins, userId, ownRequests])
 
   const handleSelectRow = (row: any) => {
     setSelectedRow(row)
@@ -174,7 +204,6 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
           vnd_porta: checkin.vnd_porta_prev_day || 0,
           vnd_cart: checkin.vnd_cart_prev_day || 0,
           vnd_net: checkin.vnd_net_prev_day || 0,
-          reason: '',
         })
       } else {
         setFormValues({
@@ -182,7 +211,6 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
           visitas_porta: 0, visitas_cart: 0, visitas_net: 0,
           agd_cart: 0, agd_net: 0,
           vnd_porta: 0, vnd_cart: 0, vnd_net: 0,
-          reason: '',
         })
       }
     } else {
@@ -191,7 +219,6 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
         visitas_porta: 0, visitas_cart: 0, visitas_net: 0,
         agd_cart: 0, agd_net: 0,
         vnd_porta: 0, vnd_cart: 0, vnd_net: 0,
-        reason: '',
       })
     }
     setActiveView('form')
@@ -233,12 +260,8 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
     }))
   }
 
-  const handleSubmitCorrection = async () => {
+  const handleSubmitCorrection = async (crmValues: RegularizarCrmValues) => {
     if (!selectedRow) return
-    if (!formValues.reason) {
-      toast.error('Por favor, selecione o motivo da alteração.')
-      return
-    }
 
     try {
       let checkinId = ''
@@ -304,18 +327,18 @@ const { requestCorrection, loading: auditorLoading } = useCheckinAuditor()
         visitas_porta_prev_day: Number(formValues.visitas_porta),
         visitas_cart_prev_day: Number(formValues.visitas_cart),
         visitas_net_prev_day: Number(formValues.visitas_net),
-        agd_cart: Number(formValues.agd_cart),
-        agd_net: Number(formValues.agd_net),
-        agd_cart_today: Number(formValues.agd_cart),
-        agd_net_today: Number(formValues.agd_net),
-        vnd_porta_prev_day: Number(formValues.vnd_porta),
-        vnd_cart_prev_day: Number(formValues.vnd_cart),
-        vnd_net_prev_day: Number(formValues.vnd_net),
+        agd_cart: Number(crmValues.agd_cart),
+        agd_net: Number(crmValues.agd_net),
+        agd_cart_today: Number(crmValues.agd_cart),
+        agd_net_today: Number(crmValues.agd_net),
+        vnd_porta_prev_day: Number(crmValues.vnd_porta),
+        vnd_cart_prev_day: Number(crmValues.vnd_cart),
+        vnd_net_prev_day: Number(crmValues.vnd_net),
         visit_prev_day: Number(formValues.visitas_porta) + Number(formValues.visitas_cart) + Number(formValues.visitas_net),
-        zero_reason: (Number(formValues.leads_cart) + Number(formValues.leads_net) + Number(formValues.visitas_porta) + Number(formValues.visitas_cart) + Number(formValues.visitas_net) + Number(formValues.agd_cart) + Number(formValues.agd_net) + Number(formValues.vnd_porta) + Number(formValues.vnd_cart) + Number(formValues.vnd_net) === 0) ? 'Outro' : undefined,
+        zero_reason: (Number(formValues.leads_cart) + Number(formValues.leads_net) + Number(formValues.visitas_porta) + Number(formValues.visitas_cart) + Number(formValues.visitas_net) + Number(crmValues.agd_cart) + Number(crmValues.agd_net) + Number(crmValues.vnd_porta) + Number(crmValues.vnd_cart) + Number(crmValues.vnd_net) === 0) ? 'Outro' : undefined,
       }
       
-      const res = await requestCorrection(checkinId, requestedValues, formValues.reason)
+      const res = await requestCorrection(checkinId, requestedValues, REGULARIZACAO_REASON)
       if (res.error) {
         toast.error(`Erro ao enviar solicitação: ${res.error}`)
       } else {
@@ -578,57 +601,82 @@ return (
                           </div>
                         </div>
 
-                        {/* Right Side: Status/Metrics & Action */}
+                        {/* Right Side: Status/Metrics & Action — MX-22.3 §8.1/§8.2:
+                            estado combinado (lancamentos_diarios + solicitação de
+                            regularização), ações exatas por estado. */}
                         <div className="flex items-center justify-between sm:justify-end gap-4 flex-wrap">
-                          {row.finalized ? (
-                            <>
-                              {/* Metrics */}
-                              <div className="flex items-center gap-3 text-xs flex-wrap">
-                                <div>
-                                  <span className="text-[#00A89D] font-black">{row.leads}</span>{' '}
-                                  <span className="text-[#526B7A] font-semibold">leads</span>
-                                </div>
-                                <div className="h-3 w-px bg-[#DFE0E1]" />
-                                <div>
-                                  <span className="text-mx-action font-black">{row.atend}</span>{' '}
-                                  <span className="text-[#526B7A] font-semibold">atend.</span>
-                                </div>
-                                <div className="h-3 w-px bg-[#DFE0E1]" />
-                                <div>
-                                  <span className="text-[#ea580c] font-black">{row.agend}</span>{' '}
-                                  <span className="text-[#526B7A] font-semibold">agend.</span>
-                                </div>
-                                <div className="h-3 w-px bg-[#DFE0E1]" />
-                                <div>
-                                  <span className="text-[#00A89D] font-black">{row.vendas}</span>{' '}
-                                  <span className="text-[#526B7A] font-semibold">vendas</span>
-                                </div>
+                          {row.finalized && (
+                            <div className="flex items-center gap-3 text-xs flex-wrap">
+                              <div>
+                                <span className="text-[#00A89D] font-black">{row.leads}</span>{' '}
+                                <span className="text-[#526B7A] font-semibold">leads</span>
                               </div>
-                              {/* Action to correct */}
+                              <div className="h-3 w-px bg-[#DFE0E1]" />
+                              <div>
+                                <span className="text-mx-action font-black">{row.atend}</span>{' '}
+                                <span className="text-[#526B7A] font-semibold">atend.</span>
+                              </div>
+                              <div className="h-3 w-px bg-[#DFE0E1]" />
+                              <div>
+                                <span className="text-[#ea580c] font-black">{row.agend}</span>{' '}
+                                <span className="text-[#526B7A] font-semibold">agend.</span>
+                              </div>
+                              <div className="h-3 w-px bg-[#DFE0E1]" />
+                              <div>
+                                <span className="text-[#00A89D] font-black">{row.vendas}</span>{' '}
+                                <span className="text-[#526B7A] font-semibold">vendas</span>
+                              </div>
+                            </div>
+                          )}
+                          {!row.finalized && row.state !== 'em_andamento' && (
+                            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-extrabold ${
+                              row.state === 'aguardando_aprovacao'
+                                ? 'border-[#FCD34D] bg-[#FFF7E6] text-[#92400E]'
+                                : 'border-[#fecaca] bg-[#fef2f2] text-[#EF4343]'
+                            }`}>
+                              {row.status}
+                            </span>
+                          )}
+                          {row.state === 'em_andamento' && (
+                            <span className="inline-flex items-center rounded-full border border-[#DFE0E1] bg-[#F7F8F8] px-2.5 py-0.5 text-[10px] font-extrabold text-[#526B7A]">
+                              Em andamento
+                            </span>
+                          )}
+                          {row.state === 'aprovado' && (
+                            <span className="inline-flex items-center rounded-full border border-[#00A89D] bg-[#E8F3F2] px-2.5 py-0.5 text-[10px] font-extrabold text-[#00A89D]">
+                              Regularizado Aprovado
+                            </span>
+                          )}
+                          {(actionsForHistoryRowState(row.state) as HistoryRowAction[]).map(action => {
+                            const label: Record<HistoryRowAction, string> = {
+                              ver_detalhes: 'Ver detalhes',
+                              ajustar: 'Ajustar',
+                              regularizar: 'Regularizar',
+                              ver_solicitacao: 'Ver solicitação',
+                              ver_versao_original: 'Ver versão original',
+                              ver_versao_aprovada: 'Ver versão aprovada',
+                              ver_auditoria: 'Ver auditoria',
+                              ver_motivo_recusa: 'Ver motivo da recusa',
+                              criar_nova_versao: 'Criar nova versão',
+                            }
+                            if (action === 'ver_detalhes') return null // já exibido como métricas inline
+                            const opensDrawer = action === 'ajustar' || action === 'regularizar' || action === 'criar_nova_versao'
+                            return (
                               <button
+                                key={action}
                                 type="button"
-                                onClick={() => handleSelectRow(row)}
+                                onClick={() => {
+                                  if (opensDrawer) { handleSelectRow(row); return }
+                                  setSelectedRow(row)
+                                  setDetailRequest(row.latestRequest)
+                                  setActiveView('detail')
+                                }}
                                 className="inline-flex h-7 items-center justify-center rounded-lg border border-[#DFE0E1] bg-white px-3 text-[10px] font-black text-[#00A89D] hover:bg-[#E8F3F2] transition-colors shadow-sm cursor-pointer"
                               >
-                                Ajustar
+                                {label[action]}
                               </button>
-                            </>
-                          ) : (
-                            <>
-                              {/* Pending Badge */}
-                              <span className="inline-flex items-center rounded-full bg-[#fef2f2] border border-[#fecaca] px-2.5 py-0.5 text-[10px] font-extrabold text-[#EF4343]">
-                                Pendente de Fechamento
-                              </span>
-                              {/* Action to regularize */}
-                              <button
-                                type="button"
-                                onClick={() => handleSelectRow(row)}
-                                className="text-[#00A89D] font-black hover:underline text-xs cursor-pointer"
-                              >
-                                Regularizar
-                              </button>
-                            </>
-                          )}
+                            )
+                          })}
                         </div>
                       </div>
                     )
@@ -755,12 +803,91 @@ return (
           finalized={Boolean(selectedRow.finalized)}
           formValues={formValues}
           onFieldChange={handleFieldChange}
-          onReasonChange={(value) => setFormValues((prev) => ({ ...prev, reason: value }))}
           saving={auditorLoading}
           onVoltar={() => setActiveView('list')}
           onClose={() => { setHistoryOpen(false); setActiveView('list') }}
-          onSubmit={handleSubmitCorrection}
+          onSubmit={(crmValues) => void handleSubmitCorrection(crmValues)}
         />
+      )}
+
+      {/* MX-22.3 (§8.2): detalhe da regularização — cobre "Ver solicitação"
+          (aguardando_aprovacao), "Ver versão original/aprovada/auditoria"
+          (aprovado) e "Ver motivo da recusa" (recusado) num único painel de
+          leitura, já que o spec não prescreve telas separadas por ação. */}
+      {historyOpen && activeView === 'detail' && (
+        <div
+          className="fixed inset-0 z-[150] grid place-items-center bg-black/35 px-4 backdrop-blur-[3px]"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Detalhe da regularização"
+        >
+          <div className="flex max-h-[80vh] w-full max-w-[min(32rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-[#DFE0E1] bg-white shadow-[0_24px_80px_rgba(15,23,42,0.24)]">
+            <header className="flex items-center justify-between border-b border-[#DFE0E1] bg-[#F7F8F8] px-6 py-5">
+              <h2 className="text-lg font-extrabold uppercase tracking-tight text-[#071822]">Regularização</h2>
+              <button
+                type="button"
+                onClick={() => { setActiveView('list'); setDetailRequest(null) }}
+                className="grid h-8 w-8 place-items-center rounded-lg text-[#526B7A] transition-colors hover:bg-[#F7F8F8]"
+                aria-label="Voltar"
+              >
+                <X size={18} />
+              </button>
+            </header>
+            <div className="overflow-y-auto p-6 text-sm">
+              {!detailRequest ? (
+                <p className="text-[#526B7A]">Nenhuma solicitação encontrada para esta data.</p>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <span className="text-xs font-bold uppercase text-[#526B7A]">Status</span>
+                    <p className="font-black text-[#071822]">
+                      {detailRequest.status === 'pending' && 'Em análise'}
+                      {detailRequest.status === 'approved' && 'Aprovada'}
+                      {detailRequest.status === 'rejected' && 'Recusada'}
+                      {detailRequest.status === 'cancelled' && 'Cancelada'}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold uppercase text-[#526B7A]">Motivo</span>
+                    <p className="text-[#071822]">{detailRequest.reason}</p>
+                  </div>
+                  {detailRequest.status === 'rejected' && detailRequest.rejection_reason && (
+                    <div>
+                      <span className="text-xs font-bold uppercase text-[#526B7A]">Motivo da recusa</span>
+                      <p className="text-[#071822]">{detailRequest.rejection_reason}</p>
+                    </div>
+                  )}
+                  {detailRequest.delta && Object.keys(detailRequest.delta).length > 0 && (
+                    <div>
+                      <span className="text-xs font-bold uppercase text-[#526B7A]">Versão original → solicitada (auditoria)</span>
+                      <ul className="mt-1 flex flex-col gap-1">
+                        {Object.entries(detailRequest.delta).map(([field, diff]) => (
+                          <li key={field} className="flex justify-between rounded-lg bg-[#F7F8F8] px-3 py-1.5 text-xs">
+                            <span className="font-bold text-[#526B7A]">{field}</span>
+                            <span className="text-[#071822]">{String(diff.original)} → {String(diff.solicitado)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {detailRequest.status === 'rejected' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveView('list')
+                        const row = historyRows.find(r => r.date === selectedRow?.date)
+                        if (row) handleSelectRow(row)
+                      }}
+                      className="mt-2 inline-flex h-9 items-center justify-center rounded-lg bg-[#00A89D] px-4 text-xs font-black text-white shadow-sm transition-colors hover:bg-[#00968c]"
+                    >
+                      Criar nova versão de regularização
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </header>
   )

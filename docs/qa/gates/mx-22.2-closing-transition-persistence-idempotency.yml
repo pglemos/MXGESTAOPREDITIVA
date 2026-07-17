@@ -1,0 +1,20 @@
+schema: 1
+story: 'MX-22.2'
+gate: CONCERNS
+status_reason: 'Todos os 8 AC atendidos e gates verdes (tsc 0, lint 0 erros, 95/95 testes), mas os testes de regressão do hook para AC-1/AC-2 são contract-style (asserção sobre o texto-fonte), não a integração comportamental que a própria story exigia.'
+reviewer: 'Quinn'
+updated: '2026-07-14T00:00:00Z'
+top_issues:
+  - id: 'TEST-001'
+    severity: medium
+    finding: 'useCheckinPage-closing-transition.test.ts valida GAP 1/GAP 2 via readFileSync + toContain sobre a string-fonte do hook. AC-1 e a seção Risks pediam explicitamente teste de integração do hook ("não apenas a função pura"). Source-string pega um revert literal, mas não pega regressão semântica (condição invertida, variável de data trocada). AC-5 assere whitespace exato (const submitCheckin = async () => {\n    if (saving) return), frágil a reformatação.'
+    suggested_action: 'Follow-up: adicionar teste comportamental do fio de invalidação (render do hook com Supabase mockado, ou extrair a lógica de transição para função pura testável) para cobrir regressão semântica de GAP 1, conforme a intenção original do AC-1.'
+  - id: 'REL-001'
+    severity: medium
+    finding: 'Migration 20260714150000 foi aplicada em prod (15:00 UTC) ANTES do fix de atraso 552a9b40 (17:42 UTC). O trigger normalize_daily_closing_window em produção ainda roda a versão com bug (on_time incondicional / regra 09:30 legada). Editar o arquivo da migration não reaplica. Documentado corretamente (não silenciado) e fora do escopo desta story (ação de infra), mas é bug vivo que afeta penalização de Disciplina do Módulo Gerencial (spec §10.2/§12.4).'
+    suggested_action: 'Abrir story/migration de follow-up (CREATE OR REPLACE FUNCTION normalize_daily_closing_window) para levar a correção de atraso ao Postgres real. Rastrear como débito de produção, não deixar apenas no Change Log.'
+  - id: 'DOC-001'
+    severity: low
+    finding: 'Seções Dev Agent Record (Agent Model Used, Debug Log References, Completion Notes List) permanecem com placeholder "_A preencher por @dev_".'
+    suggested_action: 'Preencher em passagem futura; não bloqueia.'
+waiver: { active: false }

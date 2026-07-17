@@ -1,0 +1,20 @@
+schema: 1
+story: 'MX-22.5'
+gate: CONCERNS
+status_reason: 'AC-1/2/3/5/6 implementados e verdes (Ranking de rede corrigido via isOfficialLancamento; pendência gerencial reconciliada aditivamente com a taxonomia de 22.3). AC-4 é verdadeiro no repositório mas depende de REL-001, confirmado ainda não resolvido em produção nesta validação. AC-7/8 implementados em escopo mínimo (log append-only + trigger + corte de horário puro testado), mas a superfície visível ao gestor (§11.3) não foi construída. Nenhum destes itens foi silenciado — todos documentados no Dev Notes/Change Log da story.'
+reviewer: 'Quinn'
+updated: '2026-07-15T00:00:00Z'
+top_issues:
+  - id: 'REL-001'
+    severity: high
+    finding: 'O trigger normalize_daily_closing_window em produção real ainda roda a versão com bug (força submission_status=on_time, zera penalizacao_atraso_aplicada/percentual_penalizacao_atraso incondicionalmente), aplicada 15:00 UTC de 14/07, antes do fix 552a9b40 (17:42 UTC). Nenhuma migration após 20260714150000 toca essa função — confirmado via grep nesta validação. Descoberto e documentado pela terceira vez consecutiva (22.1, 22.2, 22.5) sem correção.'
+    suggested_action: 'Não bloqueia esta story especificamente (decisão de @po registrada no Change Log v1.1: correção mecânica tratável como ação de infraestrutura paralela). MAS deve ser resolvido antes que qualquer penalização de atraso na Disciplina seja reportada a um vendedor real — recomenda-se abrir isso como ação de infra explícita para @data-engineer/@devops (nova migration CREATE OR REPLACE FUNCTION reaplicando 552a9b40), fora do fluxo formal de story, antes do próximo fechamento tardio real.'
+  - id: 'ARCH-002'
+    severity: medium
+    finding: 'Duas decisões de schema/arquitetura (rota de correção do Ranking de rede — filtro client-side vs. RPC nova; desenho do snapshot Agenda D+1 — log append-only vs. versionamento completo) foram tomadas diretamente por @dev nesta sessão, sem revisão por um agente @architect/@data-engineer separado, devido aos crashes repetidos de subagentes já documentados nas stories 22.1-22.4. Ambas as decisões estão documentadas com justificativa de blast radius no Dev Notes.'
+    suggested_action: 'Aceitar e prosseguir: ambas as escolhas minimizam raio de impacto (filtro client-side não toca RPCs compartilhadas por outros consumidores; log append-only nunca sobrescreve agendamentos). Revisão pós-hoc por @architect recomendada apenas se uma story futura precisar evoluir o snapshot para versionamento completo.'
+  - id: 'AGENDA-D1-UI-GAP'
+    severity: medium
+    finding: 'AC-7/AC-8 exigem que "o gerente deve enxergar a alteração tardia" (Spec §11.3). O log agenda_d1_late_changes existe, tem RLS permitindo leitura por manager/owner, e é preenchido corretamente pelo trigger (verificado via teste de migration), mas nenhum componente de UI (AgendaD1Panel.tsx ou outro) consome essa tabela ainda. O gestor não vê a alteração tardia hoje, apesar do dado existir.'
+    suggested_action: 'Story de acabamento (candidata a 22.6 ou uma story dedicada): adicionar um badge/indicador em AgendaD1Panel.tsx consumindo agenda_d1_late_changes por loja/data. Não bloqueante para Done desta story — o dado íntegro e auditável já existe, é uma lacuna de apresentação, não de integridade.'
+waiver: { active: false }

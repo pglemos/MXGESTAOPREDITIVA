@@ -366,15 +366,18 @@ export function CarteiraClientes() {
   const [filtrosAvancados, setFiltrosAvancados] = useState<FiltrosAvancados>({})
   const [modalOpen, setModalOpen] = useState(false)
   const [form, setForm] = useState<ClienteInput>(EMPTY_FORM)
+  const [saving, setSaving] = useState(false)
+  const [selectedId, setSelectedId] = useState<string | null>(() => {
+    const params = new URLSearchParams(typeof window === 'undefined' ? '' : window.location.search)
+    return params.get('cliente_id')
+  })
+  const [panelClosed, setPanelClosed] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(typeof window === 'undefined' ? '' : window.location.search)
     const busca = params.get('busca')
     if (busca) setSearch(busca)
   }, [])
-  const [saving, setSaving] = useState(false)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [panelClosed, setPanelClosed] = useState(false)
   const [cadenciaSaving, setCadenciaSaving] = useState(false)
   const [naoRespondeuCliente, setNaoRespondeuCliente] = useState<Cliente | null>(null)
   const [activeTab, setActiveTab] = useState<'ativa' | 'ataque'>('ativa')

@@ -1,30 +1,5 @@
-import { expect, test, describe, afterEach, mock } from "bun:test";
+import { expect, test, describe, afterEach } from "bun:test";
 import { render, screen, cleanup, fireEvent } from "@testing-library/react";
-import * as React from "react";
-
-const DialogContext = React.createContext<{ onOpenChange?: (open: boolean) => void }>({});
-
-mock.module("@radix-ui/react-dialog", () => ({
-  Root: ({ children, open, onOpenChange }: any) => {
-    if (!open) return null;
-    return React.createElement(DialogContext.Provider, { value: { onOpenChange } },
-      typeof children === "function" ? children({ open }) : children
-    );
-  },
-  Portal: ({ children }: any) => React.createElement(React.Fragment, null, children),
-  Overlay: (props: any) => React.createElement("div", { ...props, "data-testid": "overlay" }),
-  Content: ({ asChild, ...props }: any) => React.createElement("div", { ...props }),
-  Title: ({ asChild, ...props }: any) => React.createElement("div", { ...props }),
-  Description: ({ asChild, ...props }: any) => React.createElement("div", { ...props }),
-  Close: ({ children, asChild, ...props }: any) => {
-    const { onOpenChange } = React.useContext(DialogContext);
-    const handleClick = () => onOpenChange?.(false);
-    if (asChild && React.isValidElement(children)) {
-      return React.cloneElement(children as React.ReactElement<any>, { onClick: handleClick });
-    }
-    return React.createElement("button", { ...props, onClick: handleClick }, children);
-  },
-}));
 
 import { ModalTrigger } from "@/components/molecules/ModalTrigger";
 

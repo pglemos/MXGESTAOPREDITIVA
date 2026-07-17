@@ -154,6 +154,7 @@ quality_gate_tools:
 | 2026-07-13 | 1.1.0 | Development started (yolo mode) — Status: Ready → InProgress. | Dex (@dev) |
 | 2026-07-13 | 1.2.0 | Development complete — Status: InProgress → InReview. | Dex (@dev) |
 | 2026-07-13 | 1.2.1 | QA Gate PASS — Status: InReview → Done. | Quinn (@qa) |
+| 2026-07-14 | 1.3.0 | Correção de paridade: Início voltou a usar a constante Base44 de 3 agendamentos por venda, meta diária sobre vendas do dia e default de 22 dias úteis. | Dex (@dev) |
 
 ## Dev Agent Record
 

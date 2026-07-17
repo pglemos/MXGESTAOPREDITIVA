@@ -1,1 +1,1 @@
-export { CarteiraClientes as default } from '@/features/crm/CarteiraClientes.container'
+export { CarteiraClientesBase44Page as default } from '@/features/carteira-clientes/pages/CarteiraClientesBase44Page'

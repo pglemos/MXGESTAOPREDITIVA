@@ -14,9 +14,16 @@ describe('CheckinForm draft save contract', () => {
         expect(formSource).toContain('handleSaveDraft')
         expect(formSource).toContain('onClick={() => void handleSaveDraft()}')
         expect(pageHookSource).toContain('const handleSaveDraft = async () =>')
-        expect(pageHookSource).toContain('CHECKIN_DRAFT_STORAGE_PREFIX')
         expect(pageHookSource).toContain("toast.success('Rascunho salvo.')")
         expect(pageHookSource).not.toContain('const handleSaveDraft = async () => {\n        await submitCheckin()')
+    })
+
+    // MX-22.2 (FEV-DATA-05): rascunho grava de verdade (submission_status
+    // 'draft'), não mais localStorage — sobrevive a refresh/troca de aba.
+    test('persists the draft via saveCheckin(isDraft=true), not localStorage', () => {
+        expect(pageHookSource).toMatch(/saveCheckin\(\s*\n?\s*draftPayload,\s*\n?\s*metricScope,\s*\n?\s*selectedDate,\s*\n?\s*activeClosingContext\.mainDate,\s*\n?\s*true,?\s*\n?\s*\)/)
+        expect(pageHookSource).not.toContain('window.localStorage.setItem')
+        expect(pageHookSource).not.toContain('CHECKIN_DRAFT_STORAGE_PREFIX')
     })
 })
 
@@ -35,6 +42,15 @@ describe('Produção Zero — ação exclusiva no Histórico', () => {
         expect(headerSource).toContain('Confirmar Produção Zero')
         expect(headerSource).toContain('Regularizar')
         expect(headerSource).toContain('handleSelectRow(row)')
+    })
+})
+
+describe('Card de observações operacionais', () => {
+    test('não renderiza o card, textarea ou contador no fechamento diário', () => {
+        expect(formSource).not.toContain('Observações Operacionais')
+        expect(formSource).not.toContain('checkin-note')
+        expect(formSource).not.toContain('Digite suas observações...')
+        expect(formSource).not.toContain('caracteres')
     })
 })
 

@@ -59,6 +59,7 @@ describe('ManagerSellerProfileModal Base44 parity', () => {
     expect(screen.queryByRole('button', { name: 'Close' })).toBeNull()
     expect(screen.getByText('Álvaro Souza')).toBeTruthy()
     expect(screen.getByText('Composição do Status')).toBeTruthy()
+    expect(screen.getByText('Motivo:')).toBeTruthy()
     expect(screen.getByText('Consistência parcial — aguardando fechamentos oficiais.')).toBeTruthy()
     expect(screen.getByRole('tab', { name: 'Visão Geral' })).toBeTruthy()
     expect(screen.getByRole('tab', { name: 'Performance' })).toBeTruthy()
@@ -66,6 +67,8 @@ describe('ManagerSellerProfileModal Base44 parity', () => {
     expect(screen.getByRole('tab', { name: 'Feedbacks' })).toBeTruthy()
     expect(screen.getByRole('tab', { name: 'Treinamentos' })).toBeTruthy()
     expect(screen.getByText('Data da última venda')).toBeTruthy()
+    expect(screen.getByText('Próximo compromisso do PDI')).toBeTruthy()
+    expect(screen.getByText('Último acesso à Universidade MX')).toBeTruthy()
     expect(screen.getAllByText('—').length).toBeGreaterThan(0)
   })
 
@@ -73,19 +76,59 @@ describe('ManagerSellerProfileModal Base44 parity', () => {
     const actions = renderProfile({ vnd_total: 2, routine_execution: 80, discipline_score: 70 })
 
     fireEvent.click(screen.getByRole('tab', { name: 'Performance' }))
-    expect(screen.getByText('Vendas por canal')).toBeTruthy()
-    expect(screen.getByText('Atendimento anterior / Sem canal confirmado')).toBeTruthy()
+    expect(screen.getByText('Resultado por canal')).toBeTruthy()
+    expect(screen.getByText('Atendimento anterior / Sem canal')).toBeTruthy()
 
     fireEvent.click(screen.getByRole('tab', { name: 'Rotina' }))
-    expect(screen.getByText('Rotina do período')).toBeTruthy()
+    expect(screen.getByText('Execução verificada: 80%.')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Abrir Rotina da Equipe' }))
     expect(actions.onOpenRoutine).toHaveBeenCalledTimes(1)
 
     fireEvent.click(screen.getByRole('tab', { name: 'Feedbacks' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Abrir Feedbacks' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Novo Feedback' }))
     expect(actions.onOpenFeedback).toHaveBeenCalledTimes(1)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Registrar feedback' }))
+    fireEvent.click(screen.getAllByRole('button', { name: 'Registrar feedback' })[0])
     expect(actions.onOpenFeedback).toHaveBeenCalledTimes(2)
+  })
+
+  test('reproduz os painéis vazios observados no Base44 nas abas Rotina, Feedbacks e Treinamentos', () => {
+    renderProfile({ vnd_total: 2, meta: 5, routine_execution: null, discipline_score: null })
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Rotina' }))
+    expect(screen.getByText('Não há dados de rotina para o período selecionado.')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Abrir Rotina da Equipe' })).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Feedbacks' }))
+    expect(screen.getByRole('button', { name: 'Novo Feedback' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Ver histórico completo' })).toBeTruthy()
+    expect(screen.getByText('PDI ativo')).toBeTruthy()
+    expect(screen.getByText('Histórico de feedbacks')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Treinamentos' }))
+    expect(screen.getAllByRole('button', { name: 'Recomendar treinamento' })).toHaveLength(2)
+    expect(screen.getByRole('button', { name: 'Ver acompanhamento completo' })).toBeTruthy()
+    expect(screen.getByText('Acompanhamento de treinamentos')).toBeTruthy()
+    expect(screen.getByText('Nenhum treinamento atribuído a este vendedor.')).toBeTruthy()
+  })
+
+  test('mantém os nomes completos das abas e a troca de período da Performance do Base44', () => {
+    renderProfile({ vnd_total: 2, meta: 5, routine_execution: null, discipline_score: null })
+
+    expect(screen.queryByText('Geral')).toBeNull()
+    expect(screen.queryByText('Feedback')).toBeNull()
+    expect(screen.queryByText('Trilha')).toBeNull()
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Performance' }))
+
+    const monthButton = screen.getByRole('button', { name: 'Mês atual' })
+    const quarterButton = screen.getByRole('button', { name: 'Últimos 3 meses' })
+    expect(monthButton.getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByText('Atendimento anterior / Sem canal')).toBeTruthy()
+    expect(screen.queryByText('Atendimento anterior / Sem canal confirmado')).toBeNull()
+
+    fireEvent.click(quarterButton)
+    expect(quarterButton.getAttribute('aria-pressed')).toBe('true')
+    expect(monthButton.getAttribute('aria-pressed')).toBe('false')
   })
 })

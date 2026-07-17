@@ -18,6 +18,17 @@ type LancamentoRow = {
     vnd_cart_prev_day?: number | null
     vnd_net_prev_day?: number | null
     visit_prev_day?: number | null
+    submission_status?: string | null
+}
+
+// MX-22.5 (AC-2; Spec §10.2/FEV-DATA-11): rascunho (submission_status='draft')
+// já é metric_scope='daily' desde a 22.2, então some sem esse filtro é
+// contabilizado no Ranking de rede antes do vendedor finalizar o fechamento.
+// Mesmo filtro aplicado tanto no caminho RPC (get_lancamentos_rede_periodo/
+// get_lancamentos_referencia_dia, retornam a linha inteira) quanto no SELECT
+// direto legado (que agora também busca submission_status).
+export function isOfficialLancamento(row: { submission_status?: string | null }): boolean {
+    return row.submission_status !== 'draft'
 }
 
 type OfficialPerformanceRow = {
@@ -282,7 +293,7 @@ export function useGlobalRanking() {
                 p_scope: 'daily',
             })).then(({ result }) => result)
             : supabase.from('lancamentos_diarios')
-                .select('seller_user_id, store_id, reference_date, leads_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day')
+                .select('seller_user_id, store_id, reference_date, leads_prev_day, agd_cart_today, agd_net_today, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, visit_prev_day, submission_status')
                 .eq('metric_scope', 'daily')
                 .gte('reference_date', startOfMonth)
         const todayCheckinsPromise = useRpc
@@ -291,7 +302,7 @@ export function useGlobalRanking() {
                 p_scope: 'daily',
             })).then(({ result }) => result)
             : supabase.from('lancamentos_diarios')
-                .select('seller_user_id, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day')
+                .select('seller_user_id, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, submission_status')
                 .eq('metric_scope', 'daily')
                 .eq('reference_date', dias.referencia)
 
@@ -312,10 +323,10 @@ export function useGlobalRanking() {
             setLoading(false)
             return
         }
-        const checkins = checkinsRes.data
+        const checkins = (checkinsRes.data as LancamentoRow[] | null)?.filter(isOfficialLancamento) ?? null
         const tenures = tenuresRes.data
         const rules = rulesRes.data
-        const todayCheckins = todayCheckinsRes.data
+        const todayCheckins = (todayCheckinsRes.data as LancamentoRow[] | null)?.filter(isOfficialLancamento) ?? null
 
         if (!checkins || !tenures) { setLoading(false); return }
 
@@ -430,7 +441,7 @@ export function useStorePerformance() {
                 p_scope: 'daily',
             })).then(({ result }) => result)
             : supabase.from('lancamentos_diarios')
-                .select('store_id, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day')
+                .select('store_id, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day, submission_status')
                 .eq('metric_scope', 'daily')
                 .gte('reference_date', startOfMonth)
         const perfTodayPromise = useRpc2
@@ -439,7 +450,7 @@ export function useStorePerformance() {
                 p_scope: 'daily',
             })).then(({ result }) => result)
             : supabase.from('lancamentos_diarios')
-                .select('store_id, seller_user_id')
+                .select('store_id, seller_user_id, submission_status')
                 .eq('metric_scope', 'daily')
                 .eq('reference_date', dias.referencia)
 
@@ -460,9 +471,9 @@ export function useStorePerformance() {
         }
         const lojas = lojasRes.data
         const rules = rulesRes.data
-        const checkins = (checkinsRes.data || []) as LancamentoRow[]
+        const checkins = ((checkinsRes.data || []) as LancamentoRow[]).filter(isOfficialLancamento)
         const sellers = sellersRes.data
-        const yesterdayCheckins = (yesterdayCheckinsRes.data || []) as LancamentoRow[]
+        const yesterdayCheckins = ((yesterdayCheckinsRes.data || []) as LancamentoRow[]).filter(isOfficialLancamento)
 
         if (!lojas) { setLoading(false); return }
 

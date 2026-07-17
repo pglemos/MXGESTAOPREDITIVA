@@ -25,4 +25,12 @@ describe('submit_checkin operational date hardening migration', () => {
     expect(migration).toContain('pontuacao_disciplina_final')
     expect(migration).not.toContain('Prazo oficial encerrado às 09h30')
   })
+
+  // MX-22.2 (AC-8; Spec §6 Proibição): salvar/rascunhar D0 nunca pode zerar
+  // D-1. A chave do ON CONFLICT inclui reference_date, então um upsert de D0
+  // (reference_date = hoje) estruturalmente não pode casar com — e portanto
+  // nunca sobrescreve — a linha de D-1 (reference_date = ontem).
+  test('upsert é escopado por reference_date — salvar D0 não pode casar/zerar a linha de D-1', () => {
+    expect(migration).toContain('ON CONFLICT (seller_user_id, store_id, reference_date, metric_scope)')
+  })
 })

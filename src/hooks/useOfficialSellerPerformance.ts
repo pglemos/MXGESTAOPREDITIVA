@@ -40,6 +40,13 @@ export function useOfficialSellerPerformance(startDate: string, endDate: string,
   const [error, setError] = useState<string | null>(null)
 
   const fetchPerformance = useCallback(async () => {
+    if (!storeId) {
+      setRows([])
+      setError(null)
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
     const { data, error: rpcError } = await supabase.rpc('vendedor_performance_oficial', {
       p_start_date: startDate,

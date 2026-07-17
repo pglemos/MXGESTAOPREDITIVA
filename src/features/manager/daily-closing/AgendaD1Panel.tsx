@@ -1,4 +1,706 @@
-export {
-  AgendaD1Panel,
-  type AgendaD1PanelProps,
-} from "./AgendaD1PanelBase44";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { addDays, format, parseISO } from "date-fns";
+import {
+  CalendarClock,
+  CalendarDays,
+  CheckCircle,
+  ChevronDown,
+  Filter,
+  MessageCircle,
+  Phone,
+  Search,
+} from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { toast } from "@/lib/toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useNotifications } from "@/hooks/useData";
+import { Skeleton } from "@/components/atoms/Skeleton";
+import { Modal } from "@/components/organisms/Modal";
+import {
+  AGENDA_CANAL_LABEL,
+  AGENDA_D1_DEFAULT_FILTERS,
+  AGENDA_STATUS_LABEL,
+  AGENDA_TIPO_LABEL,
+  CONFIRMATION_OUTCOMES,
+  buildWhatsappMessage,
+  buildWhatsappUrl,
+  dedupeActiveAppointments,
+  extractMeetLink,
+  filterAgenda,
+  normalizePhoneBr,
+  type AgendaD1Filters,
+  type AgendaD1Row,
+  type ConfirmationOutcome,
+} from "./agenda-d1";
+
+interface SellerOption {
+  id: string;
+  name: string;
+}
+
+export interface AgendaD1PanelProps {
+  open: boolean;
+  onClose: () => void;
+  referenceDate: string;
+  sellers: SellerOption[];
+  initialSellerId?: string;
+}
+
+/**
+ * Agenda D+1 do gerente. Origem canônica: agendamentos do CRM/carteira.
+ * O gerente não altera a agenda do vendedor: contatos e confirmações são
+ * registrados em d1_audit_log e reagendamento/cancelamento notifica o vendedor.
+ */
+export function AgendaD1Panel({
+  open,
+  onClose,
+  referenceDate,
+  sellers,
+  initialSellerId,
+}: AgendaD1PanelProps) {
+  const { storeId, profile, membership } = useAuth();
+  const { sendNotification } = useNotifications();
+  const d1Date = useMemo(
+    () => format(addDays(parseISO(referenceDate), 1), "yyyy-MM-dd"),
+    [referenceDate],
+  );
+  const [rows, setRows] = useState<AgendaD1Row[]>([]);
+  const [lastContactByCliente, setLastContactByCliente] = useState<
+    Map<string, string>
+  >(new Map());
+  const [lastStatusByCliente, setLastStatusByCliente] = useState<
+    Map<string, string>
+  >(new Map());
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<AgendaD1Filters>({
+    ...AGENDA_D1_DEFAULT_FILTERS,
+    sellerId: initialSellerId || "all",
+  });
+  const [confirmationStatus, setConfirmationStatus] = useState("all");
+  const [search, setSearch] = useState("");
+  const [confirming, setConfirming] = useState<{
+    rowId: string;
+    outcome: ConfirmationOutcome | "";
+    note: string;
+  } | null>(null);
+  const [confirmMenuRowId, setConfirmMenuRowId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setFilters({
+        ...AGENDA_D1_DEFAULT_FILTERS,
+        sellerId: initialSellerId || "all",
+      });
+      setConfirmationStatus("all");
+      setSearch("");
+      setConfirmMenuRowId(null);
+      setConfirming(null);
+    }
+  }, [open, initialSellerId]);
+
+  const fetchAgenda = useCallback(async () => {
+    if (!storeId || !open) return;
+    setLoading(true);
+    setError(null);
+    const { data, error: fetchError } = await supabase
+      .from("agendamentos")
+      .select(
+        "id, data_hora, canal, tipo, status, observacoes, seller_user_id, cliente:clientes(id, nome, telefone, telefone_normalizado, ultima_interacao), oportunidade:oportunidades(veiculo_interesse)",
+      )
+      .eq("loja_id", storeId)
+      .gte("data_hora", `${d1Date}T00:00:00-03:00`)
+      .lte("data_hora", `${d1Date}T23:59:59-03:00`)
+      .order("data_hora");
+    if (fetchError) {
+      setError(fetchError.message);
+      setRows([]);
+      setLoading(false);
+      return;
+    }
+    const active = dedupeActiveAppointments(
+      (data || []) as unknown as AgendaD1Row[],
+    );
+    setRows(active);
+    const clienteIds = active
+      .map((item) => item.cliente?.id)
+      .filter((id): id is string => Boolean(id));
+    if (clienteIds.length) {
+      const { data: logs } = await supabase
+        .from("d1_audit_log")
+        .select("cliente_id, created_at, tipo_alteracao, valor_novo")
+        .in("cliente_id", clienteIds)
+        .order("created_at", { ascending: false });
+      const map = new Map<string, string>();
+      const statusMap = new Map<string, string>();
+      for (const log of logs || []) {
+        if (log.cliente_id && !map.has(log.cliente_id)) {
+          map.set(log.cliente_id, log.created_at);
+          statusMap.set(
+            log.cliente_id,
+            normalizeManagerConfirmationStatus(
+              log.tipo_alteracao,
+              log.valor_novo,
+            ),
+          );
+        }
+      }
+      setLastContactByCliente(map);
+      setLastStatusByCliente(statusMap);
+    } else {
+      setLastContactByCliente(new Map());
+      setLastStatusByCliente(new Map());
+    }
+    setLoading(false);
+  }, [storeId, open, d1Date]);
+
+  useEffect(() => {
+    void fetchAgenda();
+  }, [fetchAgenda]);
+
+  const sellerNameById = useMemo(
+    () => new Map(sellers.map((seller) => [seller.id, seller.name])),
+    [sellers],
+  );
+  const visible = useMemo(() => {
+    const normalizedSearch = search.trim().toLocaleLowerCase("pt-BR");
+    return filterAgenda(rows, {
+      ...filters,
+      status: "all",
+      periodo: "all",
+    }).filter((row) => {
+      const managerStatus = row.cliente
+        ? lastStatusByCliente.get(row.cliente.id) || "Pendente"
+        : "Pendente";
+      if (confirmationStatus !== "all" && managerStatus !== confirmationStatus)
+        return false;
+      if (!normalizedSearch) return true;
+      return [
+        row.cliente?.nome,
+        row.oportunidade?.veiculo_interesse,
+        format(parseISO(row.data_hora), "HH:mm"),
+      ].some((value) =>
+        value?.toLocaleLowerCase("pt-BR").includes(normalizedSearch),
+      );
+    });
+  }, [rows, filters, search, confirmationStatus, lastStatusByCliente]);
+
+  const registerLog = useCallback(
+    async (
+      row: AgendaD1Row,
+      tipoAlteracao: string,
+      valorAnterior: string | null,
+      valorNovo: string,
+    ) => {
+      if (!profile?.id) return { error: "Sessão inválida." };
+      const { error: insertError } = await supabase
+        .from("d1_audit_log")
+        .insert({
+          usuario_id: profile.id,
+          usuario_nome: profile.name || null,
+          cliente_id: row.cliente?.id || null,
+          tipo_alteracao: tipoAlteracao,
+          valor_anterior: valorAnterior,
+          valor_novo: valorNovo,
+        });
+      if (insertError) return { error: insertError.message };
+      if (row.cliente?.id) {
+        setLastContactByCliente((prev) =>
+          new Map(prev).set(row.cliente!.id, new Date().toISOString()),
+        );
+        setLastStatusByCliente((prev) =>
+          new Map(prev).set(
+            row.cliente!.id,
+            normalizeManagerConfirmationStatus(tipoAlteracao, valorNovo),
+          ),
+        );
+      }
+      return { error: null };
+    },
+    [profile?.id, profile?.name],
+  );
+
+  const openWhatsapp = useCallback(
+    async (row: AgendaD1Row) => {
+      const phone = normalizePhoneBr(
+        row.cliente?.telefone_normalizado || row.cliente?.telefone,
+      );
+      if (!phone || !row.cliente) {
+        toast.error("Cliente sem telefone válido para WhatsApp.");
+        return;
+      }
+      const message = buildWhatsappMessage({
+        clienteNome: row.cliente.nome,
+        tipo: row.tipo,
+        dataHora: row.data_hora,
+        lojaNome: membership?.store?.name || null,
+        meetLink: extractMeetLink(row.observacoes),
+      });
+      window.open(buildWhatsappUrl(phone, message), "_blank", "noopener");
+      const results = await Promise.all([
+        registerLog(
+          row,
+          "agenda_d1_whatsapp",
+          AGENDA_STATUS_LABEL[row.status],
+          "WhatsApp aberto pelo gerente",
+        ),
+        storeId && profile?.id
+          ? supabase
+              .from("logs_compartilhamento_whatsapp")
+              .insert({
+                store_id: storeId,
+                user_id: profile.id,
+                message_text: message,
+                reference_date: d1Date,
+                shared_via: "whatsapp",
+                source: "agenda_d1_gerente",
+              })
+              .then((result) => ({ error: result.error?.message || null }))
+          : Promise.resolve({ error: null }),
+      ]);
+      const failure = results.find((result) => result.error);
+      if (failure?.error)
+        toast.error(`Contato aberto, mas o log falhou: ${failure.error}`);
+      else toast.success("WhatsApp aberto e contato registrado.");
+    },
+    [membership?.store?.name, registerLog, storeId, profile?.id, d1Date],
+  );
+
+  const callPhone = useCallback(
+    async (row: AgendaD1Row) => {
+      const phone = normalizePhoneBr(
+        row.cliente?.telefone_normalizado || row.cliente?.telefone,
+      );
+      if (!phone) {
+        toast.error("Cliente sem telefone válido.");
+        return;
+      }
+      window.location.href = `tel:+${phone}`;
+      const { error: logError } = await registerLog(
+        row,
+        "agenda_d1_telefone",
+        AGENDA_STATUS_LABEL[row.status],
+        "Ligação iniciada pelo gerente",
+      );
+      if (logError)
+        toast.error(`Ligação iniciada, mas o log falhou: ${logError}`);
+      else toast.success("Ligação registrada.");
+    },
+    [registerLog],
+  );
+
+  const saveConfirmation = useCallback(
+    async (row: AgendaD1Row, outcome: ConfirmationOutcome, note = "") => {
+      if (outcome === "Outro" && !note.trim()) {
+        toast.error('Descreva a observação para o resultado "Outro".');
+        return;
+      }
+      setSaving(true);
+      const valorNovo = note.trim()
+        ? `${outcome} — ${note.trim()}`
+        : outcome;
+      const { error: logError } = await registerLog(
+        row,
+        "agenda_d1_confirmacao",
+        AGENDA_STATUS_LABEL[row.status],
+        valorNovo,
+      );
+      if (logError) {
+        toast.error(`Não foi possível registrar: ${logError}`);
+        setSaving(false);
+        return;
+      }
+      if (
+        outcome === "Solicitou reagendamento" ||
+        outcome === "Cancelou"
+      ) {
+        const { error: notificationError } = await sendNotification({
+          recipient_id: row.seller_user_id,
+          store_id: storeId || undefined,
+          title:
+            outcome === "Cancelou"
+              ? "Cliente cancelou agendamento D+1"
+              : "Cliente pediu reagendamento (D+1)",
+          message: `${row.cliente?.nome || "Cliente"} — ${format(parseISO(row.data_hora), "dd/MM HH:mm")}. ${valorNovo}. A agenda original não foi alterada: atualize pela Carteira.`,
+          type: "agenda",
+          priority: "high",
+          link: "/carteira",
+        });
+        if (notificationError)
+          toast.error("Registro salvo, mas o aviso ao vendedor falhou.");
+      }
+      toast.success("Contato registrado na auditoria D+1.");
+      setConfirming(null);
+      setSaving(false);
+    },
+    [registerLog, sendNotification, storeId],
+  );
+
+  const confirmationRow = confirming
+    ? rows.find((row) => row.id === confirming.rowId) || null
+    : null;
+
+  const filterSelectClass = "w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500";
+
+  return (
+    <>
+    <Modal
+      open={open}
+      onClose={onClose}
+      size="3xl"
+      className="sm:!max-w-[1152px]"
+      referenceStyle
+      title="Agenda D+1"
+      description="Clientes agendados para amanhã a partir dos fechamentos da equipe."
+    >
+      <div className="space-y-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <span className="inline-block rounded-[8px] bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700">Agenda D+1 parcial</span>
+            <p className="mt-1 text-xs text-gray-400">
+              Atualizada em tempo real até o encerramento da janela de ajuste.
+            </p>
+          </div>
+          <p className="inline-flex items-center gap-1 text-xs text-gray-500">
+            <CalendarClock size={13} />
+            Data D+1:{" "}
+            <strong className="text-gray-700">
+              {format(parseISO(d1Date), "dd/MM/yyyy")}
+            </strong>
+          </p>
+        </div>
+        <div
+          className="rounded-2xl bg-gray-50 p-4 space-y-3"
+          role="group"
+          aria-label="Filtros da Agenda D+1"
+        >
+          <div className="flex items-center gap-2 text-xs font-semibold text-gray-600">
+            <Filter size={14} />
+            Filtros
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <select
+              aria-label="Vendedor"
+              className={filterSelectClass}
+              value={filters.sellerId}
+              onChange={(event) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  sellerId: event.target.value,
+                }))
+              }
+            >
+              <option value="all">Vendedor</option>
+              {sellers.map((seller) => (
+                <option key={seller.id} value={seller.id}>
+                  {seller.name}
+                </option>
+              ))}
+            </select>
+            <select
+              aria-label="Canal"
+              className={filterSelectClass}
+              value={filters.canal}
+              onChange={(event) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  canal: event.target.value as AgendaD1Filters["canal"],
+                }))
+              }
+            >
+              <option value="all">Canal</option>
+              {Object.entries(AGENDA_CANAL_LABEL).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            <select
+              aria-label="Tipo de agendamento"
+              className={filterSelectClass}
+              value={filters.tipo}
+              onChange={(event) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  tipo: event.target.value as AgendaD1Filters["tipo"],
+                }))
+              }
+            >
+              <option value="all">Tipo de agendamento</option>
+              {Object.entries(AGENDA_TIPO_LABEL).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label === "Visita" ? "Visita Presencial" : label}
+                </option>
+              ))}
+            </select>
+            <select
+              aria-label="Status de confirmação"
+              className={filterSelectClass}
+              value={confirmationStatus}
+              onChange={(event) => setConfirmationStatus(event.target.value)}
+            >
+              <option value="all">Status de confirmação</option>
+              {[
+                "Pendente",
+                "WhatsApp aberto",
+                "Reforço enviado",
+                "Confirmado",
+                "Sem resposta",
+                "Solicitou reagendamento",
+                "Cancelou",
+              ].map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+            <div className="relative">
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                size={14}
+              />
+              <input
+                aria-label="Buscar agenda D+1"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar (cliente, veículo, horário)..."
+                className={`${filterSelectClass} pl-8`}
+              />
+            </div>
+          </div>
+        </div>
+        {error && (
+          <div className="rounded-[12px] border border-red-200 bg-red-50 p-4">
+            <p className="text-sm text-red-700">
+              Não foi possível carregar a Agenda D+1: {error}
+            </p>
+            <button
+              type="button"
+              className="mt-3 rounded-[8px] border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+              onClick={() => void fetchAgenda()}
+            >
+              Tentar novamente
+            </button>
+          </div>
+        )}
+        {loading ? (
+          <div className="space-y-mx-sm" aria-busy="true">
+            <Skeleton className="h-mx-12" />
+            <Skeleton className="h-mx-12" />
+            <Skeleton className="h-mx-12" />
+          </div>
+        ) : visible.length === 0 ? (
+          <div className="grid min-h-[220px] place-items-center p-mx-xl text-center">
+            <div>
+              <CalendarDays size={42} className="mx-auto text-border-default" />
+              <p className="mt-3 text-sm text-gray-500">
+                {rows.length === 0
+                  ? "Nenhum cliente agendado para D+1."
+                  : "Nenhum agendamento corresponde aos filtros."}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="overflow-x-auto rounded-2xl border border-gray-100">
+            <table className="w-full text-sm">
+              <thead className="border-b border-gray-100 bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <tr>
+                  {[
+                    "Horário",
+                    "Cliente",
+                    "Telefone",
+                    "Veículo",
+                    "Canal",
+                    "Vendedor",
+                    "Tipo",
+                    "Status",
+                    "Últ. contato",
+                    "Ações",
+                  ].map((label) => (
+                    <th
+                      key={label}
+                      className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500"
+                    >
+                      {label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {visible.map((row) => {
+                  const lastContact = row.cliente
+                    ? lastContactByCliente.get(row.cliente.id) ||
+                      row.cliente.ultima_interacao
+                    : null;
+                  const managerConfirmationStatus = row.cliente
+                    ? lastStatusByCliente.get(row.cliente.id) || "Pendente"
+                    : "Pendente";
+                  return (
+                    <FragmentRow key={row.id}>
+                      <tr className="align-top bg-white transition-colors hover:bg-gray-50">
+                        <td className="whitespace-nowrap px-4 py-3 font-medium text-gray-800">
+                          {format(parseISO(row.data_hora), "HH:mm")}
+                        </td>
+                        <td className="px-4 py-3 text-gray-800">
+                          {row.cliente?.nome || "—"}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-gray-600">
+                          {row.cliente?.telefone || "—"}
+                        </td>
+                        <td className="px-4 py-3 text-gray-600">
+                          {row.oportunidade?.veiculo_interesse || "—"}
+                        </td>
+                        <td className="px-4 py-3 text-gray-600">
+                          {row.canal ? AGENDA_CANAL_LABEL[row.canal] : "—"}
+                        </td>
+                        <td className="px-4 py-3 text-gray-600">
+                          {sellerNameById.get(row.seller_user_id) ||
+                            "Vendedor da equipe"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="rounded-lg bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700">
+                            {AGENDA_TIPO_LABEL[row.tipo] === "Visita"
+                              ? "Visita Presencial"
+                              : AGENDA_TIPO_LABEL[row.tipo]}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`rounded-lg px-2 py-1 text-xs font-medium ${confirmationStatusClass(managerConfirmationStatus)}`}>
+                            {managerConfirmationStatus}
+                          </span>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-gray-500">
+                          {lastContact
+                            ? format(parseISO(lastContact), "dd/MM HH:mm")
+                            : "—"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              className="flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
+                              aria-label={`WhatsApp para ${row.cliente?.nome || "cliente"}`}
+                              onClick={() => void openWhatsapp(row)}
+                            >
+                              <MessageCircle size={13} /> WhatsApp
+                            </button>
+                            <button
+                              type="button"
+                              className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100"
+                              aria-label={`Ligar para ${row.cliente?.nome || "cliente"}`}
+                              onClick={() => void callPhone(row)}
+                            >
+                              <Phone size={13} /> Telefone
+                            </button>
+                            <div className="relative">
+                              <button
+                                type="button"
+                                className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
+                                onClick={() => setConfirmMenuRowId((current) => current === row.id ? null : row.id)}
+                              >
+                                <CheckCircle size={13} /> Confirmar <ChevronDown size={12} />
+                              </button>
+                              {confirmMenuRowId === row.id && (
+                                <>
+                                  <button type="button" aria-label="Fechar opções de confirmação" className="fixed inset-0 z-40 cursor-default" onClick={() => setConfirmMenuRowId(null)} />
+                                  <div className="absolute right-0 top-full z-50 mt-1 min-w-[210px] rounded-[12px] border border-gray-200 bg-white py-1 shadow-lg">
+                                    {CONFIRMATION_OUTCOMES.map((outcome) => (
+                                      <button
+                                        key={outcome}
+                                        type="button"
+                                        className="block w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700"
+                                        onClick={() => {
+                                          setConfirmMenuRowId(null);
+                                          if (outcome === "Outro") setConfirming({ rowId: row.id, outcome, note: "" });
+                                          else void saveConfirmation(row, outcome);
+                                        }}
+                                      >
+                                        {outcome}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    </FragmentRow>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <p className="block text-xs text-gray-500">
+          A Carteira de Clientes permanece a base oficial. O gerente não altera
+          o agendamento original: apenas confirma com o cliente e registra o
+          status gerencial de confirmação.
+        </p>
+      </div>
+    </Modal>
+    <Modal
+      open={Boolean(confirmationRow && confirming)}
+      onClose={() => setConfirming(null)}
+      size="sm"
+      referenceStyle
+      title="Confirmar agendamento — Outro"
+    >
+      {confirmationRow && confirming && <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <ConfirmationInfo label="Cliente" value={confirmationRow.cliente?.nome || "—"} />
+          <ConfirmationInfo label="Vendedor" value={sellerNameById.get(confirmationRow.seller_user_id) || "—"} />
+          <ConfirmationInfo label="Tipo de agendamento" value={AGENDA_TIPO_LABEL[confirmationRow.tipo] || "—"} />
+          <ConfirmationInfo label="Data / Horário" value={format(parseISO(confirmationRow.data_hora), "dd/MM/yyyy HH:mm")} />
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-gray-600" htmlFor="agenda-other-status">Status da confirmação</label>
+          <select id="agenda-other-status" value="Outro" disabled className="w-full rounded-[12px] border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700"><option>Outro</option></select>
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-gray-600" htmlFor="agenda-other-note">Descreva a situação *</label>
+          <textarea id="agenda-other-note" rows={3} value={confirming.note} onChange={(event) => setConfirming((current) => current ? { ...current, note: event.target.value } : current)} placeholder="Observações gerenciais (opcional)..." className="w-full resize-none rounded-[12px] border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </div>
+        <div className="flex justify-end gap-2 pt-1">
+          <button type="button" onClick={() => setConfirming(null)} className="rounded-[12px] px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">Cancelar</button>
+          <button type="button" disabled={saving} onClick={() => void saveConfirmation(confirmationRow, "Outro", confirming.note)} className="rounded-[12px] bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-40">{saving ? "Salvando..." : "Registrar"}</button>
+        </div>
+      </div>}
+    </Modal>
+    </>
+  );
+}
+
+function FragmentRow({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
+}
+
+function ConfirmationInfo({ label, value }: { label: string; value: string }) {
+  return <div className="rounded-[12px] bg-gray-50 p-3"><p className="mb-0.5 text-xs text-gray-500">{label}</p><p className="font-medium text-gray-800">{value}</p></div>;
+}
+
+function normalizeManagerConfirmationStatus(
+  tipo: string | null,
+  value: string | null,
+) {
+  if (tipo === "agenda_d1_whatsapp") return "WhatsApp aberto";
+  if (!value) return "Pendente";
+  return (
+    ["Confirmado", "Sem resposta", "Solicitou reagendamento", "Cancelou"].find(
+      (status) => value.startsWith(status),
+    ) || "Reforço enviado"
+  );
+}
+
+function confirmationStatusClass(status: string) {
+  return {
+    "Pendente": "bg-amber-100 text-amber-700",
+    "WhatsApp aberto": "bg-blue-100 text-blue-700",
+    "Reforço enviado": "bg-indigo-100 text-indigo-700",
+    "Confirmado": "bg-emerald-100 text-emerald-700",
+    "Sem resposta": "bg-gray-200 text-gray-600",
+    "Solicitou reagendamento": "bg-orange-100 text-orange-700",
+    "Cancelou": "bg-red-100 text-red-700",
+  }[status] || "bg-gray-100 text-gray-600";
+}

@@ -771,12 +771,12 @@ export default function ManagerDailyClosing() {
           open={regularizationsOpen}
           requests={pendingRequests as unknown as RegularizationRequest[]}
           onClose={() => setRegularizationsOpen(false)}
-          onApprove={async (request, comment) => {
-            await decide(request as ManagerCorrectionRequest, "approve", comment);
+          onApprove={async (request) => {
+            await decide(request as ManagerCorrectionRequest, "approve", "");
             setRegularizationsOpen(false);
           }}
-          onReject={async (request, reason) => {
-            await decide(request as ManagerCorrectionRequest, "reject", reason);
+          onReject={async (request) => {
+            await decide(request as ManagerCorrectionRequest, "reject", "");
             setRegularizationsOpen(false);
           }}
         />

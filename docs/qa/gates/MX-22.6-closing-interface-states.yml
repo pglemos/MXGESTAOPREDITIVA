@@ -1,0 +1,8 @@
+schema: 1
+story: 'MX-22.6'
+gate: PASS
+status_reason: 'Único gap real de código (sem conexão, #17 de 18 estados de §13) implementado e testado. Os 17 estados restantes confirmados como REUSE já testado por stories anteriores (22.1-22.5) ou pré-existente, verificado linha a linha contra o código real. "Conflito de versão" documentado como gap sem mecanismo especificado no spec — decisão consciente de não inventar (Artigo IV), não uma pendência de qualidade.'
+reviewer: 'Quinn'
+updated: '2026-07-15T00:00:00Z'
+top_issues: []
+waiver: { active: false }

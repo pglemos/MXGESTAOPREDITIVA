@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import moment from "moment";
 import { TODOS_PASSOS, detectarCodigo } from "./proximoPassoLib";
+import { toast } from "@/components/ui/use-toast";
 
 // Monta mapa de objetivo a partir da biblioteca
 const OBJETIVO_MAP = Object.fromEntries(TODOS_PASSOS.map(p => [p.label, p.objetivo]));
@@ -83,7 +84,6 @@ export default function AlterarProximoPasso({ open, onClose, cliente, pendencias
   async function salvar() {
     if (!podeSalvar) return;
     setSalvando(true);
-
     const passoAnterior = cliente.proximo_passo || "—";
     const dataFinal = dataSalvar;
     const dataHoraFinal = dataFinal && horario
@@ -98,12 +98,9 @@ export default function AlterarProximoPasso({ open, onClose, cliente, pendencias
       proxima_acao_data: dataHoraFinal,
     };
 
-    // Caso especial: visita agendada — não substituir data da visita
     if (passo === "Confirmar visita" && !cliente.visita_agendada_em && dataHoraFinal) {
       update.visita_agendada_em = dataHoraFinal;
     }
-
-    await base44.entities.CarteiraCliente.update(cliente.id, update);
 
     const descHistorico = [
       `Próximo passo alterado.`,
@@ -113,17 +110,27 @@ export default function AlterarProximoPasso({ open, onClose, cliente, pendencias
       observacao ? `Obs: ${observacao}` : "",
     ].filter(Boolean).join(" | ");
 
-    await base44.entities.CarteiraHistorico.create({
-      cliente_id: cliente.id,
-      vendedor_id: cliente.vendedor_id,
+    update.historico = {
       tipo: "Próximo passo alterado",
       descricao: descHistorico,
       resultado: update.proximo_passo,
-    });
+    };
 
-    const atualizado = { ...cliente, ...update };
-    setSalvando(false);
-    onSalvo(atualizado);
+    let persistido;
+    try {
+      persistido = await base44.entities.CarteiraCliente.update(cliente.id, update);
+    } catch (error) {
+      toast({
+        title: "Não foi possível alterar o próximo passo.",
+        description: "Os campos foram preservados. Tente novamente.",
+        variant: "destructive",
+      });
+      return;
+    } finally {
+      setSalvando(false);
+    }
+
+    onSalvo(persistido);
   }
 
   if (!cliente) return null;

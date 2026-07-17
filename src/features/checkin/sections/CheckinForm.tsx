@@ -128,7 +128,6 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
     funnelError,
     inputError,
     minutesUntilEditLock,
-    declaredAllZero,
     hasCrmActivity,
     saveNotice,
     mandatoryFeedbackActionsCount,
@@ -173,7 +172,6 @@ export function CheckinForm({ ctx, totalsAgd, totalsVnd, onOpenHistory }: Checki
     const readValue = (field: NumericCheckinField) =>
         Number(declaredForm[field] ?? form[field] ?? 0)
 
-    const productionZeroActive = declaredAllZero
     const display = declaredProgressTotals
 
   const showCrmBadge = !historicalCheckin && crmDerived.hasCrmData
@@ -387,41 +385,6 @@ Confirmar Internet
                     Conclua a ação na Central ou registre uma justificativa antes de finalizar o fechamento.
                   </Typography>
                 </div>
-              </div>
-            </Card>
-          )}
-
-          {(productionZeroActive || mandatoryFeedbackActionsCount > 0) && (
-            <Card className="space-y-2 rounded-[16px] border border-[#DFE0E1] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-              <label htmlFor="checkin-note" className="block text-sm font-bold text-[#071822]">
-                Observações Operacionais {productionZeroActive || mandatoryFeedbackActionsCount > 0 ? '(Obrigatório)' : '(Opcional)'}
-              </label>
-              <Typography variant="p" tone="muted" className="text-xs">
-                Descreva aqui eventos críticos, aprendizados e detalhes relevantes do dia.
-              </Typography>
-              <textarea
-                id="checkin-note"
-                name="note"
-                value={form.note}
-                onChange={event => updateField('note', event.target.value)}
-                disabled={fechamentoConcluido}
-                maxLength={300}
-                aria-invalid={Boolean(fieldErrors.note)}
-                aria-describedby={fieldErrors.note ? 'checkin-error-note' : undefined}
-                placeholder="Digite suas observações..."
-                className="min-h-[76px] w-full resize-none rounded-xl border border-[#DFE0E1] bg-white p-3 text-sm text-[#071822] outline-none transition-all placeholder:text-[#526B7A] focus:border-[#00A89D] focus:ring-4 focus:ring-[#00A89D]/10"
-              />
-              <div className="flex items-center justify-between">
-                {fieldErrors.note ? (
-                  <Typography id="checkin-error-note" variant="tiny" tone="error" className="font-semibold">
-                    {fieldErrors.note}
-                  </Typography>
-                ) : (
-                  <span />
-                )}
-                <Typography variant="mono" tone="muted" className="text-mx-tiny">
-                  {form.note.length}/300 caracteres
-</Typography>
               </div>
             </Card>
           )}
