@@ -53,7 +53,7 @@ describe('PDI catalog RPC authorization migration', () => {
     expect(body).toContain("'id', id")
     expect(body).toContain("'descricao_acao', descricao_acao")
     expect(body).toContain('WHERE competencia_id = p_competencia_id')
-    expect(body).toContain('ORDER BY created_at ASC, id ASC')
+    expect(body).toContain('ORDER BY id ASC')
     expect(body).toContain("RETURN COALESCE(v_actions, '[]'::jsonb)")
   })
 
