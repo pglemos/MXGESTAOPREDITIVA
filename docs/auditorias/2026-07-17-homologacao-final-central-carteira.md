@@ -104,14 +104,38 @@ inconsistente foi encontrado que exigisse correção de dados.
 Nenhum dado de teste criado em produção. As alterações foram exclusivamente DDL de grants
 (REVOKE/GRANT/ALTER DEFAULT PRIVILEGES), sem INSERT/UPDATE em tabelas de negócio. Sem resíduo.
 
+## 9-bis. Validação executada nesta sessão (API autenticada + browser)
+
+Como a política proíbe digitar senha em formulário, o isolamento foi validado num
+nível mais forte que clique de UI: JWT claims impersonados dentro de transação
+revertida (zero resíduo) + boundary HTTP real com a anon key.
+
+**Cross-seller (Fase 1.1 / Exemplo 1), contra prod, transação revertida:**
+- Fixture: cliente do vendedor A + `execution_action` do vendedor B apontando para o
+  cliente de A (mesma loja) → impersonado B via `request.jwt.claims`.
+- **Ataque** `central_resolve_action`: `ABORTOU_OK — "Atividade inconsistente: cliente
+  vinculado nao pertence ao mesmo vendedor/loja da atividade."`
+- **Legítimo** (B no próprio cliente): `SUCESSO_OK` (status concluida, evento gerado).
+- Cliente de A **inalterado** (before == after); action do ataque permaneceu `pendente`.
+- `ROLLBACK` forçado → nenhum dado de teste persistido.
+
+**Anon no boundary HTTP real (PostgREST + anon key), 6/6 negados `401 permission denied`:**
+`GET clientes`, `GET usuarios`, `GET execution_actions`, `RPC vendedor_concluir_execution_action`,
+`RPC central_resolve_action`, `POST clientes`.
+
+**Browser (deploy prod `mxperformance.com.br`):** landing e boot do SPA renderizam;
+`0` erros no console (runtime limpo). Rotas autenticadas não percorridas (login por senha).
+
 ## 10. Matriz de aceite (gate final)
 
 | Gate | Status | Nota |
 |---|---|---|
 | supabase.correct_project | ✅ | fbhcmzzgwjdgkctlfvbo |
 | supabase.anon_private_table_grants = 0 | ✅ | 0 |
-| supabase.cross_seller_mutation_blocked | ✅ | filtros+abort verificados no código vivo |
-| supabase.authorized_flows_work | ✅ (DB) | authenticated mantém DML; runtime autenticado não testado |
+| supabase.cross_seller_mutation_blocked | ✅ | **testado**: ataque aborta, legítimo sucede, cliente de A inalterado (tx revertida) |
+| supabase.authorized_flows_work | ✅ | RPC legítima retornou SUCESSO com evento; authenticated mantém DML |
+| anon HTTP boundary negado | ✅ | 6/6 `401 permission denied` via PostgREST+anon key |
+| vercel runtime clean | ✅ | SPA renderiza, 0 erros de console |
 | supabase.no_test_residue | ✅ | zero DML de negócio |
 | supabase.no_scope_critical_advisors | ✅ | 0 ERROR |
 | github.main_clean / atomic / no_force_push | ✅ | working tree limpa |
