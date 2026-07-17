@@ -814,8 +814,9 @@ saving || submitBlockedByDeadline || editLockedWithoutLiberacao || fechamentoCon
         </button>
       </div>
 
+      {/* Desktop: botão vive dentro do header (SellerPageHeader actions). Mobile: sem header de topo, mantém aqui. */}
       {onOpenHistory && (
-        <div className="flex justify-end">
+        <div className="flex justify-end md:hidden">
           <button
             type="button"
             onClick={onOpenHistory}

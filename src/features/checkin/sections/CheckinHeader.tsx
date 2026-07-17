@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AlertTriangle, CalendarDays, CheckCircle2, X, CalendarClock, CheckSquare } from 'lucide-react'
+import { AlertTriangle, CalendarDays, CheckCircle2, X, CalendarClock, CheckSquare, History } from 'lucide-react'
 import { Button } from '@/components/atoms/Button'
 import { useCheckinAuditor } from '@/hooks/useCheckinAuditor'
 import { toast } from '@/lib/toast'
@@ -435,6 +435,32 @@ return (
         <SellerPageHeader
           icon={CheckSquare}
           title="Fechamento"
+          actions={
+            <>
+              <div className="flex min-w-0 items-center gap-2 rounded-[14px] border border-slate-200 bg-white px-3 py-1.5 shadow-sm">
+                <CalendarDays size={18} className="shrink-0 text-[#005BFF]" aria-hidden="true" />
+                <div className="min-w-0">
+                  <p className="text-[10px] font-black uppercase tracking-[0.08em] text-[#526B7A]">Data operacional principal</p>
+                  <p className="truncate text-[13px] font-black text-[#071822]">{dateStr}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCustomReferenceDate('')}
+                  className="ml-1 inline-flex h-8 shrink-0 items-center gap-2 rounded-lg border border-[#DFE0E1] bg-white px-3 text-[12px] font-black text-[#071822] shadow-sm hover:border-[#005BFF] hover:text-[#005BFF]"
+                >
+                  Ver data atual
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={handleViewPreviousHistory}
+                className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-[13px] font-semibold text-slate-600 shadow-sm transition-colors hover:border-[#005BFF] hover:text-[#005BFF]"
+              >
+                <History size={15} aria-hidden="true" />
+                Histórico de Fechamentos
+              </button>
+            </>
+          }
         />
       </div>
 
@@ -476,7 +502,8 @@ previousCard.type === 'previous_done' ? 'bg-[#00A89D]' : 'bg-amber-600'
 </section>
 )}
 
-<section aria-labelledby="checkin-operational-date" className="rounded-[14px] border border-slate-200 bg-white px-4 py-3 shadow-[0_8px_22px_rgba(15,23,42,0.04)]">
+{/* Desktop: data operacional vive dentro do header (SellerPageHeader actions). Mobile: sem header de topo, mantém aqui. */}
+<section aria-labelledby="checkin-operational-date" className="rounded-[14px] border border-slate-200 bg-white px-4 py-3 shadow-[0_8px_22px_rgba(15,23,42,0.04)] md:hidden">
 <div className="flex flex-wrap items-center justify-between gap-3">
 <div className="flex min-w-0 items-center gap-2">
 <CalendarDays size={18} className="shrink-0 text-[#005BFF]" aria-hidden="true" />
