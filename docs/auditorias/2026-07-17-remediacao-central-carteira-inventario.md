@@ -162,3 +162,36 @@ DEPOIS: 0 linhas — SELECT ... WHERE grantee='anon' AND table_name IN (...) ret
 - Reprodução automatizada do cenário de mutação cruzada entre vendedores (Fase 1.1 do plano mestre) não foi executada nesta sessão.
 
 **Verdict desta sessão: GO COM RESSALVAS** — as correções aplicadas são reais e verificadas (evidência acima), mas o escopo do plano mestre completo (Fases 1, 5–11) não foi executado. Não há alegação de conclusão total.
+
+---
+
+## Fase 1–3 — Achado 4.1 (mutação cruzada entre vendedores) — 2026-07-17, continuação
+
+### Hipótese
+`central_reschedule_action` e `central_resolve_action` autorizam a chamada via `central_can_manage_action(v_action.seller_id, v_action.store_id)` (campos da própria `execution_actions`), mas em seguida fazem `UPDATE public.clientes/oportunidades/agendamentos WHERE id = v_action.*_id` sem revalidar que esses registros pertencem ao mesmo vendedor/loja. Se `execution_actions` tiver `cliente_id`/`oportunidade_id`/`agendamento_id` apontando para um registro de outro vendedor (drift), a mutação se propaga silenciosamente.
+
+### Evidências
+- Definições reais das 5 RPCs da Central (`central_reschedule_action`, `central_resolve_action`, `central_create_manual_action`, `central_sync_appointment_action`, `central_escalate_action`) e das funções de apoio (`central_can_manage_action`, `central_can_access_store`, `central_upsert_appointment_action_internal`) extraídas via `pg_get_functiondef` direto da produção.
+- `central_can_manage_action`: um vendedor comum só passa se `auth.uid() = p_seller_id`; `central_create_manual_action` já bloqueia vendedor comum vinculando cliente/oportunidade de outro dono (`central_can_manage_action(v_client_seller, v_client_store)` antes de aceitar `client_id`). Ou seja, a via de criação manual está protegida.
+- O vetor real é `central_upsert_appointment_action_internal` (trigger de sincronização de `agendamentos`): copia `seller_id`/`store_id`/`cliente_id`/`oportunidade_id` do agendamento no momento do sync. Se o `agendamentos.seller_user_id` divergir do `clientes.seller_user_id` do cliente vinculado (mesma loja), a `execution_actions` nasce com o drift.
+- **Consulta em produção confirmou 1 registro ativo real com esse exato drift**: `execution_actions.id = 9a59623f-7e91-43e0-a57f-b8505a0c305e` (entrega, `source_type=agendamento`, `automatic=true`) — `store_id` igual, mas `seller_id` (vinculado a "Vendedor MX") diferente do `clientes.seller_user_id` do cliente vinculado ("José***"). A oportunidade vinculada concorda com o `seller_id` da action, não com o do cliente. `clientes.updated_at = clientes.created_at` (2026-07-09) — o cliente nunca foi reatribuído; o agendamento (criado 2026-07-12) que nasceu com vendedor diferente do dono do cliente.
+- 0 mismatches em `oportunidades`/`agendamentos` isoladamente; 0 `NULL` em `seller_id`/`store_id` nas 21 `execution_actions` ativas — filtro de escopo seguro de aplicar sem falso-positivo por NULL.
+
+### Diagnóstico
+Falha de invariante confirmada e ativa em produção, não apenas hipotética. Causa raiz: nenhuma das RPCs de resolução/reagendamento revalida a consistência entre a `execution_actions` e as entidades que ela referencia antes de mutá-las.
+
+### Decisão
+Migration `20260717250000_enforce_central_action_scope_consistency.sql`: `CREATE OR REPLACE FUNCTION` em `central_reschedule_action` e `central_resolve_action`, adicionando `AND loja_id = v_action.store_id AND seller_user_id = v_action.seller_id` a cada `UPDATE` de `agendamentos`/`oportunidades`/`clientes`, com `IF NOT FOUND THEN RAISE EXCEPTION 'Atividade inconsistente: ...'` logo depois (7 pontos: 2 em reschedule, 5 em resolve — agendamento + 3 branches de oportunidade + cliente). `central_can_manage_action`, `central_escalate_action` e `central_create_manual_action` não foram alterados (já corretos). Autorização de gerente/dono/admin preservada — o filtro compara o registro vinculado contra `v_action.seller_id`/`store_id` (não contra `auth.uid()`), então não depende de quem está executando.
+
+O registro inconsistente `9a59623f-...` **não foi reatribuído nem cancelado nesta sessão** — decidir se o cliente deve mudar de vendedor ou se a entrega deve ser reassociada é call de negócio, não técnica; fica registrado aqui para triagem manual. Efeito da migration sobre esse registro específico: passa a ser fail-closed (bloqueia com erro explícito) em vez de silenciosamente sobrescrever o cliente de outro vendedor.
+
+### Validação
+- Teste de contrato estático `src/lib/central-action-scope-consistency.test.ts` — 5/5 pass localmente (`bun test`), confirma as 7 combinações filtro+guarda presentes na migration e que as funções de autorização não foram tocadas.
+- Verificação pós-deploy: `pg_get_functiondef` das duas funções em produção contém o filtro de escopo nos 7 pontos esperados (2 em `central_reschedule_action`, 5 em `central_resolve_action`) — confirmado via query direta pós-`db push`.
+- `npm run gen:db-types` sem diff (assinaturas de função não mudaram); `npm run typecheck` limpo.
+- **Não executado nesta sessão**: reprodução dinâmica end-to-end (Seção 1.1 do plano mestre) simulando vendedor B autenticado tentando resolver a action `9a59623f-...` e confirmando o erro `Atividade inconsistente` via chamada real de RPC. A verificação acima é estrutural (definição da função em produção contém a guarda), não uma chamada RPC autenticada real. Fica como pendência.
+
+### Pendências abertas desta fase
+- Reatribuição/triagem manual do registro `9a59623f-8e91-43e0-a57f-b8505a0c305e` (decisão de negócio).
+- Reprodução E2E autenticada (vendedor A/B reais) do cenário de mutação cruzada, incluindo os testes negativos completos da Seção 1.1.
+- `central_sync_appointment_action`/`central_upsert_appointment_action_internal` não foram alterados — se `agendamentos.seller_user_id` puder legitimamente divergir do `clientes.seller_user_id` (ex.: entrega conduzida por vendedor diferente do dono da carteira), a nova guarda vai **bloquear esse fluxo por design**. Não há confirmação de que isso seja um fluxo de negócio intencional ou um bug de atribuição — precisa de validação com o time de produto antes de generalizar a regra para outros pontos do sistema.
