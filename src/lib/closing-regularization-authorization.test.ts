@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs'
 const migrationFiles = [
   '../../supabase/migrations/20260717280000_harden_closing_regularization_authorization.sql',
   '../../supabase/migrations/20260717290000_fix_closing_review_findings.sql',
+  '../../supabase/migrations/20260717291000_fix_daily_charge_notification_target.sql',
 ]
 
 const sql = migrationFiles
@@ -125,9 +126,9 @@ describe('closing regularization authorization migrations', () => {
     }
   })
 
-  test('wraps both migrations in transactions and documents rollback', () => {
-    expect((compactSql.match(/BEGIN;/g) ?? []).length).toBe(2)
-    expect((compactSql.match(/COMMIT;/g) ?? []).length).toBe(2)
-    expect((compactSql.match(/-- DOWN/g) ?? []).length).toBe(2)
+  test('wraps all migrations in transactions and documents rollback', () => {
+    expect((compactSql.match(/BEGIN;/g) ?? []).length).toBe(3)
+    expect((compactSql.match(/COMMIT;/g) ?? []).length).toBe(3)
+    expect((compactSql.match(/-- DOWN/g) ?? []).length).toBe(3)
   })
 })
