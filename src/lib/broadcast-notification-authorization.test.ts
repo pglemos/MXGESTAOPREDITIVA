@@ -9,7 +9,7 @@ const compactSql = sql.replace(/\s+/g, ' ').trim()
 
 describe('broadcast notification authorization migration', () => {
   test('keeps the canonical RPC signature and fixed search_path', () => {
-    expect(compactSql).toContain('send_broadcast_notification(p_title text, p_message text, p_type text')
+    expect(compactSql).toMatch(/send_broadcast_notification\(\s*p_title text, p_message text, p_type text/)
     expect(compactSql).toContain("SECURITY DEFINER SET search_path TO 'public'")
   })
 
