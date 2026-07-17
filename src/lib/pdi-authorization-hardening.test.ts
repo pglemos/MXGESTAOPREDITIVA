@@ -31,7 +31,7 @@ describe('PDI authorization hardening migration', () => {
   })
 
   test('loads the PDI action and session before authorizing evidence approval', () => {
-    expect(compactSql).toMatch(/CREATE OR REPLACE FUNCTION public\.approve_pdi_action_evidence\(p_action_id uuid, p_approval_payload jsonb\)/)
+    expect(compactSql).toMatch(/CREATE OR REPLACE FUNCTION public\.approve_pdi_action_evidence\(\s*p_action_id uuid, p_approval_payload jsonb\s*\)/)
     expect(compactSql).toContain('FROM public.pdi_plano_acao a JOIN public.pdi_sessoes s ON s.id = a.sessao_id')
     expect(compactSql).toContain('FOR UPDATE OF a')
     expect(compactSql).toContain("RAISE EXCEPTION 'Acao de PDI nao encontrada.'")
