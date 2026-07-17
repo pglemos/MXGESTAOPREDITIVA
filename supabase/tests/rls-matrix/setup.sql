@@ -1,63 +1,24 @@
 -- ============================================================================
 -- RLS Regression Matrix — Setup / Fixtures
--- Story 0.5 — T-01
--- ----------------------------------------------------------------------------
--- Provê fixtures determinísticas para a suite pgTAP:
---   * 2 lojas tenant-isoladas (loja_a, loja_b)
---   * 5 usuários (1 por role canônico do users.role):
---       u_admin, u_dono, u_gerente, u_vendedor + role 'anon' (sem registro)
---   * Vínculos / memberships necessários
---   * 1 lançamento, 1 meta, 1 log de auditoria por loja
 --
--- Convenções:
---   * UUIDs fixos para reprodutibilidade
---   * Todo bloco DEVE ser idempotente (re-rodável)
---   * Tabelas com triggers/checks são preenchidas via INSERT ... ON CONFLICT
---
--- Como simular um role autenticado dentro de um teste:
---   SET LOCAL ROLE authenticated;
---   SET LOCAL "request.jwt.claim.sub" = '<uuid-do-usuário>';
---
--- Para o role anônimo:
---   SET LOCAL ROLE anon;
+-- These fixtures target the current canonical schema after the 2026 domain
+-- rename.  The tables are Portuguese, but their legacy column names remain
+-- English (for example lojas.name and vinculos_loja.store_id).
 -- ============================================================================
 
 \set ON_ERROR_STOP on
 SET search_path = public, pg_catalog;
 
--- pgTAP é requisito da suite (CI habilita via `CREATE EXTENSION IF NOT EXISTS pgtap`)
 CREATE EXTENSION IF NOT EXISTS pgtap;
 
--- ----------------------------------------------------------------------------
--- UUIDs fixos para fixtures
--- ----------------------------------------------------------------------------
-DO $$
-BEGIN
-  -- Idempotência: limpa fixtures anteriores (escopo restrito aos UUIDs conhecidos)
-  PERFORM 1;
-END$$;
-
--- Lojas
-INSERT INTO public.lojas (id, nome, ativo)
-VALUES
-  ('11111111-1111-1111-1111-111111111111', 'Loja A (fixture)', true),
-  ('22222222-2222-2222-2222-222222222222', 'Loja B (fixture)', true)
-ON CONFLICT (id) DO UPDATE SET nome = EXCLUDED.nome;
-
--- Usuários (auth.users) — só inserimos se o ambiente local permite
--- Em testes locais com supabase, auth.users é gerenciado pelo GoTrue;
--- aqui assumimos uma seed simplificada via tabela public.users (espelho)
--- Caso o ambiente não tenha auth.users, o setup pula essa parte.
+-- Supabase local's auth schema is present in CI.  Keep this conditional so the
+-- SQL remains usable against a plain PostgreSQL snapshot as well.
 DO $do$
-DECLARE
-  v_has_auth boolean;
 BEGIN
-  SELECT EXISTS (
+  IF EXISTS (
     SELECT 1 FROM information_schema.tables
     WHERE table_schema = 'auth' AND table_name = 'users'
-  ) INTO v_has_auth;
-
-  IF v_has_auth THEN
+  ) THEN
     INSERT INTO auth.users (id, email, instance_id, aud, role, email_confirmed_at)
     VALUES
       ('aaaaaaaa-0000-0000-0000-000000000001', 'admin@test.local',    '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', now()),
@@ -69,109 +30,132 @@ BEGIN
   END IF;
 END$do$;
 
--- public.users (espelho de aplicação)
-INSERT INTO public.users (id, role, name, email)
+INSERT INTO public.lojas (id, name, active)
 VALUES
-  ('aaaaaaaa-0000-0000-0000-000000000001', 'admin',    'Admin Fixture',    'admin@test.local'),
-  ('aaaaaaaa-0000-0000-0000-000000000002', 'dono',     'Dono Fixture',     'dono@test.local'),
-  ('aaaaaaaa-0000-0000-0000-000000000003', 'gerente',  'Gerente Fixture',  'gerente@test.local'),
-  ('aaaaaaaa-0000-0000-0000-000000000004', 'vendedor', 'Vendedor Fixture', 'vendedor@test.local'),
-  ('aaaaaaaa-0000-0000-0000-000000000005', 'vendedor', 'Outsider Fixture', 'outsider@test.local')
-ON CONFLICT (id) DO UPDATE SET role = EXCLUDED.role;
+  ('11111111-1111-1111-1111-111111111111', 'Loja A (fixture)', true),
+  ('22222222-2222-2222-2222-222222222222', 'Loja B (fixture)', true)
+ON CONFLICT (id) DO UPDATE
+SET name = EXCLUDED.name, active = EXCLUDED.active;
 
--- public.usuarios (alias PT-BR usado pelas policies)
-INSERT INTO public.usuarios (id, role, nome)
+INSERT INTO public.usuarios (id, role, name, email, active)
 VALUES
-  ('aaaaaaaa-0000-0000-0000-000000000001', 'admin',    'Admin Fixture'),
-  ('aaaaaaaa-0000-0000-0000-000000000002', 'dono',     'Dono Fixture'),
-  ('aaaaaaaa-0000-0000-0000-000000000003', 'gerente',  'Gerente Fixture'),
-  ('aaaaaaaa-0000-0000-0000-000000000004', 'vendedor', 'Vendedor Fixture'),
-  ('aaaaaaaa-0000-0000-0000-000000000005', 'vendedor', 'Outsider Fixture')
-ON CONFLICT (id) DO UPDATE SET role = EXCLUDED.role;
+  ('aaaaaaaa-0000-0000-0000-000000000001', 'administrador_mx', 'Admin Fixture',    'admin@test.local',    true),
+  ('aaaaaaaa-0000-0000-0000-000000000002', 'dono',             'Dono Fixture',     'dono@test.local',     true),
+  ('aaaaaaaa-0000-0000-0000-000000000003', 'gerente',          'Gerente Fixture',  'gerente@test.local',  true),
+  ('aaaaaaaa-0000-0000-0000-000000000004', 'vendedor',         'Vendedor Fixture', 'vendedor@test.local', true),
+  ('aaaaaaaa-0000-0000-0000-000000000005', 'vendedor',         'Outsider Fixture', 'outsider@test.local', true)
+ON CONFLICT (id) DO UPDATE
+SET role = EXCLUDED.role, name = EXCLUDED.name, email = EXCLUDED.email, active = EXCLUDED.active;
 
--- memberships: dono+gerente+vendedor em Loja A; outsider em Loja B
-INSERT INTO public.memberships (user_id, store_id, role)
+INSERT INTO public.vinculos_loja (user_id, store_id, role, is_active)
 VALUES
-  ('aaaaaaaa-0000-0000-0000-000000000002', '11111111-1111-1111-1111-111111111111', 'dono'),
-  ('aaaaaaaa-0000-0000-0000-000000000003', '11111111-1111-1111-1111-111111111111', 'gerente'),
-  ('aaaaaaaa-0000-0000-0000-000000000004', '11111111-1111-1111-1111-111111111111', 'vendedor'),
-  ('aaaaaaaa-0000-0000-0000-000000000005', '22222222-2222-2222-2222-222222222222', 'vendedor')
-ON CONFLICT (user_id, store_id) DO NOTHING;
-
--- vinculos_loja: equivalente PT-BR usado por algumas policies
-INSERT INTO public.vinculos_loja (usuario_id, loja_id, papel, ativo)
-SELECT user_id, store_id, role, true
-  FROM public.memberships
-  WHERE user_id IN (
-    'aaaaaaaa-0000-0000-0000-000000000002',
-    'aaaaaaaa-0000-0000-0000-000000000003',
-    'aaaaaaaa-0000-0000-0000-000000000004',
-    'aaaaaaaa-0000-0000-0000-000000000005'
-  )
+  ('aaaaaaaa-0000-0000-0000-000000000002', '11111111-1111-1111-1111-111111111111', 'dono',     true),
+  ('aaaaaaaa-0000-0000-0000-000000000003', '11111111-1111-1111-1111-111111111111', 'gerente',  true),
+  ('aaaaaaaa-0000-0000-0000-000000000004', '11111111-1111-1111-1111-111111111111', 'vendedor', true),
+  ('aaaaaaaa-0000-0000-0000-000000000005', '11111111-1111-1111-1111-111111111111', 'vendedor', true),
+  ('aaaaaaaa-0000-0000-0000-000000000005', '22222222-2222-2222-2222-222222222222', 'vendedor', true)
 ON CONFLICT DO NOTHING;
 
--- vendedores_loja: vendedor "atado" na Loja A
-INSERT INTO public.vendedores_loja (id, loja_id, nome, ativo)
+INSERT INTO public.vendedores_loja (id, store_id, seller_user_id, started_at, is_active)
 VALUES
-  ('cccccccc-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', 'Vendedor Fixture A', true),
-  ('cccccccc-0000-0000-0000-000000000002', '22222222-2222-2222-2222-222222222222', 'Vendedor Fixture B', true)
+  ('cccccccc-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', 'aaaaaaaa-0000-0000-0000-000000000004', CURRENT_DATE, true),
+  ('cccccccc-0000-0000-0000-000000000002', '11111111-1111-1111-1111-111111111111', 'aaaaaaaa-0000-0000-0000-000000000005', CURRENT_DATE, true),
+  ('cccccccc-0000-0000-0000-000000000003', '22222222-2222-2222-2222-222222222222', 'aaaaaaaa-0000-0000-0000-000000000005', CURRENT_DATE, true)
+ON CONFLICT (id) DO UPDATE
+SET store_id = EXCLUDED.store_id,
+    seller_user_id = EXCLUDED.seller_user_id,
+    started_at = EXCLUDED.started_at,
+    is_active = EXCLUDED.is_active;
+
+INSERT INTO public.clientes (id, loja_id, seller_user_id, nome, telefone)
+VALUES
+  ('12111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', 'aaaaaaaa-0000-0000-0000-000000000004', 'Cliente Fixture Próprio', '5511999990001'),
+  ('12111111-1111-1111-1111-111111111112', '11111111-1111-1111-1111-111111111111', 'aaaaaaaa-0000-0000-0000-000000000005', 'Cliente Fixture Compartilhado Aberto', '5511999990002'),
+  ('12111111-1111-1111-1111-111111111113', '11111111-1111-1111-1111-111111111111', 'aaaaaaaa-0000-0000-0000-000000000005', 'Cliente Fixture Compartilhado Fechado', '5511999990003'),
+  ('12111111-1111-1111-1111-111111111114', '22222222-2222-2222-2222-222222222222', 'aaaaaaaa-0000-0000-0000-000000000005', 'Cliente Fixture Outra Loja', '5511999990004')
+ON CONFLICT (id) DO UPDATE
+SET loja_id = EXCLUDED.loja_id,
+    seller_user_id = EXCLUDED.seller_user_id,
+    nome = EXCLUDED.nome,
+    telefone = EXCLUDED.telefone;
+
+INSERT INTO public.oportunidades (id, cliente_id, loja_id, seller_user_id, etapa, closed_at)
+VALUES
+  ('13111111-1111-1111-1111-111111111111', '12111111-1111-1111-1111-111111111112', '11111111-1111-1111-1111-111111111111', 'aaaaaaaa-0000-0000-0000-000000000004', 'prospeccao', NULL),
+  ('13111111-1111-1111-1111-111111111112', '12111111-1111-1111-1111-111111111113', '11111111-1111-1111-1111-111111111111', 'aaaaaaaa-0000-0000-0000-000000000004', 'ganho', now())
+ON CONFLICT (id) DO UPDATE
+SET cliente_id = EXCLUDED.cliente_id,
+    loja_id = EXCLUDED.loja_id,
+    seller_user_id = EXCLUDED.seller_user_id,
+    etapa = EXCLUDED.etapa,
+    closed_at = EXCLUDED.closed_at;
+
+INSERT INTO public.lancamentos_diarios (
+  id, store_id, seller_user_id, reference_date, metric_scope
+)
+VALUES (
+  'dddddddd-0000-0000-0000-000000000001',
+  '11111111-1111-1111-1111-111111111111',
+  'aaaaaaaa-0000-0000-0000-000000000004',
+  CURRENT_DATE,
+  'daily'
+)
 ON CONFLICT (id) DO NOTHING;
 
--- lançamento canônico em Loja A
-INSERT INTO public.lancamentos_diarios (id, loja_id, vendedor_id, valor, data)
-VALUES
-  ('dddddddd-0000-0000-0000-000000000001',
-   '11111111-1111-1111-1111-111111111111',
-   'cccccccc-0000-0000-0000-000000000001',
-   100.00,
-   CURRENT_DATE)
+INSERT INTO public.metas (id, store_id, user_id, month, year, target)
+VALUES (
+  'eeeeeeee-0000-0000-0000-000000000001',
+  '11111111-1111-1111-1111-111111111111',
+  'aaaaaaaa-0000-0000-0000-000000000004',
+  EXTRACT(MONTH FROM CURRENT_DATE)::int,
+  EXTRACT(YEAR FROM CURRENT_DATE)::int,
+  10000
+)
+ON CONFLICT (id) DO UPDATE
+SET store_id = EXCLUDED.store_id,
+    user_id = EXCLUDED.user_id,
+    month = EXCLUDED.month,
+    year = EXCLUDED.year,
+    target = EXCLUDED.target;
+
+INSERT INTO public.logs_auditoria (id, user_id, action, entity, entity_id, details_json)
+VALUES (
+  'ffffffff-0000-0000-0000-000000000001',
+  'aaaaaaaa-0000-0000-0000-000000000001',
+  'setup_fixture',
+  'rls_matrix',
+  '11111111-1111-1111-1111-111111111111',
+  '{"source":"rls-matrix"}'::jsonb
+)
 ON CONFLICT (id) DO NOTHING;
 
--- meta canônica
-INSERT INTO public.metas (id, loja_id, mes, ano, valor)
-VALUES
-  ('eeeeeeee-0000-0000-0000-000000000001',
-   '11111111-1111-1111-1111-111111111111',
-   EXTRACT(MONTH FROM CURRENT_DATE)::int,
-   EXTRACT(YEAR  FROM CURRENT_DATE)::int,
-   10000.00)
+INSERT INTO public.role_assignments_audit (id, user_id, role_name, assigned_by, action)
+VALUES (
+  'fafafafa-0000-0000-0000-000000000001',
+  'aaaaaaaa-0000-0000-0000-000000000004',
+  'gerente',
+  'aaaaaaaa-0000-0000-0000-000000000001',
+  'fixture'
+)
 ON CONFLICT (id) DO NOTHING;
 
--- log de auditoria canônico
-INSERT INTO public.logs_auditoria (id, usuario_id, acao, detalhes)
-VALUES
-  ('ffffffff-0000-0000-0000-000000000001',
-   'aaaaaaaa-0000-0000-0000-000000000001',
-   'setup_fixture',
-   '{"source":"rls-matrix"}'::jsonb)
-ON CONFLICT (id) DO NOTHING;
+-- RLS tests need table privileges in order to reach the policy layer.  The
+-- grants are scoped to this ephemeral test database; production access stays
+-- governed by the migration-owned grants and RLS policies.
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON
+  public.lojas,
+  public.usuarios,
+  public.vinculos_loja,
+  public.vendedores_loja,
+  public.lancamentos_diarios,
+  public.metas,
+  public.logs_auditoria,
+  public.role_assignments_audit,
+  public.clientes,
+  public.oportunidades
+TO anon, authenticated;
 
--- role_assignments_audit: opcional (criada em Story 1.8). Inserção condicional.
-DO $do$
-BEGIN
-  IF EXISTS (
-    SELECT 1 FROM information_schema.tables
-    WHERE table_schema='public' AND table_name='role_assignments_audit'
-  ) THEN
-    EXECUTE $sql$
-      INSERT INTO public.role_assignments_audit (id, target_user_id, old_role, new_role, changed_by)
-      VALUES (
-        'fafafafa-0000-0000-0000-000000000001'::uuid,
-        'aaaaaaaa-0000-0000-0000-000000000004'::uuid,
-        'vendedor',
-        'gerente',
-        'aaaaaaaa-0000-0000-0000-000000000001'::uuid
-      )
-      ON CONFLICT (id) DO NOTHING
-    $sql$;
-  END IF;
-END$do$;
-
--- ----------------------------------------------------------------------------
--- Helper: rls_matrix.set_role(uuid)
---   Simula `auth.uid()` para policies que dependem dele.
---   Usa SET LOCAL para garantir isolamento por transação.
--- ----------------------------------------------------------------------------
 CREATE SCHEMA IF NOT EXISTS rls_matrix;
 
 CREATE OR REPLACE FUNCTION rls_matrix.assume(p_user_id uuid)
@@ -201,3 +185,10 @@ BEGIN
   EXECUTE 'SET LOCAL ROLE anon';
 END;
 $$;
+
+-- The matrix runs its assertions as anon/authenticated, so the test-only
+-- helper schema must be callable after SET LOCAL ROLE.  These grants do not
+-- change any application table or policy privilege.
+GRANT USAGE ON SCHEMA rls_matrix TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION rls_matrix.assume(uuid) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION rls_matrix.assume_anon() TO anon, authenticated;
