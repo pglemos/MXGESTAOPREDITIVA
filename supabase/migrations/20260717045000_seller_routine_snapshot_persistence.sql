@@ -354,7 +354,7 @@ BEGIN
     IF diagnostic_status IN ('erro_geracao','nao_aplicavel') THEN
       update_points_value:=NULL;
       score_denominator_value:=score_denominator_value-block_weight;
-    ELSIF updates_expected_value = 0 THEN 0
+    ELSIF updates_expected_value = 0 THEN
       update_points_value:=0;
     ELSE
       update_points_value:=LEAST(20,20.0*updates_completed_value/updates_expected_value);
