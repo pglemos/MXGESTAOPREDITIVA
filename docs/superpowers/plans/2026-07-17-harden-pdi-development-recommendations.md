@@ -1,0 +1,112 @@
+# PDI Development Recommendation Authorization Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:test-driven-development and superpowers:verification-before-completion task by task.
+
+**Goal:** Protect PDI and feedback recommendation generation from anonymous, cross-store, self-service, and duplicate execution while preserving the current frontend contracts.
+
+**Architecture:** Keep the existing RPC signatures and return types. Make each `SECURITY DEFINER` function enforce identity and source scope internally, validate the seller/store relationship, derive the audit actor from the authenticated caller, serialize generation per source, and use database uniqueness for durable idempotency. Revoke anonymous execution from the two generators and from the sensitive PDI print bundle. Preserve `authenticated` and `service_role` entry points, with explicit service-role handling inside the functions.
+
+**Tech Stack:** PostgreSQL 17, Supabase Auth helpers, PL/pgSQL, Bun tests, GitHub Actions.
+
+## Functional constraints
+
+- Follow the Módulo Gerencial specification: manager acts only within their unit/team; seller views and executes their own development actions; Owner/Admin audits; PDI data is private and scoped.
+- Preserve signatures and return types:
+  - `gerar_recomendacoes_desenvolvimento_feedback(uuid) returns integer`;
+  - `gerar_recomendacoes_desenvolvimento_pdi(uuid) returns integer`;
+  - `get_pdi_print_bundle(uuid) returns jsonb`.
+- Do not change recommendation status vocabulary or frontend query shape.
+- Do not delete historical recommendations.
+- Do not create test recommendations in production outside rollback-safe probes.
+- Do not trigger a manual Vercel deployment.
+
+## Task 1: Define the failing contract
+
+Create `src/lib/pdi-development-recommendation-authorization.test.ts` against the planned migration `20260717292000_harden_pdi_development_recommendations.sql`.
+
+The contract must require:
+
+- authenticated identity or explicit `service_role` handling in both generators and the print bundle;
+- feedback generation restricted to source manager, store management, Owner/Admin MX, or service role;
+- PDI generation restricted to assigned manager, store management, Owner/Admin MX, or service role;
+- source seller must have an active seller relationship in the source store;
+- recommendation `created_by` is derived from the authenticated actor, with source-manager fallback only for service role;
+- transaction advisory lock per source before duplicate checks;
+- a unique partial index for one feedback recommendation per feedback source;
+- a unique partial index preventing exact duplicate PDI recommendations per source and reason;
+- conflict-safe insert/update behavior;
+- audit logging for generation attempts and inserted/updated counts;
+- `PUBLIC` and `anon` execute privileges revoked from all three RPCs;
+- `authenticated` and `service_role` grants preserved;
+- transaction boundaries and rollback documentation.
+
+Run the focused test and confirm RED because the migration does not exist yet.
+
+## Task 2: Implement the migration
+
+Create `supabase/migrations/20260717292000_harden_pdi_development_recommendations.sql`.
+
+### Feedback generator
+
+1. Resolve `auth.uid()` and `auth.role()`.
+2. Reject unauthenticated non-service calls with SQLSTATE `42501`.
+3. Lock and load the feedback source.
+4. Authorize before exposing source details:
+   - service role;
+   - internal MX;
+   - source manager;
+   - manager or owner of the source store.
+5. Require the source seller to be an active seller in the same store.
+6. Acquire a transaction advisory lock keyed by `feedback/source_id`.
+7. Generate the deterministic theme/training/reason.
+8. Insert one recommendation per feedback source. On conflict, update only a recommendation still in `recommended` status; never reset progressed recommendations.
+9. Use the authenticated actor as `created_by`; service role falls back to the source manager.
+10. Log the attempt and affected count in `logs_auditoria`.
+
+### PDI generator
+
+1. Resolve identity and service role.
+2. Lock and load the PDI session.
+3. Authorize service role, internal MX, assigned manager, manager or owner of the source store.
+4. Require active seller/store relationship.
+5. Acquire a transaction advisory lock keyed by `pdi/source_id`.
+6. Generate up to five gap recommendations.
+7. Prevent exact duplicates for the same PDI source and deterministic reason with a unique partial index and `ON CONFLICT` handling.
+8. Preserve recommendations that have already progressed beyond `recommended`.
+9. Log source, actor, store, seller, and affected count.
+
+### Print bundle
+
+- require authenticated identity unless service role;
+- keep collaborator, assigned manager, store manager, owner and internal MX access;
+- allow service role explicitly;
+- reject all other callers with SQLSTATE `42501`;
+- preserve the JSON response shape.
+
+### ACLs
+
+For all three signatures:
+
+```sql
+REVOKE ALL ... FROM PUBLIC, anon, authenticated, service_role;
+GRANT EXECUTE ... TO authenticated, service_role;
+```
+
+Wrap in `BEGIN`/`COMMIT`, set `search_path = public`, and document `-- DOWN`.
+
+## Task 3: Verify and release
+
+1. Run the focused test, typecheck, full unit suite, build, migration reversibility and pgTAP RLS matrix.
+2. Apply the migration to Supabase production only after permanent CI passes.
+3. Verify active definitions and ACLs.
+4. Run rollback-safe behavioral probes:
+   - anon cannot generate or print;
+   - unrelated seller cannot generate another user's recommendation;
+   - manager can generate for own store;
+   - same source called twice returns no duplicate rows;
+   - cross-store manager is denied before source state is exposed;
+   - service-role path remains available;
+   - print bundle is readable only by authorized roles.
+5. Confirm recommendation and audit counts are unchanged after aborted probes.
+6. Re-run security advisors.
+7. Open/review the PR, resolve findings, merge only with fresh green gates, and inspect automatic Vercel status without a manual deploy.
