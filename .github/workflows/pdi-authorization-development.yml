@@ -32,7 +32,25 @@ jobs:
         with:
           bun-version: latest
       - run: npm ci
-      - name: PDI authorization contract
-        run: bun test --isolate src/lib/pdi-authorization-hardening.test.ts
+      - name: Capture PDI authorization contract output
+        id: focused_test
+        shell: bash
+        run: |
+          set +e
+          bun test --isolate src/lib/pdi-authorization-hardening.test.ts > pdi-authorization-test.log 2>&1
+          status=$?
+          echo "$status" > pdi-authorization-test.status
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Upload focused test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdi-authorization-test-diagnostics
+          path: |
+            pdi-authorization-test.log
+            pdi-authorization-test.status
+      - name: Enforce focused test result
+        run: test "${{ steps.focused_test.outputs.exit_code }}" = "0"
       - name: Migration reversibility
         run: node scripts/check_migration_reversibility.mjs --changed-only
