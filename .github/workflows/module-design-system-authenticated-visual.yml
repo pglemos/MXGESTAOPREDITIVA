@@ -4,6 +4,7 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - 'e2e/visual/helpers.ts'
       - 'src/components/**'
       - 'src/design-system/**'
       - 'src/features/manager/**'
@@ -29,13 +30,6 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - name: Validate encrypted credentials
-        shell: bash
-        run: |
-          if [ -z "$E2E_ROLE_PASSWORD" ] && [ -z "$E2E_AUTH_PASSWORD" ]; then
-            echo 'E2E_ROLE_PASSWORD ou E2E_AUTH_PASSWORD não está configurado como GitHub Secret.'
-            exit 1
-          fi
       - name: Install dependencies
         run: npm ci
       - name: Install Chromium
