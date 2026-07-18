@@ -13,8 +13,11 @@ const managerCanonical = read('../features/dashboard-loja/sections/ManagerSeller
 const managerPrimitives = read('../features/manager/shared/ManagerVisualPrimitives.tsx')
 const universalPrimitives = read('../components/module/MxModuleVisualPrimitives.tsx')
 const button = read('../components/atoms/Button.tsx')
+const roleVisualScope = read('../components/module/MxRoleVisualScope.tsx')
+const managerScopeCss = read('../styles/manager-visual-scope.css')
 const painelConsultor = read('../pages/PainelConsultor.tsx')
 const lojasContainer = read('../features/lojas/Lojas.container.tsx')
+const consultoriaClientes = read('../pages/ConsultoriaClientes.tsx')
 
 const legacyFiles = [
   '../design-system/internal-mx/InternalMxPageFrame.tsx',
@@ -91,6 +94,18 @@ describe('paridade visual dos módulos MX com o Gerente', () => {
     expect(universalPrimitives).not.toContain('border-border-subtle')
   })
 
+  test('escopa a matriz do Gerente em todos os perfis de gestão sem contaminar o Vendedor', () => {
+    expect(layout).toContain("from '@/components/module/MxRoleVisualScope'")
+    expect(layout).toContain("<MxRoleVisualScope manager={role !== 'vendedor'}>")
+    expect(roleVisualScope).toContain('<ButtonVisualProvider mode="manager">')
+    expect(roleVisualScope).toContain('data-mx-visual-system="manager"')
+    expect(roleVisualScope).toContain('mx-manager-scope')
+    expect(managerScopeCss).toContain('.mx-manager-scope')
+    expect(managerScopeCss).toContain('--color-mx-action: #059669')
+    expect(managerScopeCss).toContain('--color-surface-alt: #f9fafb')
+    expect(managerScopeCss).toContain('--color-text-primary: #1f2937')
+  })
+
   test('aplica variantes gerenciais por escopo sem substituir o primary do vendedor', () => {
     for (const variant of [
       'managerPrimary',
@@ -112,14 +127,20 @@ describe('paridade visual dos módulos MX com o Gerente', () => {
     expect(universalPrimitives).toContain('<ButtonVisualProvider mode="manager">')
   })
 
-  test('PainelConsultor e Lojas recebem a fundação compartilhada sem CSS corretivo por rota', () => {
-    expect(painelConsultor).toContain('MxModulePage')
-    expect(painelConsultor).toContain('MxModuleHeader')
+  test('landing pages de Admin, Dono e Consultoria usam as mesmas primitives do Gerente', () => {
+    for (const source of [painelConsultor, lojasContainer, consultoriaClientes]) {
+      expect(source).toContain('MxModulePage')
+      expect(source).toContain('MxModuleHeader')
+      expect(source).not.toContain('mx-internal-workspace')
+    }
     expect(painelConsultor).toContain('MxMetricCard')
-    expect(lojasContainer).toContain('MxModulePage')
     expect(lojasContainer).toContain('MxStatusBanner')
-    expect(painelConsultor).not.toContain('mx-internal-workspace')
-    expect(lojasContainer).not.toContain('mx-internal-workspace')
+    expect(consultoriaClientes).toContain('MxMetricCard')
+    expect(consultoriaClientes).toContain('MxToolbar')
+    expect(consultoriaClientes).toContain('MxSectionCard')
+    expect(consultoriaClientes).not.toContain('bg-brand-secondary')
+    expect(consultoriaClientes).not.toContain('bg-mx-black')
+    expect(consultoriaClientes).not.toContain('shadow-mx-xl')
   })
 
   test('proíbe marcadores do design antigo em todo código executável', () => {
