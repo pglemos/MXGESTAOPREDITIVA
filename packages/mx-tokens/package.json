@@ -1,0 +1,13 @@
+{
+  "name": "@mx/tokens",
+  "version": "1.1.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js",
+    "./theme.css": "./src/theme.css",
+    "./tokens.json": "./src/tokens.json"
+  },
+  "types": "./src/index.d.ts",
+  "files": ["src"]
+}
