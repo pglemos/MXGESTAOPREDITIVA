@@ -30,11 +30,17 @@ jobs:
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           tail -n 250 unit-test.log
           exit 0
-      - name: Upload complete unit test log
+      - name: Build source audit snapshot
+        run: |
+          tar -czf source-audit.tar.gz src package.json vite.config.* tailwind.config.* 2>/dev/null || \
+            tar -czf source-audit.tar.gz src package.json
+      - name: Upload diagnostic evidence
         uses: actions/upload-artifact@v4
         with:
-          name: unit-test-log
-          path: unit-test.log
+          name: design-system-audit
+          path: |
+            unit-test.log
+            source-audit.tar.gz
           retention-days: 1
       - name: Fail after artifact upload
         if: steps.tests.outputs.exit_code != '0'
