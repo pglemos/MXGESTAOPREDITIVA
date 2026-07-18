@@ -6,18 +6,33 @@ on:
 
 jobs:
   source-snapshot:
-    name: Source snapshot for full visual audit
+    name: Full management visual audit
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run management design-system source contract
+        run: node --test scripts/audit-management-design-system.test.mjs
+
+      - name: Write complete violation ledger
+        if: always()
+        shell: bash
+        run: node scripts/audit-management-design-system.mjs > management-design-system-ledger.json || true
+
       - name: Build source snapshot
+        if: always()
         shell: bash
         run: |
           set -euo pipefail
           tar -czf management-source-snapshot.tar.gz \
             src \
+            scripts/audit-management-design-system.mjs \
+            scripts/audit-management-design-system.test.mjs \
             package.json \
             package-lock.json \
             vite.config.ts \
@@ -27,15 +42,20 @@ jobs:
             2>/dev/null || \
           tar -czf management-source-snapshot.tar.gz \
             src \
+            scripts/audit-management-design-system.mjs \
+            scripts/audit-management-design-system.test.mjs \
             package.json \
             package-lock.json \
             vite.config.ts \
             playwright.config.ts \
             tsconfig.json
 
-      - name: Upload source snapshot
+      - name: Upload audit evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: management-design-system-source-v3
-          path: management-source-snapshot.tar.gz
+          path: |
+            management-source-snapshot.tar.gz
+            management-design-system-ledger.json
           retention-days: 1
