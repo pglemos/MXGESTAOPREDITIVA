@@ -209,9 +209,9 @@ async function auditProfile(
 
   if (viewport.name === 'desktop') {
     expect(metrics.sidebar).not.toBeNull()
-    expect(metrics.sidebar?.width).toBe(264)
+    expect(metrics.sidebar?.width).toBe(224)
     expect(metrics.sidebar?.backgroundColor).toBe('rgb(255, 255, 255)')
-    expect(metrics.content.paddingLeft).toBe('264px')
+    expect(metrics.content.paddingLeft).toBe('224px')
   } else {
     expect(metrics.sidebar).not.toBeNull()
     expect(metrics.mobileHeader).not.toBeNull()
