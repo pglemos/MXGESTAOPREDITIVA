@@ -1,0 +1,53 @@
+name: Module Design System Authenticated Visual
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/components/**'
+      - 'src/design-system/**'
+      - 'src/features/manager/**'
+      - 'src/main.tsx'
+      - 'src/test/module-design-system-authenticated-visual.playwright.ts'
+      - '.github/workflows/module-design-system-authenticated-visual.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  authenticated-visual:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      VITE_APP_URL: https://mxperformance-git-fix-unificar-design-system-adm-656cc1-synvolt.vercel.app
+      PLAYWRIGHT_SKIP_WEB_SERVER: '1'
+      E2E_ROLE_PASSWORD: ${{ secrets.E2E_ROLE_PASSWORD }}
+      E2E_AUTH_PASSWORD: ${{ secrets.E2E_AUTH_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Validate encrypted credentials
+        shell: bash
+        run: |
+          if [ -z "$E2E_ROLE_PASSWORD" ] && [ -z "$E2E_AUTH_PASSWORD" ]; then
+            echo 'E2E_ROLE_PASSWORD ou E2E_AUTH_PASSWORD não está configurado como GitHub Secret.'
+            exit 1
+          fi
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run authenticated module visual audit
+        run: npx playwright test src/test/module-design-system-authenticated-visual.playwright.ts --project=chromium --workers=1
+      - name: Upload visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: module-design-system-authenticated-visual
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14
