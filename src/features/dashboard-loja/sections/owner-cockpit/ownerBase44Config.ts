@@ -66,10 +66,19 @@ export const OWNER_BASE44_NAVIGATION: OwnerBase44NavigationSection[] = [
 ]
 
 const sectionSet = new Set<string>(OWNER_BASE44_SECTION_VALUES)
+const legacyAliases: Record<string, OwnerBase44Section> = {
+  resultados: 'home',
+  alertas: 'decisoes',
+  benchmarking: 'mercado',
+  agenda: 'rotina',
+  visitas: 'consultoria',
+  biblioteca: 'universidade',
+}
 
 export function resolveOwnerSection(search: string): OwnerBase44Section {
   const raw = new URLSearchParams(search).get('ownerSection')
   if (raw?.startsWith('departamentos-')) return 'departamentos'
+  if (raw && legacyAliases[raw]) return legacyAliases[raw]
   return raw && sectionSet.has(raw) ? (raw as OwnerBase44Section) : 'home'
 }
 
