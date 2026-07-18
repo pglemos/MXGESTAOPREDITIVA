@@ -1,0 +1,8 @@
+{
+  "name": "@mx/tailwind-preset",
+  "version": "1.1.1",
+  "private": true,
+  "main": "./index.cjs",
+  "exports": { ".": "./index.cjs", "./v4.css": "./tailwind-v4.css" },
+  "peerDependencies": { "tailwindcss": ">=4" }
+}

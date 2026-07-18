@@ -1,26 +1,14 @@
 import React, { useCallback } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { useAuth } from '@/hooks/useAuth'
+import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { useNotifications } from '@/hooks/useData'
 import { useFeedbacks } from '@/hooks/useFeedbacks'
-
 import {
   Home, CheckSquare, Trophy, GraduationCap, MessageSquare,
   Bell, Settings, Users, Target, Grid, LayoutDashboard, Database, User,
   Building2, TrendingUp, Package, ClipboardList, SlidersHorizontal,
-  BriefcaseBusiness,
-  CalendarDays,
-  MonitorPlay,
-  BarChart3,
-  Bot,
-  Library,
-  Filter,
-  Handshake,
-  FileBarChart,
-  Activity,
-  BookOpen,
-  CalendarCheck,
-  CalendarClock,
+  BriefcaseBusiness, CalendarDays, MonitorPlay, BarChart3, Bot, Library,
+  Filter, FileBarChart, Activity, BookOpen, CalendarCheck, CalendarClock,
   BrainCircuit,
 } from 'lucide-react'
 import { slugify } from '@/lib/utils'
@@ -29,6 +17,7 @@ import ManagerSidebarShell from './ManagerSidebarShell'
 import { ForcePasswordChange } from '@/features/auth/components/ForcePasswordChange'
 import { canAccessPath } from '@/lib/auth/routeAccess'
 import { MotionPage } from '@/design/motion'
+import MxInternalShell from '@/design-system/internal-mx/MxInternalShell'
 
 type SubItem = { label: string; path: string; icon?: React.ReactNode }
 type NavCategory = { category: string; icon: React.ReactNode; items: SubItem[] }
@@ -44,17 +33,14 @@ const OWNER_AGENDA_PATH = '__OWNER_AGENDA__'
 const OWNER_VISITAS_PATH = '__OWNER_VISITAS__'
 const OWNER_DEPARTAMENTOS_PATH = '__OWNER_DEPARTAMENTOS__'
 const OWNER_BIBLIOTECA_PATH = '__OWNER_BIBLIOTECA__'
+
 const simulacaoItems: NavCategory = {
   category: 'Simulação', icon: <MonitorPlay size={22} />,
   items: [
     { label: 'Vendedor', path: '/simulacao/vendedor', icon: <User size={16} /> },
-    { label: 'Gerente', path: '/simulacao/gerente', icon: <ShieldCheckIcon /> },
+    { label: 'Gerente', path: '/simulacao/gerente', icon: <CheckSquare size={16} /> },
     { label: 'Dono', path: '/simulacao/dono', icon: <Building2 size={16} /> },
-  ]
-}
-
-function ShieldCheckIcon() {
-  return <CheckSquare size={16} />
+  ],
 }
 
 function appendQueryParam(path: string, key: string, value: string) {
@@ -75,57 +61,50 @@ const rotulosPerfil: Record<string, string> = {
 }
 
 const navegacaoInternaMx: NavCategory[] = [
-    {
-      category: 'Rede e Gestão', icon: <Grid size={22} />,
-      items: [
-        { label: 'Painel Geral', path: '/painel', icon: <LayoutDashboard size={16} /> },
-        { label: 'Lojas', path: '/lojas', icon: <Building2 size={16} /> },
-        { label: 'Consultoria', path: '/consultoria/clientes', icon: <BriefcaseBusiness size={16} /> },
-        { label: 'Agenda', path: '/agenda', icon: <CalendarDays size={16} /> },
-      ]
-    },
-    simulacaoItems,
-    {
-      category: 'Rotina e Conteúdo', icon: <Target size={22} />,
-      items: [
-        { label: 'Ranking', path: '/classificacao', icon: <Trophy size={16} /> },
-        { label: 'Devolutivas/PDI', path: '/devolutivas', icon: <MessageSquare size={16} /> },
-        { label: 'Desenvolvimento', path: '/treinamentos', icon: <GraduationCap size={16} /> },
-        { label: 'Produtos Digitais', path: '/produtos', icon: <Package size={16} /> },
-        { label: 'Notificações', path: '/notificacoes', icon: <Bell size={16} /> },
-      ]
-    },
-    {
-      category: 'Relatórios e Diagnóstico', icon: <TrendingUp size={22} />,
-      items: [
-        { label: 'Relatório Matinal', path: '/relatorio-matinal', icon: <ClipboardList size={16} /> },
-        { label: 'Performance de Vendas', path: '/relatorios/performance-vendas', icon: <TrendingUp size={16} /> },
-        { label: 'Diagnóstico Operacional', path: '/auditoria', icon: <Database size={16} /> },
-      ]
-    },
-    {
-      category: 'Configurações', icon: <Settings size={22} />,
-      items: [
-        { label: 'Configuração Operacional', path: '/configuracoes/operacional', icon: <SlidersHorizontal size={16} /> },
-        { label: 'Parâmetros PMR', path: '/configuracoes/consultoria-pmr', icon: <Database size={16} /> },
-        { label: 'Configurações', path: '/configuracoes', icon: <Settings size={16} /> },
-      ]
-    }
-  ]
+  {
+    category: 'Rede e Gestão', icon: <Grid size={22} />,
+    items: [
+      { label: 'Painel Geral', path: '/painel', icon: <LayoutDashboard size={16} /> },
+      { label: 'Lojas', path: '/lojas', icon: <Building2 size={16} /> },
+      { label: 'Consultoria', path: '/consultoria/clientes', icon: <BriefcaseBusiness size={16} /> },
+      { label: 'Agenda', path: '/agenda', icon: <CalendarDays size={16} /> },
+    ],
+  },
+  simulacaoItems,
+  {
+    category: 'Rotina e Conteúdo', icon: <Target size={22} />,
+    items: [
+      { label: 'Ranking', path: '/classificacao', icon: <Trophy size={16} /> },
+      { label: 'Devolutivas/PDI', path: '/devolutivas', icon: <MessageSquare size={16} /> },
+      { label: 'Desenvolvimento', path: '/treinamentos', icon: <GraduationCap size={16} /> },
+      { label: 'Produtos Digitais', path: '/produtos', icon: <Package size={16} /> },
+      { label: 'Notificações', path: '/notificacoes', icon: <Bell size={16} /> },
+    ],
+  },
+  {
+    category: 'Relatórios e Diagnóstico', icon: <TrendingUp size={22} />,
+    items: [
+      { label: 'Relatório Matinal', path: '/relatorio-matinal', icon: <ClipboardList size={16} /> },
+      { label: 'Performance de Vendas', path: '/relatorios/performance-vendas', icon: <TrendingUp size={16} /> },
+      { label: 'Diagnóstico Operacional', path: '/auditoria', icon: <Database size={16} /> },
+    ],
+  },
+  {
+    category: 'Configurações', icon: <Settings size={22} />,
+    items: [
+      { label: 'Configuração Operacional', path: '/configuracoes/operacional', icon: <SlidersHorizontal size={16} /> },
+      { label: 'Parâmetros PMR', path: '/configuracoes/consultoria-pmr', icon: <Database size={16} /> },
+      { label: 'Configurações', path: '/configuracoes', icon: <Settings size={16} /> },
+    ],
+  },
+]
 
 const navConfig: Record<string, NavCategory[]> = {
   administrador_geral: navegacaoInternaMx,
   administrador_mx: navegacaoInternaMx,
   consultor_mx: navegacaoInternaMx,
   dono: [
-    // 15 itens diretos na sidebar (sem agrupamento por categoria visual,
-    // mas mantemos secoes para separadores no flat-render).
-    {
-      category: 'Home', icon: <Home size={22} />,
-      items: [
-        { label: 'Home', path: STORE_DASHBOARD_PATH, icon: <Home size={16} /> },
-      ]
-    },
+    { category: 'Home', icon: <Home size={22} />, items: [{ label: 'Home', path: STORE_DASHBOARD_PATH, icon: <Home size={16} /> }] },
     {
       category: 'CENTRAL MX', icon: <BriefcaseBusiness size={22} />,
       items: [
@@ -135,7 +114,7 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Benchmarking', path: OWNER_BENCHMARKING_PATH, icon: <TrendingUp size={16} /> },
         { label: 'Agenda Executiva', path: OWNER_AGENDA_PATH, icon: <CalendarDays size={16} /> },
         { label: 'Consultor IA', path: STORE_CONSULTOR_IA_PATH, icon: <Bot size={16} /> },
-      ]
+      ],
     },
     {
       category: 'GESTÃO', icon: <Grid size={22} />,
@@ -145,7 +124,7 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Departamentos', path: OWNER_DEPARTAMENTOS_PATH, icon: <Grid size={16} /> },
         { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
         { label: 'Biblioteca', path: OWNER_BIBLIOTECA_PATH, icon: <Library size={16} /> },
-      ]
+      ],
     },
     {
       category: 'SUPORTE', icon: <MessageSquare size={22} />,
@@ -153,29 +132,26 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Falar com Consultor', path: '/falar-consultor', icon: <MessageSquare size={16} /> },
         { label: 'Relatórios', path: '/relatorio-matinal', icon: <FileBarChart size={16} /> },
         { label: 'Configurações', path: '/configuracoes', icon: <Settings size={16} /> },
-      ]
-    }
+      ],
+    },
   ],
-  gerente: [
-    {
-      category: 'MENU', icon: <Home size={22} />,
-      items: [
-        { label: 'Início', path: '/home', icon: <Home size={16} /> },
-        { label: 'Rotina do Dia', path: '/rotina', icon: <CalendarClock size={16} /> },
-        { label: 'Fechamento Diário', path: '/fechamento-diario', icon: <CheckSquare size={16} /> },
-        { label: 'Rotina da Equipe', path: '/gerente/rotina-equipe', icon: <CalendarCheck size={16} /> },
-        { label: 'Minha Equipe', path: '/gerente/minha-equipe', icon: <Users size={16} /> },
-        { label: 'Meta da Loja', path: '/gerente/meta-loja', icon: <Target size={16} /> },
-        { label: 'Mentor Gerencial', path: '/gerente/mentor', icon: <BrainCircuit size={16} /> },
-        { label: 'Desenvolvimento', path: '/gerente/feedbacks-pdis', icon: <BookOpen size={16} /> },
-        { label: 'Ranking', path: '/gerente/ranking', icon: <Trophy size={16} /> },
-        { label: 'Universidade MX', path: '/gerente/universidade-mx', icon: <GraduationCap size={16} /> },
-      ]
-    }
-  ],
+  gerente: [{
+    category: 'MENU', icon: <Home size={22} />,
+    items: [
+      { label: 'Início', path: '/home', icon: <Home size={16} /> },
+      { label: 'Rotina do Dia', path: '/rotina', icon: <CalendarClock size={16} /> },
+      { label: 'Fechamento Diário', path: '/fechamento-diario', icon: <CheckSquare size={16} /> },
+      { label: 'Rotina da Equipe', path: '/gerente/rotina-equipe', icon: <CalendarCheck size={16} /> },
+      { label: 'Minha Equipe', path: '/gerente/minha-equipe', icon: <Users size={16} /> },
+      { label: 'Meta da Loja', path: '/gerente/meta-loja', icon: <Target size={16} /> },
+      { label: 'Mentor Gerencial', path: '/gerente/mentor', icon: <BrainCircuit size={16} /> },
+      { label: 'Desenvolvimento', path: '/gerente/feedbacks-pdis', icon: <BookOpen size={16} /> },
+      { label: 'Ranking', path: '/gerente/ranking', icon: <Trophy size={16} /> },
+      { label: 'Universidade MX', path: '/gerente/universidade-mx', icon: <GraduationCap size={16} /> },
+    ],
+  }],
   vendedor: [
     {
-      // Agrupado por domínio (espelha o padrão Gerente/Admin) para evitar stack plano de 13 itens.
       category: 'OPERAÇÃO', icon: <Home size={22} />,
       items: [
         { label: 'Meu Dia', path: '/home', icon: <Home size={16} /> },
@@ -184,7 +160,7 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Carteira de Clientes', path: '/carteira-clientes', icon: <Users size={16} /> },
         { label: 'Funil de Vendas', path: '/meu-funil', icon: <Filter size={16} /> },
         { label: 'Relatórios', path: '/relatorios-vendedor', icon: <FileBarChart size={16} /> },
-      ]
+      ],
     },
     {
       category: 'EVOLUÇÃO', icon: <TrendingUp size={22} />,
@@ -193,42 +169,30 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
         { label: 'Universidade MX', path: '/universidade-mx', icon: <GraduationCap size={16} /> },
         { label: 'Ranking', path: '/classificacao', icon: <Trophy size={16} /> },
-      ]
+      ],
     },
-    {
-      category: 'FERRAMENTAS', icon: <Bot size={22} />,
-      items: [
-        { label: 'Consultor IA', path: STORE_CONSULTOR_IA_PATH, icon: <Bot size={16} /> },
-      ]
-    },
-    {
-      category: 'CONTA', icon: <User size={22} />,
-      items: [
-        { label: 'Meu Perfil', path: '/perfil', icon: <User size={16} /> },
-        { label: 'Configurações', path: '/configuracoes', icon: <Settings size={16} /> },
-      ]
-    }
-  ]
+    { category: 'FERRAMENTAS', icon: <Bot size={22} />, items: [{ label: 'Consultor IA', path: STORE_CONSULTOR_IA_PATH, icon: <Bot size={16} /> }] },
+    { category: 'CONTA', icon: <User size={22} />, items: [{ label: 'Meu Perfil', path: '/perfil', icon: <User size={16} /> }, { label: 'Configurações', path: '/configuracoes', icon: <Settings size={16} /> }] },
+  ],
 }
 
 export default function Layout() {
   const { profile, role, signOut, membership, isSimulating, simulationRole, stopSimulation, baseProfile } = useAuth()
   const { unreadCount } = useNotifications()
   const { devolutivas } = useFeedbacks()
-  const pendingFeedbackCount = role === 'vendedor' ? devolutivas.filter(f => !f.acknowledged).length : 0
+  const pendingFeedbackCount = role === 'vendedor' ? devolutivas.filter((feedback) => !feedback.acknowledged).length : 0
   const navigate = useNavigate()
   const location = useLocation()
 
   const storeDashboardPath = membership?.store?.name ? `/lojas/${slugify(membership.store.name)}` : role === 'gerente' ? '/classificacao' : '/lojas'
   const storeTeamPath = role === 'gerente' ? '/equipe' : storeDashboardPath === '/lojas' ? '/lojas' : `${storeDashboardPath}${storeDashboardPath.includes('?') ? '&' : '?'}tab=equipe`
-  const storeConsultorIaPath = storeDashboardPath.startsWith('/lojas/')
-    ? `${storeDashboardPath}/consultor-ia`
-    : '/lojas'
+  const storeConsultorIaPath = storeDashboardPath.startsWith('/lojas/') ? `${storeDashboardPath}/consultor-ia` : '/lojas'
   const ownerSectionPath = useCallback((section: string) => appendQueryParam(storeDashboardPath, 'ownerSection', section), [storeDashboardPath])
+
   const categories = React.useMemo(() => {
     const baseCategories = role ? (navConfig[role] || []) : []
-    return baseCategories.map(category => {
-      const items = category.items.map(item => {
+    return baseCategories.map((category) => {
+      const items = category.items.map((item) => {
         if (item.path === STORE_DASHBOARD_PATH) return { ...item, path: storeDashboardPath }
         if (item.path === STORE_TEAM_PATH) return { ...item, path: storeTeamPath }
         if (item.path === STORE_CONSULTOR_IA_PATH) return { ...item, path: storeConsultorIaPath }
@@ -242,10 +206,11 @@ export default function Layout() {
         if (item.path === OWNER_DEPARTAMENTOS_PATH) return { ...item, path: ownerSectionPath('departamentos') }
         if (item.path === OWNER_BIBLIOTECA_PATH) return { ...item, path: ownerSectionPath('biblioteca') }
         return item
-      }).filter(item => canAccessPath(item.path, role))
+      }).filter((item) => canAccessPath(item.path, role))
       return { ...category, items }
-    }).filter(category => category.items.length > 0)
+    }).filter((category) => category.items.length > 0)
   }, [ownerSectionPath, role, storeConsultorIaPath, storeDashboardPath, storeTeamPath])
+
   const perfilVisivel = role ? rotulosPerfil[role] || 'Perfil autorizado' : 'Perfil autorizado'
   const perfilBaseVisivel = baseProfile?.name || 'Admin MX'
 
@@ -254,9 +219,7 @@ export default function Layout() {
       const pathname = path.split('?')[0]
       const count = pathname === '/devolutivas' || pathname === '/feedbacks'
         ? pendingFeedbackCount
-        : pathname === '/notificacoes'
-          ? unreadCount
-          : 0
+        : pathname === '/notificacoes' ? unreadCount : 0
       if (count <= 0) return undefined
       return count > 99 ? '99+' : String(count)
     }
@@ -280,22 +243,33 @@ export default function Layout() {
   if (!profile || !role) return null
 
   if (profile.must_change_password) {
-    return (
-      <div className="min-h-screen bg-mx-black flex items-center justify-center p-mx-lg">
-        <ForcePasswordChange />
-      </div>
-    )
+    return <div className="min-h-screen bg-mx-black flex items-center justify-center p-mx-lg"><ForcePasswordChange /></div>
   }
 
-  const pageContent = (
-    <MotionPage key={location.pathname} className="h-full">
-      <Outlet />
-    </MotionPage>
-  )
-
+  const pageContent = <MotionPage key={location.pathname} className="h-full"><Outlet /></MotionPage>
   const stopCurrentSimulation = () => {
     stopSimulation()
     navigate('/painel', { replace: true })
+  }
+
+  if (isPerfilInternoMx(role)) {
+    return (
+      <MxInternalShell
+        role={role}
+        profileName={profile.name}
+        profileRoleLabel={perfilVisivel}
+        avatarUrl={profile.avatar_url}
+        unreadNotifications={unreadCount}
+        onSignOut={signOut}
+        isSimulating={isSimulating}
+        simulationLabel={simulationRole ? rotulosPerfil[simulationRole] : 'MX'}
+        simulationBase={perfilBaseVisivel}
+        simulationStore={membership?.store?.name || 'Sandbox MX'}
+        onStopSimulation={stopCurrentSimulation}
+      >
+        {pageContent}
+      </MxInternalShell>
+    )
   }
 
   if (role === 'gerente') {
