@@ -19,13 +19,16 @@ describe('owner consultant request migration contract', () => {
     expect(sql).toContain('status text NOT NULL DEFAULT')
   })
 
-  test('protege leitura e escrita pelo escopo real da loja', () => {
+  test('protege leitura e escrita pelo escopo executivo, sem liberar gerente', () => {
     const sql = readMigration()
 
     expect(sql).toContain('ALTER TABLE public.solicitacoes_consultoria ENABLE ROW LEVEL SECURITY')
-    expect(sql).toContain("public.can_access_mx_scope('store'::public.score_scope_type, store_id)")
+    expect(sql).toContain('public.user_is_master_loja(store_id, auth.uid())')
+    expect(sql).toContain("public.tem_papel_loja(store_id, ARRAY['dono'], auth.uid())")
+    expect(sql).toContain('public.is_owner_of(store_id)')
     expect(sql).toContain('created_by = auth.uid()')
     expect(sql).toContain('consultant_user_id = auth.uid()')
+    expect(sql).not.toContain("ARRAY['dono', 'gerente']")
     expect(sql).not.toContain('USING (true)')
   })
 
