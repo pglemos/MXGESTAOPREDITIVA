@@ -8,6 +8,7 @@ import './index.css'
 
 initSentry()
 initWebVitals()
+document.documentElement.dataset.mxRuntime = 'universal-shell-v2'
 
 window.addEventListener('vite:preloadError', (event) => {
   event.preventDefault()
