@@ -70,3 +70,6 @@ $function$;
 revoke all on function public.get_resumo_rede_periodo(date, date, text) from public;
 revoke all on function public.get_resumo_rede_periodo(date, date, text) from anon;
 grant execute on function public.get_resumo_rede_periodo(date, date, text) to authenticated;
+
+-- DOWN
+-- drop function if exists public.get_resumo_rede_periodo(date, date, text);
