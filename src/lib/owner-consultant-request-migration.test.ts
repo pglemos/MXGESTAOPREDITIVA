@@ -19,17 +19,34 @@ describe('owner consultant request migration contract', () => {
     expect(sql).toContain('status text NOT NULL DEFAULT')
   })
 
+  test('cria caminhos de acesso para todas as chaves estrangeiras relevantes', () => {
+    const sql = readMigration()
+
+    expect(sql).toContain('idx_solicitacoes_consultoria_client_id')
+    expect(sql).toContain('ON public.solicitacoes_consultoria(client_id)')
+    expect(sql).toContain('idx_solicitacoes_consultoria_consultant_user_id')
+    expect(sql).toContain('ON public.solicitacoes_consultoria(consultant_user_id)')
+  })
+
   test('protege leitura e escrita pelo escopo executivo, sem liberar gerente', () => {
     const sql = readMigration()
 
     expect(sql).toContain('ALTER TABLE public.solicitacoes_consultoria ENABLE ROW LEVEL SECURITY')
-    expect(sql).toContain('public.user_is_master_loja(store_id, auth.uid())')
-    expect(sql).toContain("public.tem_papel_loja(store_id, ARRAY['dono'], auth.uid())")
+    expect(sql).toContain('public.user_is_master_loja(store_id, (SELECT auth.uid()))')
+    expect(sql).toContain("public.tem_papel_loja(store_id, ARRAY['dono'], (SELECT auth.uid()))")
     expect(sql).toContain('public.is_owner_of(store_id)')
-    expect(sql).toContain('created_by = auth.uid()')
-    expect(sql).toContain('consultant_user_id = auth.uid()')
+    expect(sql).toContain('created_by = (SELECT auth.uid())')
+    expect(sql).toContain('consultant_user_id = (SELECT auth.uid())')
     expect(sql).not.toContain("ARRAY['dono', 'gerente']")
     expect(sql).not.toContain('USING (true)')
+  })
+
+  test('mantém uma única policy permissiva para update', () => {
+    const sql = readMigration()
+
+    expect(sql).toContain('DROP POLICY IF EXISTS solicitacoes_consultoria_cancel_own')
+    expect(sql).not.toContain('CREATE POLICY solicitacoes_consultoria_cancel_own')
+    expect(sql.match(/CREATE POLICY solicitacoes_consultoria_update/g)?.length).toBe(1)
   })
 
   test('impede vínculo de cliente com loja divergente', () => {
