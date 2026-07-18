@@ -9,7 +9,12 @@ import type { Column } from '@/components/organisms/DataGrid'
 import { OPERATIONAL_ACTION_LABELS } from '@/lib/ui/actionLabels'
 import type { Store } from '@/types/database'
 
-type StoreStat = { sellers: number; teamMembers: number; checkedIn: number; disciplinePct: number }
+type StoreStat = {
+  sellers: number
+  teamMembers: number
+  checkedIn: number
+  disciplinePct: number
+}
 
 interface BuildColumnsParams {
   stats: Record<string, StoreStat>
@@ -21,11 +26,6 @@ interface BuildColumnsParams {
   toggleStoreStatus: (storeId: string, active: boolean) => Promise<{ error?: string | null }>
 }
 
-/**
- * Constrói as colunas do DataGrid de Lojas.
- *
- * Extraído de `src/pages/Lojas.tsx` (Story 3.5 reconciliada, ADR-0050).
- */
 export function buildStoreColumns({
   stats,
   role,
@@ -38,24 +38,21 @@ export function buildStoreColumns({
   return [
     {
       key: 'name',
-      header: 'UNIDADE',
-      render: store => (
-        <div className="flex items-center gap-mx-sm relative z-10 min-w-0">
-          <div
-            className="w-mx-8 h-mx-8 sm:w-mx-14 sm:h-mx-14 rounded-mx-lg sm:rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-brand-primary shadow-mx-sm group-hover:scale-110 group-hover:bg-brand-primary group-hover:text-white transition-all transform group-hover:rotate-3 shrink-0"
+      header: 'Unidade',
+      render: (store) => (
+        <div className="flex min-w-0 items-center gap-mx-sm">
+          <span
+            className="grid h-mx-10 w-mx-10 shrink-0 place-items-center rounded-mx-lg bg-status-success-surface text-brand-primary"
             aria-hidden="true"
           >
-            <Building2 size={18} className="sm:size-mx-md" />
-          </div>
+            <Building2 size={18} />
+          </span>
           <div className="min-w-0 flex-1">
-            <Typography
-              variant="h3"
-              className="text-sm sm:text-base uppercase tracking-tight group-hover:text-brand-primary transition-colors font-black leading-tight whitespace-normal break-words"
-            >
+            <Typography variant="p" className="font-semibold text-text-primary">
               {store.name}
             </Typography>
-            <Typography variant="tiny" tone="muted" className="text-mx-nano sm:text-mx-tiny font-black uppercase mt-0.5">
-              ID: {store.id.split('-')[0]}
+            <Typography variant="tiny" tone="muted" className="mt-mx-tiny block">
+              ID {store.id.split('-')[0]}
             </Typography>
           </div>
         </div>
@@ -63,54 +60,59 @@ export function buildStoreColumns({
     },
     {
       key: 'status',
-      header: 'STATUS',
+      header: 'Status',
       align: 'center',
       desktopOnly: true,
-      render: store => {
-        const sStat = stats[store.id] || { sellers: 0, teamMembers: 0, checkedIn: 0, disciplinePct: 0 }
+      render: (store) => {
+        const stat = stats[store.id] || {
+          sellers: 0,
+          teamMembers: 0,
+          checkedIn: 0,
+          disciplinePct: 0,
+        }
         return (
-          <Badge
-            variant={store.active ? 'success' : 'outline'}
-            className="px-3 py-1 rounded-mx-full text-mx-tiny font-black shadow-sm uppercase border-none"
-          >
-            {store.active ? (sStat.teamMembers > 0 ? 'OPERANDO' : 'SEM EQUIPE') : 'INATIVA'}
+          <Badge variant={store.active ? 'success' : 'outline'}>
+            {store.active
+              ? stat.teamMembers > 0
+                ? 'Operando'
+                : 'Sem equipe'
+              : 'Inativa'}
           </Badge>
         )
       },
     },
     {
       key: 'metrics',
-      header: 'OPERACIONAL',
+      header: 'Operacional',
       align: 'center',
-      render: store => {
-        const sStat = stats[store.id] || { sellers: 0, teamMembers: 0, checkedIn: 0, disciplinePct: 0 }
+      render: (store) => {
+        const stat = stats[store.id] || {
+          sellers: 0,
+          teamMembers: 0,
+          checkedIn: 0,
+          disciplinePct: 0,
+        }
         return (
-          <div className="flex items-center justify-center gap-mx-xs sm:gap-mx-md">
+          <div className="flex items-center justify-center gap-mx-md">
             <div className="text-center">
-              <Typography
-                variant="tiny"
-                className="font-black text-text-label uppercase text-mx-nano sm:text-mx-tiny"
-              >
+              <Typography variant="tiny" tone="muted">
                 Equipe
               </Typography>
-              <Typography variant="h3" className="text-xs sm:text-base tabular-nums">
-                {sStat.teamMembers}
+              <Typography variant="p" className="mt-mx-tiny font-semibold tabular-nums text-text-primary">
+                {stat.teamMembers}
               </Typography>
             </div>
-            <div className="w-px h-mx-sm sm:h-mx-md bg-border-default mx-1 sm:mx-2" aria-hidden="true" />
+            <span className="h-mx-8 w-px bg-border-subtle" aria-hidden="true" />
             <div className="text-center">
-              <Typography
-                variant="tiny"
-                className="font-black text-text-label uppercase text-mx-nano sm:text-mx-tiny"
-              >
+              <Typography variant="tiny" tone="muted">
                 Disciplina
               </Typography>
               <Typography
-                variant="h3"
-                tone={sStat.disciplinePct < 80 ? 'error' : 'success'}
-                className="text-xs sm:text-base tabular-nums"
+                variant="p"
+                tone={stat.disciplinePct < 80 ? 'error' : 'success'}
+                className="mt-mx-tiny font-semibold tabular-nums"
               >
-                {sStat.disciplinePct}%
+                {stat.disciplinePct}%
               </Typography>
             </div>
           </div>
@@ -119,25 +121,28 @@ export function buildStoreColumns({
     },
     {
       key: 'registration',
-      header: 'PRÉ-CADASTRO',
+      header: 'Pré-cadastro',
       desktopOnly: true,
-      render: store => (
-        <div className="flex min-w-0 flex-col gap-mx-tiny">
-          <div className="flex items-center gap-mx-xs min-w-0">
+      render: (store) => (
+        <div className="flex min-w-0 flex-col gap-mx-xs">
+          <div className="flex min-w-0 items-center gap-mx-xs">
             <Link2
               size={14}
-              className={cn('shrink-0', isAdministradorMx(role) ? 'text-brand-primary' : 'text-text-tertiary')}
+              className={cn(
+                'shrink-0',
+                isAdministradorMx(role) ? 'text-brand-primary' : 'text-text-tertiary',
+              )}
               aria-hidden="true"
             />
-            <Typography variant="tiny" tone="muted" className="font-bold truncate max-w-mx-48">
+            <Typography variant="tiny" tone="muted" className="truncate">
               {isAdministradorMx(role)
-                ? 'Disponível por cópia segura'
+                ? 'Disponível para cópia segura'
                 : isOwner
-                ? 'Admin MX opera este link'
-                : 'Restrito ao Admin MX'}
+                  ? 'Operado pelo Admin MX'
+                  : 'Restrito ao Admin MX'}
             </Typography>
           </div>
-          {isAdministradorMx(role) && (
+          {isAdministradorMx(role) ? (
             <Typography
               variant="tiny"
               className="block max-w-mx-64 truncate rounded-mx-md bg-surface-alt px-mx-xs py-mx-tiny font-mono text-text-secondary"
@@ -145,74 +150,62 @@ export function buildStoreColumns({
             >
               {getRegistrationLink(store.name)}
             </Typography>
-          )}
+          ) : null}
         </div>
       ),
     },
     {
       key: 'actions',
-      header: 'AÇÕES',
+      header: 'Ações',
       align: 'right',
-      render: store => (
+      render: (store) => (
         <div
           role="presentation"
-          className="flex items-center justify-end gap-mx-tiny sm:gap-mx-xs relative z-10"
-          onClick={e => e.stopPropagation()}
-          onKeyDown={e => e.stopPropagation()}
+          className="flex items-center justify-end gap-mx-xs"
+          onClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
         >
           {store.active ? (
             <>
-              <Button
-                asChild
-                variant="secondary"
-                size="sm"
-                className="h-mx-lg sm:h-mx-xl px-3 sm:px-4 rounded-mx-lg shadow-mx-md font-black text-mx-nano sm:text-mx-tiny"
-              >
+              <Button asChild variant="secondary" size="sm">
                 <Link to={`/lojas/${slugify(store.name)}?id=${store.id}`}>
                   {isOwner ? 'Abrir unidade' : OPERATIONAL_ACTION_LABELS.openDashboard}
                 </Link>
               </Button>
-              {!isOwner && (
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="h-mx-lg sm:h-mx-xl px-3 sm:px-4 rounded-mx-lg shadow-mx-md font-black text-mx-nano sm:text-mx-tiny border-border-strong bg-white"
-                >
+              {!isOwner ? (
+                <Button asChild variant="outline" size="sm">
                   <Link to={`/lojas/${slugify(store.name)}?id=${store.id}&tab=equipe`}>
                     {OPERATIONAL_ACTION_LABELS.openTeam}
                   </Link>
                 </Button>
-              )}
-              {isAdministradorMx(role) && (
+              ) : null}
+              {isAdministradorMx(role) ? (
                 <>
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => copyRegistrationLink(store.name)}
-                    className="h-mx-lg w-mx-lg sm:h-mx-xl sm:w-mx-xl rounded-mx-lg shadow-mx-md bg-white border-border-strong"
                     aria-label={`Copiar link de pré-cadastro de ${store.name}`}
                   >
-                    <Copy size={16} />
+                    <Copy size={16} aria-hidden="true" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => handleArchiveStore(store)}
-                    className="h-mx-lg w-mx-lg sm:h-mx-xl sm:w-mx-xl rounded-mx-lg text-text-tertiary hover:text-status-error hover:bg-status-error-surface"
+                    className="text-text-tertiary hover:bg-status-error-surface hover:text-status-error"
                     aria-label={`Desativar ${store.name}`}
                   >
-                    <X size={16} />
+                    <X size={16} aria-hidden="true" />
                   </Button>
                 </>
-              )}
+              ) : null}
             </>
           ) : isAdministradorMx(role) ? (
             <Button
               variant="secondary"
               size="sm"
               onClick={() => toggleStoreStatus(store.id, true)}
-              className="h-mx-lg sm:h-mx-xl px-4 rounded-mx-lg shadow-mx-md font-black text-mx-nano sm:text-mx-tiny bg-status-success hover:opacity-90 text-white"
             >
               Restaurar
             </Button>
