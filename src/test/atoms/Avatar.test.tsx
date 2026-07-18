@@ -1,11 +1,20 @@
 import { expect, test, describe, afterEach } from "bun:test";
 import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { Avatar } from "@/components/atoms/Avatar";
+import { ManagementVisualProvider } from "@/components/visual/ManagementVisualContext";
 import * as React from "react";
 
 afterEach(() => {
   cleanup();
 });
+
+function renderManager(ui: React.ReactElement) {
+  return render(
+    <ManagementVisualProvider mode="manager">
+      {ui}
+    </ManagementVisualProvider>
+  );
+}
 
 describe("Avatar", () => {
   test("renders with fallback initials", () => {
@@ -67,8 +76,8 @@ describe("Avatar", () => {
     expect(avatar.className).toContain("w-16");
   });
 
-  test("renders status dot", () => {
-    const { container } = render(<Avatar fallback="A" status="online" />);
+  test("renders manager status dot", () => {
+    const { container } = renderManager(<Avatar fallback="A" status="online" />);
     const dot = container.querySelector("[aria-label='online']");
     expect(dot).toBeDefined();
     expect(dot!.className).toContain("bg-emerald-600");

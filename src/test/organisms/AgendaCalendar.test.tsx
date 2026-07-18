@@ -2,12 +2,21 @@ import { expect, test, describe, afterEach, mock } from "bun:test";
 import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { AgendaCalendar } from "@/components/organisms/AgendaCalendar";
 import type { CalendarDay } from "@/components/organisms/AgendaCalendar";
+import { ManagementVisualProvider } from "@/components/visual/ManagementVisualContext";
 import * as React from "react";
 import { format } from "date-fns";
 
 afterEach(() => {
   cleanup();
 });
+
+function renderManager(ui: React.ReactElement) {
+  return render(
+    <ManagementVisualProvider mode="manager">
+      {ui}
+    </ManagementVisualProvider>
+  );
+}
 
 function makeCalendarDays(): CalendarDay[] {
   const days: CalendarDay[] = [];
@@ -96,8 +105,8 @@ describe("AgendaCalendar", () => {
     expect(screen.getByText("30")).toBeDefined();
   });
 
-  test("highlights today", () => {
-    render(<AgendaCalendar {...defaultProps} />);
+  test("highlights today in manager mode", () => {
+    renderManager(<AgendaCalendar {...defaultProps} />);
     const todayEl = screen.getByText(String(today.getDate()));
     const todayContainer = todayEl.closest("span")!;
     expect(todayContainer.className).toContain("bg-emerald-600");
