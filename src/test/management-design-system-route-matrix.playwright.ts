@@ -92,6 +92,32 @@ async function installProfile(page: Page, role: ManagementRole) {
   )
 }
 
+async function installSyntheticSupabaseMocks(page: Page) {
+  await page.route(/https:\/\/[^/]+\.supabase\.co\/rest\/v1\/.*/, async (route) => {
+    const request = route.request()
+    const accept = request.headers()['accept'] || ''
+    const expectsObject = accept.includes('application/vnd.pgrst.object+json')
+    const isHead = request.method() === 'HEAD'
+
+    await route.fulfill({
+      status: 200,
+      headers: {
+        'content-type': 'application/json; charset=utf-8',
+        'content-range': '0-0/0',
+      },
+      body: isHead ? '' : expectsObject ? '{}' : '[]',
+    })
+  })
+
+  await page.route(/https:\/\/[^/]+\.supabase\.co\/functions\/v1\/.*/, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: '{}',
+    })
+  })
+}
+
 async function auditRenderedSurface(page: Page) {
   return page.evaluate(() => {
     const isForbidden = (token: string) => {
@@ -168,6 +194,7 @@ async function auditRoute(
     if (message.type() === 'error') consoleErrors.push(message.text())
   })
 
+  await installSyntheticSupabaseMocks(page)
   await installProfile(page, role)
   await page.goto(route.path, { waitUntil: 'domcontentloaded' })
   await expect(page.locator('main#main-content')).toBeVisible({ timeout: 30_000 })
