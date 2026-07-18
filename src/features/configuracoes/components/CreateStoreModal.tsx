@@ -53,11 +53,11 @@ export function CreateStoreModal({ open, onClose, onSubmit }: CreateStoreModalPr
                 </>
             }
         >
-            <form id="create-store-form" onSubmit={handleSubmit} className="space-y-mx-lg">
-                <div className="space-y-mx-xs">
+            <form id="create-store-form" onSubmit={handleSubmit} className="space-y-8">
+                <div className="space-y-2">
                     <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-widest">Nome da Loja</Typography>
                     <div className="relative">
-                        <Building2 size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
+                        <Building2 size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
                         <Input
                             id="create-store-name"
                             name="store-name"
@@ -65,15 +65,15 @@ export function CreateStoreModal({ open, onClose, onSubmit }: CreateStoreModalPr
                             value={name}
                             onChange={e => setName(e.target.value.toUpperCase())}
                             placeholder="EX: MX FORTALEZA"
-                            className="!pl-mx-12 !h-mx-14 font-black uppercase tracking-widest"
+                            className="!pl-12 !h-14 font-black uppercase tracking-widest"
                         />
                     </div>
                 </div>
 
-                <div className="space-y-mx-xs">
+                <div className="space-y-2">
                     <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-widest">E-mail do Gestor (opcional)</Typography>
                     <div className="relative">
-                        <Mail size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
+                        <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
                         <Input
                             id="create-store-manager-email"
                             name="manager-email"
@@ -81,12 +81,12 @@ export function CreateStoreModal({ open, onClose, onSubmit }: CreateStoreModalPr
                             value={managerEmail}
                             onChange={e => setManagerEmail(e.target.value)}
                             placeholder="gestor@unidade.com.br"
-                            className="!pl-mx-12 !h-mx-14 font-bold"
+                            className="!pl-12 !h-14 font-bold"
                         />
                     </div>
                 </div>
 
-                <div className="bg-mx-indigo-50 border border-mx-indigo-100 rounded-mx-xl p-mx-md">
+                <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-6">
                     <Typography variant="tiny" tone="brand" className="font-black uppercase leading-relaxed">
                         Ao criar a loja, o sistema provisiona automaticamente:
                         regras de entrega de e-mails, regras de meta padrão (modo calendário, projeção uniforme),

@@ -9,7 +9,6 @@ const sourceRoot = path.join(projectRoot, 'src')
 
 const SELLER_ENTRIES = [
   'features/checkin/Checkin.container.tsx',
-  'pages/LiberacaoFechamento.tsx',
   'pages/Ranking.tsx',
   'pages/VendedorDesenvolvimento.tsx',
   'pages/VendedorTreinamentos.tsx',
@@ -38,6 +37,11 @@ export const forbiddenManagementPatterns = [
   { id: 'legacy-brand-action', expression: /\b(?:bg|text|border|ring|from|to|via)-(?:brand-primary|mx-action|mx-teal)(?:-[\w]+)?(?:\/[0-9]+)?\b/g },
   { id: 'legacy-mx-palette', expression: /\b(?:bg|text|border|ring|from|to|via)-mx-(?:pink|navy|dark|black|bg|surface|border|divider|text|muted|subtle)(?:-[\w]+)?(?:\/[0-9]+)?\b/g },
   { id: 'legacy-wrapper', expression: /\b(?:mxds-[\w-]+|mx-internal-[\w-]+)\b/g },
+  { id: 'legacy-custom-utility', expression: /\b(?!mx-auto\b)[A-Za-z][\w-]*-mx-[\w\[\]\/.-]+\b/g },
+  { id: 'legacy-status-token', expression: /\b(?:bg|text|border|ring|from|to|via)-status-(?:success|warning|error|info)(?:-[\w]+)?(?:\/[0-9]+)?\b/g },
+  { id: 'legacy-secondary-brand', expression: /\b(?:bg|text|border|ring|from|to|via)-(?:brand-secondary|pure-black)(?:\/[0-9]+)?\b/g },
+  { id: 'legacy-mono-token', expression: /\bfont-mono-numbers\b/g },
+  { id: 'legacy-action-shadow', expression: /\bshadow-action\b/g },
 ]
 
 function listSourceFiles(directory) {

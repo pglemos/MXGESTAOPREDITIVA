@@ -18,22 +18,22 @@ export function BroadcastsTab() {
     const { broadcasts, loading, refetch } = useBroadcasts()
 
     return (
-        <div className="space-y-mx-lg">
-            <Card className="p-mx-lg border-none shadow-mx-lg bg-pure-black text-white relative overflow-hidden">
-                <div className="absolute -right-20 -top-20 w-mx-48 h-mx-48 bg-brand-primary/20 rounded-mx-full blur-3xl pointer-events-none" />
-                <div className="relative z-10 flex items-start justify-between gap-mx-md">
-                    <div className="flex items-start gap-mx-md flex-1">
-                        <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-white/10 border border-white/10 flex items-center justify-center text-brand-primary">
+        <div className="space-y-8">
+            <Card className="p-8 border-none shadow-sm bg-gray-950 text-white relative overflow-hidden">
+                <div className="absolute -right-20 -top-20 w-48 h-48 bg-emerald-600/20 rounded-full blur-3xl pointer-events-none" />
+                <div className="relative z-10 flex items-start justify-between gap-6">
+                    <div className="flex items-start gap-6 flex-1">
+                        <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center text-emerald-600">
                             <Megaphone size={28} />
                         </div>
-                        <div className="space-y-mx-xs">
+                        <div className="space-y-2">
                             <Typography variant="h3" tone="white" className="uppercase tracking-tight">Comunicados da Rede</Typography>
                             <Typography variant="caption" tone="white" className="uppercase tracking-widest font-black opacity-60">
                                 Broadcasts oficiais MX para vendedores, gerentes e donos
                             </Typography>
                         </div>
                     </div>
-                    <Button asChild variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-mx-xl font-black uppercase tracking-widest text-xs shrink-0">
+                    <Button asChild variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-2xl font-black uppercase tracking-widest text-xs shrink-0">
                         <Link to="/notificacoes">
                             <Send size={14} className="mr-2" /> Compor
                         </Link>
@@ -41,29 +41,29 @@ export function BroadcastsTab() {
                 </div>
             </Card>
 
-            <Card className="border-none shadow-mx-lg bg-white overflow-hidden">
-                <header className="flex items-center justify-between p-mx-md border-b border-border-default">
+            <Card className="border-none shadow-sm bg-white overflow-hidden">
+                <header className="flex items-center justify-between p-6 border-b border-gray-100">
                     <div>
                         <Typography variant="caption" className="font-black uppercase tracking-widest">Últimos Broadcasts</Typography>
                         <Typography variant="tiny" tone="muted" className="font-bold">Histórico de comunicados disparados</Typography>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => refetch()} className="rounded-mx-xl" aria-label="Atualizar broadcasts">
+                    <Button variant="ghost" size="icon" onClick={() => refetch()} className="rounded-2xl" aria-label="Atualizar broadcasts">
                         <RefreshCw size={16} />
                     </Button>
                 </header>
 
                 {loading ? (
-                    <div className="p-mx-xl text-center"><RefreshCw size={24} className="animate-spin mx-auto text-brand-primary" /></div>
+                    <div className="p-12 text-center"><RefreshCw size={24} className="animate-spin mx-auto text-emerald-600" /></div>
                 ) : broadcasts.length === 0 ? (
-                    <div className="p-mx-xl text-center space-y-mx-sm">
-                        <Megaphone size={40} className="mx-auto text-text-tertiary opacity-30" />
+                    <div className="p-12 text-center space-y-4">
+                        <Megaphone size={40} className="mx-auto text-gray-500 opacity-30" />
                         <Typography variant="caption" tone="muted" className="font-black uppercase">Nenhum broadcast disparado ainda</Typography>
                     </div>
                 ) : (
                     <div className="divide-y divide-border-default">
                         {broadcasts.slice(0, 10).map((b: BroadcastDisplay) => (
-                            <div key={b.broadcast_id || b.id} className="p-mx-md hover:bg-surface-alt transition-colors">
-                                <div className="flex items-start justify-between gap-mx-sm">
+                            <div key={b.broadcast_id || b.id} className="p-6 hover:bg-gray-50 transition-colors">
+                                <div className="flex items-start justify-between gap-4">
                                     <div className="flex-1 min-w-0">
                                         <Typography variant="caption" className="font-black uppercase tracking-tight">
                                             {b.titulo || b.title || 'Sem título'}
@@ -72,7 +72,7 @@ export function BroadcastsTab() {
                                             {b.mensagem || b.message || ''}
                                         </Typography>
                                     </div>
-                                    <Badge variant="outline" className="text-mx-micro font-black uppercase shrink-0">
+                                    <Badge variant="outline" className="text-[9px] font-black uppercase shrink-0">
                                         {b.created_at ? format(new Date(b.created_at), 'dd/MM HH:mm', { locale: ptBR }) : '—'}
                                     </Badge>
                                 </div>

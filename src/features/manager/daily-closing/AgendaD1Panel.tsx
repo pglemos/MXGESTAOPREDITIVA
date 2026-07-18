@@ -522,13 +522,13 @@ export function AgendaD1Panel({
           )}
 
           {loading ? (
-            <div className="space-y-mx-sm" aria-busy="true">
-              <Skeleton className="h-mx-12" />
-              <Skeleton className="h-mx-12" />
-              <Skeleton className="h-mx-12" />
+            <div className="space-y-4" aria-busy="true">
+              <Skeleton className="h-12" />
+              <Skeleton className="h-12" />
+              <Skeleton className="h-12" />
             </div>
           ) : visible.length === 0 ? (
-            <div className="grid min-h-[220px] place-items-center p-mx-xl text-center">
+            <div className="grid min-h-[220px] place-items-center p-12 text-center">
               <div>
                 <CalendarDays size={42} className="mx-auto text-border-default" />
                 <p className="mt-3 text-sm text-gray-500">

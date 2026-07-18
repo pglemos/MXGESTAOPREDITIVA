@@ -117,13 +117,13 @@ export function SistemaMxTab() {
     }, [])
 
     return (
-        <div className="space-y-mx-lg">
+        <div className="space-y-8">
             {/* System status header */}
-            <Card className="p-mx-lg border-none shadow-mx-lg bg-pure-black text-white relative overflow-hidden">
-                <div className="absolute -right-20 -top-20 w-mx-48 h-mx-48 bg-status-success/20 rounded-mx-full blur-3xl pointer-events-none" />
-                <div className="relative z-10 flex items-center justify-between gap-mx-md flex-wrap">
-                    <div className="flex items-center gap-mx-md">
-                        <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-white/10 border border-white/10 flex items-center justify-center text-status-success">
+            <Card className="p-8 border-none shadow-sm bg-gray-950 text-white relative overflow-hidden">
+                <div className="absolute -right-20 -top-20 w-48 h-48 bg-emerald-600/20 rounded-full blur-3xl pointer-events-none" />
+                <div className="relative z-10 flex items-center justify-between gap-6 flex-wrap">
+                    <div className="flex items-center gap-6">
+                        <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center text-emerald-600">
                             <Server size={28} />
                         </div>
                         <div>
@@ -133,7 +133,7 @@ export function SistemaMxTab() {
                             </Typography>
                         </div>
                     </div>
-                    <div className="flex items-center gap-mx-md">
+                    <div className="flex items-center gap-6">
                         <StatusPill icon={<Cpu size={14} />} label="API" tone={health.tone} value={health.api} />
                         <StatusPill icon={<Database size={14} />} label="DB" tone={health.tone} value={health.db} />
                         <StatusPill icon={<Activity size={14} />} label="Rede" tone={health.network === 'offline' ? 'error' : health.tone} value={health.network} />
@@ -142,7 +142,7 @@ export function SistemaMxTab() {
             </Card>
 
             {/* Operações críticas */}
-            <div className="grid md:grid-cols-4 gap-mx-md">
+            <div className="grid md:grid-cols-4 gap-6">
                 <CriticalOpCard
                     icon={<RefreshCw size={22} />}
                     label="Reprocessamento"
@@ -171,10 +171,10 @@ export function SistemaMxTab() {
             </div>
 
             {/* Auditoria */}
-            <Card className="border-none shadow-mx-lg bg-white overflow-hidden">
-                <header className="flex items-center justify-between p-mx-md border-b border-border-default">
-                    <div className="flex items-center gap-mx-sm">
-                        <div className="w-mx-12 h-mx-12 rounded-mx-xl bg-mx-indigo-50 text-brand-primary flex items-center justify-center">
+            <Card className="border-none shadow-sm bg-white overflow-hidden">
+                <header className="flex items-center justify-between p-6 border-b border-gray-100">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-emerald-600 flex items-center justify-center">
                             <Activity size={20} />
                         </div>
                         <div>
@@ -182,34 +182,34 @@ export function SistemaMxTab() {
                             <Typography variant="tiny" tone="muted" className="font-bold">Últimas 20 ações sensíveis</Typography>
                         </div>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => { fetchAudit(); fetchHealth() }} className="rounded-mx-xl" aria-label="Atualizar auditoria e saúde">
+                    <Button variant="ghost" size="icon" onClick={() => { fetchAudit(); fetchHealth() }} className="rounded-2xl" aria-label="Atualizar auditoria e saúde">
                         <RefreshCw size={16} />
                     </Button>
                 </header>
 
                 {loading ? (
-                    <div className="p-mx-xl text-center"><RefreshCw size={24} className="animate-spin mx-auto text-brand-primary" /></div>
+                    <div className="p-12 text-center"><RefreshCw size={24} className="animate-spin mx-auto text-emerald-600" /></div>
                 ) : audit.length === 0 ? (
-                    <div className="p-mx-xl text-center space-y-mx-sm">
-                        <Activity size={40} className="mx-auto text-text-tertiary opacity-30" />
+                    <div className="p-12 text-center space-y-4">
+                        <Activity size={40} className="mx-auto text-gray-500 opacity-30" />
                         <Typography variant="caption" tone="muted" className="font-black uppercase">Nenhum registro de auditoria</Typography>
                     </div>
                 ) : (
                     <div className="divide-y divide-border-default">
                         {audit.map(entry => (
-                            <div key={entry.id} className="flex items-start gap-mx-md p-mx-md hover:bg-surface-alt transition-colors">
-                                <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-status-warning/10 text-status-warning flex items-center justify-center shrink-0">
+                            <div key={entry.id} className="flex items-start gap-6 p-6 hover:bg-gray-50 transition-colors">
+                                <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
                                     <AlertTriangle size={16} />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <Typography variant="caption" className="font-black uppercase tracking-tight font-mono-numbers">
+                                    <Typography variant="caption" className="font-black uppercase tracking-tight font-mono tabular-nums">
                                         {entry.action}
                                     </Typography>
                                     <Typography variant="tiny" tone="muted" className="font-bold mt-1">
                                         {entry.actor_email || 'sistema'} {entry.target ? `→ ${entry.target}` : ''}
                                     </Typography>
                                 </div>
-                                <Badge variant="outline" className="text-mx-micro font-black uppercase shrink-0">
+                                <Badge variant="outline" className="text-[9px] font-black uppercase shrink-0">
                                     {format(new Date(entry.created_at), 'dd/MM HH:mm', { locale: ptBR })}
                                 </Badge>
                             </div>
@@ -219,10 +219,10 @@ export function SistemaMxTab() {
             </Card>
 
             {/* Versão */}
-            <Card className="p-mx-md border-none shadow-mx-sm bg-surface-alt">
+            <Card className="p-6 border-none shadow-sm bg-gray-50">
                 <div className="flex items-center justify-between">
                     <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Versão / Último check</Typography>
-                    <Typography variant="tiny" className="font-mono-numbers font-black">
+                    <Typography variant="tiny" className="font-mono tabular-nums font-black">
                         {import.meta.env.VITE_APP_VERSION || '1.0.0'} · {health.checkedAt ? format(new Date(health.checkedAt), 'dd/MM HH:mm', { locale: ptBR }) : 'pendente'}
                     </Typography>
                 </div>
@@ -233,12 +233,12 @@ export function SistemaMxTab() {
 
 function ExportContactsCard({ exporting, onExport }: { exporting: boolean; onExport: () => void }) {
     return (
-        <Card className="p-mx-md border-none shadow-mx-md bg-white hover:shadow-mx-lg transition-shadow">
-            <div className="w-mx-12 h-mx-12 rounded-mx-xl border border-status-success/20 bg-status-success/5 text-status-success flex items-center justify-center mb-mx-sm">
+        <Card className="p-6 border-none shadow-sm bg-white hover:shadow-sm transition-shadow">
+            <div className="w-12 h-12 rounded-2xl border border-emerald-600/20 bg-emerald-600/5 text-emerald-600 flex items-center justify-center mb-4">
                 {exporting ? <RefreshCw size={22} className="animate-spin" /> : <Download size={22} />}
             </div>
             <Typography variant="caption" className="font-black uppercase tracking-tight">Exportar Contatos</Typography>
-            <Typography variant="tiny" tone="muted" className="font-bold leading-relaxed mt-1 mb-mx-sm">
+            <Typography variant="tiny" tone="muted" className="font-bold leading-relaxed mt-1 mb-4">
                 Baixar XLSX de donos, sócios, gerentes e vendedores ativos
             </Typography>
             <Button
@@ -247,7 +247,7 @@ function ExportContactsCard({ exporting, onExport }: { exporting: boolean; onExp
                 size="sm"
                 disabled={exporting}
                 onClick={onExport}
-                className="h-mx-9 px-3 rounded-mx-lg font-black uppercase text-mx-micro tracking-widest"
+                className="h-9 px-3 rounded-2xl font-black uppercase text-[9px] tracking-widest"
             >
                 {exporting ? 'Gerando' : 'Baixar'} <Download size={11} className="ml-1" />
             </Button>
@@ -257,12 +257,12 @@ function ExportContactsCard({ exporting, onExport }: { exporting: boolean; onExp
 
 function StatusPill({ icon, label, value, tone }: { icon: React.ReactNode; label: string; value: string; tone: 'success' | 'warning' | 'error' }) {
     const colors = {
-        success: 'bg-status-success/10 text-status-success border-status-success/20',
-        warning: 'bg-status-warning/10 text-status-warning border-status-warning/20',
-        error: 'bg-status-error/10 text-status-error border-status-error/20',
+        success: 'bg-emerald-600/10 text-emerald-600 border-emerald-600/20',
+        warning: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+        error: 'bg-red-600/10 text-red-600 border-red-600/20',
     }
     return (
-        <div className={`flex items-center gap-mx-xs px-3 h-mx-10 rounded-mx-full border ${colors[tone]}`}>
+        <div className={`flex items-center gap-2 px-3 h-10 rounded-full border ${colors[tone]}`}>
             {icon}
             <span className="text-xs font-black uppercase tracking-widest">{label}</span>
             <span className="text-xs font-black tabular-nums opacity-70">{value}</span>
@@ -278,18 +278,18 @@ function CriticalOpCard({ icon, label, desc, route, severity }: {
     severity: 'warning' | 'info' | 'error'
 }) {
     const sev = {
-        warning: 'border-status-warning/20 bg-status-warning/5 text-status-warning',
-        info: 'border-mx-indigo-100 bg-mx-indigo-50 text-brand-primary',
-        error: 'border-status-error/20 bg-status-error/5 text-status-error',
+        warning: 'border-amber-500/20 bg-amber-500/5 text-amber-600',
+        info: 'border-indigo-100 bg-indigo-50 text-emerald-600',
+        error: 'border-red-600/20 bg-red-600/5 text-red-600',
     }
     return (
-        <Card className="p-mx-md border-none shadow-mx-md bg-white hover:shadow-mx-lg transition-shadow">
-            <div className={`w-mx-12 h-mx-12 rounded-mx-xl border flex items-center justify-center mb-mx-sm ${sev[severity]}`}>
+        <Card className="p-6 border-none shadow-sm bg-white hover:shadow-sm transition-shadow">
+            <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center mb-4 ${sev[severity]}`}>
                 {icon}
             </div>
             <Typography variant="caption" className="font-black uppercase tracking-tight">{label}</Typography>
-            <Typography variant="tiny" tone="muted" className="font-bold leading-relaxed mt-1 mb-mx-sm">{desc}</Typography>
-            <Button asChild variant="outline" size="sm" className="h-mx-9 px-3 rounded-mx-lg font-black uppercase text-mx-micro tracking-widest">
+            <Typography variant="tiny" tone="muted" className="font-bold leading-relaxed mt-1 mb-4">{desc}</Typography>
+            <Button asChild variant="outline" size="sm" className="h-9 px-3 rounded-2xl font-black uppercase text-[9px] tracking-widest">
                 <Link to={route}>Abrir <ExternalLink size={11} className="ml-1" /></Link>
             </Button>
         </Card>

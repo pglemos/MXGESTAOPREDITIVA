@@ -33,15 +33,15 @@ export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
   const upcoming = events.slice(0, compact ? 3 : 6)
 
   return (
-    <Card className="space-y-mx-md rounded-mx-lg border border-border-strong bg-white p-mx-lg shadow-none">
-      <header className="flex min-w-0 items-center justify-between gap-mx-sm">
-        <div className="flex min-w-0 items-center gap-mx-sm">
-          <div className="flex h-mx-12 w-mx-12 shrink-0 items-center justify-center rounded-mx-lg border border-mx-indigo-100 bg-mx-indigo-50 text-brand-primary">
+    <Card className="space-y-6 rounded-2xl border border-gray-200 bg-white p-8 shadow-none">
+      <header className="flex min-w-0 items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-indigo-100 bg-indigo-50 text-emerald-600">
             <Calendar size={20} />
           </div>
           <div className="min-w-0">
             <Typography variant="h3" className="text-base">Google Calendar</Typography>
-            <Typography variant="caption" tone="muted" className="uppercase tracking-widest text-mx-tiny">
+            <Typography variant="caption" tone="muted" className="uppercase tracking-widest text-[10px]">
               Sincronização híbrida
             </Typography>
           </div>
@@ -51,29 +51,29 @@ export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
         </Button>
       </header>
 
-      <div className={`grid grid-cols-1 gap-mx-sm ${canViewCentralAgenda ? 'sm:grid-cols-2' : ''}`}>
+      <div className={`grid grid-cols-1 gap-4 ${canViewCentralAgenda ? 'sm:grid-cols-2' : ''}`}>
         <motion.div
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`min-w-0 rounded-mx-lg border p-mx-sm ${personalConnected ? 'bg-status-success-surface border-status-success/20' : 'bg-surface-alt border-border-default'}`}
+          className={`min-w-0 rounded-2xl border p-4 ${personalConnected ? 'bg-emerald-50 border-emerald-600/20' : 'bg-gray-50 border-gray-100'}`}
         >
-          <div className="mb-1 flex min-w-0 items-center justify-between gap-mx-xs">
-            <span className="min-w-0 truncate text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">Sua agenda</span>
+          <div className="mb-1 flex min-w-0 items-center justify-between gap-2">
+            <span className="min-w-0 truncate text-[10px] font-black uppercase tracking-widest text-gray-500">Sua agenda</span>
             {personalConnected
-              ? <CheckCircle2 size={16} className="shrink-0 text-status-success" />
-              : <AlertCircle size={16} className="shrink-0 text-text-tertiary" />}
+              ? <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
+              : <AlertCircle size={16} className="shrink-0 text-gray-500" />}
           </div>
           {personalConnected ? (
-            <div className="flex min-w-0 flex-col gap-mx-tiny">
-              <Badge variant="success" className="w-fit text-mx-nano">Conectada</Badge>
+            <div className="flex min-w-0 flex-col gap-1">
+              <Badge variant="success" className="w-fit text-[8px]">Conectada</Badge>
               {personalGoogleEmail && (
-                <Typography variant="tiny" tone="muted" className="truncate text-mx-tiny">
+                <Typography variant="tiny" tone="muted" className="truncate text-[10px]">
                   {personalGoogleEmail}
                 </Typography>
               )}
             </div>
           ) : (
-            <Button size="sm" variant="outline" onClick={() => connectPersonal(clientId)} className="w-full mt-2 min-h-mx-11 gap-mx-xs px-2 text-center tracking-tight [white-space:normal]">
+            <Button size="sm" variant="outline" onClick={() => connectPersonal(clientId)} className="w-full mt-2 min-h-11 gap-2 px-2 text-center tracking-tight [white-space:normal]">
               <LinkIcon size={14} />
               <span className="sm:hidden">Conectar conta</span>
               <span className="hidden sm:inline">Conectar minha conta</span>
@@ -86,25 +86,25 @@ export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className={`min-w-0 rounded-mx-lg border p-mx-sm ${centralConnected && centralMeetCohostsAuthorized ? 'bg-mx-green-50 border-mx-green-200' : 'bg-surface-alt border-border-default'}`}
+            className={`min-w-0 rounded-2xl border p-4 ${centralConnected && centralMeetCohostsAuthorized ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-100'}`}
           >
-            <div className="mb-1 flex min-w-0 items-center justify-between gap-mx-xs">
-              <span className="flex min-w-0 items-center gap-mx-xs text-mx-tiny font-black uppercase tracking-widest text-text-tertiary">
+            <div className="mb-1 flex min-w-0 items-center justify-between gap-2">
+              <span className="flex min-w-0 items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-500">
                 <Building2 size={12} className="shrink-0" />
                 <span className="truncate">Agenda Central MX</span>
               </span>
               {centralConnected && centralMeetCohostsAuthorized
-                ? <CheckCircle2 size={16} className="shrink-0 text-status-success" />
-                : <AlertCircle size={16} className="shrink-0 text-status-warning" />}
+                ? <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
+                : <AlertCircle size={16} className="shrink-0 text-amber-600" />}
             </div>
             {centralConnected && centralMeetCohostsAuthorized ? (
               <div className="min-w-0">
-                <Typography variant="tiny" className="block truncate rounded-mx-md bg-brand-primary px-2 py-1 font-black uppercase tracking-widest text-white">
+                <Typography variant="tiny" className="block truncate rounded-xl bg-emerald-600 px-2 py-1 font-black uppercase tracking-widest text-white">
                   {centralGoogleEmail || 'gestao@mxconsultoria.com.br'}
                 </Typography>
               </div>
             ) : (
-              <Button size="sm" variant="outline" onClick={connectCentral} className="w-full mt-2 min-h-mx-11 gap-mx-xs px-2 text-center tracking-tight [white-space:normal]">
+              <Button size="sm" variant="outline" onClick={connectCentral} className="w-full mt-2 min-h-11 gap-2 px-2 text-center tracking-tight [white-space:normal]">
                 <LinkIcon size={14} />
                 <span className="sm:hidden">{centralConnected ? 'Autorizar Meet' : 'Conectar central'}</span>
                 <span className="hidden sm:inline">{centralConnected ? 'Autorizar co-hosts do Meet' : 'Conectar Agenda Central'}</span>
@@ -115,41 +115,41 @@ export function GoogleCalendarStatus({ clientId, compact = false }: Props) {
       </div>
 
       {error && (
-        <div className="p-mx-sm rounded-mx-md bg-status-error-surface border border-status-error/20 text-status-error text-mx-tiny font-bold">
+        <div className="p-4 rounded-xl bg-red-50 border border-red-600/20 text-red-600 text-[10px] font-bold">
           {error}
         </div>
       )}
 
       {!compact && canViewCentralAgenda && centralConnected && !personalConnected && (
-        <div className="p-mx-sm rounded-mx-md bg-mx-indigo-50 border border-mx-indigo-100 text-text-secondary text-mx-tiny font-bold leading-relaxed">
+        <div className="p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-gray-600 text-[10px] font-bold leading-relaxed">
           A Agenda Central MX está conectada. Para receber os compromissos na própria conta Google, cada admin MX precisa entrar no sistema com seu usuário e conectar a agenda pessoal.
         </div>
       )}
 
       {!compact && canViewCentralAgenda && centralConnected && !centralMeetCohostsAuthorized && (
-        <div className="p-mx-sm rounded-mx-md bg-status-warning-surface border border-status-warning/20 text-text-secondary text-mx-tiny font-bold leading-relaxed">
+        <div className="p-4 rounded-xl bg-amber-50 border border-amber-500/20 text-gray-600 text-[10px] font-bold leading-relaxed">
           Reconecte a Agenda Central MX para autorizar Daniel, Jose, Mariane e Joao como co-hosts das reunioes Google Meet.
         </div>
       )}
 
       {upcoming.length > 0 && (
-        <div className="space-y-mx-xs">
-          <Typography variant="caption" tone="muted" className="uppercase tracking-widest font-black text-mx-tiny">
+        <div className="space-y-2">
+          <Typography variant="caption" tone="muted" className="uppercase tracking-widest font-black text-[10px]">
             Próximos eventos
           </Typography>
-          <ul className="space-y-mx-tiny">
+          <ul className="space-y-1">
             {upcoming.map((ev) => {
               const start = ev.start?.dateTime || ev.start?.date || ''
               const dt = start ? new Date(start) : null
               return (
-                <li key={`${ev._source}-${ev.id}`} className="flex min-w-0 items-center gap-mx-sm rounded-mx-md p-mx-xs transition-colors hover:bg-surface-alt">
-                  <span className={`h-mx-md w-mx-tiny shrink-0 rounded-full ${ev._source === 'central' ? 'bg-brand-primary' : 'bg-status-info'}`} />
+                <li key={`${ev._source}-${ev.id}`} className="flex min-w-0 items-center gap-4 rounded-xl p-2 transition-colors hover:bg-gray-50">
+                  <span className={`h-6 w-1 shrink-0 rounded-full ${ev._source === 'central' ? 'bg-emerald-600' : 'bg-blue-600'}`} />
                   <div className="min-w-0 flex-1">
                     <Typography variant="caption" className="font-bold truncate block">
                       {ev.summary || '(sem título)'}
                     </Typography>
                     {dt && (
-                      <Typography variant="tiny" tone="muted" className="block truncate text-mx-tiny">
+                      <Typography variant="tiny" tone="muted" className="block truncate text-[10px]">
                         {dt.toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                         {ev._source === 'central' ? ' • Central' : ' • Pessoal'}
                       </Typography>

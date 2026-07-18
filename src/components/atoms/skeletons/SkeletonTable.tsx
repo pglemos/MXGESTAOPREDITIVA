@@ -14,16 +14,16 @@ export interface SkeletonTableProps {
  */
 export function SkeletonTable({ rows = 5, cols = 4, className, showHeader = true }: SkeletonTableProps) {
   return (
-    <div className={cn('w-full space-y-mx-xs', className)}>
+    <div className={cn('w-full space-y-2', className)}>
       {showHeader && (
-        <div className="grid gap-mx-sm pb-mx-xs border-b border-border-default" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+        <div className="grid gap-4 pb-2 border-b border-gray-100" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
           {Array.from({ length: cols }).map((_, i) => (
-            <Skeleton key={`h-${i}`} variant="text" className="h-mx-sm" />
+            <Skeleton key={`h-${i}`} variant="text" className="h-4" />
           ))}
         </div>
       )}
       {Array.from({ length: rows }).map((_, r) => (
-        <div key={`r-${r}`} className="grid gap-mx-sm" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+        <div key={`r-${r}`} className="grid gap-4" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
           {Array.from({ length: cols }).map((_, c) => (
             <Skeleton key={`c-${r}-${c}`} variant="table-row" />
           ))}

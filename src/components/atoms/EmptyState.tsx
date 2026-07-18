@@ -8,9 +8,9 @@ const emptyStateVariants = cva(
   {
     variants: {
       size: {
-        sm: "py-mx-md px-mx-sm space-y-mx-xs",
-        md: "py-mx-xl px-mx-lg space-y-mx-sm",
-        lg: "py-mx-3xl px-mx-2xl space-y-mx-md",
+        sm: "py-6 px-4 space-y-2",
+        md: "py-12 px-8 space-y-4",
+        lg: "py-24 px-16 space-y-6",
       },
     },
     defaultVariants: {
@@ -20,7 +20,7 @@ const emptyStateVariants = cva(
 )
 
 const iconSizeVariants = cva(
-  "text-text-tertiary",
+  "text-gray-500",
   {
     variants: {
       size: {
@@ -54,7 +54,7 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
             {icon}
           </div>
         )}
-        <Typography variant="h3" className="text-text-primary">
+        <Typography variant="h3" className="text-gray-800">
           {title}
         </Typography>
         {description && (
@@ -63,17 +63,17 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
           </Typography>
         )}
         {nextStep && (
-          <div className="mt-mx-xs max-w-md rounded-mx-xl border border-border-default bg-surface-alt px-mx-md py-mx-sm text-left">
-            <Typography variant="caption" className="block text-text-secondary">
+          <div className="mt-2 max-w-md rounded-2xl border border-gray-100 bg-gray-50 px-6 py-4 text-left">
+            <Typography variant="caption" className="block text-gray-600">
               Próximo passo
             </Typography>
-            <Typography variant="p" className="mt-mx-tiny text-text-secondary">
+            <Typography variant="p" className="mt-1 text-gray-600">
               {nextStep}
             </Typography>
           </div>
         )}
         {action && (
-          <div className="mt-mx-xs">
+          <div className="mt-2">
             {action}
           </div>
         )}

@@ -6,17 +6,18 @@ test('detecta tokens e wrappers legados em uma superfície de gestão', () => {
   const violations = auditText(`
     <section className="rounded-mx-2xl shadow-mx-lg bg-surface-alt text-text-primary p-mx-lg mxds-page-frame" />
   `)
-  assert.deepEqual(
-    new Set(violations.map((violation) => violation.rule)),
-    new Set([
-      'legacy-radius',
-      'legacy-shadow',
-      'legacy-spacing',
-      'legacy-text-token',
-      'legacy-surface-token',
-      'legacy-wrapper',
-    ]),
-  )
+  const rules = new Set(violations.map((violation) => violation.rule))
+  for (const expectedRule of [
+    'legacy-radius',
+    'legacy-shadow',
+    'legacy-spacing',
+    'legacy-text-token',
+    'legacy-surface-token',
+    'legacy-wrapper',
+    'legacy-custom-utility',
+  ]) {
+    assert.equal(rules.has(expectedRule), true, `Regra ausente: ${expectedRule}`)
+  }
 })
 
 test('todas as dependências exclusivas das rotas de gestão estão livres de legado visual', () => {

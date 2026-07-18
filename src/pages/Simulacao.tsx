@@ -78,14 +78,14 @@ export default function Simulacao() {
 
   if (requestedOption) {
     return (
-      <main className="w-full h-full flex items-center justify-center p-mx-xl bg-surface-alt">
-        <Card className="max-w-lg w-full rounded-mx-4xl border-border-default shadow-mx-xl">
-          <CardContent className="p-mx-xl text-center space-y-mx-lg">
-            <div className="w-mx-20 h-mx-20 rounded-mx-3xl bg-brand-primary text-white flex items-center justify-center mx-auto shadow-mx-lg">
+      <main className="w-full h-full flex items-center justify-center p-12 bg-gray-50">
+        <Card className="max-w-lg w-full rounded-2xl border-gray-100 shadow-sm">
+          <CardContent className="p-12 text-center space-y-8">
+            <div className="w-20 h-20 rounded-2xl bg-emerald-600 text-white flex items-center justify-center mx-auto shadow-sm">
               <MonitorPlay size={38} />
             </div>
-            <div className="space-y-mx-xs">
-              <Badge variant="info" className="uppercase font-black tracking-mx-widest">Simulação MX</Badge>
+            <div className="space-y-2">
+              <Badge variant="info" className="uppercase font-black tracking-widest">Simulação MX</Badge>
               <Typography variant="h1" className="uppercase tracking-tight">
                 Preparando visão de {requestedOption.title}
               </Typography>
@@ -100,36 +100,36 @@ export default function Simulacao() {
   }
 
   return (
-<main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
-<div className="space-y-mx-xl">
-        <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-mx-lg border-b border-border-default pb-8">
-          <div className="space-y-mx-xs">
-            <Badge variant="success" className="uppercase font-black tracking-mx-widest">Admin Master MX</Badge>
+<main className="h-full w-full overflow-y-auto bg-gray-50 p-8 no-scrollbar">
+<div className="space-y-12">
+        <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-gray-100 pb-8">
+          <div className="space-y-2">
+            <Badge variant="success" className="uppercase font-black tracking-widest">Admin Master MX</Badge>
             <Typography variant="h1" className="uppercase tracking-tight">Simulação</Typography>
             <Typography variant="p" tone="muted" className="max-w-3xl font-bold">
               Escolha o perfil que será apresentado na consultoria. A experiência usa os módulos reais da aplicação com dados da loja sandbox MX.
             </Typography>
           </div>
-          <div className="flex items-center gap-mx-sm bg-white border border-border-default rounded-mx-2xl px-5 py-4 shadow-mx-sm">
-            <Store size={20} className="text-brand-primary" />
-            <Typography variant="tiny" className="font-black uppercase tracking-mx-widest">Loja sandbox MX</Typography>
+          <div className="flex items-center gap-4 bg-white border border-gray-100 rounded-2xl px-5 py-4 shadow-sm">
+            <Store size={20} className="text-emerald-600" />
+            <Typography variant="tiny" className="font-black uppercase tracking-widest">Loja sandbox MX</Typography>
           </div>
         </header>
 
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-mx-lg" aria-label="Perfis disponíveis para simulação">
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-8" aria-label="Perfis disponíveis para simulação">
           {ROLE_OPTIONS.map(option => {
             const Icon = option.icon
             return (
-              <Card key={option.role} className="rounded-mx-3xl border-border-default shadow-mx-sm bg-white">
-                <CardContent className="p-mx-xl flex flex-col gap-mx-lg h-full">
-                  <div className="w-mx-16 h-mx-16 rounded-mx-2xl bg-surface-alt border border-border-default flex items-center justify-center text-brand-primary">
+              <Card key={option.role} className="rounded-2xl border-gray-100 shadow-sm bg-white">
+                <CardContent className="p-12 flex flex-col gap-8 h-full">
+                  <div className="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-emerald-600">
                     <Icon size={30} />
                   </div>
-                  <div className="space-y-mx-xs flex-1">
+                  <div className="space-y-2 flex-1">
                     <Typography variant="h2" className="uppercase tracking-tight">{option.title}</Typography>
                     <Typography variant="p" tone="muted" className="font-bold">{option.description}</Typography>
                   </div>
-                  <Button asChild size="lg" className="w-full rounded-mx-2xl uppercase font-black">
+                  <Button asChild size="lg" className="w-full rounded-2xl uppercase font-black">
                     <a href={`/simulacao/${option.role}`}>
                       <Building2 size={18} />
                       Simular {option.title}

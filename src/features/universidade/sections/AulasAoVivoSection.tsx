@@ -87,8 +87,8 @@ export function AulasAoVivoSection() {
   }
 
   return (
-    <section className="space-y-mx-lg" aria-label="Aulas ao Vivo">
-      <div className="flex flex-col gap-mx-sm border-b border-border-default pb-mx-md xl:flex-row xl:items-center xl:justify-between">
+    <section className="space-y-8" aria-label="Aulas ao Vivo">
+      <div className="flex flex-col gap-4 border-b border-gray-100 pb-6 xl:flex-row xl:items-center xl:justify-between">
         <div>
           <Typography variant="h2" className="text-3xl tracking-normal">Aulas ao Vivo</Typography>
           <Typography variant="p" tone="muted">Participe das aulas ao vivo, faça a prova e valide sua presença para ganhar pontos no Score.</Typography>
@@ -96,51 +96,51 @@ export function AulasAoVivoSection() {
         <Button variant="outline" onClick={() => document.getElementById('aulas-como-funciona')?.scrollIntoView({ behavior: 'smooth' })}><PlayCircle size={16} /> Como funciona</Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-mx-xl xl:grid-cols-[minmax(0,1fr)_420px]">
-        <div className="space-y-mx-lg">
+      <div className="grid grid-cols-1 gap-12 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <div className="space-y-8">
           <div>
-            <Typography variant="h3" className="mb-mx-sm uppercase">Próxima Aula ao Vivo</Typography>
+            <Typography variant="h3" className="mb-4 uppercase">Próxima Aula ao Vivo</Typography>
             {aulaPrincipal ? (
-            <div className="grid grid-cols-1 overflow-hidden rounded-mx-lg border border-border-default bg-white shadow-mx-sm lg:grid-cols-[minmax(0,1fr)_260px]">
+            <div className="grid grid-cols-1 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm lg:grid-cols-[minmax(0,1fr)_260px]">
               <div className="grid min-h-[220px] grid-cols-[100px_minmax(0,260px)_1fr] bg-sidebar-bg-strong text-white">
-                <div className="flex flex-col items-center justify-center bg-status-info text-white">
-                  <Badge variant="info" className="mb-mx-sm rounded-mx-md">{aulaPrincipal.status === 'ao_vivo' ? 'Ao vivo' : 'Agendada'}</Badge>
+                <div className="flex flex-col items-center justify-center bg-blue-600 text-white">
+                  <Badge variant="info" className="mb-4 rounded-xl">{aulaPrincipal.status === 'ao_vivo' ? 'Ao vivo' : 'Agendada'}</Badge>
                   <span className="text-sm font-black uppercase">{formatDate(aulaPrincipal.inicio).slice(0, 3)}</span>
                   <span className="text-5xl font-black leading-none">{new Date(aulaPrincipal.inicio).getDate()}</span>
                   <span className="text-xl font-black uppercase">{new Date(aulaPrincipal.inicio).toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}</span>
                 </div>
                 <div className="grid place-items-center bg-white/5"><Video size={56} className="text-white/40" /></div>
-                <div className="flex flex-col justify-center p-mx-lg">
+                <div className="flex flex-col justify-center p-8">
                   <Typography variant="h2" tone="white" className="text-2xl">{aulaPrincipal.titulo}</Typography>
-                  {aulaPrincipal.descricao && <Typography variant="p" tone="white" className="mt-mx-xs opacity-75">{aulaPrincipal.descricao}</Typography>}
-                  <div className="mt-mx-md flex flex-wrap gap-mx-md text-sm font-black text-white/80">
+                  {aulaPrincipal.descricao && <Typography variant="p" tone="white" className="mt-2 opacity-75">{aulaPrincipal.descricao}</Typography>}
+                  <div className="mt-6 flex flex-wrap gap-6 text-sm font-black text-white/80">
                     {aulaPrincipal.instrutor && <span>Com: {aulaPrincipal.instrutor}</span>}
                     <span className="inline-flex items-center gap-1"><Clock size={15} /> {formatHour(aulaPrincipal.inicio)} às {formatHour(new Date(new Date(aulaPrincipal.inicio).getTime() + aulaPrincipal.duracao_minutos * 60000).toISOString())}</span>
                     <span className="inline-flex items-center gap-1"><Clock size={15} /> {aulaPrincipal.duracao_minutos} min</span>
                     <Badge variant={aulaPrincipal.status === 'ao_vivo' ? 'success' : 'info'}>{aulaPrincipal.status === 'ao_vivo' ? 'Ao vivo' : 'Agendada'}</Badge>
                   </div>
-                  <Typography variant="tiny" tone="white" className="mt-mx-md block normal-case tracking-normal opacity-70">Sua presença será validada pela prova realizada após a aula.</Typography>
+                  <Typography variant="tiny" tone="white" className="mt-6 block normal-case tracking-normal opacity-70">Sua presença será validada pela prova realizada após a aula.</Typography>
                 </div>
               </div>
-              <div className="flex flex-col justify-center gap-mx-sm p-mx-lg">
+              <div className="flex flex-col justify-center gap-4 p-8">
                 {aulaPrincipal.link_transmissao ? (
-                  <Button asChild className="h-mx-14">
+                  <Button asChild className="h-14">
                     <a href={aulaPrincipal.link_transmissao} target="_blank" rel="noreferrer"><Video size={16} /> Participar da aula</a>
                   </Button>
                 ) : (
-                  <Button className="h-mx-14" disabled><Video size={16} /> Link ainda não liberado</Button>
+                  <Button className="h-14" disabled><Video size={16} /> Link ainda não liberado</Button>
                 )}
-                <Button asChild variant="outline" className="h-mx-14">
+                <Button asChild variant="outline" className="h-14">
                   <a href={calendarUrl(aulaPrincipal)} target="_blank" rel="noreferrer"><CalendarDays size={16} /> Adicionar ao calendário</a>
                 </Button>
                 <Button variant="ghost" onClick={() => abrirProva(aulaPrincipal)}>Fazer a prova <ChevronRight size={16} /></Button>
               </div>
             </div>
             ) : (
-            <div className="grid min-h-[220px] place-items-center rounded-mx-lg border border-border-default bg-white p-mx-lg text-center shadow-mx-sm">
+            <div className="grid min-h-[220px] place-items-center rounded-2xl border border-gray-100 bg-white p-8 text-center shadow-sm">
               <div>
-                <Video size={36} className="mx-auto text-text-tertiary" />
-                <Typography variant="p" className="mt-mx-sm font-black">{loading ? 'Carregando aulas...' : 'Nenhuma aula ao vivo agendada'}</Typography>
+                <Video size={36} className="mx-auto text-gray-500" />
+                <Typography variant="p" className="mt-4 font-black">{loading ? 'Carregando aulas...' : 'Nenhuma aula ao vivo agendada'}</Typography>
                 {!loading && <Typography variant="caption" tone="muted" className="normal-case tracking-normal">Quando sua loja ou a MX agendar uma aula, ela aparece aqui com link, prova e presença.</Typography>}
               </div>
             </div>
@@ -148,8 +148,8 @@ export function AulasAoVivoSection() {
           </div>
 
           <div id="aulas-como-funciona">
-            <Typography variant="h3" className="mb-mx-md uppercase">Como funciona</Typography>
-            <div className="grid grid-cols-1 gap-mx-md md:grid-cols-4">
+            <Typography variant="h3" className="mb-6 uppercase">Como funciona</Typography>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
               <Step icon={<CalendarDays size={24} />} title="1. Participe da aula" text="Participe ao vivo ou assista a gravação." />
               <Step icon={<FileQuestion size={24} />} title="2. Faça a prova" text="Responda o quiz com 5 a 10 perguntas." />
               <Step icon={<Medal size={24} />} title="3. Valide sua presença" text="Acerte 70% ou mais e sua presença será confirmada." />
@@ -157,9 +157,9 @@ export function AulasAoVivoSection() {
             </div>
           </div>
 
-          <Card className="rounded-mx-lg border border-border-default bg-status-info-surface p-mx-lg shadow-none">
+          <Card className="rounded-2xl border border-gray-100 bg-blue-50 p-8 shadow-none">
             <Typography variant="h3" className="uppercase">Suas aulas recentes</Typography>
-            <div className="mt-mx-md grid grid-cols-1 gap-mx-md md:grid-cols-4">
+            <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-4">
               <MiniMetric icon={<CalendarDays size={22} />} value={String(indicadores.presencasValidadas)} label="Presenças validadas" hint="provas aprovadas" />
               <MiniMetric icon={<CheckCircle size={22} />} value={indicadores.mediaProvas === null ? '—' : `${indicadores.mediaProvas}%`} label="Média de acertos" hint={indicadores.mediaProvas === null ? 'nenhuma prova feita' : 'nas provas'} />
               <MiniMetric icon={<Award size={22} />} value={String(indicadores.pontos)} label="Pontos conquistados" hint="com aulas ao vivo" />
@@ -168,24 +168,24 @@ export function AulasAoVivoSection() {
           </Card>
         </div>
 
-        <aside className="space-y-mx-md">
-          <Card className="rounded-mx-lg border border-border-default p-mx-lg shadow-none">
-            <div className="mb-mx-sm flex items-center justify-between">
+        <aside className="space-y-6">
+          <Card className="rounded-2xl border border-gray-100 p-8 shadow-none">
+            <div className="mb-4 flex items-center justify-between">
               <Typography variant="h3" className="uppercase">Agenda de Aulas</Typography>
             </div>
             <div className="divide-y divide-border-default">
               {agenda.length === 0 && (
-                <Typography variant="caption" tone="muted" className="block py-mx-sm normal-case tracking-normal">Sem próximas aulas na agenda.</Typography>
+                <Typography variant="caption" tone="muted" className="block py-4 normal-case tracking-normal">Sem próximas aulas na agenda.</Typography>
               )}
               {agenda.map((aula) => (
-                <button key={aula.id} type="button" onClick={() => abrirProva(aula)} className="flex w-full items-center gap-mx-md py-mx-sm text-left">
-                  <div className="flex h-mx-16 w-mx-14 shrink-0 flex-col items-center justify-center rounded-mx-md bg-surface-alt">
-                    <span className="text-xs font-black uppercase text-status-info">{formatDate(aula.inicio).slice(0, 3)}</span>
-                    <span className="text-2xl font-black text-text-primary">{new Date(aula.inicio).getDate()}</span>
-                    <span className="text-xs font-black uppercase text-text-secondary">{new Date(aula.inicio).toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}</span>
+                <button key={aula.id} type="button" onClick={() => abrirProva(aula)} className="flex w-full items-center gap-6 py-4 text-left">
+                  <div className="flex h-16 w-14 shrink-0 flex-col items-center justify-center rounded-xl bg-gray-50">
+                    <span className="text-xs font-black uppercase text-blue-600">{formatDate(aula.inicio).slice(0, 3)}</span>
+                    <span className="text-2xl font-black text-gray-800">{new Date(aula.inicio).getDate()}</span>
+                    <span className="text-xs font-black uppercase text-gray-600">{new Date(aula.inicio).toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}</span>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <Typography variant="p" className="font-black text-text-primary">{aula.titulo}</Typography>
+                    <Typography variant="p" className="font-black text-gray-800">{aula.titulo}</Typography>
                     <Typography variant="tiny" tone="muted" className="tracking-normal">{formatHour(aula.inicio)} às {formatHour(new Date(new Date(aula.inicio).getTime() + aula.duracao_minutos * 60000).toISOString())}</Typography>
                     {aula.instrutor && <Typography variant="tiny" tone="muted" className="block tracking-normal">Com {aula.instrutor}</Typography>}
                   </div>
@@ -195,11 +195,11 @@ export function AulasAoVivoSection() {
             </div>
           </Card>
 
-          <Card className="rounded-mx-lg border border-border-default p-mx-lg shadow-none">
-            <div className="mb-mx-sm flex items-center justify-between">
+          <Card className="rounded-2xl border border-gray-100 p-8 shadow-none">
+            <div className="mb-4 flex items-center justify-between">
               <Typography variant="h3" className="uppercase">Gravações disponíveis</Typography>
             </div>
-            <div className="space-y-mx-sm">
+            <div className="space-y-4">
               {gravacoesDisplay.length === 0 && (
                 <Typography variant="caption" tone="muted" className="block normal-case tracking-normal">Nenhuma gravação disponível ainda.</Typography>
               )}
@@ -207,26 +207,26 @@ export function AulasAoVivoSection() {
                 const presenca = presencaPorAula.get(aula.id)
                 const conteudo = (
                   <>
-                    <div className="relative grid h-mx-16 w-mx-24 shrink-0 place-items-center overflow-hidden rounded-mx-md bg-sidebar-bg-strong text-white">
+                    <div className="relative grid h-16 w-24 shrink-0 place-items-center overflow-hidden rounded-xl bg-sidebar-bg-strong text-white">
                       <PlayCircle size={28} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <Typography variant="p" className="truncate font-black text-text-primary">{aula.titulo}</Typography>
+                      <Typography variant="p" className="truncate font-black text-gray-800">{aula.titulo}</Typography>
                       <Typography variant="tiny" tone="muted" className="tracking-normal">{aula.instrutor ? `Com ${aula.instrutor}` : 'Universidade MX'}</Typography>
                       <Typography variant="tiny" tone="muted" className="block tracking-normal">{new Date(aula.inicio).toLocaleDateString('pt-BR')} • {aula.duracao_minutos} min</Typography>
                     </div>
                     <div className="text-right">
                       <Typography variant="tiny" tone="muted" className="tracking-normal">Nota</Typography>
-                      <Typography variant="p" className="font-black text-text-primary">{presenca?.nota !== null && presenca?.nota !== undefined ? `${presenca.nota}%` : '—'}</Typography>
+                      <Typography variant="p" className="font-black text-gray-800">{presenca?.nota !== null && presenca?.nota !== undefined ? `${presenca.nota}%` : '—'}</Typography>
                     </div>
                   </>
                 )
                 return aula.gravacao_url ? (
-                  <a key={aula.id} href={aula.gravacao_url} target="_blank" rel="noreferrer" className="flex items-center gap-mx-sm rounded-mx-md transition-colors hover:bg-surface-alt">
+                  <a key={aula.id} href={aula.gravacao_url} target="_blank" rel="noreferrer" className="flex items-center gap-4 rounded-xl transition-colors hover:bg-gray-50">
                     {conteudo}
                   </a>
                 ) : (
-                  <div key={aula.id} className="flex items-center gap-mx-sm">{conteudo}</div>
+                  <div key={aula.id} className="flex items-center gap-4">{conteudo}</div>
                 )
               })}
             </div>
@@ -234,9 +234,9 @@ export function AulasAoVivoSection() {
         </aside>
       </div>
 
-      <Card className="rounded-mx-lg border border-accent-blue/20 bg-accent-blue-soft p-mx-lg shadow-none">
-        <div className="flex flex-col gap-mx-md md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-mx-md">
+      <Card className="rounded-2xl border border-accent-blue/20 bg-accent-blue-soft p-8 shadow-none">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-6">
             <Award size={34} className="text-accent-blue" />
             <div>
               <Typography variant="h3">Presença que gera resultado!</Typography>
@@ -252,27 +252,27 @@ export function AulasAoVivoSection() {
         title={`Prova de presença - ${provaAula?.titulo ?? ''}`}
         description={prova ? `Acerte ${prova.nota_minima}% ou mais para validar sua presença e ganhar ${prova.pontos_score} pontos.` : undefined}
         footer={
-          <div className="flex justify-end gap-mx-sm">
+          <div className="flex justify-end gap-4">
             <Button variant="ghost" onClick={() => { setProvaAula(null); setProva(null) }}>Cancelar</Button>
             <Button onClick={enviarProva} disabled={enviando}>{enviando ? 'Enviando...' : 'Enviar respostas'}</Button>
           </div>
         }
       >
-        <div className="flex flex-col gap-mx-md">
+        <div className="flex flex-col gap-6">
           {prova?.questoes.map((questao, qIndex) => (
             <div key={qIndex}>
               <Typography variant="p" className="font-bold">{qIndex + 1}. {questao.pergunta}</Typography>
-              <div className="mt-mx-xs flex flex-col gap-mx-tiny">
+              <div className="mt-2 flex flex-col gap-1">
                 {questao.opcoes.map((opcao, oIndex) => (
                   <button
                     key={opcao}
                     type="button"
                     onClick={() => setRespostas(current => current.map((r, i) => i === qIndex ? oIndex : r))}
                     className={cn(
-                      'rounded-mx-md border px-mx-md py-mx-xs text-left text-sm transition-colors',
+                      'rounded-xl border px-6 py-2 text-left text-sm transition-colors',
                       respostas[qIndex] === oIndex
-                        ? 'border-status-info bg-status-info-surface font-bold text-status-info'
-                        : 'border-border-subtle text-text-secondary hover:bg-surface-alt',
+                        ? 'border-blue-600 bg-blue-50 font-bold text-blue-600'
+                        : 'border-gray-100 text-gray-600 hover:bg-gray-50',
                     )}
                   >
                     {opcao}
@@ -290,8 +290,8 @@ export function AulasAoVivoSection() {
 function Step({ icon, title, text }: { icon: ReactNode; title: string; text: string }) {
   return (
     <div className="text-center">
-      <span className="mx-auto flex h-mx-16 w-mx-16 items-center justify-center rounded-full bg-status-info-surface text-status-info">{icon}</span>
-      <Typography variant="p" className="mt-mx-sm font-black text-text-primary">{title}</Typography>
+      <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-blue-600">{icon}</span>
+      <Typography variant="p" className="mt-4 font-black text-gray-800">{title}</Typography>
       <Typography variant="p" tone="muted" className="text-sm">{text}</Typography>
     </div>
   )
@@ -299,8 +299,8 @@ function Step({ icon, title, text }: { icon: ReactNode; title: string; text: str
 
 function MiniMetric({ icon, value, label, hint }: { icon: ReactNode; value: string; label: string; hint: string }) {
   return (
-    <div className="flex items-center gap-mx-sm">
-      <span className="flex h-mx-12 w-mx-12 items-center justify-center rounded-full bg-white text-status-info">{icon}</span>
+    <div className="flex items-center gap-4">
+      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-blue-600">{icon}</span>
       <div>
         <Typography variant="tiny" tone="muted" className="tracking-normal">{label}</Typography>
         <Typography variant="h2" className="text-2xl">{value}</Typography>

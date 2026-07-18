@@ -15,7 +15,7 @@ export default function ComportamentalPage() {
   const [tab, setTab] = useState<TabKey>('teste')
 
   return (
-<div className="w-full space-y-mx-lg">
+<div className="w-full space-y-8">
       <PageHeading
         title="Teste Comportamental & Banco de Talentos"
         subtitle="APLIQUE O TESTE NO ONBOARDING E CONSTRUA O BANCO DE PERFIS VENCEDORES"

@@ -30,7 +30,7 @@ export function TabNavPill<T extends string = string>({
   return (
     <nav
       className={cn(
-        'grid w-full max-w-full [grid-template-columns:repeat(auto-fit,minmax(6.75rem,1fr))] bg-white p-mx-tiny rounded-mx-2xl border border-border-default shadow-mx-sm gap-mx-tiny sm:flex sm:w-auto sm:flex-nowrap sm:rounded-mx-full',
+        'grid w-full max-w-full [grid-template-columns:repeat(auto-fit,minmax(6.75rem,1fr))] bg-white p-1 rounded-2xl border border-gray-100 shadow-sm gap-1 sm:flex sm:w-auto sm:flex-nowrap sm:rounded-full',
         className
       )}
       role="tablist"
@@ -45,7 +45,7 @@ export function TabNavPill<T extends string = string>({
           role="tab"
           aria-selected={activeTab === key}
           className={cn(
-            'relative h-mx-10 w-full px-3 sm:w-auto sm:px-6 rounded-mx-full uppercase font-black tracking-widest text-mx-tiny shrink-0',
+            'relative h-10 w-full px-3 sm:w-auto sm:px-6 rounded-full uppercase font-black tracking-widest text-[10px] shrink-0',
             buttonClassName
           )}
         >
@@ -57,7 +57,7 @@ export function TabNavPill<T extends string = string>({
             </>
           ) : label}
           {badge !== undefined && badge > 0 && (
-            <span className="absolute -top-1 -right-1 w-mx-xs h-mx-xs bg-status-error text-white rounded-full flex items-center justify-center text-mx-tiny shadow-mx-sm border-2 border-white animate-bounce">
+            <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-600 text-white rounded-full flex items-center justify-center text-[10px] shadow-sm border-2 border-white animate-bounce">
               {badge}
             </span>
           )}

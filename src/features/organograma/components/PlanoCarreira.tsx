@@ -42,39 +42,39 @@ export function PlanoCarreira() {
   const cargos = [...porCargo.keys()]
 
   return (
-    <div className="space-y-mx-lg">
-      <form onSubmit={handleSubmit} className="rounded-mx-xl border border-border-default bg-surface-alt p-mx-md">
+    <div className="space-y-8">
+      <form onSubmit={handleSubmit} className="rounded-2xl border border-gray-100 bg-gray-50 p-6">
         <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">Adicionar nível de carreira</Typography>
-        <div className="mt-mx-sm grid gap-mx-sm md:grid-cols-3">
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
           <Field label="Cargo"><Input value={form.cargo} onChange={e => setForm(p => ({ ...p, cargo: e.target.value }))} placeholder="Ex.: Vendedor" /></Field>
           <Field label="Nível (nº)"><Input inputMode="numeric" value={form.nivel} onChange={e => setForm(p => ({ ...p, nivel: e.target.value }))} placeholder="1" /></Field>
           <Field label="Nome do nível"><Input value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} placeholder="Ex.: Júnior" /></Field>
           <div className="md:col-span-2"><Field label="Requisitos"><Textarea value={form.requisitos} onChange={e => setForm(p => ({ ...p, requisitos: e.target.value }))} placeholder="O que é preciso para alcançar este nível" /></Field></div>
           <Field label="Próximo cargo"><Input value={form.proximo_cargo} onChange={e => setForm(p => ({ ...p, proximo_cargo: e.target.value }))} placeholder="Ex.: Gerente" /></Field>
         </div>
-        <div className="mt-mx-md flex justify-end">
+        <div className="mt-6 flex justify-end">
           <Button type="submit" disabled={saving}><Plus size={16} className="mr-2" />{saving ? 'Salvando…' : 'Salvar nível'}</Button>
         </div>
       </form>
 
       {loading ? (
-        <p className="text-sm font-bold text-text-tertiary">Carregando trilhas…</p>
+        <p className="text-sm font-bold text-gray-500">Carregando trilhas…</p>
       ) : cargos.length === 0 ? (
         <EmptyState icon={<TrendingUp size={28} />} title="Sem trilhas de carreira" description="Defina os níveis e requisitos de cada cargo." />
       ) : (
-        <div className="grid gap-mx-md md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2">
           {cargos.map(cargo => (
-            <div key={cargo} className="rounded-mx-xl border border-border-default p-mx-md">
-              <Typography variant="caption" className="font-black uppercase tracking-widest text-text-primary">{cargo}</Typography>
-              <ol className="mt-mx-sm space-y-mx-sm">
+            <div key={cargo} className="rounded-2xl border border-gray-100 p-6">
+              <Typography variant="caption" className="font-black uppercase tracking-widest text-gray-800">{cargo}</Typography>
+              <ol className="mt-4 space-y-4">
                 {porCargo.get(cargo)!.map(n => (
-                  <li key={n.id} className="rounded-mx-lg bg-surface-alt p-mx-sm">
-                    <div className="flex items-center gap-mx-sm">
-                      <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-mx-full bg-brand-primary px-2 text-xs font-black text-white">{n.nivel}</span>
+                  <li key={n.id} className="rounded-2xl bg-gray-50 p-4">
+                    <div className="flex items-center gap-4">
+                      <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-600 px-2 text-xs font-black text-white">{n.nivel}</span>
                       <span className="font-black uppercase text-sm">{n.nome}</span>
-                      {n.proximo_cargo && <span className="ml-auto text-xs font-bold text-text-tertiary">→ {n.proximo_cargo}</span>}
+                      {n.proximo_cargo && <span className="ml-auto text-xs font-bold text-gray-500">→ {n.proximo_cargo}</span>}
                     </div>
-                    {n.requisitos && <p className="mt-mx-xs text-xs font-medium text-text-secondary">{n.requisitos}</p>}
+                    {n.requisitos && <p className="mt-2 text-xs font-medium text-gray-600">{n.requisitos}</p>}
                   </li>
                 ))}
               </ol>
@@ -88,8 +88,8 @@ export function PlanoCarreira() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="block space-y-mx-xs">
-      <span className="block px-1 text-xs font-black uppercase tracking-widest text-text-tertiary">{label}</span>
+    <label className="block space-y-2">
+      <span className="block px-1 text-xs font-black uppercase tracking-widest text-gray-500">{label}</span>
       {children}
     </label>
   )

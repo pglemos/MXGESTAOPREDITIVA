@@ -395,8 +395,8 @@ export default function ProdutosDigitais() {
 
   if (loading) {
     return (
-      <div className="h-full w-full flex flex-col items-center justify-center bg-surface-alt">
-        <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
+      <div className="h-full w-full flex flex-col items-center justify-center bg-gray-50">
+        <RefreshCw className="w-12 h-12 animate-spin text-emerald-600 mb-6" />
         <Typography variant="caption" tone="muted" className="animate-pulse">
           Sincronizando produtos...
         </Typography>
@@ -405,21 +405,21 @@ export default function ProdutosDigitais() {
   }
 
   return (
-    <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
-      <header className="flex flex-col xl:flex-row xl:items-start justify-between gap-mx-lg border-b border-border-default pb-mx-lg shrink-0">
-        <div className="flex min-w-0 flex-col gap-mx-tiny">
-          <div className="flex items-center gap-mx-sm">
-            <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
+    <main className="h-full w-full overflow-y-auto bg-gray-50 p-8 no-scrollbar">
+      <header className="flex flex-col xl:flex-row xl:items-start justify-between gap-8 border-b border-gray-100 pb-8 shrink-0">
+        <div className="flex min-w-0 flex-col gap-1">
+          <div className="flex items-center gap-4">
+            <div className="w-2 h-10 bg-emerald-600 rounded-full shadow-sm" aria-hidden="true" />
             <Typography variant="h1" className="min-w-0">
-              Produtos <span className="text-mx-green-700">Digitais</span>
+              Produtos <span className="text-emerald-700">Digitais</span>
             </Typography>
           </div>
-          <Typography variant="caption" className="pl-mx-md uppercase tracking-mx-wide">
+          <Typography variant="caption" className="pl-6 uppercase tracking-wide">
             {canManage ? 'Administração separada do consumo por público' : 'Catálogo liberado pelo Admin MX para o seu perfil'}
           </Typography>
         </div>
 
-        <div className="grid w-full grid-cols-2 gap-mx-xs sm:grid-cols-5 xl:max-w-3xl">
+        <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-5 xl:max-w-3xl">
           {[
             ['Total', metrics.total],
             ['Ativos', metrics.ativos],
@@ -427,8 +427,8 @@ export default function ProdutosDigitais() {
             [isOwner ? 'Donos' : 'Vendedores', isOwner ? metrics.donos : metrics.vendedores],
             ['Engajamento', metrics.usageTelemetry],
           ].map(([label, value]) => (
-            <Card key={label} className="min-w-0 border-none bg-white p-mx-sm text-center shadow-mx-md">
-              <Typography variant="tiny" tone="muted" className="block text-mx-micro leading-tight tracking-widest">
+            <Card key={label} className="min-w-0 border-none bg-white p-4 text-center shadow-sm">
+              <Typography variant="tiny" tone="muted" className="block text-[9px] leading-tight tracking-widest">
                 {label}
               </Typography>
               <Typography variant="h2" className="mt-1 text-2xl">{value}</Typography>
@@ -437,9 +437,9 @@ export default function ProdutosDigitais() {
         </div>
       </header>
 
-      <Card className="border-none bg-white p-mx-sm sm:p-mx-md shadow-mx-md">
-        <div className="flex flex-col gap-mx-sm lg:flex-row lg:items-center lg:justify-between">
-          <div className="grid grid-cols-1 gap-mx-xs sm:grid-cols-3 lg:flex lg:flex-wrap">
+      <Card className="border-none bg-white p-4 sm:p-6 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 lg:flex lg:flex-wrap">
             {canManage && (
               <TabNavPill
                 tabs={[
@@ -448,7 +448,7 @@ export default function ProdutosDigitais() {
                 ]}
                 activeTab={catalogMode}
                 onTabChange={(key) => setCatalogMode(key as typeof catalogMode)}
-                className="sm:col-span-3 lg:mr-mx-xs"
+                className="sm:col-span-3 lg:mr-2"
               />
             )}
             <Select
@@ -456,7 +456,7 @@ export default function ProdutosDigitais() {
               value={audienceFilter}
               onChange={(event) => setAudienceFilter(event.target.value as ProductAudience | 'todos')}
               aria-label="Filtrar por público"
-              className="!h-mx-10 !py-1.5 text-xs uppercase tracking-widest"
+              className="!h-10 !py-1.5 text-xs uppercase tracking-widest"
             >
               <option value="todos">Todos os públicos</option>
               {PRODUCT_AUDIENCES.map((audience) => (
@@ -469,7 +469,7 @@ export default function ProdutosDigitais() {
                 value={statusFilter}
                 onChange={(event) => setStatusFilter(event.target.value as ProductStatus | 'todos')}
                 aria-label="Filtrar por status"
-                className="!h-mx-10 !py-1.5 text-xs uppercase tracking-widest"
+                className="!h-10 !py-1.5 text-xs uppercase tracking-widest"
               >
                 <option value="todos">Todos os status</option>
                 {PRODUCT_STATUSES.map((status) => (
@@ -477,18 +477,18 @@ export default function ProdutosDigitais() {
                 ))}
               </Select>
             )}
-            <div className="relative min-w-0 sm:col-span-1 lg:w-mx-sidebar-expanded">
-              <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" aria-hidden="true" />
+            <div className="relative min-w-0 sm:col-span-1 lg:w-72">
+              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" aria-hidden="true" />
               <Input
                 placeholder="BUSCAR PRODUTO..."
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                className="!h-mx-10 !pl-11 !text-mx-tiny uppercase tracking-widest"
+                className="!h-10 !pl-11 !text-[10px] uppercase tracking-widest"
               />
             </div>
           </div>
 
-          <div className="order-first grid grid-cols-[auto_1fr] gap-mx-xs sm:flex sm:justify-end lg:order-none">
+          <div className="order-first grid grid-cols-[auto_1fr] gap-2 sm:flex sm:justify-end lg:order-none">
             <Button
               variant="outline"
               size="icon"
@@ -497,24 +497,24 @@ export default function ProdutosDigitais() {
                 fetchProducts().finally(() => setIsRefetching(false))
               }}
               aria-label="Atualizar produtos"
-              className="rounded-mx-xl bg-white"
+              className="rounded-2xl bg-white"
             >
               <RefreshCw size={18} className={cn(isRefetching && 'animate-spin')} />
             </Button>
             {canManage && (
-              <div className="flex min-w-0 flex-col gap-mx-xs sm:flex-row">
+              <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
                 {missingDefaultProducts.length > 0 && (
                   <Button
                     variant="outline"
                     onClick={previewDefaultProducts}
                     disabled={creatingDefaults}
-                    className="rounded-mx-xl bg-white text-mx-micro font-black uppercase tracking-widest"
+                    className="rounded-2xl bg-white text-[9px] font-black uppercase tracking-widest"
                   >
                     <Package size={16} className="mr-2" />
                     {creatingDefaults ? 'CRIANDO...' : `PREVER PADRÃO (${missingDefaultProducts.length})`}
                   </Button>
                 )}
-                <Button onClick={openCreateForm} className="bg-brand-secondary">
+                <Button onClick={openCreateForm} className="bg-gray-900">
                   <Plus size={18} className="mr-2" /> NOVO PRODUTO
                 </Button>
               </div>
@@ -524,16 +524,16 @@ export default function ProdutosDigitais() {
       </Card>
 
       {!canManage && (
-        <Card className="border-none bg-brand-primary/5 p-mx-md shadow-mx-sm">
+        <Card className="border-none bg-emerald-600/5 p-6 shadow-sm">
           {isOwner ? (
-            <div className="space-y-mx-xs">
+            <div className="space-y-2">
               <Typography variant="h3" className="uppercase tracking-tight">Catálogo para decisão do Dono</Typography>
               <Typography variant="p" tone="muted" className="text-sm">
                 Use estes produtos para entender ofertas, materiais e entregáveis liberados para sua rede. Criação, publicação e segmentação de público ficam com o Admin MX.
               </Typography>
             </div>
           ) : (
-            <div className="space-y-mx-xs">
+            <div className="space-y-2">
               <Typography variant="h3" className="uppercase tracking-tight">{isSeller ? 'Produtos liberados para vendedor' : 'Catálogo disponível'}</Typography>
               <Typography variant="p" tone="muted" className="text-sm">
                 {isSeller
@@ -545,7 +545,7 @@ export default function ProdutosDigitais() {
         </Card>
       )}
       {canManage && (
-        <Card className="border-none bg-white p-mx-md shadow-mx-sm">
+        <Card className="border-none bg-white p-6 shadow-sm">
           <Typography variant="p" tone="muted" className="text-sm">
             Produtos Digitais é o catálogo operacional. Regras de governança, treinamentos e PDI ficam em Configurações para evitar duplicidade de decisão.
           </Typography>
@@ -554,7 +554,7 @@ export default function ProdutosDigitais() {
 
       <section className="flex-1 min-h-0 pb-32" aria-live="polite">
         {filteredProducts.length === 0 ? (
-          <Card className="border-none bg-white shadow-mx-md">
+          <Card className="border-none bg-white shadow-sm">
             <EmptyState
               size="lg"
               icon={<Package />}
@@ -563,8 +563,8 @@ export default function ProdutosDigitais() {
               nextStep={canManage ? 'Use “Criar produtos padrão” para publicar a base inicial ou limpe os filtros aplicados.' : isOwner ? 'Solicite ao Admin MX a liberação de conteúdo executivo e revise os filtros aplicados.' : 'Solicite ao gerente ou Admin MX a liberação de conteúdo para vendedor e revise os filtros aplicados.'}
             />
             {canManage && products.length === 0 && (
-              <div className="flex justify-center px-mx-md pb-mx-lg">
-                <Button onClick={previewDefaultProducts} disabled={creatingDefaults} className="bg-brand-secondary">
+              <div className="flex justify-center px-6 pb-8">
+                <Button onClick={previewDefaultProducts} disabled={creatingDefaults} className="bg-gray-900">
                   <Package size={18} className="mr-2" />
                   {creatingDefaults ? 'CRIANDO PRODUTOS...' : 'PREVER PRODUTOS PADRÃO'}
                 </Button>
@@ -572,7 +572,7 @@ export default function ProdutosDigitais() {
             )}
           </Card>
         ) : (
-          <ul className="grid grid-cols-1 gap-mx-md sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+          <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
             <AnimatePresence mode="popLayout">
               {filteredProducts.map((product, index) => (
                 <motion.li
@@ -582,12 +582,12 @@ export default function ProdutosDigitais() {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.02 }}
                 >
-                  <Card className="h-full border-none bg-white p-mx-md shadow-mx-md transition-all hover:shadow-mx-xl">
-                    <div className="flex h-full flex-col gap-mx-md">
-                      <header className="flex items-start justify-between gap-mx-md border-b border-border-default pb-mx-md">
-                        <div className="flex items-start gap-mx-sm min-w-0">
-                          <div className="w-mx-12 h-mx-12 rounded-mx-xl bg-surface-alt border border-border-default flex items-center justify-center shrink-0">
-                            <Package size={22} className="text-brand-primary" />
+                  <Card className="h-full border-none bg-white p-6 shadow-sm transition-all hover:shadow-sm">
+                    <div className="flex h-full flex-col gap-6">
+                      <header className="flex items-start justify-between gap-6 border-b border-gray-100 pb-6">
+                        <div className="flex items-start gap-4 min-w-0">
+                          <div className="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0">
+                            <Package size={22} className="text-emerald-600" />
                           </div>
                           <div className="min-w-0">
                             <Typography variant="h3" className="text-base uppercase tracking-tight line-clamp-2">
@@ -598,7 +598,7 @@ export default function ProdutosDigitais() {
                             </Typography>
                           </div>
                         </div>
-                        <Badge variant={getStatusBadgeVariant(product.status)} className="shrink-0 text-mx-micro">
+                        <Badge variant={getStatusBadgeVariant(product.status)} className="shrink-0 text-[9px]">
                           {product.status || 'ativo'}
                         </Badge>
                       </header>
@@ -608,32 +608,32 @@ export default function ProdutosDigitais() {
                       </Typography>
 
                       {canManage && (
-                      <div className="flex flex-wrap gap-mx-xs">
+                      <div className="flex flex-wrap gap-2">
                         {(product.target_roles || []).map((audience) => (
-                          <Badge key={audience} variant="outline" className="text-mx-nano">
+                          <Badge key={audience} variant="outline" className="text-[8px]">
                             {getRoleLabel(audience)}
                           </Badge>
                         ))}
                       </div>
                       )}
 
-                      <footer className="mt-auto flex flex-col gap-mx-sm border-t border-border-default pt-mx-md">
+                      <footer className="mt-auto flex flex-col gap-4 border-t border-gray-100 pt-6">
                         {canManage ? (
                         <>
                         <div className="flex items-center justify-between">
-                          <Badge variant="ghost" className="px-0 text-mx-micro">Destino interno: catálogo MX</Badge>
-                          <Typography variant="caption" tone="muted" className="text-mx-micro font-black uppercase">
+                          <Badge variant="ghost" className="px-0 text-[9px]">Destino interno: catálogo MX</Badge>
+                          <Typography variant="caption" tone="muted" className="text-[9px] font-black uppercase">
                             Ordem {product.sort_order ?? 0}
                           </Typography>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-mx-xs">
+                        <div className="grid grid-cols-1 gap-2">
                           {canManage && (
-                            <div className="grid grid-cols-2 gap-mx-xs">
-                              <Button variant="ghost" size="sm" onClick={() => openEditForm(product)} className="text-brand-primary">
+                            <div className="grid grid-cols-2 gap-2">
+                              <Button variant="ghost" size="sm" onClick={() => openEditForm(product)} className="text-emerald-600">
                                 <Edit3 size={14} className="mr-2" /> EDITAR
                               </Button>
-                              <Button variant="ghost" size="sm" onClick={() => handleDelete(product)} className="text-status-error">
+                              <Button variant="ghost" size="sm" onClick={() => handleDelete(product)} className="text-red-600">
                                 <Archive size={14} className="mr-2" /> ARQUIVAR
                               </Button>
                             </div>
@@ -670,15 +670,15 @@ export default function ProdutosDigitais() {
             }}>
               CANCELAR
             </Button>
-            <Button type="submit" form="digital-product-form" disabled={saving} className="bg-brand-secondary">
+            <Button type="submit" form="digital-product-form" disabled={saving} className="bg-gray-900">
               {saving ? 'SALVANDO...' : editingProduct ? 'SALVAR ALTERAÇÕES' : 'CRIAR PRODUTO'}
             </Button>
           </>
         }
       >
-        <form id="digital-product-form" onSubmit={handleSubmit} className="space-y-mx-lg">
-          <div className="grid grid-cols-1 gap-mx-md">
-            <div className="space-y-mx-xs">
+        <form id="digital-product-form" onSubmit={handleSubmit} className="space-y-8">
+          <div className="grid grid-cols-1 gap-6">
+            <div className="space-y-2">
               <Typography as="label" htmlFor="product-name" variant="caption" className="font-black uppercase tracking-widest">
                 Nome do produto *
               </Typography>
@@ -692,7 +692,7 @@ export default function ProdutosDigitais() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-mx-md sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
             <Select
               id="product-category"
               label="Categoria"
@@ -713,7 +713,7 @@ export default function ProdutosDigitais() {
               <option value="rascunho">Rascunho</option>
               <option value="arquivado">Arquivado</option>
             </Select>
-            <div className="space-y-mx-xs">
+            <div className="space-y-2">
               <Typography as="label" htmlFor="product-sort-order" variant="caption" className="font-black uppercase tracking-widest">
                 Ordem
               </Typography>
@@ -728,19 +728,19 @@ export default function ProdutosDigitais() {
             </div>
           </div>
 
-          <div className="space-y-mx-sm">
-            <div className="flex items-center gap-mx-xs">
-              <Users size={16} className="text-brand-primary" />
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Users size={16} className="text-emerald-600" />
               <Typography variant="caption" className="font-black uppercase tracking-widest">
                 Públicos onde aparece *
               </Typography>
             </div>
-            <div className="rounded-mx-xl border border-border-default bg-surface-alt px-mx-md py-mx-sm">
+            <div className="rounded-2xl border border-gray-100 bg-gray-50 px-6 py-4">
               <Typography variant="p" className="text-sm">
                 Selecionados: {form.target_roles.map(getRoleLabel).join(', ') || 'nenhum público'}
               </Typography>
             </div>
-            <div className="grid grid-cols-1 gap-mx-xs sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
               {PRODUCT_AUDIENCES.map((audience) => {
                 const selected = form.target_roles.includes(audience.key)
                 return (
@@ -749,21 +749,21 @@ export default function ProdutosDigitais() {
                     type="button"
                     onClick={() => toggleAudience(audience.key)}
                     className={cn(
-                      'min-h-mx-20 rounded-mx-xl border p-mx-md text-left transition-all',
+                      'min-h-20 rounded-2xl border p-6 text-left transition-all',
                       selected
-                        ? 'border-brand-primary bg-brand-primary/10 text-text-primary shadow-mx-sm'
-                        : 'border-border-default bg-surface-alt text-text-secondary hover:border-brand-primary/30',
+                        ? 'border-emerald-600 bg-emerald-600/10 text-gray-800 shadow-sm'
+                        : 'border-gray-100 bg-gray-50 text-gray-600 hover:border-emerald-600/30',
                     )}
                   >
                     <span className="block text-xs font-black uppercase tracking-widest">{audience.label}</span>
-                    <span className="mt-1 block text-mx-tiny font-bold uppercase tracking-widest text-text-tertiary">{audience.description}</span>
+                    <span className="mt-1 block text-[10px] font-bold uppercase tracking-widest text-gray-500">{audience.description}</span>
                   </button>
                 )
               })}
             </div>
           </div>
 
-          <div className="space-y-mx-xs">
+          <div className="space-y-2">
             <Typography as="label" htmlFor="product-description" variant="caption" className="font-black uppercase tracking-widest">
               Descrição *
             </Typography>
@@ -772,25 +772,25 @@ export default function ProdutosDigitais() {
               value={form.description}
               onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
               placeholder="Descreva o produto, objetivo e quando deve ser usado."
-              className="min-h-mx-32"
+              className="min-h-32"
               required
             />
           </div>
 
           {editingProduct?.status === 'arquivado' && (
-            <Card className="border-none bg-status-warning/10 p-mx-md shadow-none">
-              <div className="flex items-center gap-mx-sm">
-                <Archive size={18} className="text-status-warning" />
-                <Typography variant="tiny" className="font-black uppercase tracking-widest text-text-secondary">
+            <Card className="border-none bg-amber-500/10 p-6 shadow-none">
+              <div className="flex items-center gap-4">
+                <Archive size={18} className="text-amber-600" />
+                <Typography variant="tiny" className="font-black uppercase tracking-widest text-gray-600">
                   Produto arquivado não aparece para públicos operacionais nem internos.
                 </Typography>
               </div>
             </Card>
           )}
 
-          <Card className="border-none bg-surface-alt p-mx-md shadow-none">
-            <div className="flex items-start gap-mx-sm">
-              <ShieldCheck size={18} className="mt-0.5 shrink-0 text-brand-primary" />
+          <Card className="border-none bg-gray-50 p-6 shadow-none">
+            <div className="flex items-start gap-4">
+              <ShieldCheck size={18} className="mt-0.5 shrink-0 text-emerald-600" />
               <Typography variant="tiny" tone="muted" className="uppercase tracking-widest">
                 Administrador MX e Admin Master podem criar, editar, arquivar e alterar o público de exibição.
               </Typography>

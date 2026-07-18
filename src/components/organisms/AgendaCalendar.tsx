@@ -65,20 +65,20 @@ function GoogleEventBlock({
   compact?: boolean
 }) {
   const start = parseISO(item.startsAt)
-  const dotColor = item.kind === 'event' ? 'bg-status-info' : getVisitDotColor(item.status)
+  const dotColor = item.kind === 'event' ? 'bg-blue-600' : getVisitDotColor(item.status)
 
   return (
     <div
       className={cn(
-        'group/event min-w-0 overflow-hidden rounded-mx-md border px-2 py-1 text-left shadow-mx-sm transition-colors',
+        'group/event min-w-0 overflow-hidden rounded-xl border px-2 py-1 text-left shadow-sm transition-colors',
         item.kind === 'event'
-          ? 'border-status-info/20 bg-status-info-surface text-status-info'
-          : 'border-brand-primary/20 bg-mx-green-50 text-brand-secondary',
-        compact ? 'min-h-mx-6' : 'min-h-mx-8',
+          ? 'border-blue-600/20 bg-blue-50 text-blue-600'
+          : 'border-emerald-600/20 bg-emerald-50 text-gray-900',
+        compact ? 'min-h-6' : 'min-h-8',
       )}
     >
-      <div className="flex min-w-0 items-center gap-mx-xs">
-        <span className={cn('h-mx-tiny w-mx-tiny shrink-0 rounded-mx-full', dotColor)} aria-hidden="true" />
+      <div className="flex min-w-0 items-center gap-2">
+        <span className={cn('h-1 w-1 shrink-0 rounded-full', dotColor)} aria-hidden="true" />
         <span className={cn('min-w-0 truncate font-semibold leading-tight', compact ? 'text-[11px]' : 'text-xs')}>
           {item.title}
         </span>
@@ -122,9 +122,9 @@ export function AgendaCalendar({
   const timeGridHeight = TIME_SLOTS.length * HOUR_HEIGHT
 
   return (
-    <Card className={cn('border border-border-strong shadow-none bg-white overflow-hidden rounded-mx-lg', className)}>
+    <Card className={cn('border border-gray-200 shadow-none bg-white overflow-hidden rounded-2xl', className)}>
       <div className={cn(
-        'flex items-center gap-mx-xs p-mx-sm sm:p-mx-md border-b border-border-strong bg-white',
+        'flex items-center gap-2 p-4 sm:p-6 border-b border-gray-200 bg-white',
         showNavigation ? 'justify-between' : 'justify-center',
       )}>
         {showNavigation && (
@@ -132,21 +132,21 @@ export function AgendaCalendar({
             type="button"
             onClick={onPrevMonth}
             aria-label="Mês anterior"
-            className="flex h-mx-10 w-mx-10 items-center justify-center rounded-mx-full bg-white text-text-secondary transition-colors hover:bg-surface-alt hover:text-text-primary"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-800"
           >
             <ChevronLeft size={18} />
           </button>
         )}
 
-        <div className="flex min-w-0 items-center justify-center gap-mx-xs sm:gap-mx-sm px-mx-xs">
-          <Typography variant="h3" className="truncate text-lg font-semibold normal-case tracking-normal text-text-primary sm:text-xl">
+        <div className="flex min-w-0 items-center justify-center gap-2 sm:gap-4 px-2">
+          <Typography variant="h3" className="truncate text-lg font-semibold normal-case tracking-normal text-gray-800 sm:text-xl">
             {monthLabel}
           </Typography>
           {showTodayButton && (
             <button
               type="button"
               onClick={onToday}
-              className="rounded-mx-lg border border-border-strong bg-white px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-surface-alt hover:text-text-primary"
+              className="rounded-2xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-800"
             >
               Hoje
             </button>
@@ -158,7 +158,7 @@ export function AgendaCalendar({
             type="button"
             onClick={onNextMonth}
             aria-label="Próximo mês"
-            className="flex h-mx-10 w-mx-10 items-center justify-center rounded-mx-full bg-white text-text-secondary transition-colors hover:bg-surface-alt hover:text-text-primary"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-800"
           >
             <ChevronRightIcon size={18} />
           </button>
@@ -168,10 +168,10 @@ export function AgendaCalendar({
       {isTimeGrid ? (
         <>
           <div
-            className="grid border-b border-border-strong bg-white"
+            className="grid border-b border-gray-200 bg-white"
             style={{ gridTemplateColumns: viewMode === 'day' ? '4rem minmax(0, 1fr)' : '4rem repeat(7, minmax(7.5rem, 1fr))' }}
           >
-            <div className="border-r border-border-default" aria-hidden="true" />
+            <div className="border-r border-gray-100" aria-hidden="true" />
             {calendarDays.map((dayInfo) => {
               const isTodayDate = isToday(dayInfo.date)
               const isSelected = selectedDate ? isSameDay(dayInfo.date, selectedDate) : false
@@ -185,16 +185,16 @@ export function AgendaCalendar({
                     onDateClick?.(dayInfo.date)
                   }}
                   className={cn(
-                    'min-w-0 border-r border-border-default px-mx-xs py-mx-sm text-center transition-colors last:border-r-0 hover:bg-surface-alt',
-                    isSelected && 'bg-mx-green-50',
+                    'min-w-0 border-r border-gray-100 px-2 py-4 text-center transition-colors last:border-r-0 hover:bg-gray-50',
+                    isSelected && 'bg-emerald-50',
                   )}
                 >
                   <Typography variant="tiny" tone="muted" className="block text-[10px] font-semibold uppercase tracking-normal">
                     {format(dayInfo.date, 'EEE', { locale: ptBR })}
                   </Typography>
                   <span className={cn(
-                    'mx-auto mt-1 flex h-mx-9 w-mx-9 items-center justify-center rounded-mx-full text-sm font-semibold',
-                    isTodayDate ? 'bg-brand-primary text-white' : 'text-text-primary',
+                    'mx-auto mt-1 flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold',
+                    isTodayDate ? 'bg-emerald-600 text-white' : 'text-gray-800',
                   )}>
                     {dayInfo.day}
                   </span>
@@ -204,9 +204,9 @@ export function AgendaCalendar({
           </div>
 
           <div className="grid overflow-x-auto" style={{ gridTemplateColumns: '4rem minmax(0, 1fr)' }}>
-            <div className="border-r border-border-default bg-white">
+            <div className="border-r border-gray-100 bg-white">
               {TIME_SLOTS.map((slot) => (
-                <div key={slot} className="border-b border-border-subtle pr-mx-xs pt-mx-xs text-right" style={{ height: HOUR_HEIGHT }}>
+                <div key={slot} className="border-b border-gray-100 pr-2 pt-2 text-right" style={{ height: HOUR_HEIGHT }}>
                   <Typography variant="tiny" tone="muted" className="text-[10px] font-medium">{`${String(slot).padStart(2, '0')}:00`}</Typography>
                 </div>
               ))}
@@ -229,14 +229,14 @@ export function AgendaCalendar({
                       onDateClick?.(dayInfo.date)
                     }}
                     className={cn(
-                      'relative border-r border-border-default bg-white text-left transition-colors last:border-r-0 hover:bg-surface-alt/50',
-                      isSelected && 'bg-mx-green-50/60 ring-1 ring-brand-primary/30 ring-inset',
-                      isTodayDate && !isSelected && 'bg-mx-green-50/35',
+                      'relative border-r border-gray-100 bg-white text-left transition-colors last:border-r-0 hover:bg-gray-50/50',
+                      isSelected && 'bg-emerald-50/60 ring-1 ring-emerald-500/30 ring-inset',
+                      isTodayDate && !isSelected && 'bg-emerald-50/35',
                     )}
                     style={{ minHeight: timeGridHeight }}
                   >
                     {TIME_SLOTS.map((slot) => (
-                      <div key={slot} className="border-b border-border-subtle" style={{ height: HOUR_HEIGHT }} aria-hidden="true" />
+                      <div key={slot} className="border-b border-gray-100" style={{ height: HOUR_HEIGHT }} aria-hidden="true" />
                     ))}
                     {dayVisits.length > 0 && (
                       dayVisits.map((item, index) => {
@@ -244,7 +244,7 @@ export function AgendaCalendar({
                         return (
                           <div
                             key={`${item.kind}-${item.id}`}
-                            className="absolute left-mx-xs right-mx-xs"
+                            className="absolute left-2 right-2"
                             style={{
                               top: position.top + index * 3,
                               height: position.height,
@@ -263,9 +263,9 @@ export function AgendaCalendar({
         </>
       ) : (
         <>
-          <div className={cn('grid border-b border-border-strong bg-white', gridClassName)}>
+          <div className={cn('grid border-b border-gray-200 bg-white', gridClassName)}>
             {weekdayLabels.map((d) => (
-              <div key={d} className="border-r border-border-default py-mx-xs text-center last:border-r-0 sm:py-mx-sm">
+              <div key={d} className="border-r border-gray-100 py-2 text-center last:border-r-0 sm:py-4">
                 <Typography variant="tiny" tone="muted" className="text-[10px] font-semibold uppercase tracking-normal">{d}</Typography>
               </div>
             ))}
@@ -289,24 +289,24 @@ export function AgendaCalendar({
                     if (dayInfo.isCurrentMonth) onDateClick?.(dayInfo.date)
                   }}
                   className={cn(
-                    'relative flex min-h-mx-24 flex-col items-start gap-mx-xs border-b border-r border-border-subtle p-mx-xs text-left transition-colors sm:min-h-mx-32',
-                    !dayInfo.isCurrentMonth && 'bg-surface-alt/60 text-text-tertiary',
-                    dayInfo.isCurrentMonth && 'hover:bg-surface-alt',
-                    isSelected && 'bg-mx-green-50 ring-1 ring-brand-primary/30 ring-inset',
-                    isTodayDate && !isSelected && 'bg-mx-green-50/50',
+                    'relative flex min-h-24 flex-col items-start gap-2 border-b border-r border-gray-100 p-2 text-left transition-colors sm:min-h-32',
+                    !dayInfo.isCurrentMonth && 'bg-gray-50/60 text-gray-500',
+                    dayInfo.isCurrentMonth && 'hover:bg-gray-50',
+                    isSelected && 'bg-emerald-50 ring-1 ring-emerald-500/30 ring-inset',
+                    isTodayDate && !isSelected && 'bg-emerald-50/50',
                   )}
                 >
                   <span className={cn(
-                    'flex h-mx-lg min-w-mx-lg items-center justify-center rounded-mx-full px-2 text-xs font-semibold',
-                    isTodayDate && 'bg-brand-primary text-white',
-                    !isTodayDate && dayInfo.isCurrentMonth && 'text-text-primary',
-                    !dayInfo.isCurrentMonth && 'text-text-tertiary',
+                    'flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-xs font-semibold',
+                    isTodayDate && 'bg-emerald-600 text-white',
+                    !isTodayDate && dayInfo.isCurrentMonth && 'text-gray-800',
+                    !dayInfo.isCurrentMonth && 'text-gray-500',
                   )}>
                     {dayInfo.day}
                   </span>
 
                   {hasVisits && (
-                    <div className="flex w-full flex-col gap-mx-tiny">
+                    <div className="flex w-full flex-col gap-1">
                       {dayVisits.slice(0, 2).map((v, vi) => (
                         <GoogleEventBlock
                           key={`${v.kind}-${v.id}-${vi}`}
@@ -316,7 +316,7 @@ export function AgendaCalendar({
                         />
                       ))}
                       {dayVisits.length > 2 && (
-                        <Typography variant="tiny" className="text-[11px] text-text-secondary leading-none font-semibold">
+                        <Typography variant="tiny" className="text-[11px] text-gray-600 leading-none font-semibold">
                           +{dayVisits.length - 2} mais
                         </Typography>
                       )}

@@ -171,10 +171,10 @@ export function AgendaOptionsCatalog({ isReadOnly = false }: { isReadOnly?: bool
   }
 
   return (
-    <div className="space-y-mx-lg">
-      <Card className="border-none bg-white p-mx-sm shadow-mx-md">
-        <div className="grid grid-cols-1 gap-mx-sm lg:flex lg:items-center lg:justify-between">
-          <div className="grid grid-cols-2 gap-mx-xs">
+    <div className="space-y-8">
+      <Card className="border-none bg-white p-4 shadow-sm">
+        <div className="grid grid-cols-1 gap-4 lg:flex lg:items-center lg:justify-between">
+          <div className="grid grid-cols-2 gap-2">
             {(Object.keys(KIND_META) as AgendaOptionKind[]).map((kind) => {
               const active = kind === activeKind
               return (
@@ -183,18 +183,18 @@ export function AgendaOptionsCatalog({ isReadOnly = false }: { isReadOnly?: bool
                   type="button"
                   onClick={() => setActiveKind(kind)}
                   className={cn(
-                    'min-h-mx-14 rounded-mx-xl px-4 text-left transition-all',
-                    active ? 'bg-brand-primary text-white shadow-mx-sm' : 'bg-surface-alt text-text-secondary hover:bg-border-default',
+                    'min-h-14 rounded-2xl px-4 text-left transition-all',
+                    active ? 'bg-emerald-600 text-white shadow-sm' : 'bg-gray-50 text-gray-600 hover:bg-border-default',
                   )}
                 >
                   <span className="block text-xs font-black uppercase tracking-widest">{KIND_META[kind].label}</span>
-                  <span className="mt-1 block text-mx-micro font-bold uppercase tracking-widest opacity-70">{KIND_META[kind].description}</span>
+                  <span className="mt-1 block text-[9px] font-bold uppercase tracking-widest opacity-70">{KIND_META[kind].description}</span>
                 </button>
               )
             })}
           </div>
 
-          <div className="grid grid-cols-2 gap-mx-xs sm:flex sm:justify-end">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
             <Button
               variant="outline"
               size="icon"
@@ -203,12 +203,12 @@ export function AgendaOptionsCatalog({ isReadOnly = false }: { isReadOnly?: bool
                 refetch().finally(() => setRefreshing(false))
               }}
               aria-label="Atualizar assuntos da agenda"
-              className="rounded-mx-xl bg-white"
+              className="rounded-2xl bg-white"
             >
               <RefreshCw size={18} className={cn(refreshing && 'animate-spin')} />
             </Button>
             {mayManage && (
-              <Button onClick={openCreateForm} className="bg-brand-secondary">
+              <Button onClick={openCreateForm} className="bg-gray-900">
                 <Plus size={18} className="mr-2" /> NOVA OPÇÃO
               </Button>
             )}
@@ -216,14 +216,14 @@ export function AgendaOptionsCatalog({ isReadOnly = false }: { isReadOnly?: bool
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 gap-mx-sm sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
           ['Total', metrics.total],
           ['Ativos', metrics.ativos],
           ['Arquivados', metrics.arquivados],
         ].map(([label, value]) => (
-          <Card key={label} className="border-none bg-white p-mx-md text-center shadow-mx-md">
-            <Typography variant="tiny" tone="muted" className="block text-mx-micro tracking-widest">
+          <Card key={label} className="border-none bg-white p-6 text-center shadow-sm">
+            <Typography variant="tiny" tone="muted" className="block text-[9px] tracking-widest">
               {label}
             </Typography>
             <Typography variant="h2" className="mt-1 text-2xl">{value}</Typography>
@@ -231,33 +231,33 @@ export function AgendaOptionsCatalog({ isReadOnly = false }: { isReadOnly?: bool
         ))}
       </div>
 
-      <Card className="border-none bg-white p-mx-sm sm:p-mx-md shadow-mx-md">
-        <div className="grid grid-cols-1 gap-mx-xs sm:grid-cols-3">
+      <Card className="border-none bg-white p-4 sm:p-6 shadow-sm">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           <Select
             id="agenda-options-status-filter"
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value as AgendaOptionStatus | 'todos')}
             aria-label="Filtrar status"
-            className="!h-mx-10 !py-1.5 text-xs uppercase tracking-widest"
+            className="!h-10 !py-1.5 text-xs uppercase tracking-widest"
           >
             <option value="ativo">Ativos</option>
             <option value="arquivado">Arquivados</option>
             <option value="todos">Todos</option>
           </Select>
           <div className="relative min-w-0 sm:col-span-2">
-            <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" aria-hidden="true" />
+            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" aria-hidden="true" />
             <Input
               placeholder="BUSCAR OPÇÃO..."
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
-              className="!h-mx-10 !pl-11 !text-mx-tiny uppercase tracking-widest"
+              className="!h-10 !pl-11 !text-[10px] uppercase tracking-widest"
             />
           </div>
         </div>
       </Card>
 
       {error && (
-        <Card className="border-none bg-status-warning/10 p-mx-md shadow-mx-sm">
+        <Card className="border-none bg-amber-500/10 p-6 shadow-sm">
           <Typography variant="tiny" tone="muted" className="uppercase tracking-widest">
             Usando lista padrão local. Banco retornou: {error}
           </Typography>
@@ -265,7 +265,7 @@ export function AgendaOptionsCatalog({ isReadOnly = false }: { isReadOnly?: bool
       )}
 
       {!mayManage && (
-        <Card className="border-none bg-brand-primary/5 p-mx-md shadow-mx-sm">
+        <Card className="border-none bg-emerald-600/5 p-6 shadow-sm">
           <Typography variant="tiny" tone="muted" className="uppercase tracking-widest">
             Somente Administrador MX e Admin Master podem editar, arquivar ou excluir opções.
           </Typography>
@@ -274,14 +274,14 @@ export function AgendaOptionsCatalog({ isReadOnly = false }: { isReadOnly?: bool
 
       <section aria-live="polite">
         {loading ? (
-          <Card className="border-none bg-white p-mx-lg shadow-mx-md">
-            <div className="flex items-center gap-mx-sm text-brand-primary">
+          <Card className="border-none bg-white p-8 shadow-sm">
+            <div className="flex items-center gap-4 text-emerald-600">
               <RefreshCw size={18} className="animate-spin" />
               <Typography variant="caption" className="font-black uppercase tracking-widest">Carregando catálogo...</Typography>
             </div>
           </Card>
         ) : filteredOptions.length === 0 ? (
-          <Card className="border-none bg-white shadow-mx-md">
+          <Card className="border-none bg-white shadow-sm">
             <EmptyState
               size="lg"
               icon={<ListChecks />}
@@ -291,27 +291,27 @@ export function AgendaOptionsCatalog({ isReadOnly = false }: { isReadOnly?: bool
             />
           </Card>
         ) : (
-          <ul className="grid grid-cols-1 gap-mx-sm">
+          <ul className="grid grid-cols-1 gap-4">
             {filteredOptions.map((option) => (
               <li key={option.id}>
-                <Card className="border-none bg-white p-mx-md shadow-mx-md">
-                  <div className="grid grid-cols-1 gap-mx-md lg:grid-cols-[1fr_auto] lg:items-center">
+                <Card className="border-none bg-white p-6 shadow-sm">
+                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
                     <div className="min-w-0">
-                      <div className="mb-mx-xs flex flex-wrap items-center gap-mx-xs">
-                        <Badge variant={getStatusVariant(option.status)} className="text-mx-micro">{option.status}</Badge>
-                        <Badge variant="outline" className="text-mx-micro">Ordem {option.sort_order ?? 0}</Badge>
+                      <div className="mb-2 flex flex-wrap items-center gap-2">
+                        <Badge variant={getStatusVariant(option.status)} className="text-[9px]">{option.status}</Badge>
+                        <Badge variant="outline" className="text-[9px]">Ordem {option.sort_order ?? 0}</Badge>
                       </div>
                       <Typography variant="p" className="font-black leading-snug">{option.label}</Typography>
                     </div>
                     {mayManage && (
-                      <div className="grid grid-cols-3 gap-mx-xs sm:flex">
-                        <Button variant="ghost" size="sm" onClick={() => openEditForm(option)} className="text-brand-primary">
+                      <div className="grid grid-cols-3 gap-2 sm:flex">
+                        <Button variant="ghost" size="sm" onClick={() => openEditForm(option)} className="text-emerald-600">
                           <Edit3 size={14} className="mr-2" /> EDITAR
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleArchive(option)} className="text-text-secondary" disabled={option.status === 'arquivado'}>
+                        <Button variant="ghost" size="sm" onClick={() => handleArchive(option)} className="text-gray-600" disabled={option.status === 'arquivado'}>
                           <Archive size={14} className="mr-2" /> ARQUIVAR
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDelete(option)} className="text-status-error">
+                        <Button variant="ghost" size="sm" onClick={() => handleDelete(option)} className="text-red-600">
                           <Trash2 size={14} className="mr-2" /> EXCLUIR
                         </Button>
                       </div>
@@ -341,14 +341,14 @@ export function AgendaOptionsCatalog({ isReadOnly = false }: { isReadOnly?: bool
             }}>
               CANCELAR
             </Button>
-            <Button type="submit" form="agenda-option-form" disabled={saving} className="bg-brand-secondary">
+            <Button type="submit" form="agenda-option-form" disabled={saving} className="bg-gray-900">
               {saving ? 'SALVANDO...' : editingOption ? 'SALVAR ALTERAÇÕES' : 'CRIAR OPÇÃO'}
             </Button>
           </>
         }
       >
-        <form id="agenda-option-form" onSubmit={handleSubmit} className="space-y-mx-lg">
-          <div className="grid grid-cols-1 gap-mx-md sm:grid-cols-3">
+        <form id="agenda-option-form" onSubmit={handleSubmit} className="space-y-8">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
             <Select
               id="agenda-option-kind"
               label="Tipo"
@@ -367,7 +367,7 @@ export function AgendaOptionsCatalog({ isReadOnly = false }: { isReadOnly?: bool
               <option value="ativo">Ativo</option>
               <option value="arquivado">Arquivado</option>
             </Select>
-            <div className="space-y-mx-xs">
+            <div className="space-y-2">
               <Typography as="label" htmlFor="agenda-option-order" variant="caption" className="font-black uppercase tracking-widest">
                 Ordem
               </Typography>
@@ -382,7 +382,7 @@ export function AgendaOptionsCatalog({ isReadOnly = false }: { isReadOnly?: bool
             </div>
           </div>
 
-          <div className="space-y-mx-xs">
+          <div className="space-y-2">
             <Typography as="label" htmlFor="agenda-option-label" variant="caption" className="font-black uppercase tracking-widest">
               Nome da opção *
             </Typography>

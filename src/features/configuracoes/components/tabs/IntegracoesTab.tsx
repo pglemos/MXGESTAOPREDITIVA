@@ -8,11 +8,11 @@ import { Link } from 'react-router-dom'
 
 export function IntegracoesTab() {
     return (
-        <div className="space-y-mx-lg">
+        <div className="space-y-8">
             {/* Google Calendar pessoal + central */}
-            <Card className="p-mx-lg md:p-mx-xl border-none shadow-mx-lg bg-white">
-                <header className="flex items-center gap-mx-sm pb-mx-md border-b border-border-default mb-mx-lg">
-                    <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-indigo-50 text-brand-primary flex items-center justify-center border border-mx-indigo-100">
+            <Card className="p-8 md:p-12 border-none shadow-sm bg-white">
+                <header className="flex items-center gap-4 pb-6 border-b border-gray-100 mb-8">
+                    <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-emerald-600 flex items-center justify-center border border-indigo-100">
                         <Calendar size={26} />
                     </div>
                     <div>
@@ -24,7 +24,7 @@ export function IntegracoesTab() {
             </Card>
 
             {/* Atalhos para áreas admin */}
-            <div className="grid md:grid-cols-2 gap-mx-md">
+            <div className="grid md:grid-cols-2 gap-6">
                 <IntegrationCard
                     icon={<Calendar size={22} />}
                     title="Agenda Admin MX"
@@ -56,10 +56,10 @@ export function IntegracoesTab() {
             </div>
 
             {/* Webhooks placeholder */}
-            <Card className="p-mx-lg border-none shadow-mx-md bg-white">
-                <header className="flex items-center justify-between pb-mx-md border-b border-border-default mb-mx-lg">
-                    <div className="flex items-center gap-mx-sm">
-                        <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-surface-alt text-text-tertiary flex items-center justify-center border border-border-default">
+            <Card className="p-8 border-none shadow-sm bg-white">
+                <header className="flex items-center justify-between pb-6 border-b border-gray-100 mb-8">
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-gray-50 text-gray-500 flex items-center justify-center border border-gray-100">
                             <Webhook size={26} />
                         </div>
                         <div>
@@ -76,9 +76,9 @@ export function IntegracoesTab() {
             </Card>
 
             {/* Edge Functions */}
-            <Card className="p-mx-lg border-none shadow-mx-md bg-white">
-                <header className="flex items-center gap-mx-sm pb-mx-md border-b border-border-default mb-mx-lg">
-                    <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-status-success/10 text-status-success flex items-center justify-center border border-status-success/20">
+            <Card className="p-8 border-none shadow-sm bg-white">
+                <header className="flex items-center gap-4 pb-6 border-b border-gray-100 mb-8">
+                    <div className="w-14 h-14 rounded-2xl bg-emerald-600/10 text-emerald-600 flex items-center justify-center border border-emerald-600/20">
                         <Globe size={26} />
                     </div>
                     <div>
@@ -86,7 +86,7 @@ export function IntegracoesTab() {
                         <Typography variant="caption" tone="muted" className="uppercase tracking-widest font-black">Inventário local; saúde real via logs e Supabase</Typography>
                     </div>
                 </header>
-                <div className="grid md:grid-cols-2 gap-mx-sm">
+                <div className="grid md:grid-cols-2 gap-4">
                     {[
                         'register-user',
                         'relatorio-matinal',
@@ -99,9 +99,9 @@ export function IntegracoesTab() {
                         'google-calendar-merged',
                         'google-oauth-handler',
                     ].map(fn => (
-                        <div key={fn} className="flex items-center justify-between p-mx-sm bg-surface-alt rounded-mx-xl border border-border-subtle">
-                            <Typography variant="tiny" className="font-mono-numbers font-bold">{fn}</Typography>
-                            <Badge variant="outline" className="text-mx-micro font-black uppercase">Registrada</Badge>
+                        <div key={fn} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                            <Typography variant="tiny" className="font-mono tabular-nums font-bold">{fn}</Typography>
+                            <Badge variant="outline" className="text-[9px] font-black uppercase">Registrada</Badge>
                         </div>
                     ))}
                 </div>
@@ -119,17 +119,17 @@ function IntegrationCard({ icon, title, desc, badge, route, disabled }: {
     disabled?: boolean
 }) {
     return (
-        <Card className="p-mx-md border-none shadow-mx-md bg-white hover:shadow-mx-lg transition-shadow">
-            <div className="flex items-start gap-mx-sm">
-                <div className="w-mx-12 h-mx-12 rounded-mx-xl bg-mx-indigo-50 text-brand-primary flex items-center justify-center shrink-0">{icon}</div>
+        <Card className="p-6 border-none shadow-sm bg-white hover:shadow-sm transition-shadow">
+            <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-emerald-600 flex items-center justify-center shrink-0">{icon}</div>
                 <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-mx-xs">
+                    <div className="flex items-center justify-between gap-2">
                         <Typography variant="caption" className="font-black uppercase tracking-tight">{title}</Typography>
-                        <Badge variant="outline" className="text-mx-micro font-black uppercase shrink-0">{badge}</Badge>
+                        <Badge variant="outline" className="text-[9px] font-black uppercase shrink-0">{badge}</Badge>
                     </div>
-                    <Typography variant="tiny" tone="muted" className="font-bold leading-relaxed mt-1 mb-mx-sm">{desc}</Typography>
+                    <Typography variant="tiny" tone="muted" className="font-bold leading-relaxed mt-1 mb-4">{desc}</Typography>
                     {route && !disabled && (
-                        <Button asChild variant="outline" size="sm" className="h-mx-9 px-3 rounded-mx-lg font-black uppercase text-mx-micro tracking-widest">
+                        <Button asChild variant="outline" size="sm" className="h-9 px-3 rounded-2xl font-black uppercase text-[9px] tracking-widest">
                             <Link to={route}>Acessar <ExternalLink size={11} className="ml-1" /></Link>
                         </Button>
                     )}

@@ -3,12 +3,12 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const avatarVariants = cva(
-  "relative inline-flex items-center justify-center rounded-mx-full overflow-hidden bg-surface-alt border border-border-default shrink-0",
+  "relative inline-flex items-center justify-center rounded-full overflow-hidden bg-gray-50 border border-gray-100 shrink-0",
   {
     variants: {
       size: {
-        sm: "h-8 w-8 text-mx-micro",
-        md: "h-10 w-10 text-mx-tiny",
+        sm: "h-8 w-8 text-[9px]",
+        md: "h-10 w-10 text-[10px]",
         lg: "h-12 w-12 text-sm",
         xl: "h-16 w-16 text-lg",
       },
@@ -20,20 +20,20 @@ const avatarVariants = cva(
 )
 
 const statusDotVariants = cva(
-  "absolute rounded-mx-full border-2 border-white",
+  "absolute rounded-full border-2 border-white",
   {
     variants: {
       status: {
-        online: "bg-status-success",
+        online: "bg-emerald-600",
         offline: "bg-text-tertiary",
-        busy: "bg-status-error",
-        away: "bg-status-warning",
+        busy: "bg-red-600",
+        away: "bg-amber-500",
       },
       size: {
-        sm: "size-mx-tiny bottom-mx-0 right-mx-0",
-        md: "size-2.5 bottom-mx-0 right-mx-0",
-        lg: "size-3 bottom-mx-tiny right-mx-tiny",
-        xl: "size-3.5 bottom-mx-tiny right-mx-tiny",
+        sm: "size-1 bottom-0 right-0",
+        md: "size-2.5 bottom-0 right-0",
+        lg: "size-3 bottom-1 right-1",
+        xl: "size-3.5 bottom-1 right-1",
       },
     },
     defaultVariants: {
@@ -79,7 +79,7 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
       {...props}
     >
       {showFallback ? (
-        <span className="font-black uppercase text-brand-primary select-none" aria-hidden="true">
+        <span className="font-black uppercase text-emerald-600 select-none" aria-hidden="true">
           {initials}
         </span>
       ) : (

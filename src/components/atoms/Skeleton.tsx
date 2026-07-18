@@ -19,13 +19,13 @@ export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const variantClasses: Record<SkeletonVariant, string> = {
-  rect: 'rounded-mx-xl',
-  circle: 'rounded-mx-full',
+  rect: 'rounded-2xl',
+  circle: 'rounded-full',
   text: 'h-4 rounded-sm',
-  avatar: 'rounded-mx-full w-mx-14 h-mx-14',
-  chart: 'h-mx-64 w-full rounded-mx-2xl',
-  card: 'h-mx-48 w-full rounded-mx-2xl',
-  'table-row': 'h-mx-14 w-full rounded-mx-xl',
+  avatar: 'rounded-full w-14 h-14',
+  chart: 'h-64 w-full rounded-2xl',
+  card: 'h-48 w-full rounded-2xl',
+  'table-row': 'h-14 w-full rounded-2xl',
 }
 
 const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
@@ -36,7 +36,7 @@ const Skeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
         aria-hidden="true"
         className={cn(
           // Animation respects reduced-motion preference via Tailwind's motion-safe variant.
-          'motion-safe:animate-[pulse_1200ms_ease-in-out_infinite] bg-mx-bg border border-mx-border/60',
+          'motion-safe:animate-[pulse_1200ms_ease-in-out_infinite] bg-gray-50 border border-gray-200/60',
           variantClasses[variant],
           className
         )}

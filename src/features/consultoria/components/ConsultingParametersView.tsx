@@ -92,8 +92,8 @@ export function ConsultingParametersView() {
 
   if (loading) {
     return (
-      <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
-        <Card className="p-mx-lg border-none shadow-mx-md bg-white">
+      <main className="h-full w-full overflow-y-auto bg-gray-50 p-8 no-scrollbar">
+        <Card className="p-8 border-none shadow-sm bg-white">
           <Typography variant="p">Carregando parametros PMR...</Typography>
         </Card>
       </main>
@@ -102,8 +102,8 @@ export function ConsultingParametersView() {
 
   if (error) {
     return (
-      <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
-        <Card className="p-mx-lg border-none shadow-mx-md bg-white">
+      <main className="h-full w-full overflow-y-auto bg-gray-50 p-8 no-scrollbar">
+        <Card className="p-8 border-none shadow-sm bg-white">
           <Typography variant="h3" tone="error">Parametros indisponiveis</Typography>
           <Typography variant="p" tone="muted">{error}</Typography>
         </Card>
@@ -112,46 +112,46 @@ export function ConsultingParametersView() {
   }
 
   return (
-    <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar flex flex-col gap-mx-lg">
+    <main className="h-full w-full overflow-y-auto bg-gray-50 p-8 no-scrollbar flex flex-col gap-8">
       <PageHeading
         title="Parâmetros PMR"
         subtitle="INDICADORES, BENCHMARKS, LIMITES DE COR E FÓRMULAS EDITÁVEIS DA CONSULTORIA"
         actions={
-          <Badge variant="outline" className="rounded-mx-full px-4 py-1">
+          <Badge variant="outline" className="rounded-full px-4 py-1">
             {activeSet ? `${activeSet.name} ${activeSet.version}` : 'SEM CONJUNTO ATIVO'}
           </Badge>
         }
       />
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-mx-lg">
-        <Card className="p-mx-lg border-none shadow-mx-md bg-white xl:col-span-2">
-          <Typography variant="h3" className="mb-mx-md">CATALOGO DE INDICADORES</Typography>
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <Card className="p-8 border-none shadow-sm bg-white xl:col-span-2">
+          <Typography variant="h3" className="mb-6">CATALOGO DE INDICADORES</Typography>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-border-default">
-                  <th className="py-mx-sm pr-mx-md"><Typography variant="tiny" tone="muted">INDICADOR</Typography></th>
-                  <th className="py-mx-sm pr-mx-md"><Typography variant="tiny" tone="muted">AREA</Typography></th>
-                  <th className="py-mx-sm pr-mx-md"><Typography variant="tiny" tone="muted">MERCADO</Typography></th>
-                  <th className="py-mx-sm pr-mx-md"><Typography variant="tiny" tone="muted">BOA PRATICA</Typography></th>
-                  <th className="py-mx-sm"><Typography variant="tiny" tone="muted">FONTE</Typography></th>
+                <tr className="border-b border-gray-100">
+                  <th className="py-4 pr-6"><Typography variant="tiny" tone="muted">INDICADOR</Typography></th>
+                  <th className="py-4 pr-6"><Typography variant="tiny" tone="muted">AREA</Typography></th>
+                  <th className="py-4 pr-6"><Typography variant="tiny" tone="muted">MERCADO</Typography></th>
+                  <th className="py-4 pr-6"><Typography variant="tiny" tone="muted">BOA PRATICA</Typography></th>
+                  <th className="py-4"><Typography variant="tiny" tone="muted">FONTE</Typography></th>
                 </tr>
               </thead>
               <tbody>
                 {catalog.map((metric) => {
                   const value = valueByMetric.get(metric.metric_key)
                   return (
-                    <tr key={metric.metric_key} className="border-b border-border-subtle">
-                      <td className="py-mx-sm pr-mx-md">
+                    <tr key={metric.metric_key} className="border-b border-gray-100">
+                      <td className="py-4 pr-6">
                         <button type="button" className="text-left" onClick={() => setMetricKey(metric.metric_key)}>
                           <Typography variant="p" className="font-black">{metric.label}</Typography>
                           <Typography variant="tiny" tone="muted">{metric.metric_key}</Typography>
                         </button>
                       </td>
-                      <td className="py-mx-sm pr-mx-md"><Typography variant="p">{metric.area}</Typography></td>
-                      <td className="py-mx-sm pr-mx-md"><Typography variant="p">{value?.market_average ?? '-'}</Typography></td>
-                      <td className="py-mx-sm pr-mx-md"><Typography variant="p">{value?.best_practice ?? '-'}</Typography></td>
-                      <td className="py-mx-sm"><Typography variant="p">{metric.source_scope}</Typography></td>
+                      <td className="py-4 pr-6"><Typography variant="p">{metric.area}</Typography></td>
+                      <td className="py-4 pr-6"><Typography variant="p">{value?.market_average ?? '-'}</Typography></td>
+                      <td className="py-4 pr-6"><Typography variant="p">{value?.best_practice ?? '-'}</Typography></td>
+                      <td className="py-4"><Typography variant="p">{metric.source_scope}</Typography></td>
                     </tr>
                   )
                 })}
@@ -160,9 +160,9 @@ export function ConsultingParametersView() {
           </div>
         </Card>
 
-        <Card className="p-mx-lg border-none shadow-mx-md bg-white">
-          <Typography variant="h3" className="mb-mx-md">EDITAR PARAMETRO</Typography>
-          <form onSubmit={handleSubmit} className="space-y-mx-md">
+        <Card className="p-8 border-none shadow-sm bg-white">
+          <Typography variant="h3" className="mb-6">EDITAR PARAMETRO</Typography>
+          <form onSubmit={handleSubmit} className="space-y-6">
             <Select
               label="Indicador"
               value={selectedMetric?.metric_key || ''}
@@ -172,33 +172,33 @@ export function ConsultingParametersView() {
                 <option key={metric.metric_key} value={metric.metric_key}>{metric.label}</option>
               ))}
             </Select>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md">
-              <div className="space-y-mx-xs">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
                 <Typography as="label" htmlFor="pmr-param-market" variant="caption">Media mercado</Typography>
                 <Input aria-label="Media mercado" id="pmr-param-market" type="number" step="0.01" value={form.market_average} onChange={(event) => setForm((current) => ({ ...current, market_average: event.target.value }))} disabled={!canManage} />
               </div>
-              <div className="space-y-mx-xs">
+              <div className="space-y-2">
                 <Typography as="label" htmlFor="pmr-param-best" variant="caption">Boa pratica</Typography>
                 <Input aria-label="Boa pratica" id="pmr-param-best" type="number" step="0.01" value={form.best_practice} onChange={(event) => setForm((current) => ({ ...current, best_practice: event.target.value }))} disabled={!canManage} />
               </div>
-              <div className="space-y-mx-xs">
+              <div className="space-y-2">
                 <Typography as="label" htmlFor="pmr-param-target" variant="caption">Meta padrao</Typography>
                 <Input aria-label="Meta padrao" id="pmr-param-target" type="number" step="0.01" value={form.target_default} onChange={(event) => setForm((current) => ({ ...current, target_default: event.target.value }))} disabled={!canManage} />
               </div>
-              <div className="space-y-mx-xs">
+              <div className="space-y-2">
                 <Typography as="label" htmlFor="pmr-param-red" variant="caption">Limite vermelho</Typography>
                 <Input aria-label="Limite vermelho" id="pmr-param-red" type="number" step="0.01" value={form.red_threshold} onChange={(event) => setForm((current) => ({ ...current, red_threshold: event.target.value }))} disabled={!canManage} />
               </div>
-              <div className="space-y-mx-xs">
+              <div className="space-y-2">
                 <Typography as="label" htmlFor="pmr-param-yellow" variant="caption">Limite amarelo</Typography>
                 <Input aria-label="Limite amarelo" id="pmr-param-yellow" type="number" step="0.01" value={form.yellow_threshold} onChange={(event) => setForm((current) => ({ ...current, yellow_threshold: event.target.value }))} disabled={!canManage} />
               </div>
-              <div className="space-y-mx-xs">
+              <div className="space-y-2">
                 <Typography as="label" htmlFor="pmr-param-green" variant="caption">Limite verde</Typography>
                 <Input aria-label="Limite verde" id="pmr-param-green" type="number" step="0.01" value={form.green_threshold} onChange={(event) => setForm((current) => ({ ...current, green_threshold: event.target.value }))} disabled={!canManage} />
               </div>
             </div>
-            <div className="space-y-mx-xs">
+            <div className="space-y-2">
               <Typography as="label" htmlFor="pmr-param-notes" variant="caption">Observacoes</Typography>
               <Textarea aria-label="Observacoes" id="pmr-param-notes" value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} disabled={!canManage} />
             </div>
