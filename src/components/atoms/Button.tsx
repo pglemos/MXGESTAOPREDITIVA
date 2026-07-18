@@ -20,6 +20,10 @@ const buttonVariants = cva(
         outline: "border border-mx-border bg-white text-mx-text hover:bg-mx-bg",
         ghost: "text-mx-muted hover:text-mx-text hover:bg-mx-bg",
         "mx-elite": "bg-mx-black text-brand-primary border border-brand-primary shadow-mx-glow-brand hover:bg-mx-green-950",
+        managerPrimary: "rounded-xl bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 focus-visible:ring-emerald-500/20 disabled:bg-gray-100 disabled:text-gray-400",
+        managerOutline: "rounded-xl border border-emerald-200 bg-white text-emerald-700 shadow-none hover:bg-emerald-50 focus-visible:ring-emerald-500/20 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-400",
+        managerSecondary: "rounded-xl border border-gray-200 bg-white text-gray-700 shadow-none hover:bg-gray-50 hover:text-gray-900 focus-visible:ring-emerald-500/20 disabled:border-gray-100 disabled:bg-gray-50 disabled:text-gray-400",
+        managerGhost: "rounded-xl bg-transparent text-gray-500 shadow-none hover:bg-gray-50 hover:text-gray-800 focus-visible:ring-emerald-500/20 disabled:bg-transparent disabled:text-gray-300",
       },
       size: {
         default: "h-mx-11 px-6 sm:h-10 sm:px-4",
