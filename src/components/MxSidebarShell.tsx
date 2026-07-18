@@ -15,15 +15,31 @@ import { cn } from '@/lib/utils'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { Avatar } from './atoms/Avatar'
 import { NotificationBellButton } from './NotificationBellButton'
-import type { SellerLayoutNavItem, SellerLayoutNavSection } from './SellerSidebar'
 import MxLogo from '@/assets/mx-logo.png'
 
-type ManagerSidebarShellProps = {
+export type MxSidebarNavItem = {
+  key?: string
+  label: string
+  path: string
+  icon?: React.ElementType | React.ReactElement | React.ReactNode
+  badge?: string
+  activePaths?: string[]
+  special?: boolean
+}
+
+export type MxSidebarNavSection = {
+  key?: string
+  label: string
+  items: MxSidebarNavItem[]
+}
+
+export type MxSidebarShellProps = {
   children: React.ReactNode
   profileName?: string | null
   profileRoleLabel?: string | null
+  moduleLabel: string
   avatarUrl?: string | null
-  navSections: SellerLayoutNavSection[]
+  navSections: MxSidebarNavSection[]
   onSignOut: () => Promise<void> | void
   profilePath?: string
   settingsPath?: string
@@ -37,7 +53,7 @@ type ManagerSidebarShellProps = {
 }
 
 function isNavItemActive(
-  item: SellerLayoutNavItem,
+  item: MxSidebarNavItem,
   location: { pathname: string; search: string },
 ) {
   const paths = item.activePaths ?? [item.path]
@@ -57,7 +73,7 @@ function NavItemIcon({
   size,
   className,
 }: {
-  icon: SellerLayoutNavItem['icon']
+  icon: MxSidebarNavItem['icon']
   size: number
   className?: string
 }) {
@@ -109,23 +125,24 @@ function CollapsedTooltip({ label }: { label: string }) {
   )
 }
 
-export default function ManagerSidebarShell({
+export default function MxSidebarShell({
   children,
   profileName,
-  profileRoleLabel = 'Gerente',
+  profileRoleLabel = 'Perfil MX',
+  moduleLabel,
   avatarUrl,
   navSections,
   onSignOut,
   profilePath = '/perfil',
   settingsPath = '/configuracoes',
   notificationsPath = '/notificacoes',
-  sidebarLabel = 'Menu principal do gerente',
+  sidebarLabel = 'Menu principal MX',
   isSimulating = false,
-  simulationLabel = 'Gerente',
+  simulationLabel = 'Perfil',
   simulationBase = 'Admin MX',
   simulationStore = 'Sandbox MX',
   onStopSimulation,
-}: ManagerSidebarShellProps) {
+}: MxSidebarShellProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
@@ -136,15 +153,15 @@ export default function ManagerSidebarShell({
 
   useFocusTrap(drawerRef, mobileOpen)
 
-  const displayName = profileName?.trim() || 'Gerente MX'
-  const displayRole = profileRoleLabel?.trim() || 'Gerente'
+  const displayName = profileName?.trim() || 'Usuário MX'
+  const displayRole = profileRoleLabel?.trim() || 'Perfil MX'
   const initials = displayName
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part[0])
     .join('')
-    .toUpperCase() || 'GM'
+    .toUpperCase() || 'MX'
 
   const mobileTitle = useMemo(() => {
     const activeItem = navSections
@@ -191,15 +208,12 @@ export default function ManagerSidebarShell({
     void onSignOut()
   }
 
-  const renderNavItem = (
-    item: SellerLayoutNavItem,
-    isCollapsed: boolean,
-  ) => {
+  const renderNavItem = (item: MxSidebarNavItem, isCollapsed: boolean) => {
     const active = isNavItemActive(item, location)
 
     return (
       <NavLink
-        key={item.path}
+        key={item.key ?? item.path}
         to={item.path}
         aria-label={item.label}
         aria-current={active ? 'page' : undefined}
@@ -212,12 +226,12 @@ export default function ManagerSidebarShell({
           isCollapsed && 'justify-center px-0',
         )}
       >
-        {active && (
+        {active ? (
           <span
             className="absolute bottom-2 left-0 top-2 w-1 rounded-r-full bg-primary"
             aria-hidden="true"
           />
-        )}
+        ) : null}
         <span
           className={cn(
             'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors duration-200',
@@ -228,40 +242,28 @@ export default function ManagerSidebarShell({
         >
           <NavItemIcon icon={item.icon} size={18} />
         </span>
-        {!isCollapsed && (
+        {!isCollapsed ? (
           <>
             <span className="min-w-0 flex-1 truncate text-[13px] font-semibold">
               {item.label}
             </span>
-            {item.badge && (
+            {item.badge ? (
               <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-100 px-1.5 text-[10px] font-bold text-emerald-800">
                 {item.badge}
               </span>
-            )}
+            ) : null}
           </>
-        )}
-        {isCollapsed && <CollapsedTooltip label={item.label} />}
+        ) : null}
+        {isCollapsed ? <CollapsedTooltip label={item.label} /> : null}
       </NavLink>
     )
   }
 
   const renderUserMenu = (isCollapsed: boolean) => {
     const menuItems = [
-      {
-        label: 'Meu Perfil',
-        icon: UserRound,
-        action: () => goTo(profilePath),
-      },
-      {
-        label: 'Preferências',
-        icon: Settings,
-        action: () => goTo(settingsPath),
-      },
-      {
-        label: 'Notificações',
-        icon: Bell,
-        action: () => goTo(notificationsPath),
-      },
+      { label: 'Meu Perfil', icon: UserRound, action: () => goTo(profilePath) },
+      { label: 'Preferências', icon: Settings, action: () => goTo(settingsPath) },
+      { label: 'Notificações', icon: Bell, action: () => goTo(notificationsPath) },
       { label: 'Sair', icon: LogOut, action: signOut, destructive: true },
     ]
 
@@ -299,7 +301,7 @@ export default function ManagerSidebarShell({
 
   const renderProfileCard = (isCollapsed: boolean) => (
     <div ref={userMenuRef} className="relative">
-      {userMenuOpen && renderUserMenu(isCollapsed)}
+      {userMenuOpen ? renderUserMenu(isCollapsed) : null}
       <button
         type="button"
         aria-haspopup="menu"
@@ -320,7 +322,7 @@ export default function ManagerSidebarShell({
             className="border-emerald-100 bg-emerald-50 font-bold text-primary"
           />
         </span>
-        {!isCollapsed && (
+        {!isCollapsed ? (
           <>
             <span className="min-w-0 flex-1 overflow-hidden">
               <span
@@ -346,8 +348,8 @@ export default function ManagerSidebarShell({
               aria-hidden="true"
             />
           </>
-        )}
-        {isCollapsed && <CollapsedTooltip label={displayName} />}
+        ) : null}
+        {isCollapsed ? <CollapsedTooltip label={displayName} /> : null}
       </button>
     </div>
   )
@@ -374,18 +376,18 @@ export default function ManagerSidebarShell({
             alt="MX"
             className="h-9 w-9 shrink-0 object-contain"
           />
-          {!isCollapsed && (
+          {!isCollapsed ? (
             <div className="min-w-0">
               <p className="truncate text-[13px] font-black tracking-tight text-slate-950">
                 MX PERFORMANCE
               </p>
               <p className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-[0.12em] text-emerald-700">
-                Módulo Gerencial
+                {moduleLabel}
               </p>
             </div>
-          )}
+          ) : null}
         </div>
-        {canCollapse && (
+        {canCollapse ? (
           <button
             type="button"
             aria-label={isCollapsed ? 'Expandir sidebar' : 'Recolher sidebar'}
@@ -398,7 +400,7 @@ export default function ManagerSidebarShell({
               <PanelLeftClose size={18} aria-hidden="true" />
             )}
           </button>
-        )}
+        ) : null}
       </div>
 
       <nav
@@ -406,12 +408,12 @@ export default function ManagerSidebarShell({
         aria-label={sidebarLabel}
       >
         {navSections.map((section) => (
-          <section key={section.label} className="space-y-1.5">
-            {!isCollapsed && section.label !== 'MENU' && (
+          <section key={section.key ?? section.label} className="space-y-1.5">
+            {!isCollapsed && section.label !== 'MENU' ? (
               <p className="px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">
                 {section.label}
               </p>
-            )}
+            ) : null}
             <div className="space-y-1">
               {section.items.map((item) => renderNavItem(item, isCollapsed))}
             </div>
@@ -440,7 +442,7 @@ export default function ManagerSidebarShell({
               MX PERFORMANCE
             </span>
             <span className="block text-[9px] font-bold uppercase tracking-[0.12em] text-emerald-700">
-              Módulo Gerencial
+              {moduleLabel}
             </span>
           </span>
         </button>
@@ -470,7 +472,7 @@ export default function ManagerSidebarShell({
         {renderSidebarContent(collapsed, true)}
       </aside>
 
-      {mobileOpen && (
+      {mobileOpen ? (
         <div
           className="fixed inset-0 z-[100] bg-slate-950/30 backdrop-blur-sm md:hidden"
           role="presentation"
@@ -503,7 +505,7 @@ export default function ManagerSidebarShell({
             </div>
           </div>
         </div>
-      )}
+      ) : null}
 
       <main
         id="main-content"
@@ -515,7 +517,7 @@ export default function ManagerSidebarShell({
           collapsed ? 'md:pl-[80px]' : 'md:pl-[264px]',
         )}
       >
-        {isSimulating && (
+        {isSimulating ? (
           <section
             className="m-3 flex flex-col gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-950 md:flex-row md:items-center md:justify-between"
             aria-label="Simulação ativa"
@@ -528,7 +530,7 @@ export default function ManagerSidebarShell({
                 Base: {simulationBase} • Loja: {simulationStore}
               </p>
             </div>
-            {onStopSimulation && (
+            {onStopSimulation ? (
               <button
                 type="button"
                 onClick={onStopSimulation}
@@ -536,9 +538,9 @@ export default function ManagerSidebarShell({
               >
                 Voltar Admin MX
               </button>
-            )}
+            ) : null}
           </section>
-        )}
+        ) : null}
         <section className="h-full min-h-0 w-full min-w-0 overflow-y-auto overflow-x-hidden bg-slate-50 text-foreground">
           {children}
         </section>

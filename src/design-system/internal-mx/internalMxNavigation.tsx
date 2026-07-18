@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 import type { UserRole } from '@/types/database'
 import { canAccessPath } from '@/lib/auth/routeAccess'
-import type { MxNavigationSection } from '../../../packages/mx-ui/src'
+import type { MxSidebarNavSection } from '@/components/MxSidebarShell'
 
 export type InternalMxNavigationCounts = {
   unreadNotifications?: number
@@ -32,8 +32,8 @@ const clampBadge = (value?: number) => {
 export function buildInternalMxNavigation(
   role: UserRole,
   counts: InternalMxNavigationCounts = {},
-): MxNavigationSection[] {
-  const sections: MxNavigationSection[] = [
+): MxSidebarNavSection[] {
+  const sections: MxSidebarNavSection[] = [
     {
       key: 'network',
       label: 'Rede e Gestão',
