@@ -35,6 +35,10 @@ CREATE TABLE IF NOT EXISTS public.solicitacoes_consultoria (
 
 CREATE INDEX IF NOT EXISTS idx_solicitacoes_consultoria_store_status
   ON public.solicitacoes_consultoria(store_id, status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_solicitacoes_consultoria_client_id
+  ON public.solicitacoes_consultoria(client_id);
+CREATE INDEX IF NOT EXISTS idx_solicitacoes_consultoria_consultant_user_id
+  ON public.solicitacoes_consultoria(consultant_user_id);
 CREATE INDEX IF NOT EXISTS idx_solicitacoes_consultoria_consultant
   ON public.solicitacoes_consultoria(consultant_user_id, status, created_at DESC)
   WHERE consultant_user_id IS NOT NULL;
@@ -99,11 +103,11 @@ CREATE POLICY solicitacoes_consultoria_select
   FOR SELECT
   TO authenticated
   USING (
-    created_by = auth.uid()
-    OR consultant_user_id = auth.uid()
-    OR public.eh_area_interna_mx(auth.uid())
-    OR public.user_is_master_loja(store_id, auth.uid())
-    OR public.tem_papel_loja(store_id, ARRAY['dono'], auth.uid())
+    created_by = (SELECT auth.uid())
+    OR consultant_user_id = (SELECT auth.uid())
+    OR public.eh_area_interna_mx((SELECT auth.uid()))
+    OR public.user_is_master_loja(store_id, (SELECT auth.uid()))
+    OR public.tem_papel_loja(store_id, ARRAY['dono'], (SELECT auth.uid()))
     OR public.is_owner_of(store_id)
   );
 
@@ -113,20 +117,20 @@ CREATE POLICY solicitacoes_consultoria_insert
   FOR INSERT
   TO authenticated
   WITH CHECK (
-    created_by = auth.uid()
+    created_by = (SELECT auth.uid())
     AND (
-      public.eh_area_interna_mx(auth.uid())
-      OR public.user_is_master_loja(store_id, auth.uid())
-      OR public.tem_papel_loja(store_id, ARRAY['dono'], auth.uid())
+      public.eh_area_interna_mx((SELECT auth.uid()))
+      OR public.user_is_master_loja(store_id, (SELECT auth.uid()))
+      OR public.tem_papel_loja(store_id, ARRAY['dono'], (SELECT auth.uid()))
       OR public.is_owner_of(store_id)
       OR (
-        consultant_user_id = auth.uid()
+        consultant_user_id = (SELECT auth.uid())
         AND client_id IS NOT NULL
         AND EXISTS (
           SELECT 1
           FROM public.atribuicoes_consultoria assignment
           WHERE assignment.client_id = solicitacoes_consultoria.client_id
-            AND assignment.user_id = auth.uid()
+            AND assignment.user_id = (SELECT auth.uid())
             AND assignment.active = true
         )
       )
@@ -139,28 +143,21 @@ CREATE POLICY solicitacoes_consultoria_update
   FOR UPDATE
   TO authenticated
   USING (
-    consultant_user_id = auth.uid()
-    OR public.eh_area_interna_mx(auth.uid())
+    consultant_user_id = (SELECT auth.uid())
+    OR public.eh_area_interna_mx((SELECT auth.uid()))
   )
   WITH CHECK (
-    consultant_user_id = auth.uid()
-    OR public.eh_area_interna_mx(auth.uid())
+    consultant_user_id = (SELECT auth.uid())
+    OR public.eh_area_interna_mx((SELECT auth.uid()))
   );
 
 DROP POLICY IF EXISTS solicitacoes_consultoria_cancel_own ON public.solicitacoes_consultoria;
-CREATE POLICY solicitacoes_consultoria_cancel_own
-  ON public.solicitacoes_consultoria
-  FOR UPDATE
-  TO authenticated
-  USING (created_by = auth.uid() AND status = 'aberta')
-  WITH CHECK (created_by = auth.uid() AND status IN ('aberta', 'cancelada'));
-
 DROP POLICY IF EXISTS solicitacoes_consultoria_delete_internal ON public.solicitacoes_consultoria;
 CREATE POLICY solicitacoes_consultoria_delete_internal
   ON public.solicitacoes_consultoria
   FOR DELETE
   TO authenticated
-  USING (public.eh_area_interna_mx(auth.uid()));
+  USING (public.eh_area_interna_mx((SELECT auth.uid())));
 
 GRANT SELECT, INSERT, UPDATE ON public.solicitacoes_consultoria TO authenticated;
 
