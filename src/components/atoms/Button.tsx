@@ -40,6 +40,24 @@ const buttonVariants = cva(
   }
 )
 
+export type ButtonVisualMode = 'default' | 'manager'
+
+const ButtonVisualContext = React.createContext<ButtonVisualMode>('default')
+
+export function ButtonVisualProvider({
+  mode,
+  children,
+}: {
+  mode: ButtonVisualMode
+  children: React.ReactNode
+}) {
+  return (
+    <ButtonVisualContext.Provider value={mode}>
+      {children}
+    </ButtonVisualContext.Provider>
+  )
+}
+
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
@@ -48,8 +66,30 @@ export interface ButtonProps
   icon?: React.ReactNode
 }
 
+type ButtonVariant = NonNullable<ButtonProps['variant']>
+
+function resolveVisualVariant(
+  variant: ButtonProps['variant'],
+  mode: ButtonVisualMode,
+): ButtonVariant {
+  const requested = variant ?? 'primary'
+  if (mode !== 'manager') return requested
+
+  const managerMap: Partial<Record<ButtonVariant, ButtonVariant>> = {
+    primary: 'managerPrimary',
+    brand: 'managerPrimary',
+    outline: 'managerSecondary',
+    secondary: 'managerSecondary',
+    ghost: 'managerGhost',
+  }
+
+  return managerMap[requested] ?? requested
+}
+
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, children, asChild = false, loading = false, icon, ...props }, ref) => {
+    const visualMode = React.useContext(ButtonVisualContext)
+    const resolvedVariant = resolveVisualVariant(variant, visualMode)
     const iconTooltip = size === 'icon' && typeof props['aria-label'] === 'string' ? props['aria-label'] : null
     const decoratedChildren = React.Children.map(children, (child) => {
       if (!React.isValidElement(child)) return child
@@ -66,13 +106,16 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       const child = children as React.ReactElement<Record<string, unknown>>
       return React.cloneElement(child, {
         ...props,
-        className: cn(buttonVariants({ variant, size, className }), String(child.props.className ?? '')),
+        className: cn(
+          buttonVariants({ variant: resolvedVariant, size, className }),
+          String(child.props.className ?? ''),
+        ),
       })
     }
 
     return (
       <button
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(buttonVariants({ variant: resolvedVariant, size, className }))}
         ref={ref}
         disabled={props.disabled || loading}
         {...props}
