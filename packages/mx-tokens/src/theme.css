@@ -90,8 +90,12 @@
 .mxds-sidebar[data-collapsed='true'] .mxds-account-trigger { justify-content: center; padding: 8px; }
 .mxds-account-menu { position: absolute; right: 12px; bottom: calc(100% - 4px); left: 12px; z-index: 90; display: grid; gap: 4px; border: 1px solid var(--mxds-sidebar-border); border-radius: 18px; padding: 8px; background: #092331; box-shadow: 0 24px 70px rgba(0,0,0,.42); }
 .mxds-account-menu button { display: flex; width: 100%; min-height: 42px; align-items: center; gap: 10px; border: 0; border-radius: 11px; padding: 9px 11px; background: transparent; color: #fff; font: inherit; font-size: 12px; font-weight: 800; text-align: left; cursor: pointer; }
-.mxds-account-menu button:hover,
-.mxds-account-menu button:focus-visible { outline: none; background: rgba(255,255,255,.07); }
+.mxds-account-menu button:hover { background: rgba(255,255,255,.07); }
+.mxds-account-menu button:focus-visible {
+  outline: 3px solid rgba(0,168,157,.55);
+  outline-offset: 2px;
+  background: rgba(255,255,255,.07);
+}
 .mxds-main { min-width: 0; flex: 1; }
 .mxds-mobile-header { position: sticky; top: 0; z-index: 45; display: flex; min-height: 60px; align-items: center; gap: 12px; border-bottom: 1px solid var(--mxds-sidebar-border); padding: 9px 14px; background: rgba(3,27,43,.96); color: #fff; backdrop-filter: blur(14px); }
 .mxds-mobile-menu-button { display: grid; width: 40px; height: 40px; place-items: center; border: 1px solid rgba(255,255,255,.10); border-radius: 12px; background: rgba(255,255,255,.04); color: #fff; cursor: pointer; }
