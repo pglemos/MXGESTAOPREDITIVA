@@ -33,6 +33,9 @@ jobs:
 
   unit-tests:
     runs-on: ubuntu-latest
+    # O cliente Supabase e inicializado no import. Estes valores sao apenas
+    # placeholders publicos para testes unitarios; nenhuma chamada real depende
+    # deles e nenhum secret de ambiente e necessario neste job.
     env:
       VITE_SUPABASE_URL: https://example.supabase.co
       VITE_SUPABASE_ANON_KEY: test-anon-key
@@ -50,18 +53,4 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
       - name: Unit tests (bun test)
-        shell: bash
-        run: |
-          set +e
-          npm test > /tmp/mx-unit-tests.log 2>&1
-          status=$?
-          tail -n 40 /tmp/mx-unit-tests.log
-          exit $status
-      - name: Upload diagnostic test log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: mx-unit-tests-diagnostic-2
-          path: /tmp/mx-unit-tests.log
-          if-no-files-found: error
-          retention-days: 1
+        run: npm test
