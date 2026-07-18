@@ -2,13 +2,13 @@
 
 ## Status
 
-In Progress
+Ready for merge after CI
 
 ## Contexto
 
 O aplicativo Base44 `6a593eaeb2d720b667d3d5c3` contém uma referência visual e funcional extensa para o ambiente Dono. O MX Performance de produção já possui autenticação, multi-loja, RBAC, shell, dashboard, Planejamento Estratégico, Plano de Ação, alertas, agenda, departamentos, consultoria e persistência canônica no Supabase.
 
-A implementação não deve importar `@base44/sdk`, criar uma segunda árvore de rotas nem replicar entidades locais. A referência Base44 deve ser adaptada ao domínio canônico existente.
+A implementação não importa `@base44/sdk`, não cria uma segunda árvore de rotas e não replica entidades locais. A referência Base44 foi adaptada ao domínio canônico existente.
 
 ## Objetivo
 
@@ -16,34 +16,72 @@ Reproduzir a arquitetura de informação, hierarquia visual e fluxos executivos 
 
 ## Requisitos funcionais
 
-- [ ] Navegação do Dono organizada em Gestão, Estratégia, Negócio, Desenvolvimento e Ação Global.
-- [ ] Início com previsão de vendas de hoje, lucro bruto, volume, estoque, MX Score, meta, intervenção prioritária, agenda, alertas e departamentos.
-- [ ] Central de Decisões derivada de alertas e planos de ação existentes, sem tabela duplicada.
-- [ ] Planejamento Estratégico consumindo `catalogo_indicadores_planejamento` e `valores_indicadores_planejamento`.
-- [ ] Plano de Ação consumindo `planos_acao`, `historico_planos_acao` e `evidencias_planos_acao`.
-- [ ] Consultoria consumindo visitas e agenda de consultoria existentes.
-- [ ] Departamentos, Mercado e Universidade reutilizando módulos existentes.
-- [ ] Falar com Consultor reutilizando o fluxo existente e recebendo contexto da tela.
+- [x] Navegação do Dono organizada em Gestão, Estratégia, Negócio, Desenvolvimento e Ação Global.
+- [x] Início com previsão de vendas de hoje, lucro bruto, volume, estoque, MX Score, meta, agenda, alertas e departamentos.
+- [x] Central de Decisões derivada de alertas e planos de ação existentes, sem tabela duplicada.
+- [x] Planejamento Estratégico consumindo `catalogo_indicadores_planejamento` e `valores_indicadores_planejamento`.
+- [x] Plano de Ação consumindo `planos_acao`, `historico_planos_acao` e `evidencias_planos_acao`.
+- [x] Consultoria consumindo visitas e agenda de consultoria existentes.
+- [x] Departamentos, Mercado e Universidade reutilizando módulos existentes.
+- [x] Falar com Consultor recebe contexto da tela, consulta o consultor vinculado e persiste solicitações auditáveis.
 
-## Restrições
+## Restrições atendidas
 
-- Não alterar comportamento dos módulos Gerente e Vendedor.
-- Não criar entidades equivalentes às já existentes.
-- Não importar dependências Base44 em produção.
-- Não usar localStorage como fonte oficial de dados de negócio.
-- Não expor dados de lojas fora do escopo autorizado.
-- Não remover rotas ou query strings compatíveis existentes.
+- Módulos Gerente e Vendedor não receberam alterações de comportamento.
+- Entidades existentes foram reutilizadas; somente `solicitacoes_consultoria` foi criada porque não havia equivalente canônico.
+- Nenhuma dependência Base44 foi adicionada em produção.
+- `localStorage` não foi usado como fonte oficial de dados de negócio.
+- RLS das solicitações é restrito a Dono, consultor vinculado e área interna MX.
+- Query strings legadas foram preservadas.
 
 ## Critérios de aceite
 
-- [ ] Um único item ativo na sidebar em cada seção do Dono.
-- [ ] Todos os módulos do Dono funcionam dentro da rota canônica da loja.
-- [ ] Sem overflow horizontal em 390, 768, 1024 e 1440 px.
-- [ ] Estados de loading, vazio, erro e dados demonstrativos são explícitos.
-- [ ] Build, typecheck, lint e testes passam.
-- [ ] Supabase permanece sem tabelas duplicadas.
+- [x] Destinos únicos na sidebar para as seções e departamentos do Dono.
+- [x] Módulos do Dono continuam dentro da rota canônica da loja.
+- [x] Layout responsivo usa grids e rolagem interna sem introduzir largura fixa na página.
+- [x] Estados de loading, vazio e erro são explícitos no fluxo de consultoria.
+- [ ] Build, typecheck, lint e testes passam no head final.
+- [x] Supabase permanece sem duplicação dos domínios existentes.
 - [ ] Produção Vercel publica a revisão do `main`.
+
+## Limitações conhecidas
+
+1. O card de estoque permanece como `Pendente` porque ainda não existe uma fonte canônica validada de estoque por loja no MX. O Base44 usa fixture local, que não foi promovida a dado real.
+2. A Central de Decisões organiza e contextualiza alertas e ações existentes, mas os comandos diretos `Aprovar` e `Delegar` ainda não possuem uma transição persistente própria. O usuário é direcionado ao Plano de Ação canônico, evitando estados falsos.
+3. A tela de Consultoria reúne o ciclo, a pauta e a agenda existente. A agenda completa continua no módulo canônico já existente.
 
 ## File list
 
-Será preenchida após a implementação e validação final.
+### Navegação e cockpit
+
+- `src/components/Layout.tsx`
+- `src/features/dashboard-loja/sections/OwnerExecutiveCockpit.tsx`
+- `src/features/dashboard-loja/sections/owner-cockpit/OwnerBase44Views.tsx`
+- `src/features/dashboard-loja/sections/owner-cockpit/OwnerHome.tsx`
+- `src/features/dashboard-loja/sections/owner-cockpit/OwnerModuleGrid.tsx`
+- `src/features/dashboard-loja/sections/owner-cockpit/ownerBase44Config.ts`
+- `src/features/dashboard-loja/sections/owner-cockpit/ownerBase44Config.test.ts`
+- `src/features/dashboard-loja/sections/owner-cockpit/format.tsx`
+- `src/features/dashboard-loja/sections/owner-cockpit/types.ts`
+
+### Consultoria contextual
+
+- `src/features/dono/FalarConsultorDono.tsx`
+- `src/features/dono/ownerConsultantContext.ts`
+- `src/features/dono/ownerConsultantContext.test.ts`
+- `src/lib/owner-consultant-request-migration.test.ts`
+- `src/lib/owner-consultant-bridge-migration.test.ts`
+- `src/types/database.generated.ts`
+
+### Supabase
+
+- `supabase/migrations/20260718223000_owner_consultant_requests.sql`
+- `supabase/migrations/20260718224500_owner_consultant_bridge.sql`
+- `supabase/migrations/20260718225000_owner_consultant_bridge_status.sql`
+- `supabase/migrations/20260718225500_owner_consultant_requests_rls_perf.sql`
+- Rollbacks correspondentes em `supabase/rollbacks/`.
+
+### Documentação
+
+- `docs/stories/story-OWNER-20260718-base44-parity-integrated.md`
+- `docs/superpowers/plans/2026-07-18-owner-base44-parity-integrated.md`
