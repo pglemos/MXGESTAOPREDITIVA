@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import {
   Activity,
@@ -37,10 +37,13 @@ import {
 } from '@/components/module/MxModuleVisualPrimitives'
 import { toast } from '@/lib/toast'
 import {
+  differenceInCalendarDays,
   endOfDay,
   endOfMonth,
   endOfWeek,
   format,
+  isValid,
+  parseISO,
   startOfDay,
   startOfMonth,
   startOfWeek,
@@ -48,7 +51,6 @@ import {
 } from 'date-fns'
 import { getOperationalStatus, getDiasInfo, calcularProjecao } from '@/lib/calculations'
 import type { DailyCheckin, Store as StoreRecord } from '@/types/database'
-import { isLancamentosViaRpcEnabled } from '@/lib/feature-flags'
 
 type StoreDiagnostic = {
   id: string
@@ -67,22 +69,18 @@ type StoreDiagnostic = {
   disciplinePct: number
 }
 
-type NetworkCheckinRow = Pick<
-  DailyCheckin,
-  | 'store_id'
-  | 'reference_date'
-  | 'leads_prev_day'
-  | 'agd_cart_today'
-  | 'agd_net_today'
-  | 'visit_prev_day'
-  | 'vnd_porta_prev_day'
-  | 'vnd_cart_prev_day'
-  | 'vnd_net_prev_day'
->
+type NetworkAggregateRow = {
+  store_id: string
+  sales: number | string | null
+  leads: number | string | null
+  agd: number | string | null
+  vis: number | string | null
+}
 
 type StoreListRow = Pick<StoreRecord, 'id' | 'name'>
 type ActiveSellerRow = { store_id: string }
 type TodayCheckinRow = Pick<DailyCheckin, 'store_id' | 'seller_user_id'>
+type DateRange = { start: string; end: string }
 
 type SortConfig = {
   key: keyof StoreDiagnostic
@@ -90,6 +88,8 @@ type SortConfig = {
 }
 
 type Timeframe = 'hoje' | 'ontem' | 'semanal' | 'mensal' | 'personalizada'
+
+const MAX_CUSTOM_RANGE_DAYS = 366
 
 const timeframeLabels: Record<Timeframe, string> = {
   hoje: 'Hoje',
@@ -112,10 +112,67 @@ function statusVariant(label: string): 'success' | 'warning' | 'danger' | 'info'
   return 'info'
 }
 
+function resolveRange(selectedTimeframe: Timeframe, customRange: DateRange): DateRange {
+  const now = new Date()
+  let start = now
+  let end = now
+
+  switch (selectedTimeframe) {
+    case 'hoje':
+      start = startOfDay(now)
+      end = endOfDay(now)
+      break
+    case 'ontem': {
+      const yesterday = subDays(now, 1)
+      start = startOfDay(yesterday)
+      end = endOfDay(yesterday)
+      break
+    }
+    case 'semanal':
+      start = startOfWeek(now, { weekStartsOn: 1 })
+      end = endOfWeek(now, { weekStartsOn: 1 })
+      break
+    case 'mensal':
+      start = startOfMonth(now)
+      end = endOfMonth(now)
+      break
+    case 'personalizada':
+      return customRange
+  }
+
+  return {
+    start: format(start, 'yyyy-MM-dd'),
+    end: format(end, 'yyyy-MM-dd'),
+  }
+}
+
+function validateCustomRange(range: DateRange): string | null {
+  const start = parseISO(range.start)
+  const end = parseISO(range.end)
+
+  if (!range.start || !range.end || !isValid(start) || !isValid(end)) {
+    return 'Informe datas válidas para início e fim.'
+  }
+  if (end < start) return 'A data final não pode ser anterior à data inicial.'
+  if (differenceInCalendarDays(end, start) > MAX_CUSTOM_RANGE_DAYS) {
+    return `O período personalizado pode ter no máximo ${MAX_CUSTOM_RANGE_DAYS} dias.`
+  }
+  return null
+}
+
 export default function PainelConsultor() {
   const navigate = useNavigate()
   const { setActiveStoreId } = useAuth()
   const { metas, loading: goalsLoading } = useAllStoreGoals()
+  const requestSequence = useRef(0)
+
+  const initialRange = useMemo<DateRange>(
+    () => ({
+      start: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
+      end: format(endOfMonth(new Date()), 'yyyy-MM-dd'),
+    }),
+    [],
+  )
 
   const [diagnostics, setDiagnostics] = useState<Record<string, StoreDiagnostic>>({})
   const [networkLoading, setNetworkLoading] = useState(true)
@@ -124,10 +181,8 @@ export default function PainelConsultor() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'alert' | 'critical' | 'target'>('all')
   const [timeframe, setTimeframe] = useState<Timeframe>('mensal')
-  const [customRange, setCustomRange] = useState<{ start: string; end: string }>({
-    start: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
-    end: format(endOfMonth(new Date()), 'yyyy-MM-dd'),
-  })
+  const [customRangeDraft, setCustomRangeDraft] = useState<DateRange>(initialRange)
+  const [appliedCustomRange, setAppliedCustomRange] = useState<DateRange>(initialRange)
   const [showCustomPicker, setShowCustomPicker] = useState(false)
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'sales', direction: 'desc' })
 
@@ -169,118 +224,61 @@ export default function PainelConsultor() {
     }
   }
 
-  const calculateRange = useCallback(
-    (selectedTimeframe: Timeframe) => {
-      const now = new Date()
-      let start = now
-      let end = now
-
-      switch (selectedTimeframe) {
-        case 'hoje':
-          start = startOfDay(now)
-          end = endOfDay(now)
-          break
-        case 'ontem': {
-          const yesterday = subDays(now, 1)
-          start = startOfDay(yesterday)
-          end = endOfDay(yesterday)
-          break
-        }
-        case 'semanal':
-          start = startOfWeek(now, { weekStartsOn: 1 })
-          end = endOfWeek(now, { weekStartsOn: 1 })
-          break
-        case 'mensal':
-          start = startOfMonth(now)
-          end = endOfMonth(now)
-          break
-        case 'personalizada':
-          return customRange
-      }
-
-      return {
-        start: format(start, 'yyyy-MM-dd'),
-        end: format(end, 'yyyy-MM-dd'),
-      }
-    },
-    [customRange],
-  )
-
   const fetchNetworkSnapshot = useCallback(
-    async (isManual = false) => {
+    async ({
+      selectedTimeframe,
+      selectedCustomRange,
+      isManual = false,
+    }: {
+      selectedTimeframe: Timeframe
+      selectedCustomRange: DateRange
+      isManual?: boolean
+    }) => {
+      const requestId = ++requestSequence.current
       if (isManual) setIsRefetching(true)
       else setNetworkLoading(true)
 
       try {
-        const range = calculateRange(timeframe)
-        const yesterdayDate = new Date()
-        yesterdayDate.setDate(yesterdayDate.getDate() - 1)
-        const yesterday = yesterdayDate.toISOString().split('T')[0]
+        const range = resolveRange(selectedTimeframe, selectedCustomRange)
+        const rangeError = validateCustomRange(range)
+        if (rangeError) throw new Error(rangeError)
 
-        let allCheckins: NetworkCheckinRow[] = []
-        if (isLancamentosViaRpcEnabled()) {
-          const { data, error } = await originalSupabase.rpc('get_lancamentos_rede_periodo', {
+        const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd')
+        const [summaryResult, storesResult, sellersResult, todayCheckinsResult] = await Promise.all([
+          originalSupabase.rpc('get_resumo_rede_periodo', {
             p_start_date: range.start,
             p_end_date: range.end,
             p_scope: 'daily',
+          }),
+          originalSupabase.from('lojas').select('id, name'),
+          originalSupabase.from('vendedores_loja').select('store_id').eq('is_active', true),
+          originalSupabase.rpc('get_lancamentos_referencia_dia', {
+            p_reference_date: yesterday,
+            p_scope: 'daily',
+          }),
+        ])
+
+        if (summaryResult.error) throw summaryResult.error
+        if (storesResult.error) throw storesResult.error
+        if (sellersResult.error) throw sellersResult.error
+        if (todayCheckinsResult.error) throw todayCheckinsResult.error
+
+        const aggregateRows = (summaryResult.data || []) as NetworkAggregateRow[]
+        const allStores = (storesResult.data || []) as StoreListRow[]
+        const sellers = (sellersResult.data || []) as ActiveSellerRow[]
+        const todayCheckins = (todayCheckinsResult.data || []) as TodayCheckinRow[]
+
+        const salesMap = new Map<
+          string,
+          { total: number; leads: number; agd: number; vis: number }
+        >()
+        for (const row of aggregateRows) {
+          salesMap.set(row.store_id, {
+            total: Number(row.sales || 0),
+            leads: Number(row.leads || 0),
+            agd: Number(row.agd || 0),
+            vis: Number(row.vis || 0),
           })
-          if (error) throw error
-          allCheckins = (data as NetworkCheckinRow[] | null) || []
-        } else {
-          let from = 0
-          while (true) {
-            const { data, error } = await originalSupabase
-              .from('lancamentos_diarios')
-              .select(
-                'store_id, reference_date, leads_prev_day, agd_cart_today, agd_net_today, visit_prev_day, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day',
-              )
-              .gte('reference_date', range.start)
-              .lte('reference_date', range.end)
-              .range(from, from + 999)
-
-            if (error) throw error
-            if (!data || data.length === 0) break
-            allCheckins = allCheckins.concat(data as NetworkCheckinRow[])
-            if (data.length < 1000) break
-            from += 1000
-          }
-        }
-
-        const todayCheckinsPromise = isLancamentosViaRpcEnabled()
-          ? originalSupabase.rpc('get_lancamentos_referencia_dia', {
-              p_reference_date: yesterday,
-              p_scope: 'daily',
-            })
-          : originalSupabase
-              .from('lancamentos_diarios')
-              .select('store_id, seller_user_id')
-              .eq('reference_date', yesterday)
-
-        const [{ data: allStoresRaw }, { data: sellersRaw }, { data: todayCheckinsRaw }] =
-          await Promise.all([
-            originalSupabase.from('lojas').select('id, name'),
-            originalSupabase.from('vendedores_loja').select('store_id').eq('is_active', true),
-            todayCheckinsPromise,
-          ])
-
-        const allStores = (allStoresRaw || []) as StoreListRow[]
-        const sellers = (sellersRaw || []) as ActiveSellerRow[]
-        const todayCheckins = (todayCheckinsRaw || []) as TodayCheckinRow[]
-
-        const salesMap: Record<string, { total: number; leads: number; agd: number; vis: number }> = {}
-        for (const checkin of allCheckins) {
-          const storeId = checkin.store_id
-          if (!salesMap[storeId]) {
-            salesMap[storeId] = { total: 0, leads: 0, agd: 0, vis: 0 }
-          }
-          salesMap[storeId].total +=
-            Number(checkin.vnd_net_prev_day || 0) +
-            Number(checkin.vnd_porta_prev_day || 0) +
-            Number(checkin.vnd_cart_prev_day || 0)
-          salesMap[storeId].leads += Number(checkin.leads_prev_day || 0)
-          salesMap[storeId].agd +=
-            Number(checkin.agd_net_today || 0) + Number(checkin.agd_cart_today || 0)
-          salesMap[storeId].vis += Number(checkin.visit_prev_day || 0)
         }
 
         const sellerMap = new Map<string, number>()
@@ -299,10 +297,10 @@ export default function PainelConsultor() {
         const totalDays = days.total
 
         for (const store of allStores) {
-          const aggregate = salesMap[store.id] || { total: 0, leads: 0, agd: 0, vis: 0 }
+          const aggregate = salesMap.get(store.id) || { total: 0, leads: 0, agd: 0, vis: 0 }
           const goal = metas.find((item) => item.store_id === store.id)?.target || 0
           const projection =
-            timeframe === 'mensal'
+            selectedTimeframe === 'mensal'
               ? calcularProjecao(aggregate.total, daysElapsed, totalDays)
               : aggregate.total
           const sellersCount = sellerMap.get(store.id) || 0
@@ -320,7 +318,7 @@ export default function PainelConsultor() {
             agd: aggregate.agd,
             vis: aggregate.vis,
             goal,
-            gap: timeframe === 'mensal' ? Math.max(goal - aggregate.total, 0) : 0,
+            gap: selectedTimeframe === 'mensal' ? Math.max(goal - aggregate.total, 0) : 0,
             proj: projection,
             ritmo: Math.round(nominalPace * 10) / 10,
             efficiency: Math.round(efficiency),
@@ -330,20 +328,41 @@ export default function PainelConsultor() {
           }
         }
 
+        if (requestId !== requestSequence.current) return
         setDiagnostics(diagnosticsMap)
-      } catch {
-        toast.error('Não foi possível atualizar a visão da rede.')
+      } catch (error) {
+        if (requestId !== requestSequence.current) return
+        const message = error instanceof Error ? error.message : ''
+        toast.error(message || 'Não foi possível atualizar a visão da rede.')
       } finally {
-        setNetworkLoading(false)
-        setIsRefetching(false)
+        if (requestId === requestSequence.current) {
+          setNetworkLoading(false)
+          setIsRefetching(false)
+        }
       }
     },
-    [calculateRange, metas, timeframe],
+    [metas],
   )
 
   useEffect(() => {
-    if (!goalsLoading) void fetchNetworkSnapshot()
-  }, [fetchNetworkSnapshot, goalsLoading])
+    if (!goalsLoading) {
+      void fetchNetworkSnapshot({
+        selectedTimeframe: timeframe,
+        selectedCustomRange: appliedCustomRange,
+      })
+    }
+  }, [appliedCustomRange, fetchNetworkSnapshot, goalsLoading, timeframe])
+
+  const handleApplyCustomRange = () => {
+    const validationError = validateCustomRange(customRangeDraft)
+    if (validationError) {
+      toast.error(validationError)
+      return
+    }
+    setAppliedCustomRange(customRangeDraft)
+    setTimeframe('personalizada')
+    setShowCustomPicker(false)
+  }
 
   const handleSort = (key: keyof StoreDiagnostic) => {
     setSortConfig((previous) => ({
@@ -447,7 +466,13 @@ export default function PainelConsultor() {
           <>
             <Button
               variant="outline"
-              onClick={() => void fetchNetworkSnapshot(true)}
+              onClick={() =>
+                void fetchNetworkSnapshot({
+                  selectedTimeframe: timeframe,
+                  selectedCustomRange: appliedCustomRange,
+                  isManual: true,
+                })
+              }
               disabled={isRefetching}
             >
               <RefreshCw
@@ -515,9 +540,9 @@ export default function PainelConsultor() {
                       <Input
                         id="network-range-start"
                         type="date"
-                        value={customRange.start}
+                        value={customRangeDraft.start}
                         onChange={(event) =>
-                          setCustomRange((current) => ({
+                          setCustomRangeDraft((current) => ({
                             ...current,
                             start: event.target.value,
                           }))
@@ -528,9 +553,9 @@ export default function PainelConsultor() {
                       <Input
                         id="network-range-end"
                         type="date"
-                        value={customRange.end}
+                        value={customRangeDraft.end}
                         onChange={(event) =>
-                          setCustomRange((current) => ({
+                          setCustomRangeDraft((current) => ({
                             ...current,
                             end: event.target.value,
                           }))
@@ -538,14 +563,10 @@ export default function PainelConsultor() {
                       />
                     </MxField>
                   </div>
-                  <Button
-                    className="mt-mx-md w-full"
-                    onClick={() => {
-                      setTimeframe('personalizada')
-                      setShowCustomPicker(false)
-                      void fetchNetworkSnapshot(true)
-                    }}
-                  >
+                  <Typography variant="tiny" tone="muted" className="mt-mx-xs block">
+                    Período máximo: {MAX_CUSTOM_RANGE_DAYS} dias.
+                  </Typography>
+                  <Button className="mt-mx-md w-full" onClick={handleApplyCustomRange}>
                     Aplicar período
                   </Button>
                 </MxSectionCard>
@@ -659,6 +680,12 @@ export default function PainelConsultor() {
           </div>
         </div>
 
+        <p className="sr-only" aria-live="polite" aria-atomic="true">
+          {filteredAndSortedStores.length === 0
+            ? 'Nenhuma loja encontrada com os filtros atuais.'
+            : `${filteredAndSortedStores.length} ${filteredAndSortedStores.length === 1 ? 'loja encontrada' : 'lojas encontradas'}.`}
+        </p>
+
         {filteredAndSortedStores.length === 0 ? (
           <MxEmptyState
             icon={Building2}
@@ -710,23 +737,27 @@ export default function PainelConsultor() {
                       initial={{ opacity: 0, y: 4 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: Math.min(index * 0.015, 0.2) }}
-                      className="cursor-pointer transition-colors hover:bg-surface-alt"
-                      onClick={() => handleStoreClick(store.id, store.name)}
+                      className="transition-colors hover:bg-surface-alt"
                     >
                       <td className="px-mx-md py-mx-sm">
-                        <div className="flex min-w-mx-48 items-center gap-mx-sm">
+                        <button
+                          type="button"
+                          onClick={() => handleStoreClick(store.id, store.name)}
+                          className="flex min-w-mx-48 items-center gap-mx-sm rounded-mx-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+                          aria-label={`Abrir unidade ${store.name}`}
+                        >
                           <span className="grid h-mx-9 w-mx-9 shrink-0 place-items-center rounded-mx-lg bg-status-success-surface text-brand-primary">
                             <Building2 size={17} aria-hidden="true" />
                           </span>
-                          <div className="min-w-0">
-                            <Typography variant="p" className="truncate font-semibold text-text-primary">
+                          <span className="min-w-0">
+                            <Typography variant="p" className="block truncate font-semibold text-text-primary">
                               {store.name}
                             </Typography>
-                            <Typography variant="tiny" tone="muted">
+                            <Typography variant="tiny" tone="muted" className="block">
                               {store.checkedInToday}/{store.sellers} vendedores com registro
                             </Typography>
-                          </div>
-                        </div>
+                          </span>
+                        </button>
                       </td>
                       <td className="px-mx-md py-mx-sm text-right tabular-nums">{store.leads}</td>
                       <td className="px-mx-md py-mx-sm text-right tabular-nums">{store.agd}</td>
