@@ -17,6 +17,7 @@ const roleVisualScope = read('../components/module/MxRoleVisualScope.tsx')
 const managerScopeCss = read('../styles/manager-visual-scope.css')
 const painelConsultor = read('../pages/PainelConsultor.tsx')
 const lojasContainer = read('../features/lojas/Lojas.container.tsx')
+const lojasHeader = read('../features/lojas/sections/LojasHeader.tsx')
 const consultoriaClientes = read('../pages/ConsultoriaClientes.tsx')
 
 const legacyFiles = [
@@ -67,6 +68,7 @@ describe('paridade visual dos módulos MX com o Gerente', () => {
     expect(main).not.toContain('internal-mx-components.css')
     expect(main).not.toContain('internal-mx-routes.css')
     expect(main).not.toContain('../packages/mx-tokens/src/theme.css')
+    expect(main).toContain("./styles/manager-visual-scope.css")
     for (const file of legacyFiles) {
       expect(existsSync(new URL(file, import.meta.url))).toBe(false)
     }
@@ -130,11 +132,14 @@ describe('paridade visual dos módulos MX com o Gerente', () => {
   test('landing pages de Admin, Dono e Consultoria usam as mesmas primitives do Gerente', () => {
     for (const source of [painelConsultor, lojasContainer, consultoriaClientes]) {
       expect(source).toContain('MxModulePage')
-      expect(source).toContain('MxModuleHeader')
       expect(source).not.toContain('mx-internal-workspace')
+    }
+    for (const source of [painelConsultor, lojasHeader, consultoriaClientes]) {
+      expect(source).toContain('MxModuleHeader')
     }
     expect(painelConsultor).toContain('MxMetricCard')
     expect(lojasContainer).toContain('MxStatusBanner')
+    expect(lojasContainer).toContain('<LojasHeader')
     expect(consultoriaClientes).toContain('MxMetricCard')
     expect(consultoriaClientes).toContain('MxToolbar')
     expect(consultoriaClientes).toContain('MxSectionCard')
