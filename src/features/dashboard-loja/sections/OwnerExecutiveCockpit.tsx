@@ -59,6 +59,10 @@ type OwnerExecutiveCockpitProps = {
   alerts: OwnerPerformanceAlert[]
 }
 
+function alertIdentity(alert: OwnerPerformanceAlert) {
+  return [alert.title, alert.description, alert.variant, alert.recommendation].join('::')
+}
+
 export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitProps) {
   const { profile } = useAuth()
   const location = useLocation()
@@ -73,7 +77,7 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
   const ownerAlerts = useMemo(() => {
     const generated = centralMx.alerts.map(alertFromEngine)
     return [...generated, ...alerts].filter(
-      (alert, index, list) => list.findIndex(candidate => candidate.title === alert.title) === index,
+      (alert, index, list) => list.findIndex(candidate => alertIdentity(candidate) === alertIdentity(alert)) === index,
     )
   }, [alerts, centralMx.alerts])
   const actions = useMemo(() => centralMx.actionPlanItems.map(actionFromEngine), [centralMx.actionPlanItems])
