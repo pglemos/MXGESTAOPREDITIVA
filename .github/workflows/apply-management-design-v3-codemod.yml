@@ -36,12 +36,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          git checkout -- .github/workflows/module-design-system-authenticated-visual.yml
           if git diff --quiet; then
             echo 'No generated changes.'
             exit 0
           fi
           git config user.name 'mx-design-system-bot'
           git config user.email 'actions@users.noreply.github.com'
-          git add src/features/lojas scripts/audit-management-design-system.mjs scripts/audit-management-design-system.test.mjs .github/workflows/module-design-system-authenticated-visual.yml
+          git add src/features/lojas scripts/audit-management-design-system.mjs scripts/audit-management-design-system.test.mjs
           git commit -m 'fix: remover legado visual de toda a árvore de lojas'
           git push origin HEAD:${{ github.event.pull_request.head.ref || 'fix/remover-legado-design-system-v3' }}
