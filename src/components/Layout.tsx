@@ -94,7 +94,7 @@ const navConfig: Record<string, NavCategory[]> = {
       icon: <Grid size={22} />,
       items: [
         { label: 'Departamentos', path: ownerSectionPlaceholder('departamentos'), icon: <Grid size={16} /> },
-        { label: 'Visão Geral', path: ownerSectionPlaceholder('departamentos'), icon: <LayoutDashboard size={16} /> },
+        { label: 'Visão Geral', path: ownerSectionPlaceholder('departamentos-visao-geral'), icon: <LayoutDashboard size={16} /> },
         { label: 'Comercial', path: ownerSectionPlaceholder('departamentos-comercial'), icon: <TrendingUp size={16} /> },
         { label: 'Marketing', path: ownerSectionPlaceholder('departamentos-marketing'), icon: <Activity size={16} /> },
         { label: 'Produto e Estoque', path: ownerSectionPlaceholder('departamentos-produto'), icon: <Grid size={16} /> },
@@ -268,7 +268,8 @@ export default function Layout() {
           activePaths: item.activePaths ?? [item.path],
           special: item.path.includes('/consultor-ia') ||
             label.includes('consultor ia') ||
-            label.includes('consultor mx ia'),
+            label.includes('consultor mx ia') ||
+            label.includes('falar com consultor'),
         }
       }),
     }))
