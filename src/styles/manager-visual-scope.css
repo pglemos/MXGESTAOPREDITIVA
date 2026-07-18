@@ -1,0 +1,39 @@
+/* Matriz visual canônica do Gerente aplicada aos perfis de gestão.
+   O escopo troca somente tokens semânticos. Vendedor permanece isolado. */
+.mx-manager-scope {
+  --color-brand-primary: #059669;
+  --color-brand-primary-hover: #047857;
+  --color-brand-secondary: #1f2937;
+  --color-mx-teal: #059669;
+  --color-mx-teal-light: #d1fae5;
+  --color-mx-teal-soft: #ecfdf5;
+  --color-mx-action: #059669;
+  --color-mx-action-hover: #047857;
+  --color-mx-action-light: #ecfdf5;
+  --color-mx-bg: #f9fafb;
+  --color-mx-surface: #ffffff;
+  --color-mx-border: #e5e7eb;
+  --color-mx-divider: #f3f4f6;
+  --color-mx-text: #1f2937;
+  --color-mx-muted: #6b7280;
+  --color-mx-subtle: #9ca3af;
+  --color-surface-alt: #f9fafb;
+  --color-border-default: #f3f4f6;
+  --color-border-subtle: #f3f4f6;
+  --color-border-strong: #e5e7eb;
+  --color-text-primary: #1f2937;
+  --color-text-secondary: #4b5563;
+  --color-text-tertiary: #6b7280;
+  --color-text-label: #6b7280;
+  --radius-mx-sm: 0.5rem;
+  --radius-mx-md: 0.75rem;
+  --radius-mx-lg: 0.75rem;
+  --radius-mx-xl: 1rem;
+  --radius-mx-2xl: 1rem;
+  --radius-mx-3xl: 1.25rem;
+  --radius-mx-4xl: 1.5rem;
+  --shadow-mx-sm: 0 1px 2px rgb(0 0 0 / 0.05);
+  --shadow-mx-md: 0 1px 3px rgb(0 0 0 / 0.10), 0 1px 2px -1px rgb(0 0 0 / 0.10);
+  --shadow-mx-lg: 0 1px 3px rgb(0 0 0 / 0.10), 0 1px 2px -1px rgb(0 0 0 / 0.10);
+  --shadow-mx-xl: 0 1px 3px rgb(0 0 0 / 0.10), 0 1px 2px -1px rgb(0 0 0 / 0.10);
+}
