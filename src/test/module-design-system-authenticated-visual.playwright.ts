@@ -85,6 +85,7 @@ type ShellMetrics = {
     boxShadow: string
   } | null
   activeNavigationItems: number
+  currentNavigationItems: number
   forbiddenLegacyNodes: number
   horizontalOverflow: boolean
 }
@@ -117,6 +118,15 @@ async function visibleModuleLabel(page: Page) {
   })
 }
 
+async function hasCanonicalPageHeader(page: Page) {
+  return page.evaluate(() => {
+    const visualScope = document.querySelector<HTMLElement>('[data-mx-visual-system="manager"]')
+    if (!visualScope) return false
+    return Array.from(visualScope.querySelectorAll<HTMLElement>('header'))
+      .some((node) => node.getBoundingClientRect().width > 300)
+  })
+}
+
 async function collectMetrics(page: Page, profile: string, viewport: string): Promise<ShellMetrics> {
   return page.evaluate(({ profile, viewport }) => {
     const desktopSidebar = document.querySelector<HTMLElement>('aside[aria-label^="Menu principal"]')
@@ -143,9 +153,10 @@ async function collectMetrics(page: Page, profile: string, viewport: string): Pr
     const mobileHeaderStyle = mobileHeader ? getComputedStyle(mobileHeader) : null
     const pageHeaderStyle = pageHeader ? getComputedStyle(pageHeader) : null
     const activeNavigationItems = navigationSurface
-      ? Array.from(navigationSurface.querySelectorAll<HTMLElement>('a')).filter(
-          (node) => getComputedStyle(node).backgroundColor === 'rgb(5, 150, 105)',
-        ).length
+      ? navigationSurface.querySelectorAll('a.bg-emerald-600').length
+      : 0
+    const currentNavigationItems = navigationSurface
+      ? navigationSurface.querySelectorAll('a[aria-current="page"]').length
       : 0
 
     return {
@@ -194,6 +205,7 @@ async function collectMetrics(page: Page, profile: string, viewport: string): Pr
           }
         : null,
       activeNavigationItems,
+      currentNavigationItems,
       forbiddenLegacyNodes: document.querySelectorAll(
         '.mxds-page-frame, .mx-internal-workspace, [class*="mxds-"]',
       ).length,
@@ -224,7 +236,8 @@ async function auditProfile(
   }
 
   await expect.poll(() => visibleModuleLabel(page), { timeout: 20_000 }).toBe(profile.moduleLabel)
-  await page.waitForTimeout(500)
+  await expect.poll(() => hasCanonicalPageHeader(page), { timeout: 20_000 }).toBe(true)
+  await page.waitForTimeout(250)
 
   const metrics = await collectMetrics(page, profile.key, viewport.name)
 
@@ -233,6 +246,7 @@ async function auditProfile(
   expect(metrics.horizontalOverflow).toBe(false)
   expect(metrics.logo).not.toBeNull()
   expect(metrics.activeNavigationItems).toBe(1)
+  expect(metrics.currentNavigationItems).toBe(1)
   expect(metrics.pageHeader).toMatchObject({
     backgroundColor: 'rgb(255, 255, 255)',
     borderRadius: '16px',
