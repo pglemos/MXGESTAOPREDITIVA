@@ -50,18 +50,18 @@ describe("EmptyState", () => {
   test("applies sm size variant", () => {
     const { container } = render(<EmptyState title="T" size="sm" />);
     const wrapper = container.firstElementChild!;
-    expect(wrapper.className).toContain("py-mx-md");
+    expect(wrapper.className).toContain("py-6");
   });
 
   test("applies md size variant", () => {
     const { container } = render(<EmptyState title="T" size="md" />);
     const wrapper = container.firstElementChild!;
-    expect(wrapper.className).toContain("py-mx-xl");
+    expect(wrapper.className).toContain("py-12");
   });
 
   test("applies lg size variant", () => {
     const { container } = render(<EmptyState title="T" size="lg" />);
     const wrapper = container.firstElementChild!;
-    expect(wrapper.className).toContain("py-mx-3xl");
+    expect(wrapper.className).toContain("py-24");
   });
 });
