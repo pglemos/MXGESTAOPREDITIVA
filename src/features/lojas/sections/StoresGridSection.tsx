@@ -15,8 +15,15 @@ export function StoresGridSection({
   columns,
   data,
 }: StoresGridSectionProps) {
+  const resultAnnouncement = data.length === 0
+    ? 'Nenhuma loja encontrada com os filtros atuais.'
+    : `${data.length} ${data.length === 1 ? 'loja encontrada' : 'lojas encontradas'}.`
+
   return (
-    <MxSectionCard className="pb-mx-20" aria-live="polite">
+    <MxSectionCard className="pb-mx-20">
+      <p className="sr-only" aria-live="polite" aria-atomic="true">
+        {resultAnnouncement}
+      </p>
       <DataGrid
         columns={columns}
         data={data}
