@@ -235,7 +235,7 @@ export default function MxSidebarShell({
         key={item.key ?? item.path}
         to={item.path}
         aria-label={item.label}
-        aria-current={active ? 'page' : undefined}
+        aria-current={active ? 'page' : false}
         onClick={() => setMobileOpen(false)}
         className={cn(
           'group relative flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-emerald-500/30',
