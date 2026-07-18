@@ -8,6 +8,7 @@ const srcRoot = fileURLToPath(new URL('../', import.meta.url))
 
 const layout = read('../components/Layout.tsx')
 const main = read('../main.tsx')
+const sidebarShell = read('../components/MxSidebarShell.tsx')
 const managerPrimitives = read('../features/manager/shared/ManagerVisualPrimitives.tsx')
 const universalPrimitives = read('../components/module/MxModuleVisualPrimitives.tsx')
 const legacyFiles = [
@@ -40,6 +41,19 @@ describe('paridade visual dos módulos MX com o Gerente', () => {
     expect(layout).not.toContain('InternalMxPageFrame')
     expect(layout).not.toContain('mx-internal-workspace')
     expect(layout).toContain('{pageContent}')
+  })
+
+  test('mantém um único landmark main-content, pertencente ao shell universal', () => {
+    expect(sidebarShell.split('id="main-content"').length - 1).toBe(1)
+
+    for (const file of runtimeFiles(srcRoot)) {
+      if (file.endsWith('/components/MxSidebarShell.tsx')) continue
+      const source = readFileSync(file, 'utf8')
+      expect(source).not.toContain('id="main-content"')
+      expect(source).not.toContain("id='main-content'")
+      expect(source).not.toContain("id = 'main-content'")
+      expect(source).not.toContain('id = "main-content"')
+    }
   })
 
   test('não mantém adaptadores visuais legados no runtime', () => {
