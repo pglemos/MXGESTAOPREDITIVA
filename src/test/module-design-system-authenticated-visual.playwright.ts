@@ -267,14 +267,12 @@ async function auditProfile(
   expect(metrics.activeNavigationItems).toBe(1)
   expect(metrics.currentNavigationItems).toBe(1)
 
-  if (profile.key !== 'gerente') {
-    expect(metrics.pageHeader).toMatchObject({
-      backgroundColor: 'rgb(255, 255, 255)',
-      borderRadius: '16px',
-    })
-    expect(metrics.pageHeader?.borderColor).not.toBe('rgba(0, 0, 0, 0)')
-    expect(metrics.pageHeader?.boxShadow).not.toBe('none')
-  }
+  expect(metrics.pageHeader).toMatchObject({
+    backgroundColor: 'rgb(255, 255, 255)',
+    borderRadius: viewport.name === 'mobile' ? '0px' : '16px',
+  })
+  expect(metrics.pageHeader?.borderColor).not.toBe('rgba(0, 0, 0, 0)')
+  expect(metrics.pageHeader?.boxShadow).not.toBe('none')
 
   expect(pageErrors, `Erros de página em ${profile.key}/${viewport.name}`).toEqual([])
 
