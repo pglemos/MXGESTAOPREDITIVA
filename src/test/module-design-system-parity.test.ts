@@ -14,7 +14,7 @@ const managerPrimitives = read('../features/manager/shared/ManagerVisualPrimitiv
 const universalPrimitives = read('../components/module/MxModuleVisualPrimitives.tsx')
 const button = read('../components/atoms/Button.tsx')
 const painelConsultor = read('../pages/PainelConsultor.tsx')
-const lojasHeader = read('../features/lojas/sections/LojasHeader.tsx')
+const lojasContainer = read('../features/lojas/Lojas.container.tsx')
 
 const legacyFiles = [
   '../design-system/internal-mx/InternalMxPageFrame.tsx',
@@ -91,7 +91,7 @@ describe('paridade visual dos módulos MX com o Gerente', () => {
     expect(universalPrimitives).not.toContain('border-border-subtle')
   })
 
-  test('fornece variantes gerenciais sem substituir o primary global do vendedor', () => {
+  test('aplica variantes gerenciais por escopo sem substituir o primary do vendedor', () => {
     for (const variant of [
       'managerPrimary',
       'managerOutline',
@@ -100,19 +100,26 @@ describe('paridade visual dos módulos MX com o Gerente', () => {
     ]) {
       expect(button).toContain(`${variant}:`)
     }
+    expect(button).toContain('ButtonVisualProvider')
+    expect(button).toContain("mode: ButtonVisualMode")
+    expect(button).toContain("primary: 'managerPrimary'")
+    expect(button).toContain("outline: 'managerSecondary'")
     expect(button).toContain('bg-emerald-600')
     expect(button).toContain('hover:bg-emerald-700')
     expect(button).toContain('border-emerald-200')
     expect(button).toContain('border-gray-200')
     expect(button).toContain('primary: "bg-mx-action')
+    expect(universalPrimitives).toContain('<ButtonVisualProvider mode="manager">')
   })
 
-  test('PainelConsultor e Lojas usam ações gerenciais, não o primary rosa implícito', () => {
-    expect(painelConsultor).toContain('variant="managerPrimary"')
-    expect(painelConsultor).toContain('variant="managerSecondary"')
-    expect(painelConsultor).toContain('variant="managerGhost"')
-    expect(lojasHeader).toContain('variant="managerPrimary"')
-    expect(lojasHeader).toContain('variant="managerSecondary"')
+  test('PainelConsultor e Lojas recebem a fundação compartilhada sem CSS corretivo por rota', () => {
+    expect(painelConsultor).toContain('MxModulePage')
+    expect(painelConsultor).toContain('MxModuleHeader')
+    expect(painelConsultor).toContain('MxMetricCard')
+    expect(lojasContainer).toContain('MxModulePage')
+    expect(lojasContainer).toContain('MxStatusBanner')
+    expect(painelConsultor).not.toContain('mx-internal-workspace')
+    expect(lojasContainer).not.toContain('mx-internal-workspace')
   })
 
   test('proíbe marcadores do design antigo em todo código executável', () => {
