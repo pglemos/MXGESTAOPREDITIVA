@@ -11,7 +11,18 @@ export const OWNER_BASE44_SECTION_VALUES = [
   'consultor',
 ] as const
 
+export const OWNER_LEGACY_SECTION_VALUES = [
+  'resultados',
+  'alertas',
+  'benchmarking',
+  'agenda',
+  'visitas',
+  'biblioteca',
+] as const
+
 export type OwnerBase44Section = (typeof OWNER_BASE44_SECTION_VALUES)[number]
+export type OwnerLegacySection = (typeof OWNER_LEGACY_SECTION_VALUES)[number]
+export type OwnerResolvedSection = OwnerBase44Section | OwnerLegacySection
 
 export type OwnerBase44NavigationItem = {
   label: string
@@ -65,21 +76,15 @@ export const OWNER_BASE44_NAVIGATION: OwnerBase44NavigationSection[] = [
   },
 ]
 
-const sectionSet = new Set<string>(OWNER_BASE44_SECTION_VALUES)
-const legacyAliases: Record<string, OwnerBase44Section> = {
-  resultados: 'home',
-  alertas: 'decisoes',
-  benchmarking: 'mercado',
-  agenda: 'rotina',
-  visitas: 'consultoria',
-  biblioteca: 'universidade',
-}
+const sectionSet = new Set<string>([
+  ...OWNER_BASE44_SECTION_VALUES,
+  ...OWNER_LEGACY_SECTION_VALUES,
+])
 
-export function resolveOwnerSection(search: string): OwnerBase44Section {
+export function resolveOwnerSection(search: string): OwnerResolvedSection {
   const raw = new URLSearchParams(search).get('ownerSection')
   if (raw?.startsWith('departamentos-')) return 'departamentos'
-  if (raw && legacyAliases[raw]) return legacyAliases[raw]
-  return raw && sectionSet.has(raw) ? (raw as OwnerBase44Section) : 'home'
+  return raw && sectionSet.has(raw) ? (raw as OwnerResolvedSection) : 'home'
 }
 
 export function ownerNavigationSectionValue(item: OwnerBase44NavigationItem): string {
