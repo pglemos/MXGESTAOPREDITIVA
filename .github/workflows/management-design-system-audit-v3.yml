@@ -23,16 +23,30 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          patch_payload="scripts/management-v3-implementation.patch.gz.b64"
-          if [[ ! -f "$patch_payload" ]]; then
+          shopt -s nullglob
+          patch_parts=(scripts/management-v3-implementation.patch.gz.b64.part*)
+          single_payload="scripts/management-v3-implementation.patch.gz.b64"
+
+          if (( ${#patch_parts[@]} > 0 )); then
+            cat "${patch_parts[@]}" > /tmp/management-v3.payload.b64
+          elif [[ -f "$single_payload" ]]; then
+            cp "$single_payload" /tmp/management-v3.payload.b64
+          else
             echo "applied=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          base64 --decode "$patch_payload" > /tmp/management-v3.patch.gz
+          base64 --decode /tmp/management-v3.payload.b64 > /tmp/management-v3.patch.gz
           gzip --decompress --stdout /tmp/management-v3.patch.gz > /tmp/management-v3.patch
+          git apply --check /tmp/management-v3.patch
           git apply --index --whitespace=fix /tmp/management-v3.patch
-          git rm "$patch_payload"
+
+          if (( ${#patch_parts[@]} > 0 )); then
+            git rm "${patch_parts[@]}"
+          else
+            git rm "$single_payload"
+          fi
+
           git config user.name "mx-design-system-bot"
           git config user.email "mx-design-system-bot@users.noreply.github.com"
           git commit -m "refactor: remover legado visual dos perfis de gestão"
