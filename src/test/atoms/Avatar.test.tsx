@@ -71,7 +71,7 @@ describe("Avatar", () => {
     const { container } = render(<Avatar fallback="A" status="online" />);
     const dot = container.querySelector("[aria-label='online']");
     expect(dot).toBeDefined();
-    expect(dot!.className).toContain("bg-status-success");
+    expect(dot!.className).toContain("bg-emerald-600");
   });
 
   test("generates initials from name", () => {
