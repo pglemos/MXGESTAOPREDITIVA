@@ -163,13 +163,32 @@ export default function MxSidebarShell({
     .join('')
     .toUpperCase() || 'MX'
 
-  const mobileTitle = useMemo(() => {
-    const activeItem = navSections
-      .flatMap((section) => section.items)
-      .find((item) => isNavItemActive(item, location))
+  const activeNavItem = useMemo(() => {
+    const candidates = navSections.flatMap((section) => section.items)
+    let selected: MxSidebarNavItem | undefined
+    let selectedScore = -1
 
-    return activeItem?.label || 'MX Performance'
-  }, [location, navSections])
+    for (const item of candidates) {
+      const paths = item.activePaths ?? [item.path]
+      for (const rawPath of paths) {
+        const [path, query = ''] = rawPath.split('?')
+        const exactPath = location.pathname === path
+        const descendantPath = !query && location.pathname.startsWith(`${path}/`)
+        const queryMatches = !query || location.search === `?${query}`
+        if ((!exactPath && !descendantPath) || !queryMatches) continue
+
+        const score = path.length + (exactPath ? 10_000 : 0) + (query ? 1_000 : 0)
+        if (score > selectedScore) {
+          selected = item
+          selectedScore = score
+        }
+      }
+    }
+
+    return selected
+  }, [location.pathname, location.search, navSections])
+
+  const mobileTitle = activeNavItem?.label || 'MX Performance'
 
   useEffect(() => {
     if (!mobileOpen && !userMenuOpen) return
@@ -209,7 +228,7 @@ export default function MxSidebarShell({
   }
 
   const renderNavItem = (item: MxSidebarNavItem, isCollapsed: boolean) => {
-    const active = isNavItemActive(item, location)
+    const active = item === activeNavItem
 
     return (
       <NavLink
@@ -373,7 +392,7 @@ export default function MxSidebarShell({
           />
           {!isCollapsed ? (
             <div className="min-w-0">
-              <p className="truncate text-[13px] font-black tracking-tight text-gray-900">
+              <p className="truncate text-xs font-black tracking-tight text-gray-900">
                 MX PERFORMANCE
               </p>
               <p className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-[0.12em] text-emerald-700">
