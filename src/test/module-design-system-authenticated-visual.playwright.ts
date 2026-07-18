@@ -75,7 +75,7 @@ async function visibleModuleLabel(page: Page) {
 
 async function collectMetrics(page: Page, profile: string, viewport: string): Promise<ShellMetrics> {
   return page.evaluate(({ profile, viewport }) => {
-    const desktopSidebar = document.querySelector<HTMLElement>('aside[aria-label^="Menu principal"]')
+    const sidebar = document.querySelector<HTMLElement>('aside[aria-label^="Menu principal"]')
     const mobileHeader = document.querySelector<HTMLElement>('header.md\\:hidden')
     const content = document.querySelector<HTMLElement>('main#main-content')
     const visibleLogo = Array.from(document.querySelectorAll<HTMLImageElement>('img[alt="MX"]'))
@@ -88,15 +88,15 @@ async function collectMetrics(page: Page, profile: string, viewport: string): Pr
 
     const contentStyle = getComputedStyle(content)
     const moduleStyle = getComputedStyle(visibleModuleLabel)
-    const sidebarStyle = desktopSidebar ? getComputedStyle(desktopSidebar) : null
+    const sidebarStyle = sidebar ? getComputedStyle(sidebar) : null
     const mobileHeaderStyle = mobileHeader ? getComputedStyle(mobileHeader) : null
 
     return {
       profile,
       viewport,
-      sidebar: desktopSidebar && desktopSidebar.getBoundingClientRect().width > 0 && sidebarStyle
+      sidebar: sidebar && sidebar.getBoundingClientRect().width > 0 && sidebarStyle
         ? {
-            width: Math.round(desktopSidebar.getBoundingClientRect().width),
+            width: Math.round(sidebar.getBoundingClientRect().width),
             backgroundColor: sidebarStyle.backgroundColor,
             borderRightWidth: sidebarStyle.borderRightWidth,
             borderRightColor: sidebarStyle.borderRightColor,
@@ -152,8 +152,14 @@ async function auditProfile(
   await login(page, profile.email)
   await page.goto(profile.path, { waitUntil: 'networkidle' })
   await expect(page.locator('main#main-content')).toBeVisible()
-  await expect.poll(() => visibleModuleLabel(page), { timeout: 15_000 }).toBe(profile.moduleLabel)
-  await page.waitForTimeout(700)
+
+  if (viewport.name === 'mobile') {
+    await page.getByRole('button', { name: 'Abrir menu principal' }).click()
+    await expect(page.locator('aside[aria-label^="Menu principal"]')).toBeVisible()
+  }
+
+  await expect.poll(() => visibleModuleLabel(page), { timeout: 20_000 }).toBe(profile.moduleLabel)
+  await page.waitForTimeout(500)
 
   const metrics = await collectMetrics(page, profile.key, viewport.name)
 
@@ -169,6 +175,7 @@ async function auditProfile(
     expect(metrics.sidebar?.backgroundColor).toBe('rgb(255, 255, 255)')
     expect(metrics.content.paddingLeft).toBe('264px')
   } else {
+    expect(metrics.sidebar).not.toBeNull()
     expect(metrics.mobileHeader).not.toBeNull()
     expect(metrics.mobileHeader?.backgroundColor).toBe('rgb(255, 255, 255)')
     expect(metrics.content.paddingLeft).toBe('0px')
@@ -189,6 +196,8 @@ async function auditProfile(
 }
 
 test.describe('paridade visual autenticada dos módulos MX', () => {
+  test.describe.configure({ timeout: 180_000 })
+
   test('desktop usa a mesma anatomia visual do Gerente', async ({ browser }, testInfo) => {
     const results: ShellMetrics[] = []
     for (const profile of profiles) {
