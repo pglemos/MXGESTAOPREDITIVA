@@ -22,26 +22,58 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Validate deterministic package integrity
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          mapfile -t asset_parts < <(printf '%s\n' scripts/management-v3-assets.tar.gz.b64.part* | sort -V)
+
+          if (( ${#asset_parts[@]} == 0 )); then
+            echo "Nenhuma parte do pacote foi encontrada."
+            exit 1
+          fi
+
+          echo "Partes recebidas (${#asset_parts[@]}):"
+          for part in "${asset_parts[@]}"; do
+            printf '  %s: ' "$part"
+            wc -c < "$part"
+          done
+
+          cat "${asset_parts[@]}" > /tmp/management-v3-assets.b64
+          actual_b64_size=$(wc -c < /tmp/management-v3-assets.b64 | tr -d ' ')
+          actual_b64_sha=$(sha256sum /tmp/management-v3-assets.b64 | cut -d' ' -f1)
+          echo "Base64: bytes=${actual_b64_size} sha256=${actual_b64_sha}"
+          test "$actual_b64_size" = "29472"
+          test "$actual_b64_sha" = "c839731c8df9db74c0e16cedcc6b86ed4fbea213ba9e931a863f6bc9e68b89b7"
+
+          base64 --decode /tmp/management-v3-assets.b64 > /tmp/management-v3-assets.tar.gz
+          actual_tar_size=$(wc -c < /tmp/management-v3-assets.tar.gz | tr -d ' ')
+          actual_tar_sha=$(sha256sum /tmp/management-v3-assets.tar.gz | cut -d' ' -f1)
+          echo "Tar gzip: bytes=${actual_tar_size} sha256=${actual_tar_sha}"
+          test "$actual_tar_size" = "22103"
+          test "$actual_tar_sha" = "e49c4d29e0dd8ec00cff0a514f59a666db072cfa262dca9d299b9fd9295ab3df"
+          gzip --test /tmp/management-v3-assets.tar.gz
+          tar -tzf /tmp/management-v3-assets.tar.gz | sed -n '1,80p'
+
+          printf '%s\n' "${asset_parts[@]}" > /tmp/management-v3-parts.txt
+
       - name: Apply deterministic management visual implementation
         id: implementation
         shell: bash
         run: |
           set -euo pipefail
-          shopt -s nullglob
-          asset_parts=(scripts/management-v3-assets.tar.gz.b64.part*)
-          if (( ${#asset_parts[@]} == 0 )); then
-            echo "applied=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          cat "${asset_parts[@]}" > /tmp/management-v3-assets.b64
-          base64 --decode /tmp/management-v3-assets.b64 > /tmp/management-v3-assets.tar.gz
           mkdir -p /tmp/management-v3-assets
           tar -xzf /tmp/management-v3-assets.tar.gz -C /tmp/management-v3-assets
+          test -f /tmp/management-v3-assets/_management_v3/apply.mjs
           node /tmp/management-v3-assets/_management_v3/apply.mjs "$GITHUB_WORKSPACE"
 
+          mapfile -t asset_parts < /tmp/management-v3-parts.txt
           git rm "${asset_parts[@]}"
           git add -A
+          git status --short
+          git diff --cached --stat
           git config user.name "mx-design-system-bot"
           git config user.email "mx-design-system-bot@users.noreply.github.com"
           git commit -m "refactor: remover legado visual dos perfis de gestão"
@@ -61,28 +93,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          tar -czf management-source-snapshot.tar.gz \
-            src \
-            scripts/audit-management-design-system.mjs \
-            scripts/audit-management-design-system.test.mjs \
-            scripts/management-route-manifest.test.mjs \
-            package.json \
-            package-lock.json \
-            vite.config.ts \
+          snapshot_paths=(src package.json package-lock.json vite.config.ts playwright.config.ts tsconfig.json)
+          for optional in \
             tailwind.config.js \
-            playwright.config.ts \
-            tsconfig.json \
-            2>/dev/null || \
-          tar -czf management-source-snapshot.tar.gz \
-            src \
             scripts/audit-management-design-system.mjs \
             scripts/audit-management-design-system.test.mjs \
-            scripts/management-route-manifest.test.mjs \
-            package.json \
-            package-lock.json \
-            vite.config.ts \
-            playwright.config.ts \
-            tsconfig.json
+            scripts/management-route-manifest.test.mjs; do
+            [[ -e "$optional" ]] && snapshot_paths+=("$optional")
+          done
+          tar -czf management-source-snapshot.tar.gz "${snapshot_paths[@]}"
 
       - name: Upload audit evidence
         if: always()
