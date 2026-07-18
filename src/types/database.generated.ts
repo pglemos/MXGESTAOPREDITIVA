@@ -12975,6 +12975,16 @@ export type Database = {
       get_pdi_form_template: { Args: { p_cargo_id: string }; Returns: Json }
       get_pdi_print_bundle: { Args: { p_sessao_id: string }; Returns: Json }
       get_prova_aula: { Args: { p_aula_id: string }; Returns: Json }
+      get_resumo_rede_periodo: {
+        Args: { p_end_date: string; p_scope?: string; p_start_date: string }
+        Returns: {
+          agd: number
+          leads: number
+          sales: number
+          store_id: string
+          vis: number
+        }[]
+      }
       get_score: {
         Args: {
           p_period?: string
