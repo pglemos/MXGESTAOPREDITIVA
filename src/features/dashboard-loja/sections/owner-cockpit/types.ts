@@ -6,21 +6,15 @@ import type {
 } from '@/lib/central-mx-engine'
 import type { MxDepartmentCode } from '@/lib/mx-executive-foundation'
 import type { useDashboardLojaData } from '../../hooks/useDashboardLojaData'
+import type { OwnerBase44Section } from './ownerBase44Config'
 
 export type DashboardData = ReturnType<typeof useDashboardLojaData>
 
-export type OwnerSection =
-  | 'home'
-  | 'planejamento'
-  | 'resultados'
-  | 'plano-acao'
-  | 'alertas'
-  | 'benchmarking'
-  | 'agenda'
-  | 'visitas'
-  | 'departamentos'
-  | 'consultor'
-  | 'biblioteca'
+/**
+ * A seção canônica do Dono segue a arquitetura do Base44, mas continua
+ * trafegando na rota existente da loja por query string.
+ */
+export type OwnerSection = OwnerBase44Section
 
 export type KpiTone = 'success' | 'info' | 'warning' | 'danger' | 'muted' | 'brand' | 'purple'
 
