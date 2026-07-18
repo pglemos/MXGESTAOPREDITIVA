@@ -8,6 +8,7 @@ import {
 } from '@/lib/central-mx-engine'
 import type { ExecutiveAlert, MxDepartmentCode } from '@/lib/mx-executive-foundation'
 import type { OwnerPerformanceAlert } from '../PerformanceAlerts'
+import { resolveOwnerSection } from './ownerBase44Config'
 import { toneClasses, type ActionRow, type DashboardData, type DepartmentScore, type OwnerSection } from './types'
 
 export function currentPeriodLabel(referenceDate: string) {
@@ -63,7 +64,6 @@ export function clampScore(value: number) {
 
 export function ownerPath(section: string) {
   const params = new URLSearchParams(window.location.search)
-  // ?id= eh redundante: o slug na URL ja identifica a loja unicamente
   params.delete('id')
   params.delete('ownerSection')
   const basePath = window.location.pathname.replace(/\/consultor-ia$/, '')
@@ -255,23 +255,7 @@ export function departmentLabel(code: MxDepartmentCode) {
 }
 
 export function getOwnerSection(search: string): OwnerSection {
-  const value = new URLSearchParams(search).get('ownerSection')
-  if (value?.startsWith('departamentos')) return 'departamentos'
-  if (
-    value === 'planejamento' ||
-    value === 'resultados' ||
-    value === 'plano-acao' ||
-    value === 'alertas' ||
-    value === 'benchmarking' ||
-    value === 'agenda' ||
-    value === 'visitas' ||
-    value === 'departamentos' ||
-    value === 'consultor' ||
-    value === 'biblioteca'
-  ) {
-    return value
-  }
-  return 'home'
+  return resolveOwnerSection(search)
 }
 
 export function getOwnerDepartmentCode(search: string): MxDepartmentCode | null {
@@ -281,8 +265,8 @@ export function getOwnerDepartmentCode(search: string): MxDepartmentCode | null 
     code === 'comercial' ||
     code === 'marketing' ||
     code === 'produto' ||
-    code === 'financeiro' ||
     code === 'rh' ||
+    code === 'financeiro' ||
     code === 'operacional'
   ) {
     return code
