@@ -32,4 +32,4 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Verify module design system parity
-        run: bun test src/test/module-design-system-parity.test.ts src/components/MxSidebarShell.test.ts
+        run: bun test src/test/module-design-system-parity.test.ts src/components/MxSidebarShell.test.ts src/components/module/MxModuleVisualPrimitives.test.tsx
