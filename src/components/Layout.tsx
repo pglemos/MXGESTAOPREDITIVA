@@ -286,11 +286,9 @@ export default function Layout() {
   }
 
   const pageContent = (
-    <MxRoleVisualScope manager={role !== 'vendedor'}>
-      <MotionPage key={location.pathname} className="h-full">
-        <Outlet />
-      </MotionPage>
-    </MxRoleVisualScope>
+    <MotionPage key={location.pathname} className="h-full">
+      <Outlet />
+    </MotionPage>
   )
   const stopCurrentSimulation = () => {
     stopSimulation()
@@ -298,7 +296,8 @@ export default function Layout() {
   }
 
   return (
-    <MxSidebarShell
+    <MxRoleVisualScope manager={role !== 'vendedor'}>
+      <MxSidebarShell
       profileName={profile.name}
       profileRoleLabel={perfilVisivel}
       moduleLabel={moduloVisivel}
@@ -316,6 +315,7 @@ export default function Layout() {
       onStopSimulation={stopCurrentSimulation}
     >
       {pageContent}
-    </MxSidebarShell>
+      </MxSidebarShell>
+    </MxRoleVisualScope>
   )
 }
