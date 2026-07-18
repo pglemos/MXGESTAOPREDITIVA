@@ -1,0 +1,41 @@
+name: Management Design System Audit V3
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  source-snapshot:
+    name: Source snapshot for full visual audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build source snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -czf management-source-snapshot.tar.gz \
+            src \
+            package.json \
+            package-lock.json \
+            vite.config.ts \
+            tailwind.config.js \
+            playwright.config.ts \
+            tsconfig.json \
+            2>/dev/null || \
+          tar -czf management-source-snapshot.tar.gz \
+            src \
+            package.json \
+            package-lock.json \
+            vite.config.ts \
+            playwright.config.ts \
+            tsconfig.json
+
+      - name: Upload source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: management-design-system-source-v3
+          path: management-source-snapshot.tar.gz
+          retention-days: 1
