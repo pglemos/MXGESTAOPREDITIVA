@@ -1,7 +1,8 @@
 import { test, expect, type Page, type TestInfo } from '@playwright/test'
 import { writeFileSync } from 'node:fs'
+import { getVisualAuthPassword } from '../../e2e/visual/helpers'
 
-const PASSWORD = process.env.E2E_ROLE_PASSWORD || process.env.E2E_AUTH_PASSWORD
+const PASSWORD = process.env.E2E_ROLE_PASSWORD || getVisualAuthPassword()
 
 const profiles = [
   {
@@ -57,15 +58,19 @@ type ShellMetrics = {
 }
 
 async function login(page: Page, email: string) {
-  if (!PASSWORD) {
-    throw new Error('E2E_ROLE_PASSWORD ou E2E_AUTH_PASSWORD deve existir como GitHub Secret. A senha não pode ser gravada no repositório.')
-  }
-
   await page.goto('/login', { waitUntil: 'domcontentloaded' })
   await page.fill('input[type="email"]', email)
   await page.fill('input[type="password"]', PASSWORD)
   await page.click('button[type="submit"]')
   await expect(page.locator('main#main-content')).toBeVisible({ timeout: 30_000 })
+}
+
+async function visibleModuleLabel(page: Page) {
+  return page.evaluate(() => {
+    const labels = Array.from(document.querySelectorAll<HTMLElement>('p, span'))
+      .filter((node) => /^Módulo /.test(node.textContent?.trim() || ''))
+    return labels.find((node) => node.getBoundingClientRect().width > 0)?.textContent?.trim() || ''
+  })
 }
 
 async function collectMetrics(page: Page, profile: string, viewport: string): Promise<ShellMetrics> {
@@ -147,7 +152,7 @@ async function auditProfile(
   await login(page, profile.email)
   await page.goto(profile.path, { waitUntil: 'networkidle' })
   await expect(page.locator('main#main-content')).toBeVisible()
-  await expect(page.getByText(profile.moduleLabel, { exact: true }).first()).toBeVisible()
+  await expect.poll(() => visibleModuleLabel(page), { timeout: 15_000 }).toBe(profile.moduleLabel)
   await page.waitForTimeout(700)
 
   const metrics = await collectMetrics(page, profile.key, viewport.name)
