@@ -7,6 +7,12 @@ on:
     paths:
       - 'src/test/owner-production-smoke.playwright.ts'
       - '.github/workflows/owner-production-smoke.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/test/owner-production-smoke.playwright.ts'
+      - '.github/workflows/owner-production-smoke.yml'
   workflow_dispatch:
 
 permissions:
