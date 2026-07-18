@@ -56,7 +56,7 @@ const managerButtonVariants = cva(
         warning: 'bg-amber-500 text-white shadow-sm hover:bg-amber-600',
         info: 'bg-blue-600 text-white shadow-sm hover:bg-blue-700',
         danger: 'bg-red-600 text-white shadow-sm hover:bg-red-700',
-        whatsapp: 'bg-[#25D366] text-white shadow-sm hover:bg-[#20bd5a]',
+        whatsapp: 'bg-whatsapp text-white shadow-sm hover:bg-whatsapp/90',
         outline: 'border border-gray-200 bg-white text-gray-700 shadow-none hover:bg-gray-50 hover:text-gray-900',
         ghost: 'bg-transparent text-gray-500 shadow-none hover:bg-gray-50 hover:text-gray-800',
         'mx-elite': 'border border-emerald-200 bg-gray-900 text-emerald-300 shadow-sm hover:bg-gray-800',
