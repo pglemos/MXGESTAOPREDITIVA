@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import {
-  CalendarDays,
+  BookOpen,
   LineChart as LineChartIcon,
   Package,
   ShieldCheck,
@@ -13,7 +13,6 @@ import type { useDashboardLojaData } from '../hooks/useDashboardLojaData'
 import type { OwnerPerformanceAlert } from './PerformanceAlerts'
 import {
   CentralMxPersistedAgendaPanel,
-  CentralMxPersistedAlertsPanel,
   CentralMxPersistedPlanosPanel,
 } from './CentralMxPersistedPanels'
 import { CentralMxBenchmarkInteractive } from './CentralMxBenchmarkInteractive'
@@ -28,13 +27,15 @@ import { CulturaFelicidade } from '@/features/cultura-felicidade/sections/Cultur
 import { OwnerCockpitHeader } from './owner-cockpit/primitives'
 import { OwnerHome } from './owner-cockpit/OwnerHome'
 import { StrategicPlanningView } from './owner-cockpit/StrategicPlanningView'
-import { ResultsView } from './owner-cockpit/ResultsView'
 import { ActionPlanView } from './owner-cockpit/ActionPlanView'
-import { AlertsView } from './owner-cockpit/AlertsView'
 import { BenchmarkingView } from './owner-cockpit/BenchmarkingView'
-import { AgendaView } from './owner-cockpit/AgendaView'
 import { DepartmentsView } from './owner-cockpit/DepartmentsView'
 import { OwnerModuleGrid } from './owner-cockpit/OwnerModuleGrid'
+import {
+  OwnerConsultingView,
+  OwnerDecisionCenter,
+  OwnerRoutineView,
+} from './owner-cockpit/OwnerBase44Views'
 import {
   alertFromEngine,
   actionFromEngine,
@@ -75,7 +76,7 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
   const selectedDepartmentCode = getOwnerDepartmentCode(location.search)
 
   return (
-    <section className="min-h-full bg-surface-alt p-mx-sm md:p-mx-lg space-y-mx-md">
+    <section className="min-h-full space-y-mx-md bg-surface-alt p-mx-sm md:p-mx-lg">
       <OwnerCockpitHeader
         name={profile?.name || 'Diretor'}
         periodLabel={periodLabel}
@@ -84,28 +85,32 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
       />
 
       {section === 'home' && (
-        <>
-          {/* Central MX hub removido da home do dono — sidebar ja tem
-              acesso direto a Planejamento, Plano de Acao, Alertas, etc.
-              O hub redundante foi causa de confusao (ver feedback do user). */}
-          <OwnerHome
-            data={data}
-            alerts={ownerAlerts}
-            actions={actions}
-            departments={departments}
-            panoramaData={panoramaData}
-            mxScore={mxScore}
-            marginPercent={marginPercent}
-          />
-        </>
+        <OwnerHome
+          data={data}
+          alerts={ownerAlerts}
+          actions={actions}
+          departments={departments}
+          panoramaData={panoramaData}
+          mxScore={mxScore}
+          marginPercent={marginPercent}
+        />
       )}
+
+      {section === 'rotina' && (
+        <OwnerRoutineView data={data} alerts={ownerAlerts} actions={actions} />
+      )}
+
+      {section === 'decisoes' && (
+        <OwnerDecisionCenter alerts={ownerAlerts} actions={actions} />
+      )}
+
       {section === 'planejamento' && (
         <>
           <StrategicPlanningView data={data} planningIndicators={centralMx.planningIndicators} />
           <PlanejamentoEstrategico planningIndicators={centralMx.planningIndicators} periodLabel={periodLabel} />
         </>
       )}
-      {section === 'resultados' && <ResultsView data={data} alerts={ownerAlerts} panoramaData={panoramaData} mxScore={mxScore} />}
+
       {section === 'plano-acao' && (
         <>
           <ActionPlanView
@@ -120,24 +125,14 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
           <CentralMxPersistedPlanosPanel storeId={data.operationalStore?.id || null} />
         </>
       )}
-      {section === 'alertas' && (
+
+      {section === 'consultoria' && (
         <>
-          <AlertsView alerts={ownerAlerts} />
-          <CentralMxPersistedAlertsPanel storeId={data.operationalStore?.id || null} />
-        </>
-      )}
-      {section === 'benchmarking' && (
-        <>
-          <BenchmarkingView data={data} mxScore={mxScore} marginPercent={marginPercent} />
-          <CentralMxBenchmarkInteractive storeId={data.operationalStore?.id || null} />
-        </>
-      )}
-      {section === 'agenda' && (
-        <>
-          <AgendaView alerts={ownerAlerts} />
+          <OwnerConsultingView data={data} />
           <CentralMxPersistedAgendaPanel storeId={data.operationalStore?.id || null} />
         </>
       )}
+
       {section === 'departamentos' && (
         <>
           <DepartmentsView departments={departments} selectedDepartmentCode={selectedDepartmentCode} />
@@ -154,31 +149,32 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
           )}
         </>
       )}
-      {section === 'visitas' && (
-        <OwnerModuleGrid
-          title="Visitas"
-          subtitle="Acompanhamento PMR, PMR Plus, PPA e evidências."
-          items={[
-            { title: 'Checklist da visita', detail: 'Roteiro, observações e execução.', icon: <CalendarDays size={20} />, tone: 'brand' },
-            { title: 'Relatório e ata', detail: 'Resumo da visita e próximos passos.', icon: <LineChartIcon size={20} />, tone: 'info' },
-            { title: 'Evidências', detail: 'Fotos, anexos e validações.', icon: <Package size={20} />, tone: 'warning' },
-          ]}
-        />
+
+      {section === 'mercado' && (
+        <>
+          <BenchmarkingView data={data} mxScore={mxScore} marginPercent={marginPercent} />
+          <CentralMxBenchmarkInteractive storeId={data.operationalStore?.id || null} />
+        </>
       )}
-      {section === 'biblioteca' && (
+
+      {section === 'universidade' && (
         <>
           <UniversidadeMx userId={profile?.id ?? null} />
           <OwnerModuleGrid
-            title="Biblioteca"
-            subtitle="Conteúdos, playbooks e trilhas da Universidade MX."
+            title="Universidade MX"
+            subtitle="Conteúdos, playbooks e trilhas aplicados à execução estratégica."
             items={[
               { title: 'Playbooks comerciais', detail: 'Abordagem, follow-up e fechamento.', icon: <Target size={20} />, tone: 'brand' },
-              { title: 'Treinamentos liberados', detail: 'Conteúdos para gerente e equipe.', icon: <Users size={20} />, tone: 'info' },
-              { title: 'Materiais da consultoria', detail: 'Modelos e documentos de apoio.', icon: <ShieldCheck size={20} />, tone: 'success' },
+              { title: 'Trilhas da liderança', detail: 'Conteúdo para gerente, Dono e responsáveis.', icon: <Users size={20} />, tone: 'info' },
+              { title: 'Materiais da consultoria', detail: 'Modelos, documentos e preparação.', icon: <ShieldCheck size={20} />, tone: 'success' },
+              { title: 'Biblioteca executiva', detail: 'Conteúdo organizado por problema e departamento.', icon: <BookOpen size={20} />, tone: 'warning' },
+              { title: 'Indicadores aplicados', detail: 'Como interpretar os números antes de agir.', icon: <LineChartIcon size={20} />, tone: 'info' },
+              { title: 'Evidências e modelos', detail: 'Checklists, anexos e padrões de execução.', icon: <Package size={20} />, tone: 'muted' },
             ]}
           />
         </>
       )}
+
       {section === 'consultor' && (
         <ConsultorIaStoreSection storeId={data.operationalStore?.id || null} />
       )}
