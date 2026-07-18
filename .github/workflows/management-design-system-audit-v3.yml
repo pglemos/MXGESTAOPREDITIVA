@@ -3,94 +3,41 @@ name: Management Design System Audit V3
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'src/components/**'
+      - 'src/design-system/**'
+      - 'src/features/lojas/**'
+      - 'src/pages/**'
+      - 'scripts/audit-management-design-system.mjs'
+      - 'scripts/audit-management-design-system.test.mjs'
+      - 'scripts/management-route-manifest.test.mjs'
+      - '.github/workflows/management-design-system-audit-v3.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   audit:
     name: Full management visual audit
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-
-      - name: Inspect focused visual isolation fix
-        id: followup
-        shell: bash
-        run: |
-          set -u
-          payload="scripts/management-v3-followup.patch.gz.b64"
-          report="management-v3-followup-integrity.txt"
-          : > "$report"
-
-          if [[ ! -f "$payload" ]]; then
-            echo "present=false" | tee -a "$report"
-            echo "present=false" >> "$GITHUB_OUTPUT"
-            echo "valid=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          echo "present=true" | tee -a "$report"
-          echo "present=true" >> "$GITHUB_OUTPUT"
-          size=$(wc -c < "$payload" | tr -d ' ')
-          sha=$(sha256sum "$payload" | cut -d' ' -f1)
-          echo "base64 bytes=$size sha256=$sha" | tee -a "$report"
-          echo "expected_base64 bytes=10076 sha256=eba19069c1a68a49ae9170a89ab30b031bc9c25c60760b69187892aea9fd27a5" | tee -a "$report"
-
-          valid=true
-          [[ "$size" = "10076" ]] || valid=false
-          [[ "$sha" = "eba19069c1a68a49ae9170a89ab30b031bc9c25c60760b69187892aea9fd27a5" ]] || valid=false
-
-          if base64 --decode "$payload" > /tmp/management-v3-followup.patch.gz 2>> "$report"; then
-            gzip_sha=$(sha256sum /tmp/management-v3-followup.patch.gz | cut -d' ' -f1)
-            echo "gzip sha256=$gzip_sha" | tee -a "$report"
-            echo "expected_gzip sha256=c8f857931b430eba862b6adba9651c6981c3e5028093c1cc1331937f628039cf" | tee -a "$report"
-            [[ "$gzip_sha" = "c8f857931b430eba862b6adba9651c6981c3e5028093c1cc1331937f628039cf" ]] || valid=false
-            gzip --test /tmp/management-v3-followup.patch.gz 2>> "$report" || valid=false
-            gzip --decompress --stdout /tmp/management-v3-followup.patch.gz > /tmp/management-v3-followup.patch
-            if git apply --check /tmp/management-v3-followup.patch >> "$report" 2>&1; then
-              echo "git_apply_check=pass" | tee -a "$report"
-            else
-              echo "git_apply_check=fail" | tee -a "$report"
-              valid=false
-            fi
-          else
-            valid=false
-          fi
-
-          echo "valid=$valid" | tee -a "$report"
-          echo "valid=$valid" >> "$GITHUB_OUTPUT"
-
-      - name: Apply focused visual isolation fix
-        if: steps.followup.outputs.present == 'true' && steps.followup.outputs.valid == 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          payload="scripts/management-v3-followup.patch.gz.b64"
-          git apply --index --whitespace=fix /tmp/management-v3-followup.patch
-          git rm "$payload"
-          rm -f management-v3-followup-integrity.txt
-          git add -A
-          git config user.name "mx-design-system-bot"
-          git config user.email "mx-design-system-bot@users.noreply.github.com"
-          git commit -m "fix: isolar componentes compartilhados por contexto visual"
-          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
+          node-version: '24'
 
       - name: Run management design-system contracts
-        if: steps.followup.outputs.valid == 'true'
         run: node --test scripts/management-route-manifest.test.mjs scripts/audit-management-design-system.test.mjs
 
       - name: Write complete violation ledger
         if: always()
         run: node scripts/audit-management-design-system.mjs > management-design-system-ledger.json || true
+
+      - name: Assert empty violation ledger
+        run: |
+          node -e "const r=require('./management-design-system-ledger.json'); if(r.violations.length){console.error(JSON.stringify(r.violations.slice(0,50),null,2)); process.exit(1)}; console.log(JSON.stringify({entries:r.entries,auditedFiles:r.auditedFiles,violations:r.violations.length}))"
 
       - name: Build source snapshot
         if: always()
@@ -115,11 +62,4 @@ jobs:
           path: |
             management-source-snapshot.tar.gz
             management-design-system-ledger.json
-            management-v3-followup-integrity.txt
-          retention-days: 1
-
-      - name: Fail when focused fix is invalid
-        if: always() && steps.followup.outputs.present == 'true' && steps.followup.outputs.valid != 'true'
-        run: |
-          cat management-v3-followup-integrity.txt
-          exit 1
+          retention-days: 7
