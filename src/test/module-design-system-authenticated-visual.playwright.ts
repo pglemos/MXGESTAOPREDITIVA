@@ -10,20 +10,41 @@ const profiles = [
     email: process.env.E2E_MANAGER_EMAIL || 'gerente@mxgestaopreditiva.com.br',
     path: '/home',
     moduleLabel: 'Módulo Gerencial',
+    roleLabel: 'Gerente',
   },
   {
     key: 'dono',
     email: process.env.E2E_OWNER_EMAIL || 'dono@mxgestaopreditiva.com.br',
     path: '/lojas',
     moduleLabel: 'Módulo Executivo',
+    roleLabel: 'Dono',
   },
   {
     key: 'administrador-geral',
     email: process.env.E2E_ADMIN_EMAIL || 'synvollt@gmail.com',
     path: '/painel',
     moduleLabel: 'Módulo Administrativo',
+    roleLabel: 'Administrador geral',
+  },
+  {
+    key: 'administrador-mx',
+    email: process.env.E2E_ADMIN_EMAIL || 'synvollt@gmail.com',
+    path: '/painel',
+    moduleLabel: 'Módulo Admin MX',
+    roleLabel: 'Administrador MX',
+    overrideRole: 'administrador_mx',
+  },
+  {
+    key: 'consultor-mx',
+    email: process.env.E2E_ADMIN_EMAIL || 'synvollt@gmail.com',
+    path: '/consultoria/clientes',
+    moduleLabel: 'Módulo Consultoria',
+    roleLabel: 'Consultor MX',
+    overrideRole: 'consultor_mx',
   },
 ] as const
+
+type VisualProfile = (typeof profiles)[number]
 
 type ShellMetrics = {
   profile: string
@@ -55,6 +76,38 @@ type ShellMetrics = {
   }
   forbiddenLegacyNodes: number
   horizontalOverflow: boolean
+}
+
+async function installRoleOverride(page: Page, profile: VisualProfile) {
+  if (!('overrideRole' in profile)) return
+
+  await page.route('**/rest/v1/usuarios*', async (route) => {
+    const response = await route.fetch()
+    const contentType = response.headers()['content-type'] || ''
+
+    if (!contentType.includes('application/json')) {
+      await route.fulfill({ response })
+      return
+    }
+
+    const payload = await response.json()
+    const rewriteRow = (row: unknown) => {
+      if (!row || typeof row !== 'object' || Array.isArray(row)) return row
+      const record = row as Record<string, unknown>
+      if (
+        typeof record.email === 'string' &&
+        record.email.toLowerCase() === profile.email.toLowerCase()
+      ) {
+        return { ...record, role: profile.overrideRole }
+      }
+      return row
+    }
+    const patchedPayload = Array.isArray(payload)
+      ? payload.map(rewriteRow)
+      : rewriteRow(payload)
+
+    await route.fulfill({ response, json: patchedPayload })
+  })
 }
 
 async function login(page: Page, email: string) {
@@ -141,7 +194,7 @@ async function collectMetrics(page: Page, profile: string, viewport: string): Pr
 async function auditProfile(
   page: Page,
   testInfo: TestInfo,
-  profile: (typeof profiles)[number],
+  profile: VisualProfile,
   viewport: { width: number; height: number; name: string },
 ) {
   const consoleErrors: string[] = []
@@ -151,13 +204,16 @@ async function auditProfile(
   page.on('pageerror', (error) => consoleErrors.push(error.message))
 
   await page.setViewportSize({ width: viewport.width, height: viewport.height })
+  await installRoleOverride(page, profile)
   await login(page, profile.email)
   await page.goto(profile.path, { waitUntil: 'networkidle' })
   await expect(page.locator('main#main-content')).toBeVisible()
 
   if (viewport.name === 'mobile') {
     await page.getByRole('button', { name: 'Abrir menu principal' }).click()
-    await expect(page.getByRole('dialog', { name: `Menu principal do ${profile.key === 'administrador-geral' ? 'Administrador geral' : profile.key === 'dono' ? 'Dono' : 'Gerente'}` })).toBeVisible()
+    await expect(
+      page.getByRole('dialog', { name: `Menu principal do ${profile.roleLabel}` }),
+    ).toBeVisible()
   }
 
   await expect.poll(() => visibleModuleLabel(page), { timeout: 20_000 }).toBe(profile.moduleLabel)
@@ -198,7 +254,7 @@ async function auditProfile(
 }
 
 test.describe('paridade visual autenticada dos módulos MX', () => {
-  test.describe.configure({ timeout: 180_000 })
+  test.describe.configure({ timeout: 240_000 })
 
   test('desktop usa a mesma anatomia visual do Gerente', async ({ browser }, testInfo) => {
     const results: ShellMetrics[] = []
