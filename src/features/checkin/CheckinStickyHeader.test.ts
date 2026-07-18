@@ -6,7 +6,7 @@ const checkinHeaderSource = readFileSync(new URL('./sections/CheckinHeader.tsx',
 const checkinFormSource = readFileSync(new URL('./sections/CheckinForm.tsx', import.meta.url), 'utf8')
 const checkinCrmSource = readFileSync(new URL('./sections/CheckinCrmSection.tsx', import.meta.url), 'utf8')
 const checkinHookSource = readFileSync(new URL('./hooks/useCheckinPage.ts', import.meta.url), 'utf8')
-const sellerShellSource = readFileSync(new URL('../../components/SellerSidebar.tsx', import.meta.url), 'utf8')
+const sidebarShellSource = readFileSync(new URL('../../components/MxSidebarShell.tsx', import.meta.url), 'utf8')
 
 describe('Checkin sticky header layout contract', () => {
   test('keeps Fechamento Diario pinned only on desktop inside checkin scroll area', () => {
@@ -20,12 +20,13 @@ describe('Checkin sticky header layout contract', () => {
     expect(checkinContainerSource).toContain("window.addEventListener('scroll', keepDocumentScrollPinned")
   })
 
-  test('prevents seller shell from scrolling whole document', () => {
-    expect(sellerShellSource).toContain('mx-app-scrollbarless h-[100dvh] overflow-hidden')
-    expect(sellerShellSource).toContain('pt-[calc(82px+env(safe-area-inset-top))]')
-    expect(sellerShellSource).toContain('pb-[calc(82px+env(safe-area-inset-bottom))]')
-    expect(sellerShellSource).toContain('md:h-screen md:p-2')
-    expect(sellerShellSource).toContain('h-[calc(82px+env(safe-area-inset-bottom))]')
+  test('prevents the universal MX shell from scrolling the whole document', () => {
+    expect(sidebarShellSource).toContain('h-[100dvh] overflow-hidden')
+    expect(sidebarShellSource).toContain('pt-[calc(82px+env(safe-area-inset-top))] md:pt-0')
+    expect(sidebarShellSource).toContain('h-full min-h-0 w-full min-w-0 overflow-y-auto overflow-x-hidden')
+    expect(sidebarShellSource).toContain("collapsed ? 'md:pl-[80px]' : 'md:pl-[264px]'")
+    expect(sidebarShellSource).toContain('role="dialog"')
+    expect(sidebarShellSource).toContain('useFocusTrap(drawerRef, mobileOpen)')
   })
 
   test('keeps CRM totals as comparison while persisting only declared values', () => {
