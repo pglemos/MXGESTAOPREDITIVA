@@ -1,9 +1,0 @@
-/* Frame contextual das páginas internas. O sidebar é responsabilidade exclusiva de MxSidebarShell. */
-.mxds-page-frame{min-height:100%;background:#f6f8f9;color:#142235}
-.mxds-route-bar{position:sticky;top:0;z-index:34;display:flex;min-height:52px;align-items:center;justify-content:space-between;gap:14px;border-bottom:1px solid #e5e9ee;padding:8px clamp(14px,2vw,28px);background:rgba(255,255,255,.93);backdrop-filter:blur(14px)}
-.mxds-route-breadcrumb,.mxds-route-meta{display:flex;min-width:0;align-items:center}.mxds-route-breadcrumb{gap:5px;overflow:hidden;color:#98a2b3;font-size:10px}.mxds-route-breadcrumb span,.mxds-route-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mxds-route-title{margin:0;color:#344054;font-size:10px;font-weight:800}
-.mxds-route-meta{gap:8px}.mxds-route-date{display:inline-flex;align-items:center;gap:6px;color:#667085;font-size:10px;font-weight:650;text-transform:capitalize}.mxds-route-role{max-width:170px;overflow:hidden;border-radius:999px;padding:5px 9px;background:#e8f8f1;color:#057a55;font-size:9px;font-weight:800;text-overflow:ellipsis;white-space:nowrap;text-transform:uppercase}
-.mxds-route-notifications{position:relative;display:grid;width:34px;height:34px;place-items:center;border:1px solid #e5e9ee;border-radius:9px;background:#fff;color:#667085;cursor:pointer}.mxds-route-notifications span{position:absolute;top:-5px;right:-5px;min-width:18px;border:2px solid #fff;border-radius:999px;padding:1px 4px;background:#e04f5f;color:#fff;font-size:8px;font-weight:800}
-.mxds-page-content{min-width:0;padding:clamp(12px,1.7vw,24px)}
-@media(max-width:1023px){.mxds-route-date{display:none}}
-@media(max-width:560px){.mxds-route-breadcrumb>span:first-child,.mxds-route-breadcrumb>svg:first-of-type{display:none}.mxds-route-role{max-width:110px}.mxds-page-content{padding:10px}}
