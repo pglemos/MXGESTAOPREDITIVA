@@ -24,7 +24,6 @@ const WHITELIST_PATTERNS = [
   /\/src\/index\.css$/,
   /\/src\/features\/landing\//,
   /\/src\/features\/checkin\//,
-  /\/src\/components\/SellerSidebar\.tsx$/,
   /\/src\/components\/NotificationBellButton\.tsx$/,
   /\/src\/components\/seller\/SellerPageHeader\.tsx$/,
   /\/src\/features\/crm\/AlterarProximoPasso\.tsx$/,
