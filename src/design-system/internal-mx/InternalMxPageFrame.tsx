@@ -31,7 +31,7 @@ export default function InternalMxPageFrame({
         <div className="mxds-route-breadcrumb">
           <span>MX Performance</span><ChevronRight size={13} aria-hidden="true" />
           <span>{page.group}</span><ChevronRight size={13} aria-hidden="true" />
-          <strong>{page.title}</strong>
+          <h2 className="mxds-route-title">{page.title}</h2>
         </div>
         <div className="mxds-route-meta">
           <span className="mxds-route-date"><CalendarDays size={14} />{currentDateLabel()}</span>
