@@ -20,6 +20,7 @@ import { ForcePasswordChange } from '@/features/auth/components/ForcePasswordCha
 import { canAccessPath } from '@/lib/auth/routeAccess'
 import { MotionPage } from '@/design/motion'
 import { buildInternalMxNavigation } from '@/design-system/internal-mx/internalMxNavigation'
+import { MxRoleVisualScope } from '@/components/module/MxRoleVisualScope'
 
 type SubItem = {
   label: string
@@ -213,7 +214,10 @@ export default function Layout() {
           .map((item) => {
             if (item.path === STORE_DASHBOARD_PATH) return { ...item, path: storeDashboardPath }
             if (item.path === STORE_TEAM_PATH) return { ...item, path: storeTeamPath }
-            if (item.path === STORE_CONSULTOR_IA_PATH) return { ...item, path: storeConsultorIaPath }
+            if (item.path === STORE_CONSULTOR_IA_PATH) {
+              if (!storeDashboardPath.startsWith('/lojas/')) return null
+              return { ...item, path: storeConsultorIaPath }
+            }
             if (item.path === OWNER_PLANEJAMENTO_PATH) return { ...item, path: ownerSectionPath('planejamento') }
             if (item.path === OWNER_RESULTADOS_PATH) return { ...item, path: ownerSectionPath('resultados') }
             if (item.path === OWNER_PLANO_ACAO_PATH) return { ...item, path: ownerSectionPath('plano-acao') }
@@ -225,7 +229,7 @@ export default function Layout() {
             if (item.path === OWNER_BIBLIOTECA_PATH) return { ...item, path: ownerSectionPath('biblioteca') }
             return item
           })
-          .filter((item) => canAccessPath(item.path, role))
+          .filter((item): item is SubItem => item !== null && canAccessPath(item.path, role))
         return { ...category, items }
       })
       .filter((category) => category.items.length > 0)
@@ -282,9 +286,11 @@ export default function Layout() {
   }
 
   const pageContent = (
-    <MotionPage key={location.pathname} className="h-full">
-      <Outlet />
-    </MotionPage>
+    <MxRoleVisualScope manager={role !== 'vendedor'}>
+      <MotionPage key={location.pathname} className="h-full">
+        <Outlet />
+      </MotionPage>
+    </MxRoleVisualScope>
   )
   const stopCurrentSimulation = () => {
     stopSimulation()

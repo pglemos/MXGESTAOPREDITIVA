@@ -1,18 +1,37 @@
 import React, { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Plus, RefreshCw, Search, BriefcaseBusiness, Building2, CalendarDays } from 'lucide-react'
+import {
+  BriefcaseBusiness,
+  Building2,
+  CalendarDays,
+  CheckCircle2,
+  PauseCircle,
+  Plus,
+  RefreshCw,
+  Search,
+  TrendingUp,
+} from 'lucide-react'
+import { differenceInDays } from 'date-fns'
 import { toast } from '@/lib/toast'
-import { format, differenceInDays } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 import { Button } from '@/components/atoms/Button'
-import { Card } from '@/components/molecules/Card'
 import { Input } from '@/components/atoms/Input'
 import { Typography } from '@/components/atoms/Typography'
 import { DataGrid, type Column } from '@/components/organisms/DataGrid'
 import { Badge } from '@/components/atoms/Badge'
+import {
+  MxField,
+  MxMetricCard,
+  MxModuleHeader,
+  MxModulePage,
+  MxSectionCard,
+  MxStatusBanner,
+  MxTableSurface,
+  MxToolbar,
+} from '@/components/module/MxModuleVisualPrimitives'
 import { useConsultingClients, useConsultingClientMetrics } from '@/hooks/useConsultingClients'
 import { DEFAULT_CONSULTING_MODULES } from '@/hooks/useConsultingModules'
 import type { ConsultingClient } from '@/lib/schemas/consulting-client.schema'
+import { cn } from '@/lib/utils'
 
 type ConsultingClientForm = {
   name: string
@@ -24,8 +43,19 @@ type ConsultingClientForm = {
 }
 
 function getDefaultEnabledModules() {
-  return DEFAULT_CONSULTING_MODULES.filter(m => m.enabled).map(m => m.module_key)
+  return DEFAULT_CONSULTING_MODULES
+    .filter((module) => module.enabled)
+    .map((module) => module.module_key)
 }
+
+const initialForm = (): ConsultingClientForm => ({
+  name: '',
+  legal_name: '',
+  cnpj: '',
+  product_name: '',
+  notes: '',
+  enabled_modules: getDefaultEnabledModules(),
+})
 
 export default function ConsultoriaClientes() {
   const navigate = useNavigate()
@@ -34,14 +64,7 @@ export default function ConsultoriaClientes() {
   const [searchTerm, setSearchTerm] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
-  const [form, setForm] = useState<ConsultingClientForm>({
-    name: '',
-    legal_name: '',
-    cnpj: '',
-    product_name: '',
-    notes: '',
-    enabled_modules: getDefaultEnabledModules(),
-  })
+  const [form, setForm] = useState<ConsultingClientForm>(initialForm)
 
   const filteredClients = useMemo(() => {
     const term = searchTerm.trim().toLowerCase()
@@ -71,287 +94,351 @@ export default function ConsultoriaClientes() {
     }
 
     toast.success('Cliente da consultoria criado.')
-    setForm({ 
-        name: '', legal_name: '', cnpj: '', product_name: '', notes: '', 
-        enabled_modules: getDefaultEnabledModules(),
-    })
+    setForm(initialForm())
     setShowCreate(false)
   }
 
   const toggleModule = (key: string) => {
-    setForm(prev => {
-        const has = prev.enabled_modules.includes(key)
-        return {
-            ...prev,
-            enabled_modules: has ? prev.enabled_modules.filter(k => k !== key) : [...prev.enabled_modules, key]
-        }
+    setForm((current) => {
+      const enabled = current.enabled_modules.includes(key)
+      return {
+        ...current,
+        enabled_modules: enabled
+          ? current.enabled_modules.filter((moduleKey) => moduleKey !== key)
+          : [...current.enabled_modules, key],
+      }
     })
   }
 
-  const columns = useMemo<Column<ConsultingClient>[]>(() => [
-    {
-      key: 'name',
-      header: 'CLIENTE',
-      render: (client) => (
-        <div className="flex items-center gap-mx-sm min-w-0">
-          <div className="w-mx-10 h-mx-10 rounded-mx-lg bg-surface-alt border border-border-default flex items-center justify-center text-brand-primary shrink-0">
-            <Building2 size={18} />
-          </div>
-          <div className="min-w-0">
-            <Typography variant="h3" className="text-sm truncate">{client.name}</Typography>
-            <Typography variant="tiny" tone="muted" className="opacity-50">{client.legal_name || 'Sem razão social'}</Typography>
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: 'product_name',
-      header: 'PRODUTO',
-      align: 'center',
-      render: (client) => (
-        <Badge variant="outline" className="px-mx-md py-1 rounded-mx-full border-border-default">
-          {client.product_name || 'Não definido'}
-        </Badge>
-      ),
-    },
-    {
-      key: 'progress',
-      header: 'PROGRESSO',
-      align: 'center',
-      render: (client) => {
-        const step = client.current_visit_step || 0
-        return (
-          <div className="flex flex-col items-center gap-mx-xs">
-            <Typography variant="tiny" className="font-black">{step} / 7</Typography>
-            <div className="h-mx-1.5 bg-surface-alt rounded-mx-full overflow-hidden" style={{ width: '6rem' }}>
-              <div 
-                className="h-full bg-brand-primary transition-all" 
-                style={{ width: `${(step / 7) * 100}%` }}
-              />
+  const columns = useMemo<Column<ConsultingClient>[]>(
+    () => [
+      {
+        key: 'name',
+        header: 'CLIENTE',
+        render: (client) => (
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-600">
+              <Building2 size={18} aria-hidden="true" />
+            </div>
+            <div className="min-w-0">
+              <Typography variant="h3" className="truncate text-sm text-gray-800">
+                {client.name}
+              </Typography>
+              <Typography variant="tiny" className="text-gray-500">
+                {client.legal_name || 'Sem razão social'}
+              </Typography>
             </div>
           </div>
-        )
-      }
-    },
-    {
-      key: 'status',
-      header: 'STATUS',
-      align: 'center',
-      render: (client) => (
-        <Badge
-          variant={client.status === 'ativo' ? 'success' : 'outline'}
-          className="px-mx-md py-1 rounded-mx-full border-none"
-        >
-          {String(client.status || 'ativo').toUpperCase()}
-        </Badge>
-      ),
-    },
-    {
-      key: 'health',
-      header: 'SAÚDE RITUAL',
-      align: 'center',
-      render: (client) => {
-        if (!client.last_visit_at) return <Badge variant="outline" className="opacity-50">SEM VISITA</Badge>
-        
-        const daysSince = differenceInDays(new Date(), new Date(client.last_visit_at))
-        let variant: 'success' | 'warning' | 'danger' = 'success'
-        let label = 'EM DIA'
-        
-        if (daysSince > 21) {
-          variant = 'danger'
-          label = `ATRASO CRÍTICO (${daysSince}D)`
-        } else if (daysSince > 10) {
-          variant = 'warning'
-          label = `ALERTA (${daysSince}D)`
-        }
-
-        return (
-          <Badge variant={variant} className="px-mx-md py-1 rounded-mx-full border-none font-black text-mx-micro">
-            {label}
+        ),
+      },
+      {
+        key: 'product_name',
+        header: 'PRODUTO',
+        align: 'center',
+        render: (client) => (
+          <Badge variant="outline" className="rounded-full border-gray-200 px-3 py-1 text-gray-600">
+            {client.product_name || 'Não definido'}
           </Badge>
-        )
-      }
-    },
-    {
-      key: 'actions',
-      header: 'AÇÃO',
-      align: 'right',
-      render: (client) => (
-        <Button asChild variant="secondary" size="sm" className="rounded-mx-lg">
-          <Link to={`/consultoria/clientes/${client.slug || client.id}`}>ABRIR</Link>
-        </Button>
-      ),
-    },
-  ], [])
+        ),
+      },
+      {
+        key: 'progress',
+        header: 'PROGRESSO',
+        align: 'center',
+        render: (client) => {
+          const step = client.current_visit_step || 0
+          return (
+            <div className="flex flex-col items-center gap-2">
+              <Typography variant="tiny" className="font-semibold text-gray-600">
+                {step} / 7
+              </Typography>
+              <div className="h-1.5 w-24 overflow-hidden rounded-full bg-gray-100">
+                <div
+                  className="h-full rounded-full bg-emerald-600 transition-all"
+                  style={{ width: `${(step / 7) * 100}%` }}
+                />
+              </div>
+            </div>
+          )
+        },
+      },
+      {
+        key: 'status',
+        header: 'STATUS',
+        align: 'center',
+        render: (client) => (
+          <Badge
+            variant={client.status === 'ativo' ? 'success' : 'outline'}
+            className="rounded-full border-none px-3 py-1"
+          >
+            {String(client.status || 'ativo').toUpperCase()}
+          </Badge>
+        ),
+      },
+      {
+        key: 'health',
+        header: 'SAÚDE RITUAL',
+        align: 'center',
+        render: (client) => {
+          if (!client.last_visit_at) {
+            return <Badge variant="outline" className="border-gray-200 text-gray-500">SEM VISITA</Badge>
+          }
+
+          const daysSince = differenceInDays(new Date(), new Date(client.last_visit_at))
+          let variant: 'success' | 'warning' | 'danger' = 'success'
+          let label = 'EM DIA'
+
+          if (daysSince > 21) {
+            variant = 'danger'
+            label = `ATRASO CRÍTICO (${daysSince}D)`
+          } else if (daysSince > 10) {
+            variant = 'warning'
+            label = `ALERTA (${daysSince}D)`
+          }
+
+          return (
+            <Badge variant={variant} className="rounded-full border-none px-3 py-1 text-[10px] font-semibold">
+              {label}
+            </Badge>
+          )
+        },
+      },
+      {
+        key: 'actions',
+        header: 'AÇÃO',
+        align: 'right',
+        render: (client) => (
+          <Button asChild variant="managerSecondary" size="sm">
+            <Link to={`/consultoria/clientes/${client.slug || client.id}`}>Abrir</Link>
+          </Button>
+        ),
+      },
+    ],
+    [],
+  )
 
   return (
-    <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-mx-xl shrink-0">
-        <div className="flex flex-col gap-mx-tiny">
-          <div className="flex items-center gap-mx-sm">
-            <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" aria-hidden="true" />
-            <Typography variant="h1">CRM de <span className="text-mx-green-700">Consultoria</span></Typography>
-          </div>
-          <Typography variant="caption" className="pl-mx-md">CLIENTES INTERNOS DA MX</Typography>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-mx-sm">
-          <div className="grid grid-cols-3 gap-mx-sm">
-            <Card className="p-mx-md border-none shadow-mx-md bg-white">
-              <Typography variant="tiny" tone="muted">TOTAL</Typography>
-              <Typography variant="h2">{metrics.total}</Typography>
-            </Card>
-            <Card className="p-mx-md border-none shadow-mx-md bg-white">
-              <Typography variant="tiny" tone="muted">ATIVOS</Typography>
-              <Typography variant="h2" tone="success">{metrics.active}</Typography>
-            </Card>
-            <Card className="p-mx-md border-none shadow-mx-md bg-white">
-              <Typography variant="tiny" tone="muted">PAUSADOS</Typography>
-              <Typography variant="h2" tone="warning">{metrics.paused}</Typography>
-            </Card>
-            <Card className="p-mx-md border-none shadow-mx-md bg-brand-primary text-white">
-              <Typography variant="tiny" className="text-white/70">ROI MÉDIO REDE</Typography>
-              <Typography variant="h2" className="text-white">+32.4%</Typography>
-            </Card>
-          </div>
-
-          <Button variant="outline" size="icon" onClick={() => refetch()} aria-label="Atualizar" className="rounded-mx-xl bg-white">
-            <RefreshCw size={18} />
-          </Button>
-
-          <Button asChild variant="outline" size="default" className="rounded-mx-xl bg-white">
-            <Link to="/agenda">
-              <CalendarDays size={18} className="mr-mx-md" /> AGENDA MX
-            </Link>
-          </Button>
-
-          {canCreate && (
-            <Button onClick={() => setShowCreate((value) => !value)} className="bg-brand-secondary">
-              <Plus size={18} className="mr-mx-md" />
-              NOVO CLIENTE
+    <MxModulePage>
+      <MxModuleHeader
+        eyebrow="Gestão de clientes"
+        title="CRM de Consultoria"
+        description="Acompanhe clientes internos, evolução das visitas, módulos contratados e saúde do ritual de consultoria."
+        actions={(
+          <>
+            <Button
+              variant="managerSecondary"
+              size="icon"
+              onClick={() => void refetch()}
+              aria-label="Atualizar clientes"
+            >
+              <RefreshCw size={18} />
             </Button>
-          )}
-        </div>
-      </header>
+            <Button asChild variant="managerSecondary">
+              <Link to="/agenda">
+                <CalendarDays size={18} />
+                Agenda MX
+              </Link>
+            </Button>
+            {canCreate ? (
+              <Button
+                variant="managerPrimary"
+                onClick={() => setShowCreate((visible) => !visible)}
+              >
+                <Plus size={18} />
+                Novo cliente
+              </Button>
+            ) : null}
+          </>
+        )}
+      />
 
-      {error && (
-        <Card className="p-mx-lg bg-status-error-surface border border-status-error/20">
-          <Typography variant="p" tone="error">Falha ao carregar clientes: {error}</Typography>
-        </Card>
-      )}
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Indicadores da consultoria">
+        <MxMetricCard
+          title="Total"
+          value={metrics.total}
+          detail="Clientes cadastrados"
+          icon={Building2}
+          tone="neutral"
+        />
+        <MxMetricCard
+          title="Ativos"
+          value={metrics.active}
+          detail="Em acompanhamento"
+          icon={CheckCircle2}
+          tone="success"
+        />
+        <MxMetricCard
+          title="Pausados"
+          value={metrics.paused}
+          detail="Acompanhamento suspenso"
+          icon={PauseCircle}
+          tone="warning"
+        />
+        <MxMetricCard
+          title="ROI médio da rede"
+          value="+32,4%"
+          detail="Indicador consolidado"
+          icon={TrendingUp}
+          tone="brand"
+        />
+      </section>
 
-      <Card className="p-mx-lg border-none shadow-mx-md bg-white">
-        <div className="relative max-w-mx-sidebar-expanded">
-          <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
+      {error ? (
+        <MxStatusBanner tone="danger">
+          Falha ao carregar clientes: {error}
+        </MxStatusBanner>
+      ) : null}
+
+      <MxToolbar aria-label="Busca e ações do CRM">
+        <div className="relative min-w-0 flex-1 sm:max-w-md">
+          <Search
+            size={17}
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            aria-hidden="true"
+          />
           <Input
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Buscar cliente, produto ou CNPJ..."
-            className="!pl-mx-11"
+            placeholder="Buscar cliente, produto ou CNPJ"
+            aria-label="Buscar cliente, produto ou CNPJ"
+            className="h-11 rounded-xl border-gray-200 bg-white pl-10 text-gray-800 shadow-none"
           />
         </div>
-      </Card>
+        <Typography variant="tiny" className="text-gray-500 sm:ml-auto">
+          {filteredClients.length} de {clients.length} clientes
+        </Typography>
+      </MxToolbar>
 
-      {showCreate && canCreate && (
-        <Card className="p-mx-lg border-none shadow-mx-md bg-white">
-          <form onSubmit={handleCreate} className="grid grid-cols-1 md:grid-cols-2 gap-mx-md">
-            <div className="space-y-mx-xs md:col-span-2">
-              <Typography as="label" htmlFor="consulting-client-name" variant="caption">Nome do cliente</Typography>
+      {showCreate && canCreate ? (
+        <MxSectionCard>
+          <div className="border-b border-gray-100 px-5 py-4">
+            <Typography as="h2" variant="h3" className="text-base text-gray-800">
+              Novo cliente da consultoria
+            </Typography>
+            <Typography variant="p" className="mt-1 text-sm text-gray-500">
+              Cadastre a empresa e selecione os módulos que ficarão disponíveis no acompanhamento.
+            </Typography>
+          </div>
+
+          <form onSubmit={handleCreate} className="grid grid-cols-1 gap-4 p-5 md:grid-cols-2">
+            <MxField label="Nome do cliente" htmlFor="consulting-client-name" className="md:col-span-2">
               <Input
                 id="consulting-client-name"
                 value={form.name}
                 onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-                placeholder="Ex: DNA Veículos"
+                placeholder="Ex.: DNA Veículos"
+                className="h-11 rounded-xl border-gray-200"
               />
-            </div>
+            </MxField>
 
-            <div className="space-y-mx-xs">
-              <Typography as="label" htmlFor="consulting-client-legal-name" variant="caption">Razão social</Typography>
+            <MxField label="Razão social" htmlFor="consulting-client-legal-name">
               <Input
                 id="consulting-client-legal-name"
                 value={form.legal_name}
                 onChange={(event) => setForm((current) => ({ ...current, legal_name: event.target.value }))}
                 placeholder="Razão social"
+                className="h-11 rounded-xl border-gray-200"
               />
-            </div>
+            </MxField>
 
-            <div className="space-y-mx-xs">
-              <Typography as="label" htmlFor="consulting-client-cnpj" variant="caption">CNPJ</Typography>
+            <MxField label="CNPJ" htmlFor="consulting-client-cnpj">
               <Input
                 id="consulting-client-cnpj"
                 value={form.cnpj}
                 onChange={(event) => setForm((current) => ({ ...current, cnpj: event.target.value }))}
                 placeholder="00.000.000/0000-00"
+                className="h-11 rounded-xl border-gray-200"
               />
-            </div>
+            </MxField>
 
-            <div className="space-y-mx-xs">
-              <Typography as="label" htmlFor="consulting-client-product" variant="caption">Produto</Typography>
+            <MxField label="Produto" htmlFor="consulting-client-product">
               <Input
                 id="consulting-client-product"
                 value={form.product_name}
                 onChange={(event) => setForm((current) => ({ ...current, product_name: event.target.value }))}
-                placeholder="Ex: PMR Presencial"
+                placeholder="Ex.: PMR Presencial"
+                className="h-11 rounded-xl border-gray-200"
               />
-            </div>
+            </MxField>
 
-            <div className="space-y-mx-xs md:col-span-2">
-              <Typography as="label" htmlFor="consulting-client-notes" variant="caption">Notas</Typography>
+            <MxField label="Notas" htmlFor="consulting-client-notes" className="md:col-span-2">
               <Input
                 id="consulting-client-notes"
                 value={form.notes}
                 onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
                 placeholder="Observações iniciais do cliente"
+                className="h-11 rounded-xl border-gray-200"
               />
-            </div>
+            </MxField>
 
-            <div className="md:col-span-2 pt-mx-lg border-t border-border-default">
-              <Typography variant="h3" className="mb-mx-xs">MÓDULOS & RECURSOS DA CONSULTORIA</Typography>
-              <Typography variant="caption" tone="muted" className="block mb-mx-md">
-                Selecione os módulos internos que este cliente terá acesso (DRE, Planos, etc). 
-                Diferente do 'Produto Comercial', esses são os recursos habilitados no painel.
-              </Typography>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-mx-xs">
-                {DEFAULT_CONSULTING_MODULES.map((mod) => {
-                  const isEnabled = form.enabled_modules.includes(mod.module_key)
+            <fieldset className="md:col-span-2">
+              <legend className="text-sm font-semibold text-gray-700">Módulos e recursos da consultoria</legend>
+              <p className="mt-1 text-sm text-gray-500">
+                Selecione os recursos internos que este cliente poderá utilizar no painel.
+              </p>
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {DEFAULT_CONSULTING_MODULES.map((module) => {
+                  const enabled = form.enabled_modules.includes(module.module_key)
                   return (
-                    <label key={mod.module_key} className={`flex items-start gap-mx-xs p-mx-sm rounded-mx-xl border transition-colors cursor-pointer ${isEnabled ? 'bg-mx-indigo-50 border-brand-primary' : 'bg-surface-alt border-border-default hover:bg-white'}`}>
-                      <input 
-                        type="checkbox" 
-                        checked={isEnabled} 
-                        onChange={() => toggleModule(mod.module_key)} 
-                        className="mt-mx-xs"
+                    <label
+                      key={module.module_key}
+                      className={cn(
+                        'flex min-h-16 cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors',
+                        enabled
+                          ? 'border-emerald-200 bg-emerald-50'
+                          : 'border-gray-200 bg-white hover:bg-gray-50',
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={enabled}
+                        onChange={() => toggleModule(module.module_key)}
+                        className="mt-1 accent-emerald-600"
                       />
-                      <div>
-                        <Typography variant="p" className="font-bold leading-none">{mod.label}</Typography>
-                        {mod.premium && <Badge variant="warning" className="mt-mx-xs px-mx-md py-0.5 text-mx-micro">PREMIUM</Badge>}
-                      </div>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-semibold text-gray-800">{module.label}</span>
+                        {module.premium ? (
+                          <Badge variant="warning" className="mt-2 px-2 py-0.5 text-[10px]">Premium</Badge>
+                        ) : null}
+                      </span>
                     </label>
                   )
                 })}
               </div>
-            </div>
+            </fieldset>
 
-            <div className="md:col-span-2 flex justify-end gap-mx-sm mt-mx-md">
-              <Button type="button" variant="ghost" onClick={() => setShowCreate(false)}>CANCELAR</Button>
-              <Button type="submit" disabled={submitting}>
-                <BriefcaseBusiness size={16} className="mr-mx-md" />
-                {submitting ? 'SALVANDO...' : 'CRIAR CLIENTE'}
+            <div className="flex flex-wrap justify-end gap-2 border-t border-gray-100 pt-4 md:col-span-2">
+              <Button type="button" variant="managerGhost" onClick={() => setShowCreate(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" variant="managerPrimary" disabled={submitting}>
+                <BriefcaseBusiness size={16} />
+                {submitting ? 'Salvando...' : 'Criar cliente'}
               </Button>
             </div>
           </form>
-        </Card>
-      )}
+        </MxSectionCard>
+      ) : null}
 
-      <Card className="border-none shadow-mx-xl bg-white overflow-hidden p-mx-0 rounded-mx-2xl">
-        <DataGrid
-          columns={columns}
-          data={filteredClients}
-          loading={loading}
-          emptyMessage="Nenhum cliente da consultoria localizado."
-          onRowClick={(client) => navigate(`/consultoria/clientes/${client.slug || client.id}`)}
-        />
-      </Card>
-    </main>
+      <MxSectionCard>
+        <div className="border-b border-gray-100 px-5 py-4">
+          <Typography as="h2" variant="h3" className="text-base text-gray-800">
+            Clientes acompanhados
+          </Typography>
+          <Typography variant="p" className="mt-1 text-sm text-gray-500">
+            Abra um cliente para consultar visitas, módulos e próximos passos.
+          </Typography>
+        </div>
+        <MxTableSurface className="rounded-none border-0 shadow-none">
+          <DataGrid
+            columns={columns}
+            data={filteredClients}
+            loading={loading}
+            emptyMessage="Nenhum cliente da consultoria localizado."
+            onRowClick={(client) => navigate(`/consultoria/clientes/${client.slug || client.id}`)}
+          />
+        </MxTableSurface>
+      </MxSectionCard>
+    </MxModulePage>
   )
 }

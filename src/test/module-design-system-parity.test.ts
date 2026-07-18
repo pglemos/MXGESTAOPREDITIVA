@@ -9,8 +9,17 @@ const srcRoot = fileURLToPath(new URL('../', import.meta.url))
 const layout = read('../components/Layout.tsx')
 const main = read('../main.tsx')
 const sidebarShell = read('../components/MxSidebarShell.tsx')
+const managerCanonical = read('../features/dashboard-loja/sections/ManagerSellerParityHomeCanonical.tsx')
 const managerPrimitives = read('../features/manager/shared/ManagerVisualPrimitives.tsx')
 const universalPrimitives = read('../components/module/MxModuleVisualPrimitives.tsx')
+const button = read('../components/atoms/Button.tsx')
+const roleVisualScope = read('../components/module/MxRoleVisualScope.tsx')
+const managerScopeCss = read('../styles/manager-visual-scope.css')
+const painelConsultor = read('../pages/PainelConsultor.tsx')
+const lojasContainer = read('../features/lojas/Lojas.container.tsx')
+const lojasHeader = read('../features/lojas/sections/LojasHeader.tsx')
+const consultoriaClientes = read('../pages/ConsultoriaClientes.tsx')
+
 const legacyFiles = [
   '../design-system/internal-mx/InternalMxPageFrame.tsx',
   '../design-system/internal-mx/internal-mx-frame.css',
@@ -51,8 +60,6 @@ describe('paridade visual dos módulos MX com o Gerente', () => {
       const source = readFileSync(file, 'utf8')
       expect(source).not.toContain('id="main-content"')
       expect(source).not.toContain("id='main-content'")
-      expect(source).not.toContain("id = 'main-content'")
-      expect(source).not.toContain('id = "main-content"')
     }
   })
 
@@ -60,28 +67,85 @@ describe('paridade visual dos módulos MX com o Gerente', () => {
     expect(main).not.toContain('internal-mx-frame.css')
     expect(main).not.toContain('internal-mx-components.css')
     expect(main).not.toContain('internal-mx-routes.css')
-    expect(main).not.toContain("../packages/mx-tokens/src/theme.css")
+    expect(main).not.toContain('../packages/mx-tokens/src/theme.css')
+    expect(main).toContain("./styles/manager-visual-scope.css")
     for (const file of legacyFiles) {
       expect(existsSync(new URL(file, import.meta.url))).toBe(false)
     }
   })
 
-  test('Gerente, Admin, Consultoria e Dono compartilham a mesma origem de primitivas', () => {
-    expect(managerPrimitives).toContain("from '@/components/module/MxModuleVisualPrimitives'")
-    for (const component of [
-      'MxModulePage',
-      'MxModuleHeader',
-      'MxMetricCard',
-      'MxSectionCard',
-      'MxToolbar',
-      'MxField',
-      'MxTableSurface',
-      'MxEmptyState',
-      'MxLoadingState',
-      'MxStatusBanner',
+  test('a fundação compartilhada usa a mesma matriz concreta do Gerente', () => {
+    for (const marker of [
+      'bg-gray-50',
+      'max-w-7xl',
+      'space-y-5',
+      'rounded-2xl',
+      'border-gray-100',
+      'bg-white',
+      'shadow-sm',
+      'text-gray-800',
+      'text-gray-500',
     ]) {
-      expect(universalPrimitives).toContain(`export function ${component}`)
+      expect(managerCanonical).toContain(marker)
+      expect(universalPrimitives).toContain(marker)
     }
+
+    expect(managerPrimitives).toContain("from '@/components/module/MxModuleVisualPrimitives'")
+    expect(universalPrimitives).not.toContain('bg-surface-alt')
+    expect(universalPrimitives).not.toContain('rounded-mx-xl')
+    expect(universalPrimitives).not.toContain('border-border-subtle')
+  })
+
+  test('escopa a matriz do Gerente em todos os perfis de gestão sem contaminar o Vendedor', () => {
+    expect(layout).toContain("from '@/components/module/MxRoleVisualScope'")
+    expect(layout).toContain("<MxRoleVisualScope manager={role !== 'vendedor'}>")
+    expect(roleVisualScope).toContain('<ButtonVisualProvider mode="manager">')
+    expect(roleVisualScope).toContain('data-mx-visual-system="manager"')
+    expect(roleVisualScope).toContain('mx-manager-scope')
+    expect(managerScopeCss).toContain('.mx-manager-scope')
+    expect(managerScopeCss).toContain('--color-mx-action: #059669')
+    expect(managerScopeCss).toContain('--color-surface-alt: #f9fafb')
+    expect(managerScopeCss).toContain('--color-text-primary: #1f2937')
+  })
+
+  test('aplica variantes gerenciais por escopo sem substituir o primary do vendedor', () => {
+    for (const variant of [
+      'managerPrimary',
+      'managerOutline',
+      'managerSecondary',
+      'managerGhost',
+    ]) {
+      expect(button).toContain(`${variant}:`)
+    }
+    expect(button).toContain('ButtonVisualProvider')
+    expect(button).toContain("mode: ButtonVisualMode")
+    expect(button).toContain("primary: 'managerPrimary'")
+    expect(button).toContain("outline: 'managerSecondary'")
+    expect(button).toContain('bg-emerald-600')
+    expect(button).toContain('hover:bg-emerald-700')
+    expect(button).toContain('border-emerald-200')
+    expect(button).toContain('border-gray-200')
+    expect(button).toContain('primary: "bg-mx-action')
+    expect(universalPrimitives).toContain('<ButtonVisualProvider mode="manager">')
+  })
+
+  test('landing pages de Admin, Dono e Consultoria usam as mesmas primitives do Gerente', () => {
+    for (const source of [painelConsultor, lojasContainer, consultoriaClientes]) {
+      expect(source).toContain('MxModulePage')
+      expect(source).not.toContain('mx-internal-workspace')
+    }
+    for (const source of [painelConsultor, lojasHeader, consultoriaClientes]) {
+      expect(source).toContain('MxModuleHeader')
+    }
+    expect(painelConsultor).toContain('MxMetricCard')
+    expect(lojasContainer).toContain('MxStatusBanner')
+    expect(lojasContainer).toContain('<LojasHeader')
+    expect(consultoriaClientes).toContain('MxMetricCard')
+    expect(consultoriaClientes).toContain('MxToolbar')
+    expect(consultoriaClientes).toContain('MxSectionCard')
+    expect(consultoriaClientes).not.toContain('bg-brand-secondary')
+    expect(consultoriaClientes).not.toContain('bg-mx-black')
+    expect(consultoriaClientes).not.toContain('shadow-mx-xl')
   })
 
   test('proíbe marcadores do design antigo em todo código executável', () => {

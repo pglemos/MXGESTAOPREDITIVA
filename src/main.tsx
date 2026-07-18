@@ -5,6 +5,7 @@ import { QueryProvider } from './components/providers/QueryProvider'
 import { PWAUpdater } from './components/PWAUpdater'
 import { initSentry, initWebVitals } from './lib/observability'
 import './index.css'
+import './styles/manager-visual-scope.css'
 
 initSentry()
 initWebVitals()

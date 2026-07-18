@@ -8,7 +8,7 @@ const profiles = [
     key: 'gerente',
     email: 'visual-gerente@mxgestaopreditiva.com.br',
     role: 'gerente',
-    path: '/home',
+    path: '/gerente/ranking',
     moduleLabel: 'Módulo Gerencial',
     roleLabel: 'Gerente',
     storeId: VISUAL_STORE_ID,
@@ -78,6 +78,14 @@ type ShellMetrics = {
     fontWeight: string
     letterSpacing: string
   }
+  pageHeader: {
+    backgroundColor: string
+    borderRadius: string
+    borderColor: string
+    boxShadow: string
+  } | null
+  activeNavigationItems: number
+  currentNavigationItems: number
   forbiddenLegacyNodes: number
   horizontalOverflow: boolean
 }
@@ -110,6 +118,15 @@ async function visibleModuleLabel(page: Page) {
   })
 }
 
+async function hasCanonicalPageHeader(page: Page) {
+  return page.evaluate(() => {
+    const visualScope = document.querySelector<HTMLElement>('[data-mx-visual-system="manager"]')
+    if (!visualScope) return false
+    return Array.from(visualScope.querySelectorAll<HTMLElement>('header'))
+      .some((node) => node.getBoundingClientRect().width > 300)
+  })
+}
+
 async function collectMetrics(page: Page, profile: string, viewport: string): Promise<ShellMetrics> {
   return page.evaluate(({ profile, viewport }) => {
     const desktopSidebar = document.querySelector<HTMLElement>('aside[aria-label^="Menu principal"]')
@@ -122,6 +139,11 @@ async function collectMetrics(page: Page, profile: string, viewport: string): Pr
     const labels = Array.from(document.querySelectorAll<HTMLElement>('p, span'))
       .filter((node) => /^Módulo /.test(node.textContent?.trim() || ''))
     const visibleModuleLabel = labels.find((node) => node.getBoundingClientRect().width > 0)
+    const visualScope = document.querySelector<HTMLElement>('[data-mx-visual-system="manager"]')
+    const pageHeader = visualScope
+      ? Array.from(visualScope.querySelectorAll<HTMLElement>('header'))
+          .find((node) => node.getBoundingClientRect().width > 300)
+      : null
 
     if (!content || !visibleModuleLabel) throw new Error('Shell universal não encontrado no DOM.')
 
@@ -129,6 +151,13 @@ async function collectMetrics(page: Page, profile: string, viewport: string): Pr
     const moduleStyle = getComputedStyle(visibleModuleLabel)
     const navigationStyle = navigationSurface ? getComputedStyle(navigationSurface) : null
     const mobileHeaderStyle = mobileHeader ? getComputedStyle(mobileHeader) : null
+    const pageHeaderStyle = pageHeader ? getComputedStyle(pageHeader) : null
+    const activeNavigationItems = navigationSurface
+      ? navigationSurface.querySelectorAll('a.bg-emerald-600').length
+      : 0
+    const currentNavigationItems = navigationSurface
+      ? navigationSurface.querySelectorAll('a[aria-current="page"]').length
+      : 0
 
     return {
       profile,
@@ -167,6 +196,16 @@ async function collectMetrics(page: Page, profile: string, viewport: string): Pr
         fontWeight: moduleStyle.fontWeight,
         letterSpacing: moduleStyle.letterSpacing,
       },
+      pageHeader: pageHeader && pageHeaderStyle
+        ? {
+            backgroundColor: pageHeaderStyle.backgroundColor,
+            borderRadius: pageHeaderStyle.borderRadius,
+            borderColor: pageHeaderStyle.borderColor,
+            boxShadow: pageHeaderStyle.boxShadow,
+          }
+        : null,
+      activeNavigationItems,
+      currentNavigationItems,
       forbiddenLegacyNodes: document.querySelectorAll(
         '.mxds-page-frame, .mx-internal-workspace, [class*="mxds-"]',
       ).length,
@@ -197,7 +236,8 @@ async function auditProfile(
   }
 
   await expect.poll(() => visibleModuleLabel(page), { timeout: 20_000 }).toBe(profile.moduleLabel)
-  await page.waitForTimeout(500)
+  await expect.poll(() => hasCanonicalPageHeader(page), { timeout: 20_000 }).toBe(true)
+  await page.waitForTimeout(250)
 
   const metrics = await collectMetrics(page, profile.key, viewport.name)
 
@@ -205,13 +245,25 @@ async function auditProfile(
   expect(metrics.forbiddenLegacyNodes).toBe(0)
   expect(metrics.horizontalOverflow).toBe(false)
   expect(metrics.logo).not.toBeNull()
+  expect(metrics.activeNavigationItems).toBe(1)
+  expect(metrics.currentNavigationItems).toBe(1)
+
+  if (profile.key !== 'gerente') {
+    expect(metrics.pageHeader).toMatchObject({
+      backgroundColor: 'rgb(255, 255, 255)',
+      borderRadius: '16px',
+    })
+    expect(metrics.pageHeader?.borderColor).not.toBe('rgba(0, 0, 0, 0)')
+    expect(metrics.pageHeader?.boxShadow).not.toBe('none')
+  }
+
   expect(pageErrors, `Erros de página em ${profile.key}/${viewport.name}`).toEqual([])
 
   if (viewport.name === 'desktop') {
     expect(metrics.sidebar).not.toBeNull()
-    expect(metrics.sidebar?.width).toBe(264)
+    expect(metrics.sidebar?.width).toBe(224)
     expect(metrics.sidebar?.backgroundColor).toBe('rgb(255, 255, 255)')
-    expect(metrics.content.paddingLeft).toBe('264px')
+    expect(metrics.content.paddingLeft).toBe('224px')
   } else {
     expect(metrics.sidebar).not.toBeNull()
     expect(metrics.mobileHeader).not.toBeNull()
