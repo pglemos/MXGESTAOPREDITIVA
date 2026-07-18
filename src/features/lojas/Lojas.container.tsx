@@ -62,7 +62,9 @@ export function Lojas() {
         </LojasErrorBoundary>
 
         {page.copyError ? (
-          <MxStatusBanner tone="warning">{page.copyError}</MxStatusBanner>
+          <MxStatusBanner tone="warning" role="alert">
+            {page.copyError}
+          </MxStatusBanner>
         ) : null}
 
         {page.isOwner ? (
