@@ -159,11 +159,15 @@ test.describe('auditoria visual completa dos módulos internos MX', () => {
     }
 
     await page.goto('/lojas', { waitUntil: 'networkidle' })
+    const dynamicRoutes: Array<{ label: string; href: string }> = []
     for (const label of ownerDynamicLinks) {
       const link = page.getByRole('link', { name: label, exact: true }).first()
       const href = await link.getAttribute('href')
       expect.soft(href, `Link executivo ${label}`).not.toBeNull()
-      if (!href) continue
+      if (href) dynamicRoutes.push({ label, href })
+    }
+
+    for (const { label, href } of dynamicRoutes) {
       metrics.push(
         await auditRoute(
           page,
