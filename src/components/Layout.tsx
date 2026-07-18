@@ -6,10 +6,9 @@ import { useFeedbacks } from '@/hooks/useFeedbacks'
 import {
   Home, CheckSquare, Trophy, GraduationCap, MessageSquare,
   Bell, Settings, Users, Target, Grid, LayoutDashboard, User,
-  Building2, TrendingUp, ClipboardList,
-  BriefcaseBusiness, CalendarDays, BarChart3, Bot, Library,
-  Filter, FileBarChart, Activity, BookOpen, CalendarCheck, CalendarClock,
-  BrainCircuit,
+  TrendingUp, ClipboardList, CalendarClock, BarChart3, Bot,
+  Filter, FileBarChart, Activity, BookOpen, CalendarCheck,
+  BrainCircuit, BriefcaseBusiness,
 } from 'lucide-react'
 import { slugify } from '@/lib/utils'
 import MxSidebarShell, {
@@ -21,6 +20,10 @@ import { canAccessPath } from '@/lib/auth/routeAccess'
 import { MotionPage } from '@/design/motion'
 import { buildInternalMxNavigation } from '@/design-system/internal-mx/internalMxNavigation'
 import { MxRoleVisualScope } from '@/components/module/MxRoleVisualScope'
+import {
+  OWNER_BASE44_NAVIGATION,
+  ownerNavigationSectionValue,
+} from '@/features/dashboard-loja/sections/owner-cockpit/ownerBase44Config'
 
 type SubItem = {
   label: string
@@ -38,15 +41,11 @@ type NavCategory = {
 const STORE_DASHBOARD_PATH = '__STORE_DASHBOARD__'
 const STORE_TEAM_PATH = '__STORE_TEAM__'
 const STORE_CONSULTOR_IA_PATH = '__STORE_CONSULTOR_IA__'
-const OWNER_PLANEJAMENTO_PATH = '__OWNER_PLANEJAMENTO__'
-const OWNER_RESULTADOS_PATH = '__OWNER_RESULTADOS__'
-const OWNER_PLANO_ACAO_PATH = '__OWNER_PLANO_ACAO__'
-const OWNER_ALERTAS_PATH = '__OWNER_ALERTAS__'
-const OWNER_BENCHMARKING_PATH = '__OWNER_BENCHMARKING__'
-const OWNER_AGENDA_PATH = '__OWNER_AGENDA__'
-const OWNER_VISITAS_PATH = '__OWNER_VISITAS__'
-const OWNER_DEPARTAMENTOS_PATH = '__OWNER_DEPARTAMENTOS__'
-const OWNER_BIBLIOTECA_PATH = '__OWNER_BIBLIOTECA__'
+const OWNER_SECTION_PREFIX = '__OWNER_SECTION__:'
+
+function ownerSectionPlaceholder(section: string) {
+  return `${OWNER_SECTION_PREFIX}${section}`
+}
 
 function appendQueryParam(path: string, key: string, value: string) {
   const [pathname, search = ''] = path.split('?')
@@ -74,46 +73,50 @@ const rotulosModulo: Record<string, string> = {
   vendedor: 'Módulo Comercial',
 }
 
+const ownerCategoryIcons: Record<string, React.ReactNode> = {
+  GESTÃO: <Home size={22} />,
+  ESTRATÉGIA: <Target size={22} />,
+  NEGÓCIO: <Grid size={22} />,
+  DESENVOLVIMENTO: <GraduationCap size={22} />,
+  'AÇÃO GLOBAL': <MessageSquare size={22} />,
+}
+
+const ownerItemIcons: Record<string, React.ReactNode> = {
+  Início: <Home size={16} />,
+  'Rotina do Dia': <CalendarClock size={16} />,
+  'Central de Decisões': <ClipboardList size={16} />,
+  'Plano Estratégico': <BarChart3 size={16} />,
+  'Plano de Ação': <CheckSquare size={16} />,
+  Consultoria: <MessageSquare size={16} />,
+  Departamentos: <Grid size={16} />,
+  'Visão Geral': <LayoutDashboard size={16} />,
+  Comercial: <TrendingUp size={16} />,
+  Marketing: <Activity size={16} />,
+  'Produto e Estoque': <Grid size={16} />,
+  'Pessoas — RH': <Users size={16} />,
+  Financeiro: <BriefcaseBusiness size={16} />,
+  Operações: <Settings size={16} />,
+  Mercado: <BarChart3 size={16} />,
+  'Universidade MX': <GraduationCap size={16} />,
+  'Falar com Consultor': <MessageSquare size={16} />,
+}
+
+const ownerNavConfig: NavCategory[] = OWNER_BASE44_NAVIGATION.map(section => ({
+  category: section.label,
+  icon: ownerCategoryIcons[section.label],
+  items: section.items.map(item => ({
+    label: item.label,
+    path: item.section === 'home'
+      ? STORE_DASHBOARD_PATH
+      : item.section === 'consultor'
+        ? '/falar-consultor'
+        : ownerSectionPlaceholder(ownerNavigationSectionValue(item)),
+    icon: ownerItemIcons[item.label] ?? <Grid size={16} />,
+  })),
+}))
+
 const navConfig: Record<string, NavCategory[]> = {
-  dono: [
-    {
-      category: 'Home',
-      icon: <Home size={22} />,
-      items: [{ label: 'Home', path: STORE_DASHBOARD_PATH, icon: <Home size={16} /> }],
-    },
-    {
-      category: 'CENTRAL MX',
-      icon: <BriefcaseBusiness size={22} />,
-      items: [
-        { label: 'Planejamento Estratégico', path: OWNER_PLANEJAMENTO_PATH, icon: <BarChart3 size={16} /> },
-        { label: 'Plano de Ação', path: OWNER_PLANO_ACAO_PATH, icon: <ClipboardList size={16} /> },
-        { label: 'Alertas Inteligentes', path: OWNER_ALERTAS_PATH, icon: <Bell size={16} /> },
-        { label: 'Benchmarking', path: OWNER_BENCHMARKING_PATH, icon: <TrendingUp size={16} /> },
-        { label: 'Agenda Executiva', path: OWNER_AGENDA_PATH, icon: <CalendarDays size={16} /> },
-        { label: 'Consultor IA', path: STORE_CONSULTOR_IA_PATH, icon: <Bot size={16} /> },
-      ],
-    },
-    {
-      category: 'GESTÃO',
-      icon: <Grid size={22} />,
-      items: [
-        { label: 'Resultados', path: OWNER_RESULTADOS_PATH, icon: <LayoutDashboard size={16} /> },
-        { label: 'Visitas', path: OWNER_VISITAS_PATH, icon: <Activity size={16} /> },
-        { label: 'Departamentos', path: OWNER_DEPARTAMENTOS_PATH, icon: <Grid size={16} /> },
-        { label: 'Treinamentos', path: '/treinamentos', icon: <GraduationCap size={16} /> },
-        { label: 'Biblioteca', path: OWNER_BIBLIOTECA_PATH, icon: <Library size={16} /> },
-      ],
-    },
-    {
-      category: 'SUPORTE',
-      icon: <MessageSquare size={22} />,
-      items: [
-        { label: 'Falar com Consultor', path: '/falar-consultor', icon: <MessageSquare size={16} /> },
-        { label: 'Relatórios', path: '/relatorio-matinal', icon: <FileBarChart size={16} /> },
-        { label: 'Configurações', path: '/configuracoes', icon: <Settings size={16} /> },
-      ],
-    },
-  ],
+  dono: ownerNavConfig,
   gerente: [
     {
       category: 'MENU',
@@ -218,15 +221,9 @@ export default function Layout() {
               if (!storeDashboardPath.startsWith('/lojas/')) return null
               return { ...item, path: storeConsultorIaPath }
             }
-            if (item.path === OWNER_PLANEJAMENTO_PATH) return { ...item, path: ownerSectionPath('planejamento') }
-            if (item.path === OWNER_RESULTADOS_PATH) return { ...item, path: ownerSectionPath('resultados') }
-            if (item.path === OWNER_PLANO_ACAO_PATH) return { ...item, path: ownerSectionPath('plano-acao') }
-            if (item.path === OWNER_ALERTAS_PATH) return { ...item, path: ownerSectionPath('alertas') }
-            if (item.path === OWNER_BENCHMARKING_PATH) return { ...item, path: ownerSectionPath('benchmarking') }
-            if (item.path === OWNER_AGENDA_PATH) return { ...item, path: ownerSectionPath('agenda') }
-            if (item.path === OWNER_VISITAS_PATH) return { ...item, path: ownerSectionPath('visitas') }
-            if (item.path === OWNER_DEPARTAMENTOS_PATH) return { ...item, path: ownerSectionPath('departamentos') }
-            if (item.path === OWNER_BIBLIOTECA_PATH) return { ...item, path: ownerSectionPath('biblioteca') }
+            if (item.path.startsWith(OWNER_SECTION_PREFIX)) {
+              return { ...item, path: ownerSectionPath(item.path.slice(OWNER_SECTION_PREFIX.length)) }
+            }
             return item
           })
           .filter((item): item is SubItem => item !== null && canAccessPath(item.path, role))
@@ -269,7 +266,8 @@ export default function Layout() {
           activePaths: item.activePaths ?? [item.path],
           special: item.path.includes('/consultor-ia') ||
             label.includes('consultor ia') ||
-            label.includes('consultor mx ia'),
+            label.includes('consultor mx ia') ||
+            label.includes('falar com consultor'),
         }
       }),
     }))
