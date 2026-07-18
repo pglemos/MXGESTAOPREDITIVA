@@ -87,7 +87,7 @@ export default function AiDiagnostics() {
     useEffect(() => { terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [logs])
 
     if (!isPerfilInternoMx(role) && role !== 'gerente') return (
-        <main className="h-full w-full flex flex-col items-center justify-center text-center p-mx-lg bg-surface-alt" id="main-content">
+        <main className="h-full w-full flex flex-col items-center justify-center text-center p-mx-lg bg-surface-alt">
             <ShieldCheck size={48} className="text-brand-primary opacity-20 mb-6" aria-hidden="true" />
             <Typography variant="h2" className="uppercase tracking-tighter text-text-primary">Acesso Restrito</Typography>
             <Typography variant="caption" tone="muted" className="max-w-sm mx-auto uppercase tracking-widest mt-4 font-black">Diagnóstico operacional disponível para Admin MX e Gerente.</Typography>
@@ -95,7 +95,7 @@ export default function AiDiagnostics() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt" id="main-content">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
             <PageHeading
                 title={<span>Diagnóstico <span className="text-brand-primary">Operacional</span></span>}

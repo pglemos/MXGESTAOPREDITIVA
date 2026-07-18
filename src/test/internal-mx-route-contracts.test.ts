@@ -83,12 +83,12 @@ describe('contrato do módulo interno MX', () => {
     for (const path of routePaths) expect(declaredPaths.has(path)).toBe(true)
   })
 
-  test('usa o shell universal e mantém o frame interno sob o guard canônico', () => {
+  test('usa o shell universal sem frame visual paralelo', () => {
     expect(hasInternalRoleGuard(layoutSource)).toBe(true)
     expect(hasJsxElement(layoutSource, 'MxSidebarShell')).toBe(true)
-    expect(hasJsxElement(layoutSource, 'InternalMxPageFrame')).toBe(true)
+    expect(hasJsxElement(layoutSource, 'InternalMxPageFrame')).toBe(false)
     expect(importSpecifiers(layoutSource)).toContain('./MxSidebarShell')
-    expect(importSpecifiers(layoutSource)).toContain('@/design-system/internal-mx/InternalMxPageFrame')
+    expect(importSpecifiers(layoutSource)).not.toContain('@/design-system/internal-mx/InternalMxPageFrame')
   })
 
   test('mantém o shell visual desacoplado do cliente Supabase', () => {

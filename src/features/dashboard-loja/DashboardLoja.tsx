@@ -128,7 +128,7 @@ export function DashboardLoja() {
     && !selectedStoreId
   ) {
     return (
-      <main className="h-full w-full overflow-y-auto bg-surface-alt no-scrollbar" id="main-content">
+      <main className="h-full w-full overflow-y-auto bg-surface-alt no-scrollbar">
         <ManagerSellerParityHomeCanonical data={data} alerts={[]} />
       </main>
     )
@@ -162,7 +162,6 @@ export function DashboardLoja() {
             ? 'bg-surface-alt'
             : 'bg-surface-alt p-mx-lg'
       }`}
-      id="main-content"
     >
       {!isFocusedRolePerformance && !isManagerSection && (
         <DashboardErrorBoundary sectionName="Header">

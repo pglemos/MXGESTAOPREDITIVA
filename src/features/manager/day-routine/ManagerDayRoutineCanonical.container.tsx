@@ -262,7 +262,7 @@ export function ManagerDayRoutineCanonical() {
     : null
 
   return (
-    <main id="main-content" className="min-h-full bg-gray-50">
+    <main className="min-h-full bg-gray-50">
       <ManagerDayRoutineView
         returnLink={<ManagerHomeReturnLink />}
         referenceDate={referenceDate}

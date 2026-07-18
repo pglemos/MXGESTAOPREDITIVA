@@ -96,7 +96,7 @@ export default function OperationalSettings() {
     }
 
     if (!isPerfilInternoMx(role) && role !== 'dono') return (
-        <main className="h-full w-full flex flex-col items-center justify-center text-center p-mx-xl bg-surface-alt" id="main-content">
+        <main className="h-full w-full flex flex-col items-center justify-center text-center p-mx-xl bg-surface-alt">
             <Lock size={64} className="text-text-tertiary mb-8 opacity-20" aria-hidden="true" />
             <Typography variant="h2" className="uppercase tracking-tighter">Privilégios Insuficientes</Typography>
             <Typography variant="caption" tone="muted" className="max-w-xs mt-4 uppercase tracking-widest leading-relaxed font-black">Apenas o alto comando administrativo pode alterar parâmetros de governança da malha.</Typography>
@@ -104,7 +104,7 @@ export default function OperationalSettings() {
     )
 
     return (
-        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt" id="main-content">
+        <main className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt">
             
             <PageHeading
                 title={<span>Parâmetros <span className="text-brand-primary">MX</span></span>}

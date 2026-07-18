@@ -40,6 +40,12 @@ describe('sidebar universal MX', () => {
     expect(shellSource).not.toContain('#102C37')
   })
 
+  test('não depende do pacote mxds antigo', () => {
+    expect(shellSource).not.toContain('mxds-')
+    expect(shellSource).not.toContain('AppShell')
+    expect(shellSource).not.toContain('SidebarBrandHeader')
+  })
+
   test('define a identidade correta de módulo para cada perfil', () => {
     for (const label of [
       'Módulo Administrativo',

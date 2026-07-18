@@ -20,7 +20,6 @@ import { ForcePasswordChange } from '@/features/auth/components/ForcePasswordCha
 import { canAccessPath } from '@/lib/auth/routeAccess'
 import { MotionPage } from '@/design/motion'
 import { buildInternalMxNavigation } from '@/design-system/internal-mx/internalMxNavigation'
-import InternalMxPageFrame from '@/design-system/internal-mx/InternalMxPageFrame'
 
 type SubItem = {
   label: string
@@ -292,19 +291,6 @@ export default function Layout() {
     navigate('/painel', { replace: true })
   }
 
-  const shellContent = isPerfilInternoMx(role) ? (
-    <div className="mx-internal-workspace h-full min-h-0">
-      <InternalMxPageFrame
-        pathname={location.pathname}
-        roleLabel={perfilVisivel}
-        unreadNotifications={unreadCount}
-        onOpenNotifications={() => navigate('/notificacoes')}
-      >
-        {pageContent}
-      </InternalMxPageFrame>
-    </div>
-  ) : pageContent
-
   return (
     <MxSidebarShell
       profileName={profile.name}
@@ -323,7 +309,7 @@ export default function Layout() {
       simulationStore={membership?.store?.name || 'Sandbox MX'}
       onStopSimulation={stopCurrentSimulation}
     >
-      {shellContent}
+      {pageContent}
     </MxSidebarShell>
   )
 }
