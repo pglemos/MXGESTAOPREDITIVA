@@ -78,6 +78,13 @@ type ShellMetrics = {
     fontWeight: string
     letterSpacing: string
   }
+  pageHeader: {
+    backgroundColor: string
+    borderRadius: string
+    borderColor: string
+    boxShadow: string
+  } | null
+  activeNavigationItems: number
   forbiddenLegacyNodes: number
   horizontalOverflow: boolean
 }
@@ -122,6 +129,11 @@ async function collectMetrics(page: Page, profile: string, viewport: string): Pr
     const labels = Array.from(document.querySelectorAll<HTMLElement>('p, span'))
       .filter((node) => /^Módulo /.test(node.textContent?.trim() || ''))
     const visibleModuleLabel = labels.find((node) => node.getBoundingClientRect().width > 0)
+    const visualScope = document.querySelector<HTMLElement>('[data-mx-visual-system="manager"]')
+    const pageHeader = visualScope
+      ? Array.from(visualScope.querySelectorAll<HTMLElement>('header'))
+          .find((node) => node.getBoundingClientRect().width > 300)
+      : null
 
     if (!content || !visibleModuleLabel) throw new Error('Shell universal não encontrado no DOM.')
 
@@ -129,6 +141,7 @@ async function collectMetrics(page: Page, profile: string, viewport: string): Pr
     const moduleStyle = getComputedStyle(visibleModuleLabel)
     const navigationStyle = navigationSurface ? getComputedStyle(navigationSurface) : null
     const mobileHeaderStyle = mobileHeader ? getComputedStyle(mobileHeader) : null
+    const pageHeaderStyle = pageHeader ? getComputedStyle(pageHeader) : null
 
     return {
       profile,
@@ -167,6 +180,15 @@ async function collectMetrics(page: Page, profile: string, viewport: string): Pr
         fontWeight: moduleStyle.fontWeight,
         letterSpacing: moduleStyle.letterSpacing,
       },
+      pageHeader: pageHeader && pageHeaderStyle
+        ? {
+            backgroundColor: pageHeaderStyle.backgroundColor,
+            borderRadius: pageHeaderStyle.borderRadius,
+            borderColor: pageHeaderStyle.borderColor,
+            boxShadow: pageHeaderStyle.boxShadow,
+          }
+        : null,
+      activeNavigationItems: (navigationSurface || document).querySelectorAll('[aria-current="page"]').length,
       forbiddenLegacyNodes: document.querySelectorAll(
         '.mxds-page-frame, .mx-internal-workspace, [class*="mxds-"]',
       ).length,
@@ -205,6 +227,8 @@ async function auditProfile(
   expect(metrics.forbiddenLegacyNodes).toBe(0)
   expect(metrics.horizontalOverflow).toBe(false)
   expect(metrics.logo).not.toBeNull()
+  expect(metrics.pageHeader).not.toBeNull()
+  expect(metrics.activeNavigationItems).toBe(1)
   expect(pageErrors, `Erros de página em ${profile.key}/${viewport.name}`).toEqual([])
 
   if (viewport.name === 'desktop') {
@@ -253,6 +277,7 @@ test.describe('paridade visual isolada dos módulos MX', () => {
       expect({ ...result.moduleLabel, text: reference?.moduleLabel.text }).toEqual(reference?.moduleLabel)
       expect(result.content.backgroundColor).toBe(reference?.content.backgroundColor)
       expect(result.content.fontFamily).toBe(reference?.content.fontFamily)
+      expect(result.pageHeader).toEqual(reference?.pageHeader)
     }
   })
 
@@ -274,6 +299,7 @@ test.describe('paridade visual isolada dos módulos MX', () => {
       expect({ ...result.moduleLabel, text: reference?.moduleLabel.text }).toEqual(reference?.moduleLabel)
       expect(result.content.backgroundColor).toBe(reference?.content.backgroundColor)
       expect(result.content.fontFamily).toBe(reference?.content.fontFamily)
+      expect(result.pageHeader).toEqual(reference?.pageHeader)
     }
   })
 })
