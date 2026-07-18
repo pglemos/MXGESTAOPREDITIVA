@@ -49,7 +49,7 @@ function buildExecutiveItems(alerts: OwnerPerformanceAlert[], actions: ActionRow
   }))
 
   const fromAlerts = alerts.map((alert, index) => ({
-    id: `alert-${index}-${alert.title}`,
+    id: `alert-${index}-${alert.title}-${alert.variant}`,
     title: alert.title,
     context: alert.description,
     department: 'Executivo',
@@ -62,9 +62,7 @@ function buildExecutiveItems(alerts: OwnerPerformanceAlert[], actions: ActionRow
   }))
 
   const priority = { danger: 0, warning: 1, purple: 2, info: 3, brand: 4, success: 5, muted: 6 }
-  return [...fromActions, ...fromAlerts]
-    .sort((a, b) => priority[a.tone] - priority[b.tone])
-    .filter((item, index, list) => list.findIndex(candidate => candidate.title === item.title) === index)
+  return [...fromActions, ...fromAlerts].sort((a, b) => priority[a.tone] - priority[b.tone])
 }
 
 export function OwnerRoutineView({
@@ -77,9 +75,16 @@ export function OwnerRoutineView({
   actions: ActionRow[]
 }) {
   const navigate = useNavigate()
-  const todayActions = actions.filter(action => action.status !== 'Concluída').slice(0, 5)
-  const criticalAlerts = alerts.filter(alert => alert.variant === 'danger' || alert.variant === 'warning').slice(0, 4)
-  const confirmedAppointments = data.metrics.totalAgd
+  const openActions = actions.filter(action => action.status !== 'Concluída')
+  const criticalAlerts = alerts.filter(alert => alert.variant === 'danger' || alert.variant === 'warning')
+  const actionPreview = openActions.slice(0, 5)
+  const alertPreview = criticalAlerts.slice(0, 4)
+  const confirmedAppointments = (data.checkins || [])
+    .filter(checkin => checkin.reference_date === data.referenceDate)
+    .reduce(
+      (total, checkin) => total + (checkin.agd_cart_today || 0) + (checkin.agd_net_today || 0),
+      0,
+    )
 
   return (
     <div className="space-y-mx-md">
@@ -92,13 +97,13 @@ export function OwnerRoutineView({
         <RoutineMetric
           label="Agenda comercial"
           value={confirmedAppointments}
-          detail="Agendamentos registrados no período de referência."
+          detail="Agendamentos registrados na data de referência."
           icon={<CalendarClock size={20} />}
           tone="success"
         />
         <RoutineMetric
           label="Ações abertas"
-          value={todayActions.length}
+          value={openActions.length}
           detail="Prioridades do plano que ainda exigem execução ou validação."
           icon={<ClipboardCheck size={20} />}
           tone="warning"
@@ -124,12 +129,12 @@ export function OwnerRoutineView({
             </Button>
           </div>
           <div className="mt-mx-md divide-y divide-border-subtle">
-            {todayActions.length === 0 ? (
+            {actionPreview.length === 0 ? (
               <div className="rounded-mx-xl bg-status-success-surface p-mx-md text-status-success">
                 <CheckCircle2 size={20} />
                 <p className="mt-mx-xs text-sm font-black">Nenhuma ação executiva pendente neste recorte.</p>
               </div>
-            ) : todayActions.map((action, index) => (
+            ) : actionPreview.map((action, index) => (
               <button
                 type="button"
                 key={action.id}
@@ -150,12 +155,12 @@ export function OwnerRoutineView({
         <Card className="rounded-mx-2xl border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
           <Typography variant="h3" className="text-xl font-black">Riscos e intervenções</Typography>
           <div className="mt-mx-md space-y-mx-sm">
-            {criticalAlerts.length === 0 ? (
+            {alertPreview.length === 0 ? (
               <p className="rounded-mx-xl bg-surface-alt p-mx-md text-sm font-bold text-text-tertiary">Nenhum alerta prioritário no período.</p>
-            ) : criticalAlerts.map((alert, index) => (
+            ) : alertPreview.map((alert, index) => (
               <button
                 type="button"
-                key={`${alert.title}-${index}`}
+                key={`${alert.title}-${alert.description}-${index}`}
                 onClick={() => navigate(ownerPath('decisoes'))}
                 className="w-full rounded-mx-xl border border-border-subtle p-mx-md text-left transition-colors hover:bg-surface-alt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30"
               >
@@ -210,7 +215,8 @@ export function OwnerDecisionCenter({
 }) {
   const navigate = useNavigate()
   const [expandedId, setExpandedId] = useState<string | null>(null)
-  const items = useMemo(() => buildExecutiveItems(alerts, actions).slice(0, 12), [actions, alerts])
+  const items = useMemo(() => buildExecutiveItems(alerts, actions), [actions, alerts])
+  const itemPreview = items.slice(0, 12)
 
   return (
     <div className="space-y-mx-md">
@@ -226,13 +232,13 @@ export function OwnerDecisionCenter({
       </div>
 
       <div className="space-y-mx-md">
-        {items.length === 0 ? (
+        {itemPreview.length === 0 ? (
           <Card className="rounded-mx-2xl border border-border-subtle bg-white p-mx-xl text-center shadow-mx-sm">
             <CheckCircle2 size={32} className="mx-auto text-status-success" />
             <Typography variant="h3" className="mt-mx-sm text-xl font-black">Fila executiva tratada</Typography>
             <Typography variant="p" tone="muted" className="mt-mx-xs font-bold">Não há decisões prioritárias neste recorte.</Typography>
           </Card>
-        ) : items.map(item => {
+        ) : itemPreview.map(item => {
           const classes = toneClasses[item.tone]
           const expanded = expandedId === item.id
           return (
