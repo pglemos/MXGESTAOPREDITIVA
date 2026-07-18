@@ -1,0 +1,41 @@
+name: Diagnostic Unit Parity
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: https://example.supabase.co
+      VITE_SUPABASE_ANON_KEY: test-anon-key
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.14'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm install --legacy-peer-deps
+      - name: Run tests and preserve complete output
+        id: tests
+        shell: bash
+        run: |
+          set +e
+          npm test > unit-test.log 2>&1
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          tail -n 250 unit-test.log
+          exit 0
+      - name: Upload complete unit test log
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-log
+          path: unit-test.log
+          retention-days: 1
+      - name: Fail after artifact upload
+        if: steps.tests.outputs.exit_code != '0'
+        run: exit 1
