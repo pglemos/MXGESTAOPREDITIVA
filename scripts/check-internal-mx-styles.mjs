@@ -1,7 +1,12 @@
 import { readFile, readdir } from 'node:fs/promises'
 
 const allowedHexFiles = new Set(['packages/mx-tokens/src/theme.css', 'packages/mx-tokens/src/tokens.json'])
-const roots = ['src/design-system/internal-mx', 'packages/mx-ui/src']
+const roots = [
+  'src/components/module',
+  'src/design-system/internal-mx',
+  'src/features/manager/shared',
+  'packages/mx-ui/src',
+]
 const files = []
 for (const root of roots) {
   for (const name of await readdir(root)) {
@@ -14,8 +19,11 @@ for (const file of files) {
   if (!allowedHexFiles.has(file) && /#[0-9a-f]{3,8}\b/i.test(content)) {
     throw new Error(`Cor hexadecimal fora dos tokens: ${file}`)
   }
+  if (/mxds-|mx-internal-workspace|!important/.test(content)) {
+    throw new Error(`Contrato visual legado encontrado: ${file}`)
+  }
   if (file.includes('packages/mx-ui') && /supabase|useAuth|react-router-dom/i.test(content)) {
     throw new Error(`Pacote UI acoplado ao produto: ${file}`)
   }
 }
-console.log(`OK: ${files.length} arquivos internos seguem os contratos de estilo e isolamento.`)
+console.log(`OK: ${files.length} arquivos seguem os contratos de estilo e isolamento.`)
