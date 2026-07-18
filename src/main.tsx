@@ -5,10 +5,6 @@ import { QueryProvider } from './components/providers/QueryProvider'
 import { PWAUpdater } from './components/PWAUpdater'
 import { initSentry, initWebVitals } from './lib/observability'
 import './index.css'
-import '../packages/mx-tokens/src/theme.css'
-import './design-system/internal-mx/internal-mx-frame.css'
-import './design-system/internal-mx/internal-mx-components.css'
-import './design-system/internal-mx/internal-mx-routes.css'
 
 initSentry()
 initWebVitals()
