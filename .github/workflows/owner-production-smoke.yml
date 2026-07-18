@@ -1,0 +1,58 @@
+name: Owner Production Smoke
+
+on:
+  push:
+    branches:
+      - ci/owner-production-smoke-20260718
+    paths:
+      - 'src/test/owner-production-smoke.playwright.ts'
+      - '.github/workflows/owner-production-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  owner-production-smoke:
+    name: Dono production matrix 1440/1024/768/390
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      VITE_APP_URL: https://mxperformance.com.br
+      PLAYWRIGHT_SKIP_WEB_SERVER: '1'
+      E2E_OWNER_EMAIL: dono@mxgestaopreditiva.com.br
+      E2E_ROLE_PASSWORD: ${{ secrets.E2E_ROLE_PASSWORD }}
+      E2E_AUTH_PASSWORD: ${{ secrets.E2E_AUTH_PASSWORD }}
+
+    steps:
+      - name: Checkout validation branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run authenticated production matrix
+        run: >
+          npx playwright test
+          src/test/owner-production-smoke.playwright.ts
+          --project=chromium
+          --workers=1
+
+      - name: Upload production evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owner-production-smoke
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14
