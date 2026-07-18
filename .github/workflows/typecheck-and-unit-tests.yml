@@ -53,18 +53,4 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
       - name: Unit tests (bun test)
-        shell: bash
-        run: |
-          set +e
-          npm test > /tmp/mx-unit-tests.log 2>&1
-          status=$?
-          tail -n 80 /tmp/mx-unit-tests.log
-          exit $status
-      - name: Upload diagnostic test log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: mx-unit-tests-diagnostic
-          path: /tmp/mx-unit-tests.log
-          if-no-files-found: error
-          retention-days: 1
+        run: npm test
