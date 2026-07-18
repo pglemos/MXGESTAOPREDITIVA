@@ -1,46 +1,50 @@
 import { test, expect, type Page, type TestInfo } from '@playwright/test'
 import { writeFileSync } from 'node:fs'
-import { getVisualAuthPassword } from '../../e2e/visual/helpers'
 
-const PASSWORD = process.env.E2E_ROLE_PASSWORD || getVisualAuthPassword()
+const VISUAL_STORE_ID = '11111111-1111-4111-8111-111111111111'
 
 const profiles = [
   {
     key: 'gerente',
-    email: process.env.E2E_MANAGER_EMAIL || 'gerente@mxgestaopreditiva.com.br',
+    email: 'visual-gerente@mxgestaopreditiva.com.br',
+    role: 'gerente',
     path: '/home',
     moduleLabel: 'Módulo Gerencial',
     roleLabel: 'Gerente',
+    storeId: VISUAL_STORE_ID,
   },
   {
     key: 'dono',
-    email: process.env.E2E_OWNER_EMAIL || 'dono@mxgestaopreditiva.com.br',
+    email: 'visual-dono@mxgestaopreditiva.com.br',
+    role: 'dono',
     path: '/lojas',
     moduleLabel: 'Módulo Executivo',
     roleLabel: 'Dono',
+    storeId: VISUAL_STORE_ID,
   },
   {
     key: 'administrador-geral',
-    email: process.env.E2E_ADMIN_EMAIL || 'synvollt@gmail.com',
+    email: 'visual-administrador-geral@mxgestaopreditiva.com.br',
+    role: 'administrador_geral',
     path: '/painel',
     moduleLabel: 'Módulo Administrativo',
     roleLabel: 'Administrador geral',
   },
   {
     key: 'administrador-mx',
-    email: process.env.E2E_ADMIN_EMAIL || 'synvollt@gmail.com',
+    email: 'visual-administrador-mx@mxgestaopreditiva.com.br',
+    role: 'administrador_mx',
     path: '/painel',
     moduleLabel: 'Módulo Admin MX',
     roleLabel: 'Administrador MX',
-    overrideRole: 'administrador_mx',
   },
   {
     key: 'consultor-mx',
-    email: process.env.E2E_ADMIN_EMAIL || 'synvollt@gmail.com',
+    email: 'visual-consultor-mx@mxgestaopreditiva.com.br',
+    role: 'consultor_mx',
     path: '/consultoria/clientes',
     moduleLabel: 'Módulo Consultoria',
     roleLabel: 'Consultor MX',
-    overrideRole: 'consultor_mx',
   },
 ] as const
 
@@ -78,44 +82,24 @@ type ShellMetrics = {
   horizontalOverflow: boolean
 }
 
-async function installRoleOverride(page: Page, profile: VisualProfile) {
-  if (!('overrideRole' in profile)) return
-
-  await page.route('**/rest/v1/usuarios*', async (route) => {
-    const response = await route.fetch()
-    const contentType = response.headers()['content-type'] || ''
-
-    if (!contentType.includes('application/json')) {
-      await route.fulfill({ response })
-      return
-    }
-
-    const payload = await response.json()
-    const rewriteRow = (row: unknown) => {
-      if (!row || typeof row !== 'object' || Array.isArray(row)) return row
-      const record = row as Record<string, unknown>
-      if (
-        typeof record.email === 'string' &&
-        record.email.toLowerCase() === profile.email.toLowerCase()
-      ) {
-        return { ...record, role: profile.overrideRole }
-      }
-      return row
-    }
-    const patchedPayload = Array.isArray(payload)
-      ? payload.map(rewriteRow)
-      : rewriteRow(payload)
-
-    await route.fulfill({ response, json: patchedPayload })
-  })
-}
-
-async function login(page: Page, email: string) {
-  await page.goto('/login', { waitUntil: 'domcontentloaded' })
-  await page.fill('input[type="email"]', email)
-  await page.fill('input[type="password"]', PASSWORD)
-  await page.click('button[type="submit"]')
-  await expect(page.locator('main#main-content')).toBeVisible({ timeout: 30_000 })
+async function installLocalVisualProfile(page: Page, profile: VisualProfile) {
+  await page.addInitScript(
+    ({ visualProfile, storageKey }) => {
+      window.localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          id: `visual-${visualProfile.key}`,
+          name: visualProfile.roleLabel,
+          email: visualProfile.email,
+          role: visualProfile.role,
+          store_id: 'storeId' in visualProfile ? visualProfile.storeId : undefined,
+          active: true,
+          created_at: '2026-07-18T00:00:00.000Z',
+        }),
+      )
+    },
+    { visualProfile: profile, storageKey: 'mx_auth_profile' },
+  )
 }
 
 async function visibleModuleLabel(page: Page) {
@@ -197,17 +181,13 @@ async function auditProfile(
   profile: VisualProfile,
   viewport: { width: number; height: number; name: string },
 ) {
-  const consoleErrors: string[] = []
-  page.on('console', (message) => {
-    if (message.type() === 'error') consoleErrors.push(message.text())
-  })
-  page.on('pageerror', (error) => consoleErrors.push(error.message))
+  const pageErrors: string[] = []
+  page.on('pageerror', (error) => pageErrors.push(error.message))
 
   await page.setViewportSize({ width: viewport.width, height: viewport.height })
-  await installRoleOverride(page, profile)
-  await login(page, profile.email)
-  await page.goto(profile.path, { waitUntil: 'networkidle' })
-  await expect(page.locator('main#main-content')).toBeVisible()
+  await installLocalVisualProfile(page, profile)
+  await page.goto(profile.path, { waitUntil: 'domcontentloaded' })
+  await expect(page.locator('main#main-content')).toBeVisible({ timeout: 30_000 })
 
   if (viewport.name === 'mobile') {
     await page.getByRole('button', { name: 'Abrir menu principal' }).click()
@@ -225,7 +205,7 @@ async function auditProfile(
   expect(metrics.forbiddenLegacyNodes).toBe(0)
   expect(metrics.horizontalOverflow).toBe(false)
   expect(metrics.logo).not.toBeNull()
-  expect(consoleErrors, `Erros de console em ${profile.key}/${viewport.name}`).toEqual([])
+  expect(pageErrors, `Erros de página em ${profile.key}/${viewport.name}`).toEqual([])
 
   if (viewport.name === 'desktop') {
     expect(metrics.sidebar).not.toBeNull()
@@ -253,7 +233,7 @@ async function auditProfile(
   return metrics
 }
 
-test.describe('paridade visual autenticada dos módulos MX', () => {
+test.describe('paridade visual isolada dos módulos MX', () => {
   test.describe.configure({ timeout: 240_000 })
 
   test('desktop usa a mesma anatomia visual do Gerente', async ({ browser }, testInfo) => {
