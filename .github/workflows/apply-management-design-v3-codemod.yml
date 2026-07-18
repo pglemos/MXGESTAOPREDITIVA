@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/apply-management-design-v3-codemod-v2.mjs'
+      - 'scripts/apply-management-shell-scope-fix.mjs'
       - '.github/workflows/apply-management-design-v3-codemod.yml'
   workflow_dispatch:
 
@@ -27,7 +28,9 @@ jobs:
           node-version: '24'
 
       - name: Apply idempotent visual migration
-        run: node scripts/apply-management-design-v3-codemod-v2.mjs
+        run: |
+          node scripts/apply-management-design-v3-codemod-v2.mjs
+          node scripts/apply-management-shell-scope-fix.mjs
 
       - name: Capture expanded source contract
         continue-on-error: true
@@ -45,6 +48,6 @@ jobs:
           fi
           git config user.name 'mx-design-system-bot'
           git config user.email 'actions@users.noreply.github.com'
-          git add src/features/lojas scripts/audit-management-design-system.mjs scripts/audit-management-design-system.test.mjs
-          git commit -m 'fix: remover legado visual de toda a árvore de lojas'
+          git add src/components/Layout.tsx src/features/lojas scripts/audit-management-design-system.mjs scripts/audit-management-design-system.test.mjs
+          git commit -m 'fix: aplicar escopo gerencial ao shell e remover legado visual'
           git push origin HEAD:${{ github.event.pull_request.head.ref || 'fix/remover-legado-design-system-v3' }}
