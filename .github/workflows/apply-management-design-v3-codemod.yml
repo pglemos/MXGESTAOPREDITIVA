@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'scripts/apply-management-design-v3-codemod.mjs'
+      - 'scripts/apply-management-design-v3-codemod-v2.mjs'
       - '.github/workflows/apply-management-design-v3-codemod.yml'
   workflow_dispatch:
 
@@ -27,7 +27,7 @@ jobs:
           node-version: '24'
 
       - name: Apply idempotent visual migration
-        run: node scripts/apply-management-design-v3-codemod.mjs
+        run: node scripts/apply-management-design-v3-codemod-v2.mjs
 
       - name: Verify expanded source contract
         run: node --test scripts/audit-management-design-system.test.mjs scripts/management-route-manifest.test.mjs
@@ -36,7 +36,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git checkout -- .github/workflows/module-design-system-authenticated-visual.yml
           if git diff --quiet; then
             echo 'No generated changes.'
             exit 0
