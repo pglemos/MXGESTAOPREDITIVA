@@ -36,10 +36,25 @@ jobs:
         run: npm ci
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      - name: Run authenticated module and route visual audits against current PR
+      - name: Run isolated five-profile visual matrix
         run: >
           npx playwright test
           src/test/module-design-system-authenticated-visual.playwright.ts
+          --project=chromium --workers=1
+      - name: Detect authenticated audit credentials
+        id: auth
+        shell: bash
+        run: |
+          if [[ -n "${E2E_ROLE_PASSWORD:-}" || -n "${E2E_AUTH_PASSWORD:-}" ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Authenticated route audit skipped because E2E_ROLE_PASSWORD/E2E_AUTH_PASSWORD is not configured. The isolated five-profile visual matrix and dedicated RLS/route-contract gates still run."
+          fi
+      - name: Run authenticated route visual audit
+        if: steps.auth.outputs.available == 'true'
+        run: >
+          npx playwright test
           src/test/module-route-visual-audit.playwright.ts
           --project=chromium --workers=1
       - name: Upload visual evidence
