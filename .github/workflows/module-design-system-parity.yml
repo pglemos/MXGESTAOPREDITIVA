@@ -25,7 +25,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: npm ci
       - name: Verify module design system parity
         run: bun test src/test/module-design-system-parity.test.ts src/components/MxSidebarShell.test.ts
