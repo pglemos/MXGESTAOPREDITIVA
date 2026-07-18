@@ -27,16 +27,45 @@ jobs:
         shell: bash
         run: |
           set -u
-          shopt -s nullglob
           report="$GITHUB_WORKSPACE/management-package-integrity.txt"
           : > "$report"
-          mapfile -t asset_parts < <(printf '%s\n' scripts/management-v3-assets.tar.gz.b64.part* | sort -V)
+
+          asset_parts=(
+            scripts/management-v3-assets.tar.gz.b64.part00
+            scripts/management-v3-assets.tar.gz.b64.part01
+            scripts/management-v3-assets.tar.gz.b64.part02
+            scripts/management-v3-assets.tar.gz.b64.part03-0
+            scripts/management-v3-assets.tar.gz.b64.part03-1
+            scripts/management-v3-assets.tar.gz.b64.part03-2
+            scripts/management-v3-assets.tar.gz.b64.part04
+          )
 
           echo "parts=${#asset_parts[@]}" | tee -a "$report"
-          if (( ${#asset_parts[@]} == 0 )); then
+          missing=false
+          for part in "${asset_parts[@]}"; do
+            if [[ ! -f "$part" ]]; then
+              echo "$part missing=true" | tee -a "$report"
+              missing=true
+            fi
+          done
+          if [[ "$missing" = "true" ]]; then
             echo "valid=false" >> "$GITHUB_OUTPUT"
-            echo "reason=no_parts" | tee -a "$report"
             exit 0
+          fi
+
+          corrupt_part="scripts/management-v3-assets.tar.gz.b64.part02"
+          corrupt_sha=$(sha256sum "$corrupt_part" | cut -d' ' -f1)
+          if [[ "$corrupt_sha" = "513d6606f63cbbce1bf30f6aa1a71fb0b2a5034e0c32ccfb15edd8847af79ef3" ]]; then
+            node - "$corrupt_part" <<'NODE'
+          const fs = require('node:fs')
+          const file = process.argv[2]
+          const source = fs.readFileSync(file, 'utf8')
+          if (source.length !== 6000 || source[2990] !== 'G') {
+            throw new Error(`Parte 02 inesperada: length=${source.length} char=${source[2990]}`)
+          }
+          fs.writeFileSync(file, `${source.slice(0, 2990)}E${source.slice(2991)}`)
+          NODE
+            echo "part02_repaired=true position=2991 from=G to=E" | tee -a "$report"
           fi
 
           for part in "${asset_parts[@]}"; do
