@@ -1,11 +1,20 @@
 import { expect, test, describe, afterEach } from "bun:test";
 import { render, screen, cleanup } from "@testing-library/react";
 import { EmptyState } from "@/components/atoms/EmptyState";
+import { ManagementVisualProvider } from "@/components/visual/ManagementVisualContext";
 import * as React from "react";
 
 afterEach(() => {
   cleanup();
 });
+
+function renderManager(ui: React.ReactElement) {
+  return render(
+    <ManagementVisualProvider mode="manager">
+      {ui}
+    </ManagementVisualProvider>
+  );
+}
 
 describe("EmptyState", () => {
   test("renders title", () => {
@@ -47,21 +56,21 @@ describe("EmptyState", () => {
     expect(screen.getByRole("button", { name: /add new item/i })).toBeDefined();
   });
 
-  test("applies sm size variant", () => {
-    const { container } = render(<EmptyState title="T" size="sm" />);
+  test("applies manager sm size variant", () => {
+    const { container } = renderManager(<EmptyState title="T" size="sm" />);
     const wrapper = container.firstElementChild!;
-    expect(wrapper.className).toContain("py-mx-md");
+    expect(wrapper.className).toContain("py-6");
   });
 
-  test("applies md size variant", () => {
-    const { container } = render(<EmptyState title="T" size="md" />);
+  test("applies manager md size variant", () => {
+    const { container } = renderManager(<EmptyState title="T" size="md" />);
     const wrapper = container.firstElementChild!;
-    expect(wrapper.className).toContain("py-mx-xl");
+    expect(wrapper.className).toContain("py-12");
   });
 
-  test("applies lg size variant", () => {
-    const { container } = render(<EmptyState title="T" size="lg" />);
+  test("applies manager lg size variant", () => {
+    const { container } = renderManager(<EmptyState title="T" size="lg" />);
     const wrapper = container.firstElementChild!;
-    expect(wrapper.className).toContain("py-mx-3xl");
+    expect(wrapper.className).toContain("py-24");
   });
 });

@@ -74,10 +74,10 @@ export function LojasHeader({
       />
 
       <MxToolbar aria-label="Busca e filtros de lojas">
-        <div className="relative min-w-0 flex-1 sm:max-w-mx-sidebar-expanded">
+        <div className="relative min-w-0 flex-1 sm:max-w-xs">
           <Search
             size={17}
-            className="pointer-events-none absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary"
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
             aria-hidden="true"
           />
           <label htmlFor="search-lojas" className="sr-only">
@@ -88,7 +88,7 @@ export function LojasHeader({
             placeholder="Localizar loja"
             value={searchTerm}
             onChange={(event) => onSearchChange(event.target.value)}
-            className="pl-mx-10"
+            className="pl-10"
           />
         </div>
 

@@ -42,15 +42,15 @@ function DataGridInner<T extends { id: string | number }>({
   emptyDescription,
   rowClassName,
   onRowClick,
-  minWidth = "min-w-mx-table",
+  minWidth = "min-w-[720px]",
   stickyHeader = true
 }: DataGridProps<T>) {
   
   if (loading) {
     return (
-      <div className="space-y-mx-sm animate-in fade-in duration-500">
+      <div className="space-y-4 animate-in fade-in duration-500">
         {[1, 2, 3, 4, 5].map((i) => (
-          <Skeleton key={i} className="h-mx-20 w-full rounded-mx-xl" />
+          <Skeleton key={i} className="h-20 w-full rounded-2xl" />
         ))}
       </div>
     )
@@ -58,8 +58,8 @@ function DataGridInner<T extends { id: string | number }>({
 
   if (!data || data.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center space-y-mx-md text-text-label">
-        <SearchX size={48} className="text-text-tertiary" />
+      <div className="flex flex-col items-center justify-center py-20 text-center space-y-6 text-gray-500">
+        <SearchX size={48} className="text-gray-500" />
         <Typography variant="caption" className="uppercase font-black tracking-widest max-w-xs mx-auto">
           {emptyMessage}
         </Typography>
@@ -81,13 +81,13 @@ function DataGridInner<T extends { id: string | number }>({
         </Typography>
         <table className={cn("w-full text-left border-collapse", minWidth)}>
           <thead className={cn(stickyHeader && "sticky top-0 z-20")}>
-            <tr className="bg-surface-alt/50 border-b border-border-default">
+            <tr className="bg-gray-50/50 border-b border-gray-100">
               {columns.filter(col => !col.mobileOnly).map((col) => (
                 <th 
                   key={col.key} 
                   scope="col" 
                   className={cn(
-                    "py-6 px-4 font-black uppercase tracking-mx-wider text-mx-micro text-text-tertiary",
+                    "py-6 px-4 font-black uppercase tracking-wider text-[9px] text-gray-500",
                     col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : 'text-left',
                     col.width
                   )}
@@ -108,7 +108,7 @@ function DataGridInner<T extends { id: string | number }>({
                   exit={{ opacity: 0, transition: { duration: 0.12 } }}
                   onClick={() => onRowClick?.(item)}
                   className={cn(
-                    "group transition-colors hover:bg-surface-alt/30 h-mx-20",
+                    "group transition-colors hover:bg-gray-50/30 h-20",
                     onRowClick && "cursor-pointer",
                     rowClassName
                   )}
@@ -117,7 +117,7 @@ function DataGridInner<T extends { id: string | number }>({
                     <td 
                       key={`${item.id}-${col.key}`} 
                       className={cn(
-                        "px-4 py-2 text-sm font-bold text-text-primary transition-all",
+                        "px-4 py-2 text-sm font-bold text-gray-800 transition-all",
                         col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : 'text-left'
                       )}
                     >
@@ -132,7 +132,7 @@ function DataGridInner<T extends { id: string | number }>({
       </div>
 
       {/* Mobile Card View */}
-      <MotionList className="md:hidden space-y-mx-md pb-mx-24">
+      <MotionList className="md:hidden space-y-6 pb-24">
         <AnimatePresence mode="popLayout">
           {data.map((item, idx) => (
             <MotionRow
@@ -143,16 +143,16 @@ function DataGridInner<T extends { id: string | number }>({
               onClick={() => onRowClick?.(item)}
             >
               <Card className={cn(
-                "p-mx-lg border-none shadow-mx-lg",
+                "p-8 border-none shadow-sm",
                 onRowClick && "active:scale-[0.98] transition-all"
               )}>
-                <div className="space-y-mx-md">
+                <div className="space-y-6">
                   {columns.filter(col => !col.desktopOnly).map((col, cIdx) => (
                     <div 
                       key={`${item.id}-mob-${col.key}`}
                       className={cn(
                         "flex flex-col gap-1",
-                        cIdx === 0 && "border-b border-border-default pb-4 mb-4"
+                        cIdx === 0 && "border-b border-gray-100 pb-4 mb-4"
                       )}
                     >
                       {cIdx > 0 && <Typography variant="tiny" tone="muted" className="uppercase font-black">{col.header}</Typography>}

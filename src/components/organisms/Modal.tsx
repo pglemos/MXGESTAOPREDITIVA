@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 
 const modalSizeVariants = cva(
-  "w-auto sm:w-full bg-white shadow-mx-lg rounded-mx-2xl sm:rounded-mx-3xl overflow-hidden flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)]",
+  "w-auto sm:w-full bg-white shadow-sm rounded-2xl sm:rounded-2xl overflow-hidden flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)]",
   {
     variants: {
       size: {
@@ -83,7 +83,7 @@ export function Modal({
           data-reference-overlay={referenceStyle ? "true" : undefined}
           className={cn(
             "fixed inset-0 z-[100]",
-            referenceStyle ? "bg-black/30" : "bg-mx-black/60 backdrop-blur-md",
+            referenceStyle ? "bg-black/30" : "bg-black/30 backdrop-blur-md",
           )}
         />
         <Dialog.Content
@@ -102,7 +102,7 @@ export function Modal({
           className={cn(
             referenceStyle
               ? "fixed left-4 right-4 top-1/2 -translate-y-1/2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-[101] focus:outline-none"
-              : "fixed left-mx-md right-mx-md top-mx-md bottom-mx-md sm:left-1/2 sm:right-auto sm:top-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 z-[101] focus:outline-none",
+              : "fixed left-6 right-6 top-6 bottom-6 sm:left-1/2 sm:right-auto sm:top-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 z-[101] focus:outline-none",
             referenceStyle
               ? `w-full max-h-[90vh] flex flex-col bg-white shadow-xl rounded-2xl ${referenceModalSizes[resolvedSize]}`
               : modalSizeVariants({ size: resolvedSize }),
@@ -110,10 +110,10 @@ export function Modal({
           )}
         >
           <div className={cn(
-            "border-b flex justify-between gap-mx-md bg-white z-10 shrink-0",
+            "border-b flex justify-between gap-6 bg-white z-10 shrink-0",
             referenceStyle
               ? "items-center border-gray-100 px-5 py-4"
-              : "items-start border-border-default p-mx-md sm:p-mx-lg",
+              : "items-start border-gray-100 p-6 sm:p-8",
           )}>
             <div className="min-w-0">
               <Dialog.Title asChild>
@@ -124,7 +124,7 @@ export function Modal({
                   {referenceStyle ? (
                     <p className="mt-0.5 text-sm text-gray-500">{description}</p>
                   ) : (
-                    <p className="mt-1 text-sm text-text-secondary">{description}</p>
+                    <p className="mt-1 text-sm text-gray-600">{description}</p>
                   )}
                 </Dialog.Description>
               )}
@@ -138,7 +138,7 @@ export function Modal({
                     "flex items-center justify-center transition-colors shrink-0",
                     referenceStyle
                       ? "h-5 w-5 !min-h-0 rounded-none bg-transparent p-0 text-gray-400 hover:text-gray-600"
-                      : "h-mx-xl w-mx-xl rounded-mx-xl bg-surface-alt",
+                      : "h-12 w-12 rounded-2xl bg-gray-50",
                   )}
                 >
                   <X size={referenceStyle ? 18 : 20} />
@@ -151,7 +151,7 @@ export function Modal({
             "min-h-0 flex-1 overflow-y-auto overscroll-contain",
             referenceStyle
               ? "p-5 [&_input]:!text-sm [&_select]:!text-sm [&_textarea]:!text-sm"
-              : "p-mx-md sm:p-mx-lg",
+              : "p-6 sm:p-8",
           )}>
             {children}
           </div>
@@ -162,7 +162,7 @@ export function Modal({
                 "border-t flex bg-white shrink-0",
                 referenceStyle
                   ? "flex-row justify-end gap-3 border-gray-100 px-5 py-4"
-                  : "flex-col-reverse gap-mx-sm border-border-default sm:flex-row sm:justify-end p-mx-md sm:p-mx-lg",
+                  : "flex-col-reverse gap-4 border-gray-100 sm:flex-row sm:justify-end p-6 sm:p-8",
               )}
               style={referenceStyle ? undefined : {
                 paddingBottom: "max(env(safe-area-inset-bottom, 0px), 1rem)",

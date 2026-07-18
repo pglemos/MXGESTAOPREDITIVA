@@ -12,17 +12,17 @@ export interface SkeletonCardProps {
  */
 export function SkeletonCard({ className, showAvatar = false, lines = 3 }: SkeletonCardProps) {
   return (
-    <div className={cn('rounded-mx-2xl border border-border-default/50 bg-surface-base p-mx-md space-y-mx-sm', className)}>
-      <div className="flex items-center gap-mx-sm">
+    <div className={cn('rounded-2xl border border-gray-100/50 bg-surface-base p-6 space-y-4', className)}>
+      <div className="flex items-center gap-4">
         {showAvatar && <Skeleton variant="avatar" />}
-        <div className="flex-1 space-y-mx-xs">
-          <Skeleton variant="text" className="h-mx-sm w-2/3" />
-          <Skeleton variant="text" className="h-mx-xs w-1/3" />
+        <div className="flex-1 space-y-2">
+          <Skeleton variant="text" className="h-4 w-2/3" />
+          <Skeleton variant="text" className="h-2 w-1/3" />
         </div>
       </div>
-      <div className="space-y-mx-xs pt-mx-xs">
+      <div className="space-y-2 pt-2">
         {Array.from({ length: lines }).map((_, i) => (
-          <Skeleton key={i} variant="text" className={cn('h-mx-xs', i === lines - 1 ? 'w-2/3' : 'w-full')} />
+          <Skeleton key={i} variant="text" className={cn('h-2', i === lines - 1 ? 'w-2/3' : 'w-full')} />
         ))}
       </div>
     </div>

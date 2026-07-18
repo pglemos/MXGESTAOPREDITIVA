@@ -36,7 +36,7 @@ export function CreateStoreModal({
       {isOpen && (
         <div
           ref={modalRef}
-          className="fixed inset-0 z-50 flex items-center justify-center p-mx-md bg-mx-black/60 backdrop-blur-md"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-950/60 backdrop-blur-md"
           role="dialog"
           aria-modal="true"
           aria-labelledby="create-store-title"
@@ -47,11 +47,11 @@ export function CreateStoreModal({
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="w-full max-w-lg"
           >
-            <Card className="p-mx-lg md:p-14 border-none shadow-mx-2xl bg-white overflow-hidden relative rounded-mx-3xl">
-              <form onSubmit={onSubmit} className="space-y-mx-xl relative z-10">
-                <header className="flex items-center justify-between border-b border-border-default pb-8">
-                  <div className="flex items-center gap-mx-sm">
-                    <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-indigo-50 flex items-center justify-center text-brand-primary border border-mx-indigo-100 shadow-inner shrink-0">
+            <Card className="p-6 md:p-14 border-none shadow-2xl bg-white overflow-hidden relative rounded-2xl">
+              <form onSubmit={onSubmit} className="space-y-8 relative z-10">
+                <header className="flex items-center justify-between border-b border-gray-200 pb-8">
+                  <div className="flex items-center gap-3">
+                    <div className="w-14 h-14 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100 shadow-inner shrink-0">
                       <Building2 size={28} />
                     </div>
                     <div>
@@ -61,7 +61,7 @@ export function CreateStoreModal({
                       <Typography
                         variant="caption"
                         tone="muted"
-                        className="mt-1 block uppercase tracking-mx-wide"
+                        className="mt-1 block uppercase tracking-wide"
                       >
                         Cadastro único da rede MX
                       </Typography>
@@ -71,20 +71,20 @@ export function CreateStoreModal({
                     variant="ghost"
                     size="sm"
                     onClick={onClose}
-                    className="rounded-mx-full w-mx-xl h-mx-xl bg-surface-alt hover:bg-white shadow-sm transition-all"
+                    className="rounded-full w-8 h-8 bg-gray-50 hover:bg-white shadow-sm transition-all"
                     aria-label="Fechar modal"
                   >
                     <X size={24} />
                   </Button>
                 </header>
 
-                <div className="space-y-mx-lg">
-                  <div className="space-y-mx-xs">
+                <div className="space-y-6">
+                  <div className="space-y-2">
                     <Typography
                       as="label"
                       htmlFor="store-name"
                       variant="caption"
-                      className="ml-2 font-black uppercase tracking-widest text-text-tertiary"
+                      className="ml-2 font-black uppercase tracking-widest text-gray-500"
                     >
                       Nome da Unidade
                     </Typography>
@@ -100,24 +100,24 @@ export function CreateStoreModal({
                       className="!h-14 !px-6 font-black uppercase tracking-widest"
                     />
                   </div>
-                  <div className="space-y-mx-xs">
+                  <div className="space-y-2">
                     <div className="flex justify-between items-center ml-2">
                       <Typography
                         as="label"
                         htmlFor="manager-email"
                         variant="caption"
-                        className="font-black uppercase tracking-widest text-text-tertiary"
+                        className="font-black uppercase tracking-widest text-gray-500"
                       >
                         E-mail do Gestor
                       </Typography>
-                      <Badge variant="outline" className="text-mx-micro font-black uppercase">
+                      <Badge variant="outline" className="text-[10px] font-black uppercase">
                         Opcional
                       </Badge>
                     </div>
                     <div className="relative group">
                       <Mail
                         size={18}
-                        className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-emerald-600 transition-colors"
                         aria-hidden="true"
                       />
                       <Input
@@ -135,11 +135,11 @@ export function CreateStoreModal({
                   </div>
                 </div>
 
-                <footer className="pt-10 flex justify-end border-t border-border-default">
+                <footer className="pt-10 flex justify-end border-t border-gray-200">
                   <Button
                     type="submit"
                     disabled={creating}
-                    className="w-full sm:w-auto h-mx-2xl px-12 rounded-mx-full shadow-mx-xl bg-brand-secondary font-black uppercase tracking-widest"
+                    className="w-full sm:w-auto h-12 px-12 rounded-full shadow-xl bg-gray-900 font-black uppercase tracking-widest"
                   >
                     {creating ? (
                       <RefreshCw className="animate-spin mr-2" aria-hidden="true" />

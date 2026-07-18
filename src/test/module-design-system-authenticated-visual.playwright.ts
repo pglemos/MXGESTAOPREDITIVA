@@ -206,9 +206,28 @@ async function collectMetrics(page: Page, profile: string, viewport: string): Pr
         : null,
       activeNavigationItems,
       currentNavigationItems,
-      forbiddenLegacyNodes: document.querySelectorAll(
-        '.mxds-page-frame, .mx-internal-workspace, [class*="mxds-"]',
-      ).length,
+      forbiddenLegacyNodes: Array.from(document.querySelectorAll<HTMLElement>('[class]'))
+        .flatMap((node) => (node.getAttribute('class') || '').split(/\s+/).filter(Boolean))
+        .filter((token) => {
+          if (token === 'mx-auto' || token === 'mx-manager-scope') return false
+          return (
+            token.includes('-mx-') ||
+            token.startsWith('rounded-mx-') ||
+            token.startsWith('shadow-mx-') ||
+            token.startsWith('text-text-') ||
+            token.startsWith('bg-surface-') ||
+            token.startsWith('border-border-') ||
+            token.includes('brand-primary') ||
+            token.includes('brand-secondary') ||
+            token.includes('pure-black') ||
+            token.includes('status-success') ||
+            token.includes('status-warning') ||
+            token.includes('status-error') ||
+            token.includes('status-info') ||
+            token.startsWith('mxds-') ||
+            token.startsWith('mx-internal-')
+          )
+        }).length,
       horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
     }
   }, { profile, viewport })
@@ -248,14 +267,12 @@ async function auditProfile(
   expect(metrics.activeNavigationItems).toBe(1)
   expect(metrics.currentNavigationItems).toBe(1)
 
-  if (profile.key !== 'gerente') {
-    expect(metrics.pageHeader).toMatchObject({
-      backgroundColor: 'rgb(255, 255, 255)',
-      borderRadius: '16px',
-    })
-    expect(metrics.pageHeader?.borderColor).not.toBe('rgba(0, 0, 0, 0)')
-    expect(metrics.pageHeader?.boxShadow).not.toBe('none')
-  }
+  expect(metrics.pageHeader).toMatchObject({
+    backgroundColor: 'rgb(255, 255, 255)',
+    borderRadius: viewport.name === 'mobile' ? '0px' : '16px',
+  })
+  expect(metrics.pageHeader?.borderColor).not.toBe('rgba(0, 0, 0, 0)')
+  expect(metrics.pageHeader?.boxShadow).not.toBe('none')
 
   expect(pageErrors, `Erros de página em ${profile.key}/${viewport.name}`).toEqual([])
 

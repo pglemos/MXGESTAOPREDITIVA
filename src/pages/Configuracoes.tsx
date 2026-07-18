@@ -70,12 +70,12 @@ export default function Configuracoes({ initialTab }: ConfiguracoesProps) {
     }
 
     return (
-        <main className="flex h-full w-full flex-col gap-mx-lg overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
+        <main className="flex h-full w-full flex-col gap-8 overflow-y-auto bg-gray-50 p-8 no-scrollbar">
             <PageHeading
                 title="Configurações"
                 subtitle={
-                    <div className="flex flex-wrap items-center gap-mx-sm">
-                        <Badge variant="brand" className="bg-brand-primary font-black uppercase text-white rounded-mx-lg">
+                    <div className="flex flex-wrap items-center gap-4">
+                        <Badge variant="brand" className="bg-emerald-600 font-black uppercase text-white rounded-2xl">
                             {role ? ROLE_LABELS[role] : 'Perfil'}
                         </Badge>
                         <Badge variant="outline" className="font-black uppercase">
@@ -90,11 +90,11 @@ export default function Configuracoes({ initialTab }: ConfiguracoesProps) {
                     </div>
                 }
                 actions={
-                    <div className="flex flex-wrap items-center gap-mx-sm">
+                    <div className="flex flex-wrap items-center gap-4">
                         <Button
                             variant="outline"
                             onClick={() => signOut()}
-                            className="h-mx-xl rounded-mx-lg border-status-error/30 bg-white px-5 text-status-error-strong hover:bg-status-error-surface"
+                            className="h-12 rounded-2xl border-red-600/30 bg-white px-5 text-red-700 hover:bg-red-50"
                         >
                             <LogOut size={16} className="mr-2" />
                             Encerrar Sessão
@@ -103,7 +103,7 @@ export default function Configuracoes({ initialTab }: ConfiguracoesProps) {
                 }
             />
 
-            <div className="grid min-h-0 grid-cols-1 gap-mx-lg xl:grid-cols-12">
+            <div className="grid min-h-0 grid-cols-1 gap-8 xl:grid-cols-12">
                 <aside className="xl:sticky xl:top-0 xl:col-span-3 xl:self-start">
                     <ConfigTabsNav
                         tabs={visibleTabs}
@@ -113,24 +113,24 @@ export default function Configuracoes({ initialTab }: ConfiguracoesProps) {
                     />
                 </aside>
 
-                <section className="min-w-0 space-y-mx-lg pb-32 xl:col-span-9">
-                    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
-                        <div className="flex flex-col gap-mx-md lg:flex-row lg:items-center lg:justify-between">
-                            <div className="flex items-start gap-mx-sm">
-                                <div className="flex h-mx-14 w-mx-14 shrink-0 items-center justify-center rounded-mx-lg border border-border-subtle bg-mx-indigo-50 text-brand-primary">
+                <section className="min-w-0 space-y-8 pb-32 xl:col-span-9">
+                    <Card className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                            <div className="flex items-start gap-4">
+                                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-gray-100 bg-indigo-50 text-emerald-600">
                                     <ActiveIcon size={26} />
                                 </div>
                                 <div className="min-w-0">
                                     <Typography variant="h2" className="uppercase tracking-tight">
                                         {activeDefinition.label}
                                     </Typography>
-                                    <Typography variant="caption" className="font-black uppercase tracking-mx-wide text-text-secondary">
+                                    <Typography variant="caption" className="font-black uppercase tracking-wide text-gray-600">
                                         {activeDefinition.description}
                                     </Typography>
                                 </div>
                             </div>
-                            <div className="flex flex-wrap items-center gap-mx-sm">
-                                <Badge variant={isReadOnly ? 'outline' : 'success'} className="bg-brand-primary font-black uppercase text-white rounded-mx-lg">
+                            <div className="flex flex-wrap items-center gap-4">
+                                <Badge variant={isReadOnly ? 'outline' : 'success'} className="bg-emerald-600 font-black uppercase text-white rounded-2xl">
                                     {isReadOnly ? 'Consulta segura' : 'Alterações habilitadas'}
                                 </Badge>
                                 <Badge variant="outline" className="font-black uppercase">
@@ -141,29 +141,29 @@ export default function Configuracoes({ initialTab }: ConfiguracoesProps) {
                         </div>
                     </Card>
 
-                    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
-                        <div className="grid grid-cols-1 gap-mx-sm md:grid-cols-3">
-                            <Button asChild variant={activeDefinition.key === 'perfil' ? 'secondary' : 'outline'} className="h-auto justify-start rounded-mx-lg px-mx-md py-mx-sm text-left">
+                    <Card className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <Button asChild variant={activeDefinition.key === 'perfil' ? 'secondary' : 'outline'} className="h-auto justify-start rounded-2xl px-6 py-4 text-left">
                                 <Link to="/configuracoes?aba=perfil">
                                     <Settings size={16} className="mr-2" />
                                     Minha conta
                                 </Link>
                             </Button>
-                            <Button asChild variant="outline" className="h-auto justify-start rounded-mx-lg px-mx-md py-mx-sm text-left">
+                            <Button asChild variant="outline" className="h-auto justify-start rounded-2xl px-6 py-4 text-left">
                                 <Link to="/lojas">
                                     <Building2 size={16} className="mr-2" />
                                     Lojas e equipe
                                 </Link>
                             </Button>
-                            <Button asChild variant="outline" className="h-auto justify-start rounded-mx-lg px-mx-md py-mx-sm text-left">
+                            <Button asChild variant="outline" className="h-auto justify-start rounded-2xl px-6 py-4 text-left">
                                 <Link to={role === 'dono' ? '/configuracoes?aba=operacional-loja' : '/configuracoes/operacional'}>
                                     <SlidersHorizontal size={16} className="mr-2" />
                                     Operação por loja
                                 </Link>
                             </Button>
                         </div>
-                        <div className="mt-mx-sm flex items-start gap-mx-xs rounded-mx-lg border border-border-subtle bg-surface-alt px-mx-md py-mx-sm">
-                            <FolderTree size={16} className="mt-mx-tiny shrink-0 text-brand-primary" aria-hidden="true" />
+                        <div className="mt-4 flex items-start gap-2 rounded-2xl border border-gray-100 bg-gray-50 px-6 py-4">
+                            <FolderTree size={16} className="mt-1 shrink-0 text-emerald-600" aria-hidden="true" />
                             <Typography variant="p" tone="muted" className="text-xs">
                                 Catálogos, treinamentos, produtos e PDI têm rotas próprias para uso diário; aqui ficam apenas regras, atalhos e governança.
                             </Typography>
@@ -171,24 +171,24 @@ export default function Configuracoes({ initialTab }: ConfiguracoesProps) {
                     </Card>
 
                     {role === 'dono' && (
-                        <Card className="rounded-mx-lg border border-status-info/20 bg-status-info-surface p-mx-md shadow-mx-sm">
-                            <div className="flex flex-col gap-mx-md lg:flex-row lg:items-start lg:justify-between">
+                        <Card className="rounded-2xl border border-blue-600/20 bg-blue-50 p-6 shadow-sm">
+                            <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                                 <div className="max-w-2xl">
-                                    <Typography variant="h3" className="uppercase tracking-tight text-status-info">
+                                    <Typography variant="h3" className="uppercase tracking-tight text-blue-600">
                                         Permissões do Dono
                                     </Typography>
-                                    <Typography variant="p" className="mt-mx-xs text-sm text-status-info">
+                                    <Typography variant="p" className="mt-2 text-sm text-blue-600">
                                         Seu perfil acompanha rede, lojas, equipe, PDI, produtos, devolutivas, notificações e parâmetros operacionais em modo de consulta. Alterações de cadastro, pré-cadastro, fonte de dados, metas e DRE são executadas pelo Admin MX para manter governança.
                                     </Typography>
                                 </div>
-                                <div className="grid w-full gap-mx-xs sm:w-auto sm:min-w-mx-64">
-                                    <Button asChild variant="outline" className="justify-start rounded-mx-lg bg-white">
+                                <div className="grid w-full gap-2 sm:w-auto sm:min-w-64">
+                                    <Button asChild variant="outline" className="justify-start rounded-2xl bg-white">
                                         <Link to="/lojas">
                                             <Building2 size={16} className="mr-2" />
                                             Ver minhas lojas
                                         </Link>
                                     </Button>
-                                    <Button asChild variant="outline" className="justify-start rounded-mx-lg bg-white">
+                                    <Button asChild variant="outline" className="justify-start rounded-2xl bg-white">
                                         <Link to="/notificacoes">
                                             <ShieldCheck size={16} className="mr-2" />
                                             Solicitar ajuste

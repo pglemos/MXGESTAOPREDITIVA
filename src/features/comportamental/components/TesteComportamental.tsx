@@ -39,10 +39,10 @@ export function TesteComportamental() {
   }
 
   return (
-    <div className="space-y-mx-lg">
-      <form onSubmit={handleAddQuestao} className="rounded-mx-xl border border-border-default bg-surface-alt p-mx-md">
+    <div className="space-y-8">
+      <form onSubmit={handleAddQuestao} className="rounded-2xl border border-gray-100 bg-gray-50 p-6">
         <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">Adicionar questão ao teste</Typography>
-        <div className="mt-mx-sm grid gap-mx-sm md:grid-cols-[1fr_200px_auto]">
+        <div className="mt-4 grid gap-4 md:grid-cols-[1fr_200px_auto]">
           <Input aria-label="Enunciado da questão" value={novaQuestao} onChange={e => setNovaQuestao(e.target.value)} placeholder="Enunciado da questão" />
           <Input aria-label="Dimensão da questão" value={novaDimensao} onChange={e => setNovaDimensao(e.target.value)} placeholder="Dimensão (ex.: disciplina)" />
           <Button type="submit" disabled={savingQ}><Plus size={16} className="mr-2" />{savingQ ? '…' : 'Add'}</Button>
@@ -50,28 +50,28 @@ export function TesteComportamental() {
       </form>
 
       {loading ? (
-        <p className="text-sm font-bold text-text-tertiary">Carregando questões…</p>
+        <p className="text-sm font-bold text-gray-500">Carregando questões…</p>
       ) : questoes.length === 0 ? (
         <EmptyState icon={<ClipboardCheck size={28} />} title="Nenhuma questão" description="Cadastre as questões do teste comportamental." />
       ) : (
-        <div className="space-y-mx-md">
+        <div className="space-y-6">
           <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">
             Aplicar teste (você responde como exemplo de onboarding) — escala 1 (discordo) a 5 (concordo)
           </Typography>
           {questoes.map((q, i) => (
-            <div key={q.id} className="rounded-mx-xl border border-border-default p-mx-md">
-              <div className="flex items-start gap-mx-sm">
-                <span className="text-xs font-black text-text-tertiary">{i + 1}.</span>
+            <div key={q.id} className="rounded-2xl border border-gray-100 p-6">
+              <div className="flex items-start gap-4">
+                <span className="text-xs font-black text-gray-500">{i + 1}.</span>
                 <div className="flex-1">
-                  <p className="font-bold text-text-primary">{q.texto}</p>
-                  <span className="text-xs font-black uppercase tracking-widest text-text-tertiary">{q.dimensao}</span>
-                  <div className="mt-mx-sm flex gap-mx-xs">
+                  <p className="font-bold text-gray-800">{q.texto}</p>
+                  <span className="text-xs font-black uppercase tracking-widest text-gray-500">{q.dimensao}</span>
+                  <div className="mt-4 flex gap-2">
                     {ESCALA.map(v => (
                       <button
                         key={v}
                         type="button"
                         onClick={() => setRespostas(p => ({ ...p, [q.id]: v }))}
-                        className={`h-9 w-9 rounded-mx-full text-sm font-black transition-colors ${respostas[q.id] === v ? 'bg-brand-primary text-white' : 'bg-surface-alt text-text-secondary hover:bg-border-default'}`}
+                        className={`h-9 w-9 rounded-full text-sm font-black transition-colors ${respostas[q.id] === v ? 'bg-emerald-600 text-white' : 'bg-gray-50 text-gray-600 hover:bg-border-default'}`}
                       >
                         {v}
                       </button>

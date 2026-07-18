@@ -20,7 +20,7 @@ export function StoresGridSection({
     : `${data.length} ${data.length === 1 ? 'loja encontrada' : 'lojas encontradas'}.`
 
   return (
-    <MxSectionCard className="pb-mx-20">
+    <MxSectionCard className="pb-20">
       <p className="sr-only" aria-live="polite" aria-atomic="true">
         {resultAnnouncement}
       </p>

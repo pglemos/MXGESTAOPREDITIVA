@@ -23,12 +23,12 @@ export function ConfirmationDialog({
   return (
     <AnimatePresence>
       {pendingConfirmation && (
-        <div className="fixed inset-0 z-[140] flex items-center justify-center p-mx-md" role="presentation">
+        <div className="fixed inset-0 z-[140] flex items-center justify-center p-4" role="presentation">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-mx-black/60 backdrop-blur-md"
+            className="absolute inset-0 bg-gray-950/60 backdrop-blur-md"
             onClick={() => onDismiss(pendingConfirmation.key)}
           />
           <motion.div
@@ -40,20 +40,20 @@ export function ConfirmationDialog({
             aria-modal="true"
             aria-labelledby="team-confirm-title"
             aria-describedby="team-confirm-description"
-            className="relative z-10 w-full max-w-md rounded-mx-3xl border border-border-default bg-white p-mx-xl shadow-mx-elite"
+            className="relative z-10 w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-xl"
           >
-            <Typography id="team-confirm-title" variant="h2" className="font-black uppercase tracking-tight text-text-primary">
+            <Typography id="team-confirm-title" variant="h2" className="font-black uppercase tracking-tight text-gray-800">
               {pendingConfirmation.title}
             </Typography>
-            <Typography id="team-confirm-description" variant="caption" tone="muted" className="mt-mx-sm block font-bold leading-relaxed">
+            <Typography id="team-confirm-description" variant="caption" tone="muted" className="mt-3 block font-bold leading-relaxed">
               {pendingConfirmation.description}
             </Typography>
-            <div className="mt-mx-xl flex flex-col-reverse sm:flex-row gap-mx-sm sm:justify-end">
+            <div className="mt-8 flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onDismiss(pendingConfirmation.key)}
-                className="h-mx-12 rounded-mx-xl font-black uppercase tracking-widest text-mx-nano"
+                className="h-12 rounded-xl font-black uppercase tracking-widest text-[9px]"
               >
                 Cancelar
               </Button>
@@ -65,7 +65,7 @@ export function ConfirmationDialog({
                   onDismiss(pendingConfirmation.key)
                   action()
                 }}
-                className="h-mx-12 rounded-mx-xl font-black uppercase tracking-widest text-mx-nano"
+                className="h-12 rounded-xl font-black uppercase tracking-widest text-[9px]"
               >
                 {pendingConfirmation.label}
               </Button>

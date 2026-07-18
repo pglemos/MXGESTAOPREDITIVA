@@ -70,7 +70,7 @@ export default function SellerPerformance() {
             render: (_row, index) => (
                 <span className={cn(
                     "font-black tabular-nums",
-                    index === 0 ? "text-status-warning" : "text-text-tertiary"
+                    index === 0 ? "text-amber-600" : "text-gray-500"
                 )}>
                     {index + 1}
                 </span>
@@ -80,32 +80,32 @@ export default function SellerPerformance() {
             key: 'user_name',
             header: 'ESPECIALISTA',
             render: (r) => (
-                <div className="flex items-center gap-mx-sm">
+                <div className="flex items-center gap-4">
                     <Avatar
                         src={r.avatar_url || undefined}
                         alt={`Avatar de ${r.user_name}`}
                         fallback={r.user_name}
                         size="sm"
                         className={cn(
-                            "rounded-mx-lg",
-                            r.is_venda_loja ? "bg-brand-primary text-white border-brand-primary" : "bg-surface-alt text-text-primary border-border-default",
+                            "rounded-2xl",
+                            r.is_venda_loja ? "bg-emerald-600 text-white border-emerald-600" : "bg-gray-50 text-gray-800 border-gray-100",
                         )}
                     />
                     <div className="min-w-0">
                         <Typography variant="h3" className="text-sm uppercase font-black truncate">{r.user_name}</Typography>
-                        <Typography variant="tiny" tone="muted" className="text-mx-nano font-black uppercase">{r.store_name}</Typography>
+                        <Typography variant="tiny" tone="muted" className="text-[8px] font-black uppercase">{r.store_name}</Typography>
                     </div>
                 </div>
             )
         },
-        { key: 'vnd_total', header: 'VENDAS', align: 'center', render: (r) => <span className="font-black text-lg font-mono-numbers">{r.vnd_total}</span> },
-        { key: 'atingimento', header: '% META', align: 'center', render: (r) => <Badge variant={r.atingimento >= 100 ? 'success' : 'outline'} className="font-mono-numbers font-black">{r.atingimento}%</Badge> },
+        { key: 'vnd_total', header: 'VENDAS', align: 'center', render: (r) => <span className="font-black text-lg font-mono tabular-nums">{r.vnd_total}</span> },
+        { key: 'atingimento', header: '% META', align: 'center', render: (r) => <Badge variant={r.atingimento >= 100 ? 'success' : 'outline'} className="font-mono tabular-nums font-black">{r.atingimento}%</Badge> },
         {
             key: 'actions',
             header: '',
             align: 'right',
             render: (r) => (
-                <Button size="icon" variant="ghost" onClick={() => navigate(`/relatorios/performance-vendedor?id=${r.user_id}`)} className="text-text-tertiary hover:text-brand-primary">
+                <Button size="icon" variant="ghost" onClick={() => navigate(`/relatorios/performance-vendedor?id=${r.user_id}`)} className="text-gray-500 hover:text-emerald-600">
                     <TrendingUp size={18} />
                 </Button>
             )
@@ -113,9 +113,9 @@ export default function SellerPerformance() {
     ], [navigate])
 
     if (loading && ranking.length === 0) return (
-        <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
+        <main className="h-full w-full overflow-y-auto bg-gray-50 p-8 no-scrollbar">
             <div className="flex h-full w-full flex-col items-center justify-center">
-                <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
+                <RefreshCw className="w-12 h-12 animate-spin text-emerald-600 mb-6" />
                 <Typography variant="caption" tone="muted" className="animate-pulse">Consolidando Performance...</Typography>
             </div>
         </main>
@@ -123,22 +123,22 @@ export default function SellerPerformance() {
 
     if (sellerId && !seller) {
         return (
-<main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
-                <Card className="p-mx-xl border-none shadow-mx-xl bg-white text-center space-y-mx-lg">
-                    <div className="w-mx-20 h-mx-20 rounded-mx-2xl bg-surface-alt border border-border-default flex items-center justify-center mx-auto text-text-tertiary">
+<main className="h-full w-full overflow-y-auto bg-gray-50 p-8 no-scrollbar">
+                <Card className="p-12 border-none shadow-sm bg-white text-center space-y-8">
+                    <div className="w-20 h-20 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center mx-auto text-gray-500">
                         <Search size={34} />
                     </div>
-                    <div className="space-y-mx-xs">
+                    <div className="space-y-2">
                         <Typography variant="h2" className="uppercase tracking-tight">Vendedor não localizado</Typography>
                         <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">
                             O identificador informado não está disponível no ranking consolidado atual.
                         </Typography>
                     </div>
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-mx-sm">
-                        <Button variant="outline" onClick={() => navigate('/relatorios/performance-vendedor')} className="h-mx-xl rounded-mx-full font-black uppercase tracking-widest">
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <Button variant="outline" onClick={() => navigate('/relatorios/performance-vendedor')} className="h-12 rounded-full font-black uppercase tracking-widest">
                             Ver lista de vendedores
                         </Button>
-                        <Button onClick={handleRefresh} disabled={isRefetching} className="h-mx-xl rounded-mx-full font-black uppercase tracking-widest">
+                        <Button onClick={handleRefresh} disabled={isRefetching} className="h-12 rounded-full font-black uppercase tracking-widest">
                             {isRefetching ? <RefreshCw size={16} className="mr-2 animate-spin" /> : <RefreshCw size={16} className="mr-2" />}
                             Atualizar dados
                         </Button>
@@ -150,50 +150,50 @@ export default function SellerPerformance() {
 
     if (sellerId && seller) {
         return (
-<main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
-                <header className="flex flex-col md:flex-row md:items-center justify-between gap-mx-md bg-mx-black p-mx-lg rounded-mx-2xl shadow-mx-xl relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-mx-matrix opacity-20" />
-                    <div className="relative z-10 flex flex-col gap-mx-tiny">
-                        <div className="flex items-center gap-mx-sm">
+<main className="h-full w-full overflow-y-auto bg-gray-50 p-8 no-scrollbar">
+                <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gray-900 p-8 rounded-2xl shadow-sm relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.14)_1px,transparent_1px)] [background-size:16px_16px] opacity-20" />
+                    <div className="relative z-10 flex flex-col gap-1">
+                        <div className="flex items-center gap-4">
                             <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-white hover:bg-white/10 mr-2">
                                 <ArrowLeft size={20} />
                             </Button>
-                            <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" />
-                            <Typography variant="h1" tone="white" className="text-2xl sm:text-4xl uppercase tracking-tighter">Ficha de <span className="text-brand-primary">Performance</span></Typography>
+                            <div className="w-2 h-10 bg-emerald-600 rounded-full shadow-sm" />
+                            <Typography variant="h1" tone="white" className="text-2xl sm:text-4xl uppercase tracking-tighter">Ficha de <span className="text-emerald-600">Performance</span></Typography>
                         </div>
-                        <Typography variant="caption" tone="white" className="opacity-50 font-black uppercase tracking-mx-widest text-mx-tiny ml-12">Detalhamento Individual do Especialista</Typography>
+                        <Typography variant="caption" tone="white" className="opacity-50 font-black uppercase tracking-widest text-[10px] ml-12">Detalhamento Individual do Especialista</Typography>
                     </div>
 
-                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefetching} className="w-mx-12 h-mx-12 rounded-mx-xl shadow-mx-sm bg-white/5 border-white/10 text-white relative z-10" aria-label="Atualizar">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefetching} className="w-12 h-12 rounded-2xl shadow-sm bg-white/5 border-white/10 text-white relative z-10" aria-label="Atualizar">
                         <RefreshCw size={18} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                 </header>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-mx-lg">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     {/* Perfil e Radar */}
-                    <Card className="lg:col-span-4 p-mx-xl bg-mx-black text-white border-none shadow-mx-xl relative overflow-hidden flex flex-col items-center">
-                        <div className="absolute top-mx-0 right-mx-0 w-mx-64 h-mx-64 bg-brand-primary/10 rounded-mx-full blur-3xl -mr-20 -mt-20" />
+                    <Card className="lg:col-span-4 p-12 bg-gray-900 text-white border-none shadow-sm relative overflow-hidden flex flex-col items-center">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-600/10 rounded-full blur-3xl -mr-20 -mt-20" />
                         
                         <div className="relative mb-6">
-                            <div className="w-mx-40 h-mx-40 rounded-full p-mx-tiny bg-gradient-to-br from-brand-primary to-transparent shadow-mx-glow-brand">
+                            <div className="w-40 h-40 rounded-full p-1 bg-gradient-to-br from-emerald-600 to-transparent shadow-sm">
                                 <Avatar
                                     src={seller.avatar_url || undefined}
                                     alt={`Avatar de ${seller.user_name}`}
                                     fallback={seller.user_name}
-                                    className="w-full h-full rounded-full border-4 border-mx-black"
+                                    className="w-full h-full rounded-full border-4 border-gray-900"
                                 />
                             </div>
-                            <div className="absolute -bottom-2 -right-2 w-mx-12 h-mx-12 bg-mx-black rounded-full flex items-center justify-center border-2 border-brand-primary text-brand-primary font-black text-lg shadow-xl">
+                            <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-gray-900 rounded-full flex items-center justify-center border-2 border-emerald-600 text-emerald-600 font-black text-lg shadow-xl">
                                 {seller.position}º
                             </div>
                         </div>
 
                         <Typography variant="h2" tone="white" className="text-3xl uppercase font-black mb-1">{seller.user_name}</Typography>
-                        <Badge variant="outline" className="border-brand-primary/30 text-brand-primary bg-brand-primary/5 uppercase font-black tracking-widest text-mx-nano mb-8 px-4">
+                        <Badge variant="outline" className="border-emerald-600/30 text-emerald-600 bg-emerald-600/5 uppercase font-black tracking-widest text-[8px] mb-8 px-4">
                             {seller.store_name}
                         </Badge>
 
-                        <div className="w-full h-mx-80 mb-8">
+                        <div className="w-full h-80 mb-8">
                             <ResponsiveContainer width="100%" height="100%">
                                 <RadarChart cx="50%" cy="50%" outerRadius="80%" data={attributes}>
                                     <PolarGrid stroke="rgba(255,255,255,0.1)" />
@@ -203,62 +203,62 @@ export default function SellerPerformance() {
                             </ResponsiveContainer>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-mx-sm w-full mt-auto">
-                            <div className="bg-white/5 p-mx-lg rounded-2xl border border-white/5 text-center">
+                        <div className="grid grid-cols-2 gap-4 w-full mt-auto">
+                            <div className="bg-white/5 p-8 rounded-2xl border border-white/5 text-center">
                                 <Typography variant="tiny" tone="muted" className="uppercase font-black mb-1">Atingimento</Typography>
-                                <Typography variant="h2" className="text-3xl font-mono-numbers">{seller.atingimento}%</Typography>
+                                <Typography variant="h2" className="text-3xl font-mono tabular-nums">{seller.atingimento}%</Typography>
                             </div>
-                            <div className="bg-white/5 p-mx-lg rounded-2xl border border-white/5 text-center">
+                            <div className="bg-white/5 p-8 rounded-2xl border border-white/5 text-center">
                                 <Typography variant="tiny" tone="muted" className="uppercase font-black mb-1">Ritmo Atual</Typography>
-                                <Typography variant="h2" className="text-3xl font-mono-numbers">{seller.ritmo} v/d</Typography>
+                                <Typography variant="h2" className="text-3xl font-mono tabular-nums">{seller.ritmo} v/d</Typography>
                             </div>
                         </div>
                     </Card>
 
                     {/* Indicadores Detalhados */}
-                    <div className="lg:col-span-8 space-y-mx-lg">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-lg">
+                    <div className="lg:col-span-8 space-y-8">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             {[
-                                { label: 'Vendas Totais', value: seller.vnd_total, icon: Zap, color: 'text-status-success' },
-                                { label: 'Leads Captados', value: seller.leads, icon: Phone, color: 'text-status-info' },
-                                { label: 'Agendamentos', value: seller.agd_total, icon: Users, color: 'text-status-warning' },
+                                { label: 'Vendas Totais', value: seller.vnd_total, icon: Zap, color: 'text-emerald-600' },
+                                { label: 'Leads Captados', value: seller.leads, icon: Phone, color: 'text-blue-600' },
+                                { label: 'Agendamentos', value: seller.agd_total, icon: Users, color: 'text-amber-600' },
                             ].map((stat) => (
-                                <Card key={stat.label} className="p-mx-lg bg-white border-none shadow-mx-lg flex items-center gap-mx-md">
-                                    <div className="w-mx-16 h-mx-14 rounded-mx-2xl bg-surface-alt flex items-center justify-center border border-border-default shrink-0">
+                                <Card key={stat.label} className="p-8 bg-white border-none shadow-sm flex items-center gap-6">
+                                    <div className="w-16 h-14 rounded-2xl bg-gray-50 flex items-center justify-center border border-gray-100 shrink-0">
                                         <stat.icon className={stat.color} size={28} />
                                     </div>
                                     <div>
                                         <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-widest">{stat.label}</Typography>
-                                        <Typography variant="h2" className="text-3xl font-mono-numbers leading-none mt-1">{stat.value}</Typography>
+                                        <Typography variant="h2" className="text-3xl font-mono tabular-nums leading-none mt-1">{stat.value}</Typography>
                                     </div>
                                 </Card>
                             ))}
                         </div>
 
-                        <Card className="p-mx-xl bg-white border-none shadow-mx-xl min-h-mx-96">
+                        <Card className="p-12 bg-white border-none shadow-sm min-h-96">
                             <header className="flex items-center justify-between mb-10">
-                                <div className="space-y-mx-tiny">
+                                <div className="space-y-1">
                                     <Typography variant="h3" className="uppercase font-black">Histórico de Performance</Typography>
                                     <Typography variant="tiny" tone="muted" className="uppercase font-bold tracking-widest">Evolução Mensal das Metas</Typography>
                                 </div>
-                                <div className="flex items-center gap-mx-sm">
-                                    <div className="flex items-center gap-mx-xs">
-                                        <div className="w-mx-xs h-mx-xs rounded-full bg-brand-primary" />
-                                        <span className="text-mx-nano font-black uppercase text-text-tertiary">Realizado</span>
+                                <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-emerald-600" />
+                                        <span className="text-[8px] font-black uppercase text-gray-500">Realizado</span>
                                     </div>
-                                    <div className="flex items-center gap-mx-xs">
-                                        <div className="w-mx-xs h-mx-xs rounded-full bg-surface-alt border border-border-default" />
-                                        <span className="text-mx-nano font-black uppercase text-text-tertiary">Meta</span>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-gray-50 border border-gray-100" />
+                                        <span className="text-[8px] font-black uppercase text-gray-500">Meta</span>
                                     </div>
                                 </div>
                             </header>
 
-                            <div className="h-mx-80">
+                            <div className="h-80">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={[{ name: 'Mês Atual', sales: seller.vnd_total, goal: seller.meta }]}>
                                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--color-text-tertiary)', fontWeight: 900, fontSize: 10 }} />
                                         <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--color-text-tertiary)', fontWeight: 900, fontSize: 10 }} />
-                                        <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ backgroundColor: 'var(--color-mx-black)', borderRadius: 'var(--radius-mx-lg)', border: 'none', color: 'var(--color-chart-dot-stroke)' }} />
+                                        <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ backgroundColor: 'var(--color-gray-900)', borderRadius: '1rem', border: 'none', color: 'var(--color-chart-dot-stroke)' }} />
                                         <Bar dataKey="sales" fill="var(--color-brand-primary)" radius={[4, 4, 0, 0]} barSize={40} />
                                         <Bar dataKey="goal" fill="var(--color-surface-alt)" radius={[4, 4, 0, 0]} barSize={40} />
                                     </BarChart>
@@ -266,21 +266,21 @@ export default function SellerPerformance() {
                             </div>
                         </Card>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
-                             <Card className="p-mx-lg bg-status-success-surface border border-status-success/10 shadow-mx-lg">
-                                <div className="flex items-center gap-mx-md">
-                                    <div className="w-mx-12 h-mx-12 rounded-mx-xl bg-white flex items-center justify-center text-status-success shadow-mx-sm"><CheckCircle2 size={24} /></div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                             <Card className="p-8 bg-emerald-50 border border-emerald-600/10 shadow-sm">
+                                <div className="flex items-center gap-6">
+                                    <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-emerald-600 shadow-sm"><CheckCircle2 size={24} /></div>
                                     <div>
-                                        <Typography variant="tiny" className="uppercase font-black text-status-success">Meta Individual</Typography>
+                                        <Typography variant="tiny" className="uppercase font-black text-emerald-600">Meta Individual</Typography>
                                         <Typography variant="h2" className="text-2xl font-black">{seller.meta} Vendas</Typography>
                                     </div>
                                 </div>
                              </Card>
-                             <Card className="p-mx-lg bg-mx-black border border-white/5 shadow-mx-lg">
-                                <div className="flex items-center gap-mx-md">
-                                    <div className="w-mx-12 h-mx-12 rounded-mx-xl bg-white/5 flex items-center justify-center text-brand-primary shadow-mx-sm"><Activity size={24} /></div>
+                             <Card className="p-8 bg-gray-900 border border-white/5 shadow-sm">
+                                <div className="flex items-center gap-6">
+                                    <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-emerald-600 shadow-sm"><Activity size={24} /></div>
                                     <div>
-                                        <Typography variant="tiny" className="uppercase font-black text-brand-primary">Eficiência de Conversão</Typography>
+                                        <Typography variant="tiny" className="uppercase font-black text-emerald-600">Eficiência de Conversão</Typography>
                                         <Typography variant="h2" tone="white" className="text-2xl font-black">
                                             {seller.leads > 0 ? ((seller.vnd_total / seller.leads) * 100).toFixed(1) : 0}%
                                         </Typography>
@@ -296,37 +296,37 @@ export default function SellerPerformance() {
 
     // Fallback: If no seller ID or seller not found, show the ranking (as it was before)
     return (
-<main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
-            <header className="flex flex-col md:flex-row md:items-center justify-between gap-mx-md bg-mx-black p-mx-lg rounded-mx-2xl shadow-mx-xl relative overflow-hidden group">
-                <div className="absolute inset-0 bg-mx-matrix opacity-20" />
-                <div className="relative z-10 flex flex-col gap-mx-tiny">
-                    <div className="flex items-center gap-mx-sm">
-                        <div className="w-mx-xs h-mx-10 bg-brand-primary rounded-mx-full shadow-mx-md" />
-                        <Typography variant="h1" tone="white" className="text-2xl sm:text-4xl uppercase tracking-tighter">Performance <span className="text-brand-primary">Geral</span></Typography>
+<main className="h-full w-full overflow-y-auto bg-gray-50 p-8 no-scrollbar">
+            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gray-900 p-8 rounded-2xl shadow-sm relative overflow-hidden group">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.14)_1px,transparent_1px)] [background-size:16px_16px] opacity-20" />
+                <div className="relative z-10 flex flex-col gap-1">
+                    <div className="flex items-center gap-4">
+                        <div className="w-2 h-10 bg-emerald-600 rounded-full shadow-sm" />
+                        <Typography variant="h1" tone="white" className="text-2xl sm:text-4xl uppercase tracking-tighter">Performance <span className="text-emerald-600">Geral</span></Typography>
                     </div>
-                    <Typography variant="caption" tone="white" className="opacity-50 font-black uppercase tracking-mx-widest text-mx-tiny">Terminal de Auditoria de Vendedores</Typography>
+                    <Typography variant="caption" tone="white" className="opacity-50 font-black uppercase tracking-widest text-[10px]">Terminal de Auditoria de Vendedores</Typography>
                 </div>
 
-                <div className="flex items-center gap-mx-sm relative z-10">
-                    <div className="relative group w-full md:w-mx-sidebar-expanded">
-                        <Search size={14} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
+                <div className="flex items-center gap-4 relative z-10">
+                    <div className="relative group w-full md:w-72">
+                        <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
                         <Input 
                             id="search-seller-list"
                             name="search-seller-list"
                             placeholder="BUSCAR NOME..." 
                             value={search} 
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)} 
-                            className="!pl-10 !h-12 text-mx-tiny font-black uppercase bg-white/5 border-white/10 text-white" 
+                            className="!pl-10 !h-12 text-[10px] font-black uppercase bg-white/5 border-white/10 text-white" 
                         />
                     </div>
-                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefetching} className="w-mx-12 h-mx-12 rounded-mx-xl shadow-mx-sm bg-white/5 border-white/10 text-white" aria-label="Atualizar">
+                    <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefetching} className="w-12 h-12 rounded-2xl shadow-sm bg-white/5 border-white/10 text-white" aria-label="Atualizar">
                         <RefreshCw size={18} className={cn(isRefetching && "animate-spin")} />
                     </Button>
                 </div>
             </header>
 
-            <div className="grid grid-cols-1 xl:grid-cols-12 gap-mx-lg">
-                <Card className="xl:col-span-8 border-none shadow-mx-xl bg-white overflow-hidden p-mx-0">
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+                <Card className="xl:col-span-8 border-none shadow-sm bg-white overflow-hidden p-0">
                     <DataGrid 
                         columns={columns} 
                         data={filteredRanking} 
@@ -334,19 +334,19 @@ export default function SellerPerformance() {
                     />
                 </Card>
 
-                <aside className="xl:col-span-4 space-y-mx-lg">
-                    <Card className="p-mx-lg bg-brand-secondary text-white border-none shadow-mx-xl relative overflow-hidden">
-                        <div className="absolute top-mx-0 right-mx-0 w-mx-4xl h-mx-4xl bg-brand-primary/20 rounded-mx-full blur-3xl -mr-16 -mt-16" />
-                        <header className="flex items-center gap-mx-sm mb-8 relative z-10">
-                            <Trophy size={20} className="text-status-warning" />
+                <aside className="xl:col-span-4 space-y-8">
+                    <Card className="p-8 bg-gray-900 text-white border-none shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-600/20 rounded-full blur-3xl -mr-16 -mt-16" />
+                        <header className="flex items-center gap-4 mb-8 relative z-10">
+                            <Trophy size={20} className="text-amber-600" />
                             <Typography variant="h3" tone="white" className="uppercase font-black tracking-tight">Top Performance</Typography>
                         </header>
-                        <div className="h-mx-64 relative z-10" style={{ minHeight: '200px' }}>
+                        <div className="h-64 relative z-10" style={{ minHeight: '200px' }}>
                             <ResponsiveContainer width="100%" height="100%" minHeight={200}>
                                 <BarChart data={filteredRanking.slice(0, 5)} layout="vertical" margin={{ left: 0, right: 30, top: 0, bottom: 0 }}>
                                     <XAxis type="number" hide />
                                     <YAxis dataKey="user_name" type="category" axisLine={false} tickLine={false} tick={{ fill: 'var(--color-chart-dot-stroke)', fontWeight: 900, fontSize: 8 }} width={100} />
-                                    <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ backgroundColor: 'var(--color-mx-black)', borderRadius: 'var(--radius-mx-lg)', border: 'none', color: 'var(--color-chart-dot-stroke)', fontSize: '10px', fontWeight: 900 }} />
+                                    <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ backgroundColor: 'var(--color-gray-900)', borderRadius: '1rem', border: 'none', color: 'var(--color-chart-dot-stroke)', fontSize: '10px', fontWeight: 900 }} />
                                     <Bar dataKey="vnd_total" radius={[0, 4, 4, 0]} barSize={20}>
                                         {filteredRanking.slice(0, 5).map((_, i) => (
                                             <Cell key={i} fill={i === 0 ? 'var(--color-brand-primary)' : 'rgba(255,255,255,0.2)'} />
@@ -357,12 +357,12 @@ export default function SellerPerformance() {
                         </div>
                     </Card>
 
-                    <Card className="p-mx-lg border-none shadow-mx-lg bg-white relative overflow-hidden">
-                        <div className="absolute inset-0 bg-brand-primary opacity-[0.02]" />
+                    <Card className="p-8 border-none shadow-sm bg-white relative overflow-hidden">
+                        <div className="absolute inset-0 bg-emerald-600 opacity-[0.02]" />
                         <div className="relative z-10 text-center py-8">
-                            <BarChart3 className="mx-auto mb-6 text-brand-primary opacity-20" size={48} />
+                            <BarChart3 className="mx-auto mb-6 text-emerald-600 opacity-20" size={48} />
                             <Typography variant="h2" className="text-lg mb-2 uppercase tracking-tight font-black">Meta Global</Typography>
-                            <Typography variant="caption" tone="muted" className="text-mx-tiny font-black uppercase tracking-widest">PROGRESSÃO EM TEMPO REAL</Typography>
+                            <Typography variant="caption" tone="muted" className="text-[10px] font-black uppercase tracking-widest">PROGRESSÃO EM TEMPO REAL</Typography>
                         </div>
                     </Card>
                 </aside>

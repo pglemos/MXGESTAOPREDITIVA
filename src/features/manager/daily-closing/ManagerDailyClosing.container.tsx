@@ -519,7 +519,7 @@ export default function ManagerDailyClosing() {
 
         <section className="rounded-[16px] border border-gray-100 bg-white p-5 shadow-sm">
           <h2 className="flex items-center gap-2 text-base font-semibold text-gray-800">
-            <BarChart3 size={18} className="text-status-success" />
+            <BarChart3 size={18} className="text-emerald-600" />
             Comparativo de Disciplina do Fechamento
           </h2>
           <p className="mb-4 mt-0 text-xs text-gray-500">
@@ -1258,11 +1258,11 @@ function Empty({ text }: { text: string }) {
 }
 function ManagerClosingSkeleton() {
   return (
-    <main className="space-y-mx-lg bg-surface-alt p-mx-lg" aria-busy="true">
-      <Skeleton className="h-mx-20" />
-      <div className="grid grid-cols-1 gap-mx-md sm:grid-cols-2 xl:grid-cols-4">
+    <main className="space-y-8 bg-gray-50 p-8" aria-busy="true">
+      <Skeleton className="h-20" />
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, index) => (
-          <Skeleton key={index} className="h-mx-32" />
+          <Skeleton key={index} className="h-32" />
         ))}
       </div>
       <Skeleton className="h-[420px]" />

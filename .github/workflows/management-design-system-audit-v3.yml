@@ -1,0 +1,65 @@
+name: Management Design System Audit V3
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/components/**'
+      - 'src/design-system/**'
+      - 'src/features/lojas/**'
+      - 'src/pages/**'
+      - 'scripts/audit-management-design-system.mjs'
+      - 'scripts/audit-management-design-system.test.mjs'
+      - 'scripts/management-route-manifest.test.mjs'
+      - '.github/workflows/management-design-system-audit-v3.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Full management visual audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Run management design-system contracts
+        run: node --test scripts/management-route-manifest.test.mjs scripts/audit-management-design-system.test.mjs
+
+      - name: Write complete violation ledger
+        if: always()
+        run: node scripts/audit-management-design-system.mjs > management-design-system-ledger.json || true
+
+      - name: Assert empty violation ledger
+        run: |
+          node -e "const r=require('./management-design-system-ledger.json'); if(r.violations.length){console.error(JSON.stringify(r.violations.slice(0,50),null,2)); process.exit(1)}; console.log(JSON.stringify({entries:r.entries,auditedFiles:r.auditedFiles,violations:r.violations.length}))"
+
+      - name: Build source snapshot
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          snapshot_paths=(src package.json package-lock.json vite.config.ts playwright.config.ts tsconfig.json)
+          for optional in \
+            tailwind.config.js \
+            scripts/audit-management-design-system.mjs \
+            scripts/audit-management-design-system.test.mjs \
+            scripts/management-route-manifest.test.mjs; do
+            [[ -e "$optional" ]] && snapshot_paths+=("$optional")
+          done
+          tar -czf management-source-snapshot.tar.gz "${snapshot_paths[@]}"
+
+      - name: Upload audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: management-design-system-source-v3
+          path: |
+            management-source-snapshot.tar.gz
+            management-design-system-ledger.json
+          retention-days: 7

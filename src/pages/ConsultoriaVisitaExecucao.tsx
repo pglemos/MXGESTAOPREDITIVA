@@ -588,13 +588,13 @@ export default function ConsultoriaVisitaExecucao() {
     }
   }
 
-  if (clientLoading || methodologyLoading) return <div className="flex w-full items-center justify-center p-mx-20"><Loader2 className="w-mx-8 h-mx-8 animate-spin text-brand-primary" /></div>
+  if (clientLoading || methodologyLoading) return <div className="flex w-full items-center justify-center p-20"><Loader2 className="w-8 h-8 animate-spin text-emerald-600" /></div>
 
-  if (!client) return <div className="p-mx-20 text-center opacity-50"><Typography variant="h3">Cliente não localizado.</Typography></div>
+  if (!client) return <div className="p-20 text-center opacity-50"><Typography variant="h3">Cliente não localizado.</Typography></div>
 
   return (
-    <div className="w-full pb-mx-xl relative z-0">
-      <div className="fixed !-left-full top-mx-0 overflow-hidden pointer-events-none" aria-hidden="true">
+    <div className="w-full pb-12 relative z-0">
+      <div className="fixed !-left-full top-0 overflow-hidden pointer-events-none" aria-hidden="true">
          <div id="report-template-render">
             <VisitReportTemplate
               client={client}
@@ -631,58 +631,58 @@ export default function ConsultoriaVisitaExecucao() {
          </div>
       </div>
 
-      <div className="sticky top-mx-0 z-40 bg-surface-alt/80 backdrop-blur-xl px-mx-md py-mx-sm flex flex-col md:flex-row md:items-center justify-between gap-mx-sm mb-mx-md print:hidden border-b border-border-subtle shadow-mx-md transition-all">
-        <div className="flex items-center gap-mx-md">
-          <Link to={`/consultoria/clientes/${client?.slug}`} className="p-mx-xs border border-border-subtle rounded-mx-xl hover:bg-white hover:shadow-mx-md transition-all text-text-secondary bg-white/50 backdrop-blur-sm shadow-mx-sm group">
-            <ArrowLeft className="w-mx-5 h-mx-5 group-hover:-translate-x-1 transition-transform" />
+      <div className="sticky top-0 z-40 bg-gray-50/80 backdrop-blur-xl px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 print:hidden border-b border-gray-100 shadow-sm transition-all">
+        <div className="flex items-center gap-6">
+          <Link to={`/consultoria/clientes/${client?.slug}`} className="p-2 border border-gray-100 rounded-2xl hover:bg-white hover:shadow-sm transition-all text-gray-600 bg-white/50 backdrop-blur-sm shadow-sm group">
+            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
           </Link>
           <div>
-            <div className="flex items-center gap-mx-sm">
+            <div className="flex items-center gap-4">
                <Typography variant="h1" className="text-2xl font-black text-black tracking-tighter uppercase">{getPmrVisitDisplayLabel(visitNum)}</Typography>
                <div className={cn(
-                 "px-mx-sm py-0.5 rounded-mx-full text-mx-nano font-black tracking-mx-widest uppercase shadow-mx-sm border",
-                 visit?.status === 'concluida' ? "bg-status-success/10 text-status-success border-status-success/20" : "bg-mx-orange-500/10 text-mx-orange-600 border-mx-orange-200 animate-pulse"
+                 "px-4 py-0.5 rounded-full text-[8px] font-black tracking-widest uppercase shadow-sm border",
+                 visit?.status === 'concluida' ? "bg-emerald-600/10 text-emerald-600 border-emerald-600/20" : "bg-amber-500/10 text-amber-600 border-amber-200 animate-pulse"
                )}>
                  {visit?.status || 'EM ABERTO'}
                </div>
             </div>
-            <Typography variant="tiny" tone="muted" className="font-black tracking-mx-widest uppercase opacity-70 flex items-center gap-mx-xs mt-0.5">
-              <Target size={12} className="text-brand-primary" />
+            <Typography variant="tiny" tone="muted" className="font-black tracking-widest uppercase opacity-70 flex items-center gap-2 mt-0.5">
+              <Target size={12} className="text-emerald-600" />
               {step?.objective}
             </Typography>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-mx-sm w-full md:flex md:items-center md:w-auto">
-          <Button variant="outline" className="w-full md:w-auto h-mx-11 text-xs font-black bg-white shadow-mx-sm uppercase tracking-mx-widest px-mx-sm md:px-mx-md border-border-default hover:bg-surface-alt transition-all" onClick={() => handleSave(false)} loading={isSaving}>SALVAR</Button>
+        <div className="grid grid-cols-2 gap-4 w-full md:flex md:items-center md:w-auto">
+          <Button variant="outline" className="w-full md:w-auto h-11 text-xs font-black bg-white shadow-sm uppercase tracking-widest px-4 md:px-6 border-gray-100 hover:bg-gray-50 transition-all" onClick={() => handleSave(false)} loading={isSaving}>SALVAR</Button>
           <div className="relative min-w-0">
             <Button
               variant="primary"
-              className={cn("w-full md:w-auto h-mx-11 text-[10px] sm:text-xs font-black shadow-mx-lg transition-all uppercase tracking-mx-widest px-mx-sm md:px-mx-lg hover:translate-y-[-2px] active:translate-y-0", !hasRequiredEvidence ? "bg-status-error/20 text-status-error border-status-error/30" : "bg-gradient-to-r from-brand-primary to-brand-primary/80 border-none")}
+              className={cn("w-full md:w-auto h-11 text-[10px] sm:text-xs font-black shadow-sm transition-all uppercase tracking-widest px-4 md:px-8 hover:translate-y-[-2px] active:translate-y-0", !hasRequiredEvidence ? "bg-red-600/20 text-red-600 border-red-600/30" : "bg-gradient-to-r from-emerald-600 to-emerald-600/80 border-none")}
               onClick={() => handleSave(true)}
               loading={isSaving}
-              icon={!hasRequiredEvidence ? <AlertCircle className="w-mx-4 h-mx-4" /> : <CheckCircle2 className="w-mx-4 h-mx-4" />}
+              icon={!hasRequiredEvidence ? <AlertCircle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
             >
               CONCLUIR VISITA
             </Button>
             {!hasRequiredEvidence && step?.evidence_required && (
-              <span className="absolute -top-1 right-mx-0 flex h-mx-4 w-mx-4 animate-pulse">
-                <span className="relative inline-flex rounded-mx-full h-mx-4 w-mx-4 bg-status-error items-center justify-center text-mx-micro text-white font-black">!</span>
+              <span className="absolute -top-1 right-0 flex h-4 w-4 animate-pulse">
+                <span className="relative inline-flex rounded-full h-4 w-4 bg-red-600 items-center justify-center text-[9px] text-white font-black">!</span>
               </span>
             )}
           </div>
         </div>
       </div>
 
-      <div className="w-full px-mx-md lg:px-mx-xl grid grid-cols-1 lg:grid-cols-3 gap-mx-lg print:block print:p-0">
+      <div className="w-full px-6 lg:px-12 grid grid-cols-1 lg:grid-cols-3 gap-8 print:block print:p-0">
 
-        <div className="lg:col-span-2 space-y-mx-lg">
+        <div className="lg:col-span-2 space-y-8">
 
-          <div className="rounded-mx-2xl border border-border-default bg-white p-mx-md shadow-mx-sm">
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-mx-sm">
+          <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
               {VISIT_FLOW_STEPS.map((item, index) => (
-                <div key={item} className="min-h-mx-14 rounded-mx-xl border border-border-subtle bg-surface-alt/40 px-mx-sm py-mx-xs">
-                  <Typography variant="tiny" tone="muted" className="block font-black uppercase tracking-mx-widest">{String(index + 1).padStart(2, '0')}</Typography>
+                <div key={item} className="min-h-14 rounded-2xl border border-gray-100 bg-gray-50/40 px-4 py-2">
+                  <Typography variant="tiny" tone="muted" className="block font-black uppercase tracking-widest">{String(index + 1).padStart(2, '0')}</Typography>
                   <Typography variant="p" className="text-xs font-black uppercase leading-tight text-black">{item}</Typography>
                 </div>
               ))}
@@ -695,18 +695,18 @@ export default function ConsultoriaVisitaExecucao() {
             clientName={client.name}
           />
 
-          <Card className="p-mx-lg border border-border-default shadow-mx-md rounded-mx-2xl bg-white overflow-hidden">
-            <div className="flex flex-col gap-mx-md">
-              <div className="flex items-center gap-mx-sm border-b border-border-subtle pb-mx-md">
-                <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><Calendar size={20} /></div>
+          <Card className="p-8 border border-gray-100 shadow-sm rounded-2xl bg-white overflow-hidden">
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center gap-4 border-b border-gray-100 pb-6">
+                <div className="p-2 bg-emerald-600/10 rounded-2xl text-emerald-600"><Calendar size={20} /></div>
                 <div>
                   <Typography variant="h3" className="text-lg uppercase font-black tracking-widest">Periodo de Analise</Typography>
-                  <Typography variant="tiny" tone="muted" className="font-bold uppercase tracking-mx-widest">
+                  <Typography variant="tiny" tone="muted" className="font-bold uppercase tracking-widest">
                     Define o recorte usado na conversa e no relatorio
                   </Typography>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-md">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Select
                   label="Recorte"
                   value={analysisPeriodPreset}
@@ -716,7 +716,7 @@ export default function ConsultoriaVisitaExecucao() {
                     <option key={preset.value} value={preset.value}>{preset.label}</option>
                   ))}
                 </Select>
-                <div className="space-y-mx-xs">
+                <div className="space-y-2">
                   <Typography as="label" variant="caption" className="font-black uppercase tracking-widest">Inicio</Typography>
                   <DatePicker
                     value={analysisPeriodStart}
@@ -726,7 +726,7 @@ export default function ConsultoriaVisitaExecucao() {
                     }}
                   />
                 </div>
-                <div className="space-y-mx-xs">
+                <div className="space-y-2">
                   <Typography as="label" variant="caption" className="font-black uppercase tracking-widest">Fim</Typography>
                   <DatePicker
                     value={analysisPeriodEnd}
@@ -740,9 +740,9 @@ export default function ConsultoriaVisitaExecucao() {
             </div>
           </Card>
 
-          <Card className="p-mx-lg border border-border-default shadow-mx-md rounded-mx-2xl bg-white overflow-hidden">
-             <div className="flex items-center gap-mx-sm mb-mx-lg border-b border-border-subtle pb-mx-md">
-                <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><ClipboardCheck size={20} /></div>
+          <Card className="p-8 border border-gray-100 shadow-sm rounded-2xl bg-white overflow-hidden">
+             <div className="flex items-center gap-4 mb-8 border-b border-gray-100 pb-6">
+                <div className="p-2 bg-emerald-600/10 rounded-2xl text-emerald-600"><ClipboardCheck size={20} /></div>
                 <Typography variant="h3" className="text-lg uppercase font-black tracking-widest">Execução Metodológica</Typography>
              </div>
 
@@ -755,23 +755,23 @@ export default function ConsultoriaVisitaExecucao() {
              {visitNum === 7 && <VisitSevenExecution onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
              {visitNum === 8 && <VisitEightExecution onGenerateSummary={(t) => setExecutiveSummary(prev => prev + '\n' + t)} />}
 
-             <div className="mt-mx-lg pt-mx-lg border-t border-border-subtle">
-                <Typography variant="tiny" tone="muted" className="mb-mx-sm block font-black tracking-mx-widest uppercase">Checklist de Tarefas</Typography>
+             <div className="mt-8 pt-8 border-t border-gray-100">
+                <Typography variant="tiny" tone="muted" className="mb-4 block font-black tracking-widest uppercase">Checklist de Tarefas</Typography>
                 <VisitChecklist items={checklist} onToggle={handleToggleCheck} />
              </div>
           </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-lg">
-            <Card className="p-mx-lg border border-border-default shadow-mx-lg rounded-mx-2xl bg-white relative overflow-hidden group">
-              <div className="absolute top-mx-0 right-mx-0 p-mx-md opacity-[0.02] group-hover:opacity-[0.05] transition-opacity pointer-events-none text-brand-primary">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <Card className="p-8 border border-gray-100 shadow-sm rounded-2xl bg-white relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-6 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity pointer-events-none text-emerald-600">
                 <FileText size={120} />
               </div>
-              <div className="flex items-center justify-between mb-mx-md relative z-10">
-                <div className="flex items-center gap-mx-sm">
-                  <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><FileText size={20} /></div>
-                  <Typography variant="h3" className="text-lg uppercase font-black tracking-mx-widest">Relato Executivo (CRM)</Typography>
+              <div className="flex items-center justify-between mb-6 relative z-10">
+                <div className="flex items-center gap-4">
+                  <div className="p-2 bg-emerald-600/10 rounded-2xl text-emerald-600"><FileText size={20} /></div>
+                  <Typography variant="h3" className="text-lg uppercase font-black tracking-widest">Relato Executivo (CRM)</Typography>
                 </div>
-                <Button size="xs" variant="outline" className="h-mx-9 border-brand-primary/30 text-brand-primary font-black uppercase text-mx-tiny tracking-mx-widest px-mx-md hover:bg-brand-primary hover:text-white transition-all shadow-mx-sm" onClick={handleGenerateAISummary} disabled={isGeneratingAiSummary} icon={isGeneratingAiSummary ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}>RESUMIR PARA GRUPO</Button>
+                <Button size="xs" variant="outline" className="h-9 border-emerald-600/30 text-emerald-600 font-black uppercase text-[10px] tracking-widest px-6 hover:bg-emerald-600 hover:text-white transition-all shadow-sm" onClick={handleGenerateAISummary} disabled={isGeneratingAiSummary} icon={isGeneratingAiSummary ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}>RESUMIR PARA GRUPO</Button>
               </div>
               <Textarea
                 id="visit-executive-summary"
@@ -780,21 +780,21 @@ export default function ConsultoriaVisitaExecucao() {
                 value={executiveSummary}
                 onChange={(e) => setExecutiveSummary(e.target.value)}
                 placeholder="Insira o rascunho da visita. Depois clique em RESUMIR PARA GRUPO para deixar a mensagem pronta para enviar..."
-                className="min-h-mx-64 text-sm bg-surface-alt/20 border-border-default focus:border-brand-primary focus:bg-white rounded-mx-xl p-mx-md shadow-mx-inner resize-none transition-all mb-mx-md font-medium leading-relaxed relative z-10"
+                className="min-h-64 text-sm bg-gray-50/20 border-gray-100 focus:border-emerald-600 focus:bg-white rounded-2xl p-6 shadow-inner resize-none transition-all mb-6 font-medium leading-relaxed relative z-10"
               />
               <div className="relative z-10">
                 <VisitActionQuickAdd clientId={clientId!} visitNumber={visitNum} />
               </div>
             </Card>
 
-            <div className="space-y-mx-lg">
-              <Card className="p-mx-lg border border-border-default shadow-mx-lg rounded-mx-2xl bg-white relative overflow-hidden group">
-                <div className="absolute top-mx-0 right-mx-0 p-mx-md opacity-[0.02] group-hover:opacity-[0.05] transition-opacity pointer-events-none text-brand-secondary">
+            <div className="space-y-8">
+              <Card className="p-8 border border-gray-100 shadow-sm rounded-2xl bg-white relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-6 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity pointer-events-none text-gray-900">
                   <MessageSquare size={100} />
                 </div>
-                <div className="flex items-center gap-mx-sm mb-mx-md relative z-10">
-                  <div className="p-mx-xs bg-brand-secondary/10 rounded-mx-lg text-brand-secondary"><MessageSquare size={20} /></div>
-                  <Typography variant="h3" className="text-lg uppercase font-black tracking-mx-widest">Devolutiva ao Cliente</Typography>
+                <div className="flex items-center gap-4 mb-6 relative z-10">
+                  <div className="p-2 bg-gray-900/10 rounded-2xl text-gray-900"><MessageSquare size={20} /></div>
+                  <Typography variant="h3" className="text-lg uppercase font-black tracking-widest">Devolutiva ao Cliente</Typography>
                 </div>
                 <Textarea
                   id="visit-feedback-client"
@@ -803,17 +803,17 @@ export default function ConsultoriaVisitaExecucao() {
                   value={feedbackClient}
                   onChange={(e) => setFeedbackClient(e.target.value)}
                   placeholder="Pontos de atenção emergenciais..."
-                  className="min-h-mx-32 text-sm bg-surface-alt/20 border-border-default focus:border-brand-secondary focus:bg-white rounded-mx-xl p-mx-md shadow-mx-inner resize-none transition-all font-medium leading-relaxed relative z-10"
+                  className="min-h-32 text-sm bg-gray-50/20 border-gray-100 focus:border-gray-900 focus:bg-white rounded-2xl p-6 shadow-inner resize-none transition-all font-medium leading-relaxed relative z-10"
                 />
               </Card>
 
-              <Card className="p-mx-lg border border-border-default shadow-mx-lg rounded-mx-2xl bg-gradient-to-br from-white to-surface-alt relative overflow-hidden group">
-                <div className="absolute top-mx-0 right-mx-0 p-mx-md opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none text-mx-orange-500">
+              <Card className="p-8 border border-gray-100 shadow-sm rounded-2xl bg-gradient-to-br from-white to-surface-alt relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none text-amber-500">
                   <Target size={100} />
                 </div>
-                <div className="flex items-center gap-mx-sm mb-mx-md relative z-10">
-                  <div className="p-mx-xs bg-mx-orange-500/10 rounded-mx-lg text-mx-orange-500"><Target size={20} /></div>
-                  <Typography variant="h3" className="text-lg uppercase font-black tracking-mx-widest text-mx-orange-600">Objetivo Próximo Ciclo</Typography>
+                <div className="flex items-center gap-4 mb-6 relative z-10">
+                  <div className="p-2 bg-amber-500/10 rounded-2xl text-amber-500"><Target size={20} /></div>
+                  <Typography variant="h3" className="text-lg uppercase font-black tracking-widest text-amber-600">Objetivo Próximo Ciclo</Typography>
                 </div>
                 <Textarea
                   id="visit-next-cycle-goal"
@@ -822,61 +822,61 @@ export default function ConsultoriaVisitaExecucao() {
                   value={nextCycleGoal}
                   onChange={(e) => setNextCycleGoal(e.target.value)}
                   placeholder="O que deve ser o foco da loja até a próxima visita da consultoria?"
-                  className="min-h-mx-32 text-sm bg-surface-alt/20 border-border-default focus:border-mx-orange-500 focus:bg-white rounded-mx-xl p-mx-md shadow-mx-inner resize-none transition-all font-bold leading-relaxed relative z-10 text-mx-orange-700"
+                  className="min-h-32 text-sm bg-gray-50/20 border-gray-100 focus:border-amber-500 focus:bg-white rounded-2xl p-6 shadow-inner resize-none transition-all font-bold leading-relaxed relative z-10 text-amber-700"
                 />
               </Card>
             </div>
           </div>
         </div>
 
-        <div className="lg:col-span-1 space-y-mx-lg print:hidden">
-          <Card className="p-mx-lg border border-border-default shadow-mx-md rounded-mx-2xl bg-white overflow-hidden relative">
-            <div className="absolute top-mx-0 right-mx-0 p-mx-md opacity-mx-5"><Info size={80} /></div>
-            <Typography variant="tiny" tone="muted" className="mb-mx-md block tracking-mx-widest uppercase font-black">Informações da Etapa</Typography>
-            <div className="space-y-mx-md">
-              <div className="p-mx-md bg-surface-alt rounded-mx-xl border border-border-subtle">
-                <Typography variant="tiny" tone="muted" className="uppercase font-black text-mx-micro mb-1">Participantes</Typography>
+        <div className="lg:col-span-1 space-y-8 print:hidden">
+          <Card className="p-8 border border-gray-100 shadow-sm rounded-2xl bg-white overflow-hidden relative">
+            <div className="absolute top-0 right-0 p-6 opacity-5"><Info size={80} /></div>
+            <Typography variant="tiny" tone="muted" className="mb-6 block tracking-widest uppercase font-black">Informações da Etapa</Typography>
+            <div className="space-y-6">
+              <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100">
+                <Typography variant="tiny" tone="muted" className="uppercase font-black text-[9px] mb-1">Participantes</Typography>
                 <Typography variant="p" className="text-sm font-bold text-black">{step?.target || 'Todos'}</Typography>
               </div>
-              <div className="p-mx-md bg-surface-alt rounded-mx-xl border border-border-subtle">
-                <Typography variant="tiny" tone="muted" className="uppercase font-black text-mx-micro mb-1">Duração Estimada</Typography>
-                <div className="flex items-center gap-mx-xs">
-                   <Clock className="w-mx-4 h-mx-4 text-text-tertiary" />
+              <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100">
+                <Typography variant="tiny" tone="muted" className="uppercase font-black text-[9px] mb-1">Duração Estimada</Typography>
+                <div className="flex items-center gap-2">
+                   <Clock className="w-4 h-4 text-gray-500" />
                    <Typography variant="p" className="text-sm font-bold text-black">{step?.duration || '4 horas'}</Typography>
                 </div>
               </div>
             </div>
           </Card>
 
-          <Card className="p-mx-lg border border-border-default shadow-mx-md rounded-mx-2xl bg-white">
-            <div className="flex items-center justify-between mb-mx-md">
-               <Typography variant="tiny" tone="muted" className="tracking-mx-widest text-mx-micro uppercase font-black">Evidências ({attachments.length})</Typography>
+          <Card className="p-8 border border-gray-100 shadow-sm rounded-2xl bg-white">
+            <div className="flex items-center justify-between mb-6">
+               <Typography variant="tiny" tone="muted" className="tracking-widest text-[9px] uppercase font-black">Evidências ({attachments.length})</Typography>
                <input aria-label="Selecionar arquivo" id="visit-evidence-upload" name="visit_evidence_upload" type="file" multiple className="hidden" ref={fileInputRef} onChange={handleFileUpload} accept="image/*,application/pdf" />
-               <Button size="sm" variant="secondary" onClick={() => fileInputRef.current?.click()} loading={isUploading} className="h-mx-10 font-black uppercase text-xs tracking-widest px-mx-md shadow-mx-sm" icon={<Plus size={14} />}>ADICIONAR</Button>
+               <Button size="sm" variant="secondary" onClick={() => fileInputRef.current?.click()} loading={isUploading} className="h-10 font-black uppercase text-xs tracking-widest px-6 shadow-sm" icon={<Plus size={14} />}>ADICIONAR</Button>
             </div>
 
             {attachments.length === 0 ? (
-               <div className="p-mx-md border border-dashed border-border-subtle rounded-mx-xl text-center opacity-50">
-                  <Paperclip className="w-mx-6 h-mx-6 mx-auto mb-mx-xs text-text-tertiary" />
-                  <Typography variant="tiny" className="font-bold uppercase text-mx-micro">Nenhuma evidência anexada.</Typography>
+               <div className="p-6 border border-dashed border-gray-100 rounded-2xl text-center opacity-50">
+                  <Paperclip className="w-6 h-6 mx-auto mb-2 text-gray-500" />
+                  <Typography variant="tiny" className="font-bold uppercase text-[9px]">Nenhuma evidência anexada.</Typography>
                </div>
             ) : (
-               <div className="space-y-mx-md">
+               <div className="space-y-6">
                   {attachments.map(att => (
-                     <div key={att.id} className="group p-mx-xs bg-surface-alt rounded-mx-xl border border-border-default flex items-center justify-between hover:bg-white transition-colors shadow-sm">
-                        <div className="flex items-center gap-mx-sm min-w-0">
-                           <div className="w-mx-10 h-mx-10 rounded-mx-lg bg-white flex items-center justify-center border border-border-subtle shadow-sm shrink-0">
-                              {att.content_type?.includes('image') ? <Image className="w-mx-5 h-mx-5 text-brand-primary" /> : <FileText className="w-mx-5 h-mx-5 text-text-tertiary" />}
+                     <div key={att.id} className="group p-2 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between hover:bg-white transition-colors shadow-sm">
+                        <div className="flex items-center gap-4 min-w-0">
+                           <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center border border-gray-100 shadow-sm shrink-0">
+                              {att.content_type?.includes('image') ? <Image className="w-5 h-5 text-emerald-600" /> : <FileText className="w-5 h-5 text-gray-500" />}
                            </div>
                            <div className="min-w-0">
-                              <Typography variant="p" className="text-xs font-bold truncate max-w-mx-40 text-black">{att.filename}</Typography>
-                              <Typography variant="tiny" className="opacity-50 text-mx-micro">{formatFileSize(att.size_bytes)}</Typography>
+                              <Typography variant="p" className="text-xs font-bold truncate max-w-40 text-black">{att.filename}</Typography>
+                              <Typography variant="tiny" className="opacity-50 text-[9px]">{formatFileSize(att.size_bytes)}</Typography>
                            </div>
                         </div>
-                        <div className="flex items-center gap-mx-xs opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
-                          <Button size="icon" variant="ghost" className="h-mx-8 w-mx-8 text-status-info" onClick={() => handleOpenAttachment(att)} aria-label={`Visualizar ${att.filename}`} icon={<Eye size={14} />} />
-                          <Button size="icon" variant="ghost" className="h-mx-8 w-mx-8 text-brand-primary" onClick={() => handleDownloadAttachment(att)} aria-label={`Baixar ${att.filename}`} icon={<Download size={14} />} />
-                          <Button size="icon" variant="ghost" className="h-mx-8 w-mx-8 text-status-error" onClick={() => handleDeleteAttachment(att)} aria-label={`Remover ${att.filename}`} icon={<Trash2 size={14} />} />
+                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-blue-600" onClick={() => handleOpenAttachment(att)} aria-label={`Visualizar ${att.filename}`} icon={<Eye size={14} />} />
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-600" onClick={() => handleDownloadAttachment(att)} aria-label={`Baixar ${att.filename}`} icon={<Download size={14} />} />
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-red-600" onClick={() => handleDeleteAttachment(att)} aria-label={`Remover ${att.filename}`} icon={<Trash2 size={14} />} />
                         </div>
                      </div>
                   ))}
@@ -884,31 +884,31 @@ export default function ConsultoriaVisitaExecucao() {
             )}
 
             {step?.evidence_required && (
-               <div className="mt-mx-md p-mx-md bg-status-error/10 border border-status-error/30 rounded-mx-xl flex gap-mx-sm animate-pulse shadow-sm">
-                  <ShieldAlert className="w-mx-5 h-mx-5 text-status-error shrink-0" />
+               <div className="mt-6 p-6 bg-red-600/10 border border-red-600/30 rounded-2xl flex gap-4 animate-pulse shadow-sm">
+                  <ShieldAlert className="w-5 h-5 text-red-600 shrink-0" />
                   <div>
-                    <Typography variant="tiny" className="text-status-error font-black leading-none uppercase tracking-tighter block mb-0.5">Evidência Obrigatória</Typography>
-                    <Typography variant="p" className="text-mx-micro text-status-error font-bold leading-tight uppercase">{step.evidence_required}</Typography>
+                    <Typography variant="tiny" className="text-red-600 font-black leading-none uppercase tracking-tighter block mb-0.5">Evidência Obrigatória</Typography>
+                    <Typography variant="p" className="text-[9px] text-red-600 font-bold leading-tight uppercase">{step.evidence_required}</Typography>
                   </div>
                </div>
             )}
           </Card>
 
-          <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md rounded-mx-2xl text-center">
-             <div className="w-mx-12 h-mx-12 bg-brand-primary/10 rounded-mx-full flex items-center justify-center mx-auto mb-mx-md">
-               <Presentation className="w-mx-6 h-mx-6 text-brand-primary" />
+          <Card className="p-8 bg-white border border-gray-100 shadow-sm rounded-2xl text-center">
+             <div className="w-12 h-12 bg-emerald-600/10 rounded-full flex items-center justify-center mx-auto mb-6">
+               <Presentation className="w-6 h-6 text-emerald-600" />
              </div>
-             <Typography variant="h3" className="text-lg mb-mx-xs uppercase font-black">Reporte Oficial MX</Typography>
-             <Typography variant="p" className="text-mx-micro text-text-tertiary mb-mx-lg leading-tight uppercase font-bold tracking-tighter">O relatório compila os dados e o diagnóstico da visita.</Typography>
-             <div className="space-y-mx-md">
-               <Button className="w-full shadow-mx-lg font-black h-mx-12 uppercase tracking-mx-widest text-xs bg-gradient-to-r from-brand-primary to-brand-primary/90 border-none group relative overflow-hidden" variant="primary" icon={<Eye size={16} className="group-hover:scale-125 transition-transform" />} onClick={() => setShowReportModal(true)}>
+             <Typography variant="h3" className="text-lg mb-2 uppercase font-black">Reporte Oficial MX</Typography>
+             <Typography variant="p" className="text-[9px] text-gray-500 mb-8 leading-tight uppercase font-bold tracking-tighter">O relatório compila os dados e o diagnóstico da visita.</Typography>
+             <div className="space-y-6">
+               <Button className="w-full shadow-sm font-black h-12 uppercase tracking-widest text-xs bg-gradient-to-r from-emerald-600 to-emerald-600/90 border-none group relative overflow-hidden" variant="primary" icon={<Eye size={16} className="group-hover:scale-125 transition-transform" />} onClick={() => setShowReportModal(true)}>
                    <span className="relative z-10">VER RELATÓRIO</span>
                    <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Button>
 
                {visit?.status === 'concluida' && (
                  <Button
-                   className={cn("w-full shadow-mx-md font-black h-mx-11 uppercase tracking-widest text-xs", visit.acknowledged_at ? "bg-status-success/10 text-status-success border-status-success/20 hover:bg-status-success/20" : "")}
+                   className={cn("w-full shadow-sm font-black h-11 uppercase tracking-widest text-xs", visit.acknowledged_at ? "bg-emerald-600/10 text-emerald-600 border-emerald-600/20 hover:bg-emerald-600/20" : "")}
                    variant="outline"
                    icon={visit.acknowledged_at ? <ShieldCheck size={14} /> : <Award size={14} />}
                    onClick={handleAcknowledge}
@@ -923,14 +923,14 @@ export default function ConsultoriaVisitaExecucao() {
       </div>
 
       <Modal open={showReportModal} onClose={() => setShowReportModal(false)} title="DOCUMENTO DE AUDITORIA">
-         <div className="p-mx-md">
-            <div className="p-mx-lg bg-surface-alt rounded-mx-2xl font-mono text-xs whitespace-pre-wrap border border-border-subtle max-h-mx-96 overflow-y-auto mb-mx-md">
-               <div className="relative z-10 text-text-primary">{generateReportText()}</div>
+         <div className="p-6">
+            <div className="p-8 bg-gray-50 rounded-2xl font-mono text-xs whitespace-pre-wrap border border-gray-100 max-h-96 overflow-y-auto mb-6">
+               <div className="relative z-10 text-gray-800">{generateReportText()}</div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-mx-md">
-               <Button className="h-mx-11 text-sm font-black border-border-default shadow-mx-sm bg-white uppercase tracking-widest" variant="outline" onClick={() => window.print()} icon={<Printer className="w-mx-4 h-mx-4" />}>IMPRIMIR PDF</Button>
-               <Button className="h-mx-11 text-sm font-black bg-mx-green-500 hover:bg-mx-green-600 text-white border-none shadow-mx-md uppercase tracking-widest" onClick={() => { const t = encodeURIComponent(generateReportText()); window.open(`https://wa.me/?text=${t}`) }} icon={<Share2 className="w-mx-4 h-mx-4" />}>Enviar WhatsApp</Button>
-               <Button variant="secondary" className="h-mx-11 text-sm font-black bg-brand-primary text-white border-none shadow-mx-lg col-span-1 sm:col-span-2 uppercase tracking-widest" onClick={handleDownloadPDF} icon={<Download className="w-mx-4 h-mx-4" />}>BAIXAR PDF OFICIAL (A4)</Button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+               <Button className="h-11 text-sm font-black border-gray-100 shadow-sm bg-white uppercase tracking-widest" variant="outline" onClick={() => window.print()} icon={<Printer className="w-4 h-4" />}>IMPRIMIR PDF</Button>
+               <Button className="h-11 text-sm font-black bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-sm uppercase tracking-widest" onClick={() => { const t = encodeURIComponent(generateReportText()); window.open(`https://wa.me/?text=${t}`) }} icon={<Share2 className="w-4 h-4" />}>Enviar WhatsApp</Button>
+               <Button variant="secondary" className="h-11 text-sm font-black bg-emerald-600 text-white border-none shadow-sm col-span-1 sm:col-span-2 uppercase tracking-widest" onClick={handleDownloadPDF} icon={<Download className="w-4 h-4" />}>BAIXAR PDF OFICIAL (A4)</Button>
             </div>
          </div>
       </Modal>

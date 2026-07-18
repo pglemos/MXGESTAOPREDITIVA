@@ -100,18 +100,18 @@ export function StoreEditModal({ open, store, saving = false, onClose, onSubmit 
       footer={
         <>
           <Button type="button" variant="ghost" onClick={onClose} disabled={saving}>CANCELAR</Button>
-          <Button type="submit" form="store-edit-form" disabled={saving || !store} className="bg-brand-secondary">
+          <Button type="submit" form="store-edit-form" disabled={saving || !store} className="bg-gray-900">
             {saving ? <RefreshCw size={16} className="mr-2 animate-spin" /> : <Save size={16} className="mr-2" />}
             SALVAR
           </Button>
         </>
       }
     >
-      <form id="store-edit-form" onSubmit={handleSubmit} className="space-y-mx-lg">
-        <div className="rounded-mx-2xl border border-border-default bg-surface-alt p-mx-md">
-          <div className="flex items-center justify-between gap-mx-sm mb-mx-sm">
+      <form id="store-edit-form" onSubmit={handleSubmit} className="space-y-8">
+        <div className="rounded-2xl border border-gray-100 bg-gray-50 p-6">
+          <div className="flex items-center justify-between gap-4 mb-4">
             <div className="min-w-0">
-              <Typography variant="caption" className="font-black uppercase tracking-widest text-text-primary">Link de pré-cadastro</Typography>
+              <Typography variant="caption" className="font-black uppercase tracking-widest text-gray-800">Link de pré-cadastro</Typography>
               <Typography variant="tiny" tone="muted" className="mt-1 block font-bold">Envie este link para dono, gerente e vendedores preencherem os dados.</Typography>
             </div>
             <Button
@@ -119,28 +119,28 @@ export function StoreEditModal({ open, store, saving = false, onClose, onSubmit 
               variant="outline"
               size="sm"
               onClick={() => void handleCopyRegistrationLink()}
-              className="shrink-0 rounded-mx-xl"
+              className="shrink-0 rounded-2xl"
             >
               <Copy size={14} className="mr-2" />
               COPIAR
             </Button>
           </div>
           <div className="relative">
-            <Link2 size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-brand-primary" aria-hidden="true" />
+            <Link2 size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-600" aria-hidden="true" />
             <Input
               readOnly
               value={registrationLink}
-              className="!pl-14 !h-14 font-bold text-text-secondary"
+              className="!pl-14 !h-14 font-bold text-gray-600"
             />
           </div>
         </div>
 
-        <div className="space-y-mx-xs">
-          <Typography as="label" htmlFor="edit-store-name" variant="caption" className="font-black uppercase tracking-widest text-text-tertiary">
+        <div className="space-y-2">
+          <Typography as="label" htmlFor="edit-store-name" variant="caption" className="font-black uppercase tracking-widest text-gray-500">
             Nome da Loja
           </Typography>
           <div className="relative">
-            <Building2 size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" aria-hidden="true" />
+            <Building2 size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" aria-hidden="true" />
             <Input
               id="edit-store-name"
               required
@@ -151,9 +151,9 @@ export function StoreEditModal({ open, store, saving = false, onClose, onSubmit 
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md">
-          <div className="space-y-mx-xs md:col-span-2">
-            <Typography as="label" htmlFor="edit-store-legal-name" variant="caption" className="font-black uppercase tracking-widest text-text-tertiary">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2 md:col-span-2">
+            <Typography as="label" htmlFor="edit-store-legal-name" variant="caption" className="font-black uppercase tracking-widest text-gray-500">
               Razão Social
             </Typography>
             <Input
@@ -165,8 +165,8 @@ export function StoreEditModal({ open, store, saving = false, onClose, onSubmit 
             />
           </div>
 
-          <div className="space-y-mx-xs">
-            <Typography as="label" htmlFor="edit-store-cnpj" variant="caption" className="font-black uppercase tracking-widest text-text-tertiary">
+          <div className="space-y-2">
+            <Typography as="label" htmlFor="edit-store-cnpj" variant="caption" className="font-black uppercase tracking-widest text-gray-500">
               CNPJ
             </Typography>
             <Input
@@ -178,12 +178,12 @@ export function StoreEditModal({ open, store, saving = false, onClose, onSubmit 
             />
           </div>
 
-          <div className="space-y-mx-xs">
-            <Typography as="label" htmlFor="edit-store-address" variant="caption" className="font-black uppercase tracking-widest text-text-tertiary">
+          <div className="space-y-2">
+            <Typography as="label" htmlFor="edit-store-address" variant="caption" className="font-black uppercase tracking-widest text-gray-500">
               Endereço
             </Typography>
             <div className="relative">
-              <MapPin size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" aria-hidden="true" />
+              <MapPin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" aria-hidden="true" />
               <Input
                 id="edit-store-address"
                 value={form.address || ''}
@@ -194,12 +194,12 @@ export function StoreEditModal({ open, store, saving = false, onClose, onSubmit 
             </div>
           </div>
 
-          <div className="space-y-mx-xs md:col-span-2">
-            <Typography as="label" htmlFor="edit-store-administrative-phone" variant="caption" className="font-black uppercase tracking-widest text-text-tertiary">
+          <div className="space-y-2 md:col-span-2">
+            <Typography as="label" htmlFor="edit-store-administrative-phone" variant="caption" className="font-black uppercase tracking-widest text-gray-500">
               Telefone administrativo
             </Typography>
             <div className="relative">
-              <Phone size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" aria-hidden="true" />
+              <Phone size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" aria-hidden="true" />
               <Input
                 id="edit-store-administrative-phone"
                 value={form.administrative_phone || ''}
@@ -211,15 +211,15 @@ export function StoreEditModal({ open, store, saving = false, onClose, onSubmit 
           </div>
         </div>
 
-        <div className="space-y-mx-xs">
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Typography as="label" htmlFor="edit-store-manager-email" variant="caption" className="font-black uppercase tracking-widest text-text-tertiary">
+            <Typography as="label" htmlFor="edit-store-manager-email" variant="caption" className="font-black uppercase tracking-widest text-gray-500">
               E-mail do Gestor
             </Typography>
-            <Badge variant="outline" className="text-mx-micro font-black uppercase">Opcional</Badge>
+            <Badge variant="outline" className="text-[9px] font-black uppercase">Opcional</Badge>
           </div>
           <div className="relative">
-            <Mail size={18} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" aria-hidden="true" />
+            <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" aria-hidden="true" />
             <Input
               id="edit-store-manager-email"
               type="email"
@@ -231,10 +231,10 @@ export function StoreEditModal({ open, store, saving = false, onClose, onSubmit 
           </div>
         </div>
 
-        <div className="space-y-mx-sm">
-          <div className="flex items-center justify-between gap-mx-md">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between gap-6">
             <div>
-              <Typography variant="caption" className="font-black uppercase tracking-widest text-text-tertiary">
+              <Typography variant="caption" className="font-black uppercase tracking-widest text-gray-500">
                 Sócios da loja
               </Typography>
               <Typography variant="tiny" tone="muted" className="mt-1 block font-bold">
@@ -246,19 +246,19 @@ export function StoreEditModal({ open, store, saving = false, onClose, onSubmit 
               variant="outline"
               size="sm"
               onClick={() => setForm((prev) => ({ ...prev, partners: [...(prev.partners || []), { name: '', document: '', phone: '', email: '' }] }))}
-              className="rounded-mx-xl"
+              className="rounded-2xl"
             >
               <Plus size={14} className="mr-2" />
               SÓCIO
             </Button>
           </div>
 
-          <div className="space-y-mx-sm">
+          <div className="space-y-4">
             {(form.partners || []).map((partner, index) => (
-              <div key={index} className="rounded-mx-2xl border border-border-default bg-white p-mx-md">
-                <div className="flex items-center justify-between mb-mx-sm">
-                  <div className="flex items-center gap-mx-xs">
-                    <UserRound size={16} className="text-brand-primary" />
+              <div key={index} className="rounded-2xl border border-gray-100 bg-white p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <UserRound size={16} className="text-emerald-600" />
                     <Typography variant="tiny" className="font-black uppercase tracking-widest">Sócio {index + 1}</Typography>
                   </div>
                   <Button
@@ -266,14 +266,14 @@ export function StoreEditModal({ open, store, saving = false, onClose, onSubmit 
                     variant="ghost"
                     size="icon"
                     onClick={() => setForm((prev) => ({ ...prev, partners: (prev.partners || []).filter((_, itemIndex) => itemIndex !== index) }))}
-                    className="h-mx-10 w-mx-10 rounded-mx-xl text-status-error"
+                    className="h-10 w-10 rounded-2xl text-red-600"
                     aria-label={`Remover sócio ${index + 1}`}
                   >
                     <Trash2 size={15} />
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-sm">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
                     value={partner.name}
                     onChange={(event) => setForm((prev) => ({
@@ -317,24 +317,24 @@ export function StoreEditModal({ open, store, saving = false, onClose, onSubmit 
           </div>
         </div>
 
-        <label htmlFor="edit-store-active" className="flex items-start gap-mx-sm rounded-mx-xl border border-border-default bg-surface-alt p-mx-md cursor-pointer">
+        <label htmlFor="edit-store-active" className="flex items-start gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-6 cursor-pointer">
           <input
             id="edit-store-active"
             type="checkbox"
             checked={form.active}
             onChange={(event) => setForm((prev) => ({ ...prev, active: event.target.checked }))}
-            className="mt-1 h-mx-sm w-mx-sm accent-brand-primary"
+            className="mt-1 h-4 w-4 accent-brand-primary"
           />
           <span className="flex-1">
-            <span className="block text-sm font-black uppercase tracking-widest text-text-primary">Loja ativa</span>
-            <span className="block text-xs font-bold text-text-tertiary mt-1">
+            <span className="block text-sm font-black uppercase tracking-widest text-gray-800">Loja ativa</span>
+            <span className="block text-xs font-bold text-gray-500 mt-1">
               Desmarcar arquiva a unidade sem excluir dados historicos.
             </span>
           </span>
         </label>
 
         {!form.active && (
-          <div className="flex items-start gap-mx-sm rounded-mx-xl border border-status-warning/20 bg-status-warning-surface p-mx-md text-status-warning">
+          <div className="flex items-start gap-4 rounded-2xl border border-amber-500/20 bg-amber-50 p-6 text-amber-600">
             <AlertTriangle size={18} className="shrink-0 mt-0.5" />
             <Typography variant="tiny" className="font-bold">
               A loja arquivada sai da lista de unidades ativas. Os registros historicos continuam preservados.

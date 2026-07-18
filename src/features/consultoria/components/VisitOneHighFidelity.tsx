@@ -39,16 +39,16 @@ export function VisitOneHighFidelity({ clientId, clientSlug, data, onChange }: {
   const [tab, setTab] = useState<VisitOneTab>('dashboards')
 
   return (
-    <div className="space-y-mx-lg animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Navegação de Contexto */}
-      <div className="flex bg-white/50 backdrop-blur-sm p-mx-xs rounded-mx-xl border border-border-default shadow-mx-inner">
+      <div className="flex bg-white/50 backdrop-blur-sm p-2 rounded-2xl border border-gray-100 shadow-inner">
         {VISIT_ONE_TABS.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             className={cn(
-              "flex-1 flex items-center justify-center gap-mx-xs py-mx-sm px-mx-md rounded-mx-lg text-xs font-black uppercase tracking-mx-wider transition-all",
-              tab === t.id ? "bg-brand-primary text-white shadow-mx-md" : "text-text-tertiary hover:text-text-primary hover:bg-white"
+              "flex-1 flex items-center justify-center gap-2 py-4 px-6 rounded-2xl text-xs font-black uppercase tracking-wider transition-all",
+              tab === t.id ? "bg-emerald-600 text-white shadow-sm" : "text-gray-500 hover:text-gray-800 hover:bg-white"
             )}
           >
             <t.icon size={14} />
@@ -77,95 +77,95 @@ function VisitOneDashboards({ data, onChange }: { data: VisitOneQuantData, onCha
   const cpl = data.marketing?.leads > 0 ? (data.marketing.investment / data.marketing.leads).toFixed(2) : '0,00'
 
   return (
-    <div className="space-y-mx-lg">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-mx-lg">
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Vendas Trimestre */}
-        <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md overflow-hidden relative rounded-mx-2xl group/card">
-          <div className="absolute -top-mx-4 -right-mx-4 p-mx-md opacity-[0.03] group-hover/card:opacity-[0.06] transition-opacity pointer-events-none text-brand-primary">
+        <Card className="p-8 bg-white border border-gray-100 shadow-sm overflow-hidden relative rounded-2xl group/card">
+          <div className="absolute -top-4 -right-4 p-6 opacity-[0.03] group-hover/card:opacity-[0.06] transition-opacity pointer-events-none text-emerald-600">
             <BarChart3 size={140} />
           </div>
-          <div className="relative z-10 mb-mx-md flex items-center gap-mx-sm">
-            <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><TrendingUp size={20} /></div>
+          <div className="relative z-10 mb-6 flex items-center gap-4">
+            <div className="p-2 bg-emerald-600/10 rounded-2xl text-emerald-600"><TrendingUp size={20} /></div>
             <div>
-              <Typography variant="h3" className="text-lg font-black text-text-primary">Vendas Trimestre</Typography>
-              <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-mx-widest opacity-60">Volume de emplacamentos/entregas</Typography>
+              <Typography variant="h3" className="text-lg font-black text-gray-800">Vendas Trimestre</Typography>
+              <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-widest opacity-60">Volume de emplacamentos/entregas</Typography>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-mx-md mb-mx-lg">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
              {data.sales.map((s, i) => (
-                <div key={s.month} className="space-y-mx-xs">
-                   <Typography variant="tiny" className="font-black text-text-tertiary">{s.month.toUpperCase()}</Typography>
+                <div key={s.month} className="space-y-2">
+                   <Typography variant="tiny" className="font-black text-gray-500">{s.month.toUpperCase()}</Typography>
                    <Input
                       id={`sales-${s.month}-${i}`}
                       name={`sales-${s.month}`}
                       type="number"
                       value={s.value}
                       onChange={e => handleSalesChange(i, parseInt(e.target.value) || 0)}
-                      className="h-mx-12 font-black text-xl text-center border-border-default bg-surface-alt/20 focus:bg-white focus:border-brand-primary transition-all shadow-sm"
+                      className="h-12 font-black text-xl text-center border-gray-100 bg-gray-50/20 focus:bg-white focus:border-emerald-600 transition-all shadow-sm"
                    />
                 </div>
              ))}
           </div>
 
-          <div className="flex items-center justify-between p-mx-md bg-surface-alt rounded-mx-xl border border-border-default">
+          <div className="flex items-center justify-between p-6 bg-gray-50 rounded-2xl border border-gray-100">
              <div>
-                <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Total Trimestre</Typography>
-                <Typography variant="h2" className="text-3xl text-brand-primary">{totalSales} <span className="text-sm font-bold text-text-tertiary">CARROS</span></Typography>
+                <Typography variant="tiny" className="font-bold text-gray-500 uppercase">Total Trimestre</Typography>
+                <Typography variant="h2" className="text-3xl text-emerald-600">{totalSales} <span className="text-sm font-bold text-gray-500">CARROS</span></Typography>
              </div>
              <div className="text-right">
-                <Typography variant="tiny" className="font-bold text-text-tertiary uppercase">Média Mensal</Typography>
+                <Typography variant="tiny" className="font-bold text-gray-500 uppercase">Média Mensal</Typography>
                 <Typography variant="h2" className="text-3xl">{(totalSales / 3).toFixed(1)}</Typography>
              </div>
           </div>
         </Card>
 
         {/* Marketing ROI */}
-        <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md overflow-hidden relative rounded-mx-2xl group/card">
-          <div className="absolute -top-mx-4 -right-mx-4 p-mx-md opacity-[0.03] group-hover/card:opacity-[0.06] transition-opacity pointer-events-none text-brand-secondary">
+        <Card className="p-8 bg-white border border-gray-100 shadow-sm overflow-hidden relative rounded-2xl group/card">
+          <div className="absolute -top-4 -right-4 p-6 opacity-[0.03] group-hover/card:opacity-[0.06] transition-opacity pointer-events-none text-gray-900">
             <PieChart size={140} />
           </div>
-          <div className="relative z-10 mb-mx-md flex items-center gap-mx-sm">
-            <div className="p-mx-xs bg-brand-secondary/10 rounded-mx-lg text-brand-secondary"><Zap size={20} /></div>
+          <div className="relative z-10 mb-6 flex items-center gap-4">
+            <div className="p-2 bg-gray-900/10 rounded-2xl text-gray-900"><Zap size={20} /></div>
             <div>
-              <Typography variant="h3" className="text-lg font-black text-text-primary">Performance MKT</Typography>
-              <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-mx-widest opacity-60">CPL e Origem de Leads</Typography>
+              <Typography variant="h3" className="text-lg font-black text-gray-800">Performance MKT</Typography>
+              <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-widest opacity-60">CPL e Origem de Leads</Typography>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-mx-md mb-mx-lg">
-             <div className="space-y-mx-xs">
-                <Typography variant="tiny" className="font-black text-text-tertiary uppercase">Investimento Total (R$)</Typography>
+          <div className="grid grid-cols-2 gap-6 mb-8">
+             <div className="space-y-2">
+                <Typography variant="tiny" className="font-black text-gray-500 uppercase">Investimento Total (R$)</Typography>
                 <Input
                   id="marketing-investment"
                   name="marketing-investment"
                   type="number"
                   value={data.marketing?.investment}
                   onChange={e => onChange({ ...data, marketing: { ...data.marketing, investment: parseFloat(e.target.value) || 0 } })}
-                  className="h-mx-12 font-black text-xl border-border-default bg-surface-alt/20 focus:bg-white focus:border-brand-primary transition-all"
+                  className="h-12 font-black text-xl border-gray-100 bg-gray-50/20 focus:bg-white focus:border-emerald-600 transition-all"
                   placeholder="Ex: 5000"
                 />
              </div>
-             <div className="space-y-mx-xs">
-                <Typography variant="tiny" className="font-black text-text-tertiary uppercase">Leads Totais (UN)</Typography>
+             <div className="space-y-2">
+                <Typography variant="tiny" className="font-black text-gray-500 uppercase">Leads Totais (UN)</Typography>
                 <Input
                   id="marketing-leads"
                   name="marketing-leads"
                   type="number"
                   value={data.marketing?.leads}
                   onChange={e => onChange({ ...data, marketing: { ...data.marketing, leads: parseInt(e.target.value) || 0 } })}
-                  className="h-mx-12 font-black text-xl border-border-default bg-surface-alt/20 focus:bg-white focus:border-brand-primary transition-all"
+                  className="h-12 font-black text-xl border-gray-100 bg-gray-50/20 focus:bg-white focus:border-emerald-600 transition-all"
                   placeholder="Ex: 250"
                 />
              </div>
           </div>
 
-          <div className="flex items-center justify-between p-mx-md bg-brand-secondary/5 rounded-mx-xl border border-brand-secondary/10">
+          <div className="flex items-center justify-between p-6 bg-gray-900/5 rounded-2xl border border-gray-900/10">
              <div>
-                <Typography variant="tiny" className="font-bold text-brand-secondary uppercase">Custo por Lead (CPL)</Typography>
-                <Typography variant="h1" className="text-3xl text-brand-secondary">R$ {cpl}</Typography>
+                <Typography variant="tiny" className="font-bold text-gray-900 uppercase">Custo por Lead (CPL)</Typography>
+                <Typography variant="h1" className="text-3xl text-gray-900">R$ {cpl}</Typography>
              </div>
-             <div className="h-mx-14 w-mx-14 overflow-visible">
+             <div className="h-14 w-14 overflow-visible">
                 <ResponsiveContainer width={56} height={56}>
                    <RePie>
                       <Pie data={data.marketing?.origin} innerRadius={20} outerRadius={28} paddingAngle={5} dataKey="value">
@@ -175,11 +175,11 @@ function VisitOneDashboards({ data, onChange }: { data: VisitOneQuantData, onCha
                 </ResponsiveContainer>
              </div>
           </div>
-          <div className="mt-mx-md grid grid-cols-4 gap-mx-xs">
+          <div className="mt-6 grid grid-cols-4 gap-2">
              {data.marketing.origin.map((o, i) => (
                 <div key={o.name} className="text-center">
-                   <div className="w-mx-2 h-mx-2 rounded-full mx-auto mb-1" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                   <Typography variant="tiny" className="text-mx-micro font-black uppercase opacity-60">{o.name}</Typography>
+                   <div className="w-2 h-2 rounded-full mx-auto mb-1" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                   <Typography variant="tiny" className="text-[9px] font-black uppercase opacity-60">{o.name}</Typography>
                    <Typography variant="p" className="text-xs font-black">{o.value}</Typography>
                 </div>
              ))}
@@ -188,19 +188,19 @@ function VisitOneDashboards({ data, onChange }: { data: VisitOneQuantData, onCha
       </div>
 
       {/* Raio-X do Estoque */}
-      <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md overflow-hidden relative rounded-mx-2xl group/card">
-          <div className="absolute -top-mx-4 -right-mx-4 p-mx-md opacity-[0.03] group-hover/card:opacity-[0.06] transition-opacity pointer-events-none text-status-warning">
+      <Card className="p-8 bg-white border border-gray-100 shadow-sm overflow-hidden relative rounded-2xl group/card">
+          <div className="absolute -top-4 -right-4 p-6 opacity-[0.03] group-hover/card:opacity-[0.06] transition-opacity pointer-events-none text-amber-600">
             <Layers size={140} />
           </div>
-          <div className="relative z-10 mb-mx-md flex items-center gap-mx-sm">
-            <div className="p-mx-xs bg-status-warning/10 rounded-mx-lg text-status-warning"><Layers size={20} /></div>
+          <div className="relative z-10 mb-6 flex items-center gap-4">
+            <div className="p-2 bg-amber-500/10 rounded-2xl text-amber-600"><Layers size={20} /></div>
             <div>
-              <Typography variant="h3" className="text-lg font-black text-text-primary">Raio-X do Estoque</Typography>
-              <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-mx-widest opacity-60">Saúde financeira do pátio</Typography>
+              <Typography variant="h3" className="text-lg font-black text-gray-800">Raio-X do Estoque</Typography>
+              <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-widest opacity-60">Saúde financeira do pátio</Typography>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-mx-md">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
              {([
                { k: 'qty', l: 'QTD (UN)', p: 'Ex: 45' },
                { k: 'avg_price', l: 'TICKET (R$)', p: 'Ex: 65000' },
@@ -208,15 +208,15 @@ function VisitOneDashboards({ data, onChange }: { data: VisitOneQuantData, onCha
                { k: 'mileage', l: 'KM MÉDIA', p: 'Ex: 65000' },
                { k: 'total_inv', l: 'INVESTIMENTO (R$)', p: 'Ex: 2.5M' }
              ] satisfies Array<{ k: VisitOneStockKey; l: string; p: string }>).map(f => (
-                <div key={f.k} className="space-y-mx-xs">
-                   <Typography variant="tiny" className="font-black text-text-tertiary uppercase tracking-mx-widest text-mx-tiny">{f.l}</Typography>
+                <div key={f.k} className="space-y-2">
+                   <Typography variant="tiny" className="font-black text-gray-500 uppercase tracking-widest text-[10px]">{f.l}</Typography>
                    <Input
                       id={`stock-${f.k}`}
                       name={`stock-${f.k}`}
                       type="number"
                       value={data.stock?.[f.k]}
                       onChange={e => onChange({ ...data, stock: { ...data.stock, [f.k]: parseFloat(e.target.value) || 0 } })}
-                      className="h-mx-10 font-bold border-border-default bg-surface-alt/20 focus:bg-white focus:border-brand-primary transition-all shadow-sm"
+                      className="h-10 font-bold border-gray-100 bg-gray-50/20 focus:bg-white focus:border-emerald-600 transition-all shadow-sm"
                       placeholder={f.p}
                    />
                 </div>
@@ -229,14 +229,14 @@ function VisitOneDashboards({ data, onChange }: { data: VisitOneQuantData, onCha
 
 function VisitOneBenchmark({ data }: { data: VisitOneQuantData }) {
   return (
-    <Card className="p-mx-20 text-center bg-white border border-border-default rounded-mx-2xl border-dashed relative overflow-hidden group">
-       <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/5 via-transparent to-brand-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+    <Card className="p-20 text-center bg-white border border-gray-100 rounded-2xl border-dashed relative overflow-hidden group">
+       <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/5 via-transparent to-gray-900/5 opacity-0 group-hover:opacity-100 transition-opacity" />
        <div className="relative z-10">
-         <div className="w-mx-16 h-mx-16 bg-surface-alt rounded-mx-full flex items-center justify-center mx-auto mb-mx-md border border-border-subtle group-hover:scale-110 transition-transform">
-           <Globe size={48} className="text-brand-primary opacity-40" />
+         <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-gray-100 group-hover:scale-110 transition-transform">
+           <Globe size={48} className="text-emerald-600 opacity-40" />
          </div>
-         <Typography variant="h3" className="text-xl font-black text-text-primary uppercase tracking-mx-widest mb-mx-xs">Comparativo de Mercado</Typography>
-         <Typography variant="p" className="text-sm text-text-tertiary max-w-mx-80 mx-auto font-medium uppercase tracking-tighter">
+         <Typography variant="h3" className="text-xl font-black text-gray-800 uppercase tracking-widest mb-2">Comparativo de Mercado</Typography>
+         <Typography variant="p" className="text-sm text-gray-500 max-w-80 mx-auto font-medium uppercase tracking-tighter">
            Inteligência preditiva em processamento. Os dados de benchmarking regional serão liberados após a consolidação do primeiro ciclo mensal.
          </Typography>
        </div>
@@ -295,7 +295,7 @@ function VisitOneInterviews({ clientId }: { clientId: string }) {
   }, [currentTmpl?.id, currentResp?.id])
 
   if (!templates.length || !currentTmpl) {
-    return <div className="p-mx-lg text-center opacity-50">Carregando formulários de entrevista...</div>
+    return <div className="p-8 text-center opacity-50">Carregando formulários de entrevista...</div>
   }
 
   const updateField = (field: PmrFormField, value: string | boolean | number) => {
@@ -337,8 +337,8 @@ function VisitOneInterviews({ clientId }: { clientId: string }) {
   }
 
   return (
-    <div className="space-y-mx-lg">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-mx-md">
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {templates.map(t => {
           const responses = responsesByTemplate.get(t.id) || []
           const isActive = currentTmpl.id === t.id
@@ -348,28 +348,28 @@ function VisitOneInterviews({ clientId }: { clientId: string }) {
               type="button"
               onClick={() => setActiveTmpl(t.id)}
               className={cn(
-                "text-left p-mx-md rounded-mx-xl border transition-all relative overflow-hidden shadow-sm min-h-mx-28",
+                "text-left p-6 rounded-2xl border transition-all relative overflow-hidden shadow-sm min-h-28",
                 isActive
-                  ? "bg-brand-primary border-brand-primary text-white shadow-mx-lg"
-                  : "bg-white border-border-default hover:border-brand-primary/30 hover:bg-surface-alt"
+                  ? "bg-emerald-600 border-emerald-600 text-white shadow-sm"
+                  : "bg-white border-gray-100 hover:border-emerald-600/30 hover:bg-gray-50"
               )}
             >
-              <div className="flex items-start justify-between gap-mx-sm">
+              <div className="flex items-start justify-between gap-4">
                 <div>
-                  <Typography variant="tiny" className={cn("uppercase font-black tracking-mx-widest text-mx-tiny", isActive ? "text-white/70" : "text-text-tertiary")}>
+                  <Typography variant="tiny" className={cn("uppercase font-black tracking-widest text-[10px]", isActive ? "text-white/70" : "text-gray-500")}>
                     Entrevista
                   </Typography>
-                  <Typography variant="h3" className={cn("text-base font-black leading-tight", isActive ? "text-white" : "text-text-primary")}>
+                  <Typography variant="h3" className={cn("text-base font-black leading-tight", isActive ? "text-white" : "text-gray-800")}>
                     {getInterviewLabel(t.form_key, t.title)}
                   </Typography>
                 </div>
                 {responses.length ? (
-                  <CheckCircle2 className={cn("w-mx-5 h-mx-5 shrink-0", isActive ? "text-white/70" : "text-status-success")} />
+                  <CheckCircle2 className={cn("w-5 h-5 shrink-0", isActive ? "text-white/70" : "text-emerald-600")} />
                 ) : (
-                  <Circle className={cn("w-mx-5 h-mx-5 shrink-0", isActive ? "text-white/40" : "text-text-tertiary/50")} />
+                  <Circle className={cn("w-5 h-5 shrink-0", isActive ? "text-white/40" : "text-gray-500/50")} />
                 )}
               </div>
-              <Typography variant="tiny" className={cn("mt-mx-md block font-bold", isActive ? "text-white/70" : "text-text-tertiary")}>
+              <Typography variant="tiny" className={cn("mt-6 block font-bold", isActive ? "text-white/70" : "text-gray-500")}>
                 {responses.length ? `${responses.length} resposta(s) agrupada(s)` : 'Pendente'}
               </Typography>
             </button>
@@ -377,56 +377,56 @@ function VisitOneInterviews({ clientId }: { clientId: string }) {
         })}
       </div>
 
-      <Card className="p-mx-lg bg-white border border-border-default shadow-mx-md rounded-mx-2xl">
-        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-mx-md mb-mx-lg border-b border-border-subtle pb-mx-md">
-          <div className="flex items-start gap-mx-sm">
-            <div className="p-mx-xs bg-brand-primary/10 rounded-mx-lg text-brand-primary"><Users size={20} /></div>
+      <Card className="p-8 bg-white border border-gray-100 shadow-sm rounded-2xl">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 mb-8 border-b border-gray-100 pb-6">
+          <div className="flex items-start gap-4">
+            <div className="p-2 bg-emerald-600/10 rounded-2xl text-emerald-600"><Users size={20} /></div>
             <div>
-              <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-mx-widest">
+              <Typography variant="tiny" tone="muted" className="uppercase font-black tracking-widest">
                 Visita 1 - Diagnóstico PMR
               </Typography>
-              <Typography variant="h3" className="text-xl font-black text-text-primary uppercase tracking-tight">
+              <Typography variant="h3" className="text-xl font-black text-gray-800 uppercase tracking-tight">
                 {getInterviewLabel(currentTmpl.form_key, currentTmpl.title)}
               </Typography>
             </div>
           </div>
-          <Badge variant={currentResponses.length ? 'success' : 'outline'} className="self-start xl:self-auto rounded-mx-full px-mx-md py-mx-xs">
+          <Badge variant={currentResponses.length ? 'success' : 'outline'} className="self-start xl:self-auto rounded-full px-6 py-2">
             {completedInterviews}/{templates.length} entrevistas com resposta
           </Badge>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md mb-mx-lg">
-          <div className="space-y-mx-xs">
-            <Typography as="label" htmlFor={`interview-${currentTmpl.id}-respondent`} variant="tiny" className="font-black uppercase tracking-mx-widest text-text-tertiary">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="space-y-2">
+            <Typography as="label" htmlFor={`interview-${currentTmpl.id}-respondent`} variant="tiny" className="font-black uppercase tracking-widest text-gray-500">
               Respondente
             </Typography>
             <Input
               id={`interview-${currentTmpl.id}-respondent`}
               name={`interview-${currentTmpl.id}-respondent`}
-              className="bg-surface-alt/30 border-border-default focus:bg-white"
+              className="bg-gray-50/30 border-gray-100 focus:bg-white"
               value={respondentName}
               onChange={e => setRespondentName(e.target.value)}
               placeholder="Nome da pessoa entrevistada"
             />
           </div>
-          <div className="space-y-mx-xs">
-            <Typography variant="tiny" className="font-black uppercase tracking-mx-widest text-text-tertiary">
+          <div className="space-y-2">
+            <Typography variant="tiny" className="font-black uppercase tracking-widest text-gray-500">
               Escopo
             </Typography>
-            <div className="h-mx-12 rounded-mx-lg border border-border-default bg-surface-alt/30 px-mx-md flex items-center">
-              <Typography variant="p" className="text-sm font-bold text-text-secondary">
+            <div className="h-12 rounded-2xl border border-gray-100 bg-gray-50/30 px-6 flex items-center">
+              <Typography variant="p" className="text-sm font-bold text-gray-600">
                 Diagnóstico consolidado da Visita 1.
               </Typography>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-mx-md">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {currentTmpl.fields.map(field => {
             const value = answers[field.key]
             return (
-              <div key={field.key} className={cn("space-y-mx-xs p-mx-md bg-surface-alt/30 rounded-mx-xl border border-border-default", field.type === 'textarea' ? 'md:col-span-2' : '')}>
-                <Typography as="label" htmlFor={`interview-${currentTmpl.id}-${field.key}`} variant="p" className="font-black text-xs text-text-secondary uppercase">
+              <div key={field.key} className={cn("space-y-2 p-6 bg-gray-50/30 rounded-2xl border border-gray-100", field.type === 'textarea' ? 'md:col-span-2' : '')}>
+                <Typography as="label" htmlFor={`interview-${currentTmpl.id}-${field.key}`} variant="p" className="font-black text-xs text-gray-600 uppercase">
                   {field.label}{field.required ? ' *' : ''}
                 </Typography>
 
@@ -434,23 +434,23 @@ function VisitOneInterviews({ clientId }: { clientId: string }) {
                   <Textarea
                     id={`interview-${currentTmpl.id}-${field.key}`}
                     name={`interview-${currentTmpl.id}-${field.key}`}
-                    className="bg-white border-none shadow-mx-inner min-h-mx-24"
+                    className="bg-white border-none shadow-inner min-h-24"
                     placeholder="Resposta do entrevistado..."
                     value={String(value || '')}
                     onChange={e => updateField(field, e.target.value)}
                   />
                 ) : field.type === 'scale' ? (
-                  <div className="flex flex-wrap gap-mx-sm pt-mx-xs">
+                  <div className="flex flex-wrap gap-4 pt-2">
                     {[1, 2, 3, 4, 5].map(option => (
                       <button
                         key={option}
                         type="button"
                         onClick={() => updateField(field, option)}
                         className={cn(
-                          "h-10 w-10 min-w-10 sm:h-12 sm:w-12 sm:min-w-12 rounded-mx-xl font-black transition-all border-2 flex items-center justify-center text-lg",
+                          "h-10 w-10 min-w-10 sm:h-12 sm:w-12 sm:min-w-12 rounded-2xl font-black transition-all border-2 flex items-center justify-center text-lg",
                           value === option
-                            ? "bg-brand-primary border-brand-primary text-white shadow-mx-lg scale-105"
-                            : "bg-white border-border-default text-text-tertiary hover:border-brand-primary/40 hover:text-brand-primary"
+                            ? "bg-emerald-600 border-emerald-600 text-white shadow-sm scale-105"
+                            : "bg-white border-gray-100 text-gray-500 hover:border-emerald-600/40 hover:text-emerald-600"
                         )}
                       >
                         {option}
@@ -458,7 +458,7 @@ function VisitOneInterviews({ clientId }: { clientId: string }) {
                     ))}
                   </div>
                 ) : field.type === 'boolean' ? (
-                  <label className="h-mx-12 rounded-mx-lg bg-white border border-border-default px-mx-md flex items-center gap-mx-sm font-bold text-sm">
+                  <label className="h-12 rounded-2xl bg-white border border-gray-100 px-6 flex items-center gap-4 font-bold text-sm">
                     <input
                       type="checkbox"
                       checked={Boolean(value)}
@@ -470,7 +470,7 @@ function VisitOneInterviews({ clientId }: { clientId: string }) {
                   <Select
                     id={`interview-${currentTmpl.id}-${field.key}`}
                     name={`interview-${currentTmpl.id}-${field.key}`}
-                    className="bg-white border-none shadow-mx-inner"
+                    className="bg-white border-none shadow-inner"
                     value={String(value || '')}
                     onChange={e => updateField(field, e.target.value)}
                   >
@@ -484,7 +484,7 @@ function VisitOneInterviews({ clientId }: { clientId: string }) {
                     id={`interview-${currentTmpl.id}-${field.key}`}
                     name={`interview-${currentTmpl.id}-${field.key}`}
                     type={field.type === 'number' ? 'number' : 'text'}
-                    className="bg-white border-none shadow-mx-inner"
+                    className="bg-white border-none shadow-inner"
                     value={String(value ?? '')}
                     onChange={e => updateField(field, e.target.value)}
                   />
@@ -494,25 +494,25 @@ function VisitOneInterviews({ clientId }: { clientId: string }) {
           })}
         </div>
 
-        <div className="mt-mx-md space-y-mx-xs">
-          <Typography as="label" htmlFor={`interview-${currentTmpl.id}-summary`} variant="p" className="font-black text-xs text-text-secondary uppercase">
+        <div className="mt-6 space-y-2">
+          <Typography as="label" htmlFor={`interview-${currentTmpl.id}-summary`} variant="p" className="font-black text-xs text-gray-600 uppercase">
             Resumo para planejamento
           </Typography>
           <Textarea
             id={`interview-${currentTmpl.id}-summary`}
             name={`interview-${currentTmpl.id}-summary`}
-            className="bg-surface-alt/30 border-border-default focus:bg-white min-h-mx-28"
+            className="bg-gray-50/30 border-gray-100 focus:bg-white min-h-28"
             value={summary}
             onChange={e => setSummary(e.target.value)}
             placeholder="Síntese consultiva para alimentar o planejamento estratégico e o plano de ação..."
           />
         </div>
 
-        <div className="mt-mx-lg flex justify-end">
+        <div className="mt-8 flex justify-end">
           <Button
             type="button"
             variant="primary"
-            className="h-mx-11 px-mx-lg font-black uppercase tracking-mx-widest text-xs shadow-mx-md"
+            className="h-11 px-8 font-black uppercase tracking-widest text-xs shadow-sm"
             loading={saving}
             onClick={handleSaveInterview}
             icon={<Save size={16} />}

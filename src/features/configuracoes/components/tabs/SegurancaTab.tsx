@@ -48,11 +48,11 @@ export function SegurancaTab() {
     }
 
     return (
-        <div className="space-y-mx-lg">
+        <div className="space-y-8">
             {/* Alterar senha */}
-            <Card className="p-mx-lg md:p-mx-xl border-none shadow-mx-lg bg-white">
-                <header className="flex items-center gap-mx-sm pb-mx-md border-b border-border-default mb-mx-lg">
-                    <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-indigo-50 text-brand-primary flex items-center justify-center border border-mx-indigo-100 shadow-inner">
+            <Card className="p-8 md:p-12 border-none shadow-sm bg-white">
+                <header className="flex items-center gap-4 pb-6 border-b border-gray-100 mb-8">
+                    <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-emerald-600 flex items-center justify-center border border-indigo-100 shadow-inner">
                         <KeyRound size={26} />
                     </div>
                     <div>
@@ -61,11 +61,11 @@ export function SegurancaTab() {
                     </div>
                 </header>
 
-                <div className="grid md:grid-cols-2 gap-mx-lg">
-                    <div className="space-y-mx-sm md:col-span-2">
+                <div className="grid md:grid-cols-2 gap-8">
+                    <div className="space-y-4 md:col-span-2">
                         <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Nova Senha</Typography>
                         <div className="relative">
-                            <Lock size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
+                            <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
                             <Input
                                 id="settings-new-password"
                                 name="new-password"
@@ -73,23 +73,23 @@ export function SegurancaTab() {
                                 autoComplete="new-password"
                                 value={form.next}
                                 onChange={e => setForm(p => ({ ...p, next: e.target.value }))}
-                                className="!h-mx-14 !pl-mx-12 pr-mx-12 font-bold"
+                                className="!h-14 !pl-12 pr-12 font-bold"
                                 placeholder="Mínimo 10, Aa1#"
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowPasswords(s => !s)}
-                                className="absolute right-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary hover:text-brand-primary"
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-emerald-600"
                                 aria-label={showPasswords ? 'Ocultar senha' : 'Mostrar senha'}
                             >
                                 {showPasswords ? <EyeOff size={18} /> : <Eye size={18} />}
                             </button>
                         </div>
                     </div>
-                    <div className="space-y-mx-sm md:col-span-2">
+                    <div className="space-y-4 md:col-span-2">
                         <Typography variant="caption" tone="muted" className="ml-2 font-black uppercase tracking-widest">Confirmar Nova Senha</Typography>
                         <div className="relative">
-                            <Lock size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
+                            <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
                             <Input
                                 id="settings-confirm-password"
                                 name="confirm-password"
@@ -97,18 +97,18 @@ export function SegurancaTab() {
                                 autoComplete="new-password"
                                 value={form.confirm}
                                 onChange={e => setForm(p => ({ ...p, confirm: e.target.value }))}
-                                className="!h-mx-14 !pl-mx-12 font-bold"
+                                className="!h-14 !pl-12 font-bold"
                                 placeholder="Repita a senha"
                             />
                         </div>
                     </div>
                 </div>
 
-                <div className="mt-mx-lg pt-mx-md border-t border-border-default flex items-center justify-end">
+                <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-end">
                     <Button
                         onClick={handleChangePassword}
                         disabled={saving || !form.next || !form.confirm}
-                        className="h-mx-xl px-8 rounded-mx-full font-black uppercase tracking-widest"
+                        className="h-12 px-8 rounded-full font-black uppercase tracking-widest"
                     >
                         {saving ? <RefreshCw className="animate-spin mr-2" size={16} /> : <ShieldCheck size={16} className="mr-2" />}
                         Atualizar Senha
@@ -118,9 +118,9 @@ export function SegurancaTab() {
 
             {/* must_change_password warning */}
             {profile?.must_change_password && (
-                <Card className="p-mx-md bg-status-warning-surface border border-status-warning/30">
-                    <div className="flex items-start gap-mx-sm">
-                        <AlertTriangle size={20} className="text-status-warning shrink-0 mt-0.5" />
+                <Card className="p-6 bg-amber-50 border border-amber-500/30">
+                    <div className="flex items-start gap-4">
+                        <AlertTriangle size={20} className="text-amber-600 shrink-0 mt-0.5" />
                         <div>
                             <Typography variant="caption" tone="warning" className="font-black uppercase tracking-widest">Troca de Senha Obrigatória</Typography>
                             <Typography variant="tiny" tone="muted" className="font-bold leading-relaxed">
@@ -132,9 +132,9 @@ export function SegurancaTab() {
             )}
 
             {/* Sessões ativas */}
-            <Card className="p-mx-lg border-none shadow-mx-md bg-white">
-                <header className="flex items-center gap-mx-sm pb-mx-md border-b border-border-default mb-mx-lg">
-                    <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-surface-alt text-text-tertiary flex items-center justify-center border border-border-default shadow-inner">
+            <Card className="p-8 border-none shadow-sm bg-white">
+                <header className="flex items-center gap-4 pb-6 border-b border-gray-100 mb-8">
+                    <div className="w-14 h-14 rounded-2xl bg-gray-50 text-gray-500 flex items-center justify-center border border-gray-100 shadow-inner">
                         <Smartphone size={26} />
                     </div>
                     <div>
@@ -143,10 +143,10 @@ export function SegurancaTab() {
                     </div>
                 </header>
 
-                <div className="space-y-mx-md">
-                    <div className="flex items-center justify-between p-mx-md bg-surface-alt rounded-mx-xl border border-border-subtle">
-                        <div className="flex items-center gap-mx-sm">
-                            <div className="w-mx-10 h-mx-10 rounded-mx-full bg-status-success/10 text-status-success flex items-center justify-center">
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between p-6 bg-gray-50 rounded-2xl border border-gray-100">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-emerald-600/10 text-emerald-600 flex items-center justify-center">
                                 <ShieldCheck size={18} />
                             </div>
                             <div>
@@ -160,7 +160,7 @@ export function SegurancaTab() {
                     <Button
                         variant="outline"
                         onClick={handleForceLogoutAll}
-                        className="w-full h-mx-xl rounded-mx-xl border-status-error/30 text-status-error hover:bg-status-error-surface font-black uppercase tracking-widest"
+                        className="w-full h-12 rounded-2xl border-red-600/30 text-red-600 hover:bg-red-50 font-black uppercase tracking-widest"
                     >
                         <LogOut size={16} className="mr-2" /> Encerrar todas as sessões
                     </Button>
@@ -168,9 +168,9 @@ export function SegurancaTab() {
             </Card>
 
             {/* 2FA placeholder */}
-            <Card className="p-mx-lg border-none shadow-mx-md bg-white">
-                <header className="flex items-center gap-mx-sm pb-mx-md border-b border-border-default mb-mx-lg">
-                    <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-indigo-50 text-brand-primary flex items-center justify-center border border-mx-indigo-100 shadow-inner">
+            <Card className="p-8 border-none shadow-sm bg-white">
+                <header className="flex items-center gap-4 pb-6 border-b border-gray-100 mb-8">
+                    <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-emerald-600 flex items-center justify-center border border-indigo-100 shadow-inner">
                         <ShieldCheck size={26} />
                     </div>
                     <div>

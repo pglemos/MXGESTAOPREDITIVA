@@ -124,15 +124,15 @@ export function EditUserModal({ open, user, lojas, onClose, onSubmit, allowedRol
                 </>
             }
         >
-            <form id="edit-user-form" onSubmit={handleSubmit} className="space-y-mx-lg">
-                <div className="grid md:grid-cols-2 gap-mx-md">
+            <form id="edit-user-form" onSubmit={handleSubmit} className="space-y-8">
+                <div className="grid md:grid-cols-2 gap-6">
                     <FormGroup icon={<UserIcon size={16} />} label="Nome">
                         <Input
                             id="edit-user-name"
                             name="name"
                             value={form.name || ''}
                             onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-                            className="!pl-mx-12 !h-mx-14 font-bold uppercase"
+                            className="!pl-12 !h-14 font-bold uppercase"
                         />
                     </FormGroup>
 
@@ -143,7 +143,7 @@ export function EditUserModal({ open, user, lojas, onClose, onSubmit, allowedRol
                             type="email"
                             value={form.email || ''}
                             onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-                            className="!pl-mx-12 !h-mx-14 font-bold"
+                            className="!pl-12 !h-14 font-bold"
                         />
                     </FormGroup>
 
@@ -153,7 +153,7 @@ export function EditUserModal({ open, user, lojas, onClose, onSubmit, allowedRol
                             name="phone"
                             value={form.phone || ''}
                             onChange={e => setForm(p => ({ ...p, phone: e.target.value }))}
-                            className="!pl-mx-12 !h-mx-14 font-bold"
+                            className="!pl-12 !h-14 font-bold"
                         />
                     </FormGroup>
 
@@ -163,7 +163,7 @@ export function EditUserModal({ open, user, lojas, onClose, onSubmit, allowedRol
                             name="role"
                             value={form.role || ''}
                             onChange={e => setForm(p => ({ ...p, role: e.target.value as UserRole }))}
-                            className="w-full h-mx-14 pl-mx-12 pr-mx-sm bg-surface-alt border border-border-default rounded-mx-xl font-black uppercase text-xs focus:outline-none focus:border-brand-primary appearance-none cursor-pointer"
+                            className="w-full h-14 pl-12 pr-4 bg-gray-50 border border-gray-100 rounded-2xl font-black uppercase text-xs focus:outline-none focus:border-emerald-600 appearance-none cursor-pointer"
                         >
                             {ROLE_OPTIONS.filter(r => allowedRoles.includes(r.value)).map(r => (
                                 <option key={r.value} value={r.value}>{r.label.toUpperCase()}</option>
@@ -178,7 +178,7 @@ export function EditUserModal({ open, user, lojas, onClose, onSubmit, allowedRol
                                 name="store_id"
                                 value={form.store_id || ''}
                                 onChange={e => setForm(p => ({ ...p, store_id: e.target.value }))}
-                                className="w-full h-mx-14 pl-mx-12 pr-mx-sm bg-surface-alt border border-border-default rounded-mx-xl font-black uppercase text-xs focus:outline-none focus:border-brand-primary appearance-none cursor-pointer"
+                                className="w-full h-14 pl-12 pr-4 bg-gray-50 border border-gray-100 rounded-2xl font-black uppercase text-xs focus:outline-none focus:border-emerald-600 appearance-none cursor-pointer"
                             >
                                 <option value="">Selecione a loja</option>
                                 {lojas.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -187,18 +187,18 @@ export function EditUserModal({ open, user, lojas, onClose, onSubmit, allowedRol
                     )}
 
                     <div className="md:col-span-2">
-                        <label htmlFor="user-active" className="flex items-start gap-mx-sm rounded-mx-xl border border-border-default bg-surface-alt p-mx-md cursor-pointer">
+                        <label htmlFor="user-active" className="flex items-start gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-6 cursor-pointer">
                             <input
                                 id="user-active"
                                 name="active"
                                 type="checkbox"
                                 checked={Boolean(form.active)}
                                 onChange={e => setForm(p => ({ ...p, active: e.target.checked }))}
-                                className="mt-1 h-mx-sm w-mx-sm accent-brand-primary"
+                                className="mt-1 h-4 w-4 accent-brand-primary"
                             />
                             <span className="flex-1">
-                                <span className="block text-sm font-black uppercase tracking-widest text-text-primary">Usuário ativo</span>
-                                <span className="block text-xs font-bold text-text-tertiary mt-1">
+                                <span className="block text-sm font-black uppercase tracking-widest text-gray-800">Usuário ativo</span>
+                                <span className="block text-xs font-bold text-gray-500 mt-1">
                                     Desativar bloqueia o login mas preserva o histórico operacional.
                                 </span>
                             </span>
@@ -206,15 +206,15 @@ export function EditUserModal({ open, user, lojas, onClose, onSubmit, allowedRol
                     </div>
                 </div>
 
-                <div className="pt-mx-md border-t border-border-default space-y-mx-sm">
+                <div className="pt-6 border-t border-gray-100 space-y-4">
                     <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">Ações de Segurança</Typography>
-                    <div className="flex flex-wrap gap-mx-sm">
+                    <div className="flex flex-wrap gap-4">
                         <Button
                             type="button"
                             variant="outline"
                             onClick={handleResetPassword}
                             disabled={resetting}
-                            className="h-mx-xl rounded-mx-xl font-black uppercase tracking-widest text-xs"
+                            className="h-12 rounded-2xl font-black uppercase tracking-widest text-xs"
                         >
                             <KeyRound size={14} className="mr-2" />
                             {resetting ? 'Aplicando...' : 'Forçar troca de senha'}
@@ -223,7 +223,7 @@ export function EditUserModal({ open, user, lojas, onClose, onSubmit, allowedRol
                             type="button"
                             variant="outline"
                             onClick={handleSendMagicLink}
-                            className="h-mx-xl rounded-mx-xl font-black uppercase tracking-widest text-xs"
+                            className="h-12 rounded-2xl font-black uppercase tracking-widest text-xs"
                         >
                             <Mail size={14} className="mr-2" />
                             Enviar e-mail de redefinição
@@ -237,10 +237,10 @@ export function EditUserModal({ open, user, lojas, onClose, onSubmit, allowedRol
 
 function FormGroup({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
     return (
-        <div className="space-y-mx-xs">
+        <div className="space-y-2">
             <Typography variant="tiny" tone="muted" className="px-1 font-black uppercase tracking-widest">{label}</Typography>
             <div className="relative">
-                <span className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary z-10 pointer-events-none">{icon}</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 z-10 pointer-events-none">{icon}</span>
                 {children}
             </div>
         </div>

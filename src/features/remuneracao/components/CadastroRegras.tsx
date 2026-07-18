@@ -140,12 +140,12 @@ export function CadastroRegras({ lojaId }: { lojaId: string }) {
   }
 
   return (
-    <div className="space-y-mx-lg">
-      <form onSubmit={handleSubmit} className="rounded-mx-xl border border-border-default bg-surface-alt p-mx-md">
+    <div className="space-y-8">
+      <form onSubmit={handleSubmit} className="rounded-2xl border border-gray-100 bg-gray-50 p-6">
         <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">
           Regras de comissão e bônus
         </Typography>
-        <div className="mt-mx-sm grid gap-mx-sm md:grid-cols-2 xl:grid-cols-[1fr_1.3fr_1fr_1fr_1fr]">
+        <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1.3fr_1fr_1fr_1fr]">
           <Field label="Cargo">
             <Input value={form.cargo} onChange={e => setForm(p => ({ ...p, cargo: e.target.value }))} placeholder="Ex.: Vendedor" />
           </Field>
@@ -153,7 +153,7 @@ export function CadastroRegras({ lojaId }: { lojaId: string }) {
             <select
               value={form.tipo}
               onChange={e => setForm(p => ({ ...p, tipo: e.target.value as RemuneracaoRegraTipo }))}
-              className="w-full h-mx-14 px-mx-sm bg-white border border-border-default rounded-mx-xl font-black uppercase text-xs focus:outline-none focus:border-brand-primary appearance-none cursor-pointer"
+              className="w-full h-14 px-4 bg-white border border-gray-100 rounded-2xl font-black uppercase text-xs focus:outline-none focus:border-emerald-600 appearance-none cursor-pointer"
             >
               <option value="comissao_por_venda">Comissão por venda</option>
               <option value="bonus_meta">Bônus por meta</option>
@@ -189,7 +189,7 @@ export function CadastroRegras({ lojaId }: { lojaId: string }) {
               value={form.tipo_veiculo}
               onChange={e => setForm(p => ({ ...p, tipo_veiculo: e.target.value as FormState['tipo_veiculo'] }))}
               disabled={!regraUsaCategoria}
-              className="w-full h-mx-14 px-mx-sm bg-white border border-border-default rounded-mx-xl font-black uppercase text-xs focus:outline-none focus:border-brand-primary disabled:cursor-not-allowed disabled:bg-surface-alt disabled:text-text-tertiary appearance-none cursor-pointer"
+              className="w-full h-14 px-4 bg-white border border-gray-100 rounded-2xl font-black uppercase text-xs focus:outline-none focus:border-emerald-600 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500 appearance-none cursor-pointer"
             >
               <option value="">Não se aplica</option>
               <option value="carro">Carro</option>
@@ -202,7 +202,7 @@ export function CadastroRegras({ lojaId }: { lojaId: string }) {
               value={form.nivel_carreira}
               onChange={e => setForm(p => ({ ...p, nivel_carreira: e.target.value as NivelCarreiraForm }))}
               disabled={!regraUsaCarreira}
-              className="w-full h-mx-14 px-mx-sm bg-white border border-border-default rounded-mx-xl font-black uppercase text-xs focus:outline-none focus:border-brand-primary disabled:cursor-not-allowed disabled:bg-surface-alt disabled:text-text-tertiary appearance-none cursor-pointer"
+              className="w-full h-14 px-4 bg-white border border-gray-100 rounded-2xl font-black uppercase text-xs focus:outline-none focus:border-emerald-600 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500 appearance-none cursor-pointer"
             >
               <option value="">Não se aplica</option>
               <option value="junior">Júnior</option>
@@ -212,76 +212,76 @@ export function CadastroRegras({ lojaId }: { lojaId: string }) {
           </Field>
         </div>
         {regraUsaConfigEquipe && (
-          <div className="mt-mx-sm flex flex-wrap gap-mx-md">
-            <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-text-tertiary">
+          <div className="mt-4 flex flex-wrap gap-6">
+            <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-500">
               <input type="checkbox" checked={form.cumulativo} onChange={e => setForm(p => ({ ...p, cumulativo: e.target.checked }))} />
               Cumulativo com outras faixas
             </label>
-            <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-text-tertiary">
+            <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-500">
               <input type="checkbox" checked={form.valor_por_unidade} onChange={e => setForm(p => ({ ...p, valor_por_unidade: e.target.checked }))} />
               Valor multiplica pelos carros do vendedor
             </label>
-            <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-text-tertiary">
+            <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-500">
               <input type="checkbox" checked={form.requer_bonus_individual} onChange={e => setForm(p => ({ ...p, requer_bonus_individual: e.target.checked }))} />
               Só paga se vendedor bateu o próprio mínimo
             </label>
           </div>
         )}
-        <div className="mt-mx-md flex justify-end">
+        <div className="mt-6 flex justify-end">
           <Button type="submit" disabled={saving} icon={<Plus size={16} />}>
             {saving ? 'Salvando…' : 'Salvar regra'}
           </Button>
         </div>
       </form>
 
-      {error && <p className="text-sm font-bold text-status-error">Erro ao carregar: {error}</p>}
+      {error && <p className="text-sm font-bold text-red-600">Erro ao carregar: {error}</p>}
 
       {loading ? (
-        <p className="text-sm font-bold text-text-tertiary">Carregando regras…</p>
+        <p className="text-sm font-bold text-gray-500">Carregando regras…</p>
       ) : regras.length === 0 ? (
         <EmptyState title="Nenhuma regra cadastrada" description="Adicione comissão por venda e bônus por meta para ativar o salário estimado." />
       ) : (
-        <div className="overflow-x-auto rounded-mx-xl border border-border-default">
+        <div className="overflow-x-auto rounded-2xl border border-gray-100">
           <table className="w-full text-sm">
-            <thead className="bg-surface-alt text-text-secondary">
+            <thead className="bg-gray-50 text-gray-600">
               <tr className="text-left uppercase tracking-widest text-xs font-black">
-                <th className="px-mx-md py-mx-sm">Cargo</th>
-                <th className="px-mx-md py-mx-sm">Tipo</th>
-                <th className="px-mx-md py-mx-sm">Categoria / Nível</th>
-                <th className="px-mx-md py-mx-sm text-right">Valor</th>
-                <th className="px-mx-md py-mx-sm text-right">Meta mínima</th>
-                <th className="px-mx-md py-mx-sm">Config.</th>
-                <th className="px-mx-md py-mx-sm" />
+                <th className="px-6 py-4">Cargo</th>
+                <th className="px-6 py-4">Tipo</th>
+                <th className="px-6 py-4">Categoria / Nível</th>
+                <th className="px-6 py-4 text-right">Valor</th>
+                <th className="px-6 py-4 text-right">Meta mínima</th>
+                <th className="px-6 py-4">Config.</th>
+                <th className="px-6 py-4" />
               </tr>
             </thead>
             <tbody>
               {regras.map(regra => (
-                <tr key={regra.id} className="border-t border-border-default">
-                  <td className="px-mx-md py-mx-sm font-black uppercase">{regra.cargo}</td>
-                  <td className="px-mx-md py-mx-sm">{TIPO_LABEL[regra.tipo]}</td>
-                  <td className="px-mx-md py-mx-sm">
+                <tr key={regra.id} className="border-t border-gray-100">
+                  <td className="px-6 py-4 font-black uppercase">{regra.cargo}</td>
+                  <td className="px-6 py-4">{TIPO_LABEL[regra.tipo]}</td>
+                  <td className="px-6 py-4">
                     {regra.tipo_veiculo
                       ? TIPO_VEICULO_LABEL[regra.tipo_veiculo as RemuneracaoTipoVeiculo] || regra.tipo_veiculo
                       : regra.nivel_carreira
                         ? NIVEL_CARREIRA_LABEL[regra.nivel_carreira as 'junior' | 'pleno' | 'lider'] || regra.nivel_carreira
                         : '—'}
                   </td>
-                  <td className="px-mx-md py-mx-sm text-right font-black">{BRL.format(Number(regra.valor))}</td>
-                  <td className="px-mx-md py-mx-sm text-right">
+                  <td className="px-6 py-4 text-right font-black">{BRL.format(Number(regra.valor))}</td>
+                  <td className="px-6 py-4 text-right">
                     {regra.unidade_meta_min != null
                       ? `${regra.unidade_meta_min} carro(s)`
                       : regra.tipo === 'bonus_meta' || regra.tipo === 'comissao_equipe'
                         ? `${Number(regra.percentual_meta_min || 0)}%`
                         : '—'}
                   </td>
-                  <td className="px-mx-md py-mx-sm text-xs text-text-tertiary">
+                  <td className="px-6 py-4 text-xs text-gray-500">
                     {[
                       regra.cumulativo && 'cumulativo',
                       regra.valor_por_unidade && 'por unidade',
                       regra.requer_bonus_individual && 'trava individual',
                     ].filter(Boolean).join(' · ') || '—'}
                   </td>
-                  <td className="px-mx-md py-mx-sm text-right">
+                  <td className="px-6 py-4 text-right">
                     <Button type="button" variant="ghost" size="icon" aria-label="Remover" onClick={() => handleRemove(regra)}>
                       <Trash2 size={16} />
                     </Button>
@@ -298,8 +298,8 @@ export function CadastroRegras({ lojaId }: { lojaId: string }) {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="block space-y-mx-xs">
-      <span className="block px-1 text-xs font-black uppercase tracking-widest text-text-tertiary">{label}</span>
+    <label className="block space-y-2">
+      <span className="block px-1 text-xs font-black uppercase tracking-widest text-gray-500">{label}</span>
       {children}
     </label>
   )

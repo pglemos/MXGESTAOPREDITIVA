@@ -96,19 +96,23 @@ describe('paridade visual dos módulos MX com o Gerente', () => {
     expect(universalPrimitives).not.toContain('border-border-subtle')
   })
 
-  test('escopa a matriz do Gerente em todos os perfis de gestão sem contaminar o Vendedor', () => {
+  test('escopa a matriz do Gerente sem rebatizar tokens legados', () => {
     expect(layout).toContain("from '@/components/module/MxRoleVisualScope'")
     expect(layout).toContain("<MxRoleVisualScope manager={role !== 'vendedor'}>")
     expect(roleVisualScope).toContain('<ButtonVisualProvider mode="manager">')
     expect(roleVisualScope).toContain('data-mx-visual-system="manager"')
     expect(roleVisualScope).toContain('mx-manager-scope')
     expect(managerScopeCss).toContain('.mx-manager-scope')
-    expect(managerScopeCss).toContain('--color-mx-action: #059669')
-    expect(managerScopeCss).toContain('--color-surface-alt: #f9fafb')
-    expect(managerScopeCss).toContain('--color-text-primary: #1f2937')
+    expect(managerScopeCss).toContain('background: #f9fafb')
+    expect(managerScopeCss).toContain('color: #1f2937')
+    expect(managerScopeCss).toContain('--radius-2xl: 1rem')
+    expect(managerScopeCss).not.toContain('--color-mx-action')
+    expect(managerScopeCss).not.toContain('--color-surface-alt')
+    expect(managerScopeCss).not.toContain('--color-text-primary')
+    expect(managerScopeCss).not.toContain('--color-border-default')
   })
 
-  test('aplica variantes gerenciais por escopo sem substituir o primary do vendedor', () => {
+  test('aplica variantes gerenciais sem substituir o primary do vendedor', () => {
     for (const variant of [
       'managerPrimary',
       'managerOutline',
@@ -118,14 +122,18 @@ describe('paridade visual dos módulos MX com o Gerente', () => {
       expect(button).toContain(`${variant}:`)
     }
     expect(button).toContain('ButtonVisualProvider')
+    expect(button).toContain('ManagementVisualProvider')
+    expect(button).toContain('useManagementVisualMode')
     expect(button).toContain("mode: ButtonVisualMode")
     expect(button).toContain("primary: 'managerPrimary'")
     expect(button).toContain("outline: 'managerSecondary'")
+    expect(button).toContain('const managerButtonVariants = cva(')
     expect(button).toContain('bg-emerald-600')
     expect(button).toContain('hover:bg-emerald-700')
     expect(button).toContain('border-emerald-200')
     expect(button).toContain('border-gray-200')
-    expect(button).toContain('primary: "bg-mx-action')
+    expect(button).toContain("primary: 'bg-mx-action")
+    expect(button).toContain("visualMode === 'manager' ? managerButtonVariants : buttonVariants")
     expect(universalPrimitives).toContain('<ButtonVisualProvider mode="manager">')
   })
 

@@ -26,18 +26,18 @@ export default function RemuneracaoPage() {
   const lojaSelecionada = lojaId || (lojas.length === 1 ? lojas[0].id : '')
 
   return (
-<div className="w-full space-y-mx-lg">
+<div className="w-full space-y-8">
       <PageHeading
         title="Remuneração Inteligente"
         subtitle="CADASTRE O PLANO DE REMUNERAÇÃO POR CARGO E COMPARE COM A MÉDIA DE MERCADO"
         actions={
-          <label className="flex items-center gap-mx-sm">
-            <span className="text-xs font-black uppercase tracking-widest text-text-tertiary">Loja</span>
+          <label className="flex items-center gap-4">
+            <span className="text-xs font-black uppercase tracking-widest text-gray-500">Loja</span>
             <select
               value={lojaSelecionada}
               onChange={e => setLojaId(e.target.value)}
               disabled={loading || lojas.length === 0}
-              className="h-mx-12 px-mx-sm bg-surface-alt border border-border-subtle rounded-mx-lg font-black uppercase text-xs focus:outline-none focus:border-brand-primary appearance-none cursor-pointer"
+              className="h-12 px-4 bg-gray-50 border border-gray-100 rounded-2xl font-black uppercase text-xs focus:outline-none focus:border-emerald-600 appearance-none cursor-pointer"
             >
               <option value="">Selecione…</option>
               {lojas.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}

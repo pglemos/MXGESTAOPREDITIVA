@@ -43,7 +43,9 @@
     "consultoria:importar-fechamento-mensal": "tsx scripts/consultoria_importar_fechamento_mensal.ts",
     "consultoria:sincronizar-metricas-pmr": "tsx scripts/consultoria_sincronizar_metricas_pmr.ts",
     "consultoria:gerar-planejamento-estrategico": "tsx scripts/consultoria_gerar_planejamento_estrategico.ts",
-    "consultoria:gerar-resumo-executivo": "tsx scripts/consultoria_gerar_resumo_executivo.ts"
+    "consultoria:gerar-resumo-executivo": "tsx scripts/consultoria_gerar_resumo_executivo.ts",
+    "audit:management-design-system": "node scripts/audit-management-design-system.mjs",
+    "test:management-design-system": "node --test scripts/management-route-manifest.test.mjs scripts/audit-management-design-system.test.mjs"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.14",

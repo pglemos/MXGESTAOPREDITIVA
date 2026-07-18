@@ -37,7 +37,7 @@ export function CadastroCarreira({ lojaId }: { lojaId: string }) {
   const loading = sellersLoading || niveisLoading
 
   return (
-    <div className="space-y-mx-lg">
+    <div className="space-y-8">
       <div>
         <Typography variant="caption" tone="muted" className="font-black uppercase tracking-widest">
           Nível de carreira
@@ -47,31 +47,31 @@ export function CadastroCarreira({ lojaId }: { lojaId: string }) {
         </Typography>
       </div>
 
-      {error && <p className="text-sm font-bold text-status-error">Erro ao carregar: {error}</p>}
+      {error && <p className="text-sm font-bold text-red-600">Erro ao carregar: {error}</p>}
 
       {loading ? (
-        <p className="text-sm font-bold text-text-tertiary">Carregando vendedores…</p>
+        <p className="text-sm font-bold text-gray-500">Carregando vendedores…</p>
       ) : vendedores.length === 0 ? (
         <EmptyState title="Nenhum vendedor nesta loja" description="Cadastre vendedores em Equipe & Usuários primeiro." />
       ) : (
-        <div className="overflow-x-auto rounded-mx-xl border border-border-default">
+        <div className="overflow-x-auto rounded-2xl border border-gray-100">
           <table className="w-full text-sm">
-            <thead className="bg-surface-alt text-text-secondary">
+            <thead className="bg-gray-50 text-gray-600">
               <tr className="text-left uppercase tracking-widest text-xs font-black">
-                <th className="px-mx-md py-mx-sm">Vendedor</th>
-                <th className="px-mx-md py-mx-sm">Nível</th>
+                <th className="px-6 py-4">Vendedor</th>
+                <th className="px-6 py-4">Nível</th>
               </tr>
             </thead>
             <tbody>
               {vendedores.map(vendedor => (
-                <tr key={vendedor.id} className="border-t border-border-default">
-                  <td className="px-mx-md py-mx-sm font-black">{vendedor.name}</td>
-                  <td className="px-mx-md py-mx-sm">
+                <tr key={vendedor.id} className="border-t border-gray-100">
+                  <td className="px-6 py-4 font-black">{vendedor.name}</td>
+                  <td className="px-6 py-4">
                     <select
                       value={niveis[vendedor.id] || 'junior'}
                       disabled={savingIds.has(vendedor.id)}
                       onChange={e => handleChange(vendedor.id, e.target.value as NivelCarreira)}
-                      className="h-mx-12 px-mx-sm bg-white border border-border-default rounded-mx-xl font-black uppercase text-xs focus:outline-none focus:border-brand-primary appearance-none cursor-pointer"
+                      className="h-12 px-4 bg-white border border-gray-100 rounded-2xl font-black uppercase text-xs focus:outline-none focus:border-emerald-600 appearance-none cursor-pointer"
                     >
                       {(Object.keys(NIVEL_LABEL) as NivelCarreira[]).map(nivel => (
                         <option key={nivel} value={nivel}>{NIVEL_LABEL[nivel]}</option>

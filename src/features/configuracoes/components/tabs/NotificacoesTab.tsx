@@ -64,10 +64,10 @@ export function NotificacoesTab() {
     const push = usePushNotifications(supabaseUser?.id ?? null)
 
     return (
-        <div className="space-y-mx-lg">
-            <Card className="p-mx-lg md:p-mx-xl border-none shadow-mx-lg bg-white">
-                <header className="flex items-center gap-mx-sm pb-mx-md border-b border-border-default mb-mx-lg">
-                    <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-indigo-50 text-brand-primary flex items-center justify-center border border-mx-indigo-100 shadow-inner">
+        <div className="space-y-8">
+            <Card className="p-8 md:p-12 border-none shadow-sm bg-white">
+                <header className="flex items-center gap-4 pb-6 border-b border-gray-100 mb-8">
+                    <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-emerald-600 flex items-center justify-center border border-indigo-100 shadow-inner">
                         <BellRing size={26} />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -100,14 +100,14 @@ export function NotificacoesTab() {
                     </Button>
                 </header>
                 {push.error && (
-                    <Typography variant="tiny" className="block font-black text-status-error">
+                    <Typography variant="tiny" className="block font-black text-red-600">
                         {push.error}
                     </Typography>
                 )}
             </Card>
-            <Card className="p-mx-lg md:p-mx-xl border-none shadow-mx-lg bg-white">
-                <header className="flex items-center gap-mx-sm pb-mx-md border-b border-border-default mb-mx-lg">
-                    <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-mx-indigo-50 text-brand-primary flex items-center justify-center border border-mx-indigo-100 shadow-inner">
+            <Card className="p-8 md:p-12 border-none shadow-sm bg-white">
+                <header className="flex items-center gap-4 pb-6 border-b border-gray-100 mb-8">
+                    <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-emerald-600 flex items-center justify-center border border-indigo-100 shadow-inner">
                         <Bell size={26} />
                     </div>
                     <div>
@@ -115,7 +115,7 @@ export function NotificacoesTab() {
                         <Typography variant="caption" tone="muted" className="uppercase tracking-widest font-black">Como você quer receber notificações</Typography>
                     </div>
                 </header>
-                <div className="space-y-mx-md">
+                <div className="space-y-6">
                     {channels.map(ch => {
                         const Icon = ch.icon
                         return (
@@ -132,9 +132,9 @@ export function NotificacoesTab() {
                 </div>
             </Card>
 
-            <Card className="p-mx-lg md:p-mx-xl border-none shadow-mx-lg bg-white">
-                <header className="flex items-center gap-mx-sm pb-mx-md border-b border-border-default mb-mx-lg">
-                    <div className="w-mx-14 h-mx-14 rounded-mx-xl bg-surface-alt text-text-tertiary flex items-center justify-center border border-border-default shadow-inner">
+            <Card className="p-8 md:p-12 border-none shadow-sm bg-white">
+                <header className="flex items-center gap-4 pb-6 border-b border-gray-100 mb-8">
+                    <div className="w-14 h-14 rounded-2xl bg-gray-50 text-gray-500 flex items-center justify-center border border-gray-100 shadow-inner">
                         <BarChart3 size={26} />
                     </div>
                     <div>
@@ -142,7 +142,7 @@ export function NotificacoesTab() {
                         <Typography variant="caption" tone="muted" className="uppercase tracking-widest font-black">Quais assuntos você quer acompanhar</Typography>
                     </div>
                 </header>
-                <div className="space-y-mx-md">
+                <div className="space-y-6">
                     {topicos.map(ch => {
                         const Icon = ch.icon
                         return (
@@ -158,11 +158,11 @@ export function NotificacoesTab() {
                     })}
                 </div>
 
-                <div className="mt-mx-lg pt-mx-md border-t border-border-default flex justify-end">
+                <div className="mt-8 pt-6 border-t border-gray-100 flex justify-end">
                     <Button
                         onClick={handleSave}
                         disabled={saving}
-                        className="h-mx-xl px-8 rounded-mx-full font-black uppercase tracking-widest"
+                        className="h-12 px-8 rounded-full font-black uppercase tracking-widest"
                     >
                         {saving ? <RefreshCw className="animate-spin mr-2" size={16} /> : <Save size={16} className="mr-2" />}
                         Salvar Preferências
@@ -181,12 +181,12 @@ function PrefRow({ icon, label, desc, checked, onToggle }: {
     onToggle: () => void
 }) {
     return (
-        <div className="flex flex-col gap-mx-md p-mx-md bg-surface-alt rounded-mx-xl border border-border-subtle hover:bg-white hover:border-brand-primary/20 transition-all sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-mx-sm flex-1 min-w-0">
-                <div className="w-mx-10 h-mx-10 rounded-mx-xl bg-white border border-border-default flex items-center justify-center text-brand-primary shrink-0">
+        <div className="flex flex-col gap-6 p-6 bg-gray-50 rounded-2xl border border-gray-100 hover:bg-white hover:border-emerald-600/20 transition-all sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-4 flex-1 min-w-0">
+                <div className="w-10 h-10 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-emerald-600 shrink-0">
                     {icon}
                 </div>
-                <div className="space-y-mx-tiny min-w-0">
+                <div className="space-y-1 min-w-0">
                     <Typography variant="caption" className="font-black uppercase tracking-tight">{label}</Typography>
                     <Typography variant="tiny" tone="muted" className="font-bold leading-relaxed">{desc}</Typography>
                 </div>
@@ -194,7 +194,7 @@ function PrefRow({ icon, label, desc, checked, onToggle }: {
             <Button
                 variant={checked ? 'primary' : 'outline'}
                 onClick={onToggle}
-                className="w-full h-mx-xl rounded-mx-full font-black text-mx-tiny shadow-sm shrink-0 sm:w-mx-3xl"
+                className="w-full h-12 rounded-full font-black text-[10px] shadow-sm shrink-0 sm:w-24"
                 aria-pressed={checked}
             >
                 {checked ? 'ATIVADO' : 'OFF'}

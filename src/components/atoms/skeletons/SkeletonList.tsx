@@ -12,15 +12,15 @@ export interface SkeletonListProps {
  */
 export function SkeletonList({ items = 5, className, showAvatar = true }: SkeletonListProps) {
   return (
-    <div className={cn('w-full space-y-mx-xs', className)}>
+    <div className={cn('w-full space-y-2', className)}>
       {Array.from({ length: items }).map((_, i) => (
-        <div key={i} className="flex items-center gap-mx-sm rounded-mx-xl border border-border-default/40 p-mx-sm">
+        <div key={i} className="flex items-center gap-4 rounded-2xl border border-gray-100/40 p-4">
           {showAvatar && <Skeleton variant="avatar" />}
-          <div className="flex-1 space-y-mx-xs">
-            <Skeleton variant="text" className="h-mx-sm w-3/4" />
-            <Skeleton variant="text" className="h-mx-xs w-1/2" />
+          <div className="flex-1 space-y-2">
+            <Skeleton variant="text" className="h-4 w-3/4" />
+            <Skeleton variant="text" className="h-2 w-1/2" />
           </div>
-          <Skeleton variant="rect" className="h-mx-10 w-mx-32 hidden sm:block" />
+          <Skeleton variant="rect" className="h-10 w-32 hidden sm:block" />
         </div>
       ))}
     </div>

@@ -11,6 +11,7 @@ on:
       - 'src/pages/**'
       - 'src/main.tsx'
       - 'src/test/module-design-system-authenticated-visual.playwright.ts'
+      - 'src/test/management-design-system-route-matrix.playwright.ts'
       - 'src/test/module-route-visual-audit.playwright.ts'
       - '.github/workflows/module-design-system-authenticated-visual.yml'
 
@@ -40,6 +41,11 @@ jobs:
         run: >
           npx playwright test
           src/test/module-design-system-authenticated-visual.playwright.ts
+          --project=chromium --workers=1
+      - name: Run full management route matrix
+        run: >
+          npx playwright test
+          src/test/management-design-system-route-matrix.playwright.ts
           --project=chromium --workers=1
       - name: Detect authenticated audit credentials
         id: auth

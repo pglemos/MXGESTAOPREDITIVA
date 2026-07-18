@@ -20,7 +20,7 @@ export function CorporateMetricsSection({
   return (
     <section
       aria-label="Indicadores consolidados da rede"
-      className="grid grid-cols-1 gap-mx-md sm:grid-cols-2 xl:grid-cols-3"
+      className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
     >
       <MxMetricCard
         title={isOwner ? 'Minha rede' : 'Rede corporativa'}
