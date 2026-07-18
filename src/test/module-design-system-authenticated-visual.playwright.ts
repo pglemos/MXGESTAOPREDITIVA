@@ -75,7 +75,9 @@ async function visibleModuleLabel(page: Page) {
 
 async function collectMetrics(page: Page, profile: string, viewport: string): Promise<ShellMetrics> {
   return page.evaluate(({ profile, viewport }) => {
-    const sidebar = document.querySelector<HTMLElement>('aside[aria-label^="Menu principal"]')
+    const desktopSidebar = document.querySelector<HTMLElement>('aside[aria-label^="Menu principal"]')
+    const mobileDrawer = document.querySelector<HTMLElement>('[role="dialog"][aria-label^="Menu principal"]')
+    const navigationSurface = viewport === 'mobile' ? mobileDrawer : desktopSidebar
     const mobileHeader = document.querySelector<HTMLElement>('header.md\\:hidden')
     const content = document.querySelector<HTMLElement>('main#main-content')
     const visibleLogo = Array.from(document.querySelectorAll<HTMLImageElement>('img[alt="MX"]'))
@@ -88,19 +90,19 @@ async function collectMetrics(page: Page, profile: string, viewport: string): Pr
 
     const contentStyle = getComputedStyle(content)
     const moduleStyle = getComputedStyle(visibleModuleLabel)
-    const sidebarStyle = sidebar ? getComputedStyle(sidebar) : null
+    const navigationStyle = navigationSurface ? getComputedStyle(navigationSurface) : null
     const mobileHeaderStyle = mobileHeader ? getComputedStyle(mobileHeader) : null
 
     return {
       profile,
       viewport,
-      sidebar: sidebar && sidebar.getBoundingClientRect().width > 0 && sidebarStyle
+      sidebar: navigationSurface && navigationSurface.getBoundingClientRect().width > 0 && navigationStyle
         ? {
-            width: Math.round(sidebar.getBoundingClientRect().width),
-            backgroundColor: sidebarStyle.backgroundColor,
-            borderRightWidth: sidebarStyle.borderRightWidth,
-            borderRightColor: sidebarStyle.borderRightColor,
-            boxShadow: sidebarStyle.boxShadow,
+            width: Math.round(navigationSurface.getBoundingClientRect().width),
+            backgroundColor: navigationStyle.backgroundColor,
+            borderRightWidth: navigationStyle.borderRightWidth,
+            borderRightColor: navigationStyle.borderRightColor,
+            boxShadow: navigationStyle.boxShadow,
           }
         : null,
       mobileHeader: mobileHeader && mobileHeader.getBoundingClientRect().height > 0 && mobileHeaderStyle
@@ -155,7 +157,7 @@ async function auditProfile(
 
   if (viewport.name === 'mobile') {
     await page.getByRole('button', { name: 'Abrir menu principal' }).click()
-    await expect(page.locator('aside[aria-label^="Menu principal"]')).toBeVisible()
+    await expect(page.getByRole('dialog', { name: `Menu principal do ${profile.key === 'administrador-geral' ? 'Administrador geral' : profile.key === 'dono' ? 'Dono' : 'Gerente'}` })).toBeVisible()
   }
 
   await expect.poll(() => visibleModuleLabel(page), { timeout: 20_000 }).toBe(profile.moduleLabel)
@@ -231,6 +233,7 @@ test.describe('paridade visual autenticada dos módulos MX', () => {
     expect(reference?.mobileHeader).not.toBeNull()
     for (const result of results.filter((item) => item.profile !== 'gerente')) {
       expect(result.mobileHeader).toEqual(reference?.mobileHeader)
+      expect(result.sidebar).toEqual(reference?.sidebar)
       expect(result.logo).toEqual(reference?.logo)
       expect({ ...result.moduleLabel, text: reference?.moduleLabel.text }).toEqual(reference?.moduleLabel)
       expect(result.content.backgroundColor).toBe(reference?.content.backgroundColor)
