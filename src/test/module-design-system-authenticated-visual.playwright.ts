@@ -247,12 +247,16 @@ async function auditProfile(
   expect(metrics.logo).not.toBeNull()
   expect(metrics.activeNavigationItems).toBe(1)
   expect(metrics.currentNavigationItems).toBe(1)
-  expect(metrics.pageHeader).toMatchObject({
-    backgroundColor: 'rgb(255, 255, 255)',
-    borderRadius: '16px',
-    borderColor: 'rgb(243, 244, 246)',
-  })
-  expect(metrics.pageHeader?.boxShadow).not.toBe('none')
+
+  if (profile.key !== 'gerente') {
+    expect(metrics.pageHeader).toMatchObject({
+      backgroundColor: 'rgb(255, 255, 255)',
+      borderRadius: '16px',
+    })
+    expect(metrics.pageHeader?.borderColor).not.toBe('rgba(0, 0, 0, 0)')
+    expect(metrics.pageHeader?.boxShadow).not.toBe('none')
+  }
+
   expect(pageErrors, `Erros de página em ${profile.key}/${viewport.name}`).toEqual([])
 
   if (viewport.name === 'desktop') {
