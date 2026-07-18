@@ -1,18 +1,38 @@
-import { readFile, readdir } from 'node:fs/promises'
+import { readFile, readdir, stat } from 'node:fs/promises'
 
 const allowedHexFiles = new Set(['packages/mx-tokens/src/theme.css', 'packages/mx-tokens/src/tokens.json'])
-const roots = [
+const targets = [
   'src/components/module',
   'src/design-system/internal-mx',
   'src/features/manager/shared',
+  'src/features/lojas',
+  'src/features/central-mx/StoreConsultorIa.container.tsx',
+  'src/features/dashboard-loja/DashboardLoja.container.tsx',
+  'src/features/dashboard-loja/DashboardLoja.tsx',
+  'src/pages/AiDiagnostics.tsx',
+  'src/pages/GerentePDI.tsx',
+  'src/pages/ManagerDevelopment.tsx',
+  'src/pages/ManagerMentor.tsx',
+  'src/pages/OperationalSettings.tsx',
+  'src/pages/PainelConsultor.tsx',
+  'src/pages/Reprocessamento.tsx',
   'packages/mx-ui/src',
 ]
+
 const files = []
-for (const root of roots) {
-  for (const name of await readdir(root)) {
-    if (/\.(tsx?|jsx?|css)$/.test(name)) files.push(`${root}/${name}`)
+async function collect(target) {
+  const targetStat = await stat(target)
+  if (targetStat.isFile()) {
+    if (/\.(tsx?|jsx?|css)$/.test(target)) files.push(target)
+    return
+  }
+
+  for (const name of await readdir(target)) {
+    await collect(`${target}/${name}`)
   }
 }
+
+for (const target of targets) await collect(target)
 
 for (const file of files) {
   const content = await readFile(file, 'utf8')
