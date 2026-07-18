@@ -1,0 +1,44 @@
+name: Apply Visual Audit Supabase Mocks
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/install-visual-audit-supabase-mocks.mjs'
+      - '.github/workflows/apply-visual-audit-supabase-mocks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || 'fix/remover-legado-design-system-v3' }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install deterministic Supabase mocks in visual matrix
+        run: node scripts/install-visual-audit-supabase-mocks.mjs
+
+      - name: Commit visual-matrix harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo 'No changes required.'
+            exit 0
+          fi
+          git config user.name 'mx-design-system-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add src/test/management-design-system-route-matrix.playwright.ts
+          git commit -m 'test: isolar dados externos na matriz visual sintética'
+          git push origin HEAD:${{ github.event.pull_request.head.ref || 'fix/remover-legado-design-system-v3' }}
