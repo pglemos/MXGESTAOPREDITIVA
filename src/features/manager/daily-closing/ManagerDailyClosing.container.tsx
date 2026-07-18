@@ -358,7 +358,7 @@ export default function ManagerDailyClosing() {
   if (sellersLoading || checkinsLoading) return <ManagerClosingSkeleton />;
 
   return (
-    <main className="min-h-full bg-gray-50" id="main-content">
+    <main className="min-h-full bg-gray-50">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-6 pb-20">
         <ManagerHomeReturnLink />
         <section className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-5">

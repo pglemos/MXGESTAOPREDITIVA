@@ -49,7 +49,6 @@ export function Lojas() {
     <LojasErrorBoundary sectionName="Lojas">
       <main
         className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt"
-        id="main-content"
       >
         <LojasErrorBoundary sectionName="LojasHeader">
           <LojasHeader

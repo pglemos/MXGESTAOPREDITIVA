@@ -60,7 +60,7 @@ export function MxModulePage({
   className,
   contentClassName,
   maxWidth = '7xl',
-  id = 'main-content',
+  id,
 }: ModulePageProps) {
   return (
     <main

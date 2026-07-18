@@ -290,7 +290,7 @@ export default function PainelConsultor() {
     )
 
     return (
-        <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar" id="main-content">
+        <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
             
             <PageHeading 
                 title={<span>Rede <span className="text-brand-primary">Operacional</span></span>}
