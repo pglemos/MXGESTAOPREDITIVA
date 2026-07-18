@@ -26,6 +26,7 @@ const SELLER_ENTRIES = [
 const SOURCE_EXTENSIONS = ['.tsx', '.ts', '.jsx', '.js', '.css']
 const MANAGEMENT_OWNED_ROOTS = ['features/lojas']
 const IMPORT_PATTERN = /(?:import|export)\s+(?:[^'\"]*?\s+from\s+)?['\"]([^'\"]+)['\"]|import\(\s*['\"]([^'\"]+)['\"]\s*\)/g
+const SELLER_ONLY_BLOCK = /\/\* management-audit:seller-only-start \*\/[\s\S]*?\/\* management-audit:seller-only-end \*\//g
 
 export const forbiddenManagementPatterns = [
   { id: 'legacy-radius', expression: /\brounded-mx-[\w\[\]\/.-]+/g },
@@ -45,6 +46,10 @@ export const forbiddenManagementPatterns = [
   { id: 'legacy-action-shadow', expression: /\bshadow-action\b/g },
   { id: 'legacy-css-variable', expression: /--(?:spacing|color|radius|shadow)-mx-[\w-]+/g },
 ]
+
+export function stripSellerOnlyRegions(source) {
+  return source.replace(SELLER_ONLY_BLOCK, (block) => block.replace(/[^\n]/g, ' '))
+}
 
 function listSourceFiles(directory) {
   const files = []
@@ -119,7 +124,7 @@ export function auditManagementDesignSystem({ root = projectRoot } = {}) {
 
   for (const file of auditedFiles) {
     if (!['.tsx', '.jsx', '.css'].includes(path.extname(file))) continue
-    const source = fs.readFileSync(file, 'utf8')
+    const source = stripSellerOnlyRegions(fs.readFileSync(file, 'utf8'))
     const relativeFile = path.relative(sourceRoot, file).split(path.sep).join('/')
     for (const pattern of forbiddenManagementPatterns) {
       for (const match of source.matchAll(pattern.expression)) {
@@ -147,9 +152,10 @@ export function auditManagementDesignSystem({ root = projectRoot } = {}) {
 }
 
 export function auditText(source) {
+  const auditableSource = stripSellerOnlyRegions(source)
   const violations = []
   for (const pattern of forbiddenManagementPatterns) {
-    for (const match of source.matchAll(pattern.expression)) {
+    for (const match of auditableSource.matchAll(pattern.expression)) {
       violations.push({ rule: pattern.id, token: match[0] })
     }
   }
