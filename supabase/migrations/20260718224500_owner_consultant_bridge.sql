@@ -61,7 +61,7 @@ BEGIN
     ON consultant.id = assignment.user_id
    AND consultant.active = true
   WHERE client.primary_store_id = p_store_id
-    AND client.status = 'active'
+    AND client.status = 'ativo'
   ORDER BY client.updated_at DESC
   LIMIT 1;
 END;
