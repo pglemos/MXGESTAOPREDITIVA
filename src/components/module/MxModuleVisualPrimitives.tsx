@@ -1,7 +1,7 @@
 import type { ElementType, HTMLAttributes, LabelHTMLAttributes, ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { Inbox, LoaderCircle } from 'lucide-react'
-import { Button } from '@/components/atoms/Button'
+import { Button, ButtonVisualProvider } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
 import { cn } from '@/lib/utils'
@@ -77,23 +77,25 @@ export function MxModulePage({
   id,
 }: ModulePageProps) {
   return (
-    <main
-      id={id}
-      className={cn(
-        'min-h-full w-full overflow-y-auto bg-gray-50 text-gray-800',
-        className,
-      )}
-    >
-      <div
+    <ButtonVisualProvider mode="manager">
+      <main
+        id={id}
         className={cn(
-          'mx-auto w-full space-y-5 px-4 py-6 pb-24',
-          maxWidth === '7xl' ? 'max-w-7xl' : 'max-w-none',
-          contentClassName,
+          'min-h-full w-full overflow-y-auto bg-gray-50 text-gray-800',
+          className,
         )}
       >
-        {children}
-      </div>
-    </main>
+        <div
+          className={cn(
+            'mx-auto w-full space-y-5 px-4 py-6 pb-24',
+            maxWidth === '7xl' ? 'max-w-7xl' : 'max-w-none',
+            contentClassName,
+          )}
+        >
+          {children}
+        </div>
+      </main>
+    </ButtonVisualProvider>
   )
 }
 
