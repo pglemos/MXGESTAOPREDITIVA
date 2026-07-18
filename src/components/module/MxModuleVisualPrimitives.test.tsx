@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { Activity } from 'lucide-react'
+import { Button } from '@/components/atoms/Button'
 import {
   MxEmptyState,
   MxField,
@@ -18,8 +19,17 @@ describe('MxModuleVisualPrimitives', () => {
   test('reproduz a anatomia visual concreta do módulo Gerente', () => {
     const html = renderToStaticMarkup(
       <MxModulePage>
-        <MxModuleHeader title="Painel" description="Descrição operacional" />
-        <MxToolbar aria-label="Filtros"><button type="button">Filtrar</button></MxToolbar>
+        <MxModuleHeader
+          title="Painel"
+          description="Descrição operacional"
+          actions={(
+            <>
+              <Button variant="outline">Atualizar</Button>
+              <Button>Gerenciar</Button>
+            </>
+          )}
+        />
+        <MxToolbar aria-label="Filtros"><Button variant="ghost">Filtrar</Button></MxToolbar>
         <MxMetricCard title="Vendas" value={10} detail="no período" icon={Activity} />
         <MxSectionCard>
           <MxField label="Loja" htmlFor="store"><input id="store" /></MxField>
@@ -42,10 +52,14 @@ describe('MxModuleVisualPrimitives', () => {
     expect(html).toContain('shadow-sm')
     expect(html).toContain('text-gray-800')
     expect(html).toContain('text-gray-500')
+    expect(html).toContain('bg-emerald-600')
+    expect(html).toContain('border-gray-200')
+    expect(html).toContain('hover:bg-gray-50')
     expect(html).toContain('<h1')
     expect(html).toContain('<table')
     expect(html).toContain('aria-busy="true"')
 
+    expect(html).not.toContain('bg-mx-action')
     expect(html).not.toContain('bg-surface-alt')
     expect(html).not.toContain('rounded-mx-xl')
     expect(html).not.toContain('border-border-subtle')
