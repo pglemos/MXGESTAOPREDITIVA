@@ -76,7 +76,6 @@ const replacements = [
   ['tracking-mx-wide', 'tracking-wide'],
   ['min-h-mx-section-lg', 'min-h-96'],
   ['font-mono-numbers', 'font-mono tabular-nums'],
-  ['mx-pre-registration-scroll', 'management-pre-registration-scroll'],
   ['xl:top-[var(--spacing-mx-layout-offset-top)]', 'xl:top-6'],
   ['h-mx-px', 'h-px'],
 ]
