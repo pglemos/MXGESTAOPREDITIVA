@@ -49,7 +49,7 @@ describe('sidebar universal MX', () => {
   })
 
   test('mantém navegação, acessibilidade e drawer mobile', () => {
-    expect(shellSource).toContain("aria-current={active ? 'page' : undefined}")
+    expect(shellSource).toContain("aria-current={active ? 'page' : false}")
     expect(shellSource).toContain('aria-modal="true"')
     expect(shellSource).toContain('useFocusTrap(drawerRef, mobileOpen)')
     expect(shellSource).toContain('navSections')
