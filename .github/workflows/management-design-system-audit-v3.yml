@@ -43,17 +43,17 @@ jobs:
           size=$(wc -c < "$payload" | tr -d ' ')
           sha=$(sha256sum "$payload" | cut -d' ' -f1)
           echo "base64 bytes=$size sha256=$sha" | tee -a "$report"
-          echo "expected_base64 bytes=10300 sha256=a55c3861cbf71f2d23b5d79294f8e127624767234372d384c35cde673ccbf664" | tee -a "$report"
+          echo "expected_base64 bytes=10076 sha256=eba19069c1a68a49ae9170a89ab30b031bc9c25c60760b69187892aea9fd27a5" | tee -a "$report"
 
           valid=true
-          [[ "$size" = "10300" ]] || valid=false
-          [[ "$sha" = "a55c3861cbf71f2d23b5d79294f8e127624767234372d384c35cde673ccbf664" ]] || valid=false
+          [[ "$size" = "10076" ]] || valid=false
+          [[ "$sha" = "eba19069c1a68a49ae9170a89ab30b031bc9c25c60760b69187892aea9fd27a5" ]] || valid=false
 
           if base64 --decode "$payload" > /tmp/management-v3-followup.patch.gz 2>> "$report"; then
             gzip_sha=$(sha256sum /tmp/management-v3-followup.patch.gz | cut -d' ' -f1)
             echo "gzip sha256=$gzip_sha" | tee -a "$report"
-            echo "expected_gzip sha256=2b6036d205dcc05f405ecfb2bbb80886f82f6e53fc2cf8244cae2a32bacfb82a" | tee -a "$report"
-            [[ "$gzip_sha" = "2b6036d205dcc05f405ecfb2bbb80886f82f6e53fc2cf8244cae2a32bacfb82a" ]] || valid=false
+            echo "expected_gzip sha256=c8f857931b430eba862b6adba9651c6981c3e5028093c1cc1331937f628039cf" | tee -a "$report"
+            [[ "$gzip_sha" = "c8f857931b430eba862b6adba9651c6981c3e5028093c1cc1331937f628039cf" ]] || valid=false
             gzip --test /tmp/management-v3-followup.patch.gz 2>> "$report" || valid=false
             gzip --decompress --stdout /tmp/management-v3-followup.patch.gz > /tmp/management-v3-followup.patch
             if git apply --check /tmp/management-v3-followup.patch >> "$report" 2>&1; then
