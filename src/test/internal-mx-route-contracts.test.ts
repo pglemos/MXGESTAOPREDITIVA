@@ -58,7 +58,7 @@ function importSpecifiers(sourceFile: ts.SourceFile) {
 
 const appSource = parseSource('../App.tsx')
 const layoutSource = parseSource('../components/Layout.tsx')
-const shellSource = parseSource('../design-system/internal-mx/MxInternalShell.tsx')
+const shellSource = parseSource('../components/MxSidebarShell.tsx')
 
 const routePaths = [
   'painel',
@@ -83,10 +83,12 @@ describe('contrato do módulo interno MX', () => {
     for (const path of routePaths) expect(declaredPaths.has(path)).toBe(true)
   })
 
-  test('seleciona o shell único somente por meio do guard canônico de perfil interno', () => {
+  test('usa o shell universal e mantém o frame interno sob o guard canônico', () => {
     expect(hasInternalRoleGuard(layoutSource)).toBe(true)
-    expect(hasJsxElement(layoutSource, 'MxInternalShell')).toBe(true)
-    expect(importSpecifiers(layoutSource)).toContain('@/design-system/internal-mx/MxInternalShell')
+    expect(hasJsxElement(layoutSource, 'MxSidebarShell')).toBe(true)
+    expect(hasJsxElement(layoutSource, 'InternalMxPageFrame')).toBe(true)
+    expect(importSpecifiers(layoutSource)).toContain('./MxSidebarShell')
+    expect(importSpecifiers(layoutSource)).toContain('@/design-system/internal-mx/InternalMxPageFrame')
   })
 
   test('mantém o shell visual desacoplado do cliente Supabase', () => {
