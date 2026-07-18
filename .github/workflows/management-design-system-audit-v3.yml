@@ -22,54 +22,68 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Validate deterministic package integrity
+      - name: Inspect deterministic package integrity
         id: package
         shell: bash
         run: |
-          set -euo pipefail
+          set -u
           shopt -s nullglob
+          report="$GITHUB_WORKSPACE/management-package-integrity.txt"
+          : > "$report"
           mapfile -t asset_parts < <(printf '%s\n' scripts/management-v3-assets.tar.gz.b64.part* | sort -V)
 
+          echo "parts=${#asset_parts[@]}" | tee -a "$report"
           if (( ${#asset_parts[@]} == 0 )); then
-            echo "Nenhuma parte do pacote foi encontrada."
-            exit 1
+            echo "valid=false" >> "$GITHUB_OUTPUT"
+            echo "reason=no_parts" | tee -a "$report"
+            exit 0
           fi
 
-          echo "Partes recebidas (${#asset_parts[@]}):"
           for part in "${asset_parts[@]}"; do
-            printf '  %s: ' "$part"
-            wc -c < "$part"
+            size=$(wc -c < "$part" | tr -d ' ')
+            sha=$(sha256sum "$part" | cut -d' ' -f1)
+            echo "$part bytes=$size sha256=$sha" | tee -a "$report"
           done
 
-          cat "${asset_parts[@]}" > /tmp/management-v3-assets.b64
-          actual_b64_size=$(wc -c < /tmp/management-v3-assets.b64 | tr -d ' ')
-          actual_b64_sha=$(sha256sum /tmp/management-v3-assets.b64 | cut -d' ' -f1)
-          echo "Base64: bytes=${actual_b64_size} sha256=${actual_b64_sha}"
-          test "$actual_b64_size" = "29472"
-          test "$actual_b64_sha" = "c839731c8df9db74c0e16cedcc6b86ed4fbea213ba9e931a863f6bc9e68b89b7"
+          cat "${asset_parts[@]}" > "$GITHUB_WORKSPACE/management-v3-assets.received.b64"
+          actual_b64_size=$(wc -c < "$GITHUB_WORKSPACE/management-v3-assets.received.b64" | tr -d ' ')
+          actual_b64_sha=$(sha256sum "$GITHUB_WORKSPACE/management-v3-assets.received.b64" | cut -d' ' -f1)
+          echo "base64 bytes=${actual_b64_size} sha256=${actual_b64_sha}" | tee -a "$report"
+          echo "expected_base64 bytes=29472 sha256=c839731c8df9db74c0e16cedcc6b86ed4fbea213ba9e931a863f6bc9e68b89b7" | tee -a "$report"
 
-          base64 --decode /tmp/management-v3-assets.b64 > /tmp/management-v3-assets.tar.gz
-          actual_tar_size=$(wc -c < /tmp/management-v3-assets.tar.gz | tr -d ' ')
-          actual_tar_sha=$(sha256sum /tmp/management-v3-assets.tar.gz | cut -d' ' -f1)
-          echo "Tar gzip: bytes=${actual_tar_size} sha256=${actual_tar_sha}"
-          test "$actual_tar_size" = "22103"
-          test "$actual_tar_sha" = "e49c4d29e0dd8ec00cff0a514f59a666db072cfa262dca9d299b9fd9295ab3df"
-          gzip --test /tmp/management-v3-assets.tar.gz
-          tar -tzf /tmp/management-v3-assets.tar.gz | sed -n '1,80p'
+          valid=true
+          [[ "$actual_b64_size" = "29472" ]] || valid=false
+          [[ "$actual_b64_sha" = "c839731c8df9db74c0e16cedcc6b86ed4fbea213ba9e931a863f6bc9e68b89b7" ]] || valid=false
 
-          printf '%s\n' "${asset_parts[@]}" > /tmp/management-v3-parts.txt
+          if base64 --decode "$GITHUB_WORKSPACE/management-v3-assets.received.b64" > "$GITHUB_WORKSPACE/management-v3-assets.received.tar.gz" 2>> "$report"; then
+            actual_tar_size=$(wc -c < "$GITHUB_WORKSPACE/management-v3-assets.received.tar.gz" | tr -d ' ')
+            actual_tar_sha=$(sha256sum "$GITHUB_WORKSPACE/management-v3-assets.received.tar.gz" | cut -d' ' -f1)
+            echo "tar_gzip bytes=${actual_tar_size} sha256=${actual_tar_sha}" | tee -a "$report"
+            echo "expected_tar_gzip bytes=22103 sha256=e49c4d29e0dd8ec00cff0a514f59a666db072cfa262dca9d299b9fd9295ab3df" | tee -a "$report"
+            [[ "$actual_tar_size" = "22103" ]] || valid=false
+            [[ "$actual_tar_sha" = "e49c4d29e0dd8ec00cff0a514f59a666db072cfa262dca9d299b9fd9295ab3df" ]] || valid=false
+            gzip --test "$GITHUB_WORKSPACE/management-v3-assets.received.tar.gz" 2>> "$report" || valid=false
+            tar -tzf "$GITHUB_WORKSPACE/management-v3-assets.received.tar.gz" >> "$report" 2>&1 || valid=false
+          else
+            valid=false
+          fi
+
+          printf '%s\n' "${asset_parts[@]}" > "$GITHUB_WORKSPACE/management-v3-parts.txt"
+          echo "valid=${valid}" | tee -a "$report"
+          echo "valid=${valid}" >> "$GITHUB_OUTPUT"
 
       - name: Apply deterministic management visual implementation
+        if: steps.package.outputs.valid == 'true'
         id: implementation
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p /tmp/management-v3-assets
-          tar -xzf /tmp/management-v3-assets.tar.gz -C /tmp/management-v3-assets
+          tar -xzf management-v3-assets.received.tar.gz -C /tmp/management-v3-assets
           test -f /tmp/management-v3-assets/_management_v3/apply.mjs
           node /tmp/management-v3-assets/_management_v3/apply.mjs "$GITHUB_WORKSPACE"
 
-          mapfile -t asset_parts < /tmp/management-v3-parts.txt
+          mapfile -t asset_parts < management-v3-parts.txt
           git rm "${asset_parts[@]}"
           git add -A
           git status --short
@@ -81,6 +95,7 @@ jobs:
           echo "applied=true" >> "$GITHUB_OUTPUT"
 
       - name: Run management design-system source contract
+        if: steps.package.outputs.valid == 'true'
         run: node --test scripts/management-route-manifest.test.mjs scripts/audit-management-design-system.test.mjs
 
       - name: Write complete violation ledger
@@ -111,4 +126,13 @@ jobs:
           path: |
             management-source-snapshot.tar.gz
             management-design-system-ledger.json
+            management-package-integrity.txt
+            management-v3-assets.received.b64
+            management-v3-assets.received.tar.gz
           retention-days: 1
+
+      - name: Fail when deterministic package is invalid
+        if: always() && steps.package.outputs.valid != 'true'
+        run: |
+          cat management-package-integrity.txt
+          exit 1
