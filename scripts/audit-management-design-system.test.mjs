@@ -21,7 +21,27 @@ test('detecta tokens e wrappers legados em uma superfície de gestão', () => {
   }
 })
 
-test('todas as dependências exclusivas das rotas de gestão estão livres de legado visual', () => {
+test('ignora somente o ramo vendedor explicitamente delimitado', () => {
+  const violations = auditText(`
+    /* management-audit:seller-only-start */
+    const seller = 'rounded-mx-2xl bg-brand-primary p-mx-lg'
+    /* management-audit:seller-only-end */
+    const manager = 'rounded-2xl bg-emerald-600 p-4'
+  `)
+  assert.deepEqual(violations, [])
+})
+
+test('continua detectando legado fora do ramo vendedor delimitado', () => {
+  const violations = auditText(`
+    /* management-audit:seller-only-start */
+    const seller = 'rounded-mx-2xl'
+    /* management-audit:seller-only-end */
+    const manager = 'bg-brand-primary'
+  `)
+  assert.equal(violations.some((violation) => violation.rule === 'legacy-brand-action'), true)
+})
+
+test('todas as dependências das rotas de gestão estão livres de legado visual ativo', () => {
   const report = auditManagementDesignSystem()
   assert.equal(
     report.violations.length,
