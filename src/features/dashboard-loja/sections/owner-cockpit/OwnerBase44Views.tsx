@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   AlertTriangle,
@@ -89,44 +89,27 @@ export function OwnerRoutineView({
       />
 
       <div className="grid grid-cols-1 gap-mx-md md:grid-cols-3">
-        <Card className="rounded-mx-2xl border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
-          <div className="flex items-center gap-mx-sm">
-            <span className="flex h-mx-10 w-mx-10 items-center justify-center rounded-mx-xl bg-status-success-surface text-status-success">
-              <CalendarClock size={20} />
-            </span>
-            <div>
-              <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-wide">Agenda comercial</Typography>
-              <Typography variant="h2" className="text-3xl font-black tabular-nums">{confirmedAppointments}</Typography>
-            </div>
-          </div>
-          <Typography variant="p" tone="muted" className="mt-mx-sm text-sm font-bold">Agendamentos registrados no período de referência.</Typography>
-        </Card>
-
-        <Card className="rounded-mx-2xl border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
-          <div className="flex items-center gap-mx-sm">
-            <span className="flex h-mx-10 w-mx-10 items-center justify-center rounded-mx-xl bg-status-warning-surface text-status-warning">
-              <ClipboardCheck size={20} />
-            </span>
-            <div>
-              <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-wide">Ações abertas</Typography>
-              <Typography variant="h2" className="text-3xl font-black tabular-nums">{todayActions.length}</Typography>
-            </div>
-          </div>
-          <Typography variant="p" tone="muted" className="mt-mx-sm text-sm font-bold">Prioridades do plano que ainda exigem execução ou validação.</Typography>
-        </Card>
-
-        <Card className="rounded-mx-2xl border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
-          <div className="flex items-center gap-mx-sm">
-            <span className="flex h-mx-10 w-mx-10 items-center justify-center rounded-mx-xl bg-status-error-surface text-status-error">
-              <ShieldAlert size={20} />
-            </span>
-            <div>
-              <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-wide">Riscos prioritários</Typography>
-              <Typography variant="h2" className="text-3xl font-black tabular-nums">{criticalAlerts.length}</Typography>
-            </div>
-          </div>
-          <Typography variant="p" tone="muted" className="mt-mx-sm text-sm font-bold">Alertas críticos ou em atenção que merecem intervenção executiva.</Typography>
-        </Card>
+        <RoutineMetric
+          label="Agenda comercial"
+          value={confirmedAppointments}
+          detail="Agendamentos registrados no período de referência."
+          icon={<CalendarClock size={20} />}
+          tone="success"
+        />
+        <RoutineMetric
+          label="Ações abertas"
+          value={todayActions.length}
+          detail="Prioridades do plano que ainda exigem execução ou validação."
+          icon={<ClipboardCheck size={20} />}
+          tone="warning"
+        />
+        <RoutineMetric
+          label="Riscos prioritários"
+          value={criticalAlerts.length}
+          detail="Alertas críticos ou em atenção que merecem intervenção executiva."
+          icon={<ShieldAlert size={20} />}
+          tone="danger"
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-mx-md xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
@@ -190,6 +173,34 @@ export function OwnerRoutineView({
   )
 }
 
+function RoutineMetric({
+  label,
+  value,
+  detail,
+  icon,
+  tone,
+}: {
+  label: string
+  value: number
+  detail: string
+  icon: ReactNode
+  tone: 'success' | 'warning' | 'danger'
+}) {
+  const classes = toneClasses[tone]
+  return (
+    <Card className="rounded-mx-2xl border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
+      <div className="flex items-center gap-mx-sm">
+        <span className={cn('flex h-mx-10 w-mx-10 items-center justify-center rounded-mx-xl', classes.soft)}>{icon}</span>
+        <div>
+          <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-wide">{label}</Typography>
+          <Typography variant="h2" className="text-3xl font-black tabular-nums">{value}</Typography>
+        </div>
+      </div>
+      <Typography variant="p" tone="muted" className="mt-mx-sm text-sm font-bold">{detail}</Typography>
+    </Card>
+  )
+}
+
 export function OwnerDecisionCenter({
   alerts,
   actions,
@@ -199,15 +210,7 @@ export function OwnerDecisionCenter({
 }) {
   const navigate = useNavigate()
   const [expandedId, setExpandedId] = useState<string | null>(null)
-  const [resolvedIds, setResolvedIds] = useState<Set<string>>(() => new Set())
-  const items = useMemo(
-    () => buildExecutiveItems(alerts, actions).filter(item => !resolvedIds.has(item.id)).slice(0, 12),
-    [actions, alerts, resolvedIds],
-  )
-
-  const resolveLocally = (id: string) => {
-    setResolvedIds(current => new Set(current).add(id))
-  }
+  const items = useMemo(() => buildExecutiveItems(alerts, actions).slice(0, 12), [actions, alerts])
 
   return (
     <div className="space-y-mx-md">
@@ -258,14 +261,16 @@ export function OwnerDecisionCenter({
                   <Button type="button" variant="outline" className="rounded-mx-xl bg-white" onClick={() => setExpandedId(expanded ? null : item.id)}>
                     {expanded ? 'Fechar análise' : 'Analisar'}
                   </Button>
-                  <Button type="button" variant="outline" className="rounded-mx-xl bg-white" onClick={() => navigate(ownerPath('plano-acao'))}>
-                    Transformar em ação
+                  <Button type="button" className="rounded-mx-xl" onClick={() => navigate(ownerPath('plano-acao'))}>
+                    Abrir plano de ação
                   </Button>
-                  <Button type="button" className="rounded-mx-xl" onClick={() => resolveLocally(item.id)}>
-                    Registrar decisão
-                  </Button>
-                  <Button type="button" variant="ghost" className="rounded-mx-xl" onClick={() => navigate(ownerPath('consultor'))}>
-                    <MessageSquareText size={16} /> Consultor
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="rounded-mx-xl"
+                    onClick={() => navigate(`/falar-consultor?origem=central-decisoes&titulo=${encodeURIComponent(item.title)}`)}
+                  >
+                    <MessageSquareText size={16} /> Falar com Consultor
                   </Button>
                 </div>
               </div>
@@ -277,7 +282,7 @@ export function OwnerDecisionCenter({
   )
 }
 
-function DecisionMetric({ label, value, icon, tone }: { label: string; value: number; icon: React.ReactNode; tone: ActionRow['tone'] }) {
+function DecisionMetric({ label, value, icon, tone }: { label: string; value: number; icon: ReactNode; tone: ActionRow['tone'] }) {
   const classes = toneClasses[tone]
   return (
     <Card className="rounded-mx-2xl border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
@@ -370,10 +375,10 @@ export function OwnerConsultingView({ data }: { data: DashboardData }) {
           <MessageSquareText size={28} className="text-brand-primary" />
           <Typography variant="h3" className="mt-mx-sm text-xl font-black">Falar com Consultor</Typography>
           <Typography variant="p" tone="muted" className="mt-mx-xs text-sm font-bold leading-relaxed">
-            Abra o consultor com o contexto da loja e use os indicadores desta tela como base da solicitação.
+            Abra o atendimento com o contexto da loja e use os indicadores desta tela como base da solicitação.
           </Typography>
-          <Button type="button" className="mt-mx-md w-full rounded-mx-xl" onClick={() => navigate(ownerPath('consultor'))}>
-            Abrir Consultor MX <ArrowRight size={16} />
+          <Button type="button" className="mt-mx-md w-full rounded-mx-xl" onClick={() => navigate('/falar-consultor?origem=consultoria')}>
+            Falar com Consultor <ArrowRight size={16} />
           </Button>
         </Card>
       </div>
@@ -381,7 +386,7 @@ export function OwnerConsultingView({ data }: { data: DashboardData }) {
   )
 }
 
-function ConsultingStep({ icon, title, detail, status }: { icon: React.ReactNode; title: string; detail: string; status: string }) {
+function ConsultingStep({ icon, title, detail, status }: { icon: ReactNode; title: string; detail: string; status: string }) {
   return (
     <div className="rounded-mx-xl border border-border-subtle p-mx-md">
       <div className="flex items-center gap-mx-sm">
