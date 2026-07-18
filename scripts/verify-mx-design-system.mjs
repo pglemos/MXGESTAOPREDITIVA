@@ -9,8 +9,8 @@ const required = [
   'packages/mx-ui/package.json',
   'packages/mx-ui/src/index.jsx',
   'src/components/MxSidebarShell.tsx',
-  'src/design-system/internal-mx/InternalMxPageFrame.tsx',
-  'src/design-system/internal-mx/internal-mx-frame.css',
+  'src/components/module/MxModuleVisualPrimitives.tsx',
+  'src/features/manager/shared/ManagerVisualPrimitives.tsx',
   'src/design-system/internal-mx/internalMxNavigation.tsx',
 ]
 
