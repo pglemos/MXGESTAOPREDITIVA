@@ -20,14 +20,25 @@ export const OWNER_LEGACY_SECTION_VALUES = [
   'biblioteca',
 ] as const
 
+export const OWNER_DEPARTMENT_CODES = [
+  'visao-geral',
+  'comercial',
+  'marketing',
+  'produto',
+  'rh',
+  'financeiro',
+  'operacional',
+] as const
+
 export type OwnerBase44Section = (typeof OWNER_BASE44_SECTION_VALUES)[number]
 export type OwnerLegacySection = (typeof OWNER_LEGACY_SECTION_VALUES)[number]
 export type OwnerResolvedSection = OwnerBase44Section | OwnerLegacySection
+export type OwnerDepartmentNavigationCode = (typeof OWNER_DEPARTMENT_CODES)[number]
 
 export type OwnerBase44NavigationItem = {
   label: string
   section: OwnerBase44Section
-  departmentCode?: 'comercial' | 'marketing' | 'produto' | 'rh' | 'financeiro' | 'operacional'
+  departmentCode?: OwnerDepartmentNavigationCode
 }
 
 export type OwnerBase44NavigationSection = {
@@ -56,7 +67,7 @@ export const OWNER_BASE44_NAVIGATION: OwnerBase44NavigationSection[] = [
     label: 'NEGÓCIO',
     items: [
       { label: 'Departamentos', section: 'departamentos' },
-      { label: 'Visão Geral', section: 'departamentos' },
+      { label: 'Visão Geral', section: 'departamentos', departmentCode: 'visao-geral' },
       { label: 'Comercial', section: 'departamentos', departmentCode: 'comercial' },
       { label: 'Marketing', section: 'departamentos', departmentCode: 'marketing' },
       { label: 'Produto e Estoque', section: 'departamentos', departmentCode: 'produto' },
@@ -80,10 +91,14 @@ const sectionSet = new Set<string>([
   ...OWNER_BASE44_SECTION_VALUES,
   ...OWNER_LEGACY_SECTION_VALUES,
 ])
+const departmentCodeSet = new Set<string>(OWNER_DEPARTMENT_CODES)
 
 export function resolveOwnerSection(search: string): OwnerResolvedSection {
   const raw = new URLSearchParams(search).get('ownerSection')
-  if (raw?.startsWith('departamentos-')) return 'departamentos'
+  if (raw?.startsWith('departamentos-')) {
+    const code = raw.slice('departamentos-'.length)
+    return departmentCodeSet.has(code) ? 'departamentos' : 'home'
+  }
   return raw && sectionSet.has(raw) ? (raw as OwnerResolvedSection) : 'home'
 }
 
