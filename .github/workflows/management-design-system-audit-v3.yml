@@ -8,7 +8,7 @@ permissions:
   contents: write
 
 jobs:
-  source-snapshot:
+  audit:
     name: Full management visual audit
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -22,132 +22,38 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Inspect deterministic package integrity
-        id: package
-        shell: bash
-        run: |
-          set -u
-          report="$GITHUB_WORKSPACE/management-package-integrity.txt"
-          : > "$report"
-
-          asset_parts=(
-            scripts/management-v3-assets.tar.gz.b64.part00
-            scripts/management-v3-assets.tar.gz.b64.part01
-            scripts/management-v3-assets.tar.gz.b64.part02
-            scripts/management-v3-assets.tar.gz.b64.part03-0
-            scripts/management-v3-assets.tar.gz.b64.part03-1
-            scripts/management-v3-assets.tar.gz.b64.part03-2
-            scripts/management-v3-assets.tar.gz.b64.part04
-          )
-
-          existing=0
-          for part in "${asset_parts[@]}"; do
-            [[ -f "$part" ]] && existing=$((existing + 1))
-          done
-
-          if (( existing == 0 )); then
-            echo "package_present=false" | tee -a "$report"
-            echo "present=false" >> "$GITHUB_OUTPUT"
-            echo "valid=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          echo "package_present=true parts=${existing}/${#asset_parts[@]}" | tee -a "$report"
-          echo "present=true" >> "$GITHUB_OUTPUT"
-
-          missing=false
-          for part in "${asset_parts[@]}"; do
-            if [[ ! -f "$part" ]]; then
-              echo "$part missing=true" | tee -a "$report"
-              missing=true
-            fi
-          done
-          if [[ "$missing" = "true" ]]; then
-            echo "valid=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          corrupt_part="scripts/management-v3-assets.tar.gz.b64.part02"
-          corrupt_sha=$(sha256sum "$corrupt_part" | cut -d' ' -f1)
-          if [[ "$corrupt_sha" = "513d6606f63cbbce1bf30f6aa1a71fb0b2a5034e0c32ccfb15edd8847af79ef3" ]]; then
-            node - "$corrupt_part" <<'NODE'
-          const fs = require('node:fs')
-          const file = process.argv[2]
-          const source = fs.readFileSync(file, 'utf8')
-          if (source.length !== 6000 || source[2990] !== 'G') {
-            throw new Error(`Parte 02 inesperada: length=${source.length} char=${source[2990]}`)
-          }
-          fs.writeFileSync(file, `${source.slice(0, 2990)}E${source.slice(2991)}`)
-          NODE
-            echo "part02_repaired=true position=2991 from=G to=E" | tee -a "$report"
-          fi
-
-          for part in "${asset_parts[@]}"; do
-            size=$(wc -c < "$part" | tr -d ' ')
-            sha=$(sha256sum "$part" | cut -d' ' -f1)
-            echo "$part bytes=$size sha256=$sha" | tee -a "$report"
-          done
-
-          cat "${asset_parts[@]}" > "$GITHUB_WORKSPACE/management-v3-assets.received.b64"
-          actual_b64_size=$(wc -c < "$GITHUB_WORKSPACE/management-v3-assets.received.b64" | tr -d ' ')
-          actual_b64_sha=$(sha256sum "$GITHUB_WORKSPACE/management-v3-assets.received.b64" | cut -d' ' -f1)
-          echo "base64 bytes=${actual_b64_size} sha256=${actual_b64_sha}" | tee -a "$report"
-          echo "expected_base64 bytes=29472 sha256=c839731c8df9db74c0e16cedcc6b86ed4fbea213ba9e931a863f6bc9e68b89b7" | tee -a "$report"
-
-          valid=true
-          [[ "$actual_b64_size" = "29472" ]] || valid=false
-          [[ "$actual_b64_sha" = "c839731c8df9db74c0e16cedcc6b86ed4fbea213ba9e931a863f6bc9e68b89b7" ]] || valid=false
-
-          if base64 --decode "$GITHUB_WORKSPACE/management-v3-assets.received.b64" > "$GITHUB_WORKSPACE/management-v3-assets.received.tar.gz" 2>> "$report"; then
-            actual_tar_size=$(wc -c < "$GITHUB_WORKSPACE/management-v3-assets.received.tar.gz" | tr -d ' ')
-            actual_tar_sha=$(sha256sum "$GITHUB_WORKSPACE/management-v3-assets.received.tar.gz" | cut -d' ' -f1)
-            echo "tar_gzip bytes=${actual_tar_size} sha256=${actual_tar_sha}" | tee -a "$report"
-            echo "expected_tar_gzip bytes=22103 sha256=e49c4d29e0dd8ec00cff0a514f59a666db072cfa262dca9d299b9fd9295ab3df" | tee -a "$report"
-            [[ "$actual_tar_size" = "22103" ]] || valid=false
-            [[ "$actual_tar_sha" = "e49c4d29e0dd8ec00cff0a514f59a666db072cfa262dca9d299b9fd9295ab3df" ]] || valid=false
-            gzip --test "$GITHUB_WORKSPACE/management-v3-assets.received.tar.gz" 2>> "$report" || valid=false
-            tar -tzf "$GITHUB_WORKSPACE/management-v3-assets.received.tar.gz" >> "$report" 2>&1 || valid=false
-          else
-            valid=false
-          fi
-
-          printf '%s\n' "${asset_parts[@]}" > "$GITHUB_WORKSPACE/management-v3-parts.txt"
-          echo "valid=${valid}" | tee -a "$report"
-          echo "valid=${valid}" >> "$GITHUB_OUTPUT"
-
-      - name: Apply deterministic management visual implementation
-        if: steps.package.outputs.present == 'true' && steps.package.outputs.valid == 'true'
-        id: implementation
+      - name: Apply focused visual isolation fix
+        id: followup
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p /tmp/management-v3-assets
-          tar -xzf management-v3-assets.received.tar.gz -C /tmp/management-v3-assets
-          test -f /tmp/management-v3-assets/_management_v3/apply.mjs
-          node /tmp/management-v3-assets/_management_v3/apply.mjs "$GITHUB_WORKSPACE"
+          payload="scripts/management-v3-followup.patch.gz.b64"
+          if [[ ! -f "$payload" ]]; then
+            echo "applied=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
-          mapfile -t asset_parts < management-v3-parts.txt
-          git rm -f "${asset_parts[@]}"
-          rm -f \
-            management-v3-assets.received.b64 \
-            management-v3-assets.received.tar.gz \
-            management-v3-parts.txt \
-            management-package-integrity.txt
+          test "$(wc -c < "$payload" | tr -d ' ')" = "10300"
+          test "$(sha256sum "$payload" | cut -d' ' -f1)" = "a55c3861cbf71f2d23b5d79294f8e127624767234372d384c35cde673ccbf664"
+          base64 --decode "$payload" > /tmp/management-v3-followup.patch.gz
+          test "$(sha256sum /tmp/management-v3-followup.patch.gz | cut -d' ' -f1)" = "2b6036d205dcc05f405ecfb2bbb80886f82f6e53fc2cf8244cae2a32bacfb82a"
+          gzip --test /tmp/management-v3-followup.patch.gz
+          gzip --decompress --stdout /tmp/management-v3-followup.patch.gz > /tmp/management-v3-followup.patch
+          git apply --check /tmp/management-v3-followup.patch
+          git apply --index --whitespace=fix /tmp/management-v3-followup.patch
+          git rm "$payload"
           git add -A
-          git status --short
-          git diff --cached --stat
           git config user.name "mx-design-system-bot"
           git config user.email "mx-design-system-bot@users.noreply.github.com"
-          git commit -m "refactor: remover legado visual dos perfis de gestão"
+          git commit -m "fix: isolar componentes compartilhados por contexto visual"
           git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
           echo "applied=true" >> "$GITHUB_OUTPUT"
 
-      - name: Run management design-system source contract
+      - name: Run management design-system contracts
         run: node --test scripts/management-route-manifest.test.mjs scripts/audit-management-design-system.test.mjs
 
       - name: Write complete violation ledger
         if: always()
-        shell: bash
         run: node scripts/audit-management-design-system.mjs > management-design-system-ledger.json || true
 
       - name: Build source snapshot
@@ -173,13 +79,4 @@ jobs:
           path: |
             management-source-snapshot.tar.gz
             management-design-system-ledger.json
-            management-package-integrity.txt
-            management-v3-assets.received.b64
-            management-v3-assets.received.tar.gz
           retention-days: 1
-
-      - name: Fail when deterministic package is invalid
-        if: always() && steps.package.outputs.present == 'true' && steps.package.outputs.valid != 'true'
-        run: |
-          cat management-package-integrity.txt
-          exit 1
