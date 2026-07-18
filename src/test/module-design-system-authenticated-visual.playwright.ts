@@ -8,7 +8,7 @@ const profiles = [
     key: 'gerente',
     email: 'visual-gerente@mxgestaopreditiva.com.br',
     role: 'gerente',
-    path: '/home',
+    path: '/gerente/ranking',
     moduleLabel: 'Módulo Gerencial',
     roleLabel: 'Gerente',
     storeId: VISUAL_STORE_ID,
