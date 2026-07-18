@@ -52,7 +52,7 @@ describe('owner consultant request migration contract', () => {
   test('impede vínculo de cliente com loja divergente', () => {
     const sql = readMigration()
 
-    expect(sql).toContain('clientes_consultoria.primary_store_id = solicitacoes_consultoria.store_id')
+    expect(sql).toContain('clientes_consultoria.primary_store_id = NEW.store_id')
     expect(sql).toContain('CREATE OR REPLACE FUNCTION public.validate_consulting_request_scope')
     expect(sql).toContain('BEFORE INSERT OR UPDATE OF store_id, client_id, consultant_user_id')
   })
