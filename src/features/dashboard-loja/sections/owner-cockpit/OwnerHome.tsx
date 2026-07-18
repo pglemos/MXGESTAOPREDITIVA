@@ -30,7 +30,12 @@ export function OwnerHome({
   marginPercent: number | null
 }) {
   const grossProfit = data.latestDRE?.gross_profit
-  const confirmedAppointments = data.metrics.totalAgd
+  const confirmedAppointments = (data.checkins || [])
+    .filter(checkin => checkin.reference_date === data.referenceDate)
+    .reduce(
+      (total, checkin) => total + (checkin.agd_cart_today || 0) + (checkin.agd_net_today || 0),
+      0,
+    )
   const salesForecast = confirmedAppointments / 3
   const dailyNeed = data.metrics.goalValue > 0 ? data.metrics.goalValue / 25 : 0
   const forecastIsHealthy = dailyNeed <= 0 || salesForecast >= dailyNeed
@@ -46,7 +51,7 @@ export function OwnerHome({
         <OwnerKpiCard
           title="Previsão de Vendas Hoje"
           value={`${forecastLabel} ${salesForecast === 1 ? 'venda' : 'vendas'}`}
-          detail={`${formatInteger(confirmedAppointments)} agendamentos · necessidade ${dailyNeedLabel}`}
+          detail={`${formatInteger(confirmedAppointments)} agendamentos do dia · necessidade ${dailyNeedLabel}`}
           icon={<CalendarCheck2 size={20} />}
           tone={forecastIsHealthy ? 'success' : 'warning'}
           chart="bars"
