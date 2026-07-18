@@ -21,6 +21,10 @@ interface AuthenticateOptions {
   role?: VisualAuthRole;
 }
 
+export function getVisualAuthPassword(): string {
+  return AUTH_PASSWORD;
+}
+
 export async function authenticate(page: Page, options: AuthenticateOptions = {}): Promise<void> {
   const role = options.role || 'admin_master';
 
