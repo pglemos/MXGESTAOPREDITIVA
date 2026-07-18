@@ -3,6 +3,7 @@ import {
   OWNER_BASE44_NAVIGATION,
   OWNER_BASE44_SECTION_VALUES,
   OWNER_LEGACY_SECTION_VALUES,
+  ownerNavigationSectionValue,
   resolveOwnerSection,
 } from './ownerBase44Config'
 
@@ -37,6 +38,13 @@ describe('contrato do módulo Dono inspirado no Base44', () => {
     ])
   })
 
+  test('gera um destino único para cada item de negócio', () => {
+    const business = OWNER_BASE44_NAVIGATION.find(section => section.label === 'NEGÓCIO')
+    const values = business?.items.map(ownerNavigationSectionValue) ?? []
+    expect(new Set(values).size).toBe(values.length)
+    expect(values).toContain('departamentos-visao-geral')
+  })
+
   test('resolve todas as seções sem criar nova árvore de rotas', () => {
     for (const section of OWNER_BASE44_SECTION_VALUES) {
       expect(resolveOwnerSection(`?ownerSection=${section}`)).toBe(section)
@@ -51,7 +59,7 @@ describe('contrato do módulo Dono inspirado no Base44', () => {
     }
   })
 
-  test('mantém departamentos específicos no mesmo contexto executivo', () => {
+  test('mantém apenas departamentos canônicos no contexto executivo', () => {
     expect(resolveOwnerSection('?ownerSection=departamentos-visao-geral')).toBe('departamentos')
     expect(resolveOwnerSection('?ownerSection=departamentos-comercial')).toBe('departamentos')
     expect(resolveOwnerSection('?ownerSection=departamentos-marketing')).toBe('departamentos')
@@ -59,5 +67,6 @@ describe('contrato do módulo Dono inspirado no Base44', () => {
     expect(resolveOwnerSection('?ownerSection=departamentos-rh')).toBe('departamentos')
     expect(resolveOwnerSection('?ownerSection=departamentos-financeiro')).toBe('departamentos')
     expect(resolveOwnerSection('?ownerSection=departamentos-operacional')).toBe('departamentos')
+    expect(resolveOwnerSection('?ownerSection=departamentos-inexistente')).toBe('home')
   })
 })
