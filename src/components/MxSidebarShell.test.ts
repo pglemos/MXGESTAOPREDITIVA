@@ -39,7 +39,9 @@ describe('sidebar universal MX', () => {
     expect(shellSource).not.toContain('border-slate-200 bg-white shadow-lg')
   })
 
-  test('usa item ativo verde sólido sem trilho lateral ou caixa de ícone paralela', () => {
+  test('usa um único item ativo verde sólido sem trilho lateral ou caixa de ícone paralela', () => {
+    expect(shellSource).toContain('const activeNavItem = useMemo')
+    expect(shellSource).toContain('const active = item === activeNavItem')
     expect(shellSource).toContain('bg-emerald-600 text-white shadow-sm')
     expect(shellSource).toContain('text-gray-600 hover:bg-gray-50 hover:text-gray-900')
     expect(shellSource).not.toContain('bg-emerald-50 text-emerald-800')
