@@ -24,62 +24,31 @@ export type MxInternalShellProps = {
 
 function initialsFor(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return 'MX'
-  return parts.slice(0, 2).map((part) => part[0]?.toUpperCase()).join('')
+  return parts.length ? parts.slice(0, 2).map(part => part[0]?.toUpperCase()).join('') : 'MX'
 }
 
 export default function MxInternalShell({
-  role,
-  profileName,
-  profileRoleLabel,
-  avatarUrl,
-  unreadNotifications = 0,
-  isSimulating = false,
-  simulationLabel = 'Perfil',
-  simulationBase = 'Admin MX',
-  simulationStore = 'Sandbox MX',
-  onStopSimulation,
-  onSignOut,
-  children,
+  role, profileName, profileRoleLabel, avatarUrl, unreadNotifications = 0,
+  isSimulating = false, simulationLabel = 'Perfil', simulationBase = 'Admin MX',
+  simulationStore = 'Sandbox MX', onStopSimulation, onSignOut, children,
 }: MxInternalShellProps) {
   const location = useLocation()
   const navigate = useNavigate()
-  const sections = useMemo(
-    () => buildInternalMxNavigation(role, { unreadNotifications }),
-    [role, unreadNotifications],
-  )
+  const sections = useMemo(() => buildInternalMxNavigation(role, { unreadNotifications }), [role, unreadNotifications])
   const page = getInternalMxPageMeta(location.pathname)
-
   const account = (
-    <SidebarAccountMenu
-      initials={initialsFor(profileName)}
-      avatarUrl={avatarUrl}
-      name={profileName}
-      role={profileRoleLabel}
-      items={[
-        { key: 'profile', label: 'Meu Perfil', icon: User, onSelect: () => navigate('/perfil') },
-        { key: 'preferences', label: 'Preferências', icon: Settings, onSelect: () => navigate('/configuracoes') },
-        { key: 'notifications', label: 'Notificações', icon: Bell, onSelect: () => navigate('/notificacoes') },
-        { key: 'logout', label: 'Sair', icon: LogOut, onSelect: () => void onSignOut() },
-      ]}
-    />
+    <SidebarAccountMenu initials={initialsFor(profileName)} avatarUrl={avatarUrl} name={profileName} role={profileRoleLabel} items={[
+      { key: 'profile', label: 'Meu Perfil', icon: User, onSelect: () => navigate('/perfil') },
+      { key: 'preferences', label: 'Preferências', icon: Settings, onSelect: () => navigate('/configuracoes') },
+      { key: 'notifications', label: 'Notificações', icon: Bell, onSelect: () => navigate('/notificacoes') },
+      { key: 'logout', label: 'Sair', icon: LogOut, onSelect: () => void onSignOut() },
+    ]} />
   )
 
   return (
-    <AppShell
-      sections={sections}
-      pathname={location.pathname}
-      onNavigate={(path) => navigate(path)}
-      sidebarAccount={account}
-      mobileTitle={page.title}
-    >
-      {isSimulating ? (
-        <div className="mxds-simulation-banner" role="status">
-          <span>Simulação: {simulationLabel} · Base: {simulationBase} · Loja: {simulationStore}</span>
-          <button type="button" onClick={onStopSimulation}>Encerrar simulação</button>
-        </div>
-      ) : null}
-      <InternalMxPageFrame pathname={location.pathname} roleLabel={profileRoleLabel}>
+    <AppShell sections={sections} pathname={location.pathname} onNavigate={navigate} sidebarAccount={account} mobileTitle={page.title}>
+      {isSimulating ? <div className="mxds-simulation-banner" role="status"><span>Simulação: {simulationLabel} · Base: {simulationBase} · Loja: {simulationStore}</span><button type="button" onClick={onStopSimulation}>Encerrar simulação</button></div> : null}
+      <InternalMxPageFrame pathname={location.pathname} roleLabel={profileRoleLabel} unreadNotifications={unreadNotifications} onOpenNotifications={() => navigate('/notificacoes')}>
         {children}
       </InternalMxPageFrame>
     </AppShell>
