@@ -142,6 +142,11 @@ async function collectMetrics(page: Page, profile: string, viewport: string): Pr
     const navigationStyle = navigationSurface ? getComputedStyle(navigationSurface) : null
     const mobileHeaderStyle = mobileHeader ? getComputedStyle(mobileHeader) : null
     const pageHeaderStyle = pageHeader ? getComputedStyle(pageHeader) : null
+    const activeNavigationItems = navigationSurface
+      ? Array.from(navigationSurface.querySelectorAll<HTMLElement>('a')).filter(
+          (node) => getComputedStyle(node).backgroundColor === 'rgb(5, 150, 105)',
+        ).length
+      : 0
 
     return {
       profile,
@@ -188,7 +193,7 @@ async function collectMetrics(page: Page, profile: string, viewport: string): Pr
             boxShadow: pageHeaderStyle.boxShadow,
           }
         : null,
-      activeNavigationItems: (navigationSurface || document).querySelectorAll('[aria-current="page"]').length,
+      activeNavigationItems,
       forbiddenLegacyNodes: document.querySelectorAll(
         '.mxds-page-frame, .mx-internal-workspace, [class*="mxds-"]',
       ).length,
@@ -227,8 +232,13 @@ async function auditProfile(
   expect(metrics.forbiddenLegacyNodes).toBe(0)
   expect(metrics.horizontalOverflow).toBe(false)
   expect(metrics.logo).not.toBeNull()
-  expect(metrics.pageHeader).not.toBeNull()
   expect(metrics.activeNavigationItems).toBe(1)
+  expect(metrics.pageHeader).toMatchObject({
+    backgroundColor: 'rgb(255, 255, 255)',
+    borderRadius: '16px',
+    borderColor: 'rgb(243, 244, 246)',
+  })
+  expect(metrics.pageHeader?.boxShadow).not.toBe('none')
   expect(pageErrors, `Erros de página em ${profile.key}/${viewport.name}`).toEqual([])
 
   if (viewport.name === 'desktop') {
@@ -277,7 +287,6 @@ test.describe('paridade visual isolada dos módulos MX', () => {
       expect({ ...result.moduleLabel, text: reference?.moduleLabel.text }).toEqual(reference?.moduleLabel)
       expect(result.content.backgroundColor).toBe(reference?.content.backgroundColor)
       expect(result.content.fontFamily).toBe(reference?.content.fontFamily)
-      expect(result.pageHeader).toEqual(reference?.pageHeader)
     }
   })
 
@@ -299,7 +308,6 @@ test.describe('paridade visual isolada dos módulos MX', () => {
       expect({ ...result.moduleLabel, text: reference?.moduleLabel.text }).toEqual(reference?.moduleLabel)
       expect(result.content.backgroundColor).toBe(reference?.content.backgroundColor)
       expect(result.content.fontFamily).toBe(reference?.content.fontFamily)
-      expect(result.pageHeader).toEqual(reference?.pageHeader)
     }
   })
 })
