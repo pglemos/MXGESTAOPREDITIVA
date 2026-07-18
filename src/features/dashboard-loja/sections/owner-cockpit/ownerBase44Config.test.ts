@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import {
   OWNER_BASE44_NAVIGATION,
   OWNER_BASE44_SECTION_VALUES,
+  OWNER_LEGACY_SECTION_VALUES,
   resolveOwnerSection,
 } from './ownerBase44Config'
 
@@ -44,7 +45,14 @@ describe('contrato do módulo Dono inspirado no Base44', () => {
     expect(resolveOwnerSection('?ownerSection=inexistente')).toBe('home')
   })
 
+  test('preserva links legados em vez de redirecioná-los silenciosamente', () => {
+    for (const section of OWNER_LEGACY_SECTION_VALUES) {
+      expect(resolveOwnerSection(`?ownerSection=${section}`)).toBe(section)
+    }
+  })
+
   test('mantém departamentos específicos no mesmo contexto executivo', () => {
+    expect(resolveOwnerSection('?ownerSection=departamentos-visao-geral')).toBe('departamentos')
     expect(resolveOwnerSection('?ownerSection=departamentos-comercial')).toBe('departamentos')
     expect(resolveOwnerSection('?ownerSection=departamentos-marketing')).toBe('departamentos')
     expect(resolveOwnerSection('?ownerSection=departamentos-produto')).toBe('departamentos')
