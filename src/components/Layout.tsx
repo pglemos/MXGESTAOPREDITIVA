@@ -20,6 +20,10 @@ import { canAccessPath } from '@/lib/auth/routeAccess'
 import { MotionPage } from '@/design/motion'
 import { buildInternalMxNavigation } from '@/design-system/internal-mx/internalMxNavigation'
 import { MxRoleVisualScope } from '@/components/module/MxRoleVisualScope'
+import {
+  OWNER_BASE44_NAVIGATION,
+  ownerNavigationSectionValue,
+} from '@/features/dashboard-loja/sections/owner-cockpit/ownerBase44Config'
 
 type SubItem = {
   label: string
@@ -69,56 +73,50 @@ const rotulosModulo: Record<string, string> = {
   vendedor: 'Módulo Comercial',
 }
 
+const ownerCategoryIcons: Record<string, React.ReactNode> = {
+  GESTÃO: <Home size={22} />,
+  ESTRATÉGIA: <Target size={22} />,
+  NEGÓCIO: <Grid size={22} />,
+  DESENVOLVIMENTO: <GraduationCap size={22} />,
+  'AÇÃO GLOBAL': <MessageSquare size={22} />,
+}
+
+const ownerItemIcons: Record<string, React.ReactNode> = {
+  Início: <Home size={16} />,
+  'Rotina do Dia': <CalendarClock size={16} />,
+  'Central de Decisões': <ClipboardList size={16} />,
+  'Plano Estratégico': <BarChart3 size={16} />,
+  'Plano de Ação': <CheckSquare size={16} />,
+  Consultoria: <MessageSquare size={16} />,
+  Departamentos: <Grid size={16} />,
+  'Visão Geral': <LayoutDashboard size={16} />,
+  Comercial: <TrendingUp size={16} />,
+  Marketing: <Activity size={16} />,
+  'Produto e Estoque': <Grid size={16} />,
+  'Pessoas — RH': <Users size={16} />,
+  Financeiro: <BriefcaseBusiness size={16} />,
+  Operações: <Settings size={16} />,
+  Mercado: <BarChart3 size={16} />,
+  'Universidade MX': <GraduationCap size={16} />,
+  'Falar com Consultor': <MessageSquare size={16} />,
+}
+
+const ownerNavConfig: NavCategory[] = OWNER_BASE44_NAVIGATION.map(section => ({
+  category: section.label,
+  icon: ownerCategoryIcons[section.label],
+  items: section.items.map(item => ({
+    label: item.label,
+    path: item.section === 'home'
+      ? STORE_DASHBOARD_PATH
+      : item.section === 'consultor'
+        ? '/falar-consultor'
+        : ownerSectionPlaceholder(ownerNavigationSectionValue(item)),
+    icon: ownerItemIcons[item.label] ?? <Grid size={16} />,
+  })),
+}))
+
 const navConfig: Record<string, NavCategory[]> = {
-  dono: [
-    {
-      category: 'GESTÃO',
-      icon: <Home size={22} />,
-      items: [
-        { label: 'Início', path: STORE_DASHBOARD_PATH, icon: <Home size={16} /> },
-        { label: 'Rotina do Dia', path: ownerSectionPlaceholder('rotina'), icon: <CalendarClock size={16} /> },
-        { label: 'Central de Decisões', path: ownerSectionPlaceholder('decisoes'), icon: <ClipboardList size={16} /> },
-      ],
-    },
-    {
-      category: 'ESTRATÉGIA',
-      icon: <Target size={22} />,
-      items: [
-        { label: 'Plano Estratégico', path: ownerSectionPlaceholder('planejamento'), icon: <BarChart3 size={16} /> },
-        { label: 'Plano de Ação', path: ownerSectionPlaceholder('plano-acao'), icon: <CheckSquare size={16} /> },
-        { label: 'Consultoria', path: ownerSectionPlaceholder('consultoria'), icon: <MessageSquare size={16} /> },
-      ],
-    },
-    {
-      category: 'NEGÓCIO',
-      icon: <Grid size={22} />,
-      items: [
-        { label: 'Departamentos', path: ownerSectionPlaceholder('departamentos'), icon: <Grid size={16} /> },
-        { label: 'Visão Geral', path: ownerSectionPlaceholder('departamentos-visao-geral'), icon: <LayoutDashboard size={16} /> },
-        { label: 'Comercial', path: ownerSectionPlaceholder('departamentos-comercial'), icon: <TrendingUp size={16} /> },
-        { label: 'Marketing', path: ownerSectionPlaceholder('departamentos-marketing'), icon: <Activity size={16} /> },
-        { label: 'Produto e Estoque', path: ownerSectionPlaceholder('departamentos-produto'), icon: <Grid size={16} /> },
-        { label: 'Pessoas — RH', path: ownerSectionPlaceholder('departamentos-rh'), icon: <Users size={16} /> },
-        { label: 'Financeiro', path: ownerSectionPlaceholder('departamentos-financeiro'), icon: <BriefcaseBusiness size={16} /> },
-        { label: 'Operações', path: ownerSectionPlaceholder('departamentos-operacional'), icon: <Settings size={16} /> },
-        { label: 'Mercado', path: ownerSectionPlaceholder('mercado'), icon: <BarChart3 size={16} /> },
-      ],
-    },
-    {
-      category: 'DESENVOLVIMENTO',
-      icon: <GraduationCap size={22} />,
-      items: [
-        { label: 'Universidade MX', path: ownerSectionPlaceholder('universidade'), icon: <GraduationCap size={16} /> },
-      ],
-    },
-    {
-      category: 'AÇÃO GLOBAL',
-      icon: <MessageSquare size={22} />,
-      items: [
-        { label: 'Falar com Consultor', path: '/falar-consultor', icon: <MessageSquare size={16} /> },
-      ],
-    },
-  ],
+  dono: ownerNavConfig,
   gerente: [
     {
       category: 'MENU',
