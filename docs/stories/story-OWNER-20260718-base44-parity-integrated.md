@@ -2,7 +2,7 @@
 
 ## Status
 
-Ready for merge after CI
+Merged to `main`; production deployment pending Vercel infrastructure.
 
 ## Contexto
 
@@ -40,9 +40,17 @@ Reproduzir a arquitetura de informação, hierarquia visual e fluxos executivos 
 - [x] Módulos do Dono continuam dentro da rota canônica da loja.
 - [x] Layout responsivo usa grids e rolagem interna sem introduzir largura fixa na página.
 - [x] Estados de loading, vazio e erro são explícitos no fluxo de consultoria.
-- [ ] Build, typecheck, lint e testes passam no head final.
+- [x] Build, typecheck, lint e testes passam no head final.
 - [x] Supabase permanece sem duplicação dos domínios existentes.
 - [ ] Produção Vercel publica a revisão do `main`.
+
+## Evidência de integração
+
+- PR: `#125`
+- Merge commit: `3a9d1a3c2f710ed857f544ecab54915487e9a301`
+- CI: 13 gates aprovados no merge commit real da PR.
+- Supabase: tipos gerados pelo projeto `fbhcmzzgwjdgkctlfvbo` e validados pelo gate `db-types-diff`.
+- Vercel: deployments recentes falharam antes do build com `Resource provisioning failed`; aguardando nova execução bem-sucedida da integração Git.
 
 ## Limitações conhecidas
 
