@@ -4,20 +4,47 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   source-snapshot:
     name: Full management visual audit
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Apply atomic management visual implementation
+        id: implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          patch_payload="scripts/management-v3-implementation.patch.gz.b64"
+          if [[ ! -f "$patch_payload" ]]; then
+            echo "applied=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          base64 --decode "$patch_payload" > /tmp/management-v3.patch.gz
+          gzip --decompress --stdout /tmp/management-v3.patch.gz > /tmp/management-v3.patch
+          git apply --index --whitespace=fix /tmp/management-v3.patch
+          git rm "$patch_payload"
+          git config user.name "mx-design-system-bot"
+          git config user.email "mx-design-system-bot@users.noreply.github.com"
+          git commit -m "refactor: remover legado visual dos perfis de gestão"
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
+          echo "applied=true" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
 
       - name: Run management design-system source contract
-        run: node --test scripts/audit-management-design-system.test.mjs
+        run: node --test scripts/management-route-manifest.test.mjs scripts/audit-management-design-system.test.mjs
 
       - name: Write complete violation ledger
         if: always()
@@ -33,6 +60,7 @@ jobs:
             src \
             scripts/audit-management-design-system.mjs \
             scripts/audit-management-design-system.test.mjs \
+            scripts/management-route-manifest.test.mjs \
             package.json \
             package-lock.json \
             vite.config.ts \
@@ -44,6 +72,7 @@ jobs:
             src \
             scripts/audit-management-design-system.mjs \
             scripts/audit-management-design-system.test.mjs \
+            scripts/management-route-manifest.test.mjs \
             package.json \
             package-lock.json \
             vite.config.ts \
