@@ -13,6 +13,14 @@ const sources = {
   loading: read('./sections/LojasLoadingSkeleton.tsx'),
 }
 
+function hasLegacyUppercaseTrackingPair(source: string) {
+  const classAttributes = source.match(/className\s*=\s*(?:"[^"]*"|'[^']*')/g) || []
+  return classAttributes.some(
+    (classAttribute) =>
+      /\buppercase\b/.test(classAttribute) && /\btracking(?:-[\w-]+)?\b/.test(classAttribute),
+  )
+}
+
 describe('design system do módulo Dono', () => {
   test('usa a mesma fundação de página e cabeçalho do Gerente', () => {
     expect(sources.container).toContain('MxModulePage')
@@ -33,7 +41,7 @@ describe('design system do módulo Dono', () => {
       expect(source).not.toContain('font-black')
       expect(source).not.toContain('bg-mx-black')
       expect(source).not.toContain('backdrop-blur')
-      expect(source).not.toContain('uppercase tracking')
+      expect(hasLegacyUppercaseTrackingPair(source)).toBe(false)
       expect(source).not.toContain('group-hover:rotate')
     }
   })
