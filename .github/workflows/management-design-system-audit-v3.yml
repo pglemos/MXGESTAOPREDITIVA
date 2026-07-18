@@ -40,7 +40,21 @@ jobs:
             scripts/management-v3-assets.tar.gz.b64.part04
           )
 
-          echo "parts=${#asset_parts[@]}" | tee -a "$report"
+          existing=0
+          for part in "${asset_parts[@]}"; do
+            [[ -f "$part" ]] && existing=$((existing + 1))
+          done
+
+          if (( existing == 0 )); then
+            echo "package_present=false" | tee -a "$report"
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "valid=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "package_present=true parts=${existing}/${#asset_parts[@]}" | tee -a "$report"
+          echo "present=true" >> "$GITHUB_OUTPUT"
+
           missing=false
           for part in "${asset_parts[@]}"; do
             if [[ ! -f "$part" ]]; then
@@ -102,7 +116,7 @@ jobs:
           echo "valid=${valid}" >> "$GITHUB_OUTPUT"
 
       - name: Apply deterministic management visual implementation
-        if: steps.package.outputs.valid == 'true'
+        if: steps.package.outputs.present == 'true' && steps.package.outputs.valid == 'true'
         id: implementation
         shell: bash
         run: |
@@ -113,7 +127,12 @@ jobs:
           node /tmp/management-v3-assets/_management_v3/apply.mjs "$GITHUB_WORKSPACE"
 
           mapfile -t asset_parts < management-v3-parts.txt
-          git rm "${asset_parts[@]}"
+          git rm -f "${asset_parts[@]}"
+          rm -f \
+            management-v3-assets.received.b64 \
+            management-v3-assets.received.tar.gz \
+            management-v3-parts.txt \
+            management-package-integrity.txt
           git add -A
           git status --short
           git diff --cached --stat
@@ -124,7 +143,6 @@ jobs:
           echo "applied=true" >> "$GITHUB_OUTPUT"
 
       - name: Run management design-system source contract
-        if: steps.package.outputs.valid == 'true'
         run: node --test scripts/management-route-manifest.test.mjs scripts/audit-management-design-system.test.mjs
 
       - name: Write complete violation ledger
@@ -161,7 +179,7 @@ jobs:
           retention-days: 1
 
       - name: Fail when deterministic package is invalid
-        if: always() && steps.package.outputs.valid != 'true'
+        if: always() && steps.package.outputs.present == 'true' && steps.package.outputs.valid != 'true'
         run: |
           cat management-package-integrity.txt
           exit 1
