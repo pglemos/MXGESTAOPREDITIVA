@@ -31,12 +31,12 @@ export class LojasErrorBoundary extends Component<Props, State> {
       return (
         <div
           role="alert"
-          className="my-mx-xs rounded-mx-lg border border-border-default bg-surface-alt p-mx-md text-mx-tiny font-black uppercase tracking-widest text-status-warning"
+          className="my-2 rounded-xl border border-gray-200 bg-gray-50 p-4 text-xs font-black uppercase tracking-widest text-amber-500"
         >
           <strong>
             // Bloco indisponível{this.props.sectionName ? `: ${this.props.sectionName}` : ''}
           </strong>
-          <span className="mt-mx-xs block normal-case tracking-normal text-text-secondary">
+          <span className="mt-2 block normal-case tracking-normal text-gray-600">
             O restante da página continua disponível. Recarregue para tentar novamente.
           </span>
         </div>

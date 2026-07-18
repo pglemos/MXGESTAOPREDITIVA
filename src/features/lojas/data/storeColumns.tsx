@@ -40,18 +40,18 @@ export function buildStoreColumns({
       key: 'name',
       header: 'Unidade',
       render: (store) => (
-        <div className="flex min-w-0 items-center gap-mx-sm">
+        <div className="flex min-w-0 items-center gap-3">
           <span
-            className="grid h-mx-10 w-mx-10 shrink-0 place-items-center rounded-mx-lg bg-status-success-surface text-brand-primary"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-600"
             aria-hidden="true"
           >
             <Building2 size={18} />
           </span>
           <div className="min-w-0 flex-1">
-            <Typography variant="p" className="font-semibold text-text-primary">
+            <Typography variant="p" className="font-semibold text-gray-800">
               {store.name}
             </Typography>
-            <Typography variant="tiny" tone="muted" className="mt-mx-tiny block">
+            <Typography variant="tiny" tone="muted" className="mt-1 block">
               ID {store.id.split('-')[0]}
             </Typography>
           </div>
@@ -93,16 +93,16 @@ export function buildStoreColumns({
           disciplinePct: 0,
         }
         return (
-          <div className="flex items-center justify-center gap-mx-md">
+          <div className="flex items-center justify-center gap-4">
             <div className="text-center">
               <Typography variant="tiny" tone="muted">
                 Equipe
               </Typography>
-              <Typography variant="p" className="mt-mx-tiny font-semibold tabular-nums text-text-primary">
+              <Typography variant="p" className="mt-1 font-semibold tabular-nums text-gray-800">
                 {stat.teamMembers}
               </Typography>
             </div>
-            <span className="h-mx-8 w-px bg-border-subtle" aria-hidden="true" />
+            <span className="h-8 w-px bg-border-subtle" aria-hidden="true" />
             <div className="text-center">
               <Typography variant="tiny" tone="muted">
                 Disciplina
@@ -110,7 +110,7 @@ export function buildStoreColumns({
               <Typography
                 variant="p"
                 tone={stat.disciplinePct < 80 ? 'error' : 'success'}
-                className="mt-mx-tiny font-semibold tabular-nums"
+                className="mt-1 font-semibold tabular-nums"
               >
                 {stat.disciplinePct}%
               </Typography>
@@ -124,13 +124,13 @@ export function buildStoreColumns({
       header: 'Pré-cadastro',
       desktopOnly: true,
       render: (store) => (
-        <div className="flex min-w-0 flex-col gap-mx-xs">
-          <div className="flex min-w-0 items-center gap-mx-xs">
+        <div className="flex min-w-0 flex-col gap-2">
+          <div className="flex min-w-0 items-center gap-2">
             <Link2
               size={14}
               className={cn(
                 'shrink-0',
-                isAdministradorMx(role) ? 'text-brand-primary' : 'text-text-tertiary',
+                isAdministradorMx(role) ? 'text-emerald-600' : 'text-gray-500',
               )}
               aria-hidden="true"
             />
@@ -145,7 +145,7 @@ export function buildStoreColumns({
           {isAdministradorMx(role) ? (
             <Typography
               variant="tiny"
-              className="block max-w-mx-64 truncate rounded-mx-md bg-surface-alt px-mx-xs py-mx-tiny font-mono text-text-secondary"
+              className="block max-w-64 truncate rounded-lg bg-gray-50 px-2 py-1 font-mono text-gray-600"
               title={getRegistrationLink(store.name)}
             >
               {getRegistrationLink(store.name)}
@@ -161,7 +161,7 @@ export function buildStoreColumns({
       render: (store) => (
         <div
           role="presentation"
-          className="flex items-center justify-end gap-mx-xs"
+          className="flex items-center justify-end gap-2"
           onClick={(event) => event.stopPropagation()}
           onKeyDown={(event) => event.stopPropagation()}
         >
@@ -193,7 +193,7 @@ export function buildStoreColumns({
                     variant="ghost"
                     size="icon"
                     onClick={() => handleArchiveStore(store)}
-                    className="text-text-tertiary hover:bg-status-error-surface hover:text-status-error"
+                    className="text-gray-500 hover:bg-red-50 hover:text-red-600"
                     aria-label={`Desativar ${store.name}`}
                   >
                     <X size={16} aria-hidden="true" />

@@ -24,6 +24,7 @@ const SELLER_ENTRIES = [
 ]
 
 const SOURCE_EXTENSIONS = ['.tsx', '.ts', '.jsx', '.js', '.css']
+const MANAGEMENT_OWNED_ROOTS = ['features/lojas']
 const IMPORT_PATTERN = /(?:import|export)\s+(?:[^'\"]*?\s+from\s+)?['\"]([^'\"]+)['\"]|import\(\s*['\"]([^'\"]+)['\"]\s*\)/g
 
 export const forbiddenManagementPatterns = [
@@ -42,6 +43,7 @@ export const forbiddenManagementPatterns = [
   { id: 'legacy-secondary-brand', expression: /\b(?:bg|text|border|ring|from|to|via)-(?:brand-secondary|pure-black)(?:\/[0-9]+)?\b/g },
   { id: 'legacy-mono-token', expression: /\bfont-mono-numbers\b/g },
   { id: 'legacy-action-shadow', expression: /\bshadow-action\b/g },
+  { id: 'legacy-css-variable', expression: /--(?:spacing|color|radius|shadow)-mx-[\w-]+/g },
 ]
 
 function listSourceFiles(directory) {
@@ -108,9 +110,14 @@ export function auditManagementDesignSystem({ root = projectRoot } = {}) {
   const managementReachable = collectReachable(graph, managementSourceEntries)
   const sellerReachable = collectReachable(graph, SELLER_ENTRIES)
   const exclusiveFiles = [...managementReachable].filter((file) => !sellerReachable.has(file))
+  const ownedFiles = MANAGEMENT_OWNED_ROOTS.flatMap((ownedRoot) => {
+    const absolute = path.join(sourceRoot, ownedRoot)
+    return fs.existsSync(absolute) ? listSourceFiles(absolute) : []
+  }).filter((file) => !/\.(?:test|spec)\.(?:ts|tsx|js|jsx)$/.test(file))
+  const auditedFiles = [...new Set([...exclusiveFiles, ...ownedFiles])]
   const violations = []
 
-  for (const file of exclusiveFiles) {
+  for (const file of auditedFiles) {
     if (!['.tsx', '.jsx', '.css'].includes(path.extname(file))) continue
     const source = fs.readFileSync(file, 'utf8')
     const relativeFile = path.relative(sourceRoot, file).split(path.sep).join('/')
@@ -133,6 +140,8 @@ export function auditManagementDesignSystem({ root = projectRoot } = {}) {
     reachableFiles: managementReachable.size,
     sellerSharedFiles: [...managementReachable].filter((file) => sellerReachable.has(file)).length,
     auditedExclusiveFiles: exclusiveFiles.length,
+    auditedOwnedFiles: ownedFiles.length,
+    auditedFiles: auditedFiles.length,
     violations,
   }
 }

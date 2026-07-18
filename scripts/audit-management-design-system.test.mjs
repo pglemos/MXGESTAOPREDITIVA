@@ -4,7 +4,7 @@ import { auditManagementDesignSystem, auditText } from './audit-management-desig
 
 test('detecta tokens e wrappers legados em uma superfície de gestão', () => {
   const violations = auditText(`
-    <section className="rounded-mx-2xl shadow-mx-lg bg-surface-alt text-text-primary p-mx-lg mxds-page-frame" />
+    <section className="rounded-mx-2xl shadow-mx-lg bg-surface-alt text-text-primary p-mx-lg mxds-page-frame border-mx-emerald-100 [top:var(--spacing-mx-layout-offset-top)]" />
   `)
   const rules = new Set(violations.map((violation) => violation.rule))
   for (const expectedRule of [
@@ -15,6 +15,7 @@ test('detecta tokens e wrappers legados em uma superfície de gestão', () => {
     'legacy-surface-token',
     'legacy-wrapper',
     'legacy-custom-utility',
+    'legacy-css-variable',
   ]) {
     assert.equal(rules.has(expectedRule), true, `Regra ausente: ${expectedRule}`)
   }

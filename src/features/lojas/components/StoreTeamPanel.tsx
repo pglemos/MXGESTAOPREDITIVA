@@ -181,10 +181,10 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
     const activeMembers = (team || []).filter(m => m.active !== false && m.is_active !== false);
 
     return [
-        { label: 'Integrantes', shortLabel: 'Int.', value: total, icon: Users, tone: 'brand', color: 'from-brand-primary/20 to-brand-primary/5' },
-        { label: 'Ativos', shortLabel: 'Atv.', value: activeMembers.length, icon: Zap, tone: 'success', color: 'from-status-success-surface to-transparent' },
-        { label: 'Inativos', shortLabel: 'Inat.', value: total - activeMembers.length, icon: Clock, tone: 'error', color: 'from-status-error-surface to-transparent' },
-        { label: 'Líderes', shortLabel: 'Líd.', value: leaders.length, icon: Shield, tone: 'warning', color: 'from-status-warning-surface to-transparent' },
+        { label: 'Integrantes', shortLabel: 'Int.', value: total, icon: Users, tone: 'brand', color: 'from-emerald-600/20 to-emerald-600/5' },
+        { label: 'Ativos', shortLabel: 'Atv.', value: activeMembers.length, icon: Zap, tone: 'success', color: 'from-emerald-50 to-transparent' },
+        { label: 'Inativos', shortLabel: 'Inat.', value: total - activeMembers.length, icon: Clock, tone: 'error', color: 'from-red-50 to-transparent' },
+        { label: 'Líderes', shortLabel: 'Líd.', value: leaders.length, icon: Shield, tone: 'warning', color: 'from-amber-50 to-transparent' },
     ];
   }, [team])
 
@@ -258,9 +258,9 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
 
   const getVigenciaStatus = (m: TeamMember) => {
     const today = new Date().toISOString().slice(0, 10)
-    if (!m.is_active) return { label: 'INATIVO', variant: 'outline' as const, color: 'text-text-tertiary border-border-default bg-surface-alt' }
-    if (m.ended_at && m.ended_at.slice(0, 10) < today) return { label: 'ENCERRADO', variant: 'danger' as const, color: 'text-status-error border-status-error/10 bg-status-error-surface' }
-    return { label: 'ATIVO', variant: 'success' as const, color: 'text-status-success border-status-success/10 bg-status-success-surface' }
+    if (!m.is_active) return { label: 'INATIVO', variant: 'outline' as const, color: 'text-gray-500 border-gray-200 bg-gray-50' }
+    if (m.ended_at && m.ended_at.slice(0, 10) < today) return { label: 'ENCERRADO', variant: 'danger' as const, color: 'text-red-600 border-red-600/10 bg-red-50' }
+    return { label: 'ATIVO', variant: 'success' as const, color: 'text-emerald-600 border-emerald-600/10 bg-emerald-50' }
   }
 
   const handleRefresh = useCallback(async () => {
@@ -337,7 +337,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
   }, [canApprovePreRegistrations, executeReviewPreRegistration, requestConfirmation])
 
   if (!storeId) return (
-    <section className="w-full rounded-mx-3xl border border-border-default bg-white p-mx-xl text-center shadow-mx-sm">
+    <section className="w-full rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
       <Typography variant="h2" className="uppercase tracking-tight">Selecione uma loja</Typography>
       <Typography variant="caption" tone="muted" className="mt-2 block uppercase tracking-widest font-black">
         A equipe agora é administrada dentro do dashboard operacional de cada loja.
@@ -346,35 +346,35 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
   )
 
   if (loading) return (
-    <section className="w-full flex flex-col gap-mx-lg animate-in fade-in duration-500 overflow-hidden">
-        <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
-            <div className="space-y-mx-xs">
-                <Skeleton className="h-mx-10 w-mx-64" />
-                <div className="flex gap-mx-sm">
-                  <Skeleton className="h-mx-xs w-mx-48" />
-                  <Skeleton className="h-mx-xs w-mx-32 opacity-50" />
+    <section className="w-full flex flex-col gap-6 animate-in fade-in duration-500 overflow-hidden">
+        <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-gray-200 pb-10">
+            <div className="space-y-2">
+                <Skeleton className="h-10 w-64" />
+                <div className="flex gap-3">
+                  <Skeleton className="h-2 w-48" />
+                  <Skeleton className="h-2 w-32 opacity-50" />
                 </div>
             </div>
-            <div className="flex gap-mx-sm">
-                <Skeleton className="h-mx-14 w-mx-14 rounded-mx-xl" />
-                <Skeleton className="h-mx-14 w-mx-48 rounded-mx-xl" />
+            <div className="flex gap-3">
+                <Skeleton className="h-14 w-14 rounded-xl" />
+                <Skeleton className="h-14 w-48 rounded-xl" />
             </div>
         </header>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-mx-lg shrink-0">
-            <Skeleton className="h-mx-24 rounded-mx-4xl" />
-            <Skeleton className="h-mx-24 rounded-mx-4xl" />
-            <Skeleton className="h-mx-24 rounded-mx-4xl" />
-            <Skeleton className="h-mx-24 rounded-mx-4xl" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 shrink-0">
+            <Skeleton className="h-24 rounded-2xl" />
+            <Skeleton className="h-24 rounded-2xl" />
+            <Skeleton className="h-24 rounded-2xl" />
+            <Skeleton className="h-24 rounded-2xl" />
         </div>
 
-        <div className="flex-1 mt-mx-lg">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-mx-lg">
+        <div className="flex-1 mt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {[1,2,3,4,5,6,7,8].map(i => (
-                    <div key={i} className="h-mx-96 rounded-mx-4xl bg-white/50 border-2 border-dashed border-border-default flex flex-col items-center justify-center p-mx-xl">
-                        <Skeleton className="w-mx-24 h-mx-24 rounded-mx-4xl mb-6" />
-                        <Skeleton className="h-mx-sm w-full mb-2" />
-                        <Skeleton className="h-mx-xs w-1/2" />
+                    <div key={i} className="h-96 rounded-2xl bg-white/50 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center p-8">
+                        <Skeleton className="w-24 h-24 rounded-2xl mb-6" />
+                        <Skeleton className="h-3 w-full mb-2" />
+                        <Skeleton className="h-2 w-1/2" />
                     </div>
                 ))}
             </div>
@@ -383,7 +383,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
   )
 
   return (
-    <section className="w-full flex flex-col gap-mx-lg relative">
+    <section className="w-full flex flex-col gap-6 relative">
         <>
           <ConfirmationDialog
             pendingConfirmation={pendingConfirmation}
@@ -391,36 +391,36 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
             onDismiss={clearPendingConfirmation}
           />
 
-          <div className="flex flex-col gap-mx-sm rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
             <div><Typography variant="h3">Equipe da Loja</Typography><Typography variant="caption" tone="muted">Integrantes vinculados a {storeName || 'esta unidade'}</Typography></div>
-              <div className="flex flex-col sm:flex-row items-center gap-mx-sm w-full lg:w-auto">
-                <div className="relative group w-full sm:w-mx-96">
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+                <div className="relative group w-full sm:w-96">
                   <label htmlFor="search-specialist" className="sr-only">Buscar integrante da equipe</label>
-                  <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary transition-colors" />
+                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-emerald-600 transition-colors" />
                   <Input
                     id="search-specialist"
                     name="search-specialist"
                     placeholder="Buscar por nome ou perfil"
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
-                    className="!pl-12 !h-mx-14 uppercase font-black tracking-widest text-mx-tiny"
+                    className="!pl-12 !h-14 uppercase font-black tracking-widest text-xs"
                   />
                 </div>
-                <div className="flex w-full sm:w-auto gap-mx-sm">
+                <div className="flex w-full sm:w-auto gap-3">
                   <Button
                       variant="outline"
                       size="icon"
                       type="button"
                       onClick={handleRefresh}
                       aria-label="Atualizar equipe e pré-cadastros"
-                      className="w-mx-14 h-mx-14 rounded-mx-xl bg-white shadow-mx-sm border-border-default shrink-0"
+                      className="w-14 h-14 rounded-xl bg-white shadow-sm border-gray-200 shrink-0"
                   >
                     <RefreshCw size={20} aria-hidden="true" className={cn(isRefetching && "animate-spin")} />
                   </Button>
                   {canCreateMembers && (
                     <Button
                       onClick={() => setIsUserModalOpen(true)}
-                      className="flex-1 sm:flex-none h-mx-14 px-8 rounded-mx-xl bg-brand-secondary !text-white hover:bg-brand-secondary/90 font-black uppercase tracking-widest text-mx-tiny shadow-mx-lg"
+                      className="flex-1 sm:flex-none h-14 px-8 rounded-xl bg-gray-900 !text-white hover:bg-gray-900/90 font-black uppercase tracking-widest text-xs shadow-lg"
                     >
                       <UserPlus size={18} className="mr-2" /> NOVO INTEGRANTE
                     </Button>
@@ -431,7 +431,7 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
 
           <TeamStatsGrid stats={stats} />
 
-          <div className="grid mx-team-layout-grid gap-mx-lg items-start mt-mx-md">
+          <div className="grid mx-team-layout-grid gap-6 items-start mt-4">
 
           <PreRegistrationQueue
             canSharePreRegistrationLink={canSharePreRegistrationLink}

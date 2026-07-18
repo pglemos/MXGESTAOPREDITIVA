@@ -111,8 +111,8 @@ export function StoreGoalsPanel({ storeId, storeName }: StoreGoalsPanelProps) {
 
   if (!storeId) {
     return (
-      <div className="min-h-mx-section-lg bg-white border-2 border-dashed border-border-default rounded-mx-3xl flex flex-col items-center justify-center text-center p-mx-14">
-        <Target size={48} className="text-text-tertiary mb-6" />
+      <div className="min-h-96 bg-white border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-center p-14">
+        <Target size={48} className="text-gray-500 mb-6" />
         <Typography variant="h2" className="mb-3">Selecione uma loja</Typography>
         <Typography variant="p" tone="muted" className="max-w-sm uppercase tracking-tight">A aba de metas precisa de uma unidade ativa para carregar as regras oficiais.</Typography>
       </div>
@@ -121,8 +121,8 @@ export function StoreGoalsPanel({ storeId, storeName }: StoreGoalsPanelProps) {
 
   if (loading) {
     return (
-      <div className="min-h-mx-section-lg bg-white rounded-mx-3xl flex flex-col items-center justify-center">
-        <RefreshCw className="w-mx-xl h-mx-xl animate-spin text-brand-primary mb-6" />
+      <div className="min-h-96 bg-white rounded-2xl flex flex-col items-center justify-center">
+        <RefreshCw className="w-8 h-8 animate-spin text-emerald-600 mb-6" />
         <Typography variant="caption" tone="muted" className="animate-pulse">Carregando metas da loja...</Typography>
       </div>
     )
@@ -131,18 +131,18 @@ export function StoreGoalsPanel({ storeId, storeName }: StoreGoalsPanelProps) {
   return (
     <section className="pb-24 md:pb-32" aria-label="Metas da loja">
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-        <header className="mb-5 flex flex-col gap-mx-sm border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+        <header className="mb-5 flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <Typography variant="tiny" tone="muted" className="font-bold uppercase tracking-wider">Status da meta</Typography>
             <Typography variant="p" tone="muted" className="mt-1 text-sm">Meta mensal e benchmarks oficiais de {storeName || 'Unidade MX'}.</Typography>
           </div>
         {canManageGoals ? (
-          <div className="grid w-full grid-cols-2 gap-mx-xs sm:flex sm:w-auto sm:items-center sm:gap-mx-sm">
+          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center sm:gap-3">
             <Button
               variant="outline"
               onClick={handleDelete}
               disabled={deleting || saving || !hasPersistedRules}
-              className="h-mx-10 w-full rounded-mx-xl text-mx-tiny sm:h-mx-11 sm:w-auto"
+              className="h-10 w-full rounded-xl text-xs sm:h-11 sm:w-auto"
             >
               {deleting ? <RefreshCw className="animate-spin mr-2" /> : <Trash2 size={16} className="mr-2" />}
               Excluir
@@ -150,7 +150,7 @@ export function StoreGoalsPanel({ storeId, storeName }: StoreGoalsPanelProps) {
             <Button
               onClick={handleSave}
               disabled={saving || deleting || !hasChanges}
-              className="h-mx-10 w-full rounded-mx-xl text-mx-tiny sm:h-mx-11 sm:w-auto"
+              className="h-10 w-full rounded-xl text-xs sm:h-11 sm:w-auto"
             >
               {saving ? <RefreshCw className="animate-spin mr-2" /> : <Save size={16} className="mr-2" />}
               Salvar
@@ -179,7 +179,7 @@ export function StoreGoalsPanel({ storeId, storeName }: StoreGoalsPanelProps) {
                   }}
                   disabled={!canManageGoals}
                   aria-label="Meta mensal de vendas"
-                  className="mt-1 w-full bg-transparent text-left font-mono-numbers text-3xl font-black leading-none text-slate-900 focus:outline-none disabled:opacity-100 sm:text-4xl"
+                  className="mt-1 w-full bg-transparent text-left font-mono tabular-nums text-3xl font-black leading-none text-slate-900 focus:outline-none disabled:opacity-100 sm:text-4xl"
                 />
               <Typography variant="caption" tone="muted">unidades comerciais</Typography>
             </div>
@@ -195,15 +195,15 @@ export function StoreGoalsPanel({ storeId, storeName }: StoreGoalsPanelProps) {
                 <div className="flex items-center gap-3">
                   <div className={cn(
                     'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg',
-                    benchmark.tone === 'brand' ? 'bg-mx-indigo-50 border-mx-indigo-100 text-brand-primary' :
-                      benchmark.tone === 'success' ? 'bg-status-success-surface border-mx-emerald-100 text-status-success' :
-                        'bg-status-warning-surface border-mx-amber-100 text-status-warning'
+                    benchmark.tone === 'brand' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' :
+                      benchmark.tone === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' :
+                        'bg-amber-50 border-amber-100 text-amber-500'
                   )}>
                     <benchmark.icon size={18} strokeWidth={2} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <Typography variant="tiny" tone="muted" className="block font-bold uppercase tracking-wide">{benchmark.label}</Typography>
-                    <div className="flex items-baseline gap-mx-xs">
+                    <div className="flex items-baseline gap-2">
                       <input
                         type="text"
                         inputMode="numeric"
@@ -211,7 +211,7 @@ export function StoreGoalsPanel({ storeId, storeName }: StoreGoalsPanelProps) {
                         onChange={(event) => updateBenchmark(benchmark.field, event.target.value)}
                         disabled={!canManageGoals}
                         aria-label={`Benchmark ${benchmark.label}`}
-                        className="w-mx-20 bg-transparent font-mono-numbers text-2xl font-black text-slate-900 outline-none disabled:opacity-100"
+                        className="w-20 bg-transparent font-mono tabular-nums text-2xl font-black text-slate-900 outline-none disabled:opacity-100"
                       />
                       <Typography variant="h1" tone="muted" className="text-2xl">%</Typography>
                     </div>
