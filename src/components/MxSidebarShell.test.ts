@@ -28,22 +28,40 @@ describe('sidebar universal MX', () => {
     for (const legacyUrl of legacyUrls) expect(existsSync(legacyUrl)).toBe(false)
   })
 
-  test('mantém o design visual e o comportamento acessível do sidebar gerencial', () => {
-    expect(shellSource).toContain('border-slate-200 bg-white shadow-lg')
-    expect(shellSource).toContain('bg-emerald-50 text-emerald-800')
-    expect(shellSource).toContain("collapsed ? 'w-[80px]")
-    expect(shellSource).toContain("'w-[264px] p-4'")
+  test('reproduz as dimensões e superfícies da sidebar oficial do Gerente', () => {
+    expect(shellSource).toContain('border-gray-100 bg-white shadow-sm')
+    expect(shellSource).toContain("collapsed ? 'w-16'")
+    expect(shellSource).toContain(": 'w-56'")
+    expect(shellSource).toContain("collapsed ? 'md:pl-16' : 'md:pl-56'")
+
+    expect(shellSource).not.toContain("w-[264px]")
+    expect(shellSource).not.toContain("w-[80px]")
+    expect(shellSource).not.toContain('border-slate-200 bg-white shadow-lg')
+  })
+
+  test('usa item ativo verde sólido sem trilho lateral ou caixa de ícone paralela', () => {
+    expect(shellSource).toContain('bg-emerald-600 text-white shadow-sm')
+    expect(shellSource).toContain('text-gray-600 hover:bg-gray-50 hover:text-gray-900')
+    expect(shellSource).not.toContain('bg-emerald-50 text-emerald-800')
+    expect(shellSource).not.toContain('absolute bottom-2 left-0 top-2 w-1')
+  })
+
+  test('mantém navegação, acessibilidade e drawer mobile', () => {
     expect(shellSource).toContain("aria-current={active ? 'page' : undefined}")
     expect(shellSource).toContain('aria-modal="true"')
     expect(shellSource).toContain('useFocusTrap(drawerRef, mobileOpen)')
-    expect(shellSource).not.toContain('#051923')
-    expect(shellSource).not.toContain('#102C37')
+    expect(shellSource).toContain('navSections')
+    expect(shellSource).toContain('NotificationBellButton')
+    expect(shellSource).toContain('renderProfileCard')
+    expect(shellSource).toContain('onStopSimulation')
   })
 
-  test('não depende do pacote mxds antigo', () => {
+  test('não depende do pacote visual legado', () => {
     expect(shellSource).not.toContain('mxds-')
     expect(shellSource).not.toContain('AppShell')
     expect(shellSource).not.toContain('SidebarBrandHeader')
+    expect(shellSource).not.toContain('#051923')
+    expect(shellSource).not.toContain('#102C37')
   })
 
   test('define a identidade correta de módulo para cada perfil', () => {
@@ -58,16 +76,5 @@ describe('sidebar universal MX', () => {
       expect(layoutSource).toContain(label)
     }
     expect(shellSource).toContain('moduleLabel')
-  })
-
-  test('preserva navegação, notificações, perfil e simulação', () => {
-    expect(shellSource).toContain('navSections')
-    expect(shellSource).toContain('NotificationBellButton')
-    expect(shellSource).toContain('renderProfileCard')
-    expect(shellSource).toContain('onStopSimulation')
-    expect(shellSource).toContain("label: 'Meu Perfil'")
-    expect(shellSource).toContain("label: 'Preferências'")
-    expect(shellSource).toContain("label: 'Notificações'")
-    expect(shellSource).toContain("label: 'Sair'")
   })
 })
