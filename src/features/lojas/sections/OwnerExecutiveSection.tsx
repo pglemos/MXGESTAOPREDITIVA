@@ -41,35 +41,35 @@ export function OwnerExecutiveSection({
   }
 
   return (
-    <section className="grid grid-cols-1 gap-mx-md xl:grid-cols-12" aria-label="Visão executiva">
-      <MxSectionCard className="p-mx-md xl:col-span-4">
-        <div className="flex items-start justify-between gap-mx-md">
+    <section className="grid grid-cols-1 gap-4 xl:grid-cols-12" aria-label="Visão executiva">
+      <MxSectionCard className="p-4 xl:col-span-4">
+        <div className="flex items-start justify-between gap-4">
           <div>
             <Typography as="h2" variant="h3" className="text-lg">
               O que decidir hoje
             </Typography>
-            <Typography variant="p" className="mt-mx-xs text-sm text-text-secondary">
+            <Typography variant="p" className="mt-1.5 text-sm text-gray-500">
               Prioridades calculadas a partir da estrutura e da disciplina das lojas.
             </Typography>
           </div>
-          <span className="grid h-mx-10 w-mx-10 shrink-0 place-items-center rounded-mx-lg bg-status-success-surface text-brand-primary">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-600">
             <Compass size={20} aria-hidden="true" />
           </span>
         </div>
 
-        <div className="mt-mx-md space-y-mx-sm">
-          <div className="rounded-mx-lg border border-border-subtle bg-surface-alt p-mx-md">
-            <Typography variant="caption" className="font-semibold text-text-secondary">
+        <div className="mt-4 space-y-3">
+          <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+            <Typography variant="caption" className="font-semibold text-gray-600">
               Unidades que exigem atenção
             </Typography>
             <Typography
               variant="h2"
               tone={ownerAttentionStores.length > 0 ? 'warning' : 'success'}
-              className="mt-mx-xs tabular-nums"
+              className="mt-1.5 tabular-nums"
             >
               {ownerAttentionStores.length}
             </Typography>
-            <Typography variant="p" className="mt-mx-xs text-sm text-text-secondary">
+            <Typography variant="p" className="mt-1.5 text-sm text-gray-500">
               {ownerAttentionStores.length > 0
                 ? 'Revise unidades sem equipe, sem vendedores ou com disciplina abaixo de 80%.'
                 : 'Todas as unidades ativas estão dentro do mínimo operacional esperado.'}
@@ -83,16 +83,16 @@ export function OwnerExecutiveSection({
       </MxSectionCard>
 
       <MxSectionCard className="xl:col-span-8">
-        <div className="border-b border-border-subtle p-mx-md">
+        <div className="border-b border-gray-100 p-4">
           <Typography as="h2" variant="h3" className="text-lg">
             Comparativo entre lojas
           </Typography>
-          <Typography variant="p" className="mt-mx-xs text-sm text-text-secondary">
+          <Typography variant="p" className="mt-1.5 text-sm text-gray-500">
             Identifique onde cobrar plano de ação e onde apenas acompanhar a execução.
           </Typography>
         </div>
 
-        <div className="grid grid-cols-1 gap-mx-sm p-mx-md md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 p-4 md:grid-cols-2">
           {ownerActiveStores.map((store) => {
             const stat = stats[store.id] || {
               sellers: 0,
@@ -109,14 +109,14 @@ export function OwnerExecutiveSection({
               <Link
                 key={store.id}
                 to={`/lojas/${slugify(store.name)}?id=${store.id}`}
-                className="group rounded-mx-lg border border-border-subtle bg-white p-mx-md transition-colors hover:border-brand-primary hover:bg-surface-alt focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15"
+                className="group rounded-xl border border-gray-100 bg-white p-4 transition-colors hover:border-emerald-300 hover:bg-emerald-50/40 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-500/15"
               >
-                <div className="flex items-start justify-between gap-mx-sm">
+                <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <Typography variant="p" className="font-semibold text-text-primary group-hover:text-brand-primary">
+                    <Typography variant="p" className="font-semibold text-gray-800 group-hover:text-emerald-700">
                       {store.name}
                     </Typography>
-                    <Typography variant="tiny" tone="muted" className="mt-mx-xs block">
+                    <Typography variant="tiny" tone="muted" className="mt-1.5 block">
                       {stat.teamMembers} na equipe · {stat.checkedIn}/{stat.sellers} vendedores com registro
                     </Typography>
                   </div>
@@ -125,22 +125,22 @@ export function OwnerExecutiveSection({
                   </Badge>
                 </div>
 
-                <div className="mt-mx-md flex items-end justify-between gap-mx-sm">
+                <div className="mt-4 flex items-end justify-between gap-3">
                   <div>
-                    <Typography variant="caption" className="text-text-secondary">
+                    <Typography variant="caption" className="text-gray-600">
                       Disciplina
                     </Typography>
                     <Typography
                       variant="h2"
                       tone={stat.disciplinePct < 80 ? 'error' : 'success'}
-                      className="mt-mx-xs tabular-nums"
+                      className="mt-1.5 tabular-nums"
                     >
                       {stat.disciplinePct}%
                     </Typography>
                   </div>
                   <ArrowRight
                     size={18}
-                    className="text-text-tertiary transition-transform group-hover:translate-x-1 group-hover:text-brand-primary"
+                    className="text-gray-400 transition-transform group-hover:translate-x-1 group-hover:text-emerald-600"
                     aria-hidden="true"
                   />
                 </div>
