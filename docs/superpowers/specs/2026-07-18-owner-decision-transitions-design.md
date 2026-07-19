@@ -64,19 +64,26 @@ Adicionar a coluna opcional:
 origem_ref_key text
 ```
 
+Adicionar uma restrição para aceitar apenas `NULL` ou uma chave aparada entre 1 e 180 caracteres.
+
 Ela armazenará uma chave textual estável quando a origem não possuir UUID canônico. Para a Central de Decisões:
 
 ```text
 origem_ref_table = 'owner_decision'
-origem_ref_key   = <chave estável do item>
+origem_ref_key   = chave estável produzida pelo frontend
 ```
 
-Criar índice único parcial:
+Criar o índice único parcial exato:
 
 ```sql
-CREATE UNIQUE INDEX ...
-ON public.planos_acao(scope_type, scope_id, origem_ref_table, origem_ref_key)
-WHERE origem_ref_key IS NOT NULL;
+CREATE UNIQUE INDEX uidx_planos_scope_origin_ref_key
+  ON public.planos_acao (
+    scope_type,
+    scope_id,
+    origem_ref_table,
+    origem_ref_key
+  )
+  WHERE origem_ref_key IS NOT NULL;
 ```
 
 A restrição garante idempotência por loja. Dois cliques, duas abas ou duas requisições concorrentes não devem criar dois planos para a mesma decisão.
@@ -96,7 +103,19 @@ Valores usados por este fluxo:
 
 Outras atualizações continuam aceitando `NULL`, preservando compatibilidade.
 
-A trigger `log_planos_acao_changes()` lerá o motivo definido pela RPC na transação e o salvará junto de `changed_by`, valores anteriores, valores novos e campos alterados.
+A RPC definirá o motivo dentro da transação com:
+
+```sql
+PERFORM set_config('mx.change_reason', v_change_reason, true);
+```
+
+A trigger `log_planos_acao_changes()` obterá o valor com:
+
+```sql
+NULLIF(current_setting('mx.change_reason', true), '')
+```
+
+O terceiro argumento `true` limita a configuração à transação. A trigger salvará o motivo junto de `changed_by`, valores anteriores, valores novos e campos alterados.
 
 ### 5.3 Chave estável da decisão
 
@@ -107,52 +126,67 @@ O frontend produzirá uma chave sem índice de array e sem depender da ordem vis
 
 O hash do alerta usará título, variante e recomendação normalizados. Mudança material nesses campos gera uma nova decisão. Mudança de ordenação não gera outra decisão.
 
-A função de chave será pura, determinística e coberta por testes unitários.
+A função de chave será pura, determinística e coberta por testes unitários. O resultado completo terá no máximo 180 caracteres.
 
 ## 6. RPC transacional
 
-Criar `public.transition_owner_decision(...)`, `SECURITY DEFINER`, com `search_path = public`, revogação de `PUBLIC` e `anon`, e execução concedida apenas a `authenticated`.
+Criar a função com assinatura explícita:
 
-### 6.1 Entradas
+```sql
+public.transition_owner_decision(
+  p_store_id uuid,
+  p_decision_key text,
+  p_transition text,
+  p_departamento text,
+  p_indicador text,
+  p_problema text,
+  p_acao text,
+  p_como text DEFAULT NULL,
+  p_prioridade public.action_priority DEFAULT 'media',
+  p_origem public.action_origin DEFAULT 'manual',
+  p_prazo date DEFAULT NULL,
+  p_responsavel_id uuid DEFAULT NULL
+) RETURNS public.planos_acao
+```
 
-- `p_store_id uuid`
-- `p_decision_key text`
-- `p_transition text`, aceitando apenas `approve` ou `delegate`
-- dados para materialização: departamento, indicador, problema, ação, como, prioridade, origem e prazo
-- `p_responsavel_id uuid`, obrigatório apenas em `delegate`
+A função será `SECURITY DEFINER`, terá `SET search_path = public`, execução revogada de `PUBLIC` e `anon`, e execução concedida apenas a `authenticated`.
 
-### 6.2 Validações
+### 6.1 Validações
 
 1. Exigir sessão autenticada.
 2. Exigir acesso à loja por `can_access_mx_scope('store', p_store_id)`.
 3. Exigir papel autorizado para decisão executiva: `master`, `director`, `consultant` ou `admin_mx`.
-4. Rejeitar chave vazia e campos obrigatórios vazios.
-5. Em delegação, exigir vínculo ativo do responsável em `vinculos_loja` para `p_store_id`.
-6. Não aceitar responsável de outra loja, mesmo que o cliente envie manualmente o UUID.
-7. Normalizar a origem para o enum real do banco: `alertas`, `score`, `consultor` ou `manual`.
+4. Rejeitar chave vazia, chave acima de 180 caracteres e campos obrigatórios vazios.
+5. Aceitar em `p_transition` somente `approve` ou `delegate`.
+6. Em delegação, exigir `p_responsavel_id`.
+7. Em delegação, exigir vínculo ativo do responsável em `vinculos_loja` para `p_store_id`.
+8. Não aceitar responsável de outra loja, mesmo que o cliente envie manualmente o UUID.
+9. Aceitar a origem somente no enum real do banco: `alertas`, `score`, `consultor` ou `manual`.
 
-### 6.3 Algoritmo
+### 6.2 Algoritmo
 
 1. Localizar e bloquear com `FOR UPDATE` o plano da mesma loja e chave de decisão.
-2. Quando não existir, inserir um plano inicialmente como `pendente`, preenchendo `created_by`, `origem_ref_table = 'owner_decision'` e `origem_ref_key`.
-3. Definir o motivo transacional de auditoria:
+2. Quando não existir, executar `INSERT ... ON CONFLICT DO NOTHING` com status inicial `pendente`, preenchendo `created_by`, `origem_ref_table = 'owner_decision'` e `origem_ref_key`.
+3. Após o insert, localizar novamente a linha e bloqueá-la com `FOR UPDATE`. Esse segundo passo cobre a corrida em que outra transação criou a mesma decisão.
+4. Definir o motivo transacional de auditoria:
    - `owner_approval` para aprovação;
    - `owner_delegation` para delegação.
-4. Atualizar o plano:
+5. Atualizar o plano:
    - aprovação: `status = 'em_andamento'` e `responsavel_id = COALESCE(responsavel_id, auth.uid())`;
    - delegação: `status = 'em_andamento'` e `responsavel_id = p_responsavel_id`.
-5. Manter prazo existente. Para plano recém-criado sem prazo informado, usar `CURRENT_DATE + 7`.
-6. Retornar a linha final de `planos_acao`.
+6. Manter prazo existente. Para plano recém-criado sem prazo informado, usar `CURRENT_DATE + 7`.
+7. Retornar a linha final de `planos_acao`.
 
 A inserção como `pendente` seguida da atualização na mesma transação é intencional. Assim, até a primeira aprovação ou delegação produz uma entrada explícita em `historico_planos_acao`, em vez de depender apenas de `created_at`.
 
-### 6.4 Idempotência e concorrência
+### 6.3 Idempotência e concorrência
 
-- A RPC deve usar o índice único de referência.
-- Em conflito de inserção, deve reler a linha existente e aplicar a transição solicitada.
+- A RPC usará o índice único de referência.
+- Em conflito de inserção, relerá a linha existente e aplicará a transição solicitada.
 - Aprovar duas vezes mantém um único plano.
-- Delegar novamente altera o responsável do mesmo plano e gera novo histórico.
-- O retorno deve ser sempre a versão persistida final.
+- Uma repetição sem mudança real não precisa produzir histórico vazio.
+- Delegar para outro responsável altera a mesma linha e gera novo histórico.
+- O retorno será sempre a versão persistida final.
 
 ## 7. Camada de aplicação
 
@@ -266,7 +300,7 @@ As métricas “Precisam de você”, “Críticas” e “Em atenção” serã
 - **Conflito concorrente:** RPC aplica a transição ao plano único existente e retorna o estado final.
 - **Falha de rede:** nenhum item é removido da fila.
 - **Plano alterado por outro usuário:** retorno da RPC substitui o estado local.
-- **Erro ao carregar histórico de decisões:** a fila permanece visível, mas as mutações ficam bloqueadas para evitar duplicidade silenciosa.
+- **Erro ao carregar decisões persistidas:** a fila permanece visível, mas as mutações ficam bloqueadas para evitar duplicidade silenciosa.
 
 ## 10. Segurança
 
@@ -277,7 +311,7 @@ As métricas “Precisam de você”, “Críticas” e “Em atenção” serã
 5. `SECURITY DEFINER` terá `search_path` fixo.
 6. Execução será revogada de `PUBLIC` e `anon`.
 7. RLS existente continuará protegendo leitura e atualização direta.
-8. A migration deverá ser reversível sem perda das tabelas canônicas.
+8. A migration deverá ser reversível sem remover as tabelas ou os planos canônicos existentes.
 
 ## 11. Testes
 
@@ -307,7 +341,7 @@ As métricas “Precisam de você”, “Críticas” e “Em atenção” serã
 - criação idempotente;
 - aprovação gera histórico com `owner_approval`;
 - delegação gera histórico com `owner_delegation`;
-- segunda delegação altera a mesma linha;
+- segunda delegação para outro usuário altera a mesma linha;
 - responsável de outra loja é rejeitado;
 - usuário sem papel autorizado é rejeitado;
 - usuário sem acesso à loja é rejeitado;
