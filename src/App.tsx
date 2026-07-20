@@ -363,6 +363,9 @@ export default function App() {
                 <Route path="gerente/feedbacks-pdis" element={<Suspense fallback={<Spinner />}><RoleSwitch vendedor={<ForbiddenRoute />} gerente={<ManagerDevelopment />} dono={<ManagerDevelopment />} admin={<ManagerDevelopment />} /></Suspense>} />
                 <Route path="gerente/ranking" element={<Suspense fallback={<Spinner />}><Ranking /></Suspense>} />
                 <Route path="gerente/universidade-mx" element={<Suspense fallback={<Spinner />}><RoleSwitch vendedor={<ForbiddenRoute />} gerente={<GerenteTreinamentos />} dono={<GerenteTreinamentos />} admin={<ConsultorTreinamentos />} /></Suspense>} />
+                <Route path="lojas/:storeSlug/consultor-ia" element={<Suspense fallback={<Spinner />}>
+                  <RoleSwitch vendedor={<StoreConsultorIa />} gerente={<StoreConsultorIa />} dono={<OwnerBase44Route />} admin={<StoreConsultorIa />} />
+                </Suspense>} />
                 <Route path="lojas/:storeSlug/*" element={<Suspense fallback={<Spinner />}>
                   <RoleSwitch vendedor={<ForbiddenRoute />} gerente={<DashboardLoja />} dono={<OwnerBase44Route />} admin={<DashboardLoja />} />
                 </Suspense>} />
