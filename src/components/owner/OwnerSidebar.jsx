@@ -17,6 +17,7 @@ import {
   Users,
   X,
 } from 'lucide-react'
+import '@/styles/owner-base44-fixes.css'
 
 const groups = [
   {
