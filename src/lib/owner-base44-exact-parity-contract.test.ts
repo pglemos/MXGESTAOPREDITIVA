@@ -78,8 +78,8 @@ describe('owner Base44 exact parity contract', () => {
   it('scopes the exact Base44 visual tokens to the owner workspace', () => {
     const css = read('src/styles/owner-base44-exact.css')
     expect(css).toContain('.owner-base44-exact')
-    expect(css).toContain('--primary: 152 69% 31%')
+    expect(css).toContain('--primary: 174 100% 33%')
     expect(css).toContain('--radius: 0.625rem')
-    expect(css).toContain('--sidebar-background: 0 0% 98%')
+    expect(css).toContain('--sidebar-background: 220 75% 8%')
   })
 })
