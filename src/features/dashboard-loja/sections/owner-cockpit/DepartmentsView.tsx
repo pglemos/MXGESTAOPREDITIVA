@@ -14,6 +14,18 @@ export function DepartmentsView({
   departments: DepartmentScore[]
   selectedDepartmentCode: MxDepartmentCode | null
 }) {
+  if (departments.length === 0) {
+    return (
+      <div className="space-y-mx-md">
+        <SectionTitle title="Departamentos" subtitle="Marketing, produto, financeiro, RH, operações e comercial com indicators, rotina e playbook." />
+        <div className="owner-base44-exact__empty-state" role="status">
+          <strong className="text-base font-black text-text-primary">Nenhum departamento disponível</strong>
+          <p className="text-sm text-text-secondary">Os dados de departamentos para esta unidade não estão configurados.</p>
+        </div>
+      </div>
+    )
+  }
+
   const selectedDepartment = departments.find(department => department.code === selectedDepartmentCode) || departments[0]
   return (
     <div className="space-y-mx-md">

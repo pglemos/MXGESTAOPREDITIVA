@@ -105,8 +105,8 @@ export function NextActionsCard({ actions }: { actions: ActionRow[] }) {
       <div className="mt-mx-md divide-y divide-border-subtle">
         {actions.slice(0, 5).map((action, index) => (
           <div key={`${action.problem}-${index}`} className="flex items-center gap-mx-sm py-mx-sm">
-            <span className="w-mx-16 shrink-0 rounded-mx-lg bg-mx-indigo-50 px-mx-sm py-mx-xs text-center text-xs font-black text-brand-primary">
-              {index === 0 ? '06:00' : index === 1 ? '08:30' : index === 2 ? '10:00' : index === 3 ? '14:00' : '16:30'}
+            <span className="w-mx-20 shrink-0 rounded-mx-lg bg-mx-indigo-50 px-mx-sm py-mx-xs text-center text-xs font-black text-brand-primary truncate">
+              {action.due || 'Pendente'}
             </span>
             <Typography variant="p" className="min-w-0 flex-1 truncate text-sm font-bold">
               {action.action}

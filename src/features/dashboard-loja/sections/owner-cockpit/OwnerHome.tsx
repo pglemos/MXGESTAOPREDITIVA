@@ -77,10 +77,10 @@ export function OwnerHome({
         />
         <OwnerKpiCard
           title="Estoque (Unid.)"
-          value="Pendente"
-          detail="Aguardando fonte canônica"
+          value="--"
+          detail="Dados indisponíveis"
           icon={<Box size={20} />}
-          tone="warning"
+          tone="muted"
           chart="line"
           seed={4}
         />

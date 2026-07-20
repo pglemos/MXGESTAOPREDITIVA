@@ -35,7 +35,7 @@ import {
   OwnerNotFoundPage,
   OwnerRoutinePage,
   OwnerUniversityPage,
-} from '@/pages/owner/Placeholders'
+} from '@/pages/owner/OwnerSurfaces'
 import '@/styles/owner-base44-exact.css'
 
 function alertIdentity(alert: { title: string; description: string; variant: string; recommendation?: string }) {

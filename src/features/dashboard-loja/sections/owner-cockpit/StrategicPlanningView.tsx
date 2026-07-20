@@ -19,6 +19,37 @@ export function StrategicPlanningView({
   const partial = planningIndicators.filter(indicator => indicator.status === 'parcial').length
   const pending = planningIndicators.filter(indicator => indicator.status === 'pendente').length
 
+  const handleExport = () => {
+    const headers = [
+      'Departamento',
+      'Indicador',
+      'Meta',
+      'Realizado',
+      'Ano Anterior',
+      'Score',
+      'Status',
+    ]
+    const rows = planningIndicators.map((indicator) => [
+      departmentLabel(indicator.department),
+      indicator.label,
+      formatPlanningValue(indicator.meta, indicator.unit),
+      formatPlanningValue(indicator.realizado, indicator.unit),
+      formatPlanningValue(indicator.anoAnterior, indicator.unit),
+      indicator.score ?? '--',
+      indicator.status === 'completo' ? 'Completo' : indicator.status === 'parcial' ? 'Parcial' : 'Pendente',
+    ])
+    const escapeCell = (value: string | number) => `"${String(value).replace(/"/g, '""')}"`
+    const csv = [headers, ...rows].map((row) => row.map(escapeCell).join(';')).join('\n')
+    const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    const dateStr = new Date().toISOString().slice(0, 10)
+    link.href = url
+    link.download = `plano-estrategico-${dateStr}.csv`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="space-y-mx-md">
       <SectionTitle title="Planejamento Estratégico" subtitle="45 indicadores com Meta, Realizado e Ano Anterior por departamento." />
@@ -32,7 +63,15 @@ export function StrategicPlanningView({
       <Card className="rounded-mx-2xl p-mx-lg">
         <div className="flex flex-col gap-mx-sm md:flex-row md:items-center md:justify-between">
           <Typography variant="h3" className="text-xl font-black">Matriz Meta / Realizado / Ano Anterior</Typography>
-          <Button type="button" variant="outline" className="h-mx-10 rounded-mx-xl bg-white"><Download size={16} /> Exportar</Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-mx-10 rounded-mx-xl bg-white"
+            onClick={handleExport}
+            disabled={planningIndicators.length === 0}
+          >
+            <Download size={16} /> Exportar
+          </Button>
         </div>
         <div className="mt-mx-md overflow-x-auto">
           <table className="min-w-[1080px] w-full border-collapse text-sm">

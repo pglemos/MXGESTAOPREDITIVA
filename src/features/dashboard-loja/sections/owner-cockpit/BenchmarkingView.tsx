@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
 import type { DashboardData } from './types'
@@ -13,12 +14,56 @@ export function BenchmarkingView({
   mxScore: number | null
   marginPercent: number | null
 }) {
+  const [region, setRegion] = useState('Sul')
+  const [size, setSize] = useState('Médio')
+  const [brand, setBrand] = useState('Todas')
+  const [segment, setSegment] = useState('Multimarcas')
+
+  const filterOptions = {
+    Região: { current: region, set: setRegion, options: ['Sul', 'Sudeste', 'Nordeste', 'Centro-Oeste', 'Norte'] },
+    'Porte da Loja': { current: size, set: setSize, options: ['Pequeno', 'Médio', 'Grande'] },
+    'Marca / Grupo': { current: brand, set: setBrand, options: ['Todas', 'Chevrolet', 'Fiat', 'Volkswagen'] },
+    Segmento: { current: segment, set: setSegment, options: ['Novos', 'Seminovos', 'Multimarcas'] },
+  }
+
+  const isDefaultFilter = region === 'Sul' && size === 'Médio' && brand === 'Todas' && segment === 'Multimarcas'
+
   const rows = [
-    { label: 'Vendas Totais (Unid.)', store: data.metrics.totalSales, group: data.metrics.goalValue || null, best: null, status: data.metrics.goalValue && data.metrics.totalSales >= data.metrics.goalValue ? 'Bom' : 'Atenção' },
-    { label: 'Margem Média de Venda (%)', store: marginPercent, group: null, best: null, status: marginPercent === null ? 'Pendente' : marginPercent >= 18 ? 'Bom' : 'Atenção' },
-    { label: 'Conversão Leads > Agendamento (%)', store: data.funilData.tx_lead_agd, group: data.funnelBenchmarks.leadAgd, best: null, status: data.funilData.tx_lead_agd >= data.funnelBenchmarks.leadAgd ? 'Bom' : 'Atenção' },
-    { label: 'Custo por Venda', store: data.latestDRE?.cac ?? null, group: null, best: null, status: data.latestDRE ? 'Acompanhar' : 'Pendente' },
-    { label: 'MX Score', store: mxScore, group: null, best: null, status: scoreStatus(mxScore) },
+    { 
+      label: 'Vendas Totais (Unid.)', 
+      store: data.metrics.totalSales, 
+      group: isDefaultFilter ? (data.metrics.goalValue || null) : null, 
+      best: null, 
+      status: data.metrics.goalValue && data.metrics.totalSales >= data.metrics.goalValue ? 'Bom' : 'Atenção' 
+    },
+    { 
+      label: 'Margem Média de Venda (%)', 
+      store: marginPercent, 
+      group: null, 
+      best: null, 
+      status: marginPercent === null ? 'Pendente' : marginPercent >= 18 ? 'Bom' : 'Atenção' 
+    },
+    { 
+      label: 'Conversão Leads > Agendamento (%)', 
+      store: data.funilData.tx_lead_agd, 
+      group: isDefaultFilter ? data.funnelBenchmarks.leadAgd : null, 
+      best: null, 
+      status: data.funilData.tx_lead_agd >= data.funnelBenchmarks.leadAgd ? 'Bom' : 'Atenção' 
+    },
+    { 
+      label: 'Custo por Venda', 
+      store: data.latestDRE?.cac ?? null, 
+      group: null, 
+      best: null, 
+      status: data.latestDRE ? 'Acompanhar' : 'Pendente' 
+    },
+    { 
+      label: 'MX Score', 
+      store: mxScore, 
+      group: null, 
+      best: null, 
+      status: scoreStatus(mxScore) 
+    },
   ]
 
   return (
@@ -26,10 +71,18 @@ export function BenchmarkingView({
       <SectionTitle title="Benchmarking" subtitle="Compare sua loja com metas, benchmarks configurados e melhores práticas." />
       <Card className="rounded-mx-2xl p-mx-lg">
         <div className="grid grid-cols-1 gap-mx-sm md:grid-cols-4">
-          {['Região', 'Porte da Loja', 'Marca / Grupo', 'Segmento'].map((label, index) => (
-            <div key={label} className="rounded-mx-xl border border-border-default bg-white px-mx-md py-mx-sm">
-              <Typography variant="tiny" tone="muted" className="block font-black uppercase">{label}</Typography>
-              <Typography variant="p" className="mt-mx-xs font-black">{index === 0 ? 'Sul' : index === 1 ? 'Médio' : index === 2 ? 'Todas' : 'Multimarcas'}</Typography>
+          {Object.entries(filterOptions).map(([label, { current, set, options }]) => (
+            <div key={label} className="rounded-mx-xl border border-border-default bg-white px-mx-md py-mx-sm flex flex-col gap-1">
+              <Typography variant="tiny" tone="muted" className="block font-black uppercase text-xs">{label}</Typography>
+              <select
+                value={current}
+                onChange={(e) => set(e.target.value)}
+                className="mt-mx-xs w-full bg-transparent font-black text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary rounded-mx-md p-1 border border-border-subtle cursor-pointer"
+              >
+                {options.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
             </div>
           ))}
         </div>
