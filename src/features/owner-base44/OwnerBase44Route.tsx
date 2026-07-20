@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useStores } from '@/hooks/useStores'
@@ -105,6 +105,10 @@ export default function OwnerBase44Route() {
   const criticalAlerts = ownerAlerts.filter((alert) => alert.variant === 'danger' || alert.variant === 'warning')
   const { surface, detail } = resolveSurface(params['*'])
   const selectedDepartmentCode = surface === 'departamentos' && detail ? detail : null
+  const [consultantModalOpen, setConsultantModalOpen] = useState(false)
+
+  const openConsultantModal = useCallback(() => setConsultantModalOpen(true), [])
+  const closeConsultantModal = useCallback(() => setConsultantModalOpen(false), [])
 
   const changeStore = useCallback((storeId: string) => {
     const store = selectableStores.find((candidate) => candidate.id === storeId)
@@ -163,6 +167,9 @@ export default function OwnerBase44Route() {
     marginPercent,
     mxScore,
     selectedDepartmentCode,
+    consultantModalOpen,
+    openConsultantModal,
+    closeConsultantModal,
   }
 
   return (

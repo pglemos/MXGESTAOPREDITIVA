@@ -1,31 +1,40 @@
-import { NavLink } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import {
   BarChart3,
-  BookOpen,
+  Bot,
   Boxes,
-  BriefcaseBusiness,
   CalendarClock,
   CheckSquare2,
+  ChevronDown,
+  ChevronRight,
   ClipboardList,
   GraduationCap,
   Home,
-  Megaphone,
-  MessageSquare,
-  PackageSearch,
-  Settings2,
+  MessageCircle,
   Target,
-  Users,
   X,
 } from 'lucide-react'
+import { useOwnerContext } from './OwnerContext'
 import '@/styles/owner-base44-fixes.css'
+
+const departmentChildren = [
+  { label: 'Visão Geral', segment: 'departamentos/visao-geral' },
+  { label: 'Comercial', segment: 'departamentos/comercial' },
+  { label: 'Marketing', segment: 'departamentos/marketing' },
+  { label: 'Produto e Estoque', segment: 'departamentos/produto' },
+  { label: 'Pessoas / RH', segment: 'departamentos/rh' },
+  { label: 'Financeiro', segment: 'departamentos/financeiro' },
+  { label: 'Operações', segment: 'departamentos/operacional' },
+]
 
 const groups = [
   {
     label: 'GESTÃO',
     items: [
       { label: 'Início', segment: '', icon: Home, end: true },
-      { label: 'Rotina do Dia', segment: 'rotina', icon: CalendarClock },
-      { label: 'Central de Decisões', segment: 'decisoes', icon: ClipboardList },
+      { label: 'Rotina do Dia', segment: 'rotina', icon: CalendarClock, badge: 'Em construção' },
+      { label: 'Central de Decisões', segment: 'decisoes', icon: ClipboardList, badge: 'Em construção' },
     ],
   },
   {
@@ -33,35 +42,34 @@ const groups = [
     items: [
       { label: 'Plano Estratégico', segment: 'plano-estrategico', icon: Target },
       { label: 'Plano de Ação', segment: 'plano-acao', icon: CheckSquare2 },
-      { label: 'Consultoria', segment: 'consultoria', icon: MessageSquare },
+      { label: 'Consultoria', segment: 'consultoria', icon: MessageCircle },
+      { label: 'Consultor', segment: 'consultor', icon: Bot },
     ],
   },
   {
     label: 'NEGÓCIO',
     items: [
-      { label: 'Departamentos', segment: 'departamentos', icon: Boxes, end: true },
-      { label: 'Visão Geral', segment: 'departamentos/visao-geral', icon: BarChart3 },
-      { label: 'Comercial', segment: 'departamentos/comercial', icon: BriefcaseBusiness },
-      { label: 'Marketing', segment: 'departamentos/marketing', icon: Megaphone },
-      { label: 'Produto e Estoque', segment: 'departamentos/produto', icon: PackageSearch },
-      { label: 'Pessoas / RH', segment: 'departamentos/rh', icon: Users },
-      { label: 'Financeiro', segment: 'departamentos/financeiro', icon: BriefcaseBusiness },
-      { label: 'Operações', segment: 'departamentos/operacional', icon: Settings2 },
-      { label: 'Mercado', segment: 'mercado', icon: BarChart3 },
+      { label: 'Mercado', segment: 'mercado', icon: BarChart3, badge: 'Em construção' },
     ],
+    departments: true,
   },
   {
     label: 'DESENVOLVIMENTO',
-    items: [{ label: 'Universidade MX', segment: 'universidade', icon: GraduationCap }],
-  },
-  {
-    label: 'AÇÃO GLOBAL',
-    items: [{ label: 'Falar com Consultor', segment: 'consultor', icon: BookOpen, special: true }],
+    items: [{ label: 'Universidade MX', segment: 'universidade', icon: GraduationCap, badge: 'Em construção' }],
   },
 ]
 
 export default function OwnerSidebar({ storeSlug, open, onClose }) {
   const basePath = `/lojas/${storeSlug}`
+  const location = useLocation()
+  const { openConsultantModal } = useOwnerContext()
+  const [departmentsOpen, setDepartmentsOpen] = useState(true)
+
+  useEffect(() => {
+    if (location.pathname.includes('/departamentos')) {
+      setDepartmentsOpen(true)
+    }
+  }, [location.pathname])
 
   return (
     <>
@@ -100,18 +108,71 @@ export default function OwnerSidebar({ storeSlug, open, onClose }) {
                       className={({ isActive }) => [
                         'owner-base44-exact__nav-item',
                         isActive ? 'is-active' : '',
-                        item.special ? 'is-special' : '',
                       ].filter(Boolean).join(' ')}
                     >
                       <Icon size={18} strokeWidth={1.8} aria-hidden="true" />
                       <span>{item.label}</span>
+                      {item.badge ? <span className="owner-base44-exact__nav-badge">{item.badge}</span> : null}
                     </NavLink>
                   )
                 })}
+
+                {group.departments ? (
+                  <>
+                    <button
+                      type="button"
+                      className="owner-base44-exact__nav-toggle"
+                      aria-expanded={departmentsOpen}
+                      onClick={() => setDepartmentsOpen((current) => !current)}
+                    >
+                      <Boxes size={18} strokeWidth={1.8} aria-hidden="true" />
+                      <span>Departamentos</span>
+                      {departmentsOpen ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
+                    </button>
+                    {departmentsOpen ? (
+                      <div className="owner-base44-exact__nav-subgroup">
+                        {departmentChildren.map((child) => {
+                          const isVisaoGeral = child.segment === 'departamentos/visao-geral'
+                          const active = isVisaoGeral
+                            ? location.pathname === `${basePath}/departamentos` || location.pathname === `${basePath}/${child.segment}`
+                            : location.pathname === `${basePath}/${child.segment}`
+                          return (
+                            <Link
+                              key={child.segment}
+                              to={`${basePath}/${child.segment}`}
+                              onClick={onClose}
+                              aria-current={active ? 'page' : undefined}
+                              className={[
+                                'owner-base44-exact__nav-subitem',
+                                active ? 'is-active' : '',
+                              ].filter(Boolean).join(' ')}
+                            >
+                              {child.label}
+                            </Link>
+                          )
+                        })}
+                      </div>
+                    ) : null}
+                  </>
+                ) : null}
               </div>
             </section>
           ))}
         </nav>
+
+        <div className="owner-base44-exact__sidebar-footer">
+          <button
+            type="button"
+            className="owner-base44-exact__consultant-button"
+            onClick={() => {
+              onClose?.()
+              openConsultantModal()
+            }}
+          >
+            <MessageCircle size={18} aria-hidden="true" />
+            Falar com Consultor
+          </button>
+        </div>
       </aside>
     </>
   )

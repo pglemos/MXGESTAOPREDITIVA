@@ -10,6 +10,7 @@ const referenceFiles = [
   'src/components/owner/OwnerSidebar.jsx',
   'src/components/owner/OwnerTopbar.jsx',
   'src/components/owner/OwnerContext.tsx',
+  'src/components/owner/OwnerConsultantModal.jsx',
   'src/pages/owner/OwnerHome.jsx',
   'src/pages/owner/PlanoEstrategico.jsx',
   'src/pages/owner/PlanoDeAcao.jsx',
@@ -68,9 +69,13 @@ describe('owner Base44 exact parity contract', () => {
       'Mercado',
       'Universidade MX',
       'Falar com Consultor',
+      'Em construção',
     ]) {
       expect(sidebar).toContain(label)
     }
+
+    expect(sidebar).toContain('owner-base44-exact__nav-toggle')
+    expect(sidebar).toContain('owner-base44-exact__consultant-button')
 
     expect(route).not.toContain('OwnerExecutiveCockpit')
   })

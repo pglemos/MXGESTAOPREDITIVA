@@ -21,6 +21,9 @@ export interface OwnerContextValue {
   marginPercent: number | null
   mxScore: number | null
   selectedDepartmentCode: string | null
+  consultantModalOpen: boolean
+  openConsultantModal: () => void
+  closeConsultantModal: () => void
 }
 
 const OwnerContext = createContext<OwnerContextValue | null>(null)

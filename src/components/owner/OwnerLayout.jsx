@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import OwnerConsultantModal from './OwnerConsultantModal'
 import OwnerSidebar from './OwnerSidebar'
 import OwnerTopbar from './OwnerTopbar'
 import { useOwnerContext } from './OwnerContext'
@@ -31,6 +32,7 @@ export default function OwnerLayout({ children }) {
           {children}
         </main>
       </div>
+      <OwnerConsultantModal />
     </div>
   )
 }
