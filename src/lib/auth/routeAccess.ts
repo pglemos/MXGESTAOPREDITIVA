@@ -25,8 +25,8 @@ export const ROUTE_ACCESS_RULES = [
   { pattern: '/configuracoes/consultoria-pmr', roles: INTERNAL_ROLES },
   { pattern: '/configuracoes/reprocessamento', roles: INTERNAL_ROLES },
   { pattern: '/lojas/:storeSlug/consultor-ia', roles: USER_ROLES },
-  { pattern: '/lojas/:storeSlug/*', roles: ['dono'] },
   { pattern: '/lojas/:storeSlug', roles: INTERNAL_AND_LEADERS },
+  { pattern: '/lojas/:storeSlug/*', roles: ['dono'] },
   { pattern: '/lojas', roles: INTERNAL_AND_OWNER },
   { pattern: '/rotina', roles: ['administrador_geral', 'administrador_mx', 'consultor_mx', 'gerente'] },
   { pattern: '/gerente/*', roles: MANAGEMENT_ROLES },
@@ -102,17 +102,20 @@ function normalizePath(pathname: string) {
 }
 
 function matchesPattern(pathname: string, pattern: string) {
-  const path = normalizePath(pathname)
-  if (pattern.endsWith('/*')) {
-    const prefix = pattern.slice(0, -2)
-    return path === prefix || path.startsWith(`${prefix}/`)
+  const pathParts = normalizePath(pathname).split('/').filter(Boolean)
+  const patternParts = normalizePath(pattern).split('/').filter(Boolean)
+
+  for (let index = 0; index < patternParts.length; index += 1) {
+    const patternPart = patternParts[index]
+    if (patternPart === '*') return true
+
+    const pathPart = pathParts[index]
+    if (!pathPart) return false
+    if (patternPart.startsWith(':')) continue
+    if (patternPart !== pathPart) return false
   }
 
-  const pathParts = path.split('/').filter(Boolean)
-  const patternParts = pattern.split('/').filter(Boolean)
-  if (pathParts.length !== patternParts.length) return false
-
-  return patternParts.every((part, index) => part.startsWith(':') || part === pathParts[index])
+  return pathParts.length === patternParts.length
 }
 
 export function getRouteAccessRule(pathname: string): RouteRule | null {
