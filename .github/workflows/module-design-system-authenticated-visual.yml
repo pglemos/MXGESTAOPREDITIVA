@@ -9,9 +9,11 @@ on:
       - 'src/design-system/**'
       - 'src/features/**'
       - 'src/pages/**'
+      - 'src/styles/**'
       - 'src/main.tsx'
       - 'src/test/module-design-system-authenticated-visual.playwright.ts'
       - 'src/test/module-route-visual-audit.playwright.ts'
+      - 'src/test/owner-base44-authenticated-visual.playwright.ts'
       - '.github/workflows/module-design-system-authenticated-visual.yml'
 
 permissions:
@@ -20,7 +22,7 @@ permissions:
 jobs:
   authenticated-visual:
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 45
     env:
       VITE_SUPABASE_URL: https://fbhcmzzgwjdgkctlfvbo.supabase.co
       VITE_SUPABASE_ANON_KEY: sb_publishable_etxw6xyht7S_g8epHpqsJw_wB6x9d9k
@@ -36,7 +38,7 @@ jobs:
         run: npm ci
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      - name: Run isolated five-profile visual matrix
+      - name: Run shared-shell visual matrix
         run: >
           npx playwright test
           src/test/module-design-system-authenticated-visual.playwright.ts
@@ -49,13 +51,19 @@ jobs:
             echo "available=true" >> "$GITHUB_OUTPUT"
           else
             echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Authenticated route audit skipped because E2E_ROLE_PASSWORD/E2E_AUTH_PASSWORD is not configured. The isolated five-profile visual matrix and dedicated RLS/route-contract gates still run."
+            echo "::warning::Authenticated route audits skipped because E2E_ROLE_PASSWORD/E2E_AUTH_PASSWORD is not configured. Shared-shell visual tests and dedicated RLS/route-contract gates still run."
           fi
-      - name: Run authenticated route visual audit
+      - name: Run authenticated universal-shell route audit
         if: steps.auth.outputs.available == 'true'
         run: >
           npx playwright test
           src/test/module-route-visual-audit.playwright.ts
+          --project=chromium --workers=1
+      - name: Run authenticated Owner Base44 route matrix
+        if: steps.auth.outputs.available == 'true'
+        run: >
+          npx playwright test
+          src/test/owner-base44-authenticated-visual.playwright.ts
           --project=chromium --workers=1
       - name: Upload visual evidence
         if: always()
