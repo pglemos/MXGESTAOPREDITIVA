@@ -148,8 +148,6 @@ const navConfig: Record<string, NavCategory[]> = {
         { label: 'Ranking', path: '/classificacao', icon: <Trophy size={16} /> },
         { label: 'Universidade MX', path: '/universidade-mx', icon: <GraduationCap size={16} /> },
         { label: 'Desenvolvimento', path: '/desenvolvimento', icon: <BookOpen size={16} /> },
-        { label: 'Ranking', path: '/classificacao', icon: <Trophy size={16} /> },
-        { label: 'Meu Perfil', path: '/perfil', icon: <User size={16} /> },
       ],
     },
   ],
