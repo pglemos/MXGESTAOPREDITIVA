@@ -22,26 +22,6 @@ const adminRoutes = [
   { key: 'simulacao', path: '/simulacao' },
 ] as const
 
-const ownerStaticRoutes = [
-  { key: 'lojas', path: '/lojas' },
-  { key: 'treinamentos', path: '/treinamentos' },
-  { key: 'falar-consultor', path: '/falar-consultor' },
-  { key: 'relatorio-matinal', path: '/relatorio-matinal' },
-  { key: 'configuracoes', path: '/configuracoes' },
-] as const
-
-const ownerDynamicLinks = [
-  'Planejamento Estratégico',
-  'Plano de Ação',
-  'Alertas Inteligentes',
-  'Benchmarking',
-  'Agenda Executiva',
-  'Resultados',
-  'Visitas',
-  'Departamentos',
-  'Biblioteca',
-] as const
-
 type RouteMetric = {
   role: string
   route: string
@@ -135,7 +115,7 @@ async function auditRoute(
   return metric
 }
 
-test.describe('auditoria visual completa dos módulos internos MX', () => {
+test.describe('auditoria visual das rotas que permanecem no shell universal MX', () => {
   test.describe.configure({ timeout: 360_000 })
 
   test('Administrador Geral percorre todas as rotas internas', async ({ page }, testInfo) => {
@@ -147,37 +127,5 @@ test.describe('auditoria visual completa dos módulos internos MX', () => {
       metrics.push(await auditRoute(page, testInfo, 'admin', route.key, route.path))
     }
     writeFileSync(testInfo.outputPath('admin-route-matrix.json'), JSON.stringify(metrics, null, 2))
-  })
-
-  test('Dono percorre rotas estáticas e cockpit executivo', async ({ page }, testInfo) => {
-    await page.setViewportSize({ width: 1440, height: 900 })
-    await login(page, process.env.E2E_OWNER_EMAIL || 'dono@mxgestaopreditiva.com.br')
-
-    const metrics: RouteMetric[] = []
-    for (const route of ownerStaticRoutes) {
-      metrics.push(await auditRoute(page, testInfo, 'dono', route.key, route.path))
-    }
-
-    await page.goto('/lojas', { waitUntil: 'networkidle' })
-    const dynamicRoutes: Array<{ label: string; href: string }> = []
-    for (const label of ownerDynamicLinks) {
-      const link = page.getByRole('link', { name: label, exact: true }).first()
-      const href = await link.getAttribute('href')
-      expect.soft(href, `Link executivo ${label}`).not.toBeNull()
-      if (href) dynamicRoutes.push({ label, href })
-    }
-
-    for (const { label, href } of dynamicRoutes) {
-      metrics.push(
-        await auditRoute(
-          page,
-          testInfo,
-          'dono',
-          label.toLocaleLowerCase('pt-BR').replaceAll(' ', '-'),
-          href,
-        ),
-      )
-    }
-    writeFileSync(testInfo.outputPath('owner-route-matrix.json'), JSON.stringify(metrics, null, 2))
   })
 })

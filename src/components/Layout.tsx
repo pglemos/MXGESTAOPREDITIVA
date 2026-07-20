@@ -283,6 +283,9 @@ export default function Layout() {
     )
   }
 
+  const isExactOwnerWorkspace = role === 'dono' && location.pathname.startsWith('/lojas/')
+  if (isExactOwnerWorkspace) return <Outlet />
+
   const pageContent = (
     <MxRoleVisualScope manager={role !== 'vendedor'}>
       <MotionPage key={location.pathname} className="h-full">

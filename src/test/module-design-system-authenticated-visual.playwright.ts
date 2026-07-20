@@ -1,8 +1,6 @@
 import { test, expect, type Page, type TestInfo } from '@playwright/test'
 import { writeFileSync } from 'node:fs'
 
-const VISUAL_STORE_ID = '11111111-1111-4111-8111-111111111111'
-
 const profiles = [
   {
     key: 'gerente',
@@ -11,16 +9,6 @@ const profiles = [
     path: '/gerente/ranking',
     moduleLabel: 'Módulo Gerencial',
     roleLabel: 'Gerente',
-    storeId: VISUAL_STORE_ID,
-  },
-  {
-    key: 'dono',
-    email: 'visual-dono@mxgestaopreditiva.com.br',
-    role: 'dono',
-    path: '/lojas',
-    moduleLabel: 'Módulo Executivo',
-    roleLabel: 'Dono',
-    storeId: VISUAL_STORE_ID,
   },
   {
     key: 'administrador-geral',
@@ -100,7 +88,6 @@ async function installLocalVisualProfile(page: Page, profile: VisualProfile) {
           name: visualProfile.roleLabel,
           email: visualProfile.email,
           role: visualProfile.role,
-          store_id: 'storeId' in visualProfile ? visualProfile.storeId : undefined,
           active: true,
           created_at: '2026-07-18T00:00:00.000Z',
         }),
@@ -285,10 +272,10 @@ async function auditProfile(
   return metrics
 }
 
-test.describe('paridade visual isolada dos módulos MX', () => {
+test.describe('paridade visual isolada dos módulos que usam o shell universal', () => {
   test.describe.configure({ timeout: 240_000 })
 
-  test('desktop usa a mesma anatomia visual do Gerente', async ({ browser }, testInfo) => {
+  test('desktop preserva a anatomia compartilhada do Gerente', async ({ browser }, testInfo) => {
     const results: ShellMetrics[] = []
     for (const profile of profiles) {
       const context = await browser.newContext()
@@ -308,7 +295,7 @@ test.describe('paridade visual isolada dos módulos MX', () => {
     }
   })
 
-  test('mobile usa a mesma anatomia visual do Gerente', async ({ browser }, testInfo) => {
+  test('mobile preserva a anatomia compartilhada do Gerente', async ({ browser }, testInfo) => {
     const results: ShellMetrics[] = []
     for (const profile of profiles) {
       const context = await browser.newContext()
