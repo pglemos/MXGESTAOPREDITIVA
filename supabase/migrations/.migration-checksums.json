@@ -1,8 +1,8 @@
 {
   "_comment": "Congelamento forward-only das migrations aplicadas. NÃO editar à mão. Regenerar apenas ao adicionar migrations novas: node scripts/gen_migration_checksums.mjs",
-  "generated_at": "2026-07-17",
+  "generated_at": "2026-07-20",
   "algorithm": "sha256",
-  "count": 254,
+  "count": 268,
   "checksums": {
     "00000000000000_baseline_legacy_schema.sql": "3a519e3804095af5e9f7d8a7cb70dcc388b04530b6a7911ee1e3cb76af10b0fc",
     "00000000000001_mark_existing_migrations_applied.sql": "a8183b5cc5bd56b549ce8d8d302eb0c5d4f7b20381438586e02dd7353d6f2a45",
@@ -253,10 +253,24 @@
     "20260717240000_revoke_anon_direct_table_access_crm_core.sql": "96bea5a956c04e2a0667c42eba1b4b525e1a7a15a855ce37b10b86f9dadb3f86",
     "20260717250000_enforce_central_action_scope_consistency.sql": "09491838eb11a1c827c84411d7e7cfe300878b9b389cb90cea407aebb4ff3180",
     "20260717260000_store_target_plan_realized_source_fix.sql": "bf3aa23750dce246f838b7bcd77c296dfb606f1d7c78bee098a937662e7781f7",
+    "20260717261000_harden_broadcast_notification_authorization.sql": "5584f2b25c23b8ee707a04ab591a7f73c03acf122f797360674044c5c1a26b24",
     "20260717270000_revoke_anon_all_public_tables_and_defaults.sql": "b4f5c2a61af9a406f6aa9c6e3688a3a3a52b3bbb4c2d2a0727cec9fac4682776",
     "20260717271000_revoke_rls_bypass_privs_on_views.sql": "bb012696b40ebe8af968a2a4258f05291f7ed909d7e61b2ada8e3e5891b2981a",
     "20260717272000_revoke_anon_execute_scope_rpcs.sql": "57f5fa930f846f2a3de8ed765329c69f60c0a05e3d06e50d83c9d1200036d2fb",
     "20260717273000_revoke_public_execute_scope_rpcs.sql": "f2be1688ec15c26d40451395c6770f0a201b643dce6d0c28678c430460e3effa",
-    "20260717280000_central_resolve_terminal_state_guard.sql": "7b4db4a9f715b58df10bc44cbc41cef5589959e8f6077d81b66f58edfdfb2a20"
+    "20260717274000_harden_pdi_authorization.sql": "91a627c124f049febf4266e0f867a464f6eb05f098906feb3121ab756e6a0d4a",
+    "20260717280000_central_resolve_terminal_state_guard.sql": "7b4db4a9f715b58df10bc44cbc41cef5589959e8f6077d81b66f58edfdfb2a20",
+    "20260717281000_harden_closing_regularization_authorization.sql": "c6db7b247a65913a8b78cd44a2309519779d66fa2e738ed6cfa630fbf3a3b3e6",
+    "20260717290000_fix_closing_review_findings.sql": "04bcdde68292fb174f02b103d539b5d53419031feab227cfa1fb23c1b558c70a",
+    "20260717291000_fix_daily_charge_notification_target.sql": "c3235c6e47df737d71a6a9299d98c9e6c900d0d72f1c15dfbd60d6c6814857c9",
+    "20260717292000_harden_pdi_development_recommendations.sql": "87afd7c388cd562e692189102eea06ab05d83a3d55a58f539073876e4138e840",
+    "20260717293000_fix_pdi_source_existence_disclosure.sql": "913c0a66ff67785d8ef2110636f50731515aff3fe2380a220908a5017b5647e4",
+    "20260717294000_fix_pdi_positive_gap_recommendations.sql": "fa8bd8314df0dd3f1038d16e77dbe4077fcc7242a6c6b289ee21c61e42bca741",
+    "20260717295000_harden_pdi_catalog_rpcs.sql": "0ccdf629b7f6cfc69769f5dc97056bc50a8ca109b2fd6dcbe45d276bb58b4f50",
+    "20260718093000_network_summary_rpc.sql": "1e809115eed297bd82428fd87f856548c8c5a4f5f2d03f4b59a97c827c9b3c7a",
+    "20260718223000_owner_consultant_requests.sql": "623945b451e4afb3ee82a15d618350f95b2b51ce0b34962d62854a0a468db0eb",
+    "20260718224500_owner_consultant_bridge.sql": "81788cd503b5f55a2c092cca2fd167d938bb558d029c94f016be33b2f4e22652",
+    "20260718225000_owner_consultant_bridge_status.sql": "e6b20dc8ffb754578c9f2506f5325c6457efa8f0a3f0c714b601f5a3e34ca1ae",
+    "20260718225500_owner_consultant_requests_rls_perf.sql": "14596c18104adbc6179d7cf8a9517c887bbc63303c86be5a62b0f45498dd7093"
   }
 }
