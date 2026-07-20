@@ -3,3 +3,15 @@
     display: none;
   }
 }
+
+@media (max-width: 900px) {
+  .owner-base44-exact__sidebar,
+  .owner-base44-exact__backdrop {
+    visibility: hidden;
+  }
+
+  .owner-base44-exact__sidebar.is-open,
+  .owner-base44-exact__backdrop.is-open {
+    visibility: visible;
+  }
+}
