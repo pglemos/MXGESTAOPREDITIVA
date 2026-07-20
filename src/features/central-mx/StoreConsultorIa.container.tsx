@@ -36,7 +36,7 @@ export function StoreConsultorIa() {
 
   if (!selectedStoreId) {
     return (
-      <main className="w-full h-full bg-surface-alt p-mx-lg" id="main-content">
+      <main className="w-full h-full bg-surface-alt p-mx-lg">
         <Card className="mx-auto max-w-2xl border-none bg-white shadow-mx-xl">
           <EmptyState
             size="lg"
@@ -60,7 +60,7 @@ export function StoreConsultorIa() {
   }
 
   return (
-  <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar" id="main-content">
+  <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
       <div className="flex flex-col gap-mx-md pb-28">
         <header className="flex flex-col gap-mx-md border-b border-border-subtle pb-mx-lg lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">

@@ -1,0 +1,11 @@
+@theme {
+  --color-mxds-brand: #00a89d;
+  --color-mxds-brand-hover: #008e85;
+  --color-mxds-ink: #071822;
+  --color-mxds-workspace: #f5f7f8;
+  --color-mxds-surface: #ffffff;
+  --radius-mxds-sm: 8px;
+  --radius-mxds-md: 12px;
+  --radius-mxds-lg: 16px;
+  --radius-mxds-xl: 24px;
+}

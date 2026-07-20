@@ -1,5 +1,7 @@
-import { Card } from '@/components/molecules/Card'
 import { DataGrid, type Column } from '@/components/organisms/DataGrid'
+import {
+  MxSectionCard,
+} from '@/components/module/MxModuleVisualPrimitives'
 import type { Store } from '@/types/database'
 
 interface StoresGridSectionProps {
@@ -8,30 +10,34 @@ interface StoresGridSectionProps {
   data: Store[]
 }
 
-/**
- * Seção principal: DataGrid com todas as lojas filtradas.
- *
- * Extraído de `src/pages/Lojas.tsx` (Story 3.5 reconciliada, ADR-0050).
- */
-export function StoresGridSection({ isOwner, columns, data }: StoresGridSectionProps) {
+export function StoresGridSection({
+  isOwner,
+  columns,
+  data,
+}: StoresGridSectionProps) {
+  const resultAnnouncement = data.length === 0
+    ? 'Nenhuma loja encontrada com os filtros atuais.'
+    : `${data.length} ${data.length === 1 ? 'loja encontrada' : 'lojas encontradas'}.`
+
   return (
-    <div className="flex-1 min-h-0 pb-32" aria-live="polite">
-      <Card className="rounded-mx-lg border border-border-subtle shadow-mx-sm bg-white overflow-hidden p-mx-0">
-        <DataGrid
-          columns={columns}
-          data={data}
-          emptyMessage={
-            isOwner
-              ? 'Nenhuma loja encontrada na sua visão executiva.'
-              : 'Nenhuma unidade localizada na rede MX.'
-          }
-          emptyDescription={
-            isOwner
-              ? 'Limpe a busca ou solicite ao Admin MX revisar seus vínculos de Dono.'
-              : 'Ajuste a busca, alterne o filtro de status ou cadastre uma nova unidade para iniciar a operação.'
-          }
-        />
-      </Card>
-    </div>
+    <MxSectionCard className="pb-mx-20">
+      <p className="sr-only" aria-live="polite" aria-atomic="true">
+        {resultAnnouncement}
+      </p>
+      <DataGrid
+        columns={columns}
+        data={data}
+        emptyMessage={
+          isOwner
+            ? 'Nenhuma loja encontrada na visão executiva.'
+            : 'Nenhuma loja encontrada na rede MX.'
+        }
+        emptyDescription={
+          isOwner
+            ? 'Ajuste a busca ou solicite ao Admin MX a revisão dos vínculos do perfil.'
+            : 'Ajuste a busca, altere o filtro de status ou cadastre uma nova unidade.'
+        }
+      />
+    </MxSectionCard>
   )
 }

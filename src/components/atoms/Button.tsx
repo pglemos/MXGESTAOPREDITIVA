@@ -20,6 +20,10 @@ const buttonVariants = cva(
         outline: "border border-mx-border bg-white text-mx-text hover:bg-mx-bg",
         ghost: "text-mx-muted hover:text-mx-text hover:bg-mx-bg",
         "mx-elite": "bg-mx-black text-brand-primary border border-brand-primary shadow-mx-glow-brand hover:bg-mx-green-950",
+        managerPrimary: "rounded-xl bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 focus-visible:ring-emerald-500/20 disabled:bg-gray-100 disabled:text-gray-400",
+        managerOutline: "rounded-xl border border-emerald-200 bg-white text-emerald-700 shadow-none hover:bg-emerald-50 focus-visible:ring-emerald-500/20 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-400",
+        managerSecondary: "rounded-xl border border-gray-200 bg-white text-gray-700 shadow-none hover:bg-gray-50 hover:text-gray-900 focus-visible:ring-emerald-500/20 disabled:border-gray-100 disabled:bg-gray-50 disabled:text-gray-400",
+        managerGhost: "rounded-xl bg-transparent text-gray-500 shadow-none hover:bg-gray-50 hover:text-gray-800 focus-visible:ring-emerald-500/20 disabled:bg-transparent disabled:text-gray-300",
       },
       size: {
         default: "h-mx-11 px-6 sm:h-10 sm:px-4",
@@ -36,6 +40,24 @@ const buttonVariants = cva(
   }
 )
 
+export type ButtonVisualMode = 'default' | 'manager'
+
+const ButtonVisualContext = React.createContext<ButtonVisualMode>('default')
+
+export function ButtonVisualProvider({
+  mode,
+  children,
+}: {
+  mode: ButtonVisualMode
+  children: React.ReactNode
+}) {
+  return (
+    <ButtonVisualContext.Provider value={mode}>
+      {children}
+    </ButtonVisualContext.Provider>
+  )
+}
+
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
@@ -44,8 +66,30 @@ export interface ButtonProps
   icon?: React.ReactNode
 }
 
+type ButtonVariant = NonNullable<ButtonProps['variant']>
+
+function resolveVisualVariant(
+  variant: ButtonProps['variant'],
+  mode: ButtonVisualMode,
+): ButtonVariant {
+  const requested = variant ?? 'primary'
+  if (mode !== 'manager') return requested
+
+  const managerMap: Partial<Record<ButtonVariant, ButtonVariant>> = {
+    primary: 'managerPrimary',
+    brand: 'managerPrimary',
+    outline: 'managerSecondary',
+    secondary: 'managerSecondary',
+    ghost: 'managerGhost',
+  }
+
+  return managerMap[requested] ?? requested
+}
+
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, children, asChild = false, loading = false, icon, ...props }, ref) => {
+    const visualMode = React.useContext(ButtonVisualContext)
+    const resolvedVariant = resolveVisualVariant(variant, visualMode)
     const iconTooltip = size === 'icon' && typeof props['aria-label'] === 'string' ? props['aria-label'] : null
     const decoratedChildren = React.Children.map(children, (child) => {
       if (!React.isValidElement(child)) return child
@@ -62,13 +106,16 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       const child = children as React.ReactElement<Record<string, unknown>>
       return React.cloneElement(child, {
         ...props,
-        className: cn(buttonVariants({ variant, size, className }), String(child.props.className ?? '')),
+        className: cn(
+          buttonVariants({ variant: resolvedVariant, size, className }),
+          String(child.props.className ?? ''),
+        ),
       })
     }
 
     return (
       <button
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(buttonVariants({ variant: resolvedVariant, size, className }))}
         ref={ref}
         disabled={props.disabled || loading}
         {...props}

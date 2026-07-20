@@ -1,542 +1,846 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { useEffect, useState, useMemo, useCallback } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import {
-    Activity, AlertTriangle, ArrowRight, Building2, Car, ChevronRight, Settings, Target, TrendingUp, Zap, RefreshCw, Users, Globe, Eye, Search, ArrowUpDown, Filter, Calendar, X, Check, Shield, Store
+  Activity,
+  AlertTriangle,
+  Building2,
+  Calendar,
+  Car,
+  RefreshCw,
+  Search,
+  Shield,
+  Store,
+  Target,
+  TrendingUp,
+  Users,
+  X,
 } from 'lucide-react'
 import { getSupabaseFunctionUrl, supabase as originalSupabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useAllStoreGoals } from '@/hooks/useGoals'
-import { useNotifications } from '@/hooks/useData'
 import { cn, slugify } from '@/lib/utils'
 import { Typography } from '@/components/atoms/Typography'
 import { Button } from '@/components/atoms/Button'
 import { Badge } from '@/components/atoms/Badge'
 import { Input } from '@/components/atoms/Input'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/molecules/Card'
-import { Skeleton } from '@/components/atoms/Skeleton'
+import {
+  MxEmptyState,
+  MxField,
+  MxLoadingState,
+  MxMetricCard,
+  MxModuleHeader,
+  MxModulePage,
+  MxSectionCard,
+  MxTableSurface,
+  MxToolbar,
+} from '@/components/module/MxModuleVisualPrimitives'
 import { toast } from '@/lib/toast'
-import { format, startOfDay, endOfDay, subDays, startOfMonth, endOfMonth, parseISO, startOfWeek, endOfWeek } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
+import {
+  differenceInCalendarDays,
+  endOfDay,
+  endOfMonth,
+  endOfWeek,
+  format,
+  isValid,
+  parseISO,
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+  subDays,
+} from 'date-fns'
 import { getOperationalStatus, getDiasInfo, calcularProjecao } from '@/lib/calculations'
-import { PageHeading } from '@/components/molecules/PageHeading'
 import type { DailyCheckin, Store as StoreRecord } from '@/types/database'
-import { isLancamentosViaRpcEnabled } from '@/lib/feature-flags'
 
-type StoreDiagnostic = { id: string; name: string; leads: number; agd: number; vis: number; sales: number; goal: number; gap: number; proj: number; ritmo: number; efficiency: number; sellers: number; checkedInToday: number; disciplinePct: number }
-type NetworkCheckinRow = Pick<DailyCheckin, 'store_id' | 'reference_date' | 'leads_prev_day' | 'agd_cart_today' | 'agd_net_today' | 'visit_prev_day' | 'vnd_porta_prev_day' | 'vnd_cart_prev_day' | 'vnd_net_prev_day'>
+type StoreDiagnostic = {
+  id: string
+  name: string
+  leads: number
+  agd: number
+  vis: number
+  sales: number
+  goal: number
+  gap: number
+  proj: number
+  ritmo: number
+  efficiency: number
+  sellers: number
+  checkedInToday: number
+  disciplinePct: number
+}
+
+type NetworkAggregateRow = {
+  store_id: string
+  sales: number | string | null
+  leads: number | string | null
+  agd: number | string | null
+  vis: number | string | null
+}
+
 type StoreListRow = Pick<StoreRecord, 'id' | 'name'>
 type ActiveSellerRow = { store_id: string }
 type TodayCheckinRow = Pick<DailyCheckin, 'store_id' | 'seller_user_id'>
+type DateRange = { start: string; end: string }
 
 type SortConfig = {
-    key: keyof StoreDiagnostic;
-    direction: 'asc' | 'desc';
+  key: keyof StoreDiagnostic
+  direction: 'asc' | 'desc'
 }
 
 type Timeframe = 'hoje' | 'ontem' | 'semanal' | 'mensal' | 'personalizada'
 
+const MAX_CUSTOM_RANGE_DAYS = 366
+
+const timeframeLabels: Record<Timeframe, string> = {
+  hoje: 'Hoje',
+  ontem: 'Ontem',
+  semanal: 'Semana',
+  mensal: 'Mês',
+  personalizada: 'Personalizado',
+}
+
+const reportLabels = {
+  matinal: 'Relatório matinal',
+  semanal: 'Relatório semanal',
+  mensal: 'Relatório mensal',
+} as const
+
+function statusVariant(label: string): 'success' | 'warning' | 'danger' | 'info' {
+  if (label === 'EXCELÊNCIA' || label === 'NO RITMO') return 'success'
+  if (label === 'ALERTA RITMO') return 'warning'
+  if (label === 'CRÍTICO' || label === 'INDISCIPLINA') return 'danger'
+  return 'info'
+}
+
+function resolveRange(selectedTimeframe: Timeframe, customRange: DateRange): DateRange {
+  const now = new Date()
+  let start = now
+  let end = now
+
+  switch (selectedTimeframe) {
+    case 'hoje':
+      start = startOfDay(now)
+      end = endOfDay(now)
+      break
+    case 'ontem': {
+      const yesterday = subDays(now, 1)
+      start = startOfDay(yesterday)
+      end = endOfDay(yesterday)
+      break
+    }
+    case 'semanal':
+      start = startOfWeek(now, { weekStartsOn: 1 })
+      end = endOfWeek(now, { weekStartsOn: 1 })
+      break
+    case 'mensal':
+      start = startOfMonth(now)
+      end = endOfMonth(now)
+      break
+    case 'personalizada':
+      return customRange
+  }
+
+  return {
+    start: format(start, 'yyyy-MM-dd'),
+    end: format(end, 'yyyy-MM-dd'),
+  }
+}
+
+function validateCustomRange(range: DateRange): string | null {
+  const start = parseISO(range.start)
+  const end = parseISO(range.end)
+
+  if (!range.start || !range.end || !isValid(start) || !isValid(end)) {
+    return 'Informe datas válidas para início e fim.'
+  }
+  if (end < start) return 'A data final não pode ser anterior à data inicial.'
+  if (differenceInCalendarDays(end, start) > MAX_CUSTOM_RANGE_DAYS) {
+    return `O período personalizado pode ter no máximo ${MAX_CUSTOM_RANGE_DAYS} dias.`
+  }
+  return null
+}
+
 export default function PainelConsultor() {
-    const navigate = useNavigate()
-    const { setActiveStoreId } = useAuth()
-    const { metas, loading: goalsLoading } = useAllStoreGoals()
-    const { notificacoes } = useNotifications()
-    
-    const [diagnostics, setDiagnostics] = useState<Record<string, StoreDiagnostic>>({})
-    const [networkLoading, setNetworkLoading] = useState(true)
-    const [isRefetching, setIsRefetching] = useState(false)
-    const [isTriggering, setIsTriggering] = useState<string | null>(null)
+  const navigate = useNavigate()
+  const { setActiveStoreId } = useAuth()
+  const { metas, loading: goalsLoading } = useAllStoreGoals()
+  const requestSequence = useRef(0)
 
-    const [searchTerm, setSearchTerm] = useState('')
-    const [statusFilter, setStatusFilter] = useState<'all' | 'alert' | 'critical' | 'target'>('all')
-    const [timeframe, setTimeframe] = useState<Timeframe>('mensal')
-    const [customRange, setCustomRange] = useState<{ start: string; end: string }>({
-        start: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
-        end: format(endOfMonth(new Date()), 'yyyy-MM-dd')
+  const initialRange = useMemo<DateRange>(
+    () => ({
+      start: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
+      end: format(endOfMonth(new Date()), 'yyyy-MM-dd'),
+    }),
+    [],
+  )
+
+  const [diagnostics, setDiagnostics] = useState<Record<string, StoreDiagnostic>>({})
+  const [networkLoading, setNetworkLoading] = useState(true)
+  const [isRefetching, setIsRefetching] = useState(false)
+  const [isTriggering, setIsTriggering] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'alert' | 'critical' | 'target'>('all')
+  const [timeframe, setTimeframe] = useState<Timeframe>('mensal')
+  const [customRangeDraft, setCustomRangeDraft] = useState<DateRange>(initialRange)
+  const [appliedCustomRange, setAppliedCustomRange] = useState<DateRange>(initialRange)
+  const [showCustomPicker, setShowCustomPicker] = useState(false)
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'sales', direction: 'desc' })
+
+  const handleStoreClick = (storeId: string, storeName: string) => {
+    setActiveStoreId(storeId)
+    navigate(`/lojas/${slugify(storeName)}`)
+    toast.info('Unidade selecionada para monitoramento.')
+  }
+
+  const triggerReport = async (type: keyof typeof reportLabels) => {
+    setIsTriggering(type)
+    try {
+      const {
+        data: { session },
+      } = await originalSupabase.auth.getSession()
+      if (!session?.access_token) {
+        toast.error('Sessão expirada. Entre novamente.')
+        return
+      }
+
+      const response = await fetch(getSupabaseFunctionUrl(`relatorio-${type}`), {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        toast.success(`${reportLabels[type]} disparado com sucesso.`)
+      } else {
+        const errorBody = await response.json()
+        toast.error(`Falha ao disparar: ${errorBody.error || response.statusText}`)
+      }
+    } catch {
+      toast.error('Erro de conexão com o servidor de automação.')
+    } finally {
+      setIsTriggering(null)
+    }
+  }
+
+  const fetchNetworkSnapshot = useCallback(
+    async ({
+      selectedTimeframe,
+      selectedCustomRange,
+      isManual = false,
+    }: {
+      selectedTimeframe: Timeframe
+      selectedCustomRange: DateRange
+      isManual?: boolean
+    }) => {
+      const requestId = ++requestSequence.current
+      if (isManual) setIsRefetching(true)
+      else setNetworkLoading(true)
+
+      try {
+        const range = resolveRange(selectedTimeframe, selectedCustomRange)
+        const rangeError = validateCustomRange(range)
+        if (rangeError) throw new Error(rangeError)
+
+        const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd')
+        const [summaryResult, storesResult, sellersResult, todayCheckinsResult] = await Promise.all([
+          originalSupabase.rpc('get_resumo_rede_periodo', {
+            p_start_date: range.start,
+            p_end_date: range.end,
+            p_scope: 'daily',
+          }),
+          originalSupabase.from('lojas').select('id, name'),
+          originalSupabase.from('vendedores_loja').select('store_id').eq('is_active', true),
+          originalSupabase.rpc('get_lancamentos_referencia_dia', {
+            p_reference_date: yesterday,
+            p_scope: 'daily',
+          }),
+        ])
+
+        if (summaryResult.error) throw summaryResult.error
+        if (storesResult.error) throw storesResult.error
+        if (sellersResult.error) throw sellersResult.error
+        if (todayCheckinsResult.error) throw todayCheckinsResult.error
+
+        const aggregateRows = (summaryResult.data || []) as NetworkAggregateRow[]
+        const allStores = (storesResult.data || []) as StoreListRow[]
+        const sellers = (sellersResult.data || []) as ActiveSellerRow[]
+        const todayCheckins = (todayCheckinsResult.data || []) as TodayCheckinRow[]
+
+        const salesMap = new Map<
+          string,
+          { total: number; leads: number; agd: number; vis: number }
+        >()
+        for (const row of aggregateRows) {
+          salesMap.set(row.store_id, {
+            total: Number(row.sales || 0),
+            leads: Number(row.leads || 0),
+            agd: Number(row.agd || 0),
+            vis: Number(row.vis || 0),
+          })
+        }
+
+        const sellerMap = new Map<string, number>()
+        for (const seller of sellers) {
+          sellerMap.set(seller.store_id, (sellerMap.get(seller.store_id) || 0) + 1)
+        }
+
+        const checkedInMap = new Map<string, number>()
+        for (const checkin of todayCheckins) {
+          checkedInMap.set(checkin.store_id, (checkedInMap.get(checkin.store_id) || 0) + 1)
+        }
+
+        const diagnosticsMap: Record<string, StoreDiagnostic> = {}
+        const days = getDiasInfo(yesterday)
+        const daysElapsed = days.decorridos
+        const totalDays = days.total
+
+        for (const store of allStores) {
+          const aggregate = salesMap.get(store.id) || { total: 0, leads: 0, agd: 0, vis: 0 }
+          const goal = metas.find((item) => item.store_id === store.id)?.target || 0
+          const projection =
+            selectedTimeframe === 'mensal'
+              ? calcularProjecao(aggregate.total, daysElapsed, totalDays)
+              : aggregate.total
+          const sellersCount = sellerMap.get(store.id) || 0
+          const checkedInCount = checkedInMap.get(store.id) || 0
+          const targetUntilToday = (goal / totalDays) * daysElapsed
+          const efficiency =
+            targetUntilToday > 0 ? (aggregate.total / targetUntilToday) * 100 : 100
+          const nominalPace = Math.max(0, (goal - aggregate.total) / Math.max(days.restantes, 1))
+
+          diagnosticsMap[store.id] = {
+            id: store.id,
+            name: store.name,
+            sales: aggregate.total,
+            leads: aggregate.leads,
+            agd: aggregate.agd,
+            vis: aggregate.vis,
+            goal,
+            gap: selectedTimeframe === 'mensal' ? Math.max(goal - aggregate.total, 0) : 0,
+            proj: projection,
+            ritmo: Math.round(nominalPace * 10) / 10,
+            efficiency: Math.round(efficiency),
+            sellers: sellersCount,
+            checkedInToday: checkedInCount,
+            disciplinePct: sellersCount > 0 ? (checkedInCount / sellersCount) * 100 : 100,
+          }
+        }
+
+        if (requestId !== requestSequence.current) return
+        setDiagnostics(diagnosticsMap)
+      } catch (error) {
+        if (requestId !== requestSequence.current) return
+        const message = error instanceof Error ? error.message : ''
+        toast.error(message || 'Não foi possível atualizar a visão da rede.')
+      } finally {
+        if (requestId === requestSequence.current) {
+          setNetworkLoading(false)
+          setIsRefetching(false)
+        }
+      }
+    },
+    [metas],
+  )
+
+  useEffect(() => {
+    if (!goalsLoading) {
+      void fetchNetworkSnapshot({
+        selectedTimeframe: timeframe,
+        selectedCustomRange: appliedCustomRange,
+      })
+    }
+  }, [appliedCustomRange, fetchNetworkSnapshot, goalsLoading, timeframe])
+
+  const handleApplyCustomRange = () => {
+    const validationError = validateCustomRange(customRangeDraft)
+    if (validationError) {
+      toast.error(validationError)
+      return
+    }
+    setAppliedCustomRange(customRangeDraft)
+    setTimeframe('personalizada')
+    setShowCustomPicker(false)
+  }
+
+  const handleSort = (key: keyof StoreDiagnostic) => {
+    setSortConfig((previous) => ({
+      key,
+      direction:
+        previous.key === key && previous.direction === 'desc'
+          ? 'asc'
+          : 'desc',
+    }))
+  }
+
+  const filteredAndSortedStores = useMemo(() => {
+    let result = Object.values(diagnostics)
+
+    if (searchTerm) {
+      const normalizedSearch = searchTerm.toLowerCase()
+      result = result.filter((store) => store.name.toLowerCase().includes(normalizedSearch))
+    }
+
+    if (statusFilter !== 'all') {
+      result = result.filter((store) => {
+        const status = getOperationalStatus(store.efficiency, store.disciplinePct)
+        if (statusFilter === 'alert') return status.label === 'ALERTA RITMO'
+        if (statusFilter === 'critical') {
+          return status.label === 'CRÍTICO' || status.label === 'INDISCIPLINA'
+        }
+        if (statusFilter === 'target') {
+          return status.label === 'NO RITMO' || status.label === 'EXCELÊNCIA'
+        }
+        return true
+      })
+    }
+
+    result.sort((first, second) => {
+      const firstValue = first[sortConfig.key]
+      const secondValue = second[sortConfig.key]
+      if (typeof firstValue === 'string' && typeof secondValue === 'string') {
+        return sortConfig.direction === 'desc'
+          ? secondValue.localeCompare(firstValue)
+          : firstValue.localeCompare(secondValue)
+      }
+      return sortConfig.direction === 'desc'
+        ? (secondValue as number) - (firstValue as number)
+        : (firstValue as number) - (secondValue as number)
     })
-    const [showCustomPicker, setShowCustomPicker] = useState(false)
-    const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'sales', direction: 'desc' })
 
-    const handleStoreClick = (storeId: string, storeName: string) => {
-        setActiveStoreId(storeId)
-        navigate(`/lojas/${slugify(storeName)}`)
-        toast.info('Unidade selecionada para monitoramento.')
-    }
+    return result
+  }, [diagnostics, searchTerm, sortConfig, statusFilter])
 
-    const triggerReport = async (type: 'matinal' | 'semanal' | 'mensal') => {
-        setIsTriggering(type)
-        try {
-            const { data: { session } } = await originalSupabase.auth.getSession()
-            if (!session?.access_token) {
-                toast.error('Sessão expirada. Entre novamente.')
-                return
-            }
-            const response = await fetch(getSupabaseFunctionUrl(`relatorio-${type}`), {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${session.access_token}`,
-                    'Content-Type': 'application/json'
-                }
-            })
-            if (response.ok) {
-                toast.success(`Relatório ${type} disparado com sucesso!`)
-            } else {
-                const err = await response.json()
-                toast.error(`Falha ao disparar: ${err.error || response.statusText}`)
-            }
-        } catch (err) {
-            toast.error('Erro de conexão com o servidor de automação.')
-        } finally {
-            setIsTriggering(null)
-        }
-    }
-
-    const calculateRange = (tf: Timeframe) => {
-        const now = new Date()
-        let start = now
-        let end = now
-
-        switch (tf) {
-            case 'hoje':
-                start = startOfDay(now); end = endOfDay(now); break
-            case 'ontem':
-                const yesterday = subDays(now, 1); start = startOfDay(yesterday); end = endOfDay(yesterday); break
-            case 'semanal':
-                start = startOfWeek(now, { weekStartsOn: 1 }); end = endOfWeek(now, { weekStartsOn: 1 }); break
-            case 'mensal':
-                start = startOfMonth(now); end = endOfMonth(now); break
-            case 'personalizada':
-                return customRange
-        }
-
-        return { start: format(start, 'yyyy-MM-dd'), end: format(end, 'yyyy-MM-dd') }
-    }
-
-    const fetchNetworkSnapshot = useCallback(async (isManual = false) => {
-        if (isManual) setIsRefetching(true)
-        else setNetworkLoading(true)
-
-        try {
-            const range = calculateRange(timeframe)
-            const yesterdayDate = new Date()
-            yesterdayDate.setDate(yesterdayDate.getDate() - 1)
-            const yesterday = yesterdayDate.toISOString().split('T')[0]
-
-            let allCheckins: NetworkCheckinRow[] = [];
-            if (isLancamentosViaRpcEnabled()) {
-                // RPC retorna SETOF; sem paginação manual aqui (RPC já filtra escopo admin)
-                const { data, error } = await originalSupabase.rpc('get_lancamentos_rede_periodo', {
-                    p_start_date: range.start,
-                    p_end_date: range.end,
-                    p_scope: 'daily',
-                })
-                if (error) throw error
-                allCheckins = (data as NetworkCheckinRow[] | null) || []
-            } else {
-                let from = 0;
-                while (true) {
-                    const { data, error } = await originalSupabase.from('lancamentos_diarios')
-                        .select('store_id, reference_date, leads_prev_day, agd_cart_today, agd_net_today, visit_prev_day, vnd_porta_prev_day, vnd_cart_prev_day, vnd_net_prev_day')
-                        .gte('reference_date', range.start)
-                        .lte('reference_date', range.end)
-                        .range(from, from + 999);
-
-                    if (error) throw error;
-                    if (!data || data.length === 0) break;
-                    allCheckins = allCheckins.concat(data as NetworkCheckinRow[]);
-                    if (data.length < 1000) break;
-                    from += 1000;
-                }
-            }
-
-            const todayCheckinsPromise = isLancamentosViaRpcEnabled()
-                ? originalSupabase.rpc('get_lancamentos_referencia_dia', {
-                    p_reference_date: yesterday,
-                    p_scope: 'daily',
-                })
-                : originalSupabase.from('lancamentos_diarios').select('store_id, seller_user_id').eq('reference_date', yesterday)
-
-            const [
-                { data: allStoresRaw },
-                { data: sellersRaw },
-                { data: todayCheckinsRaw },
-            ] = await Promise.all([
-                originalSupabase.from('lojas').select('id, name'),
-                originalSupabase.from('vendedores_loja').select('store_id').eq('is_active', true),
-                todayCheckinsPromise,
-            ])
-            const allStores = (allStoresRaw || []) as StoreListRow[]
-            const sellers = (sellersRaw || []) as ActiveSellerRow[]
-            const todayCheckins = (todayCheckinsRaw || []) as TodayCheckinRow[]
-
-            const salesMap: Record<string, { total: number; leads: number; agd: number; vis: number }> = {}
-            for (const checkin of allCheckins) {
-                const sid = checkin.store_id
-                if (!salesMap[sid]) salesMap[sid] = { total: 0, leads: 0, agd: 0, vis: 0 }
-                salesMap[sid].total += Number(checkin.vnd_net_prev_day || 0) + Number(checkin.vnd_porta_prev_day || 0) + Number(checkin.vnd_cart_prev_day || 0)
-                salesMap[sid].leads += Number(checkin.leads_prev_day || 0)
-                salesMap[sid].agd += Number(checkin.agd_net_today || 0) + Number(checkin.agd_cart_today || 0)
-                salesMap[sid].vis += Number(checkin.visit_prev_day || 0)
-            }
-
-            const sellerMap = new Map<string, number>()
-            for (const m of sellers || []) sellerMap.set(m.store_id, (sellerMap.get(m.store_id) || 0) + 1)
-
-            const checkedInMap = new Map<string, number>()
-            for (const c of todayCheckins || []) checkedInMap.set(c.store_id, (checkedInMap.get(c.store_id) || 0) + 1)
-
-            const diagnosticsMap: Record<string, StoreDiagnostic> = {}
-            const dias = getDiasInfo(yesterday)
-            const daysElapsed = dias.decorridos
-            const totalDays = dias.total
-
-            for (const store of (allStores || [])) {
-                const s = salesMap[store.id] || { total: 0, leads: 0, agd: 0, vis: 0 }
-                const goal = metas.find(item => item.store_id === store.id)?.target || 0
-                const proj = timeframe === 'mensal' ? calcularProjecao(s.total, daysElapsed, totalDays) : s.total
-                const numSellers = sellerMap.get(store.id) || 0
-                const numCheckedIn = checkedInMap.get(store.id) || 0
-                
-                const targetToday = (goal / totalDays) * daysElapsed
-                const efficiency = targetToday > 0 ? (s.total / targetToday) * 100 : 100
-                const ritmoNominal = Math.max(0, (goal - s.total) / Math.max(dias.restantes, 1))
-
-                diagnosticsMap[store.id] = {
-                    id: store.id, name: store.name, 
-                    sales: s.total, leads: s.leads, agd: s.agd, vis: s.vis,
-                    goal, 
-                    gap: timeframe === 'mensal' ? Math.max(goal - s.total, 0) : 0,
-                    proj,
-                    ritmo: Math.round(ritmoNominal * 10) / 10,
-                    efficiency: Math.round(efficiency),
-                    sellers: numSellers,
-                    checkedInToday: numCheckedIn,
-                    disciplinePct: numSellers > 0 ? (numCheckedIn / numSellers) * 100 : 100
-                }
-            }
-            setDiagnostics(diagnosticsMap)
-        } finally { setNetworkLoading(false); setIsRefetching(false) }
-    }, [metas, timeframe])
-
-    useEffect(() => { if (!goalsLoading) fetchNetworkSnapshot() }, [goalsLoading, fetchNetworkSnapshot])
-
-    const handleSort = (key: keyof StoreDiagnostic) => {
-        setSortConfig(prev => ({ key, direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc' }))
-    }
-
-    const filteredAndSortedStores = useMemo(() => {
-        let result = Object.values(diagnostics)
-        if (searchTerm) {
-            const lower = searchTerm.toLowerCase()
-            result = result.filter(s => s.name.toLowerCase().includes(lower))
-        }
-        if (statusFilter !== 'all') {
-            result = result.filter(s => {
-                const status = getOperationalStatus(s.efficiency, s.disciplinePct)
-                if (statusFilter === 'alert') return status.label.includes('ALERTA')
-                if (statusFilter === 'critical') return status.label === 'CRÍTICO'
-                if (statusFilter === 'target') return status.label === 'NO RITMO' || status.label === 'EXCELÊNCIA'
-                return true
-            })
-        }
-        result.sort((a, b) => {
-            const valA = a[sortConfig.key]; const valB = b[sortConfig.key]
-            if (typeof valA === 'string' && typeof valB === 'string') return sortConfig.direction === 'desc' ? valB.localeCompare(valA) : valA.localeCompare(valB)
-            return sortConfig.direction === 'desc' ? (valB as number) - (valA as number) : (valA as number) - (valB as number)
-        })
-        return result
-    }, [diagnostics, searchTerm, statusFilter, sortConfig])
-
-    const globalStats = useMemo(() => {
-        const dVals = Object.values(diagnostics)
-        const totalSales = dVals.reduce((sum, item) => sum + item.sales, 0)
-        const totalGoal = dVals.reduce((sum, item) => sum + item.goal, 0)
-        const totalGap = dVals.reduce((sum, item) => sum + item.gap, 0)
-        const totalLeads = dVals.reduce((sum, item) => sum + item.leads, 0)
-        const totalAgd = dVals.reduce((sum, item) => sum + item.agd, 0)
-        const totalVis = dVals.reduce((sum, item) => sum + item.vis, 0)
-        return { totalSales, totalGoal, totalGap, totalLeads, totalAgd, totalVis, globalRitmo: totalGoal > 0 ? Math.round((totalSales / totalGoal) * 100) : 0 }
-    }, [diagnostics])
-
-    if (goalsLoading || networkLoading) return (
-        <main
-            className="w-full h-full flex flex-col gap-mx-lg p-mx-md md:p-mx-lg bg-surface-alt animate-in fade-in duration-500 overflow-hidden"
-            aria-busy="true"
-            aria-live="polite"
-            aria-label="Carregando painel do consultor"
-        >
-            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-mx-lg border-b border-border-default pb-10">
-                <div className="space-y-mx-xs">
-                    <Skeleton className="h-mx-10 w-mx-64" />
-                    <Skeleton className="h-mx-xs w-mx-48" />
-                </div>
-                <div className="flex gap-mx-sm">
-                    <Skeleton className="h-mx-14 w-mx-64 rounded-mx-xl" />
-                    <Skeleton className="h-mx-14 w-mx-48 rounded-mx-xl" />
-                </div>
-            </header>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-mx-lg shrink-0">
-                <Skeleton className="h-mx-48 rounded-mx-4xl" />
-                <Skeleton className="h-mx-48 rounded-mx-4xl" />
-                <Skeleton className="h-mx-48 rounded-mx-4xl" />
-                <Skeleton className="h-mx-48 rounded-mx-4xl" />
-            </div>
-
-            <div className="flex-1 mt-mx-lg">
-                <Skeleton className="h-full w-full rounded-mx-4xl" />
-            </div>
-        </main>
+  const globalStats = useMemo(() => {
+    const stores = Object.values(diagnostics)
+    const totalSales = stores.reduce((sum, store) => sum + store.sales, 0)
+    const totalGoal = stores.reduce((sum, store) => sum + store.goal, 0)
+    const totalGap = stores.reduce((sum, store) => sum + store.gap, 0)
+    const totalLeads = stores.reduce((sum, store) => sum + store.leads, 0)
+    const totalAgd = stores.reduce((sum, store) => sum + store.agd, 0)
+    const totalVis = stores.reduce((sum, store) => sum + store.vis, 0)
+    const averageDiscipline = Math.round(
+      stores.reduce((sum, store) => sum + store.disciplinePct, 0) / Math.max(stores.length, 1),
     )
+    const criticalStores = stores.filter((store) => {
+      const status = getOperationalStatus(store.efficiency, store.disciplinePct)
+      return status.label === 'CRÍTICO' || status.label === 'INDISCIPLINA'
+    }).length
 
+    return {
+      totalSales,
+      totalGoal,
+      totalGap,
+      totalLeads,
+      totalAgd,
+      totalVis,
+      averageDiscipline,
+      criticalStores,
+      globalAchievement: totalGoal > 0 ? Math.round((totalSales / totalGoal) * 100) : 0,
+    }
+  }, [diagnostics])
+
+  if (goalsLoading || networkLoading) {
     return (
-        <main className="h-full w-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar" id="main-content">
-            
-            <PageHeading 
-                title={<span>Rede <span className="text-brand-primary">Operacional</span></span>}
-                subtitle={
-                    <div className="flex flex-wrap items-center gap-mx-sm">
-                        <Badge variant="danger" className="px-4 py-1 font-black shadow-mx-sm border-none rounded-mx-lg">
-                            GAP GLOBAL: {globalStats.totalGap} UNIDADES
-                        </Badge>
-                        <span className="opacity-40 font-black uppercase tracking-mx-widest text-mx-nano">Matriz de Governança MX • {filteredAndSortedStores.length} LOJAS</span>
-                    </div>
-                }
-                actions={
-                    <div className="flex flex-col items-stretch gap-mx-sm shrink-0 xl:items-end w-full lg:w-auto">
-                        <div className="flex flex-wrap items-center justify-end gap-mx-sm">
-                            <nav className="flex max-w-full items-center gap-mx-tiny rounded-mx-full border border-border-subtle bg-white p-mx-tiny px-3 shadow-mx-sm">
-                                <Calendar size={14} className="mr-1 text-text-tertiary" />
-                                {(['hoje', 'ontem', 'semanal', 'mensal'] as const).map((t) => (
-                                    <Button 
-                                        key={t}
-                                        variant={timeframe === t ? 'secondary' : 'ghost'}
-                                        size="sm"
-                                        onClick={() => setTimeframe(t)}
-                                        className="rounded-mx-full px-4 h-mx-10 uppercase font-black text-mx-nano tracking-widest"
-                                    >
-                                        {t}
-                                    </Button>
-                                ))}
-                                <Button
-                                    variant={timeframe === 'personalizada' ? 'secondary' : 'ghost'}
-                                    size="sm"
-                                    onClick={() => setShowCustomPicker(!showCustomPicker)}
-                                    className="rounded-mx-full px-4 h-mx-10 uppercase font-black text-mx-nano tracking-widest"
-                                >
-                                    Custom
-                                </Button>
+      <MxModulePage>
+        <MxModuleHeader
+          eyebrow="Gestão da rede"
+          title="Rede operacional"
+          description="Consolidando metas, produção e disciplina das lojas."
+        />
+        <MxSectionCard>
+          <MxLoadingState label="Carregando visão da rede" />
+        </MxSectionCard>
+      </MxModulePage>
+    )
+  }
 
-                                <AnimatePresence>
-                                    {showCustomPicker && (
-                                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute top-full mt-4 right-mx-0 z-50">
-                                            <Card className="p-mx-md min-w-mx-card-sm shadow-mx-sm border border-border-subtle bg-white rounded-mx-lg">
-                                                <header className="flex items-center justify-between mb-8">
-                                                    <Typography variant="caption" tone="muted" className="font-black uppercase tracking-mx-widest">Período Customizado</Typography>
-                                                    <Button variant="ghost" size="sm" onClick={() => setShowCustomPicker(false)} className="w-mx-10 h-mx-10 p-mx-0 rounded-mx-full"><X size={16} /></Button>
-                                                </header>
-                                                <div className="space-y-mx-md">
-                                                    <div className="space-y-mx-xs">
-                                                        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest ml-1">Início</Typography>
-                                                        <Input aria-label="Início" type="date" value={customRange.start} onChange={e => setCustomRange(p => ({ ...p, start: e.target.value }))} className="!h-12 !px-4 uppercase font-black" />
-                                                    </div>
-                                                    <div className="space-y-mx-xs">
-                                                        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest ml-1">Fim</Typography>
-                                                        <Input aria-label="Fim" type="date" value={customRange.end} onChange={e => setCustomRange(p => ({ ...p, end: e.target.value }))} className="!h-12 !px-4 uppercase font-black" />
-                                                    </div>
-                                                    <Button onClick={() => { setTimeframe('personalizada'); setShowCustomPicker(false); fetchNetworkSnapshot() }} className="w-full h-mx-14 shadow-mx-lg font-black uppercase text-xs tracking-widest rounded-mx-lg bg-brand-primary hover:bg-brand-primary-hover text-white">
-                                                        APLICAR PERÍODO
-                                                    </Button>
-                                                </div>
-                                            </Card>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </nav>
+  return (
+    <MxModulePage>
+      <MxModuleHeader
+        eyebrow="Gestão da rede"
+        title="Rede operacional"
+        description={`${filteredAndSortedStores.length} lojas monitoradas no período selecionado. Use os indicadores para priorizar acompanhamento e ação.`}
+        actions={
+          <>
+            <Button
+              variant="outline"
+              onClick={() =>
+                void fetchNetworkSnapshot({
+                  selectedTimeframe: timeframe,
+                  selectedCustomRange: appliedCustomRange,
+                  isManual: true,
+                })
+              }
+              disabled={isRefetching}
+            >
+              <RefreshCw
+                size={18}
+                className={cn(isRefetching && 'animate-spin')}
+                aria-hidden="true"
+              />
+              Atualizar
+            </Button>
+            <Button asChild>
+              <Link to="/lojas">
+                <Store size={18} aria-hidden="true" />
+                Gerenciar lojas
+              </Link>
+            </Button>
+          </>
+        }
+      />
 
-                            <Button variant="outline" size="icon" onClick={() => fetchNetworkSnapshot(true)} className="rounded-mx-lg shadow-mx-sm h-mx-14 w-mx-14 bg-white border-border-subtle hover:bg-surface-alt text-text-secondary">
-                                <RefreshCw size={20} className={cn(isRefetching && "animate-spin")} />
-                            </Button>
-                        </div>
+      <MxToolbar aria-label="Filtros do painel da rede" className="relative">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-mx-xs">
+          <Calendar size={18} className="text-text-tertiary" aria-hidden="true" />
+          {(['hoje', 'ontem', 'semanal', 'mensal'] as const).map((option) => (
+            <Button
+              key={option}
+              variant={timeframe === option ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setTimeframe(option)}
+            >
+              {timeframeLabels[option]}
+            </Button>
+          ))}
+          <Button
+            variant={timeframe === 'personalizada' ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => setShowCustomPicker((current) => !current)}
+          >
+            Personalizado
+          </Button>
 
-                        <div className="flex flex-wrap items-center justify-end gap-mx-sm">
-                            <nav className="flex max-w-full items-center gap-mx-tiny rounded-mx-full border border-border-subtle bg-white p-mx-tiny px-3 shadow-mx-sm">
-                                {(['matinal', 'semanal', 'mensal'] as const).map((r) => (
-                                    <Button 
-                                        key={r}
-                                        variant={isTriggering === r ? 'secondary' : 'ghost'}
-                                        size="sm" 
-                                        onClick={() => triggerReport(r)} 
-                                        disabled={isTriggering !== null} 
-                                        className="rounded-mx-full px-5 h-mx-10 uppercase font-black text-mx-nano tracking-widest text-text-primary hover:bg-surface-alt"
-                                    >
-                                        {isTriggering === r ? <RefreshCw size={12} className="animate-spin" /> : r}
-                                    </Button>
-                                ))}
-                            </nav>
-                        </div>
-                    </div>
-                }
-            />
+          <AnimatePresence>
+            {showCustomPicker ? (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                className="absolute left-mx-sm top-full z-50 mt-mx-xs w-[min(22rem,calc(100vw-2rem))]"
+              >
+                <MxSectionCard className="p-mx-md shadow-mx-lg">
+                  <div className="mb-mx-md flex items-center justify-between gap-mx-sm">
+                    <Typography variant="h3" className="text-base">
+                      Período personalizado
+                    </Typography>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setShowCustomPicker(false)}
+                      aria-label="Fechar período personalizado"
+                    >
+                      <X size={18} aria-hidden="true" />
+                    </Button>
+                  </div>
+                  <div className="grid gap-mx-sm sm:grid-cols-2">
+                    <MxField label="Início" htmlFor="network-range-start">
+                      <Input
+                        id="network-range-start"
+                        type="date"
+                        value={customRangeDraft.start}
+                        onChange={(event) =>
+                          setCustomRangeDraft((current) => ({
+                            ...current,
+                            start: event.target.value,
+                          }))
+                        }
+                      />
+                    </MxField>
+                    <MxField label="Fim" htmlFor="network-range-end">
+                      <Input
+                        id="network-range-end"
+                        type="date"
+                        value={customRangeDraft.end}
+                        onChange={(event) =>
+                          setCustomRangeDraft((current) => ({
+                            ...current,
+                            end: event.target.value,
+                          }))
+                        }
+                      />
+                    </MxField>
+                  </div>
+                  <Typography variant="tiny" tone="muted" className="mt-mx-xs block">
+                    Período máximo: {MAX_CUSTOM_RANGE_DAYS} dias.
+                  </Typography>
+                  <Button className="mt-mx-md w-full" onClick={handleApplyCustomRange}>
+                    Aplicar período
+                  </Button>
+                </MxSectionCard>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-mx-lg shrink-0">
-                <Card className="rounded-mx-lg bg-mx-black border-none p-mx-md shadow-mx-sm text-white relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/20 via-transparent to-transparent opacity-50" />
-                    <div className="relative z-10">
-                        <Typography variant="tiny" tone="brand" className="mb-4 block font-black uppercase tracking-mx-widest opacity-60">Venda {timeframe.toUpperCase()}</Typography>
-                        <div className="flex items-baseline gap-mx-xs">
-                            <Typography variant="h1" tone="white" className="text-6xl font-mono-numbers tracking-tighter font-black">{globalStats.totalSales}</Typography>
-                            {timeframe === 'mensal' && <Typography variant="h3" tone="success" className="text-2xl font-black">+{globalStats.globalRitmo}%</Typography>}
-                        </div>
-                        <div className="mt-8 pt-6 border-t border-white/10">
-                            <Typography variant="tiny" tone="white" className="opacity-30 tracking-mx-widest block font-black uppercase text-mx-nano">META REDE: {globalStats.totalGoal}</Typography>
-                        </div>
-                    </div>
-                </Card>
+        <div className="flex flex-wrap items-center gap-mx-xs">
+          {(['matinal', 'semanal', 'mensal'] as const).map((reportType) => (
+            <Button
+              key={reportType}
+              variant="ghost"
+              size="sm"
+              disabled={isTriggering !== null}
+              onClick={() => void triggerReport(reportType)}
+            >
+              {isTriggering === reportType ? (
+                <RefreshCw size={16} className="animate-spin" aria-hidden="true" />
+              ) : null}
+              {reportLabels[reportType]}
+            </Button>
+          ))}
+        </div>
+      </MxToolbar>
 
-                <Card className="rounded-mx-lg border border-border-subtle bg-white/50 backdrop-blur-2xl p-mx-md shadow-mx-sm flex flex-col justify-between group">
-                    <Typography variant="tiny" tone="muted" className="mb-6 block font-black uppercase tracking-mx-widest opacity-40">Escoamento Rede</Typography>
-                    <div className="grid grid-cols-3 gap-mx-md">
-                        <div className="text-center group-hover:scale-110 transition-transform">
-                            <Typography variant="h1" className="text-3xl font-mono-numbers mb-1 tracking-tighter font-black">{globalStats.totalLeads}</Typography>
-                            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest text-mx-micro opacity-60">Leads</Typography>
-                        </div>
-                        <div className="text-center group-hover:scale-110 transition-transform delay-75">
-                            <Typography variant="h1" className="text-3xl font-mono-numbers mb-1 tracking-tighter font-black text-status-info">{globalStats.totalAgd}</Typography>
-                            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-mx-widest text-mx-micro opacity-60">Agd</Typography>
-                        </div>
-                        <div className="text-center group-hover:scale-110 transition-transform delay-150">
-                            <Typography variant="h1" className="text-3xl font-mono-numbers mb-1 tracking-tighter font-black">{globalStats.totalVis}</Typography>
-                            <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest text-mx-micro opacity-60">Vis</Typography>
-                        </div>
-                    </div>
-                    <div className="mt-8 h-mx-px bg-border-subtle opacity-50" />
-                </Card>
+      <section
+        aria-label="Resumo da rede"
+        className="grid grid-cols-1 gap-mx-md sm:grid-cols-2 xl:grid-cols-4"
+      >
+        <MxMetricCard
+          title={`Vendas no ${timeframeLabels[timeframe].toLowerCase()}`}
+          value={globalStats.totalSales}
+          detail={`Meta da rede: ${globalStats.totalGoal} • ${globalStats.globalAchievement}% realizado`}
+          icon={Car}
+          tone="brand"
+        />
+        <MxMetricCard
+          title="Fluxo comercial"
+          value={globalStats.totalAgd}
+          detail={`${globalStats.totalLeads} leads • ${globalStats.totalVis} visitas`}
+          icon={TrendingUp}
+          tone="info"
+        />
+        <MxMetricCard
+          title="Lojas críticas"
+          value={globalStats.criticalStores}
+          detail={`${globalStats.totalGap} vendas de gap consolidado`}
+          icon={AlertTriangle}
+          tone={globalStats.criticalStores > 0 ? 'danger' : 'success'}
+        />
+        <MxMetricCard
+          title="Disciplina média"
+          value={`${globalStats.averageDiscipline}%`}
+          detail="Aderência aos registros diários"
+          icon={Shield}
+          tone={globalStats.averageDiscipline < 80 ? 'warning' : 'success'}
+        />
+      </section>
 
-                <Card className="rounded-mx-lg border border-border-subtle bg-white/50 backdrop-blur-2xl p-mx-md shadow-mx-sm flex flex-col justify-between relative overflow-hidden group">
-                    <div className="absolute -right-mx-lg -top-mx-lg w-mx-32 h-mx-32 bg-status-error-surface rounded-mx-full blur-mx-4xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <Typography variant="tiny" tone="error" className="mb-4 font-black uppercase tracking-mx-widest opacity-60">Unidades Críticas</Typography>
-                    <div className="flex items-baseline gap-mx-sm">
-                        <Typography variant="h1" tone="error" className="text-6xl font-mono-numbers tracking-tighter font-black">
-                            {Object.values(diagnostics).filter(s => getOperationalStatus(s.ritmo, s.disciplinePct).label === 'CRÍTICO').length}
-                        </Typography>
-                        <AlertTriangle className="text-status-error opacity-20" size={32} />
-                    </div>
-                    <Typography variant="tiny" tone="error" className="mt-6 font-black uppercase tracking-mx-widest text-mx-nano italic">Ação Imediata Necessária</Typography>
-                </Card>
-
-                <Card className="rounded-mx-lg border border-border-subtle bg-white/50 backdrop-blur-2xl p-mx-md shadow-mx-sm flex flex-col justify-between relative overflow-hidden group">
-                    <div className="absolute -right-mx-lg -top-mx-lg w-mx-32 h-mx-32 bg-status-success-surface rounded-mx-full blur-mx-4xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <Typography variant="tiny" tone="success" className="mb-4 font-black uppercase tracking-mx-widest opacity-60">Saúde Disciplinar</Typography>
-                    <div className="flex items-baseline gap-mx-sm">
-                        <Typography variant="h1" tone="success" className="text-6xl font-mono-numbers tracking-tighter font-black">
-                            {Math.round(Object.values(diagnostics).reduce((sum, s) => sum + s.disciplinePct, 0) / (Object.values(diagnostics).length || 1))}%
-                        </Typography>
-                        <Shield className="text-status-success opacity-20" size={32} />
-                    </div>
-                    <Typography variant="tiny" tone="success" className="mt-6 font-black uppercase tracking-mx-widest text-mx-nano italic">Aderência aos Check-ins</Typography>
-                </Card>
+      <MxSectionCard>
+        <div className="flex flex-col gap-mx-md border-b border-border-subtle p-mx-md lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-start gap-mx-sm">
+            <span className="grid h-mx-10 w-mx-10 shrink-0 place-items-center rounded-mx-lg bg-status-success-surface text-brand-primary">
+              <Activity size={20} aria-hidden="true" />
+            </span>
+            <div>
+              <Typography as="h2" variant="h3" className="text-lg">
+                Performance das lojas
+              </Typography>
+              <Typography variant="p" className="mt-mx-tiny text-sm text-text-secondary">
+                Compare volume, meta, projeção, ritmo e disciplina sem sair da visão da rede.
+              </Typography>
             </div>
+          </div>
 
-            <Card className="w-full mb-32 shadow-mx-sm border border-border-subtle bg-white/50 backdrop-blur-2xl rounded-mx-lg overflow-hidden">
-                <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-mx-lg p-mx-md border-b border-border-subtle">
-                    <div className="flex items-center gap-mx-md">
-                        <div className="w-mx-14 h-mx-14 rounded-mx-lg bg-brand-primary text-white flex items-center justify-center shadow-mx-sm"><Activity size={28} /></div>
-                        <div>
-                            <CardTitle className="text-3xl uppercase tracking-tighter font-black">Malha de Performance</CardTitle>
-                            <CardDescription className="font-black uppercase tracking-mx-widest mt-1 text-mx-tiny opacity-40">Monitoramento Predictivo de Unidades.</CardDescription>
+          <div className="flex min-w-0 flex-col gap-mx-sm sm:flex-row sm:flex-wrap">
+            <div className="relative min-w-0 sm:w-mx-sidebar-expanded">
+              <Search
+                size={17}
+                className="pointer-events-none absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary"
+                aria-hidden="true"
+              />
+              <Input
+                aria-label="Localizar unidade"
+                placeholder="Localizar unidade"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                className="pl-mx-10"
+              />
+            </div>
+            <div className="flex flex-wrap gap-mx-xs" aria-label="Filtrar status">
+              {(
+                [
+                  ['all', 'Todas'],
+                  ['alert', 'Em alerta'],
+                  ['critical', 'Críticas'],
+                  ['target', 'No ritmo'],
+                ] as const
+              ).map(([value, label]) => (
+                <Button
+                  key={value}
+                  variant={statusFilter === value ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setStatusFilter(value)}
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <p className="sr-only" aria-live="polite" aria-atomic="true">
+          {filteredAndSortedStores.length === 0
+            ? 'Nenhuma loja encontrada com os filtros atuais.'
+            : `${filteredAndSortedStores.length} ${filteredAndSortedStores.length === 1 ? 'loja encontrada' : 'lojas encontradas'}.`}
+        </p>
+
+        {filteredAndSortedStores.length === 0 ? (
+          <MxEmptyState
+            icon={Building2}
+            title="Nenhuma loja encontrada"
+            description="Ajuste a busca ou os filtros para voltar a exibir as unidades da rede."
+          />
+        ) : (
+          <MxTableSurface className="rounded-none border-0">
+            <table className="w-full min-w-mx-table-wide text-left">
+              <thead className="bg-surface-alt">
+                <tr className="border-b border-border-subtle">
+                  {(
+                    [
+                      ['name', 'Unidade', 'text-left'],
+                      ['leads', 'Leads', 'text-right'],
+                      ['agd', 'Agendamentos', 'text-right'],
+                      ['vis', 'Visitas', 'text-right'],
+                      ['sales', 'Vendas', 'text-right'],
+                      ['goal', 'Meta', 'text-right'],
+                      ['gap', 'Gap', 'text-right'],
+                      ['proj', 'Projeção', 'text-right'],
+                      ['ritmo', 'Ritmo diário', 'text-right'],
+                    ] as const
+                  ).map(([key, label, alignment]) => (
+                    <th key={key} className={cn('px-mx-md py-mx-sm', alignment)}>
+                      <button
+                        type="button"
+                        onClick={() => handleSort(key)}
+                        className="font-semibold text-text-secondary transition-colors hover:text-brand-primary"
+                      >
+                        {label}
+                      </button>
+                    </th>
+                  ))}
+                  <th className="px-mx-md py-mx-sm text-center font-semibold text-text-secondary">
+                    Situação
+                  </th>
+                  <th className="px-mx-md py-mx-sm text-right font-semibold text-text-secondary">
+                    Disciplina
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border-subtle bg-white">
+                {filteredAndSortedStores.map((store, index) => {
+                  const status = getOperationalStatus(store.efficiency, store.disciplinePct)
+                  return (
+                    <motion.tr
+                      key={store.id}
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: Math.min(index * 0.015, 0.2) }}
+                      className="transition-colors hover:bg-surface-alt"
+                    >
+                      <td className="px-mx-md py-mx-sm">
+                        <button
+                          type="button"
+                          onClick={() => handleStoreClick(store.id, store.name)}
+                          className="flex min-w-mx-48 items-center gap-mx-sm rounded-mx-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+                          aria-label={`Abrir unidade ${store.name}`}
+                        >
+                          <span className="grid h-mx-9 w-mx-9 shrink-0 place-items-center rounded-mx-lg bg-status-success-surface text-brand-primary">
+                            <Building2 size={17} aria-hidden="true" />
+                          </span>
+                          <span className="min-w-0">
+                            <Typography variant="p" className="block truncate font-semibold text-text-primary">
+                              {store.name}
+                            </Typography>
+                            <Typography variant="tiny" tone="muted" className="block">
+                              {store.checkedInToday}/{store.sellers} vendedores com registro
+                            </Typography>
+                          </span>
+                        </button>
+                      </td>
+                      <td className="px-mx-md py-mx-sm text-right tabular-nums">{store.leads}</td>
+                      <td className="px-mx-md py-mx-sm text-right tabular-nums">{store.agd}</td>
+                      <td className="px-mx-md py-mx-sm text-right tabular-nums">{store.vis}</td>
+                      <td className="px-mx-md py-mx-sm text-right font-semibold tabular-nums text-brand-primary">
+                        {store.sales}
+                      </td>
+                      <td className="px-mx-md py-mx-sm text-right tabular-nums text-text-secondary">
+                        {store.goal}
+                      </td>
+                      <td className="px-mx-md py-mx-sm text-right font-semibold tabular-nums text-status-error">
+                        {store.gap}
+                      </td>
+                      <td className="px-mx-md py-mx-sm text-right font-semibold tabular-nums">
+                        {store.proj}
+                      </td>
+                      <td className="px-mx-md py-mx-sm text-right tabular-nums">
+                        {store.ritmo}
+                      </td>
+                      <td className="px-mx-md py-mx-sm text-center">
+                        <Badge variant={statusVariant(status.label)}>{status.label}</Badge>
+                      </td>
+                      <td className="px-mx-md py-mx-sm text-right">
+                        <div className="flex items-center justify-end gap-mx-xs">
+                          <span
+                            className="h-mx-2 w-mx-20 overflow-hidden rounded-mx-full bg-border-subtle"
+                            aria-hidden="true"
+                          >
+                            <span
+                              className={cn(
+                                'block h-full rounded-mx-full',
+                                store.disciplinePct < 80
+                                  ? 'bg-status-warning'
+                                  : 'bg-status-success',
+                              )}
+                              style={{ width: `${Math.min(store.disciplinePct, 100)}%` }}
+                            />
+                          </span>
+                          <span className="min-w-mx-10 text-right font-semibold tabular-nums">
+                            {Math.round(store.disciplinePct)}%
+                          </span>
                         </div>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-mx-sm">
-                        <div className="relative group w-full sm:w-mx-sidebar-expanded">
-                            <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-brand-primary" />
-                            <Input placeholder="LOCALIZAR UNIDADE..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="!pl-12 !h-14 uppercase font-black tracking-mx-widest !text-xs rounded-mx-lg bg-white border-border-subtle shadow-mx-sm" />
-                        </div>
-                        <div className="flex items-center gap-mx-tiny bg-mx-black/5 p-mx-tiny rounded-mx-lg h-mx-14 shadow-inner px-2">
-                            {(['all', 'alert', 'critical'] as const).map(f => (
-                                <Button key={f} variant={statusFilter === f ? 'secondary' : 'ghost'} size="sm" onClick={() => setStatusFilter(f)} className="h-mx-10 rounded-mx-lg px-6 uppercase font-black text-mx-nano tracking-widest">
-                                    {f === 'all' ? 'Todos' : f === 'alert' ? 'Alertas' : 'Críticos'}
-                                </Button>
-                            ))}
-                        </div>
-                        <Button asChild variant="secondary" className="h-mx-14 px-8 shadow-mx-sm uppercase font-black text-mx-tiny tracking-mx-widest rounded-mx-lg border border-brand-primary/15 bg-white text-brand-primary hover:bg-mx-green-50">
-                            <Link to="/lojas"><Store size={18} className="mr-2" /> GESTÃO LOJAS</Link>
-                        </Button>
-                    </div>
-                </CardHeader>
-                <div className="overflow-x-auto no-scrollbar">
-                    <table className="w-full text-left min-w-mx-table-wide">
-                        <thead>
-                            <tr className="uppercase tracking-mx-widest border-b border-border-subtle bg-mx-black/5">
-                                <th className="pl-12 py-6 cursor-pointer hover:text-brand-primary transition-colors" onClick={() => handleSort('name')}>
-                                    <Typography variant="tiny" className="font-black">Unidade</Typography>
-                                </th>
-                                <th className="px-6 py-6 text-center cursor-pointer" onClick={() => handleSort('leads')}><Typography variant="tiny" className="font-black">Leads</Typography></th>
-                                <th className="px-6 py-6 text-center cursor-pointer" onClick={() => handleSort('agd')}><Typography variant="tiny" className="font-black">Agend.</Typography></th>
-                                <th className="px-6 py-6 text-center cursor-pointer" onClick={() => handleSort('vis')}><Typography variant="tiny" className="font-black">Visitas</Typography></th>
-                                <th className="px-6 py-6 text-center cursor-pointer" onClick={() => handleSort('sales')}><Typography variant="tiny" tone="brand" className="font-black">Vendas</Typography></th>
-                                <th className="px-6 py-6 text-center"><Typography variant="tiny" className="font-black opacity-40">Meta</Typography></th>
-                                <th className="px-6 py-6 text-center cursor-pointer" onClick={() => handleSort('gap')}><Typography variant="tiny" tone="error" className="font-black">Gap</Typography></th>
-                                <th className="px-6 py-6 text-center cursor-pointer" onClick={() => handleSort('proj')}><Typography variant="tiny" tone="brand" className="font-black">Projeção</Typography></th>
-                                <th className="px-6 py-6 text-center"><Typography variant="tiny" className="font-black">Ritmo</Typography></th>
-                                <th className="px-6 py-6 text-center"><Typography variant="tiny" className="font-black">Status</Typography></th>
-                                <th className="pr-12 py-6 text-center"><Typography variant="tiny" className="font-black">Disciplina</Typography></th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border-subtle">
-                            {filteredAndSortedStores.map((store, i) => {
-                                const status = getOperationalStatus(store.ritmo, store.disciplinePct)
-                                return (
-                                    <motion.tr 
-                                        key={store.id} 
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: i * 0.02 }}
-                                        className="hover:bg-white/40 transition-all group h-mx-28 cursor-pointer"
-                                        onClick={() => handleStoreClick(store.id, store.name)}
-                                    >
-                                        <td className="pl-12">
-                                            <div className="flex items-center gap-mx-md">
-                                                <div className="w-mx-12 h-mx-12 rounded-mx-lg bg-white border border-border-subtle flex items-center justify-center font-black text-text-primary text-xl group-hover:bg-mx-black group-hover:text-white group-hover:border-mx-black transition-all shadow-mx-sm uppercase" aria-hidden="true">{store.name.charAt(0)}</div>
-                                                <Typography variant="h3" className="text-lg group-hover:text-brand-primary transition-colors uppercase tracking-tight font-black">{store.name}</Typography>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 text-center font-black text-lg font-mono-numbers text-text-primary opacity-60">{store.leads}</td>
-                                        <td className="px-6 text-center font-black text-lg font-mono-numbers text-status-info">{store.agd}</td>
-                                        <td className="px-6 text-center font-black text-lg font-mono-numbers text-text-primary opacity-60">{store.vis}</td>
-                                        <td className="px-6 text-center">
-                                            <Typography variant="h1" className="text-3xl font-mono-numbers text-brand-primary font-black tracking-tighter">{store.sales}</Typography>
-                                        </td>
-                                        <td className="px-6 text-center font-black text-sm font-mono-numbers text-text-tertiary opacity-40">{store.goal}</td>
-                                        <td className="px-6 text-center font-black text-xl font-mono-numbers text-status-error">{store.gap}</td>
-                                        <td className="px-6 text-center font-black text-xl font-mono-numbers text-brand-primary shadow-mx-glow-brand-sm">{store.proj}</td>
-                                        <td className="px-6 text-center">
-                                            <div className="flex flex-col items-center">
-                                                <Typography variant="mono" className="text-xl font-black text-mx-black leading-none">{store.ritmo}</Typography>
-                                                <Typography variant="tiny" tone="muted" className="font-black uppercase text-mx-micro mt-1 opacity-40">VND/DIA</Typography>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 text-center">
-                                            <Badge variant={status.label === 'CRÍTICO' ? 'danger' : status.label === 'NO RITMO' ? 'success' : 'warning'} className="px-4 py-1.5 font-black shadow-sm uppercase border-none text-mx-nano tracking-widest">
-                                                {status.label}
-                                            </Badge>
-                                            <Typography variant="tiny" tone="muted" className="font-black block uppercase text-mx-micro mt-1 opacity-40">{store.efficiency}% EFIC.</Typography>
-                                        </td>
-                                        <td className="pr-12 text-center">
-                                            <div className="flex flex-col items-center">
-                                                <Typography variant="mono" tone={store.checkedInToday < store.sellers ? 'error' : 'success'} className="text-lg font-black leading-none">
-                                                    {store.checkedInToday}/{store.sellers}
-                                                </Typography>
-                                                <Typography variant="tiny" tone="muted" className="font-black tracking-mx-widest uppercase text-mx-micro mt-1 opacity-40">{Math.round(store.disciplinePct)}% OK</Typography>
-                                            </div>
-                                        </td>
-                                    </motion.tr>
-                                )
-                            })}
-                        </tbody>
-                    </table>
-                </div>
-            </Card>
-        </main>
-    );
+                      </td>
+                    </motion.tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </MxTableSurface>
+        )}
+      </MxSectionCard>
+
+      <MxSectionCard className="p-mx-md">
+        <div className="grid gap-mx-md md:grid-cols-3">
+          <div className="flex items-start gap-mx-sm">
+            <Target className="mt-mx-tiny text-brand-primary" size={20} aria-hidden="true" />
+            <div>
+              <Typography variant="h3" className="text-base">Foco de decisão</Typography>
+              <Typography variant="p" className="mt-mx-xs text-sm text-text-secondary">
+                Priorize lojas críticas e preserve as que estão no ritmo.
+              </Typography>
+            </div>
+          </div>
+          <div className="flex items-start gap-mx-sm">
+            <Users className="mt-mx-tiny text-brand-primary" size={20} aria-hidden="true" />
+            <div>
+              <Typography variant="h3" className="text-base">Disciplina da equipe</Typography>
+              <Typography variant="p" className="mt-mx-xs text-sm text-text-secondary">
+                Acompanhe a proporção de vendedores com registro diário.
+              </Typography>
+            </div>
+          </div>
+          <div className="flex items-start gap-mx-sm">
+            <Activity className="mt-mx-tiny text-brand-primary" size={20} aria-hidden="true" />
+            <div>
+              <Typography variant="h3" className="text-base">Leitura operacional</Typography>
+              <Typography variant="p" className="mt-mx-xs text-sm text-text-secondary">
+                Use volume, projeção e gap na mesma sequência visual.
+              </Typography>
+            </div>
+          </div>
+        </div>
+      </MxSectionCard>
+    </MxModulePage>
+  )
 }

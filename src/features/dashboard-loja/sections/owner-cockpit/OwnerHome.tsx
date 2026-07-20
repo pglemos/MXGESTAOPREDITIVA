@@ -1,4 +1,4 @@
-import { Box, DollarSign, Gauge, ShoppingCart } from 'lucide-react'
+import { Box, CalendarCheck2, DollarSign, ShoppingCart } from 'lucide-react'
 import type { OwnerPerformanceAlert } from '../PerformanceAlerts'
 import type { ActionRow, DashboardData, DepartmentScore } from './types'
 import { formatCurrency, formatInteger, formatPercent } from './format'
@@ -30,26 +30,41 @@ export function OwnerHome({
   marginPercent: number | null
 }) {
   const grossProfit = data.latestDRE?.gross_profit
+  const confirmedAppointments = (data.checkins || [])
+    .filter(checkin => checkin.reference_date === data.referenceDate)
+    .reduce(
+      (total, checkin) => total + (checkin.agd_cart_today || 0) + (checkin.agd_net_today || 0),
+      0,
+    )
+  const salesForecast = confirmedAppointments / 3
+  const dailyNeed = data.metrics.goalValue > 0 ? data.metrics.goalValue / 25 : 0
+  const forecastIsHealthy = dailyNeed <= 0 || salesForecast >= dailyNeed
+  const forecastLabel = salesForecast.toLocaleString('pt-BR', {
+    minimumFractionDigits: Number.isInteger(salesForecast) ? 0 : 1,
+    maximumFractionDigits: 1,
+  })
+  const dailyNeedLabel = dailyNeed.toLocaleString('pt-BR', { maximumFractionDigits: 1 })
+
   return (
     <>
       <div className="grid grid-cols-1 gap-mx-md sm:grid-cols-2 xl:grid-cols-[repeat(4,minmax(0,1fr))_220px]">
         <OwnerKpiCard
+          title="Previsão de Vendas Hoje"
+          value={`${forecastLabel} ${salesForecast === 1 ? 'venda' : 'vendas'}`}
+          detail={`${formatInteger(confirmedAppointments)} agendamentos do dia · necessidade ${dailyNeedLabel}`}
+          icon={<CalendarCheck2 size={20} />}
+          tone={forecastIsHealthy ? 'success' : 'warning'}
+          chart="bars"
+          seed={5}
+        />
+        <OwnerKpiCard
           title="Lucro Bruto"
           value={formatCurrency(grossProfit)}
-          detail={grossProfit === undefined ? 'DRE pendente' : '▲ vs mês anterior'}
+          detail={grossProfit === undefined ? 'DRE pendente' : marginPercent === null ? '▲ vs mês anterior' : `Margem ${formatPercent(marginPercent)}`}
           icon={<DollarSign size={20} />}
           tone={grossProfit === undefined ? 'muted' : 'success'}
           chart="line"
           seed={1}
-        />
-        <OwnerKpiCard
-          title="% Margem"
-          value={formatPercent(marginPercent)}
-          detail={marginPercent === null ? 'DRE pendente' : '▲ 1,9 p.p.'}
-          icon={<Gauge size={20} />}
-          tone={marginPercent === null ? 'muted' : 'info'}
-          chart="line"
-          seed={2}
         />
         <OwnerKpiCard
           title="Volume de Vendas"
@@ -63,7 +78,7 @@ export function OwnerHome({
         <OwnerKpiCard
           title="Estoque (Unid.)"
           value="Pendente"
-          detail="Aguardando fonte"
+          detail="Aguardando fonte canônica"
           icon={<Box size={20} />}
           tone="warning"
           chart="line"

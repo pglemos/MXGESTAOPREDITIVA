@@ -32,7 +32,7 @@ export function ManagerRankingReference() {
   ]
 
   return (
-    <main className="min-h-full bg-gray-50" id="main-content">
+    <main className="min-h-full bg-gray-50">
       <div className="mx-auto max-w-7xl space-y-5 px-4 py-6 pb-24">
         <header className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

@@ -18,7 +18,7 @@ export default function ManagerDevelopment() {
   }
 
   return (
-    <main className="min-h-full bg-gray-50" id="main-content">
+    <main className="min-h-full bg-gray-50">
       <div className="mx-auto max-w-7xl space-y-5 px-4 py-6 pb-24">
         <ManagerHomeReturnLink />
         <header className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm"><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-50 text-emerald-600"><Sparkles size={20}/></span><div><h1 className="text-xl font-bold text-gray-800">Desenvolvimento</h1><p className="mt-0.5 text-sm text-gray-500">Central de gestão de pessoas: reconheça, oriente e desenvolva sua equipe.</p></div></div></header>

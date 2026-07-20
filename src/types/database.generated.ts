@@ -9980,6 +9980,95 @@ export type Database = {
           },
         ]
       }
+      solicitacoes_consultoria: {
+        Row: {
+          client_id: string | null
+          closed_at: string | null
+          consultant_user_id: string | null
+          context_id: string | null
+          context_snapshot: Json
+          context_type: string
+          created_at: string
+          created_by: string
+          id: string
+          message: string
+          priority: string
+          request_type: string
+          responded_at: string | null
+          status: string
+          store_id: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          closed_at?: string | null
+          consultant_user_id?: string | null
+          context_id?: string | null
+          context_snapshot?: Json
+          context_type?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          message: string
+          priority?: string
+          request_type: string
+          responded_at?: string | null
+          status?: string
+          store_id: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          closed_at?: string | null
+          consultant_user_id?: string | null
+          context_id?: string | null
+          context_snapshot?: Json
+          context_type?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          message?: string
+          priority?: string
+          request_type?: string
+          responded_at?: string | null
+          status?: string
+          store_id?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitacoes_consultoria_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes_consultoria"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitacoes_consultoria_consultant_user_id_fkey"
+            columns: ["consultant_user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitacoes_consultoria_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitacoes_consultoria_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       solicitacoes_correcao_lancamento: {
         Row: {
           applied_at: string | null
@@ -12972,9 +13061,32 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_owner_consultant_contact: {
+        Args: { p_store_id: string }
+        Returns: {
+          assignment_role: string
+          client_id: string
+          client_name: string
+          consultant_avatar_url: string
+          consultant_email: string
+          consultant_name: string
+          consultant_phone: string
+          consultant_user_id: string
+        }[]
+      }
       get_pdi_form_template: { Args: { p_cargo_id: string }; Returns: Json }
       get_pdi_print_bundle: { Args: { p_sessao_id: string }; Returns: Json }
       get_prova_aula: { Args: { p_aula_id: string }; Returns: Json }
+      get_resumo_rede_periodo: {
+        Args: { p_end_date: string; p_scope?: string; p_start_date: string }
+        Returns: {
+          agd: number
+          leads: number
+          sales: number
+          store_id: string
+          vis: number
+        }[]
+      }
       get_score: {
         Args: {
           p_period?: string

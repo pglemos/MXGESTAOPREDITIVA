@@ -10,7 +10,6 @@ export type ViewportName = keyof typeof VIEWPORTS;
 
 const AUTH_EMAIL =
   process.env.E2E_AUTH_EMAIL || 'admin@mxgestaopreditiva.com.br';
-const AUTH_PASSWORD = process.env.E2E_AUTH_PASSWORD || 'Mx#2026!';
 const DEV_BYPASS_STORAGE_KEY = 'mx_auth_profile';
 const VISUAL_STORE_ID = '11111111-1111-4111-8111-111111111111';
 const VISUAL_USER_ID = '22222222-2222-4222-8222-222222222222';
@@ -19,6 +18,17 @@ type VisualAuthRole = 'admin_master' | 'dono' | 'gerente' | 'vendedor';
 
 interface AuthenticateOptions {
   role?: VisualAuthRole;
+}
+
+export function getVisualAuthPassword(): string {
+  const password = process.env.E2E_AUTH_PASSWORD;
+  if (!password) {
+    throw new Error(
+      'E2E_AUTH_PASSWORD env var is required for authenticated visual tests. ' +
+        'Configure the secret before running visual regression suites.',
+    );
+  }
+  return password;
 }
 
 export async function authenticate(page: Page, options: AuthenticateOptions = {}): Promise<void> {
@@ -46,16 +56,10 @@ export async function authenticate(page: Page, options: AuthenticateOptions = {}
     return;
   }
 
-  if (!AUTH_PASSWORD) {
-    throw new Error(
-      'E2E_AUTH_PASSWORD env var is required for authenticated visual tests. ' +
-        'Set it before running visual regression suites.',
-    );
-  }
-
+  const password = getVisualAuthPassword();
   await page.goto('/login');
   await page.fill('input[type="email"]', AUTH_EMAIL);
-  await page.fill('input[type="password"]', AUTH_PASSWORD);
+  await page.fill('input[type="password"]', password);
   await page.click('button[type="submit"]');
   await page.waitForURL(/\/(painel|home|loja|lojas)/, { timeout: 15000 });
   await waitForStable(page);

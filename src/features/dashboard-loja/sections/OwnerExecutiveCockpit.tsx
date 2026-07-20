@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import {
+  BookOpen,
   CalendarDays,
   LineChart as LineChartIcon,
   Package,
@@ -36,6 +37,11 @@ import { AgendaView } from './owner-cockpit/AgendaView'
 import { DepartmentsView } from './owner-cockpit/DepartmentsView'
 import { OwnerModuleGrid } from './owner-cockpit/OwnerModuleGrid'
 import {
+  OwnerConsultingView,
+  OwnerDecisionCenter,
+  OwnerRoutineView,
+} from './owner-cockpit/OwnerBase44Views'
+import {
   alertFromEngine,
   actionFromEngine,
   buildCentralMx,
@@ -53,6 +59,10 @@ type OwnerExecutiveCockpitProps = {
   alerts: OwnerPerformanceAlert[]
 }
 
+function alertIdentity(alert: OwnerPerformanceAlert) {
+  return [alert.title, alert.description, alert.variant, alert.recommendation].join('::')
+}
+
 export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitProps) {
   const { profile } = useAuth()
   const location = useLocation()
@@ -66,7 +76,9 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
   const departments = useMemo(() => centralMx.departments.map(departmentFromEngine), [centralMx.departments])
   const ownerAlerts = useMemo(() => {
     const generated = centralMx.alerts.map(alertFromEngine)
-    return generated.length ? generated : alerts
+    return [...generated, ...alerts].filter(
+      (alert, index, list) => list.findIndex(candidate => alertIdentity(candidate) === alertIdentity(alert)) === index,
+    )
   }, [alerts, centralMx.alerts])
   const actions = useMemo(() => centralMx.actionPlanItems.map(actionFromEngine), [centralMx.actionPlanItems])
   const mxScore = centralMx.scores.store.value
@@ -74,8 +86,26 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
   const section = getOwnerSection(location.search)
   const selectedDepartmentCode = getOwnerDepartmentCode(location.search)
 
+  const universityContent = (
+    <>
+      <UniversidadeMx userId={profile?.id ?? null} />
+      <OwnerModuleGrid
+        title="Universidade MX"
+        subtitle="Conteúdos, playbooks e trilhas aplicados à execução estratégica."
+        items={[
+          { title: 'Playbooks comerciais', detail: 'Abordagem, follow-up e fechamento.', icon: <Target size={20} />, tone: 'brand' },
+          { title: 'Trilhas da liderança', detail: 'Conteúdo para gerente, Dono e responsáveis.', icon: <Users size={20} />, tone: 'info' },
+          { title: 'Materiais da consultoria', detail: 'Modelos, documentos e preparação.', icon: <ShieldCheck size={20} />, tone: 'success' },
+          { title: 'Biblioteca executiva', detail: 'Conteúdo organizado por problema e departamento.', icon: <BookOpen size={20} />, tone: 'warning' },
+          { title: 'Indicadores aplicados', detail: 'Como interpretar os números antes de agir.', icon: <LineChartIcon size={20} />, tone: 'info' },
+          { title: 'Evidências e modelos', detail: 'Checklists, anexos e padrões de execução.', icon: <Package size={20} />, tone: 'muted' },
+        ]}
+      />
+    </>
+  )
+
   return (
-    <section className="min-h-full bg-surface-alt p-mx-sm md:p-mx-lg space-y-mx-md">
+    <section className="owner-base44-scope min-h-full space-y-mx-md bg-surface-alt p-mx-sm md:p-mx-lg">
       <OwnerCockpitHeader
         name={profile?.name || 'Diretor'}
         periodLabel={periodLabel}
@@ -84,28 +114,39 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
       />
 
       {section === 'home' && (
+        <OwnerHome
+          data={data}
+          alerts={ownerAlerts}
+          actions={actions}
+          departments={departments}
+          panoramaData={panoramaData}
+          mxScore={mxScore}
+          marginPercent={marginPercent}
+        />
+      )}
+
+      {section === 'rotina' && (
         <>
-          {/* Central MX hub removido da home do dono — sidebar ja tem
-              acesso direto a Planejamento, Plano de Acao, Alertas, etc.
-              O hub redundante foi causa de confusao (ver feedback do user). */}
-          <OwnerHome
-            data={data}
-            alerts={ownerAlerts}
-            actions={actions}
-            departments={departments}
-            panoramaData={panoramaData}
-            mxScore={mxScore}
-            marginPercent={marginPercent}
-          />
+          <OwnerRoutineView data={data} alerts={ownerAlerts} actions={actions} />
+          <AgendaView alerts={ownerAlerts} />
+          <CentralMxPersistedAgendaPanel storeId={data.operationalStore?.id || null} />
         </>
       )}
+
+      {section === 'decisoes' && (
+        <>
+          <OwnerDecisionCenter alerts={ownerAlerts} actions={actions} />
+          <CentralMxPersistedAlertsPanel storeId={data.operationalStore?.id || null} />
+        </>
+      )}
+
       {section === 'planejamento' && (
         <>
           <StrategicPlanningView data={data} planningIndicators={centralMx.planningIndicators} />
           <PlanejamentoEstrategico planningIndicators={centralMx.planningIndicators} periodLabel={periodLabel} />
         </>
       )}
-      {section === 'resultados' && <ResultsView data={data} alerts={ownerAlerts} panoramaData={panoramaData} mxScore={mxScore} />}
+
       {section === 'plano-acao' && (
         <>
           <ActionPlanView
@@ -120,24 +161,23 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
           <CentralMxPersistedPlanosPanel storeId={data.operationalStore?.id || null} />
         </>
       )}
-      {section === 'alertas' && (
+
+      {section === 'consultoria' && (
         <>
-          <AlertsView alerts={ownerAlerts} />
-          <CentralMxPersistedAlertsPanel storeId={data.operationalStore?.id || null} />
-        </>
-      )}
-      {section === 'benchmarking' && (
-        <>
-          <BenchmarkingView data={data} mxScore={mxScore} marginPercent={marginPercent} />
-          <CentralMxBenchmarkInteractive storeId={data.operationalStore?.id || null} />
-        </>
-      )}
-      {section === 'agenda' && (
-        <>
-          <AgendaView alerts={ownerAlerts} />
+          <OwnerConsultingView data={data} />
+          <OwnerModuleGrid
+            title="Visitas e acompanhamento"
+            subtitle="Acompanhamento PMR, PMR Plus, PPA e evidências da consultoria."
+            items={[
+              { title: 'Checklist da visita', detail: 'Roteiro, observações e execução.', icon: <CalendarDays size={20} />, tone: 'brand' },
+              { title: 'Relatório e ata', detail: 'Resumo da visita e próximos passos.', icon: <LineChartIcon size={20} />, tone: 'info' },
+              { title: 'Evidências', detail: 'Fotos, anexos e validações.', icon: <Package size={20} />, tone: 'warning' },
+            ]}
+          />
           <CentralMxPersistedAgendaPanel storeId={data.operationalStore?.id || null} />
         </>
       )}
+
       {section === 'departamentos' && (
         <>
           <DepartmentsView departments={departments} selectedDepartmentCode={selectedDepartmentCode} />
@@ -154,6 +194,38 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
           )}
         </>
       )}
+
+      {(section === 'mercado' || section === 'benchmarking') && (
+        <>
+          <BenchmarkingView data={data} mxScore={mxScore} marginPercent={marginPercent} />
+          <CentralMxBenchmarkInteractive storeId={data.operationalStore?.id || null} />
+        </>
+      )}
+
+      {(section === 'universidade' || section === 'biblioteca') && universityContent}
+
+      {section === 'consultor' && (
+        <ConsultorIaStoreSection storeId={data.operationalStore?.id || null} />
+      )}
+
+      {section === 'resultados' && (
+        <ResultsView data={data} alerts={ownerAlerts} panoramaData={panoramaData} mxScore={mxScore} />
+      )}
+
+      {section === 'alertas' && (
+        <>
+          <AlertsView alerts={ownerAlerts} />
+          <CentralMxPersistedAlertsPanel storeId={data.operationalStore?.id || null} />
+        </>
+      )}
+
+      {section === 'agenda' && (
+        <>
+          <AgendaView alerts={ownerAlerts} />
+          <CentralMxPersistedAgendaPanel storeId={data.operationalStore?.id || null} />
+        </>
+      )}
+
       {section === 'visitas' && (
         <OwnerModuleGrid
           title="Visitas"
@@ -164,23 +236,6 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
             { title: 'Evidências', detail: 'Fotos, anexos e validações.', icon: <Package size={20} />, tone: 'warning' },
           ]}
         />
-      )}
-      {section === 'biblioteca' && (
-        <>
-          <UniversidadeMx userId={profile?.id ?? null} />
-          <OwnerModuleGrid
-            title="Biblioteca"
-            subtitle="Conteúdos, playbooks e trilhas da Universidade MX."
-            items={[
-              { title: 'Playbooks comerciais', detail: 'Abordagem, follow-up e fechamento.', icon: <Target size={20} />, tone: 'brand' },
-              { title: 'Treinamentos liberados', detail: 'Conteúdos para gerente e equipe.', icon: <Users size={20} />, tone: 'info' },
-              { title: 'Materiais da consultoria', detail: 'Modelos e documentos de apoio.', icon: <ShieldCheck size={20} />, tone: 'success' },
-            ]}
-          />
-        </>
-      )}
-      {section === 'consultor' && (
-        <ConsultorIaStoreSection storeId={data.operationalStore?.id || null} />
       )}
     </section>
   )

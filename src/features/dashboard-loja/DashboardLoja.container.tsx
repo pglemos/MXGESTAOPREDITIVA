@@ -90,7 +90,7 @@ export function DashboardLoja() {
   }
   if (!resolving && !storesLoading && role === 'gerente' && activeTab === 'performance' && !selectedStoreId) {
     return (
-      <main className="h-full w-full overflow-y-auto bg-surface-alt no-scrollbar" id="main-content">
+      <main className="h-full w-full overflow-y-auto bg-surface-alt no-scrollbar">
         <ManagerSellerParityHome data={data} alerts={[]} />
       </main>
     )
@@ -106,7 +106,7 @@ export function DashboardLoja() {
   }
 
   return (
-  <main className={`h-full w-full overflow-y-auto no-scrollbar ${isFocusedRolePerformance ? role === 'gerente' ? 'bg-surface-alt' : 'bg-seller-screen-bg' : isManagerSection ? 'bg-surface-alt' : 'bg-surface-alt p-mx-lg'}`} id="main-content">
+  <main className={`h-full w-full overflow-y-auto no-scrollbar ${isFocusedRolePerformance ? role === 'gerente' ? 'bg-surface-alt' : 'bg-seller-screen-bg' : isManagerSection ? 'bg-surface-alt' : 'bg-surface-alt p-mx-lg'}`}>
       {!isFocusedRolePerformance && !isManagerSection && (
         <DashboardErrorBoundary sectionName="Header">
           <DashboardHeader

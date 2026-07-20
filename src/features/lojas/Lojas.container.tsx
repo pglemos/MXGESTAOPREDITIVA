@@ -8,14 +8,11 @@ import { OwnerExecutiveSection } from './sections/OwnerExecutiveSection'
 import { CorporateMetricsSection } from './sections/CorporateMetricsSection'
 import { StoresGridSection } from './sections/StoresGridSection'
 import { CreateStoreModal } from './modals/CreateStoreModal'
+import {
+  MxModulePage,
+  MxStatusBanner,
+} from '@/components/module/MxModuleVisualPrimitives'
 
-/**
- * Lojas — container raiz.
- *
- * Decomposição da page monolítica `src/pages/Lojas.tsx` (Story 3.5 reconciliada, ADR-0050).
- * Comportamento e visual idênticos ao original. Estado e handlers centralizados em
- * `useLojasPage`; renderização dividida em sections puras + modal extraído.
- */
 export function Lojas() {
   const page = useLojasPage()
 
@@ -38,7 +35,7 @@ export function Lojas() {
       page.getRegistrationLink,
       page.handleArchiveStore,
       page.toggleStoreStatus,
-    ]
+    ],
   )
 
   if (page.loading && !page.isRefetching) {
@@ -47,10 +44,7 @@ export function Lojas() {
 
   return (
     <LojasErrorBoundary sectionName="Lojas">
-      <main
-        className="w-full h-full flex flex-col gap-mx-lg p-mx-lg overflow-y-auto no-scrollbar bg-surface-alt"
-        id="main-content"
-      >
+      <MxModulePage>
         <LojasErrorBoundary sectionName="LojasHeader">
           <LojasHeader
             isOwner={page.isOwner}
@@ -67,16 +61,13 @@ export function Lojas() {
           />
         </LojasErrorBoundary>
 
-        {page.copyError && (
-          <div
-            role="alert"
-            className="rounded-mx-xl border border-status-warning/20 bg-status-warning-surface px-mx-md py-mx-sm text-sm font-bold text-status-warning"
-          >
+        {page.copyError ? (
+          <MxStatusBanner tone="warning" role="alert">
             {page.copyError}
-          </div>
-        )}
+          </MxStatusBanner>
+        ) : null}
 
-        {page.isOwner && (
+        {page.isOwner ? (
           <LojasErrorBoundary sectionName="OwnerExecutive">
             <OwnerExecutiveSection
               ownerActiveStores={page.ownerActiveStores}
@@ -84,10 +75,13 @@ export function Lojas() {
               stats={page.stats}
             />
           </LojasErrorBoundary>
-        )}
+        ) : null}
 
         <LojasErrorBoundary sectionName="CorporateMetrics">
-          <CorporateMetricsSection isOwner={page.isOwner} metrics={page.corporateMetrics} />
+          <CorporateMetricsSection
+            isOwner={page.isOwner}
+            metrics={page.corporateMetrics}
+          />
         </LojasErrorBoundary>
 
         <LojasErrorBoundary sectionName="StoresGrid">
@@ -107,7 +101,7 @@ export function Lojas() {
           onSubmit={page.handleCreateStore}
           onClose={() => page.setIsCreateModalOpen(false)}
         />
-      </main>
+      </MxModulePage>
     </LojasErrorBoundary>
   )
 }
