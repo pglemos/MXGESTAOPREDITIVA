@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 
 const sql = readFileSync(
-  new URL('../../supabase/migrations/20260717260000_harden_broadcast_notification_authorization.sql', import.meta.url),
+  new URL('../../supabase/migrations/20260717261000_harden_broadcast_notification_authorization.sql', import.meta.url),
   'utf8',
 )
 const compactSql = sql.replace(/\s+/g, ' ').trim()

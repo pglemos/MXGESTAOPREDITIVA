@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 
 const migrationFiles = [
-  '../../supabase/migrations/20260717280000_harden_closing_regularization_authorization.sql',
+  '../../supabase/migrations/20260717281000_harden_closing_regularization_authorization.sql',
   '../../supabase/migrations/20260717290000_fix_closing_review_findings.sql',
   '../../supabase/migrations/20260717291000_fix_daily_charge_notification_target.sql',
 ]
