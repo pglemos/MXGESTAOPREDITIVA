@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { AlertTriangle, Bell, CheckCircle2, Clock3, CircleHelp, LineChart as LineChartIcon, Target } from 'lucide-react'
+import { AlertTriangle, Bell, CheckCircle2, Clock3, CircleHelp, ClipboardList, LineChart as LineChartIcon, MessageCircle, Search, Target, Zap } from 'lucide-react'
 import {
   CartesianGrid,
   Line,
@@ -50,6 +50,74 @@ export function SalesGoalCard({ data }: { data: DashboardData }) {
       <div className="mt-mx-md rounded-mx-lg border border-border-subtle bg-surface-alt px-mx-md py-mx-sm flex items-center justify-between">
         <Typography variant="p" className="font-black">Projeção atual</Typography>
         <Typography variant="p" className="font-black text-brand-primary">{goal > 0 ? `${formatInteger(sold)} veículos` : 'Pendente'}</Typography>
+      </div>
+    </Card>
+  )
+}
+
+export function PriorityIntervention({
+  alert,
+  onOpenConsultant,
+}: {
+  alert: OwnerPerformanceAlert | null
+  onOpenConsultant: () => void
+}) {
+  const navigate = useNavigate()
+  if (!alert) return null
+  const isCritical = alert.variant === 'danger'
+  const toneClass = isCritical ? 'text-status-error' : 'text-status-warning'
+  const badgeClass = isCritical ? 'bg-status-error-surface text-status-error' : 'bg-status-warning-surface text-status-warning'
+  return (
+    <Card className={cn('rounded-mx-lg border p-mx-md shadow-mx-sm', isCritical ? 'border-status-error/30' : 'border-status-warning/30')}>
+      <div className="flex items-center gap-mx-sm">
+        <Zap size={20} className={toneClass} />
+        <Typography variant="h3" className="text-lg font-black">Intervenção prioritária</Typography>
+      </div>
+      <div className="mt-mx-md rounded-mx-lg border border-border-subtle bg-white p-mx-md">
+        <div className="flex items-start justify-between gap-mx-sm">
+          <div className="flex items-center gap-mx-sm">
+            <AlertTriangle size={18} className={toneClass} />
+            <Typography variant="p" className="font-black">{alert.title}</Typography>
+          </div>
+          <span className={cn('shrink-0 rounded-mx-full px-mx-sm py-mx-tiny text-mx-tiny font-black uppercase', badgeClass)}>
+            {isCritical ? 'Crítico' : 'Atenção'}
+          </span>
+        </div>
+        <Typography variant="p" className="mt-mx-sm text-sm font-bold text-text-secondary">{alert.description}</Typography>
+        <div className="mt-mx-md rounded-mx-lg bg-surface-alt p-mx-sm">
+          <Typography variant="tiny" className="font-black uppercase tracking-widest text-text-tertiary">Por que isso importa</Typography>
+          <Typography variant="p" className="mt-mx-xs text-sm font-bold text-text-secondary">{alert.recommendation}</Typography>
+        </div>
+        <div className="mt-mx-md flex flex-wrap gap-mx-sm">
+          <Button type="button" variant="outline" onClick={() => navigate(alert.ctaTo)}>
+            <Search size={16} /> {alert.ctaLabel}
+          </Button>
+          <Button type="button" variant="outline" onClick={() => navigate(ownerPath('plano-acao'))}>
+            <ClipboardList size={16} /> Criar plano de ação
+          </Button>
+          <Button type="button" onClick={onOpenConsultant}>
+            <MessageCircle size={16} /> Falar com Consultor
+          </Button>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+export function ConsultantMxCard({ onOpenConsultant }: { onOpenConsultant: () => void }) {
+  return (
+    <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
+      <div className="flex flex-wrap items-center justify-between gap-mx-sm">
+        <div className="flex items-center gap-mx-sm">
+          <span className="flex h-mx-10 w-mx-10 shrink-0 items-center justify-center rounded-mx-lg bg-status-success-surface text-status-success">
+            <MessageCircle size={20} />
+          </span>
+          <div>
+            <Typography variant="p" className="font-black">Consultor MX</Typography>
+            <Typography variant="tiny" tone="muted" className="block font-bold">Precisa de ajuda para decidir? Fale com seu consultor usando o contexto desta tela.</Typography>
+          </div>
+        </div>
+        <Button type="button" onClick={onOpenConsultant}>Perguntar</Button>
       </div>
     </Card>
   )

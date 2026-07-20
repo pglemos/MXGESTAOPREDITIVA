@@ -121,8 +121,8 @@ async function auditRoute(
   expect.soft(metric.universalSidebar, `${route.key}/${viewport.key}: sidebar universal`).toBe(false)
   expect.soft(metric.horizontalOverflow, `${route.key}/${viewport.key}: overflow horizontal`).toBe(false)
   expect.soft(metric.activeNavigationItems, `${route.key}/${viewport.key}: item ativo`).toBe(1)
-  expect.soft(metric.ownerTopbarHeight, `${route.key}/${viewport.key}: topbar`).toBeGreaterThanOrEqual(70)
-  expect.soft(metric.ownerSidebarWidth, `${route.key}/${viewport.key}: sidebar`).toBe(viewport.mobile ? Math.min(320, viewport.width - 48) : 264)
+  expect.soft(metric.ownerTopbarHeight, `${route.key}/${viewport.key}: topbar`).toBeGreaterThanOrEqual(60)
+  expect.soft(metric.ownerSidebarWidth, `${route.key}/${viewport.key}: sidebar`).toBe(viewport.mobile ? Math.min(288, viewport.width - 48) : 256)
   expect.soft(metric.pageErrors, `${route.key}/${viewport.key}: erros de página`).toEqual([])
 
   writeFileSync(

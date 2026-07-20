@@ -246,10 +246,10 @@ export function departmentLabel(code: MxDepartmentCode) {
   const labels: Record<MxDepartmentCode, string> = {
     comercial: 'Comercial',
     marketing: 'Marketing',
-    produto: 'Produto',
+    produto: 'Produto e Estoque',
     financeiro: 'Financeiro',
-    rh: 'RH',
-    operacional: 'Operacional',
+    rh: 'Pessoas — RH',
+    operacional: 'Operações',
   }
   return labels[code]
 }

@@ -4,11 +4,11 @@ import type { ActionRow, DashboardData, DepartmentScore } from './types'
 import { formatCurrency, formatInteger, formatPercent } from './format'
 import { MXScoreCompact, OwnerKpiCard } from './primitives'
 import {
+  ConsultantMxCard,
   NextActionsCard,
-  OwnerActionPlanSummary,
   OwnerAlertList,
   OwnerDepartmentScoreGrid,
-  OwnerPanoramaChart,
+  PriorityIntervention,
   SalesGoalCard,
 } from './OwnerHomeWidgets'
 
@@ -17,17 +17,17 @@ export function OwnerHome({
   alerts,
   actions,
   departments,
-  panoramaData,
   mxScore,
   marginPercent,
+  onOpenConsultant,
 }: {
   data: DashboardData
   alerts: OwnerPerformanceAlert[]
   actions: ActionRow[]
   departments: DepartmentScore[]
-  panoramaData: Array<{ label: string; planejado: number; realizado: number }>
   mxScore: number | null
   marginPercent: number | null
+  onOpenConsultant: () => void
 }) {
   const grossProfit = data.latestDRE?.gross_profit
   const confirmedAppointments = (data.checkins || [])
@@ -44,6 +44,7 @@ export function OwnerHome({
     maximumFractionDigits: 1,
   })
   const dailyNeedLabel = dailyNeed.toLocaleString('pt-BR', { maximumFractionDigits: 1 })
+  const priorityAlert = alerts.find(alert => alert.variant === 'danger') || alerts[0] || null
 
   return (
     <>
@@ -87,18 +88,17 @@ export function OwnerHome({
         <MXScoreCompact score={mxScore} />
       </div>
 
+      <PriorityIntervention alert={priorityAlert} onOpenConsultant={onOpenConsultant} />
+
       <div className="grid grid-cols-1 gap-mx-md xl:grid-cols-[minmax(0,1fr)_minmax(340px,0.9fr)_minmax(340px,0.9fr)]">
         <SalesGoalCard data={data} />
         <OwnerAlertList alerts={alerts} />
         <NextActionsCard actions={actions} />
       </div>
 
-      <div className="grid grid-cols-1 gap-mx-md xl:grid-cols-[minmax(0,1.35fr)_340px]">
-        <OwnerPanoramaChart data={panoramaData} goalValue={data.metrics.goalValue} attainment={data.metrics.attainment} />
-        <OwnerActionPlanSummary actions={actions} />
-      </div>
-
       <OwnerDepartmentScoreGrid departments={departments} />
+
+      <ConsultantMxCard onOpenConsultant={onOpenConsultant} />
     </>
   )
 }

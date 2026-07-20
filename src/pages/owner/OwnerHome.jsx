@@ -7,9 +7,9 @@ export default function OwnerHome() {
     ownerAlerts,
     actions,
     departments,
-    panoramaData,
     mxScore,
     marginPercent,
+    openConsultantModal,
   } = useOwnerContext()
 
   return (
@@ -18,9 +18,9 @@ export default function OwnerHome() {
       alerts={ownerAlerts}
       actions={actions}
       departments={departments}
-      panoramaData={panoramaData}
       mxScore={mxScore}
       marginPercent={marginPercent}
+      onOpenConsultant={openConsultantModal}
     />
   )
 }

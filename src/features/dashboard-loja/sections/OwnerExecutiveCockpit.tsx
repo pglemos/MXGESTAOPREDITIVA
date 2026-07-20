@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {
   BookOpen,
   CalendarDays,
@@ -66,6 +66,7 @@ function alertIdentity(alert: OwnerPerformanceAlert) {
 export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitProps) {
   const { profile } = useAuth()
   const location = useLocation()
+  const navigate = useNavigate()
   const [planCreateRequest, setPlanCreateRequest] = useState(0)
   const periodLabel = currentPeriodLabel(data.referenceDate)
   const panoramaData = useMemo(() => buildPanoramaData(data), [data])
@@ -119,9 +120,9 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
           alerts={ownerAlerts}
           actions={actions}
           departments={departments}
-          panoramaData={panoramaData}
           mxScore={mxScore}
           marginPercent={marginPercent}
+          onOpenConsultant={() => navigate('/falar-consultor')}
         />
       )}
 
