@@ -410,16 +410,8 @@ function PersistedAgendaRow({
     hour: '2-digit',
     minute: '2-digit',
   })
-  const done = Boolean(event.done_at)
   return (
-    <li
-      className={cn(
-        'rounded-mx-xl border p-mx-md',
-        done
-          ? 'border-status-success/30 bg-status-success-surface'
-          : 'border-border-default bg-white',
-      )}
-    >
+    <li className="rounded-mx-xl border border-border-default bg-white p-mx-md">
       <div className="flex flex-col gap-mx-xs md:flex-row md:items-center md:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-mx-xs">

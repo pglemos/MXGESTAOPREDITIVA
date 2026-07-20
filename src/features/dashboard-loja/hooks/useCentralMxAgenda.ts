@@ -4,9 +4,8 @@ import { supabase } from '@/lib/supabase'
 /**
  * Hook do Blitz 48h Dia 2 — T5.
  *
- * Lê `public.eventos_agenda_executiva` para uma loja específica, expõe filtros
- * básicos por janela temporal e marca eventos como "concluídos" via update
- * direto (a coluna `done_at` já é coberta pelas RLS de @sales_manager+).
+ * Lê `public.eventos_agenda_executiva` para uma loja específica e expõe
+ * filtros básicos por janela temporal.
  *
  * Integrações reais Google/Outlook continuam fora do Blitz — esta camada é
  * read-first; quando `integration_status = 'sincronizado'`, o componente
@@ -42,7 +41,6 @@ export type CentralMxAgendaEvent = {
   integration_error: string | null
   google_event_id: string | null
   outlook_event_id: string | null
-  done_at?: string | null
   created_at?: string | null
 }
 
@@ -85,7 +83,7 @@ export function useCentralMxAgenda(
       const { data, error: queryError } = await supabase
         .from('eventos_agenda_executiva')
         .select(
-          'id, loja_id, kind, title, public_summary, starts_at, ends_at, all_day, source, integration_status, integration_error, google_event_id, outlook_event_id, done_at, created_at',
+          'id, loja_id, kind, title, public_summary, starts_at, ends_at, all_day, source, integration_status, integration_error, google_event_id, outlook_event_id, created_at',
         )
         .eq('loja_id', storeId)
         .gte('starts_at', lower.toISOString())
@@ -113,7 +111,7 @@ export function useCentralMxAgenda(
 
   const upcomingCount = useMemo(() => {
     const nowIso = new Date().toISOString()
-    return events.filter((event) => event.starts_at >= nowIso && !event.done_at).length
+    return events.filter((event) => event.starts_at >= nowIso).length
   }, [events])
 
   return { events, loading, error, refresh: fetchEvents, upcomingCount, todayCount }

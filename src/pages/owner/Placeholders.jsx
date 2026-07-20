@@ -44,7 +44,7 @@ export function OwnerDecisionPage() {
 export function OwnerDepartmentsPage() {
   const { data, departments, selectedDepartmentCode, periodLabel } = useOwnerContext()
   const storeId = data.operationalStore?.id || null
-  const code = selectedDepartmentCode || 'comercial'
+  const code = selectedDepartmentCode && selectedDepartmentCode !== 'visao-geral' ? selectedDepartmentCode : 'comercial'
   return (
     <>
       <DepartmentsView departments={departments} selectedDepartmentCode={selectedDepartmentCode} />
