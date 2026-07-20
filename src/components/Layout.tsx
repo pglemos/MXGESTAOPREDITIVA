@@ -137,38 +137,19 @@ const navConfig: Record<string, NavCategory[]> = {
   ],
   vendedor: [
     {
-      category: 'OPERAÇÃO',
+      category: 'MENU',
       icon: <Home size={22} />,
       items: [
-        { label: 'Meu Dia', path: '/home', icon: <Home size={16} /> },
+        { label: 'Início', path: '/home', icon: <Home size={16} /> },
         { label: 'Fechamento Diário', path: '/fechamento-diario', icon: <CheckSquare size={16} /> },
-        { label: 'Central de Execução', path: '/central-execucao', icon: <CalendarCheck size={16} /> },
-        { label: 'Carteira de Clientes', path: '/carteira-clientes', icon: <Users size={16} /> },
-        { label: 'Funil de Vendas', path: '/meu-funil', icon: <Filter size={16} /> },
-        { label: 'Relatórios', path: '/relatorios-vendedor', icon: <FileBarChart size={16} /> },
-      ],
-    },
-    {
-      category: 'EVOLUÇÃO',
-      icon: <TrendingUp size={22} />,
-      items: [
-        { label: 'Feedback', path: '/devolutivas', icon: <MessageSquare size={16} /> },
-        { label: 'PDI', path: '/pdi', icon: <TrendingUp size={16} /> },
-        { label: 'Universidade MX', path: '/universidade-mx', icon: <GraduationCap size={16} /> },
+        { label: 'Rotina do Dia', path: '/central-execucao', icon: <CalendarCheck size={16} /> },
+        { label: 'Mentor Comercial', path: '/carteira-clientes', icon: <Users size={16} /> },
+        { label: 'Minha Meta', path: '/meu-funil', icon: <Filter size={16} /> },
         { label: 'Ranking', path: '/classificacao', icon: <Trophy size={16} /> },
-      ],
-    },
-    {
-      category: 'FERRAMENTAS',
-      icon: <Bot size={22} />,
-      items: [{ label: 'Consultor IA', path: STORE_CONSULTOR_IA_PATH, icon: <Bot size={16} /> }],
-    },
-    {
-      category: 'CONTA',
-      icon: <User size={22} />,
-      items: [
+        { label: 'Universidade MX', path: '/universidade-mx', icon: <GraduationCap size={16} /> },
+        { label: 'Desenvolvimento', path: '/desenvolvimento', icon: <BookOpen size={16} /> },
+        { label: 'Ranking', path: '/classificacao', icon: <Trophy size={16} /> },
         { label: 'Meu Perfil', path: '/perfil', icon: <User size={16} /> },
-        { label: 'Configurações', path: '/configuracoes', icon: <Settings size={16} /> },
       ],
     },
   ],

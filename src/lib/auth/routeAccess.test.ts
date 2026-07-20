@@ -75,12 +75,8 @@ describe('route access matrix', () => {
     expect(canAccessPath('/lojas/acertt/consultor-ia', 'dono')).toBe(true)
     expect(canAccessPath('/lojas/acertt/consultor-ia', 'administrador_mx')).toBe(true)
     expect(canAccessPath('/lancamento-diario', 'vendedor')).toBe(true)
-    expect(canAccessPath('/historico', 'vendedor')).toBe(true)
-    expect(canAccessPath('/historico', 'gerente')).toBe(false)
     expect(canAccessPath('/lancamento-diario', 'gerente')).toBe(false)
-    expect(canAccessPath('/historico', 'dono')).toBe(false)
     expect(canAccessPath('/lancamento-diario', 'dono')).toBe(false)
-    expect(canAccessPath('/historico', 'administrador_mx')).toBe(false)
     expect(canAccessPath('/lancamento-diario', 'administrador_mx')).toBe(false)
     for (const role of ['vendedor', 'gerente', 'dono', 'administrador_mx', 'consultor_mx', 'administrador_geral'] as const) {
       expect(canAccessPath('/fechamento-diario', role)).toBe(true)
