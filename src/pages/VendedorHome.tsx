@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { chartTokens } from '@/lib/charts/tokens'
 import {
   CheckCircle2,
   Circle,
@@ -72,7 +73,7 @@ export default function VendedorHomePage() {
   ]
 
   return (
-    <div className="h-full w-full overflow-y-auto no-scrollbar" style={{ background: 'var(--color-seller-screen-bg, #f8fafc)' }}>
+    <div className="h-full w-full overflow-y-auto no-scrollbar bg-surface-alt">
       <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 pb-24 flex flex-col gap-6">
 
         {/* Header */}
@@ -206,7 +207,7 @@ export default function VendedorHomePage() {
                 className="h-full rounded-full transition-all duration-700"
                 style={{
                   width: `${Math.min(100, Math.round(disciplina))}%`,
-                  background: disciplina >= 80 ? '#10b981' : disciplina >= 50 ? '#f59e0b' : '#ef4444',
+                  background: disciplina >= 80 ? chartTokens.success() : disciplina >= 50 ? chartTokens.warning() : chartTokens.danger(),
                 }}
               />
             </div>
