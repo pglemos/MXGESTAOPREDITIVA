@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { readSimulationContext } from '@/lib/auth/simulationContext'
 import {
   canalToDb,
   financingToDb,
@@ -14,14 +15,17 @@ const missionCache = new Map()
 // isso logo após um supabase.rpc() (ex.: saveClient -> getVisualClient) faz o
 // getUser() travar indefinidamente — a chamada RPC e o getUser() disputam o
 // mesmo lock interno de sessão do supabase-js quando encadeados na mesma
-// tick. useExecutionActions (Central de Execução) evita o problema lendo o
-// id do usuário já resolvido via useAuth(); este módulo roda fora de
-// componentes React (instalado uma vez no import), então cacheamos aqui.
+// tick. A identidade simulada não é cacheada: ela pode mudar sem trocar a
+// sessão Supabase e precisa ser resolvida novamente em cada operação.
 let cachedUserIdPromise = null
+
+export function resetCarteiraAuthCache() {
+  cachedUserIdPromise = null
+}
 
 supabase.auth.onAuthStateChange((event) => {
   if (event === 'SIGNED_OUT' || event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-    cachedUserIdPromise = null
+    resetCarteiraAuthCache()
   }
 })
 
@@ -30,6 +34,35 @@ function getCurrentUserId() {
     cachedUserIdPromise = supabase.auth.getUser().then(({ data }) => data.user?.id ?? null)
   }
   return cachedUserIdPromise
+}
+
+export async function resolveCarteiraExecutionContext() {
+  const authenticatedUserId = await getCurrentUserId()
+  if (!authenticatedUserId) {
+    return {
+      authenticatedUserId: null,
+      sellerUserId: null,
+      storeId: null,
+      isSimulation: false,
+    }
+  }
+
+  const simulation = readSimulationContext()
+  if (simulation) {
+    return {
+      authenticatedUserId,
+      sellerUserId: simulation.userId,
+      storeId: simulation.storeId,
+      isSimulation: true,
+    }
+  }
+
+  return {
+    authenticatedUserId,
+    sellerUserId: authenticatedUserId,
+    storeId: null,
+    isSimulation: false,
+  }
 }
 
 function yieldSupabaseClient() {
@@ -89,13 +122,18 @@ function put(target, key, value) {
   if (value !== undefined) target[key] = value
 }
 
-function buildRpcPayload(data, clientId) {
+function buildRpcPayload(data, clientId, context) {
   const payload = {}
   const history = data.historico || null
   const nextAction = data.proximo_passo ?? data.proxima_acao
   const nextActionDate = data.proxima_acao_data ?? data.proxima_acao_em
   const channel = data.canal_comercial ?? data.canal_entrada ?? data.canal_origem
   const clientStatus = mapClientStatus(data)
+
+  if (context?.isSimulation) {
+    payload.acting_seller_user_id = context.sellerUserId
+    payload.acting_store_id = context.storeId
+  }
 
   put(payload, 'cliente_id', clientId ?? data.cliente_id)
   put(payload, 'oportunidade_id', data.oportunidade_id)
@@ -157,13 +195,16 @@ function buildRpcPayload(data, clientId) {
 }
 
 async function listVisualClients(query, order, limit) {
-  const userId = await getCurrentUserId()
-  if (!userId) return []
+  const context = await resolveCarteiraExecutionContext()
+  if (!context.sellerUserId) return []
 
-  const { data, error } = await supabase
+  let request = supabase
     .from('clientes')
     .select('*, oportunidades(*), agendamentos(*)')
-    .eq('seller_user_id', userId)
+    .eq('seller_user_id', context.sellerUserId)
+
+  if (context.storeId) request = request.eq('loja_id', context.storeId)
+  const { data, error } = await request
 
   if (error) throw error
 
@@ -179,8 +220,11 @@ async function getVisualClient(id) {
 }
 
 async function saveClient(data, clientId) {
-  const scope = clientId ? `carteira:update:${clientId}` : 'carteira:create'
-  const payload = buildRpcPayload(data, clientId)
+  const context = await resolveCarteiraExecutionContext()
+  if (!context.sellerUserId) throw new Error('Usuário não autenticado.')
+  const scopeOwner = context.sellerUserId
+  const scope = clientId ? `carteira:update:${scopeOwner}:${clientId}` : `carteira:create:${scopeOwner}`
+  const payload = buildRpcPayload(data, clientId, context)
   return carteiraMutationCoordinator.run(scope, payload, async key => {
     const { data: result, error } = await supabase.rpc('carteira_salvar_cliente_v2', {
       p_payload: payload,
@@ -287,13 +331,19 @@ async function createHistory(data) {
 }
 
 async function getSellerStoreContext() {
-  const userId = await getCurrentUserId()
-  if (!userId) return null
+  const executionContext = await resolveCarteiraExecutionContext()
+  if (!executionContext.sellerUserId) return null
+  if (executionContext.storeId) {
+    return {
+      userId: executionContext.sellerUserId,
+      storeId: executionContext.storeId,
+    }
+  }
 
   const { data, error } = await supabase
     .from('vinculos_loja')
     .select('store_id')
-    .eq('user_id', userId)
+    .eq('user_id', executionContext.sellerUserId)
     .eq('is_active', true)
     .in('role', ['vendedor', 'seller'])
     .order('created_at', { ascending: false })
@@ -301,7 +351,7 @@ async function getSellerStoreContext() {
     .maybeSingle()
 
   if (error) throw error
-  return data?.store_id ? { userId, storeId: data.store_id } : null
+  return data?.store_id ? { userId: executionContext.sellerUserId, storeId: data.store_id } : null
 }
 
 async function listArrivedVehicles(query, order, limit) {
@@ -386,14 +436,15 @@ export function installCarteiraBase44Adapter(base44) {
 
   base44.entities.CarteiraHistorico = {
     filter: async (query, order, limit) => {
-      const userId = await getCurrentUserId()
-      if (!userId) return []
+      const context = await resolveCarteiraExecutionContext()
+      if (!context.sellerUserId) return []
 
       let request = supabase
         .from('eventos_comerciais')
         .select('*')
-        .eq('seller_user_id', userId)
+        .eq('seller_user_id', context.sellerUserId)
 
+      if (context.storeId) request = request.eq('loja_id', context.storeId)
       if (query?.cliente_id) request = request.eq('cliente_id', query.cliente_id)
       const { data, error } = await request.order('data_evento', { ascending: false }).limit(limit || 100)
       if (error) throw error
@@ -404,13 +455,14 @@ export function installCarteiraBase44Adapter(base44) {
 
   base44.entities.CarteiraMissao = {
     filter: async (query, order, limit) => {
-      const userId = await getCurrentUserId()
-      if (!userId) return []
-      const { data, error } = await supabase
+      const context = await resolveCarteiraExecutionContext()
+      if (!context.sellerUserId) return []
+      let request = supabase
         .from('carteira_missoes')
         .select('*')
-        .eq('seller_user_id', userId)
-        .order('iniciada_em', { ascending: false })
+        .eq('seller_user_id', context.sellerUserId)
+      if (context.storeId) request = request.eq('loja_id', context.storeId)
+      const { data, error } = await request.order('iniciada_em', { ascending: false })
       if (error) throw error
       for (const mission of data || []) missionCache.set(mission.id, mission)
       const filtered = (data || []).filter(row => matchesQuery(row, query))
