@@ -1,5 +1,4 @@
-import React from "react";
-import { useSearchParams } from "react-router-dom";
+import React, { useState } from "react";
 import { BookOpen } from "lucide-react";
 import { SellerPageHeader } from "@/components/seller/SellerPageHeader";
 import FeedbackPage from "./FeedbackPage";
@@ -11,13 +10,7 @@ const TABS = [
 ];
 
 export default function Desenvolvimento() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const rawTab = searchParams.get("tab") || "feedback";
-  const tab = TABS.some(t => t.key === rawTab) ? rawTab : "feedback";
-
-  const setTab = (newTab) => {
-    setSearchParams({ tab: newTab });
-  };
+  const [tab, setTab] = useState("feedback");
 
   return (
 <div className="min-h-screen bg-[#F8FAFC] p-4 sm:p-6">

@@ -7,7 +7,7 @@ import {
     type NivelMaturidadeVendedor,
     type VendedorExperienciaDeclarada,
 } from '@/features/crm/lib/maturidade'
-import { atualizarTarefaTreinamento, categoriaDoTreinamento, concluirTreinamento, listarTarefasTreinamento, listarTreinamentosVendedor, type TarefaTreinamento as TarefaServico } from '@/features/universidade/services/universidade-service'
+import { atualizarTarefaTreinamento, categoriaDoTreinamento, concluirTreinamento, listarTarefasTreinamento, listarTreinamentosVendedor, type TarefaTreinamento as TarefaServico, type VendedorTreinamento } from '@/features/universidade/services/universidade-service'
 import { recomendarTreinamentos, type CompetenciaPdi, type EtapaFunilAberta, type SinaisRecomendacao } from '@/features/universidade/services/recomendacao'
 
 /**
@@ -34,6 +34,9 @@ export interface Treinamento {
     material_url: string | null
     is_live: boolean
     live_date: string | null
+    completed: boolean
+    progress_percent: number
+    completed_at: string | null
 }
 
 export interface ProgressoTreinamento {
@@ -67,67 +70,74 @@ export function useVendedorTreinamentos() {
         if (!supabaseUser?.id) { setLoading(false); return }
         setLoading(true)
 
-        const [trainingsResult, perfilRes, oportunidadesRes, devolutivasRes, pdiRes] = await Promise.all([
-            listarTreinamentosVendedor(supabase, supabaseUser.id),
-            supabase
-                .from('vendedor_perfil')
-                .select('tempo_mercado_anos, experiencia_declarada, cargo_atual')
-                .eq('seller_user_id', supabaseUser.id)
-                .maybeSingle(),
-            supabase
-                .from('clientes_oportunidades')
-                .select('etapa')
-                .eq('seller_user_id', supabaseUser.id)
-                .is('data_venda', null)
-                .not('etapa', 'in', '("ganho","perdido")'),
-            supabase
-                .from('devolutiva_acoes')
-                .select('id', { count: 'exact', head: true })
-                .eq('seller_id', supabaseUser.id)
-                .eq('status', 'pendente'),
-            supabase
-                .from('pdis')
-                .select('comp_prospeccao,comp_abordagem,comp_demonstracao,comp_negociacao,comp_fechamento,comp_crm,comp_digital,comp_produto,comp_organizacao,comp_disciplina')
-                .eq('seller_id', supabaseUser.id)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .maybeSingle(),
-        ])
+        try {
+            const [trainingsResult, perfilRes, oportunidadesRes, devolutivasRes, pdiRes] = await Promise.all([
+                listarTreinamentosVendedor(supabase, supabaseUser.id).catch(() => []),
+                supabase
+                    .from('vendedor_perfil')
+                    .select('tempo_mercado_anos, experiencia_declarada, cargo_atual')
+                    .eq('seller_user_id', supabaseUser.id)
+                    .maybeSingle(),
+                supabase
+                    .from('clientes_oportunidades')
+                    .select('etapa')
+                    .eq('seller_user_id', supabaseUser.id)
+                    .is('data_venda', null)
+                    .not('etapa', 'in', '("ganho","perdido")'),
+                supabase
+                    .from('devolutiva_acoes')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('seller_id', supabaseUser.id)
+                    .eq('status', 'pendente'),
+                supabase
+                    .from('pdis')
+                    .select('comp_prospeccao,comp_abordagem,comp_demonstracao,comp_negociacao,comp_fechamento,comp_crm,comp_digital,comp_produto,comp_organizacao,comp_disciplina')
+                    .eq('seller_id', supabaseUser.id)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle(),
+            ])
 
-        const mappedTrainings: Treinamento[] = trainingsResult
-        setTrainings(mappedTrainings)
-        setProgress(trainingsResult.map(p => ({ id: p.id, training_id: p.id, status: p.completed ? 'concluido' : 'pendente', progress_percent: p.progress_percent, completed_at: p.completed_at, completed: p.completed })))
+            const mappedTrainings: Treinamento[] = Array.isArray(trainingsResult) ? trainingsResult : []
+            setTrainings(mappedTrainings)
+            setProgress(mappedTrainings.map(p => ({ id: p.id, training_id: p.id, status: p.completed ? 'concluido' : 'pendente', progress_percent: p.progress_percent, completed_at: p.completed_at, completed: p.completed })))
 
-        const perfil = perfilRes.data as {
-            tempo_mercado_anos: number | null
-            experiencia_declarada: VendedorExperienciaDeclarada | null
-            cargo_atual: string | null
-        } | null
-        setNivelMaturidade(derivarNivelMaturidadeVendedor({
-            tempo_mercado_anos: perfil?.tempo_mercado_anos ?? null,
-            experiencia_declarada: perfil?.experiencia_declarada ?? null,
-            cargo_atual: perfil?.cargo_atual ?? null,
-        }))
+            const perfil = perfilRes.data as {
+                tempo_mercado_anos: number | null
+                experiencia_declarada: VendedorExperienciaDeclarada | null
+                cargo_atual: string | null
+            } | null
+            setNivelMaturidade(derivarNivelMaturidadeVendedor({
+                tempo_mercado_anos: perfil?.tempo_mercado_anos ?? null,
+                experiencia_declarada: perfil?.experiencia_declarada ?? null,
+                cargo_atual: perfil?.cargo_atual ?? null,
+            }))
 
-        const etapasAbertas: Partial<Record<EtapaFunilAberta, number>> = {}
-        for (const row of oportunidadesRes.data ?? []) {
-            const etapa = row.etapa as EtapaFunilAberta | null
-            if (!etapa) continue
-            etapasAbertas[etapa] = (etapasAbertas[etapa] ?? 0) + 1
-        }
-        setSinais({
-            etapasAbertas,
-            devolutivaAcoesPendentes: devolutivasRes.count ?? 0,
-            competenciasPdi: (pdiRes.data as Partial<Record<CompetenciaPdi, number>> | null) ?? null,
-        })
+            const etapasAbertas: Partial<Record<EtapaFunilAberta, number>> = {}
+            for (const row of oportunidadesRes.data ?? []) {
+                const etapa = row.etapa as EtapaFunilAberta | null
+                if (!etapa) continue
+                etapasAbertas[etapa] = (etapasAbertas[etapa] ?? 0) + 1
+            }
+            setSinais({
+                etapasAbertas,
+                devolutivaAcoesPendentes: devolutivasRes.count ?? 0,
+                competenciasPdi: (pdiRes.data as Partial<Record<CompetenciaPdi, number>> | null) ?? null,
+            })
 
-        if (mappedTrainings.length > 0) {
-            setTarefas(await listarTarefasTreinamento(supabase, supabaseUser.id, mappedTrainings.map(t => t.id)) as TarefaServico[])
-        } else {
+            if (mappedTrainings.length > 0) {
+                const tarefasResult = await listarTarefasTreinamento(supabase, supabaseUser.id, mappedTrainings.map(t => t.id)).catch(() => [])
+                setTarefas(Array.isArray(tarefasResult) ? tarefasResult as TarefaServico[] : [])
+            } else {
+                setTarefas([])
+            }
+        } catch {
+            setTrainings([])
+            setProgress([])
             setTarefas([])
+        } finally {
+            setLoading(false)
         }
-
-        setLoading(false)
     }, [supabaseUser?.id])
 
     useEffect(() => { fetchAll() }, [fetchAll])
@@ -161,7 +171,7 @@ export function useVendedorTreinamentos() {
         return recomendarTreinamentos(
             trainings.map(t => ({ id: t.id, title: t.title, category: t.category, level: t.level, completed: completedIds.has(t.id) })),
             { ...sinais, nivelMaturidade },
-        ).map(rec => ({ ...rec, training: porId.get(rec.id)! }))
+        ).map(rec => ({ ...rec, training: porId.get(rec.id) })).filter(rec => rec.training !== undefined)
     }, [trainings, completedIds, sinais, nivelMaturidade])
 
     return {

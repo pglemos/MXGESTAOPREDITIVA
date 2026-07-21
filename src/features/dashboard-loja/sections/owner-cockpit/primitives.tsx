@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
-import { Bell, CalendarDays, CircleHelp, Filter, Search } from 'lucide-react'
-import { Button } from '@/components/atoms/Button'
+import { CalendarDays, CircleHelp, Search } from 'lucide-react'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
 import { PageHeading } from '@/components/molecules/PageHeading'
@@ -12,52 +11,32 @@ import { greeting, scoreStatus } from './format'
 export function OwnerCockpitHeader({
   name,
   periodLabel,
-  alertCount,
-  storeName,
 }: {
   name: string
   periodLabel: string
-  alertCount: number
-  storeName: string
 }) {
   return (
     <PageHeading
-      title={<>{greeting()}, <span className="text-brand-primary">{name.split(' ')[0]}</span>!</>}
-      subtitle={`PANORAMA HOJE DA LOJA ${storeName.toUpperCase()}`}
+      title={<>{greeting()}, <span className="text-brand-primary">{name.split(' ')[0]}</span>! 👋</>}
+      subtitle="Aqui está o panorama da sua loja hoje."
       actions={(
-        <div className="flex flex-wrap items-center gap-mx-sm">
-          <Button type="button" variant="outline" className="h-mx-11 rounded-mx-xl bg-white border-border-subtle hover:bg-surface-alt">
-            <Filter size={16} />
-            Filtros
-          </Button>
-          <div className="h-mx-11 rounded-mx-xl border border-border-subtle bg-white px-mx-md shadow-mx-sm flex items-center gap-mx-sm">
-            <Typography variant="tiny" tone="muted" className="font-black uppercase">Período:</Typography>
-            <Typography variant="tiny" className="font-black">{periodLabel}</Typography>
-            <CalendarDays size={16} className="text-text-tertiary" />
-          </div>
-          <button
-            type="button"
-            className="relative h-mx-11 w-mx-11 rounded-mx-xl border border-border-subtle bg-white text-text-primary shadow-mx-sm flex items-center justify-center hover:bg-surface-alt"
-            aria-label={`${alertCount} alertas importantes`}
-          >
-            <Bell size={20} />
-            {alertCount > 0 && (
-              <span className="absolute -right-1 -top-1 min-w-mx-6 h-mx-6 rounded-mx-full bg-status-error px-1 text-white text-mx-micro font-black flex items-center justify-center">
-                {alertCount}
-              </span>
-            )}
-          </button>
-          <button
-            type="button"
-            className="h-mx-11 w-mx-11 rounded-mx-xl border border-border-subtle bg-white text-text-primary shadow-mx-sm flex items-center justify-center hover:bg-surface-alt"
-            aria-label="Ajuda da visão do dono"
-          >
-            <CircleHelp size={20} />
-          </button>
+        <div className="h-mx-11 rounded-mx-full border border-border-subtle bg-white px-mx-md shadow-mx-sm flex items-center gap-mx-xs">
+          <CalendarDays size={16} className="text-text-tertiary" />
+          <Typography variant="tiny" className="font-black">{periodLabel}</Typography>
         </div>
       )}
     />
   )
+}
+
+const statusDotClasses: Record<KpiTone, string> = {
+  success: 'bg-status-success',
+  info: 'bg-status-info',
+  warning: 'bg-status-warning',
+  danger: 'bg-status-error',
+  muted: 'bg-border-default',
+  brand: 'bg-brand-primary',
+  purple: 'bg-[var(--color-accent-purple)]',
 }
 
 export function OwnerKpiCard({
@@ -68,21 +47,34 @@ export function OwnerKpiCard({
   tone,
   chart = 'line',
   seed,
+  showStatusDot = true,
+  statusTone,
 }: {
   title: string
   value: string
   detail: string
   icon: ReactNode
+  /** Cor decorativa do label/ícone/sparkline */
   tone: KpiTone
   /** 'line' = sparkline curva com gradient | 'bars' = mini bar chart */
   chart?: 'line' | 'bars'
   /** Seed para variar o shape do sparkline entre cards do mesmo tone */
   seed?: number
+  /** Dot de status no canto superior direito (verde/âmbar/vermelho) */
+  showStatusDot?: boolean
+  /** Tone do dot de status, quando diferente do tone decorativo (ex.: card com acento roxo mas status verde) */
+  statusTone?: KpiTone
 }) {
   const classes = toneClasses[tone]
   const vivid = vividIconClasses[tone]
   return (
-    <Card className="min-h-[140px] rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
+    <Card className="relative min-h-[140px] rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
+      {showStatusDot && (
+        <span
+          className={cn('absolute right-mx-sm top-mx-sm h-mx-6 w-mx-6 rounded-mx-full', statusDotClasses[statusTone ?? tone])}
+          aria-hidden="true"
+        />
+      )}
       <div className="flex items-start justify-between gap-mx-sm">
         <div className="min-w-0 flex-1">
           <Typography variant="p" className={cn('block text-sm font-black', classes.text)}>
@@ -149,50 +141,51 @@ export function MXScoreCompact({ score }: { score: number | null }) {
   const safeScore = Math.min(Math.max(Math.round(score ?? 0), 0), 100)
   const status = scoreStatus(score)
   const statusColor = safeScore >= 75 ? 'text-status-success' : safeScore >= 60 ? 'text-status-warning' : 'text-status-error'
-  // Semicircular pointer angle (mockup): 180deg (left, score=0) → 0deg (right, score=100)
-  const cx = 70
-  const cy = 70
-  const radius = 58
-  const strokeWidth = 12
-  const pointerAngleDeg = 180 - (safeScore / 100) * 180
-  const pointerRad = (pointerAngleDeg * Math.PI) / 180
-  const pointerX = cx + (radius - strokeWidth / 2) * Math.cos(pointerRad)
-  const pointerY = cy - (radius - strokeWidth / 2) * Math.sin(pointerRad)
+  const cx = 60
+  const cy = 60
+  const radius = 50
+  const strokeWidth = 11
+  const circumference = 2 * Math.PI * radius
+  const dashOffset = circumference * (1 - safeScore / 100)
   return (
-    <Card className="min-h-[140px] rounded-mx-lg p-mx-md text-white border border-white/10" style={{ background: 'linear-gradient(160deg, var(--color-sidebar-bg) 0%, var(--color-sidebar-bg-strong) 100%)' }}>
+    <Card className="min-h-[140px] rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
       <div className="flex items-center justify-between">
-        <Typography variant="tiny" tone="white" className="font-black uppercase tracking-widest opacity-90">
+        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">
           MX Score da Loja
         </Typography>
-        <CircleHelp size={14} className="text-white/50" />
+        <CircleHelp size={14} className="text-text-tertiary" />
       </div>
       <div className="mt-mx-sm flex flex-col items-center">
-        <svg viewBox="0 0 140 85" width="140" height="85" role="img" aria-label={`MX Score ${safeScore}: ${status}`}>
-          <defs>
-            <linearGradient id="owner-mx-gauge-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor={chartTokens.danger()} />
-              <stop offset="50%" stopColor={chartTokens.warning()} />
-              <stop offset="100%" stopColor={chartTokens.success()} />
-            </linearGradient>
-          </defs>
-          <path
-            d={`M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`}
-            fill="none"
-            stroke="url(#owner-mx-gauge-grad)"
-            strokeWidth={strokeWidth}
-            strokeLinecap="round"
-          />
-          <circle cx={pointerX} cy={pointerY} r={5} fill="var(--color-pure-white)" />
-          <circle cx={pointerX} cy={pointerY} r={2.5} fill="var(--color-sidebar-bg)" />
-        </svg>
-        <div className="-mt-mx-sm flex flex-col items-center">
-          <div className="text-3xl font-black font-mono-numbers leading-none">{score ?? '--'}</div>
-          <Typography variant="tiny" className={cn('mt-mx-tiny block font-black uppercase tracking-widest', statusColor)}>{status}</Typography>
+        <div className="relative" style={{ width: 120, height: 120 }}>
+          <svg viewBox="0 0 120 120" width="120" height="120" role="img" aria-label={`MX Score ${safeScore}: ${status}`}>
+            <circle cx={cx} cy={cy} r={radius} fill="none" stroke="var(--color-border-subtle)" strokeWidth={strokeWidth} />
+            <circle
+              cx={cx}
+              cy={cy}
+              r={radius}
+              fill="none"
+              stroke={
+                score === null
+                  ? 'var(--color-border-subtle)'
+                  : safeScore >= 75
+                    ? chartTokens.success()
+                    : safeScore >= 60
+                      ? chartTokens.warning()
+                      : chartTokens.danger()
+              }
+              strokeWidth={strokeWidth}
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={dashOffset}
+              transform={`rotate(-90 ${cx} ${cy})`}
+            />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <div className="text-3xl font-black font-mono-numbers leading-none text-text-primary">{score ?? '--'}</div>
+            <Typography variant="tiny" className={cn('mt-mx-tiny block font-black uppercase tracking-widest', statusColor)}>{status}</Typography>
+          </div>
         </div>
       </div>
-      <Typography variant="tiny" tone="white" className="mt-mx-xs block text-center opacity-75 normal-case tracking-normal">
-        ▲ Score automático
-      </Typography>
     </Card>
   )
 }

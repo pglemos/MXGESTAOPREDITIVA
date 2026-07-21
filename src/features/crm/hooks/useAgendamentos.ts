@@ -63,14 +63,20 @@ export function useAgendamentos() {
   const fetchAgendamentos = useCallback(async () => {
     if (!supabaseUser) { setAgendamentos([]); setLoading(false); return }
     setLoading(true); setError(null)
-    const { data, error: fetchError } = await supabase
-      .from('agendamentos')
-      .select('*, cliente:clientes(nome, telefone), oportunidade:oportunidades(veiculo_interesse, valor_negociado)')
-      .eq('seller_user_id', supabaseUser.id)
-      .order('data_hora', { ascending: true })
-    if (fetchError) { setError(fetchError.message); setAgendamentos([]) }
-    else setAgendamentos(parse(data))
-    setLoading(false)
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('agendamentos')
+        .select('*, cliente:clientes(nome, telefone), oportunidade:oportunidades(veiculo_interesse, valor_negociado)')
+        .eq('seller_user_id', supabaseUser.id)
+        .order('data_hora', { ascending: true })
+      if (fetchError) { setError(fetchError.message); setAgendamentos([]) }
+      else setAgendamentos(parse(data))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao carregar agendamentos')
+      setAgendamentos([])
+    } finally {
+      setLoading(false)
+    }
   }, [supabaseUser])
 
   const createAgendamento = useCallback(async (input: AgendamentoInput): Promise<{ error: string | null }> => {

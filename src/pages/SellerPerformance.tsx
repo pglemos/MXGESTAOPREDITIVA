@@ -35,8 +35,11 @@ export default function SellerPerformance() {
 
     const handleRefresh = async () => {
         setIsRefetching(true)
-        await refetch()
-        setIsRefetching(false)
+        try {
+            await refetch()
+        } finally {
+            setIsRefetching(false)
+        }
     }
 
     const seller = useMemo(() => {
@@ -52,9 +55,11 @@ export default function SellerPerformance() {
 
     const attributes = useMemo(() => {
         if (!seller) return []
+        const volumeRaw = seller.leads + seller.visitas
+        const volumeNormalized = volumeRaw > 0 ? Math.min((volumeRaw / 100) * 100, 100) : 0
         return [
             { subject: 'Atingimento', A: Math.min(seller.atingimento, 100), fullMark: 100 },
-            { subject: 'Volume', A: Math.min(((seller.leads + seller.visitas) / 100) * 100, 100), fullMark: 100 },
+            { subject: 'Volume', A: volumeNormalized, fullMark: 100 },
             { subject: 'Conversão', A: seller.leads > 0 ? Math.min((seller.vnd_total / seller.leads) * 100, 100) : 0, fullMark: 100 },
             { subject: 'Ritmo', A: Math.min(seller.ritmo * 10, 100), fullMark: 100 },
             { subject: 'Visitas', A: Math.min(seller.visitas * 5, 100), fullMark: 100 },

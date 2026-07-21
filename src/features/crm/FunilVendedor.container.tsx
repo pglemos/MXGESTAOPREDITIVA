@@ -83,8 +83,8 @@ const STAGE_ORDER: Record<string, number> = {
   apresentacao: 2,
   negociacao: 3,
   fechamento: 4,
-  ganho: 5,
   perdido: 5,
+  ganho: 6,
 }
 
 const PCT = (value: number) => `${value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%`

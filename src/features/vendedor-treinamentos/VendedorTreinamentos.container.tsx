@@ -153,7 +153,7 @@ export default function VendedorTreinamentosContainer() {
     const tarefasDaAula = selectedTraining ? tarefas.filter(t => t.training_id === selectedTraining.id) : []
     const totalTarefasConcluidas = tarefas.filter(t => t.concluida).length
     const recommendedTrainings = recomendacoes.length > 0
-        ? recomendacoes.map(item => item.training)
+        ? recomendacoes.map(item => item.training).filter((t): t is Treinamento => t !== undefined)
         : trainings.filter(item => !completedIds.has(item.id)).slice(0, 4)
 
     const openTraining = async (training: Treinamento) => {

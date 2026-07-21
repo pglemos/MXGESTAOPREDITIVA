@@ -23,18 +23,23 @@ export function useGoals(storeIdOverride?: string) {
             return
         }
         setLoading(true)
-        const { data } = await supabase
-            .from('regras_metas_loja')
-            .select('monthly_goal, projection_mode')
-            .eq('store_id', storeId)
-            .maybeSingle()
+        try {
+            const { data } = await supabase
+                .from('regras_metas_loja')
+                .select('monthly_goal, projection_mode')
+                .eq('store_id', storeId)
+                .maybeSingle()
 
-        if (data) {
-            setStoreGoal({ target: data.monthly_goal || 0, projection_mode: data.projection_mode || 'calendar' })
-        } else {
+            if (data) {
+                setStoreGoal({ target: data.monthly_goal || 0, projection_mode: data.projection_mode || 'calendar' })
+            } else {
+                setStoreGoal({ target: 0, projection_mode: 'calendar' })
+            }
+        } catch {
             setStoreGoal({ target: 0, projection_mode: 'calendar' })
+        } finally {
+            setLoading(false)
         }
-        setLoading(false)
     }, [storeId])
 
     const upsertGoal = async (formData: { store_id: string; target: number }): Promise<{ error: string | null }> => {

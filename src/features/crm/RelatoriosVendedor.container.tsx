@@ -62,13 +62,13 @@ export function RelatoriosVendedor() {
       <div className="flex flex-col gap-mx-lg pb-28">
 <SellerPageHeader icon={BarChart3} title="Relatórios" subtitle="Visão consolidada da sua performance comercial, com dados reais." />
 
-        <section className="grid grid-cols-2 gap-mx-md md:grid-cols-3 xl:grid-cols-6" aria-label="KPIs">
+        <section className="grid grid-cols-2 gap-mx-md md:grid-cols-3 xl:grid-cols-4" aria-label="KPIs">
           <StatCard tone="blue" icon={<Users size={22} />} label="Clientes" value={String(clienteMetrics.total)} />
           <StatCard tone="brand" icon={<Target size={22} />} label="Oportunidades" value={String(funil.totalOportunidades)} />
           <StatCard tone="green" icon={<TrendingUp size={22} />} label="Taxa Conversão" value={`${funil.taxaConversaoGeral}%`} />
           <StatCard tone="green" icon={<DollarSign size={22} />} label="Ticket Médio" value={BRL(funil.ticketMedio)} />
           <StatCard tone="green" icon={<ShoppingBag size={22} />} label="Vendas realizadas" value={String(officialPerformance?.vendas_realizadas ?? funil.ganhos.quantidade)} detail={BRL(officialPerformance?.faturamento_realizado ?? funil.ganhos.valor)} />
-          <StatCard tone="blue" icon={<TrendingUp size={22} />} label="Vendas projetadas" value={String(Math.round(officialPerformance?.vendas_projetadas ?? 0))} />
+          <StatCard tone="blue" icon={<TrendingUp size={22} />} label="Vendas projetadas" value={officialPerformance ? String(Math.round(officialPerformance.vendas_projetadas)) : '—'} />
           <StatCard tone="orange" icon={<Phone size={22} />} label="Atendimentos hoje" value={String(porCanal.total)} />
         </section>
 

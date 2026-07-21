@@ -147,14 +147,20 @@ export function useOportunidades() {
   const fetchOportunidades = useCallback(async () => {
     if (!supabaseUser) { setOportunidades([]); setLoading(false); return }
     setLoading(true); setError(null)
-    const { data, error: fetchError } = await supabase
-      .from('oportunidades')
-      .select('*, cliente:clientes(nome, telefone)')
-      .eq('seller_user_id', supabaseUser.id)
-      .order('updated_at', { ascending: false })
-    if (fetchError) { setError(fetchError.message); setOportunidades([]) }
-    else setOportunidades(parse(data))
-    setLoading(false)
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('oportunidades')
+        .select('*, cliente:clientes(nome, telefone)')
+        .eq('seller_user_id', supabaseUser.id)
+        .order('updated_at', { ascending: false })
+      if (fetchError) { setError(fetchError.message); setOportunidades([]) }
+      else setOportunidades(parse(data))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao carregar oportunidades')
+      setOportunidades([])
+    } finally {
+      setLoading(false)
+    }
   }, [supabaseUser])
 
   const createOportunidade = useCallback(async (input: OportunidadeInput): Promise<{ error: string | null; id?: string }> => {

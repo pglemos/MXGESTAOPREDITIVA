@@ -64,30 +64,43 @@ export default function PDIPage({ hideHeader = false }) {
   const savePDI = async (data) => {
     if (!canEdit) return;
     setSaving(true);
-    if (pdi?.id) {
-      const updated = await base44.entities.PDI.update(pdi.id, data);
-      setPdi(updated);
-    } else {
-      const created = await base44.entities.PDI.create(data);
-      setPdi(created);
+    try {
+      if (pdi?.id) {
+        const updated = await base44.entities.PDI.update(pdi.id, data);
+        setPdi(updated);
+      } else {
+        const created = await base44.entities.PDI.create(data);
+        setPdi(created);
+      }
+      toast({ title: "PDI salvo!" });
+    } catch (error) {
+      toast({ title: "Erro ao salvar PDI", variant: "destructive" });
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    toast({ title: "PDI salvo!" });
   };
 
   const createAction = async () => {
     if (!canEdit) return;
-    const created = await base44.entities.ActionPlan.create(newAction);
-    setActions(prev => [created, ...prev]);
-    setNewAction({ action: "", competency: "", description: "", deadline: "", status: "Pendente", progress: 0 });
-    setDialogOpen(false);
-    toast({ title: "Ação criada!" });
+    try {
+      const created = await base44.entities.ActionPlan.create(newAction);
+      setActions(prev => [created, ...prev]);
+      setNewAction({ action: "", competency: "", description: "", deadline: "", status: "Pendente", progress: 0 });
+      setDialogOpen(false);
+      toast({ title: "Ação criada!" });
+    } catch (error) {
+      toast({ title: "Erro ao criar ação", variant: "destructive" });
+    }
   };
 
   const updateActionStatus = async (id, status, progress) => {
     if (!canEdit) return;
-    await base44.entities.ActionPlan.update(id, { status, progress });
-    setActions(prev => prev.map(a => a.id === id ? { ...a, status, progress } : a));
+    try {
+      await base44.entities.ActionPlan.update(id, { status, progress });
+      setActions(prev => prev.map(a => a.id === id ? { ...a, status, progress } : a));
+    } catch (error) {
+      toast({ title: "Erro ao atualizar ação", variant: "destructive" });
+    }
   };
 
   if (loading) {
@@ -98,12 +111,13 @@ export default function PDIPage({ hideHeader = false }) {
   const techData = techCompetencies.map(c => ({ subject: c.label, value: currentPDI[c.key] || 5, target: 10 }));
   const behavData = behavCompetencies.map(c => ({ subject: c.label, value: currentPDI[c.key] || 5, target: 10 }));
 
-  const CompetencySlider = ({ comp, value, onChange, disabled = false }) => (
+  const CompetencySlider = ({ comp, value, onChange, onCommit, disabled = false }) => (
     <div className="flex items-center gap-4">
       <span className="text-sm text-slate-600 w-32 flex-shrink-0">{comp.label}</span>
       <Slider
         value={[value]}
         onValueChange={v => onChange(v[0])}
+        onValueCommit={v => onCommit?.(v[0])}
         max={10}
         min={1}
         step={1}
@@ -184,8 +198,9 @@ export default function PDIPage({ hideHeader = false }) {
                 comp={c}
                 value={currentPDI[c.key] || 5}
                 onChange={v => {
-                  const data = { ...currentPDI, [c.key]: v };
-                  setPdi(data);
+                  setPdi(prev => ({ ...prev, [c.key]: v }));
+                }}
+                onCommit={v => {
                   savePDI({ [c.key]: v });
                 }}
                 disabled={!canEdit}
@@ -215,8 +230,9 @@ export default function PDIPage({ hideHeader = false }) {
                 comp={c}
                 value={currentPDI[c.key] || 5}
                 onChange={v => {
-                  const data = { ...currentPDI, [c.key]: v };
-                  setPdi(data);
+                  setPdi(prev => ({ ...prev, [c.key]: v }));
+                }}
+                onCommit={v => {
                   savePDI({ [c.key]: v });
                 }}
                 disabled={!canEdit}

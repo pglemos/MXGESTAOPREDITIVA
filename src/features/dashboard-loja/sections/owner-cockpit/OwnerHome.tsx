@@ -66,6 +66,7 @@ export function OwnerHome({
           tone={grossProfit === undefined ? 'muted' : 'success'}
           chart="line"
           seed={1}
+          showStatusDot={grossProfit !== undefined}
         />
         <OwnerKpiCard
           title="Volume de Vendas"
@@ -73,9 +74,11 @@ export function OwnerHome({
           detail={data.metrics.goalValue > 0 ? `${data.metrics.attainment}% da meta` : '▲ vs mês anterior'}
           icon={<ShoppingCart size={20} />}
           tone="purple"
+          statusTone={data.metrics.attainment >= 100 ? 'success' : data.metrics.attainment >= 60 ? 'warning' : 'danger'}
           chart="bars"
           seed={3}
         />
+        {/* TODO: sem pipeline de dado de estoque/veículos parados no app — nenhuma tabela/hook expõe idade de estoque hoje */}
         <OwnerKpiCard
           title="Estoque (Unid.)"
           value="--"
@@ -84,6 +87,7 @@ export function OwnerHome({
           tone="muted"
           chart="line"
           seed={4}
+          showStatusDot={false}
         />
         <MXScoreCompact score={mxScore} />
       </div>

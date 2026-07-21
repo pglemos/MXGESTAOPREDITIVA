@@ -48,15 +48,21 @@ export function useOfficialSellerPerformance(startDate: string, endDate: string,
     }
 
     setLoading(true)
-    const { data, error: rpcError } = await supabase.rpc('vendedor_performance_oficial', {
-      p_start_date: startDate,
-      p_end_date: endDate,
-      p_seller_id: sellerId || null,
-      p_store_id: storeId || null,
-    })
-    setError(rpcError?.message || null)
-    setRows(rpcError ? [] : ((data || []) as Record<string, unknown>[]).map(normalize))
-    setLoading(false)
+    try {
+      const { data, error: rpcError } = await supabase.rpc('vendedor_performance_oficial', {
+        p_start_date: startDate,
+        p_end_date: endDate,
+        p_seller_id: sellerId || null,
+        p_store_id: storeId || null,
+      })
+      setError(rpcError?.message || null)
+      setRows(rpcError ? [] : ((data || []) as Record<string, unknown>[]).map(normalize))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao carregar performance')
+      setRows([])
+    } finally {
+      setLoading(false)
+    }
   }, [endDate, sellerId, startDate, storeId])
 
   useEffect(() => { void fetchPerformance() }, [fetchPerformance, profile?.id])

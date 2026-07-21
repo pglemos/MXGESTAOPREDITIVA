@@ -102,7 +102,6 @@ export default function OwnerBase44Route() {
   }, [alerts, centralMx.alerts])
   const actions = useMemo(() => centralMx.actionPlanItems.map(actionFromEngine), [centralMx.actionPlanItems])
   const mxScore = centralMx.scores.store.value
-  const criticalAlerts = ownerAlerts.filter((alert) => alert.variant === 'danger' || alert.variant === 'warning')
   const { surface, detail } = resolveSurface(params['*'])
   const selectedDepartmentCode = surface === 'departamentos' && detail ? detail : null
   const [consultantModalOpen, setConsultantModalOpen] = useState(false)
@@ -180,8 +179,6 @@ export default function OwnerBase44Route() {
             <OwnerCockpitHeader
               name={profile?.name || 'Diretor'}
               periodLabel={periodLabel}
-              alertCount={criticalAlerts.length}
-              storeName={data.metrics.storeName}
             />
             {page}
           </section>

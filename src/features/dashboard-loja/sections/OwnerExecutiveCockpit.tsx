@@ -83,7 +83,6 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
   }, [alerts, centralMx.alerts])
   const actions = useMemo(() => centralMx.actionPlanItems.map(actionFromEngine), [centralMx.actionPlanItems])
   const mxScore = centralMx.scores.store.value
-  const criticalAlerts = ownerAlerts.filter((alert) => alert.variant === 'danger' || alert.variant === 'warning')
   const section = getOwnerSection(location.search)
   const selectedDepartmentCode = getOwnerDepartmentCode(location.search)
 
@@ -110,8 +109,6 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
       <OwnerCockpitHeader
         name={profile?.name || 'Diretor'}
         periodLabel={periodLabel}
-        alertCount={criticalAlerts.length}
-        storeName={data.metrics.storeName}
       />
 
       {section === 'home' && (

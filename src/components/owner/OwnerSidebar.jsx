@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import {
   BarChart3,
-  Bot,
   Boxes,
   CalendarClock,
   CheckSquare2,
@@ -23,7 +22,7 @@ const departmentChildren = [
   { label: 'Comercial', segment: 'departamentos/comercial' },
   { label: 'Marketing', segment: 'departamentos/marketing' },
   { label: 'Produto e Estoque', segment: 'departamentos/produto' },
-  { label: 'Pessoas / RH', segment: 'departamentos/rh' },
+  { label: 'Pessoas — RH', segment: 'departamentos/rh' },
   { label: 'Financeiro', segment: 'departamentos/financeiro' },
   { label: 'Operações', segment: 'departamentos/operacional' },
 ]
@@ -43,15 +42,15 @@ const groups = [
       { label: 'Plano Estratégico', segment: 'plano-estrategico', icon: Target },
       { label: 'Plano de Ação', segment: 'plano-acao', icon: CheckSquare2 },
       { label: 'Consultoria', segment: 'consultoria', icon: MessageCircle },
-      { label: 'Consultor', segment: 'consultor', icon: Bot },
     ],
   },
   {
     label: 'NEGÓCIO',
-    items: [
+    items: [],
+    departments: true,
+    trailingItems: [
       { label: 'Mercado', segment: 'mercado', icon: BarChart3, badge: 'Em construção' },
     ],
-    departments: true,
   },
   {
     label: 'DESENVOLVIMENTO',
@@ -80,42 +79,43 @@ export default function OwnerSidebar({ storeSlug, open, onClose }) {
         onClick={onClose}
       />
       <aside className={`owner-base44-exact__sidebar ${open ? 'is-open' : ''}`} aria-label="Menu principal do Dono">
-        <div className="owner-base44-exact__brand">
-          <div className="owner-base44-exact__brand-mark" aria-hidden="true">MX</div>
-          <div>
-            <strong>MX PERFORMANCE</strong>
-            <span>Gestão Preditiva</span>
-          </div>
-          <button type="button" className="owner-base44-exact__sidebar-close" onClick={onClose} aria-label="Fechar menu">
-            <X size={20} />
-          </button>
-        </div>
+        <button
+          type="button"
+          className="owner-base44-exact__sidebar-close"
+          onClick={onClose}
+          aria-label="Fechar menu"
+        >
+          <X size={20} />
+        </button>
 
         <nav className="owner-base44-exact__nav">
-          {groups.map((group) => (
+          {groups.map((group) => {
+            const renderItem = (item) => {
+              const Icon = item.icon
+              const path = item.segment ? `${basePath}/${item.segment}` : basePath
+              return (
+                <NavLink
+                  key={item.label}
+                  to={path}
+                  end={item.end}
+                  onClick={onClose}
+                  className={({ isActive }) => [
+                    'owner-base44-exact__nav-item',
+                    isActive ? 'is-active' : '',
+                  ].filter(Boolean).join(' ')}
+                >
+                  <Icon size={18} strokeWidth={1.8} aria-hidden="true" />
+                  <span>{item.label}</span>
+                  {item.badge ? <span className="owner-base44-exact__nav-badge">{item.badge}</span> : null}
+                </NavLink>
+              )
+            }
+
+            return (
             <section key={group.label} className="owner-base44-exact__nav-group">
               <h2>{group.label}</h2>
               <div>
-                {group.items.map((item) => {
-                  const Icon = item.icon
-                  const path = item.segment ? `${basePath}/${item.segment}` : basePath
-                  return (
-                    <NavLink
-                      key={item.label}
-                      to={path}
-                      end={item.end}
-                      onClick={onClose}
-                      className={({ isActive }) => [
-                        'owner-base44-exact__nav-item',
-                        isActive ? 'is-active' : '',
-                      ].filter(Boolean).join(' ')}
-                    >
-                      <Icon size={18} strokeWidth={1.8} aria-hidden="true" />
-                      <span>{item.label}</span>
-                      {item.badge ? <span className="owner-base44-exact__nav-badge">{item.badge}</span> : null}
-                    </NavLink>
-                  )
-                })}
+                {group.items.map(renderItem)}
 
                 {group.departments ? (
                   <>
@@ -155,9 +155,12 @@ export default function OwnerSidebar({ storeSlug, open, onClose }) {
                     ) : null}
                   </>
                 ) : null}
+
+                {group.trailingItems ? group.trailingItems.map(renderItem) : null}
               </div>
             </section>
-          ))}
+            )
+          })}
         </nav>
 
         <div className="owner-base44-exact__sidebar-footer">

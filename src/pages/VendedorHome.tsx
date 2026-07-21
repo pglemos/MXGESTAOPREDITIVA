@@ -20,8 +20,6 @@ import {
 import { useAuth } from '@/hooks/useAuth'
 import { useVendedorHomePage } from '@/features/vendedor-home/hooks/useVendedorHomePage'
 import { useAgendamentos } from '@/features/crm/hooks/useAgendamentos'
-import { useOportunidades } from '@/features/crm/hooks/useOportunidades'
-import { useRanking } from '@/hooks/useRanking'
 
 function saudacao() {
   const h = new Date().getHours()
@@ -49,8 +47,6 @@ export default function VendedorHomePage() {
   const { profile } = useAuth()
   const home = useVendedorHomePage()
   const { agendamentos, metrics: agendaMetrics } = useAgendamentos()
-  const { oportunidades } = useOportunidades()
-  const { ranking } = useRanking()
 
   const firstName = profile?.name?.trim().split(/\s+/)[0] || 'Vendedor'
 
@@ -71,15 +67,15 @@ export default function VendedorHomePage() {
   const agendaHoje = useMemo(() => agendamentos.filter(a => isToday(a.data_hora)), [agendamentos])
 
   const oportunidadesAtivas = useMemo(
-    () => oportunidades.filter(o => o.etapa !== 'ganho' && o.etapa !== 'perdido'),
-    [oportunidades],
+    () => (home.oportunidades || []).filter(o => o.etapa !== 'ganho' && o.etapa !== 'perdido'),
+    [home.oportunidades],
   )
 
   const posicaoRanking = useMemo(() => {
-    if (!profile?.id || !ranking?.length) return null
-    const idx = ranking.findIndex(r => r.user_id === profile.id)
+    if (!profile?.id || !home.ranking?.length) return null
+    const idx = home.ranking.findIndex(r => r.user_id === profile.id)
     return idx >= 0 ? idx + 1 : null
-  }, [ranking, profile?.id])
+  }, [home.ranking, profile?.id])
 
   const disciplina = home.discipline?.percentage ?? 0
 
@@ -94,6 +90,17 @@ export default function VendedorHomePage() {
       done: oportunidadesAtivas.length > 0,
     },
   ]
+
+  if (home.isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent mx-auto mb-4" />
+          <p className="text-sm text-gray-500">Carregando cockpit...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800">
