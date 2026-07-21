@@ -63,7 +63,7 @@ export default function MeuPerfilVendedorContainer() {
     const { perfil, setPerfil, loading, saving, salvar, officialPerformance } = useMeuPerfilVendedor()
     const [erroSalvar, setErroSalvar] = useState<string | null>(null)
 
-    const atualizar = (patch: Partial<PerfilVendedor>) => setPerfil({ ...perfil, ...patch })
+    const atualizar = (patch: Partial<PerfilVendedor>) => setPerfil(prev => ({ ...prev, ...patch }))
 
     const handleSave = async () => {
         setErroSalvar(null)

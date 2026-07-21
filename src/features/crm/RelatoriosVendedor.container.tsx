@@ -45,17 +45,32 @@ function BarRow({ label, value, max, valueLabel }: { label: string; value: numbe
 export function RelatoriosVendedor() {
   const { profile, storeId } = useAuth()
   const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
-  const { performance: officialPerformance } = useOfficialSellerPerformance(`${today.slice(0, 7)}-01`, today, profile?.id, storeId)
-  const { metrics: clienteMetrics, clientes } = useClientes()
-  const { funil, oportunidades } = useOportunidades()
-  const { porCanal } = useAtendimentos()
-  const { metrics: agenda } = useAgendamentos()
+  const { performance: officialPerformance, loading: perfLoading } = useOfficialSellerPerformance(`${today.slice(0, 7)}-01`, today, profile?.id, storeId)
+  const { metrics: clienteMetrics, clientes, loading: clientesLoading } = useClientes()
+  const { funil, oportunidades, loading: oportunidadesLoading } = useOportunidades()
+  const { porCanal, loading: atendimentosLoading } = useAtendimentos()
+  const { metrics: agenda, loading: agendamentosLoading } = useAgendamentos()
   const { analytics: cadenciaAnalytics, loading: cadenciaAnalyticsLoading, error: cadenciaAnalyticsError } = useCadenciaAnalytics(oportunidades)
+
+  const isLoading = perfLoading || clientesLoading || oportunidadesLoading || atendimentosLoading || agendamentosLoading || cadenciaAnalyticsLoading
 
   const maxEtapa = Math.max(1, ...funil.porEtapa.map(e => e.quantidade))
   const maxCanal = Math.max(1, porCanal.showroom, porCanal.carteira, porCanal.internet, porCanal.porta)
   const maxGargalo = Math.max(1, ...cadenciaAnalytics.gargalos.map(item => item.total))
   const maxDemanda = Math.max(1, ...cadenciaAnalytics.demandaVeiculos.map(item => item.quantidade))
+
+  if (isLoading) {
+    return (
+      <main className="w-full h-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">
+        <div className="flex flex-col gap-mx-lg pb-28">
+          <SellerPageHeader icon={BarChart3} title="Relatórios" subtitle="Visão consolidada da sua performance comercial, com dados reais." />
+          <div className="flex items-center justify-center h-64">
+            <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
+          </div>
+        </div>
+      </main>
+    )
+  }
 
   return (
     <main className="w-full h-full overflow-y-auto bg-surface-alt p-mx-lg no-scrollbar">

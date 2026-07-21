@@ -127,14 +127,22 @@ export function useCheckinsSubmit(args: UseCheckinsSubmitArgs) {
         const submittedAt = new Date()
         const payload = buildSubmitCheckinPayload(formData, scope, profile.id, storeId, finalDate, submittedAt, isDaily, isDraft)
 
-        const { data, error } = await supabase.rpc('submit_checkin', { p_payload: payload })
+        try {
+            const { data, error } = await supabase.rpc('submit_checkin', { p_payload: payload })
 
-        if (error) return { error: error.message }
-        const result = data as { ok?: boolean; error?: string; data?: { id?: string } } | null
-        if (!result?.ok) return { error: result?.error || 'Não foi possível salvar o check-in.' }
+            if (error) return { error: error.message }
+            const result = data as { ok?: boolean; error?: string; data?: { id?: string } } | null
+            if (!result?.ok) return { error: result?.error || 'Não foi possível salvar o check-in.' }
 
-        if (afterSubmit) await afterSubmit()
-        return { error: null, id: result.data?.id }
+            try {
+                if (afterSubmit) await afterSubmit()
+            } catch {
+                console.warn('[useCheckinsSubmit] afterSubmit failed but check-in was saved successfully')
+            }
+            return { error: null, id: result.data?.id }
+        } catch (err) {
+            return { error: err instanceof Error ? err.message : 'Erro de conexão. Tente novamente.' }
+        }
     }
 
     return { saveCheckin }

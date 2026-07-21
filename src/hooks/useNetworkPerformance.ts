@@ -149,6 +149,7 @@ export function useNetworkPerformance() {
   const { role } = useAuth()
   const [metrics, setMetrics] = useState<NetworkMetric>(EMPTY_METRIC)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const fetchMetrics = useCallback(async () => {
     if (!isPerfilInternoMx(role)) {
@@ -375,8 +376,9 @@ export function useNetworkPerformance() {
         consultingStatus: Array.from(consultingStatusMap.entries()).map(([status, total]) => ({ status, total })).sort((a, b) => b.total - a.total),
         byStore,
       })
-    } catch {
+    } catch (err) {
       setMetrics(EMPTY_METRIC)
+      setError(err instanceof Error ? err.message : 'Erro ao carregar dados da rede')
     } finally {
       setLoading(false)
     }
@@ -384,5 +386,5 @@ export function useNetworkPerformance() {
 
   useEffect(() => { fetchMetrics() }, [fetchMetrics])
 
-  return { metrics, loading, refetch: fetchMetrics }
+  return { metrics, loading, error, refetch: fetchMetrics }
 }

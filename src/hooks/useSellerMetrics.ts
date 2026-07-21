@@ -1,13 +1,17 @@
 import { useMemo } from 'react'
-import { 
-    calcularAtingimento, 
-    calcularProjecao, 
-    calcularFaltaX, 
-    getDiasInfo, 
-    somarVendas, 
-    somarVendasPorCanal 
+import {
+    calcularAtingimento,
+    calcularProjecao,
+    calcularFaltaX,
+    getDiasInfo,
+    somarVendas,
+    somarVendasPorCanal
 } from '@/lib/calculations'
 import type { DailyCheckin, User, RankingEntry } from '@/types/database'
+
+function getSaoPauloDateOnly(date: Date = new Date()): string {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(date)
+}
 
 interface SellerGoal {
     user_id: string
@@ -62,14 +66,14 @@ export function useSellerMetrics({
         }
 
         const yesterdayStr = new Date(); yesterdayStr.setDate(yesterdayStr.getDate() - 1)
-        const yesterdayFormatted = yesterdayStr.toISOString().split('T')[0]
+        const yesterdayFormatted = getSaoPauloDateOnly(yesterdayStr)
         const checkinOntem = myCheckins.find(c => c.reference_date === yesterdayFormatted)
         
         const vendasOntem = checkinOntem ? (checkinOntem.vnd_porta_prev_day || 0) + (checkinOntem.vnd_cart_prev_day || 0) + (checkinOntem.vnd_net_prev_day || 0) : 0
         const agendamentosHoje = todayCheckin ? (todayCheckin.agd_cart_today || 0) + (todayCheckin.agd_net_today || 0) : 0
 
         const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7)
-        const weekStr = weekAgo.toISOString().split('T')[0]
+        const weekStr = getSaoPauloDateOnly(weekAgo)
         const vendasSemana = somarVendas(myCheckins.filter(c => c.reference_date >= weekStr))
 
         return { 

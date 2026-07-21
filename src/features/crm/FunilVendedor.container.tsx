@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { BarChart3, Filter, Gauge, Globe2, Info, Target, Users, Warehouse } from 'lucide-react'
 import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
@@ -98,7 +98,16 @@ export function FunilVendedor() {
   const { agendamentos } = useAgendamentos()
 
   const periodInfo = useMemo(() => getPeriodInfo(period), [period])
-  const monthInfo = useMemo(() => getMonthBusinessInfo(new Date()), [])
+  const [monthInfoKey, setMonthInfoKey] = useState(() => new Date().toDateString())
+  const monthInfo = useMemo(() => getMonthBusinessInfo(new Date()), [monthInfoKey])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const today = new Date().toDateString()
+      if (today !== monthInfoKey) setMonthInfoKey(today)
+    }, 60000)
+    return () => clearInterval(interval)
+  }, [monthInfoKey])
   const oportunidadesFunil = useMemo(
     () => derivarOportunidadesFunilCarteira(oportunidades, clientes),
     [clientes, oportunidades],
@@ -120,7 +129,7 @@ export function FunilVendedor() {
   const projectedSales = period === 'month' ? projectCurrentMonth(realizado, monthInfo.decorridos, monthInfo.total) : realizado
   const probability = meta > 0 ? clamp(Math.round((projectedSales / meta) * 100), 0, 100) : null
   const projectionStatus = getProjectionStatus(meta, projectedSales, monthInfo.decorridos)
-  const efforts = CHANNELS.map(canal => buildChannelEffort(canal, calculationStats.channels[canal], faltam ?? 0))
+  const efforts = CHANNELS.map(canal => buildChannelEffort(canal, calculationStats.channels[canal], faltam))
   const history = useMemo(() => buildSixMonthHistory(oportunidadesFunil, agendamentos), [agendamentos, oportunidadesFunil])
   const limitador = getPrincipalLimitador(statsPeriod.channels)
 
@@ -375,7 +384,8 @@ function buildChannelMetrics(canal: FunilCanalEstrategia, oportunidades: Oportun
   }
 }
 
-function buildChannelEffort(canal: FunilCanalEstrategia, metrics: ChannelMetrics, vendasFaltantes: number): ChannelEffort {
+function buildChannelEffort(canal: FunilCanalEstrategia, metrics: ChannelMetrics, vendasFaltantes: number | null): ChannelEffort {
+  if (vendasFaltantes === null) return { canal, ok: false, message: 'Meta não configurada. Fale com seu gerente.', rows: [], conversionLabel: `Conversão geral: ${PCT(metrics.conversaoGeral)}` }
   if (vendasFaltantes <= 0) return { canal, ok: true, message: 'Meta batida. Continue mantendo o ritmo.', rows: [], conversionLabel: `Conversão geral: ${PCT(metrics.conversaoGeral)}` }
 
   if (canal === 'porta') {
@@ -506,7 +516,8 @@ function getMonthBusinessInfo(reference: Date) {
   let decorridos = 0
   let restantes = 0
   for (let cursor = new Date(start); cursor <= end; cursor.setDate(cursor.getDate() + 1)) {
-    if (cursor.getDay() === 0) continue
+    const day = cursor.getDay()
+    if (day === 0 || day === 6) continue // Skip weekends (Sun=0, Sat=6)
     total += 1
     if (cursor <= reference) decorridos += 1
     else restantes += 1

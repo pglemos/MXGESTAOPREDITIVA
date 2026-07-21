@@ -141,6 +141,7 @@ export function useRemuneracaoEstimadaVendedor(params: {
         setPlano(null)
         setRegras([])
         setError(null)
+        setLoading(false)
         return
       }
 

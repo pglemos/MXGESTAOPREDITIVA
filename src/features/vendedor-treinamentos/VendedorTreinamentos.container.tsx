@@ -1,5 +1,5 @@
 import {
-    useEffect, useMemo, useState,
+    useEffect, useMemo, useRef, useState,
     type ComponentType, type InputHTMLAttributes, type PropsWithChildren, type ReactNode,
 } from 'react'
 import { toast } from '@/lib/toast'
@@ -115,6 +115,7 @@ export default function VendedorTreinamentosContainer() {
     // caminho de conclusão; a conclusão manual fica desabilitada.
     const [quizQuestoes, setQuizQuestoes] = useState(0)
     const [presencas, setPresencas] = useState<Set<string>>(new Set())
+    const lastOpenedTrainingIdRef = useRef<string | null>(null)
 
     useEffect(() => {
         let ativo = true
@@ -122,7 +123,10 @@ export default function VendedorTreinamentosContainer() {
             if (!user) return
             listarPresencasTreinamentos(supabase, user.id)
                 .then(ids => { if (ativo) setPresencas(new Set(ids)) })
-                .catch(() => {})
+                .catch(err => {
+                    console.warn('[VendedorTreinamentos] Failed to load presencas:', err)
+                    if (ativo) setPresencas(new Set())
+                })
         })
         return () => { ativo = false }
     }, [])
@@ -157,6 +161,7 @@ export default function VendedorTreinamentosContainer() {
         : trainings.filter(item => !completedIds.has(item.id)).slice(0, 4)
 
     const openTraining = async (training: Treinamento) => {
+        lastOpenedTrainingIdRef.current = training.id
         setSelectedTraining(training)
         setComment('')
         setQuizQuestoes(0)
@@ -164,7 +169,9 @@ export default function VendedorTreinamentosContainer() {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
         const { data } = await supabase.from('treinamento_avaliacoes').select('comment').eq('training_id', training.id).eq('user_id', user.id).maybeSingle()
-        setComment((data as { comment?: string } | null)?.comment || '')
+        if (lastOpenedTrainingIdRef.current === training.id) {
+            setComment((data as { comment?: string } | null)?.comment || '')
+        }
     }
 
     const saveComment = async () => {

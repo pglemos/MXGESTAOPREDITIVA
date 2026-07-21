@@ -116,14 +116,9 @@ export function useAuthProfile(options: UseAuthProfileOptions): UseAuthProfileRe
 
       timeoutId = setTimeout(() => {
         if (mounted) {
-          void supabase.auth.signOut()
-          setProfile(null)
-          setMemberships([])
-          setActiveStoreId(null)
-          lastLoadedUserIdRef.current = null
-          setLoading(false)
+          console.warn('[useAuth] Profile fetch taking longer than expected (>30s). Connection may be slow.')
         }
-      }, 10000)
+      }, 30000)
 
       try {
         const [loadedProfile, loadedMemberships] = await Promise.all([
