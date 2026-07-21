@@ -335,16 +335,27 @@ const DEMO_KPIS = {
   persistencia: 71,
 }
 
-const DEMO_CLIENTES: Cliente[] = [
-  makeDemoCliente('11111111-1111-4111-8111-111111111111', 'João Santos', '(11) 98765-4321', 'Compass Longitude', 'internet', 'oportunidade', 'bom', 'Apresentar proposta', '2026-06-17', 120000),
-  makeDemoCliente('22222222-2222-4222-8222-222222222222', 'Maria Oliveira', '(11) 91234-5678', 'Compass Longitude', 'internet', 'aguardando_contato', 'neutro', 'Visita na concessionária', '2026-06-18', 120000),
-  makeDemoCliente('33333333-3333-4333-8333-333333333333', 'Carlos Almeida', '(11) 99887-6655', 'Corolla Cross', 'carteira', 'oportunidade', 'bom', 'Fazer proposta', '2026-06-17', 145900),
-  makeDemoCliente('44444444-4444-4444-8444-444444444444', 'Fernanda Lima', '(11) 97550-9876', 'HR-V Touring', 'porta', 'ativo', 'neutro', 'Ligação de follow-up', '2026-06-17', 132500),
-  makeDemoCliente('55555555-5555-4555-8555-555555555555', 'Ricardo Souza', '(11) 94444-3353', 'Hilux SRX 2021', 'internet', 'inativo', 'critico', 'Recontato pós-visita', '2026-06-16', 155000),
-  makeDemoCliente('66666666-6666-4666-8666-666666666666', 'Juliana Costa', '(11) 95335-2222', 'Creta Platinum', 'showroom', 'pos_venda', 'excelente', 'Pós-venda e pedido de indicação', '2026-06-18', 120000),
-  makeDemoCliente('77777777-7777-4777-8777-777777777777', 'Bruno Ferreira', '(11) 96666-7777', 'Onix Premier', 'internet', 'oportunidade', 'ruim', 'Enviar proposta', '2026-06-18', 109900),
-  makeDemoCliente('88888888-8888-4888-8888-888888888888', 'Patrícia Gomes', '(11) 97777-1212', 'T-Cross Highline', 'carteira', 'aguardando_contato', 'neutro', '', null, 139900),
-]
+function gerarDatasDemo() {
+  const hoje = new Date()
+  const ontem = new Date(hoje); ontem.setDate(hoje.getDate() - 1)
+  const amanha = new Date(hoje); amanha.setDate(hoje.getDate() + 1)
+  const fmt = (d: Date) => d.toISOString().slice(0, 10)
+  return { hoje: fmt(hoje), ontem: fmt(ontem), amanha: fmt(amanha) }
+}
+
+const DEMO_CLIENTES: Cliente[] = (() => {
+  const d = gerarDatasDemo()
+  return [
+    makeDemoCliente('11111111-1111-4111-8111-111111111111', 'João Santos', '(11) 98765-4321', 'Compass Longitude', 'internet', 'oportunidade', 'bom', 'Apresentar proposta', d.hoje, 120000),
+    makeDemoCliente('22222222-2222-4222-8222-222222222222', 'Maria Oliveira', '(11) 91234-5678', 'Compass Longitude', 'internet', 'aguardando_contato', 'neutro', 'Visita na concessionária', d.amanha, 120000),
+    makeDemoCliente('33333333-3333-4333-8333-333333333333', 'Carlos Almeida', '(11) 99887-6655', 'Corolla Cross', 'carteira', 'oportunidade', 'bom', 'Fazer proposta', d.hoje, 145900),
+    makeDemoCliente('44444444-4444-4444-8444-444444444444', 'Fernanda Lima', '(11) 97550-9876', 'HR-V Touring', 'porta', 'ativo', 'neutro', 'Ligação de follow-up', d.hoje, 132500),
+    makeDemoCliente('55555555-5555-4555-8555-555555555555', 'Ricardo Souza', '(11) 94444-3353', 'Hilux SRX 2021', 'internet', 'inativo', 'critico', 'Recontato pós-visita', d.ontem, 155000),
+    makeDemoCliente('66666666-6666-4666-8666-666666666666', 'Juliana Costa', '(11) 95335-2222', 'Creta Platinum', 'showroom', 'pos_venda', 'excelente', 'Pós-venda e pedido de indicação', d.amanha, 120000),
+    makeDemoCliente('77777777-7777-4777-8777-777777777777', 'Bruno Ferreira', '(11) 96666-7777', 'Onix Premier', 'internet', 'oportunidade', 'ruim', 'Enviar proposta', d.amanha, 109900),
+    makeDemoCliente('88888888-8888-4888-8888-888888888888', 'Patrícia Gomes', '(11) 97777-1212', 'T-Cross Highline', 'carteira', 'aguardando_contato', 'neutro', '', null, 139900),
+  ]
+})()
 
 const DEMO_OPORTUNIDADES: OportunidadeComCliente[] = [
   makeDemoOportunidade(DEMO_CLIENTES[0], 'negociacao', true, 'aprovado'),
@@ -987,6 +998,19 @@ function FluxoClientePanel({
     observacoes: cliente.observacoes,
   })
 
+  const originalForm = useMemo(() => ({
+    nome: cliente.nome,
+    telefone: cliente.telefone,
+    empresa: cliente.empresa,
+    canal_origem: cliente.canal_origem,
+    status: cliente.status,
+    relacionamento: cliente.relacionamento,
+    proxima_acao: cliente.proxima_acao,
+    proxima_acao_em: cliente.proxima_acao_em,
+    potencial_negocio: cliente.potencial_negocio,
+    observacoes: cliente.observacoes,
+  }), [cliente])
+
   async function salvarEdicao() {
     setSalvandoEdicao(true)
     const { error } = await onSalvarEdicao(cliente.id, form)
@@ -1020,7 +1044,7 @@ function FluxoClientePanel({
   const [openHistory, setOpenHistory] = useState(false)
   const pendencias = [
     !oportunidade?.valor_negociado && 'Confirmar orçamento',
-    !oportunidade?.financiamento || oportunidade.financiamento === 'nao_aplica' ? 'Definir forma de pagamento' : null,
+    (!oportunidade?.financiamento || oportunidade.financiamento === 'nao_aplica') && 'Definir forma de pagamento',
     !oportunidade?.carro_avaliado && 'Entender se possui troca',
     !cliente.proxima_acao_em && 'Agendar próximo contato',
   ].filter(Boolean) as string[]
@@ -1086,7 +1110,7 @@ function FluxoClientePanel({
 
           <div className="space-y-3 px-5 py-4">
             {editando && (
-              <FormularioEdicaoFicha form={form} setForm={setForm} onSalvar={salvarEdicao} onCancelar={() => { setEditando(false); setForm({ nome: cliente.nome, telefone: cliente.telefone, empresa: cliente.empresa, canal_origem: cliente.canal_origem, status: cliente.status, relacionamento: cliente.relacionamento, proxima_acao: cliente.proxima_acao, proxima_acao_em: cliente.proxima_acao_em, potencial_negocio: cliente.potencial_negocio, observacoes: cliente.observacoes }) }} salvando={salvandoEdicao} />
+              <FormularioEdicaoFicha form={form} setForm={setForm} onSalvar={salvarEdicao} onCancelar={() => { setEditando(false); setForm(originalForm) }} salvando={salvandoEdicao} />
             )}
 
             {!editando && (
@@ -1174,8 +1198,7 @@ function FluxoClientePanel({
                       <InfoItem label="Origem" value={canalLabel} />
                     </FichaSection>
                     <FichaSection title="Contato">
-                      <InfoItem label="WhatsApp" value={cliente.telefone ? `${cliente.telefone}` : 'Não informado'} />
-                      <InfoItem label="Telefone" value={cliente.telefone ? `+55${cliente.telefone.replace(/\D/g, '').replace(/^55/, '')}` : 'Não informado'} />
+                      <InfoItem label="Telefone" value={cliente.telefone ? `${cliente.telefone} (+55${cliente.telefone.replace(/\D/g, '').replace(/^55/, '')})` : 'Não informado'} />
                       <InfoItem label="Último contato" value={cliente.ultima_interacao ? formatDateBR(cliente.ultima_interacao) : 'Sem registro'} />
                       <InfoItem label="Tentativa atual" value={`${tentativaAtual}/3`} />
                     </FichaSection>
@@ -1403,6 +1426,7 @@ function makeDemoCliente(
   proxima_acao_em: string | null,
   potencial_negocio: number,
 ): Cliente {
+  const now = new Date().toISOString()
   return {
     id,
     loja_id: '99999999-9999-4999-8999-999999999999',
@@ -1413,13 +1437,13 @@ function makeDemoCliente(
     canal_origem,
     status,
     relacionamento,
-    ultima_interacao: '2026-06-16',
+    ultima_interacao: new Date(Date.now() - 86400000).toISOString().slice(0, 10),
     proxima_acao,
     proxima_acao_em,
     potencial_negocio,
     observacoes: null,
-    created_at: '2026-06-16T12:00:00Z',
-    updated_at: '2026-06-16T12:00:00Z',
+    created_at: now,
+    updated_at: now,
   }
 }
 
@@ -1429,6 +1453,7 @@ function makeDemoOportunidade(
   carro_avaliado: boolean,
   financiamento: OportunidadeComCliente['financiamento'],
 ): OportunidadeComCliente {
+  const now = new Date().toISOString()
   return {
     id: cliente.id.replace(/^./, '9'),
     cliente_id: cliente.id,
@@ -1445,9 +1470,9 @@ function makeDemoOportunidade(
     motivo_perda: null,
     placa_veiculo: null,
     data_entrega_prevista: null,
-    created_at: '2026-06-16T12:00:00Z',
-    updated_at: '2026-06-16T12:00:00Z',
-    closed_at: etapa === 'ganho' ? '2026-06-16T18:00:00Z' : null,
+    created_at: now,
+    updated_at: now,
+    closed_at: etapa === 'ganho' ? now : null,
     cliente: { nome: cliente.nome, telefone: cliente.telefone },
   }
 }
@@ -1465,10 +1490,11 @@ function ProximaOportunidadeModal({
   onVoltarCarteira: () => void
   onEntrarModoAtaque: () => void
 }) {
-  if (!open) return null
+  const [modoAtaqueAceito, setModoAtaqueAceito] = useState(() => {
+    try { return window?.sessionStorage?.getItem(MODO_ATAQUE_ACEITO_KEY) === 'true' } catch { return false }
+  })
 
-  const session = typeof window !== 'undefined' ? window.sessionStorage : null
-  const modoAtaqueAceito = session?.getItem(MODO_ATAQUE_ACEITO_KEY) === 'true'
+  if (!open) return null
 
   const overlay = (children: ReactNode) => (
     <div className="fixed inset-0 z-[220] grid place-items-center bg-black/40 p-4 backdrop-blur-[2px]" role="dialog" aria-modal="true" onClick={onVoltarCarteira} onKeyDown={e => { if (e.key === 'Escape') onVoltarCarteira() }}>
@@ -1539,7 +1565,7 @@ function ProximaOportunidadeModal({
         <p className="text-[11px] text-blue-300">Próxima: <span className="font-bold text-white">{proxima.nome}</span></p>
       </div>
       <div className="flex flex-col gap-2">
-        <button type="button" onClick={() => { try { sessionStorage.setItem(MODO_ATAQUE_ACEITO_KEY, 'true') } catch {} onEntrarModoAtaque() }} className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#005BFF] text-sm font-bold text-white transition-colors hover:bg-blue-700"><Zap className="h-4 w-4" /> Entrar no Modo Ataque</button>
+        <button type="button" onClick={() => { try { sessionStorage.setItem(MODO_ATAQUE_ACEITO_KEY, 'true') } catch {} setModoAtaqueAceito(true); onEntrarModoAtaque() }} className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#005BFF] text-sm font-bold text-white transition-colors hover:bg-blue-700"><Zap className="h-4 w-4" /> Entrar no Modo Ataque</button>
         <button type="button" onClick={onVoltarCarteira} className="w-full rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-50">Voltar para Carteira</button>
       </div>
     </div>,
