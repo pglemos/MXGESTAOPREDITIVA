@@ -181,8 +181,8 @@ function PainelFiltros({ filtrosAtivos, onAplicar, onFechar }: { filtrosAtivos: 
   }
 
   return (
-    <div className="fixed inset-0 z-[220] flex">
-      <div className="flex-1 bg-black/30" onClick={onFechar} />
+    <div className="fixed inset-0 z-[220] flex" role="dialog" aria-modal="true" aria-label="Filtros avançados">
+      <div className="flex-1 bg-black/30" onClick={onFechar} onKeyDown={e => { if (e.key === 'Escape') onFechar() }} role="button" tabIndex={0} aria-label="Fechar filtros" />
       <div className="flex w-80 flex-col overflow-y-auto bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <p className="font-black text-[#031B3D]">Filtros</p>
@@ -321,6 +321,8 @@ const EMPTY_FORM: ClienteInput = {
   observacoes: '',
 }
 
+const PRIORIDADE_ORDER: Record<Prioridade, number> = { maxima: 0, alta: 1, media: 2, baixa: 3 }
+
 type StatusAcao = 'Pendente' | 'Agendada' | 'Feita' | 'Não respondeu' | 'Aguardando' | 'Reagendada' | 'Não feita' | 'Concluída'
 const CLIENT_FLOW_STEPS = ['Lead', 'Contato', 'Agendamento', 'Visita', 'Negociação', 'Venda', 'Pós-venda']
 
@@ -451,7 +453,6 @@ export function CarteiraClientes() {
     return { hoje: 'Hoje', amanha: 'Amanhã', dia2: nomeDia(2), dia3: nomeDia(3) }
   }, [hoje])
 
-  const PRIORIDADE_ORDER: Record<Prioridade, number> = { maxima: 0, alta: 1, media: 2, baixa: 3 }
   const clientesOrdenadosPorPrioridade = useMemo(() => {
     const base = diaFiltro === 'todos' ? carteiraClientes : carteiraClientes.filter(cliente => diaPorCliente.get(cliente.id) === diaFiltro)
     return [...base].sort((a, b) => {
@@ -803,41 +804,52 @@ export function CarteiraClientes() {
         </div>
       </Modal>
 
-      <Modal
-        open={Boolean(naoRespondeuCliente)}
-        onClose={() => setNaoRespondeuCliente(null)}
-        title="Cliente não respondeu"
-        description={naoRespondeuCliente ? `Tentativa atual: 1/3 para ${naoRespondeuCliente.nome}` : undefined}
-        footer={(
-          <div className="flex flex-wrap justify-end gap-mx-sm">
-            <Button variant="ghost" onClick={() => setNaoRespondeuCliente(null)}>Escolher outro horário</Button>
-            <Button variant="outline" onClick={() => setNaoRespondeuCliente(null)}>Encerrar cadência</Button>
-            <Button
-              onClick={() => {
-                if (naoRespondeuCliente) {
-                  handleRegistrarStatusCadencia(naoRespondeuCliente.id, 'nao_feito')
-                }
-                setNaoRespondeuCliente(null)
-              }}
-            >
-              Confirmar reagendamento
-            </Button>
-          </div>
-        )}
-      >
-        <div className="space-y-mx-md">
-          <div className="rounded-mx-lg border border-status-warning/20 bg-status-warning/5 p-mx-md">
-            <Typography variant="caption" tone="muted" className="block font-bold uppercase tracking-normal">Próxima ação sugerida</Typography>
-            <Typography variant="p" className="font-bold">Amanhã às 10:00 - Tentativa 2/3</Typography>
-          </div>
-          <div className="rounded-mx-lg border border-border-subtle bg-surface-alt p-mx-md">
-            <Typography variant="caption" tone="muted" className="block font-bold uppercase tracking-normal">Mensagem sugerida</Typography>
-            <Typography variant="p" className="mt-mx-xs text-sm italic text-text-secondary">
-              "Olá, Maria. Tudo bem? Estou passando para confirmar nossa visita e tirar qualquer dúvida."
-            </Typography>
-          </div>
-        </div>
-      </Modal>
+      {naoRespondeuCliente && (() => {
+        const progressoNaoRespondeu = progressoPorCliente.get(naoRespondeuCliente.id) || derivarProgresso(naoRespondeuCliente, carteiraOportunidades, agendamentos)
+        const tentativaAtualNR = Math.max(1, Math.min(3, progressoNaoRespondeu.concluidas + 1))
+        const primeiroNomeNR = naoRespondeuCliente.nome.split(' ')[0]
+        return (
+          <Modal
+            open
+            onClose={() => setNaoRespondeuCliente(null)}
+            title="Cliente não respondeu"
+            description={`Tentativa ${tentativaAtualNR}/3 para ${naoRespondeuCliente.nome}`}
+            footer={(
+              <div className="flex flex-wrap justify-end gap-mx-sm">
+                <Button variant="ghost" onClick={() => {
+                  setEditandoProximoPasso(naoRespondeuCliente)
+                  setNaoRespondeuCliente(null)
+                }}>Escolher outro horário</Button>
+                <Button variant="outline" onClick={() => {
+                  handleRegistrarStatusCadencia(naoRespondeuCliente.id, 'aguardando')
+                  setNaoRespondeuCliente(null)
+                }}>Encerrar cadência</Button>
+                <Button
+                  onClick={() => {
+                    handleRegistrarStatusCadencia(naoRespondeuCliente.id, 'nao_feito')
+                    setNaoRespondeuCliente(null)
+                  }}
+                >
+                  Confirmar reagendamento
+                </Button>
+              </div>
+            )}
+          >
+            <div className="space-y-mx-md">
+              <div className="rounded-mx-lg border border-status-warning/20 bg-status-warning/5 p-mx-md">
+                <Typography variant="caption" tone="muted" className="block font-bold uppercase tracking-normal">Próxima ação sugerida</Typography>
+                <Typography variant="p" className="font-bold">Amanhã às 10:00 - Tentativa {tentativaAtualNR + 1 > 3 ? '3' : tentativaAtualNR + 1}/3</Typography>
+              </div>
+              <div className="rounded-mx-lg border border-border-subtle bg-surface-alt p-mx-md">
+                <Typography variant="caption" tone="muted" className="block font-bold uppercase tracking-normal">Mensagem sugerida</Typography>
+                <Typography variant="p" className="mt-mx-xs text-sm italic text-text-secondary">
+                  "Olá, {primeiroNomeNR}. Tudo bem? Estou passando para confirmar nossa visita e tirar qualquer dúvida."
+                </Typography>
+              </div>
+            </div>
+          </Modal>
+        )
+      })()}
 
       {modoAtaqueOpen && (
         <ModoAtaqueView
@@ -999,7 +1011,7 @@ function FluxoClientePanel({
     setEscolhendoCanal(false)
     onStatus(cliente.id, 'feito', canal)
   }
-  const tentativaAtual = Math.max(1, Math.min(3, Math.ceil(progresso.cadencia / 34) || 1))
+  const tentativaAtual = Math.max(1, Math.min(3, progresso.concluidas + 1))
   const hojeFicha = toDateOnlyBR()
   const [openKnow, setOpenKnow] = useState(false)
   const [openHistory, setOpenHistory] = useState(false)
@@ -1025,7 +1037,7 @@ function FluxoClientePanel({
   }
 
   return (
-    <div className="fixed inset-0 z-[210] grid place-items-center bg-black/40 p-4 backdrop-blur-[2px]" aria-label={`Fluxo do cliente ${cliente.nome}`} onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
+    <div className="fixed inset-0 z-[210] grid place-items-center bg-black/40 p-4 backdrop-blur-[2px]" role="dialog" aria-modal="true" aria-label={`Fluxo do cliente ${cliente.nome}`} onClick={(e) => { if (e.target === e.currentTarget) onClose() }} onKeyDown={e => { if (e.key === 'Escape') onClose() }}>
       <aside className="relative flex w-full max-w-2xl max-h-[90vh] flex-col rounded-2xl bg-white shadow-2xl overflow-hidden">
         <button type="button" aria-label="Fechar painel" onClick={onClose} className="absolute right-3 top-3 z-10 rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600">
           <X size={18} />
@@ -1204,7 +1216,7 @@ function FluxoClientePanel({
           <button type="button" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'feito')}>Feito</button>
           <button type="button" disabled={statusSaving} onClick={() => onNaoRespondeu(cliente)}>Não respondeu</button>
           <button type="button" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'aguardando')}>Aguardando</button>
-          <button type="button" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'aguardando')}>Reagendar</button>
+          <button type="button" disabled={statusSaving} onClick={() => onEditarProximoPasso(cliente)}>Reagendar</button>
           <button type="button" disabled={statusSaving} onClick={() => onStatus(cliente.id, 'nao_feito')}>Não feito</button>
         </div>
       </aside>
@@ -1231,56 +1243,56 @@ function FormularioEdicaoFicha({
 
       <div className="grid grid-cols-2 gap-3">
         <div className="col-span-2">
-          <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Nome</label>
-          <input value={form.nome} onChange={event => setForm(prev => ({ ...prev, nome: event.target.value }))} className="h-8 w-full rounded-xl border border-slate-200 px-3 text-sm" />
+          <label htmlFor="fec-nome" className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Nome</label>
+          <input id="fec-nome" value={form.nome} onChange={event => setForm(prev => ({ ...prev, nome: event.target.value }))} className="h-8 w-full rounded-xl border border-slate-200 px-3 text-sm" />
         </div>
         <div>
-          <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Telefone</label>
-          <input value={form.telefone || ''} onChange={event => setForm(prev => ({ ...prev, telefone: event.target.value }))} className="h-8 w-full rounded-xl border border-slate-200 px-3 text-sm" />
+          <label htmlFor="fec-telefone" className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Telefone</label>
+          <input id="fec-telefone" value={form.telefone || ''} onChange={event => setForm(prev => ({ ...prev, telefone: event.target.value }))} className="h-8 w-full rounded-xl border border-slate-200 px-3 text-sm" />
         </div>
         <div>
-          <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Potencial de negócio</label>
-          <input type="number" value={form.potencial_negocio ?? 0} onChange={event => setForm(prev => ({ ...prev, potencial_negocio: Number(event.target.value) }))} className="h-8 w-full rounded-xl border border-slate-200 px-3 text-sm" />
+          <label htmlFor="fec-potencial" className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Potencial de negócio</label>
+          <input id="fec-potencial" type="number" value={form.potencial_negocio ?? 0} onChange={event => setForm(prev => ({ ...prev, potencial_negocio: Number(event.target.value) }))} className="h-8 w-full rounded-xl border border-slate-200 px-3 text-sm" />
         </div>
         <div className="col-span-2">
-          <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Veículo de interesse</label>
-          <input value={form.empresa || ''} onChange={event => setForm(prev => ({ ...prev, empresa: event.target.value }))} className="h-8 w-full rounded-xl border border-slate-200 px-3 text-sm" />
+          <label htmlFor="fec-veiculo" className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Veículo de interesse</label>
+          <input id="fec-veiculo" value={form.empresa || ''} onChange={event => setForm(prev => ({ ...prev, empresa: event.target.value }))} className="h-8 w-full rounded-xl border border-slate-200 px-3 text-sm" />
         </div>
       </div>
 
       <div>
-        <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Origem (canal)</label>
-        <select value={form.canal_origem || ''} onChange={event => setForm(prev => ({ ...prev, canal_origem: event.target.value as CrmCanal }))} className="h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm">
+        <label htmlFor="fec-origem" className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Origem (canal)</label>
+        <select id="fec-origem" value={form.canal_origem || ''} onChange={event => setForm(prev => ({ ...prev, canal_origem: event.target.value as CrmCanal }))} className="h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm">
           {CRM_CANAIS.map(canal => <option key={canal} value={canal}>{CRM_CANAL_LABEL[canal]}</option>)}
         </select>
       </div>
       <div>
-        <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Status do cliente</label>
-        <select value={form.status || 'aguardando_contato'} onChange={event => setForm(prev => ({ ...prev, status: event.target.value as CrmClienteStatus }))} className="h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm">
+        <label htmlFor="fec-status" className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Status do cliente</label>
+        <select id="fec-status" value={form.status || 'aguardando_contato'} onChange={event => setForm(prev => ({ ...prev, status: event.target.value as CrmClienteStatus }))} className="h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm">
           {CRM_CLIENTE_STATUS.map(status => <option key={status} value={status}>{CRM_CLIENTE_STATUS_LABEL[status]}</option>)}
         </select>
       </div>
       <div>
-        <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Relacionamento</label>
-        <select value={form.relacionamento || 'neutro'} onChange={event => setForm(prev => ({ ...prev, relacionamento: event.target.value as CrmRelacionamento }))} className="h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm">
+        <label htmlFor="fec-relacionamento" className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Relacionamento</label>
+        <select id="fec-relacionamento" value={form.relacionamento || 'neutro'} onChange={event => setForm(prev => ({ ...prev, relacionamento: event.target.value as CrmRelacionamento }))} className="h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm">
           {CRM_RELACIONAMENTO.map(relacionamento => <option key={relacionamento} value={relacionamento}>{CRM_RELACIONAMENTO_LABEL[relacionamento]}</option>)}
         </select>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div className="col-span-2">
-          <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Próximo passo</label>
-          <input value={form.proxima_acao || ''} onChange={event => setForm(prev => ({ ...prev, proxima_acao: event.target.value }))} className="h-8 w-full rounded-xl border border-slate-200 px-3 text-sm" />
+          <label htmlFor="fec-proxima-acao" className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Próximo passo</label>
+          <input id="fec-proxima-acao" value={form.proxima_acao || ''} onChange={event => setForm(prev => ({ ...prev, proxima_acao: event.target.value }))} className="h-8 w-full rounded-xl border border-slate-200 px-3 text-sm" />
         </div>
         <div className="col-span-2">
-          <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Data do próximo passo</label>
-          <input type="datetime-local" value={form.proxima_acao_em ? form.proxima_acao_em.slice(0, 16) : ''} onChange={event => setForm(prev => ({ ...prev, proxima_acao_em: event.target.value }))} className="h-8 w-full rounded-xl border border-slate-200 px-3 text-sm" />
+          <label htmlFor="fec-proxima-acao-em" className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Data do próximo passo</label>
+          <input id="fec-proxima-acao-em" type="datetime-local" value={form.proxima_acao_em ? form.proxima_acao_em.slice(0, 16) : ''} onChange={event => setForm(prev => ({ ...prev, proxima_acao_em: event.target.value }))} className="h-8 w-full rounded-xl border border-slate-200 px-3 text-sm" />
         </div>
       </div>
 
       <div>
-        <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Observações</label>
-        <textarea value={form.observacoes || ''} onChange={event => setForm(prev => ({ ...prev, observacoes: event.target.value }))} rows={2} className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-status-info" />
+        <label htmlFor="fec-observacoes" className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Observações</label>
+        <textarea id="fec-observacoes" value={form.observacoes || ''} onChange={event => setForm(prev => ({ ...prev, observacoes: event.target.value }))} rows={2} className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-status-info" />
       </div>
 
       <div className="flex gap-2 pt-1">
@@ -1468,8 +1480,8 @@ function ProximaOportunidadeModal({
   const modoAtaqueAceito = session?.getItem(MODO_ATAQUE_ACEITO_KEY) === 'true'
 
   const overlay = (children: ReactNode) => (
-    <div className="fixed inset-0 z-[220] grid place-items-center bg-black/40 p-4 backdrop-blur-[2px]" role="dialog" aria-modal="true" onClick={onVoltarCarteira}>
-      <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.24)]" onClick={event => event.stopPropagation()}>
+    <div className="fixed inset-0 z-[220] grid place-items-center bg-black/40 p-4 backdrop-blur-[2px]" role="dialog" aria-modal="true" onClick={onVoltarCarteira} onKeyDown={e => { if (e.key === 'Escape') onVoltarCarteira() }}>
+      <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.24)]" onClick={event => event.stopPropagation()} onKeyDown={event => event.stopPropagation()} role="document">
         {children}
       </div>
     </div>
