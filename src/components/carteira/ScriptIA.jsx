@@ -1,9 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Sparkles, Copy, Check, MessageCircle, RefreshCw, Loader2 } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { Sparkles, Copy, Check, MessageCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
-import moment from "moment";
-import { getInstrucaoScript } from "./proximoPassoLib";
 import { gerarScriptLocal } from "./scriptTemplatesLocal";
 
 const TONS = [
@@ -14,169 +11,42 @@ const TONS = [
   { id: "audio",      label: "Áudio curto", desc: "Breve, natural, como uma mensagem de voz" },
 ];
 
-function buildPrompt({ cliente, objetivo, proximoPasso, scriptPadrao, tom, historico }) {
-  const ultimaInteracao = cliente.ultimo_contato
-    ? moment(cliente.ultimo_contato).fromNow()
-    : "data não registrada";
-
-  const tomInstrucao = {
-    consultivo: "Use tom consultivo: faça perguntas que ajudem o cliente a refletir sobre suas necessidades. Seja curioso, não insistente.",
-    direto: "Use tom direto: seja objetivo e vá ao ponto. Sem firulas, sem prolongar. Máximo 4 frases.",
-    leve: "Use tom leve e descontraído: como se fosse um amigo próximo. Sem pressão, sem formalidade excessiva.",
-    reativacao: "Use tom de reativação: é uma mensagem para um cliente que ficou um tempo sem responder. Não cobre, reacenda o interesse com leveza.",
-    audio: "Escreva como se fosse uma mensagem de áudio curta (30 a 45 segundos de fala). Tom natural, sem bullet points, sem parágrafos formais. Máximo 5 frases.",
-  }[tom] || "";
-
-  const historicoTexto = historico?.length
-    ? historico.slice(-3).map(h => `- ${h.tipo}: ${h.descricao}${h.resultado ? ` (${h.resultado})` : ""}`).join("\n")
-    : "Nenhum registro de histórico.";
-
-  return `Você é um assistente de vendas especializado no método MX Performance para concessionárias de veículos.
-
-Sua tarefa é escrever UMA mensagem personalizada de WhatsApp para o vendedor enviar ao cliente.
-
-DADOS DO CLIENTE:
-- Nome: ${cliente.nome || "—"}
-- Veículo de interesse: ${cliente.veiculo_interesse || "não informado"}
-- Canal Comercial: ${cliente.canal_comercial || cliente.canal_origem || "—"}
-- Origem: ${cliente.origem_detalhada || "não informada"}
-- Situação atual: ${cliente.situacao_atual || cliente.momento || "—"}
-- Temperatura: ${cliente.temperatura || "—"}
-- Prioridade comercial: ${cliente.prioridade_comercial || "—"}
-- Score do cliente: ${cliente.score_cliente ?? "—"}
-- Valor negociado: ${cliente.valor_negociado || "não informado"}
-- Interesse em troca: ${cliente.interesse_troca ? "Sim" : "Não"}
-- Interesse em financiamento: ${cliente.interesse_financiamento ? "Sim" : "Não"}
-- Motivo de perda (se houver): ${cliente.motivo_perda || "—"}
-- Observações: ${cliente.observacoes || "sem observações"}
-- Último contato: ${ultimaInteracao}
-- Próxima ação agendada: ${cliente.proxima_acao_data ? moment(cliente.proxima_acao_data).format("DD/MM/YYYY") : "não definida"}
-
-HISTÓRICO RECENTE:
-${historicoTexto}
-
-OBJETIVO COMERCIAL: ${objetivo}
-PRÓXIMO PASSO: ${proximoPasso}
-
-SCRIPT PADRÃO DE REFERÊNCIA (use como base, mas personalize):
-"${scriptPadrao}"
-
-INSTRUÇÃO DE TOM:
-${tomInstrucao}
-
-INSTRUÇÃO ESPECÍFICA DO PRÓXIMO PASSO (siga obrigatoriamente):
-${getInstrucaoScript(proximoPasso)}
-
-REGRAS OBRIGATÓRIAS:
-1. Personalize com o nome e o veículo do cliente.
-2. Mantenha o objetivo comercial do próximo passo.
-3. Use linguagem natural, profissional e próxima — nunca robótica.
-4. Mensagem pronta para WhatsApp — sem marcações, sem asteriscos de formatação markdown.
-5. Não invente descontos, promoções ou disponibilidade de veículo.
-6. Não prometa aprovação de financiamento.
-7. Não crie urgência falsa.
-8. Não altere status do cliente.
-9. Não use linguagem agressiva.
-10. Adapte ao canal (${cliente.canal_comercial || cliente.canal_origem || "—"}), temperatura (${cliente.temperatura || "—"}) e histórico.
-11. Se o tom for "áudio curto", escreva como fala natural, sem parágrafos formais.
-
-Responda APENAS com o texto da mensagem, sem explicações adicionais.`;
-}
-
-export default function ScriptIA({ cliente, objetivo, proximoPasso, scriptPadrao, historico, waUrlBase, onWhatsAppClick }) {
+export default function ScriptIA({ cliente, proximoPasso, onWhatsAppClick }) {
   const [tomSelecionado, setTomSelecionado] = useState("consultivo");
-  const [scriptIA, setScriptIA] = useState("");
-  const [gerando, setGerando] = useState(false);
+  const [script, setScript] = useState("");
   const [copiado, setCopiado] = useState(false);
-  const [tentativas, setTentativas] = useState(0);
 
-  // Ref para controlarAbortController e evitar race conditions
-  const abortControllerRef = useRef(null);
-  const clienteIdRef = useRef(null);
-
-  // Cleanup do AbortController no unmount
-  useEffect(() => {
-    return () => {
-      abortControllerRef.current?.abort();
-    };
-  }, []);
+  const gerarScript = useCallback((tom) => {
+    if (!cliente) return;
+    const texto = gerarScriptLocal({ cliente, proximoPasso, tom });
+    setScript(texto);
+  }, [cliente, proximoPasso]);
 
   useEffect(() => {
     if (!cliente) return;
-    setScriptIA("");
-    setTomSelecionado("consultivo");
     gerarScript("consultivo");
-  }, [cliente?.id]);
-
-  const gerarScript = useCallback(async (tomOverride) => {
-    if (!cliente?.id) return;
-
-    // Abortar requisição anterior se existir
-    abortControllerRef.current?.abort();
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-    clienteIdRef.current = cliente.id;
-
-    setGerando(true);
-    const tom = tomOverride || tomSelecionado;
-    const prompt = buildPrompt({ cliente, objetivo, proximoPasso, scriptPadrao, tom, historico });
-
-    try {
-      const { data, error } = await supabase.functions.invoke("openrouter-generate", {
-        body: { mode: "crm_whatsapp_script", prompt },
-      });
-
-      // Verificar se o componente ainda está montado para o mesmo cliente
-      if (controller.signal.aborted || clienteIdRef.current !== cliente.id) {
-        return;
-      }
-
-      if (error || !data?.success || !data?.text) {
-        throw new Error(error?.message || data?.error || "Integração de IA indisponível.");
-      }
-      setScriptIA(data.text);
-    } catch (err) {
-      // Ignorar erros de abort (race condition)
-      if (err.name === "AbortError") return;
-
-      // Verificar se o componente ainda está montado para o mesmo cliente
-      if (controller.signal.aborted || clienteIdRef.current !== cliente.id) {
-        return;
-      }
-
-      // Usar script local como fallback silencioso
-      setScriptIA(atual => gerarScriptLocal({ cliente, proximoPasso, tom, textoAnterior: atual }));
-    } finally {
-      if (clienteIdRef.current === cliente.id) {
-        setTentativas(t => t + 1);
-        setGerando(false);
-      }
-    }
-  }, [cliente, objetivo, proximoPasso, scriptPadrao, historico, tomSelecionado]);
+  }, [cliente?.id, gerarScript]);
 
   const copiar = useCallback(async () => {
-    if (!scriptIA) return;
+    if (!script) return;
     try {
-      await navigator.clipboard.writeText(scriptIA);
-      setCopiado(true);
-      setTimeout(() => setCopiado(false), 2000);
+      await navigator.clipboard.writeText(script);
     } catch {
-      // Fallback para navegadores sem permissão de clipboard
       const textarea = document.createElement("textarea");
-      textarea.value = scriptIA;
+      textarea.value = script;
       textarea.style.position = "fixed";
       textarea.style.left = "-9999px";
       document.body.appendChild(textarea);
       textarea.select();
       document.execCommand("copy");
       document.body.removeChild(textarea);
-      setCopiado(true);
-      setTimeout(() => setCopiado(false), 2000);
     }
-  }, [scriptIA]);
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 2000);
+  }, [script]);
 
   const tel = (cliente?.whatsapp || cliente?.telefone || "").replace(/\D/g, "");
-  const waUrl = tel && scriptIA ? `https://wa.me/55${tel}?text=${encodeURIComponent(scriptIA)}` : null;
+  const waUrl = tel && script ? `https://wa.me/55${tel}?text=${encodeURIComponent(script)}` : null;
 
   return (
     <div className="border border-dashed border-violet-200 rounded-2xl bg-violet-50/40 p-4 space-y-3">
@@ -185,7 +55,7 @@ export default function ScriptIA({ cliente, objetivo, proximoPasso, scriptPadrao
         <div className="w-6 h-6 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0">
           <Sparkles className="w-3.5 h-3.5 text-violet-600" />
         </div>
-        <p className="text-xs font-bold text-violet-700 uppercase tracking-wide">Script personalizado com IA</p>
+        <p className="text-xs font-bold text-violet-700 uppercase tracking-wide">Script personalizado</p>
       </div>
 
       {/* Seletor de tom */}
@@ -196,13 +66,12 @@ export default function ScriptIA({ cliente, objetivo, proximoPasso, scriptPadrao
             <button
               key={t.id}
               onClick={() => { setTomSelecionado(t.id); gerarScript(t.id); }}
-              disabled={gerando}
               title={t.desc}
               className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all ${
                 tomSelecionado === t.id
                   ? "bg-violet-600 text-white border-violet-600"
                   : "bg-white text-slate-600 border-slate-200 hover:border-violet-300 hover:text-violet-600"
-              } ${gerando ? "opacity-50 cursor-not-allowed" : ""}`}
+              }`}
             >
               {t.label}
             </button>
@@ -210,29 +79,13 @@ export default function ScriptIA({ cliente, objetivo, proximoPasso, scriptPadrao
         </div>
       </div>
 
-      {/* Mensagem de erro - removida conforme solicitado */}
-
-      {/* Botão gerar */}
-      {!scriptIA && (
-        <Button
-          onClick={() => gerarScript()}
-          disabled={gerando}
-          className="w-full rounded-xl bg-violet-600 hover:bg-violet-700 text-white gap-2 text-sm"
-        >
-          {gerando
-            ? <><Loader2 className="w-4 h-4 animate-spin" /> Gerando mensagem...</>
-            : <><Sparkles className="w-4 h-4" /> Gerar script com IA</>
-          }
-        </Button>
-      )}
-
       {/* Script gerado */}
-      {scriptIA && (
+      {script && (
         <>
           <div>
             <textarea
-              value={scriptIA}
-              onChange={e => setScriptIA(e.target.value)}
+              value={script}
+              onChange={e => setScript(e.target.value)}
               rows={7}
               className="w-full rounded-xl border border-violet-200 bg-white px-3 py-2.5 text-sm text-slate-700 resize-none focus:outline-none focus:ring-1 focus:ring-violet-400 focus:border-violet-400"
             />
@@ -254,14 +107,10 @@ export default function ScriptIA({ cliente, objetivo, proximoPasso, scriptPadrao
 
           <Button
             variant="ghost"
-            onClick={() => gerarScript()}
-            disabled={gerando}
+            onClick={() => gerarScript(tomSelecionado)}
             className="w-full rounded-xl text-violet-600 hover:bg-violet-100 gap-2 text-xs"
           >
-            {gerando
-              ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Gerando...</>
-              : <><RefreshCw className="w-3.5 h-3.5" /> Gerar outra versão</>
-            }
+            <RefreshCw className="w-3.5 h-3.5" /> Gerar outra versão
           </Button>
         </>
       )}
