@@ -72,7 +72,11 @@ export function ManagerDayRoutineCanonical() {
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [now, setNow] = useState(() => new Date())
-  const restoredContext = useMemo(() => consumeNavigationContext(), [])
+  const [restoredContext, setRestoredContext] = useState<ReturnType<typeof consumeNavigationContext> | null>(null)
+
+  useEffect(() => {
+    setRestoredContext(consumeNavigationContext())
+  }, [])
 
   useEffect(() => {
     const interval = window.setInterval(() => setNow(new Date()), 60_000)

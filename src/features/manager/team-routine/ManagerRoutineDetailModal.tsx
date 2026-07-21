@@ -36,11 +36,11 @@ export function ManagerRoutineDetailModal({ open, sellerName, date, actions, app
           <button type="button" className="mt-4 rounded-xl bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200" onClick={onClose}>Fechar</button>
         </div> : <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
           <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-            <div><h2 id="manager-routine-detail-title" className="text-lg font-semibold text-gray-800">Rotina do Dia — {sellerName}</h2><p className="text-xs text-gray-500">Atividades oficiais para {format(parseISO(date), 'dd/MM/yyyy')}.</p></div>
+            <div><h2 id="manager-routine-detail-title" className="text-lg font-semibold text-gray-800">Rotina do Dia — {sellerName}</h2><p className="text-xs text-gray-500">Atividades oficiais para {(() => { try { return format(parseISO(date), 'dd/MM/yyyy') } catch { return date } })()}.</p></div>
             <button type="button" aria-label="Fechar modal" onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20}/></button>
           </div>
           <div className="space-y-5 overflow-y-auto px-5 py-4">
-          <p className="text-xs text-gray-500">Unidade e atividades oficiais da Central de Execução para {format(parseISO(date), 'dd/MM/yyyy')}.</p>
+          <p className="text-xs text-gray-500">Unidade e atividades oficiais da Central de Execução para {(() => { try { return format(parseISO(date), 'dd/MM/yyyy') } catch { return date } })()}.</p>
           <div className="grid grid-cols-2 gap-3 rounded-xl bg-gray-50 p-4 sm:grid-cols-4">
             <DetailMetric label="Execução" value={execution === null ? '—' : `${execution}%`} />
             <DetailMetric label="Ações" value={`${completed}/${actions.length}`} />

@@ -93,13 +93,13 @@ export function ManagerSellerParityHome({
   const monthlyGoal = Number(data.effectiveMonthlyGoal || data.metrics.goalValue || 0)
   const salesToday = somarVendas(dailyCheckins)
   const salesForecastToday = calculateSalesForecast(appointmentsToday)
+  const elapsedBusinessDays = countElapsedBusinessDays(data.referenceDate)
   const salesNeededToday = calculateSalesNeededToday(monthlyGoal, DIAS_UTEIS_MES_PADRAO, salesToday)
   const appointmentTarget = calculateAppointmentTarget(salesNeededToday)
   const appointmentGap = calculateAppointmentGap(appointmentsToday, appointmentTarget)
   const forecastCoverage = calculateForecastCoverage(salesForecastToday, salesNeededToday)
   const todayReading = buildTodayReading(salesForecastToday, salesNeededToday)
   const suggestedAction = buildSuggestedAction(appointmentGap, salesForecastToday, salesNeededToday)
-  const elapsedBusinessDays = countElapsedBusinessDays(data.referenceDate)
   const individualGoal = resolveIndividualGoal({
     mode: data.operationalMetaRules?.individual_goal_mode,
     storeMonthlyGoal: monthlyGoal,

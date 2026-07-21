@@ -29,7 +29,7 @@ export function ManagerRoutineChargeModal({ open, sellerName, date, onClose, onS
       await onSave(message)
       setSent(true)
       window.setTimeout(onClose, 1400)
-    } finally {
+    } catch {
       setSending(false)
     }
   }

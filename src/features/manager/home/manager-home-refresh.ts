@@ -15,11 +15,16 @@ export async function refreshManagerHomeData({
   refetchStoreGoal,
   refetchOperationalSettings,
 }: ManagerHomeRefreshSources) {
-  await Promise.all([
+  const results = await Promise.allSettled([
     refetchDailyCheckins(),
     refetchMonthlyCheckins(),
     refetchSellers(),
     refetchStoreGoal(),
     refetchOperationalSettings(),
   ])
+
+  const failures = results.filter(r => r.status === 'rejected')
+  if (failures.length > 0) {
+    console.warn('[ManagerHome] Partial refresh failure:', failures.map(r => r.status === 'rejected' ? r.reason : null))
+  }
 }
