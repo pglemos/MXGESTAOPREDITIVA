@@ -14,6 +14,7 @@ mock.module('@/lib/supabase', () => ({
 
 const {
   installCarteiraBase44Adapter,
+  resetCarteiraAuthCache,
   resolveCarteiraExecutionContext,
 } = await import('./installCarteiraBase44Adapter')
 
@@ -21,6 +22,7 @@ afterAll(() => mock.restore())
 
 beforeEach(() => {
   authenticatedUserId = null
+  resetCarteiraAuthCache()
   window.sessionStorage.clear()
 })
 
