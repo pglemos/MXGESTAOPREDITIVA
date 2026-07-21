@@ -92,7 +92,7 @@ type ProximaInfo = { cliente: Cliente; nome: string; veiculo: string | null; pro
 /** Canal usado ao executar o próximo passo (planilha #9 — não força mais WhatsApp). */
 type CanalContato = 'whatsapp' | 'ligacao' | 'presencial'
 
-type FiltroPrioridade = 'alta' | 'media' | 'baixa'
+type FiltroPrioridade = 'maxima' | 'alta' | 'media' | 'baixa'
 type FiltroSituacao = 'sem_visita' | 'visita_agendada' | 'proposta_enviada' | 'recuperacao' | 'sem_proximo_passo' | 'proximo_passo_vencido'
 type FiltroPeriodo = 'hoje' | 'amanha' | 'proximos_7_dias' | 'vencidos' | 'sem_data'
 
@@ -121,6 +121,7 @@ const PERIODOS_FILTRO: Array<{ value: FiltroPeriodo; label: string }> = [
   { value: 'sem_data', label: 'Sem data' },
 ]
 const PRIORIDADES_FILTRO: Array<{ value: FiltroPrioridade; label: string }> = [
+  { value: 'maxima', label: 'Máxima' },
   { value: 'alta', label: 'Alta' },
   { value: 'media', label: 'Média' },
   { value: 'baixa', label: 'Baixa' },
@@ -159,7 +160,7 @@ function ChipsFiltrosAtivos({ filtros, onRemover }: { filtros: FiltrosAvancados;
       {chips.map(chip => (
         <span key={chip.key} className="flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-[#005BFF]">
           {chip.label}
-          <button type="button" onClick={() => onRemover(chip.key)}><X size={12} /></button>
+          <button type="button" onClick={() => onRemover(chip.key)} aria-label={`Remover filtro: ${chip.label}`} className="inline-flex items-center justify-center rounded p-0.5 hover:bg-blue-100"><X size={12} /></button>
         </span>
       ))}
     </div>
@@ -191,8 +192,9 @@ function PainelFiltros({ filtrosAtivos, onAplicar, onFechar }: { filtrosAtivos: 
 
         <div className="flex-1 space-y-5 px-5 py-4">
           <div>
-            <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">Veículo de interesse</p>
+            <label htmlFor="filtro-veiculo" className="mb-2 block text-[10px] font-bold uppercase tracking-wide text-slate-400">Veículo de interesse</label>
             <input
+              id="filtro-veiculo"
               value={local.veiculo || ''}
               onChange={event => setLocal(prev => ({ ...prev, veiculo: event.target.value }))}
               placeholder="Ex: HR-V, Corolla..."
@@ -264,7 +266,7 @@ function aplicarFiltrosAvancados(
   if (filtros.prioridades?.length) {
     lista = lista.filter(cliente => {
       const prioridade = prioridadePorCliente.get(cliente.id)
-      return prioridade === 'alta' || prioridade === 'media' || prioridade === 'baixa' ? filtros.prioridades?.includes(prioridade) : false
+      return prioridade && filtros.prioridades?.includes(prioridade)
     })
   }
   if (filtros.situacoes?.length) {
@@ -322,9 +324,6 @@ const EMPTY_FORM: ClienteInput = {
 }
 
 const PRIORIDADE_ORDER: Record<Prioridade, number> = { maxima: 0, alta: 1, media: 2, baixa: 3 }
-
-type StatusAcao = 'Pendente' | 'Agendada' | 'Feita' | 'Não respondeu' | 'Aguardando' | 'Reagendada' | 'Não feita' | 'Concluída'
-const CLIENT_FLOW_STEPS = ['Lead', 'Contato', 'Agendamento', 'Visita', 'Negociação', 'Venda', 'Pós-venda']
 
 const DEMO_TOTAL_CLIENTES = 128
 const DEMO_KPIS = {
@@ -503,10 +502,9 @@ export function CarteiraClientes() {
   }
 
   function abrirProximaOportunidade(handledId: string) {
-    const ordem: Record<Prioridade, number> = { maxima: 0, alta: 1, media: 2, baixa: 3 }
     const proxima = [...carteiraClientes]
       .filter(cliente => cliente.id !== handledId)
-      .sort((a, b) => (ordem[prioridadePorCliente.get(a.id) || 'baixa']) - (ordem[prioridadePorCliente.get(b.id) || 'baixa']))[0]
+      .sort((a, b) => (PRIORIDADE_ORDER[prioridadePorCliente.get(a.id) || 'baixa']) - (PRIORIDADE_ORDER[prioridadePorCliente.get(b.id) || 'baixa']))[0]
     if (proxima) {
       const oport = oportunidadePorCliente.get(proxima.id)
       const prog = progressoPorCliente.get(proxima.id)
@@ -615,6 +613,7 @@ export function CarteiraClientes() {
                 value={search}
                 onChange={event => setSearch(event.target.value)}
                 placeholder="Buscar cliente..."
+                aria-label="Buscar cliente por nome, telefone ou veículo"
                 className="h-9 w-44 rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm focus:outline-none focus:ring-1 focus:ring-[#005BFF]"
               />
             </span>
@@ -999,8 +998,12 @@ function FluxoClientePanel({
     toast.success('Ficha atualizada.')
     setEditando(false)
   }
-  const whatsappHref = cliente.telefone ? `https://wa.me/55${cliente.telefone.replace(/\D/g, '')}` : null
-  const telefoneHref = cliente.telefone ? `tel:+55${cliente.telefone.replace(/\D/g, '')}` : null
+  const whatsappHref = cliente.telefone ? (() => {
+    const digits = cliente.telefone.replace(/\D/g, '')
+    const number = digits.startsWith('55') ? digits : `55${digits}`
+    return `https://wa.me/${number}`
+  })() : null
+  const telefoneHref = cliente.telefone ? `tel:+55${cliente.telefone.replace(/\D/g, '').replace(/^55/, '')}` : null
   // Planilha #9: executar o próximo passo pede o canal (WhatsApp/ligação/presencial)
   // em vez de forçar WhatsApp. O canal escolhido é registrado no histórico da cadência.
   const [escolhendoCanal, setEscolhendoCanal] = useState(false)
@@ -1049,7 +1052,7 @@ function FluxoClientePanel({
               <ClienteAvatar nome={cliente.nome} size="lg" />
               <div className="min-w-0 flex-1">
                 <h3 className="truncate text-[17px] font-black leading-tight text-mx-dark-2">{cliente.nome}</h3>
-                <p className="mt-0.5 text-xs text-slate-400">{canalLabel} · Cadastrado {formatDateBR(cliente.created_at.slice(0, 10))}</p>
+                <p className="mt-0.5 text-xs text-slate-400">{canalLabel} · Cadastrado {cliente.created_at ? formatDateBR(cliente.created_at.slice(0, 10)) : 'Data não informada'}</p>
                 {cliente.telefone && (
                   <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
                     📱 {cliente.telefone}
@@ -1171,8 +1174,8 @@ function FluxoClientePanel({
                       <InfoItem label="Origem" value={canalLabel} />
                     </FichaSection>
                     <FichaSection title="Contato">
-                      <InfoItem label="WhatsApp" value={cliente.telefone || 'Não informado'} />
-                      <InfoItem label="Telefone" value={cliente.telefone || 'Não informado'} />
+                      <InfoItem label="WhatsApp" value={cliente.telefone ? `${cliente.telefone}` : 'Não informado'} />
+                      <InfoItem label="Telefone" value={cliente.telefone ? `+55${cliente.telefone.replace(/\D/g, '').replace(/^55/, '')}` : 'Não informado'} />
                       <InfoItem label="Último contato" value={cliente.ultima_interacao ? formatDateBR(cliente.ultima_interacao) : 'Sem registro'} />
                       <InfoItem label="Tentativa atual" value={`${tentativaAtual}/3`} />
                     </FichaSection>
@@ -1372,7 +1375,7 @@ function InfoItem({ label, value }: { label: string; value: string }) {
 
 function TimelineItem({ title, detail, date }: { title: string; detail: string; date: string }) {
   return (
-    <div className="mt-mx-sm border-t border-border-subtle pt-mx-sm">
+    <div className="mt-2 border-t border-slate-100 pt-2">
       <Typography variant="caption" className="block font-bold">{title}</Typography>
       <Typography variant="caption" tone="muted" className="block">{detail}</Typography>
       <Typography variant="caption" tone="muted" className="block">{date}</Typography>
@@ -1385,18 +1388,6 @@ function getFichaLabel(value?: string | null) {
   if (value === 'reprovado') return 'Recusada'
   if (value === 'pendente') return 'Não enviada'
   return 'Não aplica'
-}
-
-function getVisualStageIndex(label: string, status: CrmClienteStatus) {
-  if (status === 'pos_venda') return 6
-  const normalized = label.toLowerCase()
-  if (normalized.includes('lead')) return 0
-  if (normalized.includes('contato') || normalized.includes('atendimento')) return 1
-  if (normalized.includes('agendamento')) return 2
-  if (normalized.includes('visita') || normalized.includes('apresenta')) return 3
-  if (normalized.includes('negocia') || normalized.includes('proposta')) return 4
-  if (normalized.includes('venda')) return 5
-  return 0
 }
 
 
@@ -1548,7 +1539,7 @@ function ProximaOportunidadeModal({
         <p className="text-[11px] text-blue-300">Próxima: <span className="font-bold text-white">{proxima.nome}</span></p>
       </div>
       <div className="flex flex-col gap-2">
-        <button type="button" onClick={() => { sessionStorage.setItem(MODO_ATAQUE_ACEITO_KEY, 'true'); onEntrarModoAtaque() }} className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#005BFF] text-sm font-bold text-white transition-colors hover:bg-blue-700"><Zap className="h-4 w-4" /> Entrar no Modo Ataque</button>
+        <button type="button" onClick={() => { try { sessionStorage.setItem(MODO_ATAQUE_ACEITO_KEY, 'true') } catch {} onEntrarModoAtaque() }} className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#005BFF] text-sm font-bold text-white transition-colors hover:bg-blue-700"><Zap className="h-4 w-4" /> Entrar no Modo Ataque</button>
         <button type="button" onClick={onVoltarCarteira} className="w-full rounded-xl border border-slate-200 py-2.5 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-50">Voltar para Carteira</button>
       </div>
     </div>,
