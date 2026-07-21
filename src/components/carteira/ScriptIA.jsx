@@ -110,7 +110,7 @@ export default function ScriptIA({ cliente, objetivo, proximoPasso, scriptPadrao
       }
       setScriptIA(data.text);
     } catch (error) {
-      setScriptIA(atual => gerarScriptLocal({ cliente, objetivo, proximoPasso, tom, textoAnterior: atual }));
+      setScriptIA(atual => gerarScriptLocal({ cliente, proximoPasso, tom, textoAnterior: atual }));
     } finally {
       setTentativas(t => t + 1);
       setGerando(false);
