@@ -89,7 +89,6 @@ export default function ScriptIA({ cliente, objetivo, proximoPasso, scriptPadrao
   const [gerando, setGerando] = useState(false);
   const [copiado, setCopiado] = useState(false);
   const [tentativas, setTentativas] = useState(0);
-  const [erroIA, setErroIA] = useState(null);
 
   // Ref para controlarAbortController e evitar race conditions
   const abortControllerRef = useRef(null);
@@ -105,7 +104,6 @@ export default function ScriptIA({ cliente, objetivo, proximoPasso, scriptPadrao
   useEffect(() => {
     if (!cliente) return;
     setScriptIA("");
-    setErroIA(null);
     setTomSelecionado("consultivo");
     gerarScript("consultivo");
   }, [cliente?.id]);
@@ -120,7 +118,6 @@ export default function ScriptIA({ cliente, objetivo, proximoPasso, scriptPadrao
     clienteIdRef.current = cliente.id;
 
     setGerando(true);
-    setErroIA(null);
     const tom = tomOverride || tomSelecionado;
     const prompt = buildPrompt({ cliente, objetivo, proximoPasso, scriptPadrao, tom, historico });
 
@@ -147,9 +144,7 @@ export default function ScriptIA({ cliente, objetivo, proximoPasso, scriptPadrao
         return;
       }
 
-      // Mostrar erro ao usuário e usar script local como fallback
-      const mensagemErro = err.message || "Erro ao gerar script com IA.";
-      setErroIA(mensagemErro);
+      // Usar script local como fallback silencioso
       setScriptIA(atual => gerarScriptLocal({ cliente, proximoPasso, tom, textoAnterior: atual }));
     } finally {
       if (clienteIdRef.current === cliente.id) {
@@ -215,13 +210,7 @@ export default function ScriptIA({ cliente, objetivo, proximoPasso, scriptPadrao
         </div>
       </div>
 
-      {/* Mensagem de erro */}
-      {erroIA && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-xs text-amber-700">
-          <p className="font-semibold mb-0.5">Script gerado localmente</p>
-          <p>{erroIA}</p>
-        </div>
-      )}
+      {/* Mensagem de erro - removida conforme solicitado */}
 
       {/* Botão gerar */}
       {!scriptIA && (
