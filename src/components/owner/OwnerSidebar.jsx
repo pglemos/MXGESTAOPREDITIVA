@@ -1,182 +1,175 @@
-import { useEffect, useState } from 'react'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { useState } from "react";
+import { NavLink } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { useOwner } from "@/components/owner/OwnerContext";
+import { Button } from "@/components/ui/button";
 import {
-  BarChart3,
-  Boxes,
-  CalendarClock,
-  CheckSquare2,
+  Home,
+  CalendarDays,
+  ClipboardCheck,
+  Target,
+  ListChecks,
+  Users,
+  LayoutGrid,
+  TrendingUp,
+  GraduationCap,
+  MessageCircle,
   ChevronDown,
   ChevronRight,
-  ClipboardList,
-  GraduationCap,
-  Home,
-  MessageCircle,
-  Target,
-  X,
-} from 'lucide-react'
-import { useOwnerContext } from './OwnerContext'
-import '@/styles/owner-base44-fixes.css'
+} from "lucide-react";
 
-const departmentChildren = [
-  { label: 'Visão Geral', segment: 'departamentos/visao-geral' },
-  { label: 'Comercial', segment: 'departamentos/comercial' },
-  { label: 'Marketing', segment: 'departamentos/marketing' },
-  { label: 'Produto e Estoque', segment: 'departamentos/produto' },
-  { label: 'Pessoas — RH', segment: 'departamentos/rh' },
-  { label: 'Financeiro', segment: 'departamentos/financeiro' },
-  { label: 'Operações', segment: 'departamentos/operacional' },
-]
-
-const groups = [
+const NAV = [
   {
-    label: 'GESTÃO',
+    section: "GESTÃO",
     items: [
-      { label: 'Início', segment: '', icon: Home, end: true },
-      { label: 'Rotina do Dia', segment: 'rotina', icon: CalendarClock, badge: 'Em construção' },
-      { label: 'Central de Decisões', segment: 'decisoes', icon: ClipboardList, badge: 'Em construção' },
+      { label: "Início", to: "/dono", icon: Home, end: true },
+      { label: "Rotina do Dia", to: "/dono/rotina", icon: CalendarDays, badge: "Em construção" },
+      { label: "Central de Decisões", to: "/dono/decisoes", icon: ClipboardCheck, badge: "Em construção" },
     ],
   },
   {
-    label: 'ESTRATÉGIA',
+    section: "ESTRATÉGIA",
     items: [
-      { label: 'Plano Estratégico', segment: 'plano-estrategico', icon: Target },
-      { label: 'Plano de Ação', segment: 'plano-acao', icon: CheckSquare2 },
-      { label: 'Consultoria', segment: 'consultoria', icon: MessageCircle },
+      { label: "Plano Estratégico", to: "/dono/plano-estrategico", icon: Target },
+      { label: "Plano de Ação", to: "/dono/plano-acao", icon: ListChecks },
+      { label: "Consultoria", to: "/dono/consultoria", icon: Users },
     ],
   },
   {
-    label: 'NEGÓCIO',
-    items: [],
-    departments: true,
-    trailingItems: [
-      { label: 'Mercado', segment: 'mercado', icon: BarChart3, badge: 'Em construção' },
+    section: "NEGÓCIO",
+    items: [
+      {
+        label: "Departamentos",
+        icon: LayoutGrid,
+        group: "departments",
+        children: [
+          { label: "Visão Geral", to: "/dono/departamentos" },
+          { label: "Comercial", to: "/dono/departamentos/comercial" },
+          { label: "Marketing", to: "/dono/departamentos/marketing" },
+          { label: "Produto e Estoque", to: "/dono/departamentos/produto-e-estoque" },
+          { label: "Pessoas — RH", to: "/dono/departamentos/pessoas-rh" },
+          { label: "Financeiro", to: "/dono/departamentos/financeiro" },
+          { label: "Operações", to: "/dono/departamentos/operacoes" },
+        ],
+      },
+      { label: "Mercado", to: "/dono/mercado", icon: TrendingUp, badge: "Em construção" },
     ],
   },
   {
-    label: 'DESENVOLVIMENTO',
-    items: [{ label: 'Universidade MX', segment: 'universidade', icon: GraduationCap, badge: 'Em construção' }],
+    section: "DESENVOLVIMENTO",
+    items: [{ label: "Universidade MX", to: "/dono/universidade", icon: GraduationCap, badge: "Em construção" }],
   },
-]
+];
 
-export default function OwnerSidebar({ storeSlug, open, onClose }) {
-  const basePath = `/lojas/${storeSlug}`
-  const location = useLocation()
-  const { openConsultantModal } = useOwnerContext()
-  const [departmentsOpen, setDepartmentsOpen] = useState(true)
+export default function OwnerSidebar({ onNavigate }) {
+  const [openGroups, setOpenGroups] = useState({ departments: true });
+  const { openConsultantModal } = useOwner();
 
-  useEffect(() => {
-    if (location.pathname.includes('/departamentos')) {
-      setDepartmentsOpen(true)
-    }
-  }, [location.pathname])
+  const toggleGroup = (g) => setOpenGroups((s) => ({ ...s, [g]: !s[g] }));
 
   return (
-    <>
-      <button
-        type="button"
-        className={`owner-base44-exact__backdrop ${open ? 'is-open' : ''}`}
-        aria-label="Fechar menu"
-        onClick={onClose}
-      />
-      <aside className={`owner-base44-exact__sidebar ${open ? 'is-open' : ''}`} aria-label="Menu principal do Dono">
-        <button
-          type="button"
-          className="owner-base44-exact__sidebar-close"
-          onClick={onClose}
-          aria-label="Fechar menu"
-        >
-          <X size={20} />
-        </button>
+    <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
+      {/* Marca */}
+      <div className="flex h-16 items-center gap-2.5 border-b border-sidebar-border px-5">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <span className="text-sm font-bold tracking-tight">MX</span>
+        </div>
+        <div className="leading-tight">
+          <p className="text-sm font-semibold text-sidebar-foreground">MX Performance</p>
+          <p className="text-[11px] text-muted-foreground">Visão do Dono</p>
+        </div>
+      </div>
 
-        <nav className="owner-base44-exact__nav">
-          {groups.map((group) => {
-            const renderItem = (item) => {
-              const Icon = item.icon
-              const path = item.segment ? `${basePath}/${item.segment}` : basePath
-              return (
-                <NavLink
-                  key={item.label}
-                  to={path}
-                  end={item.end}
-                  onClick={onClose}
-                  className={({ isActive }) => [
-                    'owner-base44-exact__nav-item',
-                    isActive ? 'is-active' : '',
-                  ].filter(Boolean).join(' ')}
-                >
-                  <Icon size={18} strokeWidth={1.8} aria-hidden="true" />
-                  <span>{item.label}</span>
-                  {item.badge ? <span className="owner-base44-exact__nav-badge">{item.badge}</span> : null}
-                </NavLink>
-              )
-            }
-
-            return (
-            <section key={group.label} className="owner-base44-exact__nav-group">
-              <h2>{group.label}</h2>
-              <div>
-                {group.items.map(renderItem)}
-
-                {group.departments ? (
-                  <>
-                    <button
-                      type="button"
-                      className="owner-base44-exact__nav-toggle"
-                      aria-expanded={departmentsOpen}
-                      onClick={() => setDepartmentsOpen((current) => !current)}
-                    >
-                      <Boxes size={18} strokeWidth={1.8} aria-hidden="true" />
-                      <span>Departamentos</span>
-                      {departmentsOpen ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
-                    </button>
-                    {departmentsOpen ? (
-                      <div className="owner-base44-exact__nav-subgroup">
-                        {departmentChildren.map((child) => {
-                          const isVisaoGeral = child.segment === 'departamentos/visao-geral'
-                          const active = isVisaoGeral
-                            ? location.pathname === `${basePath}/departamentos` || location.pathname === `${basePath}/${child.segment}`
-                            : location.pathname === `${basePath}/${child.segment}`
-                          return (
-                            <Link
-                              key={child.segment}
-                              to={`${basePath}/${child.segment}`}
-                              onClick={onClose}
-                              aria-current={active ? 'page' : undefined}
-                              className={[
-                                'owner-base44-exact__nav-subitem',
-                                active ? 'is-active' : '',
-                              ].filter(Boolean).join(' ')}
+      {/* Navegação */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4">
+        {NAV.map((group) => (
+          <div key={group.section} className="mb-5">
+            <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+              {group.section}
+            </p>
+            <div className="space-y-0.5">
+              {group.items.map((item) => {
+                if (item.group) {
+                  const isOpen = openGroups[item.group];
+                  const Icon = item.icon;
+                  return (
+                    <div key={item.label}>
+                      <button
+                        onClick={() => toggleGroup(item.group)}
+                        className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      >
+                        <Icon className="h-4 w-4 shrink-0 text-muted-foreground/80" />
+                        <span className="flex-1 text-left">{item.label}</span>
+                        {isOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                      </button>
+                      {isOpen && (
+                        <div className="ml-3 mt-0.5 space-y-0.5 border-l border-sidebar-border pl-3">
+                          {item.children.map((child) => (
+                            <NavLink
+                              key={child.to}
+                              to={child.to}
+                              end={child.to === "/dono/departamentos"}
+                              onClick={onNavigate}
+                              className={({ isActive }) =>
+                                cn(
+                                  "block rounded-md px-3 py-1.5 text-[13px] text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                                  isActive && "bg-primary/10 font-medium text-primary"
+                                )
+                              }
                             >
                               {child.label}
-                            </Link>
-                          )
-                        })}
-                      </div>
-                    ) : null}
-                  </>
-                ) : null}
+                            </NavLink>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.end}
+                    onClick={onNavigate}
+                    className={({ isActive }) =>
+                      cn(
+                        "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                        isActive
+                          ? "bg-primary/10 text-primary font-semibold"
+                          : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      )
+                    }
+                  >
+                    <Icon className="h-4 w-4 shrink-0 text-muted-foreground/80" />
+                    <span className="flex-1">{item.label}</span>
+                    {item.badge && (
+                      <span className="rounded-full bg-amber-50 px-1.5 py-0.5 text-[9px] font-medium text-amber-700">
+                        {item.badge}
+                      </span>
+                    )}
+                  </NavLink>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </nav>
 
-                {group.trailingItems ? group.trailingItems.map(renderItem) : null}
-              </div>
-            </section>
-            )
-          })}
-        </nav>
-
-        <div className="owner-base44-exact__sidebar-footer">
-          <button
-            type="button"
-            className="owner-base44-exact__consultant-button"
-            onClick={() => {
-              onClose?.()
-              openConsultantModal()
-            }}
-          >
-            <MessageCircle size={18} aria-hidden="true" />
-            Falar com Consultor
-          </button>
-        </div>
-      </aside>
-    </>
-  )
+      {/* Falar com Consultor — fixo na base */}
+      <div className="border-t border-sidebar-border p-3">
+        <Button
+          variant="default"
+          className="w-full justify-start gap-2.5 bg-primary hover:bg-primary/90"
+          onClick={() => {
+            onNavigate?.();
+            openConsultantModal(null);
+          }}
+        >
+          <MessageCircle className="h-4 w-4" />
+          Falar com Consultor
+        </Button>
+      </div>
+    </div>
+  );
 }

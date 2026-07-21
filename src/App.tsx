@@ -41,7 +41,7 @@ const Perfil = lazy(() => import('@/pages/Perfil'))
 
 // Gerente e Dono
 const DashboardLoja = lazy(() => import('@/pages/DashboardLoja'))
-const OwnerBase44Route = lazy(() => import('@/features/owner-base44/OwnerBase44Route'))
+const OwnerModule = lazy(() => import('@/features/owner-base44/OwnerModule'))
 const StoreConsultorIa = lazy(() => import('@/pages/StoreConsultorIa'))
 const GerenteFeedback = lazy(() => import('@/pages/GerenteFeedback'))
 const GerentePDI = lazy(() => import('@/pages/GerentePDI'))
@@ -197,7 +197,7 @@ function ForbiddenRoute() {
 function RoleRedirect() {
   const { role, membership } = useAuth()
   if (isPerfilInternoMx(role)) return <Navigate to="/painel" replace />
-  if (role === 'dono') return <Navigate to="/lojas" replace />
+  if (role === 'dono') return <Navigate to="/dono" replace />
   if (role === 'gerente') {
     const storeDashboardPath = membership?.store?.name ? `/lojas/${slugify(membership.store.name)}` : '/classificacao'
     return <Navigate to={storeDashboardPath} replace />
@@ -253,6 +253,7 @@ export default function App() {
               <Route path="/pre-cadastro/:storeSlug" element={<Suspense fallback={<Spinner />}><StorePreRegistration /></Suspense>} />
               <Route path="/privacy" element={<Suspense fallback={<Spinner />}><Privacy /></Suspense>} />
               <Route path="/terms" element={<Suspense fallback={<Spinner />}><Terms /></Suspense>} />
+              <Route path="/dono/*" element={<ProtectedRoute><Suspense fallback={<Spinner />}><OwnerModule /></Suspense></ProtectedRoute>} />
               <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
                 <Route path="settings" element={<Navigate to="/configuracoes" replace />} />
                 <Route path="team" element={<TeamAliasRedirect />} />
@@ -365,10 +366,10 @@ export default function App() {
                 <Route path="gerente/ranking" element={<Suspense fallback={<Spinner />}><Ranking /></Suspense>} />
                 <Route path="gerente/universidade-mx" element={<Suspense fallback={<Spinner />}><RoleSwitch vendedor={<ForbiddenRoute />} gerente={<GerenteTreinamentos />} dono={<GerenteTreinamentos />} admin={<ConsultorTreinamentos />} /></Suspense>} />
                 <Route path="lojas/:storeSlug/consultor-ia" element={<Suspense fallback={<Spinner />}>
-                  <RoleSwitch vendedor={<StoreConsultorIa />} gerente={<StoreConsultorIa />} dono={<OwnerBase44Route />} admin={<StoreConsultorIa />} />
+                  <RoleSwitch vendedor={<StoreConsultorIa />} gerente={<StoreConsultorIa />} dono={<Navigate to="/dono" replace />} admin={<StoreConsultorIa />} />
                 </Suspense>} />
                 <Route path="lojas/:storeSlug/*" element={<Suspense fallback={<Spinner />}>
-                  <RoleSwitch vendedor={<ForbiddenRoute />} gerente={<DashboardLoja />} dono={<OwnerBase44Route />} admin={<DashboardLoja />} />
+                  <RoleSwitch vendedor={<ForbiddenRoute />} gerente={<DashboardLoja />} dono={<Navigate to="/dono" replace />} admin={<DashboardLoja />} />
                 </Suspense>} />
                 <Route path="consultor-ia" element={<ConsultorIaAliasRedirect />} />
                 <Route path="pdi" element={<Suspense fallback={<Spinner />}>

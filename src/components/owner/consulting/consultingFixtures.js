@@ -1,0 +1,180 @@
+// Fixtures do programa de Consultoria — PMR, PMR Plus e PPA.
+// Dados estáticos: programas, encontros, aulas, templates de preparação e evidências.
+
+export const PROGRAMS = {
+  pmr: {
+    id: "pmr",
+    code: "PMR",
+    name: "PMR — Programa de Maximização de Resultados",
+    shortName: "PMR",
+    focus: "Estruturação de Processos",
+    description: "Programa de implementação com 9 encontros de implantação e 3 de acompanhamento.",
+    totalMeetings: 12,
+    implementationMeetings: 9,
+    followupMeetings: 3,
+    modalities: ["Presencial", "Online", "Híbrido"],
+    audiences: ["Sobrevivência", "Organização", "Crescimento"],
+    isContinuation: false,
+    restrictedContent: false,
+  },
+  pmr_plus: {
+    id: "pmr_plus",
+    code: "PMR_PLUS",
+    name: "PMR Plus",
+    shortName: "PMR Plus",
+    focus: "Processos, acompanhamento e organização financeira",
+    description: "Continuação do PMR com reuniões de acompanhamento, análises financeiras e revisão dos processos implantados.",
+    totalMeetings: 6,
+    implementationMeetings: 3,
+    followupMeetings: 3,
+    modalities: ["Presencial", "Online", "Híbrido"],
+    audiences: ["Organização", "Crescimento"],
+    isContinuation: true,
+    continuationOf: "pmr",
+    continuationLabel: "Continuação do PMR",
+    restrictedContent: false,
+    eligibilityTooltip: "O PMR Plus é uma continuidade destinada a clientes do PMR.",
+  },
+  ppa: {
+    id: "ppa",
+    code: "PPA",
+    name: "PPA — Programa de Performance Acelerada",
+    shortName: "PPA",
+    focus: "Modelo de Negócio, Planejamento Estratégico, Maximização de Receita e Eficiência em Custo",
+    description: "Programa de performance acelerada com 9 encontros focados nos quatro pilares estratégicos.",
+    totalMeetings: 9,
+    implementationMeetings: 9,
+    followupMeetings: 0,
+    modalities: ["Presencial", "Híbrido"],
+    audiences: ["Crescimento", "Escala", "Consolidação"],
+    pillars: ["Modelo de Negócio", "Planejamento Estratégico", "Maximização de Receita", "Eficiência em Custo"],
+    isContinuation: false,
+    restrictedContent: true,
+    restrictedRoles: ["owner", "partner", "consultant", "admin_mx"],
+  },
+};
+
+export const MEETINGS = [
+  // PMR — 9 encontros de implementação
+  { id: "m-pmr-01", programId: "pmr", number: 1, phase: "implementation", title: "Diagnóstico", objective: "Identificar o estágio atual da empresa, seus principais gargalos e as prioridades que orientarão o programa de Consultoria.", reason: "Este encontro identifica o estágio atual da empresa, seus principais gargalos e as prioridades que orientarão o programa de Consultoria.", expectedResult: "Diagnóstico consolidado com prioridades definidas e plano de trabalho alinhado.", duration: 180, modality: "Presencial", canAnticipate: true, status: "scheduled", scheduledDate: "2026-07-25T09:00:00", consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }, { role: "Gerente", name: "Marcos Oliveira", required: true }, { role: "Financeiro", name: "Juliana Lima", required: false }] },
+  { id: "m-pmr-02", programId: "pmr", number: 2, phase: "implementation", title: "Processos Comerciais", objective: "Estruturar o processo comercial da captação ao fechamento.", reason: "Padronizar o funil comercial para aumentar conversão e previsibilidade.", expectedResult: "Funil comercial mapeado com etapas, conversões e responsáveis.", duration: 180, modality: "Presencial", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }, { role: "Gerente", name: "Marcos Oliveira", required: true }] },
+  { id: "m-pmr-03", programId: "pmr", number: 3, phase: "implementation", title: "Processos de Marketing", objective: "Estruturar o processo de geração de leads e conteúdo.", reason: "Garantir fluxo consistente de leads qualificados para o comercial.", expectedResult: "Calendário editorial e funil de leads definidos.", duration: 180, modality: "Online", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }, { role: "Marketing", name: "Carla Mendes", required: false }] },
+  { id: "m-pmr-04", programId: "pmr", number: 4, phase: "implementation", title: "Processos de Produto e Estoque", objective: "Estruturar o processo de compra e gestão de estoque.", reason: "Reduzir capital imobilizado e tempo de estoque.", expectedResult: "Política de compra e curva ABC definidas.", duration: 180, modality: "Presencial", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }, { role: "Gerente", name: "Marcos Oliveira", required: true }] },
+  { id: "m-pmr-05", programId: "pmr", number: 5, phase: "implementation", title: "Processos de Pessoas", objective: "Estruturar o processo de gestão de pessoas e delegação.", reason: "Reduzir a dependência operacional do Dono.", expectedResult: "Organograma, PDIs e matriz de delegação definidos.", duration: 180, modality: "Híbrido", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }, { role: "RH", name: "Ana Costa", required: false }] },
+  { id: "m-pmr-06", programId: "pmr", number: 6, phase: "implementation", title: "Processos Financeiros", objective: "Estruturar o processo financeiro e a leitura gerencial do resultado.", reason: "Garantir visibilidade do resultado e proteger a rentabilidade.", expectedResult: "DRE gerencial mensal e separação de retiradas definidos.", duration: 180, modality: "Presencial", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }, { role: "Financeiro", name: "Juliana Lima", required: true }] },
+  { id: "m-pmr-07", programId: "pmr", number: 7, phase: "implementation", title: "Processos Operacionais", objective: "Estruturar o processo operacional e de pós-venda.", reason: "Padronizar operações para reduzir retrabalho e prazos.", expectedResult: "Processos operacionais mapeados com SLAs definidos.", duration: 180, modality: "Híbrido", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }, { role: "Operações", name: "Bruno Alves", required: false }] },
+  { id: "m-pmr-08", programId: "pmr", number: 8, phase: "implementation", title: "Plano de Ação", objective: "Consolidar o plano de ação com todas as áreas.", reason: "Transformar o diagnóstico em ações executáveis com responsáveis e prazos.", expectedResult: "Plano de Ação consolidado com prioridades e responsáveis.", duration: 180, modality: "Presencial", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }, { role: "Gerente", name: "Marcos Oliveira", required: true }] },
+  { id: "m-pmr-09", programId: "pmr", number: 9, phase: "implementation", title: "Implantação", objective: "Validar a implantação dos processos estruturados.", reason: "Garantir que os processos foram implantados e estão em uso.", expectedResult: "Implantação validada com evidências de uso.", duration: 180, modality: "Presencial", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }, { role: "Gerente", name: "Marcos Oliveira", required: true }] },
+  // PMR — 3 encontros de acompanhamento
+  { id: "m-pmr-10", programId: "pmr", number: 10, phase: "followup", title: "Acompanhamento 1", objective: "Acompanhar a evolução dos indicadores após a implantação.", reason: "Garantir que os processos implantados estão gerando resultado.", expectedResult: "Relatório de acompanhamento com ajustes.", duration: 120, modality: "Online", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }] },
+  { id: "m-pmr-11", programId: "pmr", number: 11, phase: "followup", title: "Acompanhamento 2", objective: "Revisar indicadores e ajustar o plano de ação.", reason: "Fazer ajustes com base nos resultados parciais.", expectedResult: "Plano de Ação ajustado.", duration: 120, modality: "Online", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }] },
+  { id: "m-pmr-12", programId: "pmr", number: 12, phase: "followup", title: "Acompanhamento 3", objective: "Consolidar resultados e encerrar o ciclo.", reason: "Fechar o ciclo com resultados medidos e próximos passos.", expectedResult: "Relatório final de resultados.", duration: 120, modality: "Presencial", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }] },
+  // PMR Plus — 3 encontros de implementação financeira
+  { id: "m-pmrp-01", programId: "pmr_plus", number: 1, phase: "implementation", title: "Revisão Financeira", objective: "Revisar a estrutura financeira e o DRE gerencial.", reason: "Aprofundar a leitura financeira com base no PMR concluído.", expectedResult: "DRE gerencial revisado com ajustes.", duration: 180, modality: "Presencial", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }, { role: "Financeiro", name: "Juliana Lima", required: true }] },
+  { id: "m-pmrp-02", programId: "pmr_plus", number: 2, phase: "implementation", title: "Indicadores Financeiros", objective: "Definir e acompanhar indicadores financeiros.", reason: "Garantir acompanhamento contínuo do resultado.", expectedResult: "Painel de indicadores financeiros definido.", duration: 180, modality: "Online", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }] },
+  { id: "m-pmrp-03", programId: "pmr_plus", number: 3, phase: "implementation", title: "Ajustes do Plano de Ação", objective: "Revisar e ajustar o plano de ação com foco financeiro.", reason: "Atualizar prioridades com base nos indicadores.", expectedResult: "Plano de Ação ajustado.", duration: 180, modality: "Presencial", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }] },
+  // PMR Plus — 3 encontros de acompanhamento
+  { id: "m-pmrp-04", programId: "pmr_plus", number: 4, phase: "followup", title: "Acompanhamento Financeiro 1", objective: "Acompanhar a evolução dos indicadores financeiros.", reason: "Garantir que os ajustes estão gerando resultado.", expectedResult: "Relatório de acompanhamento financeiro.", duration: 120, modality: "Online", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }] },
+  { id: "m-pmrp-05", programId: "pmr_plus", number: 5, phase: "followup", title: "Acompanhamento Financeiro 2", objective: "Revisar indicadores e ajustar o plano.", reason: "Fazer ajustes com base nos resultados.", expectedResult: "Plano ajustado.", duration: 120, modality: "Online", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }] },
+  { id: "m-pmrp-06", programId: "pmr_plus", number: 6, phase: "followup", title: "Encerramento PMR Plus", objective: "Consolidar resultados e encerrar o PMR Plus.", reason: "Fechar o ciclo com resultados medidos.", expectedResult: "Relatório final.", duration: 120, modality: "Presencial", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }] },
+  // PPA — 9 encontros
+  { id: "m-ppa-01", programId: "ppa", number: 1, phase: "implementation", pillar: "Modelo de Negócio", title: "Modelo de Negócio", objective: "Revisar e otimizar o modelo de negócio.", reason: "Garantir que o modelo de negócio suporta o crescimento.", expectedResult: "Modelo de negócio revisado.", duration: 240, modality: "Presencial", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }] },
+  { id: "m-ppa-02", programId: "ppa", number: 2, phase: "implementation", pillar: "Planejamento Estratégico", title: "Planejamento Estratégico", objective: "Definir o planejamento estratégico de crescimento.", reason: "Alinhar estratégia com capacidade de execução.", expectedResult: "Plano estratégico definido.", duration: 240, modality: "Híbrido", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }] },
+  { id: "m-ppa-03", programId: "ppa", number: 3, phase: "implementation", pillar: "Maximização de Receita", title: "Maximização de Receita", objective: "Estruturar estratégias de maximização de receita.", reason: "Aumentar o ticket médio e a receita total.", expectedResult: "Estratégia de receita definida.", duration: 240, modality: "Presencial", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }] },
+  { id: "m-ppa-04", programId: "ppa", number: 4, phase: "implementation", pillar: "Eficiência em Custo", title: "Eficiência em Custo", objective: "Estruturar estratégias de eficiência em custo.", reason: "Reduzir custos sem comprometer a qualidade.", expectedResult: "Plano de redução de custos definido.", duration: 240, modality: "Híbrido", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }] },
+  { id: "m-ppa-05", programId: "ppa", number: 5, phase: "implementation", pillar: "Modelo de Negócio", title: "Refinamento do Modelo", objective: "Refinar o modelo de negócio com base nos resultados.", reason: "Ajustar o modelo com dados reais.", expectedResult: "Modelo refinado.", duration: 240, modality: "Presencial", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }] },
+  { id: "m-ppa-06", programId: "ppa", number: 6, phase: "implementation", pillar: "Planejamento Estratégico", title: "Execução Estratégica", objective: "Acompanhar a execução do plano estratégico.", reason: "Garantir execução conforme planejado.", expectedResult: "Relatório de execução.", duration: 240, modality: "Híbrido", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }] },
+  { id: "m-ppa-07", programId: "ppa", number: 7, phase: "implementation", pillar: "Maximização de Receita", title: "Aceleração de Receita", objective: "Acelerar as estratégias de receita.", reason: "Maximizar o retorno das ações.", expectedResult: "Plano de aceleração definido.", duration: 240, modality: "Presencial", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }] },
+  { id: "m-ppa-08", programId: "ppa", number: 8, phase: "implementation", pillar: "Eficiência em Custo", title: "Otimização de Custos", objective: "Otimizar a estrutura de custos.", reason: "Atingir a eficiência máxima.", expectedResult: "Estrutura de custos otimizada.", duration: 240, modality: "Híbrido", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }] },
+  { id: "m-ppa-09", programId: "ppa", number: 9, phase: "implementation", pillar: "Modelo de Negócio", title: "Consolidação PPA", objective: "Consolidar os resultados do PPA.", reason: "Fechar o ciclo com resultados medidos.", expectedResult: "Relatório final PPA.", duration: 240, modality: "Presencial", canAnticipate: true, status: "locked", scheduledDate: null, consultant: "Ricardo Mendes", participants: [{ role: "Dono", name: "Daniel Santos", required: true }] },
+];
+
+export const LESSONS = [
+  {
+    id: "l-pmr-001",
+    code: "AULA-PMR-001",
+    programId: "pmr",
+    meetingId: null,
+    title: "Aula 1 — Seja Bem-vindo",
+    description: "Conheça o programa, a metodologia e como se preparar para a jornada de Consultoria.",
+    objective: "Apresentar o programa, a metodologia, o papel do cliente, o papel do consultor e como utilizar o MX Performance durante a jornada.",
+    videoProvider: "youtube",
+    videoUrl: "https://youtu.be/UMj0WbeNmLw",
+    videoId: "UMj0WbeNmLw",
+    durationSeconds: null,
+    order: 1,
+    required: true,
+    type: "onboarding",
+    allowedRoles: ["owner", "manager", "admin_mx"],
+    minimumWatchPercent: 90,
+    materials: [],
+    prerequisites: [],
+    active: true,
+  },
+  {
+    id: "l-pmr-002",
+    code: "AULA-PMR-002",
+    programId: "pmr",
+    meetingId: "m-pmr-01",
+    title: "Aula 2 — Diagnóstico",
+    description: "Entenda quais informações serão analisadas e como se preparar para o diagnóstico.",
+    objective: "Explicar quais informações serão analisadas, quais pessoas devem participar e como a empresa deve se preparar para o diagnóstico.",
+    videoProvider: "youtube",
+    videoUrl: "https://youtu.be/qILcHg38PEQ",
+    videoId: "qILcHg38PEQ",
+    durationSeconds: null,
+    order: 2,
+    required: true,
+    type: "preparatory",
+    allowedRoles: ["owner", "manager", "admin_mx"],
+    minimumWatchPercent: 90,
+    materials: [],
+    prerequisites: ["l-pmr-001"],
+    active: true,
+  },
+];
+
+// Templates de preparação por encontro
+export const PREPARATION_TEMPLATES = {
+  "m-pmr-01": [
+    { id: "pi-01", type: "lesson", title: "Assistir à Aula 1 — Seja Bem-vindo", description: "Aula de onboarding obrigatória antes de iniciar a preparação.", required: true, linkedLessonId: "l-pmr-001" },
+    { id: "pi-02", type: "lesson", title: "Assistir à Aula 2 — Diagnóstico", description: "Aula preparatória obrigatória para o diagnóstico.", required: true, linkedLessonId: "l-pmr-002" },
+    { id: "pi-03", type: "participant", title: "Confirmar participação do Dono", description: "Confirmar a presença do Dono no encontro.", required: true, participantRole: "Dono" },
+    { id: "pi-04", type: "participant", title: "Confirmar participação do Gerente", description: "Confirmar a presença do Gerente no encontro.", required: true, participantRole: "Gerente" },
+    { id: "pi-05", type: "checklist", title: "Atualizar informações de vendas", description: "Consolidar os dados de vendas dos últimos 6 meses.", required: true },
+    { id: "pi-06", type: "evidence", title: "Enviar relação atual do estoque", description: "Relação completa do estoque atual com datas de entrada.", required: true, linkedEvidenceType: "stock_list" },
+    { id: "pi-07", type: "checklist", title: "Consolidar despesas principais", description: "Listar as despesas principais dos últimos 3 meses.", required: true },
+    { id: "pi-08", type: "checklist", title: "Registrar expectativas para a Consultoria", description: "Documentar as expectativas do Dono e sócios para o programa.", required: true },
+  ],
+};
+
+// Templates de evidências por encontro
+export const EVIDENCE_TEMPLATES = {
+  "m-pmr-01": [
+    { id: "et-01", type: "stock_list", title: "Relação atual do estoque", required: true, description: "Relação completa do estoque atual." },
+    { id: "et-02", type: "sales_report", title: "Relatório de vendas", required: true, description: "Relatório de vendas dos últimos 6 meses." },
+    { id: "et-03", type: "expenses", title: "Despesas principais", required: true, description: "Despesas principais dos últimos 3 meses." },
+    { id: "et-04", type: "org_chart", title: "Organograma ou relação da equipe", required: false, description: "Organograma ou relação da equipe atual." },
+    { id: "et-05", type: "goals", title: "Metas existentes", required: false, description: "Metas comerciais e financeiras atuais." },
+    { id: "et-06", type: "expectations", title: "Expectativas dos sócios", required: false, description: "Expectativas dos sócios para a consultoria." },
+  ],
+};
+
+// Programa ativo do cliente (demo)
+export const CLIENT_PROGRAM = {
+  id: "cp-demo-001",
+  companyId: "demo",
+  programId: "pmr",
+  status: "active",
+  startDate: "2026-07-01",
+  consultantName: "Ricardo Mendes",
+  consultantUserId: null,
+  currentMeetingId: "m-pmr-01",
+  meetingsCompleted: 0,
+  implementationsValidated: 0,
+  evidencesApproved: 0,
+  totalActions: 24,
+  completedActions: 14,
+  approvedEvidences: 10,
+  totalEvidences: 18,
+};
