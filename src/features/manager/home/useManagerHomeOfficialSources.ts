@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
 type StoreTargetPlanRow = {
@@ -47,15 +47,18 @@ export function useManagerHomeOfficialSources({
   const [appointmentRows, setAppointmentRows] = useState<AppointmentRow[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const requestIdRef = useRef(0)
 
   const refresh = useCallback(async () => {
     if (!storeId) {
       setPlan(null)
       setAppointmentRows([])
       setError(null)
+      setLoading(false)
       return
     }
 
+    const requestId = ++requestIdRef.current
     setLoading(true)
     setError(null)
     try {
@@ -63,6 +66,7 @@ export function useManagerHomeOfficialSources({
         p_store_id: storeId,
         p_reference_date: referenceDate,
       })
+      if (requestId !== requestIdRef.current) return
       if (consolidation.error) throw consolidation.error
 
       const start = `${referenceDate}T00:00:00-03:00`
@@ -88,18 +92,22 @@ export function useManagerHomeOfficialSources({
           .not('cliente_id', 'is', null),
       ])
 
+      if (requestId !== requestIdRef.current) return
       if (planResult.error) throw planResult.error
       if (appointmentsResult.error) throw appointmentsResult.error
 
       setPlan(planResult.data ? normalizePlan(planResult.data as StoreTargetPlanRow) : null)
       setAppointmentRows((appointmentsResult.data || []) as AppointmentRow[])
     } catch (cause) {
+      if (requestId !== requestIdRef.current) return
       const message = cause instanceof Error ? cause.message : 'Falha ao carregar as fontes oficiais do Dashboard.'
       setPlan(null)
       setAppointmentRows([])
       setError(message)
     } finally {
-      setLoading(false)
+      if (requestId === requestIdRef.current) {
+        setLoading(false)
+      }
     }
   }, [referenceDate, storeId])
 
