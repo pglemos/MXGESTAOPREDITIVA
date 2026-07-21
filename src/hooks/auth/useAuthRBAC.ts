@@ -12,6 +12,10 @@ import { supabase } from '@/lib/supabase'
 import type { User as AppUser, Store, UserRole } from '@/types/database'
 import { normalizeRole, isPerfilInternoMx } from '@/lib/auth/roles'
 import {
+  clearSimulationContext,
+  writeSimulationContext,
+} from '@/lib/auth/simulationContext'
+import {
   ROLE_SIMULATION_STORAGE_KEY,
   MEMBERSHIP_SELECT,
   PROFILE_SELECT,
@@ -66,6 +70,7 @@ export function useAuthRBAC(options: UseAuthRBACOptions): UseAuthRBACResult {
     if (typeof window !== 'undefined') {
       window.sessionStorage.removeItem(ROLE_SIMULATION_STORAGE_KEY)
     }
+    clearSimulationContext()
     setSimulationRole(null)
     setSimulationProfile(null)
     setSimulationMemberships([])
@@ -78,6 +83,7 @@ export function useAuthRBAC(options: UseAuthRBACOptions): UseAuthRBACResult {
       if (typeof window !== 'undefined') {
         window.sessionStorage.setItem(ROLE_SIMULATION_STORAGE_KEY, role)
       }
+      clearSimulationContext()
       setSimulationRole(role)
       setSimulationLoading(true)
     },
@@ -142,6 +148,15 @@ export function useAuthRBAC(options: UseAuthRBACOptions): UseAuthRBACResult {
 
         if (!mounted) return
 
+        if (role === 'vendedor') {
+          writeSimulationContext({
+            role: 'vendedor',
+            userId: user.id,
+            storeId: store.id,
+          })
+        } else {
+          clearSimulationContext()
+        }
         setSimulationProfile(user)
         setSimulationMemberships([membership])
         setActiveStoreId(store.id)
@@ -158,6 +173,7 @@ export function useAuthRBAC(options: UseAuthRBACOptions): UseAuthRBACResult {
     }
 
     if (!simulationRole) {
+      clearSimulationContext()
       setSimulationProfile(null)
       setSimulationMemberships([])
       setSimulationLoading(false)
