@@ -2,12 +2,17 @@ import type { ReactNode } from 'react'
 import { CalendarDays, CircleHelp, Search } from 'lucide-react'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
-import { PageHeading } from '@/components/molecules/PageHeading'
 import { chartTokens } from '@/lib/charts/tokens'
 import { cn } from '@/lib/utils'
 import { toneClasses, toneHex, vividIconClasses, type KpiTone } from './types'
 import { greeting, scoreStatus, scoreTone } from './format'
 
+/**
+ * Header dedicado do módulo Dono — não usa o PageHeading canônico do app
+ * (subtítulo em caps + ações à direita) porque o Base44 de referência usa
+ * título+subtítulo em case normal e o chip de período numa linha própria
+ * abaixo, não ao lado do título.
+ */
 export function OwnerCockpitHeader({
   name,
   periodLabel,
@@ -16,16 +21,16 @@ export function OwnerCockpitHeader({
   periodLabel: string
 }) {
   return (
-    <PageHeading
-      title={<>{greeting()}, <span className="text-brand-primary">{name.split(' ')[0]}</span>! 👋</>}
-      subtitle="Aqui está o panorama da sua loja hoje."
-      actions={(
-        <div className="h-mx-11 rounded-mx-full border border-border-subtle bg-white px-mx-md shadow-mx-sm flex items-center gap-mx-xs">
-          <CalendarDays size={16} className="text-text-tertiary" />
-          <Typography variant="tiny" className="font-black">{periodLabel}</Typography>
-        </div>
-      )}
-    />
+    <header className="border-b border-border-default pb-mx-md sm:pb-mx-lg">
+      <h1 className="text-2xl font-black leading-tight text-text-primary sm:text-3xl md:text-[2rem]">
+        {greeting()}, <span className="text-brand-primary">{name.split(' ')[0]}</span>! 👋
+      </h1>
+      <p className="mt-mx-tiny text-sm font-medium text-text-secondary">Aqui está o panorama da sua loja hoje.</p>
+      <div className="mt-mx-md inline-flex h-mx-11 items-center gap-mx-xs rounded-mx-full border border-border-subtle bg-white px-mx-md shadow-mx-sm">
+        <CalendarDays size={16} className="text-text-tertiary" />
+        <Typography variant="tiny" className="font-black">{periodLabel}</Typography>
+      </div>
+    </header>
   )
 }
 
@@ -49,6 +54,7 @@ export function OwnerKpiCard({
   seed,
   showStatusDot = true,
   statusTone,
+  trend,
 }: {
   title: string
   value: string
@@ -64,6 +70,8 @@ export function OwnerKpiCard({
   showStatusDot?: boolean
   /** Tone do dot de status, quando diferente do tone decorativo (ex.: card com acento roxo mas status verde) */
   statusTone?: KpiTone
+  /** Segunda linha colorida de tendência (ex.: "▲ 14% vs mês anterior"), quando houver comparativo real */
+  trend?: { label: string; tone: KpiTone } | null
 }) {
   const classes = toneClasses[tone]
   const vivid = vividIconClasses[tone]
@@ -86,6 +94,11 @@ export function OwnerKpiCard({
           <Typography variant="tiny" tone="muted" className="mt-mx-xs block font-black">
             {detail}
           </Typography>
+          {trend && (
+            <Typography variant="tiny" className={cn('mt-mx-tiny block font-black', toneClasses[trend.tone].text)}>
+              {trend.label}
+            </Typography>
+          )}
         </div>
         <div className={cn('h-mx-10 w-mx-10 rounded-mx-lg flex shrink-0 items-center justify-center shadow-mx-sm', vivid)}>
           {icon}
@@ -188,7 +201,7 @@ export function MetricPill({ label, value, tone }: { label: string; value: strin
   return (
     <div className={cn('rounded-mx-lg border border-border-subtle p-mx-sm text-center', classes.soft)}>
       <Typography variant="tiny" className="block font-black leading-tight">{label}</Typography>
-      <div className="mt-mx-xs text-xl font-black tabular-nums truncate" title={value}>{value}</div>
+      <div className="mt-mx-xs truncate text-base font-black tabular-nums" title={value}>{value}</div>
     </div>
   )
 }

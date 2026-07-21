@@ -34,10 +34,10 @@ export function SalesGoalCard({ data }: { data: DashboardData }) {
   const projectionStatus = goal <= 0
     ? null
     : projected >= goal
-      ? { label: 'Acima da meta', tone: 'success' as const }
+      ? { label: 'Acima da meta', arrow: '▲', tone: 'success' as const }
       : projected >= goal * 0.85
-        ? { label: 'Dentro da meta', tone: 'warning' as const }
-        : { label: 'Abaixo da meta', tone: 'danger' as const }
+        ? { label: 'Dentro da meta', arrow: '►', tone: 'warning' as const }
+        : { label: 'Abaixo da meta', arrow: '▼', tone: 'danger' as const }
 
   return (
     <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
@@ -59,13 +59,13 @@ export function SalesGoalCard({ data }: { data: DashboardData }) {
         <MetricPill label="Faltam" value={goal > 0 ? formatInteger(missing) : '--'} tone="danger" />
         <MetricPill label="Ritmo ideal" value={idealPace > 0 ? `${idealPace.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}/d` : '--'} tone="info" />
       </div>
-      <div className="mt-mx-md rounded-mx-lg border border-border-subtle bg-surface-alt px-mx-md py-mx-sm">
-        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Projeção atual</Typography>
-        <div className="mt-mx-xs flex flex-wrap items-center gap-mx-sm">
+      <div className="mt-mx-md flex flex-wrap items-center justify-between gap-mx-sm rounded-mx-lg border border-border-subtle bg-surface-alt px-mx-md py-mx-sm">
+        <Typography variant="p" className="font-black">Projeção atual</Typography>
+        <div className="flex items-center gap-mx-xs">
           <Typography variant="p" className="font-black text-brand-primary">{goal > 0 ? `${formatInteger(projected)} veículos` : 'Pendente'}</Typography>
           {projectionStatus && (
-            <span className={cn('shrink-0 rounded-mx-full px-mx-sm py-mx-tiny text-mx-tiny font-black uppercase whitespace-nowrap', toneClasses[projectionStatus.tone].soft)}>
-              {projectionStatus.label}
+            <span className={cn('shrink-0 whitespace-nowrap text-xs font-black', toneClasses[projectionStatus.tone].text)}>
+              {projectionStatus.arrow} {projectionStatus.label}
             </span>
           )}
         </div>
@@ -111,7 +111,10 @@ export function PriorityIntervention({
             {isCritical ? 'Crítico' : 'Atenção'}
           </span>
         </div>
-        <Typography variant="p" className="mt-mx-sm text-sm font-bold text-text-secondary">{alert.description}</Typography>
+        <div className="mt-mx-md">
+          <Typography variant="tiny" className="font-black uppercase tracking-widest text-text-tertiary">Por que isso importa</Typography>
+          <Typography variant="p" className="mt-mx-xs text-sm font-bold text-text-secondary">{alert.description}</Typography>
+        </div>
         <div className="mt-mx-md rounded-mx-lg bg-status-success-surface p-mx-sm">
           <Typography variant="tiny" className="font-black uppercase tracking-widest text-status-success">Direcionamento MX</Typography>
           <Typography variant="p" className="mt-mx-xs text-sm font-bold text-text-secondary">{alert.recommendation}</Typography>
@@ -212,6 +215,8 @@ export function NextActionsCard({ actions }: { actions: ActionRow[] }) {
             <Typography variant="p" className="min-w-0 flex-1 truncate text-sm font-bold">
               {action.action}
             </Typography>
+            <CheckCircle2 size={16} className="shrink-0 text-status-success" aria-hidden="true" />
+            <Users size={16} className="shrink-0 text-text-tertiary" aria-hidden="true" />
           </div>
         ))}
       </div>

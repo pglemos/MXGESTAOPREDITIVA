@@ -53,6 +53,10 @@ export function OwnerHome({
           title="Previsão de Vendas Hoje"
           value={`${forecastLabel} ${salesForecast === 1 ? 'venda' : 'vendas'}`}
           detail={`${formatInteger(confirmedAppointments)} agendamentos do dia · necessidade ${dailyNeedLabel}`}
+          trend={{
+            label: forecastIsHealthy ? 'Acima da necessidade do dia' : 'Abaixo da necessidade do dia',
+            tone: forecastIsHealthy ? 'success' : 'warning',
+          }}
           icon={<CalendarCheck2 size={20} />}
           tone={forecastIsHealthy ? 'success' : 'warning'}
           chart="bars"
@@ -61,7 +65,7 @@ export function OwnerHome({
         <OwnerKpiCard
           title="Lucro Bruto"
           value={formatCurrency(grossProfit)}
-          detail={grossProfit === undefined ? 'DRE pendente' : marginPercent === null ? '▲ vs mês anterior' : `Margem ${formatPercent(marginPercent)}`}
+          detail={grossProfit === undefined ? 'DRE pendente' : marginPercent === null ? 'Margem pendente' : `Margem ${formatPercent(marginPercent)}`}
           icon={<DollarSign size={20} />}
           tone={grossProfit === undefined ? 'muted' : 'success'}
           chart="line"
@@ -71,7 +75,7 @@ export function OwnerHome({
         <OwnerKpiCard
           title="Volume de Vendas"
           value={`${formatInteger(data.metrics.totalSales)} ${data.metrics.totalSales === 1 ? 'veículo' : 'veículos'}`}
-          detail={data.metrics.goalValue > 0 ? `${data.metrics.attainment}% da meta` : '▲ vs mês anterior'}
+          detail={data.metrics.goalValue > 0 ? `${data.metrics.attainment}% da meta` : 'Meta não configurada'}
           icon={<ShoppingCart size={20} />}
           tone="purple"
           statusTone={data.metrics.attainment >= 100 ? 'success' : data.metrics.attainment >= 60 ? 'warning' : 'danger'}
@@ -94,7 +98,7 @@ export function OwnerHome({
 
       <PriorityIntervention alert={priorityAlert} onOpenConsultant={onOpenConsultant} />
 
-      <div className="grid grid-cols-1 gap-mx-md xl:grid-cols-[minmax(0,1fr)_minmax(340px,0.9fr)_minmax(340px,0.9fr)]">
+      <div className="grid grid-cols-1 gap-mx-md xl:grid-cols-3">
         <SalesGoalCard data={data} />
         <OwnerAlertList alerts={alerts} />
         <NextActionsCard actions={actions} />
