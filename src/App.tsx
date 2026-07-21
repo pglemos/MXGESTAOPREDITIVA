@@ -25,6 +25,7 @@ const VendedorTreinamentos = lazy(() => import('@/pages/VendedorTreinamentos'))
 const VendedorAjuda = lazy(() => import('@/pages/VendedorAjuda'))
 const VendedorConfiguracoes = lazy(() => import('@/pages/VendedorConfiguracoes'))
 const MinhaRemuneracao = lazy(() => import('@/pages/MinhaRemuneracao'))
+const VendedorHome = lazy(() => import('@/pages/VendedorHome'))
 const CarteiraClientes = lazy(() => import('@/pages/CarteiraClientes'))
 const FunilVendedor = lazy(() => import('@/pages/FunilVendedor'))
 const CentralExecucao = lazy(() => import('@/pages/CentralExecucao'))
@@ -259,7 +260,7 @@ export default function App() {
 
                 <Route path="meu-dia" element={<RedirectWithSearch to="/home" />} />
                 <Route path="home" element={<Suspense fallback={<Spinner />}>
-                  <RoleSwitch vendedor={<RedirectWithSearch to="/central-execucao" />} gerente={<DashboardLoja />} dono={<RoleRedirect />} admin={<RoleRedirect />} />
+                  <RoleSwitch vendedor={<VendedorHome />} gerente={<DashboardLoja />} dono={<RoleRedirect />} admin={<RoleRedirect />} />
                 </Suspense>} />
                 <Route path="minha-remuneracao" element={<RedirectWithSearch to="/home" />} />
                 <Route path="lancamento-diario" element={<RedirectWithSearch to="/terminal-mx" />} />
