@@ -218,11 +218,36 @@ export function financingToDb(value?: string | null): 'aprovado' | 'reprovado' |
   return 'nao_aplica'
 }
 
+// Rótulos exatos de `regra.sit` em src/components/carteira/proximoPassoLib.js
+// (TRANSICAO) que não contêm nenhum dos substrings do heurístico abaixo — sem
+// essa tabela, toda transição "Cliente respondeu", "Vai pensar", "Não
+// compareceu" etc. caía no default 'prospeccao', a mesma etapa em que a
+// oportunidade já estava, e a esteira do funil parecia travada mesmo depois
+// de registrar um resultado.
+const KNOWN_SITUATION_STAGE: Record<string, string> = {
+  'Cliente respondeu': 'qualificacao',
+  'Em cadência sem resposta': 'prospeccao',
+  'Necessidade em qualificação': 'qualificacao',
+  'Veículo definido': 'qualificacao',
+  'Cliente quente sem visita': 'apresentacao',
+  'Proposta enviada': 'apresentacao',
+  'Proposta sem retorno': 'apresentacao',
+  'Visita agendada': 'apresentacao',
+  'Visita a confirmar': 'apresentacao',
+  'Visita realizada': 'apresentacao',
+  'Não compareceu': 'apresentacao',
+  'Financiamento aprovado sem compra': 'negociacao',
+  'Em negociação ativa': 'negociacao',
+  'Vai pensar': 'negociacao',
+  'Aguardando ação do vendedor': 'negociacao',
+}
+
 export function situationToStage(data: Record<string, unknown>): string {
   const situation = String(data.situacao_atual || data.momento || '')
   const status = String(data.status_comercial || '')
   if (status === 'Vendido' || situation === 'Venda realizada') return 'ganho'
   if (status === 'Perdido' || situation === 'Venda perdida' || situation === 'Cadência encerrada') return 'perdido'
+  if (KNOWN_SITUATION_STAGE[situation]) return KNOWN_SITUATION_STAGE[situation]
   if (situation.includes('Proposta')) return 'apresentacao'
   if (situation.includes('negociação') || situation.includes('Financiamento') || situation.includes('Visita')) return 'negociacao'
   if (situation.includes('Veículo') || situation.includes('qualificação')) return 'qualificacao'

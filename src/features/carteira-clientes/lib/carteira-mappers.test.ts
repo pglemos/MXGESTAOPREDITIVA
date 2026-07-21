@@ -3,6 +3,7 @@ import {
   mapMxClientToCarteiraVisual,
   selectActiveOpportunity,
   selectRelevantAppointment,
+  situationToStage,
 } from './carteira-mappers'
 
 describe('carteira normalized mappers', () => {
@@ -57,5 +58,29 @@ describe('carteira normalized mappers', () => {
     expect(result.veiculo_interesse).toBe('Corolla')
     expect(result.situacao_atual).toBe('Visita agendada')
     expect(result.temperatura).toBe('Quente')
+  })
+
+  test('advances the funil stage for every "sit" label produced by proximoPassoLib.TRANSICAO', () => {
+    // Regressão: essas oito etapas caíam no default 'prospeccao' — a mesma
+    // etapa em que a oportunidade já estava — porque nenhum substring do
+    // heurístico batia com o texto exato. Resultado: registrar "Cliente
+    // respondeu" no primeiro passo não movia a esteira.
+    expect(situationToStage({ situacao_atual: 'Cliente respondeu' })).toBe('qualificacao')
+    expect(situationToStage({ situacao_atual: 'Cliente quente sem visita' })).toBe('apresentacao')
+    expect(situationToStage({ situacao_atual: 'Vai pensar' })).toBe('negociacao')
+    expect(situationToStage({ situacao_atual: 'Não compareceu' })).toBe('apresentacao')
+    expect(situationToStage({ situacao_atual: 'Visita realizada' })).toBe('apresentacao')
+    expect(situationToStage({ situacao_atual: 'Aguardando ação do vendedor' })).toBe('negociacao')
+    expect(situationToStage({ situacao_atual: 'Em cadência sem resposta' })).toBe('prospeccao')
+  })
+
+  test('status_comercial still wins over the situação text for terminal stages', () => {
+    expect(situationToStage({ situacao_atual: 'Cliente respondeu', status_comercial: 'Vendido' })).toBe('ganho')
+    expect(situationToStage({ situacao_atual: 'Oportunidade futura', status_comercial: 'Perdido' })).toBe('perdido')
+  })
+
+  test('falls back to the substring heuristic for situações outside the known table', () => {
+    expect(situationToStage({ situacao_atual: 'Financiamento em análise pelo banco' })).toBe('negociacao')
+    expect(situationToStage({ situacao_atual: 'Algo totalmente novo e desconhecido' })).toBe('prospeccao')
   })
 })

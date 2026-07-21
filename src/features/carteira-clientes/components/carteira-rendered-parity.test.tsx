@@ -18,8 +18,18 @@ const cliente = {
   veiculo_interesse: 'Onix',
 }
 
+mock.module('@/lib/supabase', () => ({
+  supabase: {
+    functions: {
+      invoke: mock(async () => ({ data: { success: true, text: 'Script de paridade' }, error: null })),
+    },
+  },
+}))
+
 mock.module('@/api/base44Client', () => ({
   base44: {
+    // src/base44-reference é a cópia congelada do Base44 original — ainda chama
+    // base44.integrations.Core.InvokeLLM diretamente, então o mock precisa manter isso.
     integrations: {
       Core: { InvokeLLM: mock(async () => 'Script de paridade') },
     },

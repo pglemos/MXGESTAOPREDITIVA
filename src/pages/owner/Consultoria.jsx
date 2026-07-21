@@ -1,15 +1,19 @@
 import { CalendarDays, LineChart, Package } from 'lucide-react'
 import { CentralMxPersistedAgendaPanel } from '@/features/dashboard-loja/sections/CentralMxPersistedPanels'
+import { ConsultingProgramCard } from '@/features/dashboard-loja/sections/owner-cockpit/ConsultingProgramCard'
 import { OwnerConsultingView } from '@/features/dashboard-loja/sections/owner-cockpit/OwnerBase44Views'
 import { OwnerModuleGrid } from '@/features/dashboard-loja/sections/owner-cockpit/OwnerModuleGrid'
+import { useOwnerConsultingProgram } from '@/features/dashboard-loja/hooks/useOwnerConsultingProgram'
 import { useOwnerContext } from '@/components/owner/OwnerContext'
 
 export default function Consultoria() {
   const { data } = useOwnerContext()
   const storeId = data.operationalStore?.id || null
+  const { program, loading: programLoading, error: programError } = useOwnerConsultingProgram(storeId)
 
   return (
     <>
+      <ConsultingProgramCard program={program} loading={programLoading} error={programError} />
       <OwnerConsultingView data={data} />
       <OwnerModuleGrid
         title="Visitas e acompanhamento"

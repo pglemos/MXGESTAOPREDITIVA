@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { corsHeaders } from "../_shared/cors.ts";
-import { requireAuthenticatedRole } from "../_shared/auth.ts";
+import { requireAuthenticatedRole, type MxRole } from "../_shared/auth.ts";
 import { createServiceClient } from "../_shared/supabase-client.ts";
 
 type VisitGroupSummaryPayload = {
@@ -17,6 +17,23 @@ type VisitGroupSummaryPayload = {
   feedbackClient?: string;
   nextCycleGoal?: string;
 };
+
+type CrmWhatsappScriptPayload = {
+  mode: "crm_whatsapp_script";
+  prompt?: string;
+};
+
+type GeneratePayload = VisitGroupSummaryPayload | CrmWhatsappScriptPayload;
+
+const ROLES_BY_MODE: Record<string, MxRole[]> = {
+  visit_group_summary: ["administrador_geral", "administrador_mx", "consultor_mx"],
+  crm_whatsapp_script: ["administrador_geral", "administrador_mx", "vendedor"],
+};
+
+const VISIT_SYSTEM_PROMPT =
+  "Voce e um consultor senior da MX Performance. Responda somente com o relatorio e o texto de WhatsApp solicitados, sem comentarios extras.";
+const CRM_SCRIPT_SYSTEM_PROMPT =
+  "Voce e um assistente de vendas da MX Performance especializado em mensagens de WhatsApp para concessionarias. Responda apenas com o texto da mensagem solicitada, sem explicacoes adicionais, sem markdown, sem aspas.";
 
 type ClaimedQuota = {
   selected_model: string;
@@ -116,10 +133,17 @@ function buildVisitGroupSummaryPrompt(payload: VisitGroupSummaryPayload) {
   ].join("\n");
 }
 
-async function claimQuota(forceFallback = false) {
+function buildCrmWhatsappScriptRequest(payload: CrmWhatsappScriptPayload) {
+  const prompt = (payload.prompt || "").trim();
+  if (!prompt) throw new Error("Missing prompt");
+  if (prompt.length > 8000) throw new Error("Prompt too long");
+  return { prompt, systemPrompt: CRM_SCRIPT_SYSTEM_PROMPT };
+}
+
+async function claimQuota(providerKey: string, forceFallback = false) {
   const supabase = createServiceClient();
   const { data, error } = await supabase.rpc("claim_ai_model_daily_quota", {
-    p_provider: provider,
+    p_provider: providerKey,
     p_primary_model: primaryModel,
     p_primary_daily_limit: primaryDailyLimit,
     p_fallback_model: fallbackModel,
@@ -132,7 +156,7 @@ async function claimQuota(forceFallback = false) {
   return claimed as ClaimedQuota | null;
 }
 
-async function callOpenRouter(model: string, prompt: string) {
+async function callOpenRouter(model: string, prompt: string, systemPrompt: string) {
   const apiKey = Deno.env.get("OPENROUTER_API_KEY");
   if (!apiKey) throw new Error("Missing OPENROUTER_API_KEY");
 
@@ -147,10 +171,7 @@ async function callOpenRouter(model: string, prompt: string) {
     body: JSON.stringify({
       model,
       messages: [
-        {
-          role: "system",
-          content: "Voce e um consultor senior da MX Performance. Responda somente com o relatorio e o texto de WhatsApp solicitados, sem comentarios extras.",
-        },
+        { role: "system", content: systemPrompt },
         { role: "user", content: prompt },
       ],
       temperature: 0.25,
@@ -177,25 +198,31 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return jsonResponse({ success: false, error: "Method not allowed" }, 405);
 
   try {
-    const auth = await requireAuthenticatedRole(req, ["administrador_geral", "administrador_mx", "consultor_mx"]);
-    if (auth.response) return auth.response;
-
-    const payload = await req.json().catch(() => ({})) as VisitGroupSummaryPayload;
-    if (payload.mode && payload.mode !== "visit_group_summary") {
+    const payload = await req.json().catch(() => ({})) as GeneratePayload;
+    const mode = payload.mode || "visit_group_summary";
+    const allowedRoles = ROLES_BY_MODE[mode];
+    if (!allowedRoles) {
       return jsonResponse({ success: false, error: "Unsupported generation mode" }, 400);
     }
 
-    let quota = await claimQuota();
+    const auth = await requireAuthenticatedRole(req, allowedRoles);
+    if (auth.response) return auth.response;
+
+    const providerKey = mode === "crm_whatsapp_script" ? "openrouter-crm" : provider;
+    const { prompt, systemPrompt } = mode === "crm_whatsapp_script"
+      ? buildCrmWhatsappScriptRequest(payload as CrmWhatsappScriptPayload)
+      : { prompt: buildVisitGroupSummaryPrompt(payload as VisitGroupSummaryPayload), systemPrompt: VISIT_SYSTEM_PROMPT };
+
+    let quota = await claimQuota(providerKey);
     if (!quota) {
       return jsonResponse({ success: false, error: "Daily OpenRouter free quota exhausted" }, 429);
     }
 
-    const prompt = buildVisitGroupSummaryPrompt(payload);
     try {
-      const text = await callOpenRouter(quota.selected_model, prompt);
+      const text = await callOpenRouter(quota.selected_model, prompt, systemPrompt);
       return jsonResponse({
         success: true,
-        provider,
+        provider: providerKey,
         text,
         model: quota.selected_model,
         fallbackUsed: quota.fallback_used,
@@ -209,13 +236,13 @@ Deno.serve(async (req) => {
       const status = (error as Error & { status?: number }).status;
       if (![429, 503].includes(status || 0) || quota.selected_model === fallbackModel) throw error;
 
-      quota = await claimQuota(true);
+      quota = await claimQuota(providerKey, true);
       if (!quota || quota.selected_model !== fallbackModel) throw error;
 
-      const text = await callOpenRouter(quota.selected_model, prompt);
+      const text = await callOpenRouter(quota.selected_model, prompt, systemPrompt);
       return jsonResponse({
         success: true,
-        provider,
+        provider: providerKey,
         text,
         model: quota.selected_model,
         fallbackUsed: true,

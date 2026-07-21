@@ -1,8 +1,8 @@
 {
   "_comment": "Congelamento forward-only das migrations aplicadas. NÃO editar à mão. Regenerar apenas ao adicionar migrations novas: node scripts/gen_migration_checksums.mjs",
-  "generated_at": "2026-07-20",
+  "generated_at": "2026-07-21",
   "algorithm": "sha256",
-  "count": 268,
+  "count": 270,
   "checksums": {
     "00000000000000_baseline_legacy_schema.sql": "3a519e3804095af5e9f7d8a7cb70dcc388b04530b6a7911ee1e3cb76af10b0fc",
     "00000000000001_mark_existing_migrations_applied.sql": "a8183b5cc5bd56b549ce8d8d302eb0c5d4f7b20381438586e02dd7353d6f2a45",
@@ -271,6 +271,8 @@
     "20260718223000_owner_consultant_requests.sql": "623945b451e4afb3ee82a15d618350f95b2b51ce0b34962d62854a0a468db0eb",
     "20260718224500_owner_consultant_bridge.sql": "81788cd503b5f55a2c092cca2fd167d938bb558d029c94f016be33b2f4e22652",
     "20260718225000_owner_consultant_bridge_status.sql": "e6b20dc8ffb754578c9f2506f5325c6457efa8f0a3f0c714b601f5a3e34ca1ae",
-    "20260718225500_owner_consultant_requests_rls_perf.sql": "14596c18104adbc6179d7cf8a9517c887bbc63303c86be5a62b0f45498dd7093"
+    "20260718225500_owner_consultant_requests_rls_perf.sql": "14596c18104adbc6179d7cf8a9517c887bbc63303c86be5a62b0f45498dd7093",
+    "20260721120000_fix_log_store_meta_rules_history_relation.sql": "cc9e0d5322d3588c1ee11de931cb7a21338e7463342f558d4829163a3a146514",
+    "20260721130000_owner_consulting_program_summary.sql": "5e38591b817331ca587b68b86b96ad78a7aa66613815ab05f63f4c9c5cb13e9e"
   }
 }

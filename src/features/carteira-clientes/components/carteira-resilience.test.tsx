@@ -39,11 +39,16 @@ const cliente = {
   veiculo_interesse: 'Onix',
 }
 
+mock.module('@/lib/supabase', () => ({
+  supabase: {
+    functions: {
+      invoke: mock(async () => ({ data: { success: true, text: 'Script de teste' }, error: null })),
+    },
+  },
+}))
+
 mock.module('@/api/base44Client', () => ({
   base44: {
-    integrations: {
-      Core: { InvokeLLM: mock(async () => 'Script de teste') },
-    },
     entities: {
       CarteiraCliente: {
         create: createClient,

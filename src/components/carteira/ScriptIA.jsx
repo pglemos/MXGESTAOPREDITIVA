@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Sparkles, Copy, Check, MessageCircle, RefreshCw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { base44 } from "@/api/base44Client";
+import { supabase } from "@/lib/supabase";
 import moment from "moment";
 import { getInstrucaoScript } from "./proximoPassoLib";
+import { gerarScriptLocal } from "./scriptTemplatesLocal";
 
 const TONS = [
   { id: "consultivo", label: "Consultivo", desc: "Perguntativo, orientado a entender a necessidade" },
@@ -88,7 +89,6 @@ export default function ScriptIA({ cliente, objetivo, proximoPasso, scriptPadrao
   const [gerando, setGerando] = useState(false);
   const [copiado, setCOpiado] = useState(false);
   const [tentativas, setTentativas] = useState(0);
-  const [iaIndisponivel, setIaIndisponivel] = useState(false);
 
   useEffect(() => {
     if (!cliente) return;
@@ -102,14 +102,15 @@ export default function ScriptIA({ cliente, objetivo, proximoPasso, scriptPadrao
     const tom = tomOverride || tomSelecionado;
     const prompt = buildPrompt({ cliente, objetivo, proximoPasso, scriptPadrao, tom, historico });
     try {
-      const invokeLLM = base44.integrations?.Core?.InvokeLLM;
-      if (typeof invokeLLM !== "function") throw new Error("Integração de IA indisponível.");
-      const resultado = await invokeLLM({ prompt });
-      setScriptIA(resultado);
-      setIaIndisponivel(false);
+      const { data, error } = await supabase.functions.invoke("openrouter-generate", {
+        body: { mode: "crm_whatsapp_script", prompt },
+      });
+      if (error || !data?.success || !data?.text) {
+        throw new Error(error?.message || data?.error || "Integração de IA indisponível.");
+      }
+      setScriptIA(data.text);
     } catch (error) {
-      setScriptIA(scriptPadrao || "");
-      setIaIndisponivel(true);
+      setScriptIA(atual => gerarScriptLocal({ cliente, objetivo, proximoPasso, tom, textoAnterior: atual }));
     } finally {
       setTentativas(t => t + 1);
       setGerando(false);
@@ -143,7 +144,7 @@ export default function ScriptIA({ cliente, objetivo, proximoPasso, scriptPadrao
           {TONS.map(t => (
             <button
               key={t.id}
-              onClick={() => setTomSelecionado(t.id)}
+              onClick={() => { setTomSelecionado(t.id); gerarScript(t.id); }}
               title={t.desc}
               className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all ${
                 tomSelecionado === t.id
@@ -160,7 +161,7 @@ export default function ScriptIA({ cliente, objetivo, proximoPasso, scriptPadrao
       {/* Botão gerar */}
       {!scriptIA && (
         <Button
-          onClick={gerarScript}
+          onClick={() => gerarScript()}
           disabled={gerando}
           className="w-full rounded-xl bg-violet-600 hover:bg-violet-700 text-white gap-2 text-sm"
         >
@@ -175,11 +176,6 @@ export default function ScriptIA({ cliente, objetivo, proximoPasso, scriptPadrao
       {scriptIA && (
         <>
           <div>
-            {iaIndisponivel && (
-              <p className="text-[11px] font-semibold text-amber-600 mb-1.5">
-                Geração por IA indisponível no momento — usando o script padrão.
-              </p>
-            )}
             <textarea
               value={scriptIA}
               onChange={e => setScriptIA(e.target.value)}
@@ -204,7 +200,7 @@ export default function ScriptIA({ cliente, objetivo, proximoPasso, scriptPadrao
 
           <Button
             variant="ghost"
-            onClick={gerarScript}
+            onClick={() => gerarScript()}
             disabled={gerando}
             className="w-full rounded-xl text-violet-600 hover:bg-violet-100 gap-2 text-xs"
           >
