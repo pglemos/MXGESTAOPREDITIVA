@@ -86,13 +86,21 @@ function ScoreBadge({ score, motivos }) {
 
 // ─── CARD DO CLIENTE ──────────────────────────────────────────────────────────
 function ClienteCard({ cliente, onExecutar, onFicha }) {
+  // Proteção contra nulos
+  if (!cliente) return null;
+
   const { objetivo, proximoPasso } = calcularObjetivoEProximoPasso(cliente);
   const { score, motivos } = calcularScore(cliente);
   const prioridade = calcularPrioridade(cliente);
   const explicacao = explicacaoCliente(cliente);
   const situacao = cliente.situacao_atual || cliente.momento || "—";
   const canal = cliente.canal_comercial || cliente.canal_origem || "—";
-  const iniciais = (cliente.nome || "?").split(" ").slice(0, 2).map(p => p[0]).join("").toUpperCase();
+
+  // Calcular iniciais com proteção contra espaços em branco
+  const nomeLimpo = (cliente.nome || "").trim();
+  const iniciais = nomeLimpo
+    ? nomeLimpo.split(/\s+/).slice(0, 2).map(p => p[0]).join("").toUpperCase()
+    : "?";
 
   return (
     <div className={`bg-white border rounded-2xl hover:shadow-sm transition-all ${

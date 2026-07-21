@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Sparkles, Copy, Check, MessageCircle, RefreshCw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
@@ -87,42 +87,98 @@ export default function ScriptIA({ cliente, objetivo, proximoPasso, scriptPadrao
   const [tomSelecionado, setTomSelecionado] = useState("consultivo");
   const [scriptIA, setScriptIA] = useState("");
   const [gerando, setGerando] = useState(false);
-  const [copiado, setCOpiado] = useState(false);
+  const [copiado, setCopiado] = useState(false);
   const [tentativas, setTentativas] = useState(0);
+  const [erroIA, setErroIA] = useState(null);
+
+  // Ref para controlarAbortController e evitar race conditions
+  const abortControllerRef = useRef(null);
+  const clienteIdRef = useRef(null);
+
+  // Cleanup do AbortController no unmount
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
 
   useEffect(() => {
     if (!cliente) return;
     setScriptIA("");
+    setErroIA(null);
     setTomSelecionado("consultivo");
     gerarScript("consultivo");
   }, [cliente?.id]);
 
-  async function gerarScript(tomOverride) {
+  const gerarScript = useCallback(async (tomOverride) => {
+    if (!cliente?.id) return;
+
+    // Abortar requisição anterior se existir
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    clienteIdRef.current = cliente.id;
+
     setGerando(true);
+    setErroIA(null);
     const tom = tomOverride || tomSelecionado;
     const prompt = buildPrompt({ cliente, objetivo, proximoPasso, scriptPadrao, tom, historico });
+
     try {
       const { data, error } = await supabase.functions.invoke("openrouter-generate", {
         body: { mode: "crm_whatsapp_script", prompt },
       });
+
+      // Verificar se o componente ainda está montado para o mesmo cliente
+      if (controller.signal.aborted || clienteIdRef.current !== cliente.id) {
+        return;
+      }
+
       if (error || !data?.success || !data?.text) {
         throw new Error(error?.message || data?.error || "Integração de IA indisponível.");
       }
       setScriptIA(data.text);
-    } catch (error) {
+    } catch (err) {
+      // Ignorar erros de abort (race condition)
+      if (err.name === "AbortError") return;
+
+      // Verificar se o componente ainda está montado para o mesmo cliente
+      if (controller.signal.aborted || clienteIdRef.current !== cliente.id) {
+        return;
+      }
+
+      // Mostrar erro ao usuário e usar script local como fallback
+      const mensagemErro = err.message || "Erro ao gerar script com IA.";
+      setErroIA(mensagemErro);
       setScriptIA(atual => gerarScriptLocal({ cliente, proximoPasso, tom, textoAnterior: atual }));
     } finally {
-      setTentativas(t => t + 1);
-      setGerando(false);
+      if (clienteIdRef.current === cliente.id) {
+        setTentativas(t => t + 1);
+        setGerando(false);
+      }
     }
-  }
+  }, [cliente, objetivo, proximoPasso, scriptPadrao, historico, tomSelecionado]);
 
-  function copiar() {
+  const copiar = useCallback(async () => {
     if (!scriptIA) return;
-    navigator.clipboard.writeText(scriptIA);
-    setCOpiado(true);
-    setTimeout(() => setCOpiado(false), 2000);
-  }
+    try {
+      await navigator.clipboard.writeText(scriptIA);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    } catch {
+      // Fallback para navegadores sem permissão de clipboard
+      const textarea = document.createElement("textarea");
+      textarea.value = scriptIA;
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    }
+  }, [scriptIA]);
 
   const tel = (cliente?.whatsapp || cliente?.telefone || "").replace(/\D/g, "");
   const waUrl = tel && scriptIA ? `https://wa.me/55${tel}?text=${encodeURIComponent(scriptIA)}` : null;
@@ -145,18 +201,27 @@ export default function ScriptIA({ cliente, objetivo, proximoPasso, scriptPadrao
             <button
               key={t.id}
               onClick={() => { setTomSelecionado(t.id); gerarScript(t.id); }}
+              disabled={gerando}
               title={t.desc}
               className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all ${
                 tomSelecionado === t.id
                   ? "bg-violet-600 text-white border-violet-600"
                   : "bg-white text-slate-600 border-slate-200 hover:border-violet-300 hover:text-violet-600"
-              }`}
+              } ${gerando ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               {t.label}
             </button>
           ))}
         </div>
       </div>
+
+      {/* Mensagem de erro */}
+      {erroIA && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-xs text-amber-700">
+          <p className="font-semibold mb-0.5">Script gerado localmente</p>
+          <p>{erroIA}</p>
+        </div>
+      )}
 
       {/* Botão gerar */}
       {!scriptIA && (

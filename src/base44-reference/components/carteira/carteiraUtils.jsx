@@ -169,6 +169,11 @@ export function resultadoParaMomento(resultado) {
 
 // ─── LÓGICA AUTOMÁTICA: SITUAÇÃO → OBJETIVO + PRÓXIMO PASSO ─────────────────
 export function calcularObjetivoEProximoPasso(cliente) {
+  // Proteção contra nulos
+  if (!cliente) {
+    return { objetivo: "Iniciar conversa", proximoPasso: "Enviar primeira abordagem" };
+  }
+
   const s = cliente.situacao_atual || cliente.momento || "";
   const canal = cliente.canal_comercial || cliente.canal_origem || "";
   const visita = cliente.visita_agendada_em || cliente.proxima_acao_data;
@@ -235,6 +240,11 @@ export function calcularProximaAcao(cliente) {
 
 // ─── EXPLICAÇÃO "POR QUE ESTÁ AQUI" ─────────────────────────────────────────
 export function explicacaoCliente(cliente) {
+  // Proteção contra nulos
+  if (!cliente) {
+    return "Este cliente precisa de atenção e desenvolvimento comercial.";
+  }
+
   const s = cliente.situacao_atual || cliente.momento || "";
   const dias = cliente.ultimo_contato
     ? moment().diff(moment(cliente.ultimo_contato), "days")
@@ -272,13 +282,18 @@ export function explicacaoCliente(cliente) {
 
 // ─── SCORE DO CLIENTE ────────────────────────────────────────────────────────
 export function calcularScore(cliente) {
+  // Proteção contra nulos
+  if (!cliente) {
+    return { score: 100, motivos: [] };
+  }
+
   let score = 100;
   const motivos = [];
   const s = cliente.situacao_atual || cliente.momento || "";
   const agora = moment();
 
-  // Sem próximo passo definido
-  const temProximoPasso = !!(cliente.proxima_acao || cliente.situacao_atual);
+  // Sem próximo passo definido - corrigido para usar proxima_acao_data
+  const temProximoPasso = !!(cliente.proxima_acao_data || cliente.situacao_atual);
   if (!temProximoPasso) { score -= 20; motivos.push("Sem próxima ação definida."); }
 
   // Próxima ação vencida
@@ -327,6 +342,11 @@ export function classificacaoScore(score) {
 
 // ─── PRIORIDADE COMERCIAL ────────────────────────────────────────────────────
 export function calcularPrioridade(cliente) {
+  // Proteção contra nulos
+  if (!cliente) {
+    return "Baixa";
+  }
+
   const s = cliente.situacao_atual || cliente.momento || "";
   const { score } = calcularScore(cliente);
 
@@ -490,6 +510,9 @@ export function getScriptParaMissao(missaoId) {
 }
 
 export function preencherScript(script, cliente) {
+  // Proteção contra nulos
+  if (!cliente) return script || "";
+
   const visita = cliente.visita_agendada_em || cliente.proxima_acao_data;
   return script
     .replace(/{nome}/g, cliente.nome || "")
