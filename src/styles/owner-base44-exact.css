@@ -49,6 +49,42 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Sidebar background - Base44 uses light theme */
+.owner-b44 [data-sidebar="sidebar"],
+.owner-b44 aside[data-sidebar] {
+  background-color: hsl(0, 0%, 98%) !important;
+  border-color: hsl(220, 13%, 91%) !important;
+}
+
+/* Sidebar text color - dark text on light background */
+.owner-b44 [data-sidebar="sidebar"] span,
+.owner-b44 [data-sidebar="sidebar"] a,
+.owner-b44 [data-sidebar="sidebar"] button,
+.owner-b44 aside[data-sidebar] span,
+.owner-b44 aside[data-sidebar] a,
+.owner-b44 aside[data-sidebar] button {
+  color: hsl(240, 5%, 26%) !important;
+}
+
+/* Sidebar active item */
+.owner-b44 [data-sidebar="sidebar"] [data-active="true"],
+.owner-b44 aside[data-sidebar] [data-active="true"] {
+  background-color: hsl(240, 5%, 96%) !important;
+  color: hsl(240, 6%, 10%) !important;
+}
+
+/* Primary button color - Base44 green */
+.owner-b44 .bg-primary,
+.owner-b44 button.bg-primary {
+  background-color: hsl(152, 69%, 31%) !important;
+}
+
+/* Primary text color */
+.owner-b44 .text-primary,
+.owner-b44 a.text-primary {
+  color: hsl(152, 69%, 31%) !important;
+}
+
 /* Tipografia base do Base44 (index.css @layer base) escopada ao módulo. */
 .owner-b44 h1 {
   font-size: 28px;
