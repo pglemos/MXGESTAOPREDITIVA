@@ -2,16 +2,20 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { chartTokens } from '@/lib/charts/tokens'
 import {
-  CheckCircle2,
-  Circle,
+  AlertTriangle,
+  BookOpen,
+  CalendarClock,
+  CheckCircle,
+  CheckSquare,
   ChevronRight,
-  CalendarDays,
+  Circle,
+  ClipboardCheck,
+  Lightbulb,
+  RefreshCw,
   Target,
   Trophy,
-  BookOpen,
   TrendingUp,
   Users,
-  ClipboardCheck,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useVendedorHomePage } from '@/features/vendedor-home/hooks/useVendedorHomePage'
@@ -26,10 +30,18 @@ function saudacao() {
   return 'Boa noite'
 }
 
+function capitalize(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
 function isToday(iso: string) {
   const d = new Date(iso)
   const t = new Date()
-  return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate()
+  return (
+    d.getFullYear() === t.getFullYear() &&
+    d.getMonth() === t.getMonth() &&
+    d.getDate() === t.getDate()
+  )
 }
 
 export default function VendedorHomePage() {
@@ -41,9 +53,14 @@ export default function VendedorHomePage() {
   const { ranking } = useRanking()
 
   const firstName = profile?.name?.trim().split(/\s+/)[0] || 'Vendedor'
-  const todayLabel = new Intl.DateTimeFormat('pt-BR', {
-    weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Sao_Paulo',
-  }).format(new Date())
+
+  const today = new Date()
+  const weekday = capitalize(
+    new Intl.DateTimeFormat('pt-BR', { weekday: 'long', timeZone: 'America/Sao_Paulo' }).format(today),
+  )
+  const longDate = new Intl.DateTimeFormat('pt-BR', {
+    day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Sao_Paulo',
+  }).format(today)
 
   const meta = home.metrics?.meta ?? 0
   const vendas = home.metrics?.vendasMes ?? 0
@@ -68,211 +85,321 @@ export default function VendedorHomePage() {
 
   const ritualItems = [
     { label: 'Fechamento Diário enviado', done: Boolean(home.todayCheckin) },
-    { label: `${agendaMetrics.agendamentosHoje} agendamento${agendaMetrics.agendamentosHoje !== 1 ? 's' : ''} para hoje`, done: agendaMetrics.agendamentosHoje > 0 },
-    { label: `${oportunidadesAtivas.length} oportunidade${oportunidadesAtivas.length !== 1 ? 's' : ''} ativas na carteira`, done: oportunidadesAtivas.length > 0 },
+    {
+      label: `${agendaMetrics.agendamentosHoje} agendamento${agendaMetrics.agendamentosHoje !== 1 ? 's' : ''} para hoje`,
+      done: agendaMetrics.agendamentosHoje > 0,
+    },
+    {
+      label: `${oportunidadesAtivas.length} oportunidade${oportunidadesAtivas.length !== 1 ? 's' : ''} ativas na carteira`,
+      done: oportunidadesAtivas.length > 0,
+    },
   ]
 
   return (
-    <div className="h-full w-full overflow-y-auto no-scrollbar bg-surface-alt">
-      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 pb-24 flex flex-col gap-6">
+    <div className="min-h-screen bg-gray-50 text-gray-800">
+      <div className="mx-auto max-w-7xl space-y-5 px-4 py-6 pb-24">
 
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {saudacao()}, {firstName}! 👋
-            </h1>
-            <p className="text-sm text-gray-500 mt-0.5 capitalize">{todayLabel}</p>
-          </div>
-          <span
-            onClick={() => navigate('/fechamento-diario')}
-            className={`inline-flex items-center gap-2 cursor-pointer px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
-              home.todayCheckin
-                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                : 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse'
-            }`}
-          >
-            <ClipboardCheck size={15} />
-            {home.todayCheckin ? 'Fechamento enviado ✓' : 'Enviar Fechamento Diário'}
-          </span>
-        </div>
-
-        {/* Cartões de métricas */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <MetricCard
-            label="Meta do mês"
-            value={`${vendas} / ${meta}`}
-            sub={`faltam ${faltam}`}
-            icon={<Target size={18} className="text-indigo-500" />}
-            color="indigo"
-          />
-          <MetricCard
-            label="Atingimento"
-            value={`${atingimentoPct}%`}
-            sub={atingimentoPct >= 100 ? '🎯 Meta batida!' : 'do objetivo'}
-            icon={<TrendingUp size={18} className="text-emerald-500" />}
-            color="emerald"
-          />
-          <MetricCard
-            label="Agenda hoje"
-            value={String(agendaMetrics.agendamentosHoje)}
-            sub="compromissos"
-            icon={<CalendarDays size={18} className="text-blue-500" />}
-            color="blue"
-            onClick={() => navigate('/central-execucao')}
-          />
-          <MetricCard
-            label="Ranking"
-            value={posicaoRanking ? `#${posicaoRanking}` : '—'}
-            sub="na loja"
-            icon={<Trophy size={18} className="text-amber-500" />}
-            color="amber"
-            onClick={() => navigate('/classificacao')}
-          />
-        </div>
-
-        {/* Rotina do Dia */}
-        <section>
-          <SectionHeader
-            title="Rotina do Dia"
-            icon={<CalendarDays size={16} />}
-            action={{ label: 'Ver tudo', onClick: () => navigate('/central-execucao') }}
-          />
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-50">
-            {agendaHoje.length === 0 ? (
-              <div className="px-5 py-8 text-center text-sm text-gray-400">
-                Nenhum compromisso agendado para hoje.
-                <button onClick={() => navigate('/central-execucao')} className="block mt-2 mx-auto text-indigo-500 font-medium hover:underline">
-                  Criar atividade
+        <header className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h1 className="text-xl font-bold text-gray-800">
+                {saudacao()}, {firstName}! 👋
+              </h1>
+              <p className="mt-0.5 text-sm text-gray-500">Acompanhe sua rotina e resultados do dia.</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="hidden text-right sm:block">
+                <p className="text-sm font-semibold text-gray-700">{weekday}</p>
+                <p className="text-xs text-gray-500">{longDate}</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => navigate('/central-execucao')}
+                  className="flex h-[38px] items-center gap-1 rounded-xl border border-gray-800 px-3 text-sm font-semibold text-gray-800 shadow-sm transition-colors hover:bg-gray-100"
+                >
+                  <CalendarClock size={14} /> Rotina do Dia
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/fechamento-diario')}
+                  className={`flex h-[38px] items-center gap-1 rounded-xl border px-3 text-sm font-semibold shadow-sm transition-colors ${
+                    home.todayCheckin
+                      ? 'border-emerald-600 text-emerald-700 hover:bg-emerald-50'
+                      : 'border-amber-500 text-amber-700 hover:bg-amber-50'
+                  }`}
+                >
+                  <ClipboardCheck size={14} />
+                  {home.todayCheckin ? 'Fechamento ✓' : 'Enviar Fechamento'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void home.handleRefresh?.()}
+                  disabled={home.isRefetching}
+                  aria-label="Atualizar"
+                  className="grid h-[38px] w-10 place-items-center rounded-xl text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  <RefreshCw size={16} className={home.isRefetching ? 'animate-spin' : ''} />
                 </button>
               </div>
-            ) : (
-              agendaHoje.slice(0, 5).map((item) => (
-                <div key={item.id} className="flex items-center justify-between px-5 py-3.5">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-400" />
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-800 truncate">{item.cliente?.nome || 'Cliente'}</p>
-                      <p className="text-xs text-gray-400">{item.tipo} · {new Date(item.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
-                    </div>
-                  </div>
-                  <ChevronRight size={15} className="text-gray-300 flex-shrink-0" />
+            </div>
+          </div>
+        </header>
+
+        {/* Cards de métricas — 4 colunas como o gerente */}
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Métricas do dia">
+          {/* Card destaque verde */}
+          <article className="flex min-h-[140px] flex-col justify-between rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-800 p-5 text-white shadow-md">
+            <div className="flex items-start justify-between">
+              <p className="text-xs font-medium uppercase tracking-wide text-emerald-100">Atingimento do Mês</p>
+              <span className="grid h-9 w-9 place-items-center rounded-xl bg-white/20">
+                <TrendingUp size={18} />
+              </span>
+            </div>
+            <div>
+              <p className="text-3xl font-bold leading-tight">{atingimentoPct}%</p>
+              <p className="mt-1 text-sm text-emerald-100">
+                {atingimentoPct >= 100 ? '🎯 Meta batida!' : `${vendas} de ${meta} vendas realizadas`}
+              </p>
+            </div>
+          </article>
+
+          {/* Faltam para a meta */}
+          <article className="flex min-h-[140px] flex-col justify-between rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div className="flex items-start justify-between">
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Faltam para a Meta</p>
+              <span className="grid h-9 w-9 place-items-center rounded-xl bg-gray-100">
+                <Target size={18} className="text-gray-500" />
+              </span>
+            </div>
+            <div>
+              {meta === 0 ? (
+                <>
+                  <p className="text-2xl font-bold text-gray-400">Meta não cadastrada</p>
+                  <p className="mt-1 text-sm text-gray-400">Fale com seu gerente.</p>
+                </>
+              ) : faltam === 0 ? (
+                <>
+                  <p className="text-3xl font-bold text-emerald-600">0 vendas</p>
+                  <p className="mt-1 text-sm text-gray-500">Meta do mês atingida! 🎉</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-3xl font-bold text-gray-800">{faltam} {faltam === 1 ? 'venda' : 'vendas'}</p>
+                  <p className="mt-1 text-sm text-gray-500">Para atingir a meta mensal</p>
+                </>
+              )}
+            </div>
+          </article>
+
+          {/* Agenda hoje */}
+          <article
+            className="flex min-h-[140px] flex-col justify-between rounded-2xl border border-gray-100 bg-white p-5 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors"
+            onClick={() => navigate('/central-execucao')}
+          >
+            <div className="flex items-start justify-between">
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Agenda Hoje</p>
+              <span className="grid h-9 w-9 place-items-center rounded-xl bg-gray-100">
+                <CalendarClock size={18} className="text-gray-500" />
+              </span>
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-gray-800">{agendaMetrics.agendamentosHoje}</p>
+              <p className="mt-1 text-sm text-gray-500">
+                {agendaMetrics.agendamentosHoje === 0
+                  ? 'Nenhum compromisso hoje'
+                  : `compromisso${agendaMetrics.agendamentosHoje !== 1 ? 's' : ''} confirmado${agendaMetrics.agendamentosHoje !== 1 ? 's' : ''}`}
+              </p>
+            </div>
+          </article>
+
+          {/* Ranking */}
+          <article
+            className={`flex min-h-[140px] flex-col justify-between rounded-2xl border bg-white p-5 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors ${
+              posicaoRanking === 1 ? 'border-amber-200' : 'border-gray-100'
+            }`}
+            onClick={() => navigate('/classificacao')}
+          >
+            <div className="flex items-start justify-between">
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Ranking</p>
+              <span className="grid h-9 w-9 place-items-center rounded-xl bg-gray-100">
+                <Trophy size={18} className={posicaoRanking === 1 ? 'text-amber-500' : 'text-gray-500'} />
+              </span>
+            </div>
+            <div>
+              <p className={`text-3xl font-bold ${posicaoRanking === 1 ? 'text-amber-500' : 'text-gray-800'}`}>
+                {posicaoRanking ? `#${posicaoRanking}` : '—'}
+              </p>
+              <p className="mt-1 text-sm text-gray-500">posição na loja</p>
+            </div>
+          </article>
+        </section>
+
+        {/* Leitura do dia (60%) + Ação sugerida (40%) */}
+        <section className="flex flex-col gap-4 lg:flex-row">
+          <div className="lg:w-[60%]">
+            <article className="h-full rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+              <h2 className="mb-4 text-sm font-bold text-gray-800">Disciplina Semanal</h2>
+              <div className="mb-3 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-500">Consistência nos fechamentos</p>
+                  <p className="text-xl font-bold text-gray-800">{Math.round(disciplina)}%</p>
                 </div>
-              ))
-            )}
-            {agendaHoje.length > 5 && (
-              <button onClick={() => navigate('/central-execucao')} className="w-full py-3 text-sm text-indigo-500 font-medium hover:bg-gray-50 transition-colors rounded-b-2xl">
-                Ver mais {agendaHoje.length - 5} compromissos
-              </button>
-            )}
+                <div className="text-right">
+                  <p className="text-xs text-gray-500">Oportunidades ativas</p>
+                  <p className="text-xl font-bold text-gray-800">{oportunidadesAtivas.length}</p>
+                </div>
+              </div>
+              <div className="relative h-3 overflow-hidden rounded-full bg-gray-100">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{
+                    width: `${Math.min(100, Math.round(disciplina))}%`,
+                    background:
+                      disciplina >= 80
+                        ? chartTokens.success()
+                        : disciplina >= 50
+                        ? chartTokens.warning()
+                        : chartTokens.danger(),
+                  }}
+                />
+              </div>
+              <p className="mt-1.5 text-xs text-gray-400">
+                {disciplina >= 80 ? 'Excelente ritmo na semana' : disciplina >= 50 ? 'Bom progresso, mantenha a frequência' : 'Atenção à disciplina diária'}
+              </p>
+              <p className="mt-3 text-sm font-medium text-gray-600">
+                {disciplina >= 80
+                  ? '🔥 Você está no caminho certo. Continue com o mesmo ritmo!'
+                  : disciplina >= 50
+                  ? '📈 Progresso positivo. Feche o dia com consistência.'
+                  : '⚠️ Priorize registrar o fechamento diário todos os dias.'}
+              </p>
+            </article>
+          </div>
+          <div className="lg:w-[40%]">
+            <article className="flex h-full flex-col rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+              <div className="mb-3 flex items-center gap-2">
+                <span className="grid h-8 w-8 place-items-center rounded-lg bg-amber-50">
+                  <Lightbulb size={16} className="text-amber-500" />
+                </span>
+                <h2 className="text-sm font-bold text-gray-800">Ação sugerida</h2>
+              </div>
+              <p className="flex-1 text-sm leading-relaxed text-gray-600">
+                {!home.todayCheckin
+                  ? 'Registre seu fechamento diário agora para manter sua disciplina e garantir que seus resultados sejam contabilizados corretamente.'
+                  : agendaMetrics.agendamentosHoje === 0
+                  ? 'Você não tem agendamentos para hoje. Acesse a Rotina do Dia e crie novos contatos para aumentar sua previsão de vendas.'
+                  : faltam > 0
+                  ? `Faltam ${faltam} venda${faltam !== 1 ? 's' : ''} para bater a meta. Foque nos clientes com maior chance de fechamento na sua carteira.`
+                  : '🎯 Meta batida! Mantenha o ritmo e superem os resultados do mês passado.'}
+              </p>
+            </article>
           </div>
         </section>
 
-        {/* Ritual do dia */}
-        <section>
-          <SectionHeader title="Checklist do Dia" icon={<CheckCircle2 size={16} />} />
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-50">
+        {/* Checklist do Dia */}
+        <section aria-label="Checklist do dia" className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-sm font-bold text-gray-800">Checklist do Dia</h2>
+          </div>
+          <div className="space-y-3">
             {ritualItems.map((item, i) => (
-              <div key={i} className="flex items-center gap-3 px-5 py-3.5">
+              <div key={i} className="flex items-center gap-3">
                 {item.done
-                  ? <CheckCircle2 size={18} className="text-emerald-500 flex-shrink-0" />
-                  : <Circle size={18} className="text-gray-300 flex-shrink-0" />
-                }
-                <p className={`text-sm ${item.done ? 'text-gray-700' : 'text-gray-400'}`}>{item.label}</p>
+                  ? <CheckCircle size={18} className="text-emerald-500 flex-shrink-0" />
+                  : <Circle size={18} className="text-gray-300 flex-shrink-0" />}
+                <p className={`text-sm ${item.done ? 'text-gray-700 font-medium' : 'text-gray-400'}`}>{item.label}</p>
               </div>
             ))}
           </div>
         </section>
 
-        {/* Atalhos */}
-        <section>
-          <SectionHeader title="Acesso rápido" icon={<ChevronRight size={16} />} />
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <ShortcutCard label="Mentor Comercial" icon={<Users size={20} className="text-indigo-500" />} onClick={() => navigate('/carteira-clientes')} />
-            <ShortcutCard label="Minha Meta" icon={<Target size={20} className="text-emerald-500" />} onClick={() => navigate('/meu-funil')} />
-            <ShortcutCard label="Desenvolvimento" icon={<BookOpen size={20} className="text-amber-500" />} onClick={() => navigate('/desenvolvimento')} />
+        {/* Agenda hoje + Atalhos */}
+        <section className="flex flex-col gap-4 lg:flex-row">
+          <div className="lg:w-[55%]">
+            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-sm font-bold text-gray-800">Rotina do Dia — Hoje</h2>
+                <button
+                  type="button"
+                  onClick={() => navigate('/central-execucao')}
+                  className="flex items-center gap-0.5 text-xs font-medium text-emerald-600 hover:text-emerald-700"
+                >
+                  Ver tudo <span aria-hidden>›</span>
+                </button>
+              </div>
+              {agendaHoje.length === 0 ? (
+                <div className="py-6 text-center">
+                  <p className="text-sm text-gray-400">Nenhum compromisso agendado para hoje.</p>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/central-execucao')}
+                    className="mt-2 text-xs font-medium text-emerald-600 hover:underline"
+                  >
+                    Criar atividade
+                  </button>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-50">
+                  {agendaHoje.slice(0, 5).map(item => (
+                    <div key={item.id} className="flex items-center justify-between py-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="flex-shrink-0 w-2 h-2 rounded-full bg-emerald-400" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-800 truncate">{item.cliente?.nome || 'Cliente'}</p>
+                          <p className="text-xs text-gray-400">
+                            {item.tipo} · {new Date(item.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight size={15} className="text-gray-300 flex-shrink-0" />
+                    </div>
+                  ))}
+                </div>
+              )}
+              {agendaHoje.length > 5 && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/central-execucao')}
+                  className="mt-3 w-full text-center text-xs font-medium text-emerald-600 hover:underline"
+                >
+                  Ver mais {agendaHoje.length - 5} compromissos
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="lg:w-[45%]">
+            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm h-full">
+              <h2 className="mb-4 text-sm font-bold text-gray-800">Acesso rápido</h2>
+              <div className="grid grid-cols-2 gap-3">
+                <ShortcutCard
+                  label="Mentor Comercial"
+                  icon={<Users size={20} className="text-indigo-500" />}
+                  onClick={() => navigate('/carteira-clientes')}
+                />
+                <ShortcutCard
+                  label="Minha Meta"
+                  icon={<Target size={20} className="text-emerald-500" />}
+                  onClick={() => navigate('/meu-funil')}
+                />
+                <ShortcutCard
+                  label="Fechamento Diário"
+                  icon={<CheckSquare size={20} className="text-blue-500" />}
+                  onClick={() => navigate('/fechamento-diario')}
+                />
+                <ShortcutCard
+                  label="Desenvolvimento"
+                  icon={<BookOpen size={20} className="text-amber-500" />}
+                  onClick={() => navigate('/desenvolvimento')}
+                />
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* Disciplina */}
-        <section>
-          <SectionHeader title="Disciplina semanal" icon={<TrendingUp size={16} />} />
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm text-gray-500">Consistência nos fechamentos</span>
-              <span className="text-lg font-bold text-gray-800">{Math.round(disciplina)}%</span>
-            </div>
-            <div className="h-2.5 w-full rounded-full bg-gray-100 overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-700"
-                style={{
-                  width: `${Math.min(100, Math.round(disciplina))}%`,
-                  background: disciplina >= 80 ? chartTokens.success() : disciplina >= 50 ? chartTokens.warning() : chartTokens.danger(),
-                }}
-              />
-            </div>
-            <p className="text-xs text-gray-400 mt-2">
-              {disciplina >= 80 ? '🔥 Excelente ritmo! Continue assim.' : disciplina >= 50 ? '📈 Bom progresso. Mantenha a frequência.' : '⚠️ Atenção à disciplina diária.'}
-            </p>
-          </div>
-        </section>
-
       </div>
-    </div>
-  )
-}
-
-/* Componentes internos */
-
-function MetricCard({
-  label, value, sub, icon, color, onClick,
-}: {
-  label: string
-  value: string
-  sub: string
-  icon: React.ReactNode
-  color: 'indigo' | 'emerald' | 'blue' | 'amber'
-  onClick?: () => void
-}) {
-  const bg: Record<string, string> = {
-    indigo: 'bg-indigo-50',
-    emerald: 'bg-emerald-50',
-    blue: 'bg-blue-50',
-    amber: 'bg-amber-50',
-  }
-  return (
-    <div
-      onClick={onClick}
-      className={`${bg[color]} rounded-2xl p-4 flex flex-col gap-2 ${onClick ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
-    >
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-gray-500">{label}</span>
-        {icon}
-      </div>
-      <p className="text-xl font-bold text-gray-900 leading-tight">{value}</p>
-      <p className="text-xs text-gray-400">{sub}</p>
-    </div>
-  )
-}
-
-function SectionHeader({
-  title, icon, action,
-}: {
-  title: string
-  icon: React.ReactNode
-  action?: { label: string; onClick: () => void }
-}) {
-  return (
-    <div className="flex items-center justify-between mb-2">
-      <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-700">
-        {icon}
-        {title}
-      </div>
-      {action && (
-        <button onClick={action.onClick} className="text-xs text-indigo-500 font-medium hover:underline flex items-center gap-0.5">
-          {action.label} <ChevronRight size={12} />
-        </button>
-      )}
     </div>
   )
 }
@@ -280,11 +407,12 @@ function SectionHeader({
 function ShortcutCard({ label, icon, onClick }: { label: string; icon: React.ReactNode; onClick: () => void }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-4 flex flex-col items-center gap-2 hover:bg-gray-50 transition-colors w-full"
+      className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-4 flex flex-col items-center gap-2 hover:bg-gray-100 transition-colors w-full"
     >
       {icon}
-      <span className="text-xs font-medium text-gray-600">{label}</span>
+      <span className="text-xs font-medium text-gray-600 text-center leading-tight">{label}</span>
     </button>
   )
 }
