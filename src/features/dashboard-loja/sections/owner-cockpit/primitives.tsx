@@ -6,7 +6,7 @@ import { PageHeading } from '@/components/molecules/PageHeading'
 import { chartTokens } from '@/lib/charts/tokens'
 import { cn } from '@/lib/utils'
 import { toneClasses, toneHex, vividIconClasses, type KpiTone } from './types'
-import { greeting, scoreStatus } from './format'
+import { greeting, scoreStatus, scoreTone } from './format'
 
 export function OwnerCockpitHeader({
   name,
@@ -140,7 +140,8 @@ function Sparkline({ tone, variant = 'line', seed = 0 }: { tone: KpiTone; varian
 export function MXScoreCompact({ score }: { score: number | null }) {
   const safeScore = Math.min(Math.max(Math.round(score ?? 0), 0), 100)
   const status = scoreStatus(score)
-  const statusColor = safeScore >= 75 ? 'text-status-success' : safeScore >= 60 ? 'text-status-warning' : 'text-status-error'
+  const tone = scoreTone(score)
+  const statusColor = toneClasses[tone].text
   const cx = 60
   const cy = 60
   const radius = 50
@@ -164,15 +165,7 @@ export function MXScoreCompact({ score }: { score: number | null }) {
               cy={cy}
               r={radius}
               fill="none"
-              stroke={
-                score === null
-                  ? 'var(--color-border-subtle)'
-                  : safeScore >= 75
-                    ? chartTokens.success()
-                    : safeScore >= 60
-                      ? chartTokens.warning()
-                      : chartTokens.danger()
-              }
+              stroke={score === null ? 'var(--color-border-subtle)' : toneHex[tone]()}
               strokeWidth={strokeWidth}
               strokeLinecap="round"
               strokeDasharray={circumference}
@@ -194,13 +187,13 @@ export function MetricPill({ label, value, tone }: { label: string; value: strin
   const classes = toneClasses[tone]
   return (
     <div className={cn('rounded-mx-lg border border-border-subtle p-mx-sm text-center', classes.soft)}>
-      <Typography variant="tiny" className="block font-black">{label}</Typography>
-      <div className="mt-mx-xs text-2xl font-black tabular-nums">{value}</div>
+      <Typography variant="tiny" className="block font-black leading-tight">{label}</Typography>
+      <div className="mt-mx-xs text-xl font-black tabular-nums truncate" title={value}>{value}</div>
     </div>
   )
 }
 
-export function OwnerSemiGauge({ value }: { value: number }) {
+export function OwnerSemiGauge({ value, muted = false }: { value: number; muted?: boolean }) {
   const clamped = Math.min(Math.max(Math.round(value), 0), 100)
   const cx = 50
   const cy = 50
@@ -222,12 +215,16 @@ export function OwnerSemiGauge({ value }: { value: number }) {
       <path
         d={`M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`}
         fill="none"
-        stroke="url(#owner-dept-gauge)"
+        stroke={muted ? 'var(--color-border-subtle)' : 'url(#owner-dept-gauge)'}
         strokeWidth={strokeWidth}
         strokeLinecap="round"
       />
-      <circle cx={pointerX} cy={pointerY} r={4} fill="var(--color-mx-black)" />
-      <circle cx={pointerX} cy={pointerY} r={2} fill="var(--color-pure-white)" />
+      {!muted && (
+        <>
+          <circle cx={pointerX} cy={pointerY} r={4} fill="var(--color-mx-black)" />
+          <circle cx={pointerX} cy={pointerY} r={2} fill="var(--color-pure-white)" />
+        </>
+      )}
     </svg>
   )
 }

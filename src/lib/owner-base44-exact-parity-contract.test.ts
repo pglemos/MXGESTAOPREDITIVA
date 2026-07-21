@@ -85,6 +85,6 @@ describe('owner Base44 exact parity contract', () => {
     expect(css).toContain('.owner-base44-exact')
     expect(css).toContain('--primary: 174 100% 33%')
     expect(css).toContain('--radius: 0.625rem')
-    expect(css).toContain('--sidebar-background: 220 75% 8%')
+    expect(css).toContain('--sidebar-background: 0 0% 100%')
   })
 })

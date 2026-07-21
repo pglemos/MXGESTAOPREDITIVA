@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
-import { AlertTriangle, Bell, CheckCircle2, Clock3, CircleHelp, ClipboardList, LineChart as LineChartIcon, MessageCircle, Search, Target, Zap } from 'lucide-react'
+import { getDaysInMonth, parseISO } from 'date-fns'
+import { AlertTriangle, Bell, CheckCircle2, Clock3, CircleHelp, ClipboardList, LineChart as LineChartIcon, MessageCircle, Search, Target, Users, Zap } from 'lucide-react'
 import {
   CartesianGrid,
   Line,
@@ -20,12 +21,23 @@ import { clampScore, formatInteger, ownerPath } from './format'
 import { MetricPill, OwnerSemiGauge } from './primitives'
 
 export function SalesGoalCard({ data }: { data: DashboardData }) {
+  const navigate = useNavigate()
   const sold = data.metrics.totalSales
   const goal = data.metrics.goalValue
   const missing = Math.max(goal - sold, 0)
   const progress = goal > 0 ? clampScore((sold / goal) * 100) : 0
+  const daysInMonth = getDaysInMonth(parseISO(data.referenceDate))
   const referenceDay = Number(data.referenceDate.slice(-2)) || 1
-  const pace = referenceDay > 0 ? Math.max(sold / referenceDay, 0) : 0
+  const actualPace = referenceDay > 0 ? Math.max(sold / referenceDay, 0) : 0
+  const idealPace = daysInMonth > 0 ? goal / daysInMonth : 0
+  const projected = actualPace > 0 ? Math.round(actualPace * daysInMonth) : sold
+  const projectionStatus = goal <= 0
+    ? null
+    : projected >= goal
+      ? { label: 'Acima da meta', tone: 'success' as const }
+      : projected >= goal * 0.85
+        ? { label: 'Dentro da meta', tone: 'warning' as const }
+        : { label: 'Abaixo da meta', tone: 'danger' as const }
 
   return (
     <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
@@ -45,12 +57,28 @@ export function SalesGoalCard({ data }: { data: DashboardData }) {
       <div className="mt-mx-lg grid grid-cols-3 gap-mx-sm">
         <MetricPill label="Vendidos" value={formatInteger(sold)} tone="success" />
         <MetricPill label="Faltam" value={goal > 0 ? formatInteger(missing) : '--'} tone="danger" />
-        <MetricPill label="Ritmo/dia" value={pace > 0 ? pace.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) : '--'} tone="info" />
+        <MetricPill label="Ritmo ideal" value={idealPace > 0 ? `${idealPace.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}/d` : '--'} tone="info" />
       </div>
-      <div className="mt-mx-md rounded-mx-lg border border-border-subtle bg-surface-alt px-mx-md py-mx-sm flex items-center justify-between">
-        <Typography variant="p" className="font-black">Projeção atual</Typography>
-        <Typography variant="p" className="font-black text-brand-primary">{goal > 0 ? `${formatInteger(sold)} veículos` : 'Pendente'}</Typography>
+      <div className="mt-mx-md rounded-mx-lg border border-border-subtle bg-surface-alt px-mx-md py-mx-sm">
+        <Typography variant="tiny" tone="muted" className="font-black uppercase tracking-widest">Projeção atual</Typography>
+        <div className="mt-mx-xs flex flex-wrap items-center gap-mx-sm">
+          <Typography variant="p" className="font-black text-brand-primary">{goal > 0 ? `${formatInteger(projected)} veículos` : 'Pendente'}</Typography>
+          {projectionStatus && (
+            <span className={cn('shrink-0 rounded-mx-full px-mx-sm py-mx-tiny text-mx-tiny font-black uppercase whitespace-nowrap', toneClasses[projectionStatus.tone].soft)}>
+              {projectionStatus.label}
+            </span>
+          )}
+        </div>
       </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="mt-mx-sm w-full justify-center"
+        onClick={() => navigate(ownerPath('departamentos-comercial'))}
+      >
+        Ver diagnóstico comercial
+      </Button>
     </Card>
   )
 }
@@ -84,8 +112,8 @@ export function PriorityIntervention({
           </span>
         </div>
         <Typography variant="p" className="mt-mx-sm text-sm font-bold text-text-secondary">{alert.description}</Typography>
-        <div className="mt-mx-md rounded-mx-lg bg-surface-alt p-mx-sm">
-          <Typography variant="tiny" className="font-black uppercase tracking-widest text-text-tertiary">Por que isso importa</Typography>
+        <div className="mt-mx-md rounded-mx-lg bg-status-success-surface p-mx-sm">
+          <Typography variant="tiny" className="font-black uppercase tracking-widest text-status-success">Direcionamento MX</Typography>
           <Typography variant="p" className="mt-mx-xs text-sm font-bold text-text-secondary">{alert.recommendation}</Typography>
         </div>
         <div className="mt-mx-md flex flex-wrap gap-mx-sm">
@@ -94,6 +122,9 @@ export function PriorityIntervention({
           </Button>
           <Button type="button" variant="outline" onClick={() => navigate(ownerPath('plano-acao'))}>
             <ClipboardList size={16} /> Criar plano de ação
+          </Button>
+          <Button type="button" variant="outline" onClick={() => navigate(ownerPath('departamentos'))}>
+            <Users size={16} /> Delegar ao gerente
           </Button>
           <Button type="button" onClick={onOpenConsultant}>
             <MessageCircle size={16} /> Falar com Consultor
@@ -146,7 +177,9 @@ export function OwnerAlertList({ alerts }: { alerts: OwnerPerformanceAlert[] }) 
               </span>
               <span className="min-w-0 flex-1">
                 <Typography variant="p" className="font-black text-sm leading-tight">{alert.title}</Typography>
-                <Typography variant="tiny" tone="muted" className="block truncate">Impacto {alert.impact}: {alert.recommendation}</Typography>
+                <Typography variant="tiny" tone="muted" className="block truncate">
+                  {alert.department ? `${alert.department} · ` : ''}{alert.description}
+                </Typography>
               </span>
               <Typography variant="tiny" className={cn('font-black', index === 0 ? 'text-status-error' : 'text-text-secondary')}>
                 {index === 0 ? 'Hoje' : `${index + 1} dias`}
@@ -168,7 +201,7 @@ export function NextActionsCard({ actions }: { actions: ActionRow[] }) {
     <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
       <div className="flex items-center gap-mx-sm">
         <CheckCircle2 size={24} className="text-brand-primary" />
-        <Typography variant="h3" className="text-xl font-black">Próximas ações do diretor</Typography>
+        <Typography variant="h3" className="text-xl font-black">Próximas ações do Dono</Typography>
       </div>
       <div className="mt-mx-md divide-y divide-border-subtle">
         {actions.slice(0, 5).map((action, index) => (
@@ -341,8 +374,7 @@ export function OwnerDepartmentScoreGrid({ departments }: { departments: Departm
       <div className="grid grid-cols-1 gap-mx-md sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         {departments.map((department) => {
           const classes = toneClasses[department.tone]
-          const score = department.score ?? 0
-          const statusBadgeTone = score >= 75 ? 'bg-[var(--color-status-success-surface)] text-status-success' : score >= 60 ? 'bg-[var(--color-status-warning-surface)] text-status-warning' : 'bg-[var(--color-status-error-surface)] text-status-error'
+          const hasData = department.score !== null
           return (
             <button key={department.name} type="button" onClick={() => navigate(department.path)} className="rounded-mx-lg border border-border-subtle bg-white p-mx-md text-left hover:shadow-mx-md transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/15 flex flex-col items-center">
               <div className="flex w-full items-center gap-mx-sm">
@@ -350,11 +382,11 @@ export function OwnerDepartmentScoreGrid({ departments }: { departments: Departm
                 <Typography variant="p" className="font-black text-sm truncate">{department.name}</Typography>
               </div>
               <div className="mt-mx-sm">
-                <OwnerSemiGauge value={score} />
+                {hasData ? <OwnerSemiGauge value={department.score as number} /> : <OwnerSemiGauge value={0} muted />}
               </div>
               <div className="mt-mx-tiny flex flex-col items-center gap-mx-tiny">
                 <span className="text-3xl font-black tabular-nums text-text-primary leading-none">{department.score ?? '--'}</span>
-                <span className={cn('inline-flex items-center rounded-mx-md px-mx-sm py-mx-tiny text-mx-tiny font-black uppercase tracking-tight', statusBadgeTone)}>{department.status}</span>
+                <span className={cn('inline-flex items-center rounded-mx-md px-mx-sm py-mx-tiny text-mx-tiny font-black uppercase tracking-tight', classes.soft)}>{department.status}</span>
               </div>
               <Typography variant="tiny" tone="muted" className="mt-mx-sm block min-h-mx-8 font-bold text-center w-full">{department.detail}</Typography>
             </button>

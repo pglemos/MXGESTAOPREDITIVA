@@ -15,6 +15,8 @@ export type OwnerPerformanceAlert = {
   impact: 'Alto' | 'Médio' | 'Baixo'
   ctaLabel: string
   ctaTo: string
+  /** Área/departamento de origem do alerta, para exibir como tag no card do Dono */
+  department?: string
 }
 
 type ChannelTone = 'success' | 'info' | 'brand'
@@ -88,6 +90,7 @@ export function usePerformanceAlerts({
         impact: metrics.attainment < 60 ? 'Alto' : 'Médio',
         ctaLabel: 'Abrir metas',
         ctaTo: role === 'gerente' ? '/gerente/meta-loja' : `${location.pathname}?id=${selectedStoreId || ''}&tab=metas`,
+        department: 'Comercial',
       })
     }
 
@@ -105,6 +108,7 @@ export function usePerformanceAlerts({
         impact: 'Médio',
         ctaLabel: role === 'gerente' ? 'Abrir rotina' : 'Ver equipe',
         ctaTo: role === 'gerente' ? '/gerente/rotina-equipe' : `${location.pathname}?id=${selectedStoreId || ''}&tab=equipe`,
+        department: 'Pessoas',
       })
     }
 
@@ -122,6 +126,7 @@ export function usePerformanceAlerts({
         impact: 'Alto',
         ctaLabel: role === 'gerente' ? 'Criar devolutiva' : 'Ver ranking',
         ctaTo: role === 'gerente' ? '/gerente/feedbacks-pdis?tab=feedbacks' : '/classificacao',
+        department: 'Comercial',
       })
     }
 
@@ -139,6 +144,7 @@ export function usePerformanceAlerts({
         impact: 'Alto',
         ctaLabel: role === 'gerente' ? 'Ver ranking' : 'Ver ranking',
         ctaTo: role === 'gerente' ? '/gerente/ranking' : '/classificacao',
+        department: 'Comercial',
       })
     }
 
@@ -156,6 +162,7 @@ export function usePerformanceAlerts({
         impact: 'Médio',
         ctaLabel: role === 'gerente' ? 'Abrir rotina' : 'Ver equipe',
         ctaTo: role === 'gerente' ? '/gerente/rotina-equipe' : `${location.pathname}?id=${selectedStoreId || ''}&tab=equipe`,
+        department: 'Operações',
       })
     } else if (out.length === 0) {
       out.push({
@@ -171,6 +178,7 @@ export function usePerformanceAlerts({
         impact: 'Baixo',
         ctaLabel: 'Ver ranking',
         ctaTo: role === 'gerente' ? '/gerente/ranking' : '/classificacao',
+        department: 'Operações',
       })
     }
 

@@ -1,12 +1,14 @@
 import { DollarSign, Gauge, Megaphone, Package, Users } from 'lucide-react'
 import {
   buildCentralMxEngine,
+  statusLabel,
+  DEPARTMENT_NAMES,
   type CentralMxActionPlanItem,
   type CentralMxDepartmentModule,
   type CentralMxIndicatorUnit,
   type CentralMxIndicatorValue,
 } from '@/lib/central-mx-engine'
-import type { ExecutiveAlert, MxDepartmentCode } from '@/lib/mx-executive-foundation'
+import { classifyMxScore, type ExecutiveAlert, type MxDepartmentCode } from '@/lib/mx-executive-foundation'
 import type { OwnerPerformanceAlert } from '../PerformanceAlerts'
 import { resolveOwnerSection } from './ownerBase44Config'
 import { toneClasses, type ActionRow, type DashboardData, type DepartmentScore, type OwnerSection } from './types'
@@ -42,20 +44,23 @@ export function formatPercent(value: number | null | undefined, digits = 1) {
   return `${value.toLocaleString('pt-BR', { maximumFractionDigits: digits })}%`
 }
 
+/**
+ * Única fonte de verdade pro band de score: delega pro mesmo `classifyMxScore`
+ * usado pelo central-mx-engine (departamentos), evitando dois sistemas de corte
+ * divergentes entre o MX Score da loja e os scores por departamento.
+ */
 export function scoreTone(score: number | null): DepartmentScore['tone'] {
   if (score === null) return 'muted'
-  if (score >= 85) return 'success'
-  if (score >= 75) return 'info'
-  if (score >= 60) return 'warning'
+  const band = classifyMxScore(score)
+  if (band === 'elite' || band === 'excellent') return 'success'
+  if (band === 'good') return 'info'
+  if (band === 'attention') return 'warning'
   return 'danger'
 }
 
 export function scoreStatus(score: number | null) {
   if (score === null) return 'Pendente'
-  if (score >= 85) return 'Excelente'
-  if (score >= 75) return 'Bom'
-  if (score >= 60) return 'Atenção'
-  return 'Crítico'
+  return statusLabel(score)
 }
 
 export function clampScore(value: number) {
@@ -112,6 +117,7 @@ export function departmentIcon(code: MxDepartmentCode) {
 }
 
 export function departmentDetail(department: CentralMxDepartmentModule) {
+  if (!department.hasData) return 'Sem indicadores registrados no período.'
   const complete = department.indicators.filter(item => item.status === 'completo').length
   const partial = department.indicators.filter(item => item.status === 'parcial').length
   return `${complete} completos, ${partial} parciais, ${department.alertCount} críticos`
@@ -166,10 +172,10 @@ export function departmentFromEngine(department: CentralMxDepartmentModule): Dep
     code: department.code,
     name: department.name,
     icon: departmentIcon(department.code),
-    score: department.score,
+    score: department.hasData ? department.score : null,
     status: department.status,
     detail: departmentDetail(department),
-    tone: scoreTone(department.score),
+    tone: department.hasData ? scoreTone(department.score) : 'muted',
     path: ownerPath(`departamentos-${department.code}`),
     indicators: department.indicators,
     dashboardCards: department.dashboardCards,
@@ -192,6 +198,7 @@ export function alertFromEngine(alert: ExecutiveAlert): OwnerPerformanceAlert {
     impact: alert.type === 'critical' ? 'Alto' : alert.type === 'warning' ? 'Médio' : 'Baixo',
     ctaLabel: alert.quickActionLabel,
     ctaTo: ownerPath('plano-acao'),
+    department: DEPARTMENT_NAMES[alert.scopeId.split(':').pop() as MxDepartmentCode],
   }
 }
 

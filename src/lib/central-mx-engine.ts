@@ -34,6 +34,8 @@ export type CentralMxDepartmentModule = {
   score: number
   band: ScoreBand
   status: string
+  /** false quando nenhum indicador do departamento tem dado real no período (score fica 0 só por convenção de cálculo) */
+  hasData: boolean
   indicators: CentralMxIndicatorValue[]
   dashboardCards: Array<{ label: string; value: number | null; unit: CentralMxIndicatorUnit; status: string }>
   checklist: string[]
@@ -186,13 +188,13 @@ export const CENTRAL_MX_PLANNING_INDICATORS: CentralMxIndicatorDefinition[] = [
   { code: 'process_quality_score', label: 'Qualidade dos Processos', department: 'operacional', unit: 'score', dimension: 'processo', sortOrder: 570, targetDirection: 'higher' },
 ]
 
-const DEPARTMENT_NAMES: Record<MxDepartmentCode, string> = {
+export const DEPARTMENT_NAMES: Record<MxDepartmentCode, string> = {
   comercial: 'Comercial',
   marketing: 'Marketing',
-  produto: 'Produto',
+  produto: 'Produto e Estoque',
   financeiro: 'Financeiro',
-  rh: 'RH',
-  operacional: 'Operacional',
+  rh: 'Pessoas — RH',
+  operacional: 'Operações',
 }
 
 const DEPARTMENT_CHECKLIST: Record<MxDepartmentCode, string[]> = {
@@ -241,7 +243,7 @@ function scoreFromActual(definition: CentralMxIndicatorDefinition, value: number
   return clampScore(ratio * 100)
 }
 
-function statusLabel(score: number) {
+export function statusLabel(score: number) {
   const band = classifyMxScore(score)
   if (band === 'elite') return 'Elite'
   if (band === 'excellent') return 'Excelente'
@@ -448,12 +450,14 @@ export function buildCentralMxEngine(input: CentralMxEngineInput): CentralMxEngi
     const indicators = planningIndicators.filter(item => item.department === code)
     const score = buildScore('department', `${input.storeId}:${code}`, input.period, indicators)
     const criticalCount = indicators.filter(item => item.score != null && item.score < 60).length
+    const hasData = indicators.some(item => item.score != null)
     return {
       code,
       name: DEPARTMENT_NAMES[code],
       score: score.value,
       band: score.band,
-      status: statusLabel(score.value),
+      status: hasData ? statusLabel(score.value) : 'Sem dado',
+      hasData,
       indicators,
       dashboardCards: indicators.slice(0, 4).map(item => ({
         label: item.label,
