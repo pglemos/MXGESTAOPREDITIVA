@@ -10,6 +10,20 @@ import { supabase } from '@/lib/supabase'
 import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from '@/lib/auth/passwordPolicy'
 import { resolvePostLoginRedirect } from '@/lib/auth/postLoginRedirect'
 import { PasswordRecoveryRequestError, requestPasswordRecovery } from '@/lib/auth/passwordRecovery'
+import { AUTH_SIGNOUT_REASON_STORAGE_KEY } from '@/hooks/auth/authHelpers'
+
+const RECOVERY_EXPIRED_MESSAGE = 'Link de redefinição inválido ou expirado. Solicite um novo acesso.'
+const RECOVERY_INACTIVE_MESSAGE = 'Sua conta está desativada. Fale com o administrador da sua loja para reativar o acesso.'
+
+function consumeInactiveSignoutReason(): boolean {
+    if (typeof window === 'undefined') return false
+    const reason = window.sessionStorage.getItem(AUTH_SIGNOUT_REASON_STORAGE_KEY)
+    if (reason === 'inactive') {
+        window.sessionStorage.removeItem(AUTH_SIGNOUT_REASON_STORAGE_KEY)
+        return true
+    }
+    return false
+}
 
 type LoginMode = 'login' | 'forgot' | 'recovery'
 
@@ -97,7 +111,7 @@ export default function Login() {
                     refresh_token: recoverySession.refreshToken,
                 })
                 if (sessionError && mounted) {
-                    setError('Link de redefinição inválido ou expirado. Solicite um novo acesso.')
+                    setError(RECOVERY_EXPIRED_MESSAGE)
                     return
                 }
                 clearRecoveryTokensFromUrl()
@@ -108,7 +122,7 @@ export default function Login() {
             if (recoveryCode) {
                 const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(recoveryCode)
                 if (exchangeError && mounted) {
-                    setError('Link de redefinição inválido ou expirado. Solicite um novo acesso.')
+                    setError(RECOVERY_EXPIRED_MESSAGE)
                     return
                 }
                 clearRecoveryTokensFromUrl()
@@ -117,7 +131,7 @@ export default function Login() {
 
             const { data } = await supabase.auth.getSession()
             if (mounted && !data.session) {
-                setError('Link de redefinição inválido ou expirado. Solicite um novo acesso.')
+                setError(consumeInactiveSignoutReason() ? RECOVERY_INACTIVE_MESSAGE : RECOVERY_EXPIRED_MESSAGE)
             }
         }
 
@@ -239,7 +253,7 @@ export default function Login() {
         const { data: sessionData } = await supabase.auth.getSession()
         if (!sessionData.session?.user.id) {
             setLoading(false)
-            setError('Link de redefinição inválido ou expirado. Solicite um novo acesso.')
+            setError(consumeInactiveSignoutReason() ? RECOVERY_INACTIVE_MESSAGE : RECOVERY_EXPIRED_MESSAGE)
             return
         }
 

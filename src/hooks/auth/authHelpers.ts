@@ -11,6 +11,7 @@ export const DEV_BYPASS_STORAGE_KEY = 'mx_auth_profile'
 export const ROLE_SIMULATION_STORAGE_KEY = 'mx_role_simulation'
 export const SIMULATION_CONTEXT_STORAGE_KEY = 'mx_simulation_context'
 export const DEV_BYPASS_ALLOWED_HOSTS = new Set(['localhost', '127.0.0.1', '::1'])
+export const AUTH_SIGNOUT_REASON_STORAGE_KEY = 'mx_auth_signout_reason'
 
 export const PROFILE_SELECT =
   'id, name, email, role, avatar_url, is_venda_loja, active, created_at, phone, must_change_password, notification_preferences'
