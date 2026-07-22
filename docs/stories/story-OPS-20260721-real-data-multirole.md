@@ -107,6 +107,10 @@ quality_gate_tools: ["bun", "playwright", "supabase", "coderabbit", "browser"]
   - [x] Testar empty states e ausência de fallback inventado por módulo.
   - [x] Rodar smokes autenticados de todas as rotas por perfil, com inspeção de rede/console e limpeza de dados temporários.
   - [x] Executar lint, typecheck, suíte global, build, CodeRabbit e checklist DoD.
+- [x] 7. Corrigir regressões da reunião da Carteira (AC: 4, 6, 12)
+  - [x] Persistir troca, financiamento, proposta e transições de funil no contrato canônico, com contexto real vendedor/loja na simulação.
+  - [x] Alinhar próximo passo, mensagem de WhatsApp, retorno transacional e encerramento de venda ao estado persistido.
+  - [x] Versionar campanhas/feirão/desconto/bônus na troca com RPC, RLS, idempotência e rollback; validar a migration local e remotamente.
 
 ## Dev Notes
 
@@ -168,7 +172,7 @@ OpenAI Codex (GPT-5)
 - Supabase remoto: migration `20260722024951` presente local/remoto; limpeza final confirmou 0 usuários `e2e-real-*` em `public.usuarios`, 0 em `auth.users` e 0 clientes de consultoria E2E.
 - Gates finais: lint 0 erros/7 warnings preexistentes; typecheck OK; 1340 testes passaram/0 falharam; build Vite OK; `git diff --check` OK.
 - Auditoria da reunião de 2026-07-22: `npm test` passou com 1358 testes/0 falhas; `npm run build` passou; `scripts/check_migration_reversibility.mjs --changed-only` passou; migration de troca/campanhas revisada com rollback e RLS versionados.
-- Migration `20260722180000` aplicada no Supabase vinculado; o dry-run posterior confirmou `Remote database is up to date`. CI, deploy `READY` e smoke autenticado de produção permanecem gates do `@devops`.
+- Status remoto por migration no projeto Supabase `mxperformance`: a saída de `supabase migration list` em 2026-07-22 mostrou `Local = Remote` para `20260721141658`, `20260721142820`, `20260722024951` e `20260722180000`; o comando também conectou ao banco remoto e terminou sem divergência. CI, deploy `READY` e smoke autenticado de produção permanecem gates do `@devops`.
 
 ### Completion Notes List
 
