@@ -31,4 +31,15 @@ describe('Dono — contratos dos fluxos corrigidos', () => {
     const widgets = read('src/features/dashboard-loja/sections/owner-cockpit/OwnerHomeWidgets.tsx')
     expect(widgets).toContain('initialDimension={{ width: 320, height: 250 }}')
   })
+
+  test('previsão compara ritmo diário com necessidade diária', () => {
+    const home = read('src/features/dashboard-loja/sections/owner-cockpit/OwnerHome.tsx')
+    expect(home).toContain('const salesRunRate = data.metrics.totalSales / elapsedDays')
+    expect(home).toContain('salesRunRate >= dailyNeed')
+  })
+
+  test('DRE não reaproveita registro fora do período selecionado', () => {
+    const dashboard = read('src/features/dashboard-loja/hooks/useDashboardLojaData.ts')
+    expect(dashboard).toContain('inRange.length > 0 ? computeDREFn(inRange[0]) : null')
+  })
 })

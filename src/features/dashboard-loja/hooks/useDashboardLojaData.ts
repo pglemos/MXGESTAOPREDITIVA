@@ -361,7 +361,7 @@ export function useDashboardLojaData({
   const latestDRE = useMemo(() => {
     if (!financials || financials.length === 0) return null
     const inRange = financials.filter((financial) => financial.reference_date >= queryStartDate && financial.reference_date <= queryEndDate)
-    return computeDREFn((inRange[0] || financials[0]))
+    return inRange.length > 0 ? computeDREFn(inRange[0]) : null
   }, [financials, computeDREFn, queryEndDate, queryStartDate])
 
   const metrics = useMemo(() => {

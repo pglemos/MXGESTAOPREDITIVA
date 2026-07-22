@@ -43,8 +43,9 @@ export function OwnerHome({
   const elapsedDays = Math.max(1, Math.floor((selectedEnd.getTime() - periodStart.getTime()) / 86400000) + 1)
   const periodDays = Math.max(elapsedDays, Math.floor((horizonEnd.getTime() - periodStart.getTime()) / 86400000) + 1)
   const salesForecast = data.metrics.totalSales > 0 ? (data.metrics.totalSales / elapsedDays) * periodDays : 0
+  const salesRunRate = data.metrics.totalSales / elapsedDays
   const dailyNeed = data.metrics.goalValue > 0 ? data.metrics.goalValue / periodDays : 0
-  const forecastIsHealthy = dailyNeed <= 0 || salesForecast >= dailyNeed
+  const forecastIsHealthy = dailyNeed <= 0 || salesRunRate >= dailyNeed
   const forecastLabel = salesForecast.toLocaleString('pt-BR', {
     minimumFractionDigits: Number.isInteger(salesForecast) ? 0 : 1,
     maximumFractionDigits: 1,
