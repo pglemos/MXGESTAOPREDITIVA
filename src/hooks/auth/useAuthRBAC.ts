@@ -17,6 +17,7 @@ import {
   PROFILE_SELECT,
   pickSimulationStore,
   readSimulationRole,
+  writeSimulationContext,
   type SimulationRole,
 } from './authHelpers'
 import type { StoreMembership, SimulationMembershipRow } from './authTypes'
@@ -67,6 +68,7 @@ export function useAuthRBAC(options: UseAuthRBACOptions): UseAuthRBACResult {
       window.sessionStorage.removeItem(ROLE_SIMULATION_STORAGE_KEY)
     }
     setSimulationRole(null)
+    writeSimulationContext(null)
     setSimulationProfile(null)
     setSimulationMemberships([])
     setSimulationLoading(false)
@@ -77,6 +79,7 @@ export function useAuthRBAC(options: UseAuthRBACOptions): UseAuthRBACResult {
       if (!canSimulate) return
       if (typeof window !== 'undefined') {
         window.sessionStorage.setItem(ROLE_SIMULATION_STORAGE_KEY, role)
+        writeSimulationContext(null)
       }
       setSimulationRole(role)
       setSimulationLoading(true)
@@ -144,6 +147,7 @@ export function useAuthRBAC(options: UseAuthRBACOptions): UseAuthRBACResult {
 
         setSimulationProfile(user)
         setSimulationMemberships([membership])
+        writeSimulationContext({ role, sellerUserId: user.id, storeId: store.id })
         setActiveStoreId(store.id)
       } catch (err) {
         console.error('Audit Error [useAuth]: simulation identity fail ->', err)

@@ -137,18 +137,30 @@ export default function CarteiraClientes() {
     if (proximoPasso) update.proximo_passo = proximoPasso;
     if (statusComercial) update.status_comercial = statusComercial;
 
-    await base44.entities.CarteiraCliente.update(retornoWaCliente.id, update).catch(() => {});
-    await base44.entities.CarteiraHistorico.create({
-      cliente_id: retornoWaCliente.id,
-      vendedor_id: retornoWaCliente.vendedor_id,
+    if (novaSituacao === "Venda realizada" || novaSituacao === "Venda perdida" || novaSituacao === "Cadência encerrada") {
+      update.ativo = false;
+      update.proximo_passo = null;
+      update.proxima_acao = null;
+      update.proxima_acao_data = null;
+    }
+    update.historico = {
       tipo: "Resultado registrado",
       descricao: `Resultado via retorno WhatsApp: ${resultadoLabel}.`,
       resultado: resultadoLabel,
       momento_anterior: retornoWaCliente.situacao_atual,
       momento_novo: novaSituacao || retornoWaCliente.situacao_atual,
-    }).catch(() => {});
+    };
 
-    const atualizado = { ...retornoWaCliente, ...update };
+    let persistido;
+    try {
+      persistido = await base44.entities.CarteiraCliente.update(retornoWaCliente.id, update);
+    } catch {
+      setRetornoWaOpen(false);
+      setRetornoWaCliente(null);
+      return;
+    }
+
+    const atualizado = persistido || { ...retornoWaCliente, ...update };
     const novosClientes = clientes.map(c => c.id === atualizado.id ? atualizado : c);
     setClientes(novosClientes);
     setRetornoWaOpen(false);

@@ -1,4 +1,4 @@
-// Catálogo único de 45 indicadores do Plano Estratégico — modelo em validação.
+// Catálogo legado do Plano Estratégico, mantido fora do runtime ativo.
 // Fonte única de verdade para metas, metadados e classificação de indicadores.
 
 const C = (v) => Array(12).fill(v);

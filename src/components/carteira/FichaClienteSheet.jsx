@@ -151,6 +151,8 @@ function FormularioEdicao({ form, setForm, onSalvar, onCancelar, salvando }) {
         {campo("email", "E-mail", true)}
         {campo("veiculo_interesse", "Veículo de interesse", true)}
         {campo("valor_negociado", "Orçamento")}
+        {campo("veiculo_troca", "Veículo na troca")}
+        {campo("valor_troca", "Valor da troca")}
       </div>
 
       <div>
@@ -163,6 +165,15 @@ function FormularioEdicao({ form, setForm, onSalvar, onCancelar, salvando }) {
         <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Temperatura</label>
         <select value={form.temperatura || "Morno"} onChange={e => setForm(p => ({ ...p, temperatura: e.target.value }))} className="w-full h-9 rounded-xl border border-input bg-white px-3 text-sm">
           {TEMPERATURAS.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
+      </div>
+      <div>
+        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1 block">Financiamento</label>
+        <select value={form.financiamento || "Não se aplica"} onChange={e => setForm(p => ({ ...p, financiamento: e.target.value, interesse_financiamento: e.target.value !== "Não se aplica" }))} className="w-full h-9 rounded-xl border border-input bg-white px-3 text-sm">
+          <option>Não se aplica</option>
+          <option>Em análise</option>
+          <option>Aprovado</option>
+          <option>Reprovado</option>
         </select>
       </div>
       <div>

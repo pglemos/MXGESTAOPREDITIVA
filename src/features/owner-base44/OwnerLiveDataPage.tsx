@@ -43,6 +43,7 @@ export default function OwnerLiveDataPage() {
   const data = useDashboardLojaData({
     selectedStoreId: selectedStore?.id ?? null,
     selectedStoreName: selectedStore?.name ?? 'Unidade não selecionada',
+    loadOwnerConsultingProgram: true,
     period,
     periodRange,
   })

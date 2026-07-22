@@ -167,6 +167,8 @@ OpenAI Codex (GPT-5)
 - Smoke autenticado multi-role: `npx playwright test src/test/mx-consultoria-role-smoke.playwright.ts --project=chromium` — 1 passed (2.3m), cobrindo listas distintas dos seis perfis, chamada Supabase por rota, Loja MX real, detalhes de consultoria e isolamento do Consultor MX.
 - Supabase remoto: migration `20260722024951` presente local/remoto; limpeza final confirmou 0 usuários `e2e-real-*` em `public.usuarios`, 0 em `auth.users` e 0 clientes de consultoria E2E.
 - Gates finais: lint 0 erros/7 warnings preexistentes; typecheck OK; 1340 testes passaram/0 falharam; build Vite OK; `git diff --check` OK.
+- Auditoria da reunião de 2026-07-22: `npm test` passou com 1358 testes/0 falhas; `npm run build` passou; `scripts/check_migration_reversibility.mjs --changed-only` passou; migration de troca/campanhas revisada com rollback e RLS versionados.
+- Migration `20260722180000` aplicada no Supabase vinculado; o dry-run posterior confirmou `Remote database is up to date`. CI, deploy `READY` e smoke autenticado de produção permanecem gates do `@devops`.
 
 ### Completion Notes List
 
@@ -178,6 +180,10 @@ OpenAI Codex (GPT-5)
 - Identidades ausentes são exibidas como `Nome não informado`, sem inventar vendedor, dono ou diretor; Mercado e Universidade MX não carregam mais badge de construção.
 - A migration remota serializa a rotina e restringe o contato com consultor ao escopo de loja solicitado, sem autorização genérica por papel.
 - O histórico local de migrations inclui as duas versões da simulação de Carteira já aplicadas no projeto remoto, eliminando divergência no Supabase Preview.
+- A reunião também foi coberta no fluxo de Carteira: contexto real de vendedor/loja na simulação; Polo e valor de troca persistidos; alias `Confirmar visita amanhã` normalizado; `Converter financiamento aprovado` adicionado; `Venda realizada` fecha a oportunidade e avança para `ganho`; retorno WhatsApp usa mutação transacional com histórico.
+- Plano de Ataque agora permite cadastrar campanha, feirão, desconto e bônus na troca com RPC/RLS/rollback versionados e iniciar missão para clientes ativos elegíveis.
+- O resumo do programa de consultoria é carregado somente no cockpit do Dono; gerente e demais consumidores do dashboard não chamam a RPC exclusiva nem geram 403 em navegação autenticada.
+- A simulação interna da Carteira mantém vendedor e loja reais no contexto de sessão e envia esse escopo à RPC canônica; cadastro, troca, financiamento, proposta e transições de próximo passo permanecem persistidos sem fallback local.
 - O smoke cria identidades temporárias identificáveis, valida rede/console/rotas e sempre limpa por ID com `try/finally` e `Promise.allSettled`.
 - Regressões adicionais cobrem concorrência de `useSellersByStore`, loading do nível de carreira, percentuais do Dono e isolamento dos mocks Supabase entre arquivos.
 - Checklist DoD: 22/22 itens aplicáveis PASS, 6 N/A (sem dependências, variáveis/configurações novas, threshold formal de cobertura ou documentação de uso adicional), 0 FAIL. Story pronta para review; nenhum débito novo identificado.
@@ -188,16 +194,29 @@ OpenAI Codex (GPT-5)
 - `docs/quality/real-data-multirole-matrix.md`
 - `src/api/base44Client.js`
 - `src/components/carteira/ExecucaoMissao.jsx`
+- `src/components/carteira/AlterarProximoPasso.jsx`
 - `src/components/carteira/FichaClienteSheet.jsx`
+- `src/components/carteira/NovoClienteModal.jsx`
 - `src/components/carteira/PlanoAtaqueTab.jsx`
 - `src/components/carteira/carteiraUtils.jsx`
 - `src/components/carteira/scriptTemplatesLocal.js`
 - `src/components/owner/OwnerContext.jsx`
 - `src/components/owner/OwnerTopbar.jsx`
+- `src/components/owner/actionplan/actionPlanFixtures.js`
+- `src/components/owner/home/OwnerActionsBlock.jsx`
+- `src/components/owner/home/SalesGoalBlock.jsx`
+- `src/components/owner/home/SecondaryAlerts.jsx`
+- `src/components/owner/strategic/strategicIndicatorCatalog.js`
 - `src/components/ui/dialog.jsx`
 - `src/components/ui/sheet.jsx`
 - `src/features/carteira-clientes/components/carteira-rendered-parity.test.tsx`
 - `src/features/carteira-clientes/components/carteira-source-parity.test.ts`
+- `src/features/carteira-clientes/lib/carteira-adapter-contract.test.ts`
+- `src/features/carteira-clientes/lib/carteira-mappers.test.ts`
+- `src/features/carteira-clientes/lib/carteira-mappers.ts`
+- `src/features/carteira-clientes/lib/carteira-meeting-regressions.test.ts`
+- `src/features/carteira-clientes/lib/installCarteiraBase44Adapter.js`
+- `src/features/carteira-clientes/lib/proximoPassoMx.js`
 - `src/features/checkin/Checkin.container.test.ts`
 - `src/features/checkin/Checkin.container.tsx`
 - `src/features/checkin/hooks/useCheckinPage.ts`
@@ -211,6 +230,9 @@ OpenAI Codex (GPT-5)
 - `src/features/consultoria/components/ConsultingModulesPanel.tsx`
 - `src/features/crm/CarteiraClientes.container.tsx`
 - `src/features/crm/PlanoAtaqueTab.tsx`
+- `src/features/dashboard-loja/hooks/useDashboardLojaData.ts`
+- `src/features/dashboard-loja/hooks/useOwnerConsultingProgram.test.ts`
+- `src/features/dashboard-loja/hooks/useOwnerConsultingProgram.ts`
 - `src/features/dashboard-loja/sections/OwnerExecutiveCockpit.tsx`
 - `src/features/dashboard-loja/sections/owner-cockpit/AgendaView.tsx`
 - `src/features/dashboard-loja/sections/owner-cockpit/OwnerHomeWidgets.test.tsx`
@@ -236,6 +258,8 @@ OpenAI Codex (GPT-5)
 - `src/features/vendedor-home/hooks/useVendedorHomePage.ts`
 - `src/features/vendedor-perfil/hooks/useMeuPerfilVendedor.ts`
 - `src/hooks/useAgendaOptions.ts`
+- `src/hooks/auth/authHelpers.ts`
+- `src/hooks/auth/useAuthRBAC.ts`
 - `src/hooks/useConsultingModules.ts`
 - `src/hooks/usePDI_MX.ts`
 - `src/hooks/usePerformance.ts`
@@ -260,6 +284,8 @@ OpenAI Codex (GPT-5)
 - `supabase/migrations/20260722024951_serialize_routine_and_scope_consultant_contact.sql`
 - `supabase/migrations/20260721141658_carteira_simulacao_vendedor.sql`
 - `supabase/migrations/20260721142820_carteira_simulacao_inline_cleanup.sql`
+- `supabase/migrations/20260722180000_carteira_trade_details_and_campaigns.sql`
+- `supabase/rollbacks/20260722180000_carteira_trade_details_and_campaigns.sql`
 
 ## QA Results
 

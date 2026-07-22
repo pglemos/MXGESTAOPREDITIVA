@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import moment from "moment";
-import { TODOS_PASSOS, detectarCodigo } from "./proximoPassoLib";
+import { TODOS_PASSOS, detectarCodigo } from "@/features/carteira-clientes/lib/proximoPassoMx";
 import { toast } from "@/components/ui/use-toast";
 
 // Monta mapa de objetivo a partir da biblioteca

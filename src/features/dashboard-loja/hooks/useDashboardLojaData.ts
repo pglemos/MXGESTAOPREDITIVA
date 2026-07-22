@@ -25,6 +25,7 @@ type UseDashboardLojaDataInput = {
   selectedStoreId: string | null
   selectedStoreName: string
   managerCalendarMode?: boolean
+  loadOwnerConsultingProgram?: boolean
   period?: 'month' | 'quarter' | 'year' | 'custom'
   periodRange?: { start: string; end: string }
 }
@@ -63,6 +64,7 @@ export function useDashboardLojaData({
   selectedStoreId,
   selectedStoreName,
   managerCalendarMode = false,
+  loadOwnerConsultingProgram = false,
   period,
   periodRange,
 }: UseDashboardLojaDataInput) {
@@ -70,7 +72,7 @@ export function useDashboardLojaData({
   const { goal: storeGoal, refetch: refetchStoreGoal } = useStoreGoal(selectedStoreId)
   const operationalSettings = useOperationalSettings(selectedStoreId)
   const inventory = useOwnerInventoryMetrics(selectedStoreId)
-  const consulting = useOwnerConsultingProgram(selectedStoreId)
+  const consulting = useOwnerConsultingProgram(selectedStoreId, loadOwnerConsultingProgram)
   const {
     store: operationalStore,
     deliveryRules,

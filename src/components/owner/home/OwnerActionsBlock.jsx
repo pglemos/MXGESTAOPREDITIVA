@@ -60,7 +60,7 @@ export default function OwnerActionsBlock() {
         })}
       </div>
       <button
-        onClick={() => toast({ title: "Agenda", description: "Agenda completa do Dono — modelo em validação." })}
+        onClick={() => toast({ title: "Agenda", description: "Consulte a agenda real na Visão Geral do Dono." })}
         className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted"
       >
         <CalendarDays className="h-3.5 w-3.5" />

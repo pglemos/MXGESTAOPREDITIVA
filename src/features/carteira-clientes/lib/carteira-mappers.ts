@@ -8,6 +8,8 @@ type OpportunityRow = {
   sinal?: number | string | null
   financiamento?: string | null
   carro_avaliado?: boolean | null
+  veiculo_troca?: string | null
+  valor_troca?: number | string | null
   motivo_perda?: string | null
   canal?: string | null
   closed_at?: string | null
@@ -180,9 +182,12 @@ export function mapMxClientToCarteiraVisual(client: ClientRow, now = new Date())
     valor_negociado: Number(opportunity?.valor_negociado || client.potencial_negocio || 0),
     sinal: Number(opportunity?.sinal || 0),
     financiamento: financingLabel(opportunity?.financiamento),
-    interesse_financiamento: opportunity?.financiamento && opportunity.financiamento !== 'nao_aplica',
+    interesse_financiamento: Boolean(opportunity?.financiamento && opportunity.financiamento !== 'nao_aplica'),
     interesse_troca: Boolean(opportunity?.carro_avaliado),
     carro_avaliado: opportunity?.carro_avaliado ? 'Sim' : 'Não',
+    veiculo_troca: opportunity?.veiculo_troca || '',
+    valor_troca: Number(opportunity?.valor_troca || 0),
+    proposta_enviada: opportunity?.etapa === 'apresentacao',
     motivo_perda: opportunity?.motivo_perda || '',
     visita_agendada_em: appointment?.data_hora || null,
     proxima_acao: client.proxima_acao || appointment?.proxima_acao || '',

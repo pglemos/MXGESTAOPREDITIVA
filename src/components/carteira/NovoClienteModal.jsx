@@ -34,23 +34,46 @@ const TEMP_AUTO = {
   "Oportunidade futura de troca": "Morno",
 };
 
+function formatarWhatsapp(value) {
+  const digits = String(value || "").replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
+function situacaoDoMomento(momento) {
+  if (momento === "Em negociação") return "Em negociação ativa";
+  if (momento === "Perda registrada") return "Venda perdida";
+  if (momento === "Oportunidade futura de troca") return "Oportunidade futura";
+  return momento;
+}
+
 export default function NovoClienteModal({ open, onClose, onCriado, vendedorId }) {
   const [form, setForm] = useState({
     nome: "", whatsapp: "", canal_comercial: "Internet", canal_origem: "Internet",
-    veiculo_interesse: "", momento: "Novo contato", situacao_atual: "Lead sem resposta",
-    visita_agendada_em: "", proposta_enviada: false,
-    interesse_troca: false, interesse_financiamento: false, observacoes: "",
+    veiculo_interesse: "", valor_negociado: "", momento: "Novo contato", situacao_atual: "Novo contato",
+    visita_agendada_em: "", proposta_enviada: false, financiamento: "nao_aplica",
+    interesse_troca: false, veiculo_troca: "", valor_troca: "", interesse_financiamento: false, observacoes: "",
   });
   const [saving, setSaving] = useState(false);
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
   async function handleSalvar() {
-    if (!form.nome || !form.whatsapp) return;
+    const phoneDigits = String(form.whatsapp || "").replace(/\D/g, "");
+    if (!form.nome || phoneDigits.length < 10) {
+      toast({ title: "Informe um WhatsApp válido.", description: "Use DDD e número com 10 ou 11 dígitos.", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     const temperatura = TEMP_AUTO[form.momento] || "Morno";
     const payload = {
       ...form,
+      whatsapp: phoneDigits,
+      telefone: phoneDigits,
+      situacao_atual: situacaoDoMomento(form.momento),
+      financiamento: form.financiamento || (form.interesse_financiamento ? "pendente" : "nao_aplica"),
       canal_comercial: form.canal_comercial || "Internet",
       canal_origem: form.canal_comercial || form.canal_origem || "Internet",
       temperatura,
@@ -81,7 +104,7 @@ export default function NovoClienteModal({ open, onClose, onCriado, vendedorId }
 
     onCriado(criado);
     onClose();
-    setForm({ nome: "", whatsapp: "", canal_comercial: "Internet", canal_origem: "Internet", veiculo_interesse: "", momento: "Novo contato", situacao_atual: "Lead sem resposta", visita_agendada_em: "", proposta_enviada: false, interesse_troca: false, interesse_financiamento: false, observacoes: "" });
+    setForm({ nome: "", whatsapp: "", canal_comercial: "Internet", canal_origem: "Internet", veiculo_interesse: "", valor_negociado: "", momento: "Novo contato", situacao_atual: "Novo contato", visita_agendada_em: "", proposta_enviada: false, financiamento: "nao_aplica", interesse_troca: false, veiculo_troca: "", valor_troca: "", interesse_financiamento: false, observacoes: "" });
   }
 
   return (
@@ -100,7 +123,7 @@ export default function NovoClienteModal({ open, onClose, onCriado, vendedorId }
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">WhatsApp *</label>
-              <Input value={form.whatsapp} onChange={e => set("whatsapp", e.target.value)} placeholder="(11) 99999-9999" className="rounded-xl" />
+              <Input value={form.whatsapp} onChange={e => set("whatsapp", formatarWhatsapp(e.target.value))} placeholder="(11) 99999-9999" className="rounded-xl" />
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Canal</label>
@@ -112,13 +135,19 @@ export default function NovoClienteModal({ open, onClose, onCriado, vendedorId }
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Veículo de Interesse</label>
               <Input value={form.veiculo_interesse} onChange={e => set("veiculo_interesse", e.target.value)} placeholder="Ex: Corolla XEI 2023" className="rounded-xl" />
             </div>
+            {["Proposta enviada", "Em negociação", "Venda realizada"].includes(form.momento) && (
+              <div className="col-span-2">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Orçamento</label>
+                <Input type="number" min="0" value={form.valor_negociado} onChange={e => set("valor_negociado", e.target.value)} placeholder="Ex: 60000" className="rounded-xl" />
+              </div>
+            )}
           </div>
 
           <div>
             <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 block">Em que momento esse cliente está?</label>
             <div className="grid grid-cols-1 gap-1.5">
               {MOMENTOS_CADASTRO.map(m => (
-                <button key={m.value} onClick={() => set("momento", m.value)}
+                <button key={m.value} onClick={() => setForm(p => ({ ...p, momento: m.value, situacao_atual: situacaoDoMomento(m.value), proposta_enviada: m.value === "Proposta enviada" || p.proposta_enviada }))}
                   className={`text-left px-3 py-2.5 rounded-xl border text-sm transition-all ${form.momento === m.value ? "border-[#005BFF] bg-blue-50 text-[#005BFF] font-semibold" : "border-slate-100 text-slate-600 hover:border-slate-200 hover:bg-slate-50"}`}>
                   {m.label}
                 </button>
@@ -141,6 +170,32 @@ export default function NovoClienteModal({ open, onClose, onCriado, vendedorId }
               </label>
             ))}
           </div>
+
+          {(form.interesse_financiamento || form.interesse_troca) && (
+            <div className="grid grid-cols-2 gap-3">
+              {form.interesse_financiamento && (
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Financiamento</label>
+                  <select value={form.financiamento} onChange={e => setForm(p => ({ ...p, financiamento: e.target.value, interesse_financiamento: e.target.value !== "nao_aplica" }))} className="w-full h-9 rounded-xl border border-input bg-transparent px-3 text-sm">
+                    <option value="nao_aplica">Não se aplica</option>
+                    <option value="pendente">Em análise</option>
+                    <option value="aprovado">Aprovado</option>
+                    <option value="reprovado">Recusado</option>
+                  </select>
+                </div>
+              )}
+              {form.interesse_troca && <>
+              <div>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Veículo na troca</label>
+                <Input value={form.veiculo_troca} onChange={e => set("veiculo_troca", e.target.value)} placeholder="Ex: Polo 2018" className="rounded-xl" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Valor da troca</label>
+                <Input type="number" min="0" value={form.valor_troca} onChange={e => set("valor_troca", e.target.value)} placeholder="Ex: 30000" className="rounded-xl" />
+              </div>
+              </>}
+            </div>
+          )}
 
           <div>
             <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Observação inicial</label>

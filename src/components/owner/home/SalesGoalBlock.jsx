@@ -51,7 +51,7 @@ export default function SalesGoalBlock() {
         </div>
         <button
           onClick={() =>
-            toast({ title: "Diagnóstico comercial", description: "Abertura do diagnóstico comercial — modelo em validação." })
+            toast({ title: "Diagnóstico comercial", description: "Consulte o diagnóstico comercial com dados reais na Visão Geral do Dono." })
           }
           className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted"
         >

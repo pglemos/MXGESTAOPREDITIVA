@@ -9,6 +9,7 @@ import { normalizeRole } from '@/lib/auth/roles'
 
 export const DEV_BYPASS_STORAGE_KEY = 'mx_auth_profile'
 export const ROLE_SIMULATION_STORAGE_KEY = 'mx_role_simulation'
+export const SIMULATION_CONTEXT_STORAGE_KEY = 'mx_simulation_context'
 export const DEV_BYPASS_ALLOWED_HOSTS = new Set(['localhost', '127.0.0.1', '::1'])
 
 export const PROFILE_SELECT =
@@ -20,6 +21,12 @@ export const AUTH_NETWORK_ERROR_MESSAGE =
   'Não foi possível conectar ao servidor de autenticação. Verifique sua conexão ou tente novamente em alguns minutos.'
 
 export type SimulationRole = Extract<UserRole, 'dono' | 'gerente' | 'vendedor'>
+
+export type SimulationContext = {
+  role: SimulationRole
+  sellerUserId: string
+  storeId: string
+}
 
 /**
  * Detects transient network errors that should be reported as connectivity
@@ -92,6 +99,37 @@ export function readSimulationRole(): SimulationRole | null {
   if (typeof window === 'undefined') return null
   const stored = window.sessionStorage.getItem(ROLE_SIMULATION_STORAGE_KEY)
   return stored === 'dono' || stored === 'gerente' || stored === 'vendedor' ? stored : null
+}
+
+export function readSimulationContext(): SimulationContext | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.sessionStorage.getItem(SIMULATION_CONTEXT_STORAGE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as Partial<SimulationContext>
+    if (
+      (parsed.role !== 'vendedor' && parsed.role !== 'gerente' && parsed.role !== 'dono')
+      || !parsed.sellerUserId
+      || !parsed.storeId
+    ) return null
+    return {
+      role: parsed.role,
+      sellerUserId: parsed.sellerUserId,
+      storeId: parsed.storeId,
+    }
+  } catch {
+    window.sessionStorage.removeItem(SIMULATION_CONTEXT_STORAGE_KEY)
+    return null
+  }
+}
+
+export function writeSimulationContext(context: SimulationContext | null): void {
+  if (typeof window === 'undefined') return
+  if (!context) {
+    window.sessionStorage.removeItem(SIMULATION_CONTEXT_STORAGE_KEY)
+    return
+  }
+  window.sessionStorage.setItem(SIMULATION_CONTEXT_STORAGE_KEY, JSON.stringify(context))
 }
 
 /**

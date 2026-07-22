@@ -6,6 +6,7 @@ import {
   situationToStage,
 } from './carteira-mappers'
 import { carteiraMutationCoordinator } from './carteira-mutation-coordinator'
+import { readSimulationContext } from '@/hooks/auth/authHelpers'
 
 const INSTALLED_KEY = '__mxCarteiraBase44AdapterInstalled'
 const missionCache = new Map()
@@ -89,13 +90,14 @@ function put(target, key, value) {
   if (value !== undefined) target[key] = value
 }
 
-function buildRpcPayload(data, clientId) {
+export function buildRpcPayload(data, clientId) {
   const payload = {}
   const history = data.historico || null
   const nextAction = data.proximo_passo ?? data.proxima_acao
   const nextActionDate = data.proxima_acao_data ?? data.proxima_acao_em
   const channel = data.canal_comercial ?? data.canal_entrada ?? data.canal_origem
   const clientStatus = mapClientStatus(data)
+  const terminal = data.ativo === false || data.status_comercial === 'Vendido' || data.status_comercial === 'Perdido'
 
   put(payload, 'cliente_id', clientId ?? data.cliente_id)
   put(payload, 'oportunidade_id', data.oportunidade_id)
@@ -107,8 +109,10 @@ function buildRpcPayload(data, clientId) {
     payload.canal = canalToDb(channel)
   }
   put(payload, 'cliente_status', clientStatus)
-  put(payload, 'proxima_acao', nextAction)
-  if (nextActionDate !== undefined && nextActionDate !== null && nextActionDate !== '') {
+  put(payload, 'proxima_acao', terminal ? null : nextAction)
+  if (terminal) {
+    payload.proxima_acao_em = null
+  } else if (nextActionDate !== undefined && nextActionDate !== null && nextActionDate !== '') {
     payload.proxima_acao_em = String(nextActionDate).slice(0, 10)
   }
   put(payload, 'potencial_negocio', data.valor_negociado ?? data.potencial_negocio)
@@ -125,8 +129,21 @@ function buildRpcPayload(data, clientId) {
   }
   put(payload, 'sinal', data.sinal)
   if (data.financiamento !== undefined) payload.financiamento = financingToDb(data.financiamento)
-  if (data.carro_avaliado !== undefined) payload.carro_avaliado = data.carro_avaliado === true || data.carro_avaliado === 'Sim'
+  else if (data.interesse_financiamento !== undefined) payload.financiamento = data.interesse_financiamento ? 'pendente' : 'nao_aplica'
+  if (data.carro_avaliado !== undefined || data.interesse_troca !== undefined) {
+    payload.carro_avaliado = data.carro_avaliado === true || data.carro_avaliado === 'Sim' || data.interesse_troca === true
+  }
+  put(payload, 'veiculo_troca', data.veiculo_troca)
+  put(payload, 'valor_troca', data.valor_troca)
   put(payload, 'motivo_perda', data.motivo_perda)
+
+  if (data.proposta_enviada === true && !terminal) payload.etapa = 'apresentacao'
+
+  const simulation = readSimulationContext()
+  if (simulation) {
+    payload.acting_seller_user_id = simulation.sellerUserId
+    payload.acting_store_id = simulation.storeId
+  }
 
   if (data.visita_agendada_em) {
     payload.agendamento_data_hora = data.visita_agendada_em
@@ -143,6 +160,12 @@ function buildRpcPayload(data, clientId) {
     status_comercial: data.status_comercial ?? null,
     temperatura: data.temperatura ?? null,
     proximo_passo: nextAction ?? null,
+    proposta_enviada: data.proposta_enviada ?? null,
+    financiamento: data.financiamento ?? null,
+    interesse_financiamento: data.interesse_financiamento ?? null,
+    interesse_troca: data.interesse_troca ?? null,
+    veiculo_troca: data.veiculo_troca ?? null,
+    valor_troca: data.valor_troca ?? null,
     ...(history ? {
       tipo: history.tipo || null,
       descricao: history.descricao || null,
@@ -157,7 +180,8 @@ function buildRpcPayload(data, clientId) {
 }
 
 async function listVisualClients(query, order, limit) {
-  const userId = await getCurrentUserId()
+  const simulation = readSimulationContext()
+  const userId = simulation?.sellerUserId || await getCurrentUserId()
   if (!userId) return []
 
   const { data, error } = await supabase
@@ -287,6 +311,8 @@ async function createHistory(data) {
 }
 
 async function getSellerStoreContext() {
+  const simulation = readSimulationContext()
+  if (simulation) return { userId: simulation.sellerUserId, storeId: simulation.storeId }
   const userId = await getCurrentUserId()
   if (!userId) return null
 
@@ -358,6 +384,32 @@ async function createArrivedVehicle(data) {
   })
 }
 
+async function listCampaigns() {
+  const simulation = readSimulationContext()
+  const { data, error } = await supabase.rpc('carteira_listar_campanhas', {
+    p_acting_seller_user_id: simulation?.sellerUserId ?? null,
+    p_acting_store_id: simulation?.storeId ?? null,
+  })
+  if (error) throw error
+  return data || []
+}
+
+async function createCampaign(data) {
+  return carteiraMutationCoordinator.run('carteira:campaign:create', data, async key => {
+    const simulation = readSimulationContext()
+    const { data: result, error } = await supabase.rpc('carteira_salvar_campanha', {
+      p_payload: data,
+      p_idempotency_key: key,
+      p_acting_seller_user_id: simulation?.sellerUserId ?? null,
+      p_acting_store_id: simulation?.storeId ?? null,
+    })
+    if (error) throw error
+    if (!result?.ok) throw new Error(result?.error || 'Não foi possível salvar a campanha.')
+    const campaigns = await listCampaigns()
+    return campaigns.find(campaign => campaign.id === result.campanha_id) || result
+  })
+}
+
 async function loadMission(id) {
   await yieldSupabaseClient()
   const { data: mission, error } = await supabase
@@ -386,7 +438,8 @@ export function installCarteiraBase44Adapter(base44) {
 
   base44.entities.CarteiraHistorico = {
     filter: async (query, order, limit) => {
-      const userId = await getCurrentUserId()
+      const simulation = readSimulationContext()
+      const userId = simulation?.sellerUserId || await getCurrentUserId()
       if (!userId) return []
 
       let request = supabase
@@ -404,7 +457,8 @@ export function installCarteiraBase44Adapter(base44) {
 
   base44.entities.CarteiraMissao = {
     filter: async (query, order, limit) => {
-      const userId = await getCurrentUserId()
+      const simulation = readSimulationContext()
+      const userId = simulation?.sellerUserId || await getCurrentUserId()
       if (!userId) return []
       const { data, error } = await supabase
         .from('carteira_missoes')
@@ -450,6 +504,12 @@ export function installCarteiraBase44Adapter(base44) {
     filter: listArrivedVehicles,
     list: (order, limit) => listArrivedVehicles(null, order, limit),
     create: createArrivedVehicle,
+  }
+
+  base44.entities.CarteiraCampanha = {
+    filter: listCampaigns,
+    list: listCampaigns,
+    create: createCampaign,
   }
 
   base44[INSTALLED_KEY] = true

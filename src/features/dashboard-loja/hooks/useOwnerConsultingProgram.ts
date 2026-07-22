@@ -29,14 +29,19 @@ type RpcRow = {
   next_visit_meet_link: string | null
 }
 
-export function useOwnerConsultingProgram(storeId: string | null | undefined) {
+export function useOwnerConsultingProgram(
+  storeId: string | null | undefined,
+  enabled: boolean,
+) {
   const [program, setProgram] = useState<OwnerConsultingProgramSummary | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const fetchProgram = useCallback(async () => {
-    if (!storeId) {
+    if (!enabled || !storeId) {
       setProgram(null)
+      setLoading(false)
+      setError(null)
       return
     }
     setLoading(true)
@@ -69,7 +74,7 @@ export function useOwnerConsultingProgram(storeId: string | null | undefined) {
     } finally {
       setLoading(false)
     }
-  }, [storeId])
+  }, [enabled, storeId])
 
   useEffect(() => {
     fetchProgram()

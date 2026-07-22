@@ -59,8 +59,44 @@ const GANCHO_POR_PASSO = {
 
 const GANCHO_PADRAO = "vi seu interesse";
 
+// Cada passo precisa manter a intenção da ação que o Mentor recomendou. As
+// variações genéricas antigas podiam transformar uma confirmação de visita em
+// uma pergunta sobre o veículo, por exemplo. Estas variações preservam o tom,
+// mas nunca trocam o objetivo comercial do passo.
+const VARIACOES_ESPECIFICAS = {
+  "Confirmar visita hoje": [
+    ({ nome, veiculoTxt }) => `Oi, ${nome}! Tudo bem?\n\nCombinamos de você passar hoje para ver ${veiculoTxt}. Posso confirmar sua visita?`,
+    ({ nome, veiculoTxt }) => `${nome}, confirmei aqui seu horário de hoje para ver ${veiculoTxt}. Está tudo certo para você vir?`,
+  ],
+  "Confirmar visita amanhã": [
+    ({ nome, veiculoTxt }) => `Oi, ${nome}! Passando para confirmar sua visita amanhã para ver ${veiculoTxt}. Posso manter o horário combinado?`,
+    ({ nome, veiculoTxt }) => `${nome}, está tudo preparado para sua visita amanhã e para apresentar ${veiculoTxt}. Confirmamos?`,
+  ],
+  "Confirmar agendamento": [
+    ({ nome, veiculoTxt }) => `Oi, ${nome}! Sua visita para ver ${veiculoTxt} está confirmada. Posso manter o horário combinado?`,
+    ({ nome, veiculoTxt }) => `${nome}, deixei ${veiculoTxt} separado para o seu atendimento. Está tudo certo para o horário agendado?`,
+  ],
+  "Converter financiamento aprovado": [
+    ({ nome, veiculoTxt }) => `Oi, ${nome}! Seu financiamento foi aprovado para ${veiculoTxt}. Qual ponto falta definir para avançarmos com a compra?`,
+    ({ nome, veiculoTxt }) => `${nome}, o financiamento foi aprovado. Quer revisar comigo entrada, parcela e os próximos passos para ${veiculoTxt}?`,
+  ],
+  "Enviar proposta": [
+    ({ nome, veiculoTxt }) => `Oi, ${nome}! Preparei a proposta para ${veiculoTxt} com base no que você me contou. Posso te enviar para revisar?`,
+    ({ nome, veiculoTxt }) => `${nome}, a proposta para ${veiculoTxt} está pronta. Quer que eu te mostre as condições agora?`,
+  ],
+  "Retomar proposta": [
+    ({ nome, veiculoTxt }) => `Oi, ${nome}! Queria saber se ficou alguma dúvida sobre a proposta para ${veiculoTxt}. O que posso ajustar para você?`,
+    ({ nome, veiculoTxt }) => `${nome}, posso revisar com você a proposta para ${veiculoTxt} e ver o que falta para decidir?`,
+  ],
+};
+
 function primeiroNome(nome) {
   return (nome || "").trim().split(/\s+/)[0] || "";
+}
+
+function dataDaVisita(cliente) {
+  const visita = cliente?.visita_agendada_em || cliente?.proxima_acao_data;
+  return visita ? new Date(visita).toLocaleDateString("pt-BR") : "o horário combinado";
 }
 
 function veiculoLongo(veiculo) {
@@ -150,9 +186,16 @@ export function gerarScriptLocal({ cliente, proximoPasso, tom, textoAnterior }) 
   const vars = {
     nome: primeiroNome(cliente?.nome) || "tudo bem",
     veiculoTxt: veiculoLongo(cliente?.veiculo_interesse),
+    data: dataDaVisita(cliente),
     gancho,
     ganchoCap: capitalizar(gancho),
   };
+
+  const especificas = VARIACOES_ESPECIFICAS[proximoPasso];
+  if (especificas) {
+    const candidatosEspecificos = especificas.map(fn => fn(vars)).filter(texto => texto !== textoAnterior);
+    return candidatosEspecificos[Math.floor(Math.random() * candidatosEspecificos.length)] || especificas[0](vars);
+  }
 
   let candidatos = variacoes.map(fn => fn(vars));
   if (candidatos.length > 1 && textoAnterior) {

@@ -83,4 +83,5 @@ describe('carteira normalized mappers', () => {
     expect(situationToStage({ situacao_atual: 'Financiamento em análise pelo banco' })).toBe('negociacao')
     expect(situationToStage({ situacao_atual: 'Algo totalmente novo e desconhecido' })).toBe('prospeccao')
   })
+
 })

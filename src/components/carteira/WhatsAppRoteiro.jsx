@@ -9,7 +9,7 @@ import {
 } from "./carteiraUtils";
 import {
   getResultados, aplicarTransicao, detectarCodigo, PASSOS,
-} from "./proximoPassoLib";
+} from "@/features/carteira-clientes/lib/proximoPassoMx";
 import ScriptIA from "./ScriptIA";
 import { toast } from "@/components/ui/use-toast";
 

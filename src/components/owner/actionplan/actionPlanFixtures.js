@@ -1,4 +1,4 @@
-// 24 ações fictícias do Plano de Ação — modelo em validação.
+// Ações legadas do Plano de Ação, mantidas fora do runtime ativo.
 // Data de referência: 17/07/2026.
 
 export const actionPlanFixtures = [
