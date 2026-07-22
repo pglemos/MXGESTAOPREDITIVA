@@ -1,0 +1,29 @@
+import { describe, expect, test } from 'bun:test'
+import { resolveOwnerPeriodRange } from './owner-period'
+
+describe('Dono — intervalos do seletor de período', () => {
+  const now = new Date(2026, 6, 22, 12, 0, 0)
+
+  test('mês começa no primeiro dia local e termina na data de referência', () => {
+    expect(resolveOwnerPeriodRange('month', now)).toEqual({ start: '2026-07-01', end: '2026-07-22' })
+  })
+
+  test('trimestre e ano usam o início correto sem deslocamento UTC', () => {
+    expect(resolveOwnerPeriodRange('quarter', now)).toEqual({ start: '2026-07-01', end: '2026-07-22' })
+    expect(resolveOwnerPeriodRange('year', now)).toEqual({ start: '2026-01-01', end: '2026-07-22' })
+  })
+
+  test('período personalizado preserva exatamente as datas informadas', () => {
+    expect(resolveOwnerPeriodRange('custom', now, '2026-07-05', '2026-07-10')).toEqual({
+      start: '2026-07-05',
+      end: '2026-07-10',
+    })
+  })
+
+  test('intervalo personalizado inválido recua para mês seguro', () => {
+    expect(resolveOwnerPeriodRange('custom', now, '2026-07-10', '2026-07-05')).toEqual({
+      start: '2026-07-01',
+      end: '2026-07-22',
+    })
+  })
+})

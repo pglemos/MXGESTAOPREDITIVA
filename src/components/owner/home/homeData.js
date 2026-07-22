@@ -1,5 +1,4 @@
-// Dados fictícios estáticos para validação visual da tela Início do Dono.
-// Não representam regras de produção — são valores fixos para a experiência demonstrativa.
+// Snapshot legado preservado apenas para referência visual fora do bundle ativo.
 
 export const STATUS_STYLES = {
   good: {

@@ -280,3 +280,10 @@ PASS consultivo. Os achados da auditoria complementar foram corrigidos sem ampli
 
 - Não foi executada nova rodada do CodeRabbit por instrução expressa do usuário; foram preservadas as duas rodadas já registradas no Dev Agent Record.
 - Nenhum commit, push ou deploy foi executado nesta etapa.
+
+### Complemento de QA — 2026-07-22
+
+- Fluxo do período validado em navegador autenticado: mês, trimestre, ano e personalizado (05/07/2026–10/07/2026) alteraram KPIs e consultas Supabase para os intervalos correspondentes; sem erros de console.
+- Atualizar dados disparou refetch real e exibiu `Performance sincronizada!`; notificações abriram estado informativo; filtros e busca de Alertas produziram subconjuntos e estado vazio; Benchmarking alterou o recorte e disparou novas chamadas `get_benchmark`.
+- Todas as rotas da sidebar e aliases Dono foram percorridos em 1440×900; `/dono` e `/dono/resultados` também foram validados em 390×844 sem overflow. O gráfico de Resultados deixou de emitir warning de dimensões iniciais do Recharts.
+- Gates repetidos após a última correção: typecheck OK, lint 0 erros/7 warnings preexistentes, build OK, `npm test` isolado com 1341 pass/0 fail e `git diff --check` OK.

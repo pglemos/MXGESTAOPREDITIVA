@@ -60,7 +60,7 @@ export function OwnerHome({
           value={`${forecastLabel} ${salesForecast === 1 ? 'venda' : 'vendas'}`}
           detail={`${formatInteger(confirmedAppointments)} agendamentos no período · necessidade ${dailyNeedLabel}`}
           trend={{
-            label: forecastIsHealthy ? 'Acima da necessidade do dia' : 'Abaixo da necessidade do dia',
+            label: forecastIsHealthy ? 'Acima da necessidade diária' : 'Abaixo da necessidade diária',
             tone: forecastIsHealthy ? 'success' : 'warning',
           }}
           icon={<CalendarCheck2 size={20} />}

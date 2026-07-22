@@ -1,7 +1,6 @@
 // Cabeçalho compacto do Plano de Ação.
 import { Plus, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import DemoBadge from "./DemoBadge";
 import { CYCLE_INFO } from "./actionPlanConstants";
 
 export default function ActionPlanHeader({ onNewAction, onExport }) {
@@ -13,7 +12,6 @@ export default function ActionPlanHeader({ onNewAction, onExport }) {
             <h1 className="text-xl font-semibold tracking-tight text-foreground lg:text-2xl">
               Plano de Ação
             </h1>
-            <DemoBadge />
           </div>
           <p className="text-sm text-muted-foreground">
             Transforme as prioridades estratégicas em execução.

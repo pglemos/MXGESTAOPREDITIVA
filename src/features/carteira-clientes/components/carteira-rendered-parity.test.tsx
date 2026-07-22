@@ -1,6 +1,6 @@
 import React from 'react'
 import { afterEach, describe, expect, mock, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 
 const cliente = {
   id: 'cliente-parity',
@@ -88,7 +88,9 @@ async function capture(component: React.ReactElement, readyText?: string, localS
     if (readyText) await screen.findAllByText(readyText)
     await Promise.resolve()
     await Promise.resolve()
-    if (localScriptAdapter) normalizeLocalScriptAdapter(document.body)
+    if (localScriptAdapter) {
+      await waitFor(() => normalizeLocalScriptAdapter(document.body))
+    }
     return normalizeDom(document.body.innerHTML)
   } finally {
     cleanup()

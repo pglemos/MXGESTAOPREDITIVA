@@ -7,6 +7,21 @@ import type { OwnerPerformanceAlert } from '../PerformanceAlerts'
 import { toneClasses, type KpiTone } from './types'
 import { SectionTitle, SideList, SummaryCard } from './primitives'
 
+export function filterOwnerAlerts(
+  alerts: OwnerPerformanceAlert[],
+  statusFilter = 'todos',
+  departmentFilter = 'todos',
+  search = '',
+) {
+  const normalizedSearch = search.trim().toLocaleLowerCase('pt-BR')
+  return alerts.filter(alert => {
+    const statusOk = statusFilter === 'todos' || alert.variant === statusFilter
+    const departmentOk = departmentFilter === 'todos' || alert.department === departmentFilter
+    const searchOk = !normalizedSearch || `${alert.title} ${alert.description} ${alert.recommendation}`.toLocaleLowerCase('pt-BR').includes(normalizedSearch)
+    return statusOk && departmentOk && searchOk
+  })
+}
+
 export function AlertsView({ alerts }: { alerts: OwnerPerformanceAlert[] }) {
   const [statusFilter, setStatusFilter] = useState('todos')
   const [departmentFilter, setDepartmentFilter] = useState('todos')
@@ -15,12 +30,7 @@ export function AlertsView({ alerts }: { alerts: OwnerPerformanceAlert[] }) {
   const warning = alerts.filter(alert => alert.variant === 'warning').length
   const positive = alerts.filter(alert => alert.variant === 'success').length
   const departments = useMemo(() => [...new Set(alerts.map(alert => alert.department).filter(Boolean))] as string[], [alerts])
-  const filteredAlerts = alerts.filter(alert => {
-    const statusOk = statusFilter === 'todos' || alert.variant === statusFilter
-    const departmentOk = departmentFilter === 'todos' || alert.department === departmentFilter
-    const searchOk = !search.trim() || `${alert.title} ${alert.description} ${alert.recommendation}`.toLocaleLowerCase('pt-BR').includes(search.trim().toLocaleLowerCase('pt-BR'))
-    return statusOk && departmentOk && searchOk
-  })
+  const filteredAlerts = filterOwnerAlerts(alerts, statusFilter, departmentFilter, search)
   return (
     <div className="space-y-mx-md">
       <SectionTitle title="Alertas Inteligentes" subtitle="Monitore riscos, desvios e oportunidades em tempo real." />

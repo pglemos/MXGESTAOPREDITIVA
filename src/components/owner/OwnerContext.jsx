@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
 import { useAuth } from "@/lib/owner-b44/AuthContext";
 import { useStores } from "@/hooks/useStores";
+import { resolveOwnerPeriodRange } from "@/lib/owner-period";
 
 const OwnerContext = createContext(null);
 
@@ -58,19 +59,7 @@ export const OwnerProvider = ({ children }) => {
   }, []);
 
   const periodRange = useMemo(() => {
-    const today = new Date();
-    const toDate = (date) => date.toISOString().slice(0, 10);
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    if (period === "quarter") {
-      return { start: toDate(new Date(today.getFullYear(), today.getMonth() - (today.getMonth() % 3), 1)), end: toDate(today) };
-    }
-    if (period === "year") {
-      return { start: toDate(new Date(today.getFullYear(), 0, 1)), end: toDate(today) };
-    }
-    if (period === "custom" && customStart && customEnd && customStart <= customEnd) {
-      return { start: customStart, end: customEnd };
-    }
-    return { start: toDate(startOfMonth), end: toDate(today) };
+    return resolveOwnerPeriodRange(period, new Date(), customStart, customEnd);
   }, [customEnd, customStart, period]);
 
   const value = {

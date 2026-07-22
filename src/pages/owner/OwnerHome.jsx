@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { useOwner } from "@/components/owner/OwnerContext";
-import DemoBadge from "@/components/owner/home/DemoBadge";
 import HomeHeader from "@/components/owner/home/HomeHeader";
 import MainIndicators from "@/components/owner/home/MainIndicators";
 import PriorityIntervention from "@/components/owner/home/PriorityIntervention";
@@ -24,7 +23,6 @@ export default function OwnerHome() {
 
   return (
     <div className="space-y-6 pb-20 lg:pb-0">
-      <DemoBadge />
       <HomeHeader />
       <MainIndicators />
 

@@ -25,7 +25,7 @@ export function OwnerCockpitHeader({
       <h1 className="text-2xl font-black leading-tight text-text-primary sm:text-3xl md:text-[2rem]">
         {greeting()}, <span className="text-brand-primary">{name.split(' ')[0]}</span>! 👋
       </h1>
-      <p className="mt-mx-tiny text-sm font-medium text-text-secondary">Aqui está o panorama da sua loja hoje.</p>
+      <p className="mt-mx-tiny text-sm font-medium text-text-secondary">Aqui está o panorama da sua loja no período selecionado.</p>
       <div className="mt-mx-md inline-flex h-mx-11 items-center gap-mx-xs rounded-mx-full border border-border-subtle bg-white px-mx-md shadow-mx-sm">
         <CalendarDays size={16} className="text-text-tertiary" />
         <Typography variant="tiny" className="font-black">{periodLabel}</Typography>
