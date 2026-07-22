@@ -120,6 +120,11 @@ const OWNER_PATH_SECTIONS: Array<[RegExp, OwnerResolvedSection]> = [
   [/^\/dono\/consultoria\/?$/, 'consultoria'],
   [/^\/dono\/departamentos(?:\/.*)?$/, 'departamentos'],
   [/^\/dono\/mercado\/?$/, 'mercado'],
+  [/^\/dono\/benchmarking\/?$/, 'benchmarking'],
+  [/^\/dono\/alertas\/?$/, 'alertas'],
+  [/^\/dono\/agenda\/?$/, 'agenda'],
+  [/^\/dono\/resultados\/?$/, 'resultados'],
+  [/^\/dono\/visitas\/?$/, 'visitas'],
   [/^\/dono\/universidade\/?$/, 'universidade'],
 ]
 

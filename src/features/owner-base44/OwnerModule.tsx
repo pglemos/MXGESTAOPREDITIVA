@@ -32,6 +32,10 @@ export default function OwnerModule() {
             <Route path="departamentos/financeiro" element={<OwnerLiveDataPage />} />
             <Route path="departamentos/operacoes" element={<OwnerLiveDataPage />} />
             <Route path="mercado" element={<OwnerLiveDataPage />} />
+            <Route path="benchmarking" element={<OwnerLiveDataPage />} />
+            <Route path="alertas" element={<OwnerLiveDataPage />} />
+            <Route path="agenda" element={<OwnerLiveDataPage />} />
+            <Route path="resultados" element={<OwnerLiveDataPage />} />
             <Route path="universidade" element={<OwnerLiveDataPage />} />
             <Route path="*" element={<Navigate to="/dono" replace />} />
           </Route>

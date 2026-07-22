@@ -23,6 +23,7 @@ import {
 
 type Props = {
   storeId: string | null | undefined
+  period?: string
 }
 
 const PEER_OPTIONS: { value: CentralMxBenchmarkPeerGroup; label: string }[] = [
@@ -40,7 +41,7 @@ const SUGGESTED_METRICS = [
   'training_completion_rate',
 ]
 
-export function CentralMxBenchmarkInteractive({ storeId }: Props) {
+export function CentralMxBenchmarkInteractive({ storeId, period }: Props) {
   const [metricCode, setMetricCode] = useState<string>('gross_margin_pct')
   const [peerGroup, setPeerGroup] = useState<CentralMxBenchmarkPeerGroup>('mercado')
   const benchmark = useCentralMxBenchmark()
@@ -135,6 +136,7 @@ export function CentralMxBenchmarkInteractive({ storeId }: Props) {
                 storeId,
                 metricCode,
                 peerGroup,
+                period,
               })
             }
           >

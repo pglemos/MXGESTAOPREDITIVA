@@ -89,13 +89,15 @@ function normalizePhone(phone: string | null) {
 }
 
 export default function FalarConsultorDono() {
-  const { membership, profile } = useAuth()
+  const { membership, profile, vinculos_loja } = useAuth()
   const [searchParams] = useSearchParams()
   const search = searchParams.toString()
   const context = useMemo(() => parseOwnerConsultantContext(search ? `?${search}` : ''), [search])
   const contextSummary = useMemo(() => ownerConsultantContextSummary(context), [context])
-  const storeId = membership?.store?.id || null
-  const storeName = membership?.store?.name || 'Loja atual'
+  const requestedStoreId = searchParams.get('storeId')
+  const requestedMembership = vinculos_loja.find(item => item.store_id === requestedStoreId)
+  const storeId = requestedMembership?.store_id || membership?.store?.id || null
+  const storeName = requestedMembership?.store?.name || membership?.store?.name || 'Loja atual'
 
   const [contact, setContact] = useState<ConsultantContact | null>(null)
   const [requests, setRequests] = useState<ConsultantRequest[]>([])

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
   BookOpen,
@@ -11,11 +11,11 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import type { useDashboardLojaData } from '../hooks/useDashboardLojaData'
+import { useCentralMxPlanosAcao } from '../hooks/useCentralMxPlanosAcao'
 import type { OwnerPerformanceAlert } from './PerformanceAlerts'
 import {
   CentralMxPersistedAgendaPanel,
   CentralMxPersistedAlertsPanel,
-  CentralMxPersistedPlanosPanel,
 } from './CentralMxPersistedPanels'
 import { CentralMxBenchmarkInteractive } from './CentralMxBenchmarkInteractive'
 import { CentralMxPlanoSegmentadoPanel } from './CentralMxPlanoSegmentadoPanel'
@@ -30,7 +30,6 @@ import { OwnerCockpitHeader } from './owner-cockpit/primitives'
 import { OwnerHome } from './owner-cockpit/OwnerHome'
 import { StrategicPlanningView } from './owner-cockpit/StrategicPlanningView'
 import { ResultsView } from './owner-cockpit/ResultsView'
-import { ActionPlanView } from './owner-cockpit/ActionPlanView'
 import { AlertsView } from './owner-cockpit/AlertsView'
 import { BenchmarkingView } from './owner-cockpit/BenchmarkingView'
 import { AgendaView } from './owner-cockpit/AgendaView'
@@ -43,7 +42,6 @@ import {
 } from './owner-cockpit/OwnerBase44Views'
 import {
   alertFromEngine,
-  actionFromEngine,
   buildCentralMx,
   buildPanoramaData,
   currentPeriodLabel,
@@ -67,11 +65,10 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
   const { profile } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
-  const [planCreateRequest, setPlanCreateRequest] = useState(0)
-  const periodLabel = currentPeriodLabel(data.referenceDate)
+  const periodLabel = data.periodLabel || currentPeriodLabel(data.referenceDate)
   const panoramaData = useMemo(() => buildPanoramaData(data), [data])
   const marginPercent = data.latestDRE && data.latestDRE.gross_margin > 0
-    ? (data.latestDRE.net_sales_margin / data.latestDRE.gross_margin) * 100
+    ? (data.latestDRE.gross_profit / data.latestDRE.gross_margin) * 100
     : null
   const centralMx = useMemo(() => buildCentralMx(data, marginPercent), [data, marginPercent])
   const departments = useMemo(() => centralMx.departments.map(departmentFromEngine), [centralMx.departments])
@@ -81,7 +78,24 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
       (alert, index, list) => list.findIndex(candidate => alertIdentity(candidate) === alertIdentity(alert)) === index,
     )
   }, [alerts, centralMx.alerts])
-  const actions = useMemo(() => centralMx.actionPlanItems.map(actionFromEngine), [centralMx.actionPlanItems])
+  const persistedPlans = useCentralMxPlanosAcao(data.operationalStore?.id || null)
+  const actions = useMemo(() => persistedPlans.planos.map((plano) => ({
+    id: plano.id,
+    priority: plano.prioridade === 'critica' ? 'Crítica' as const : plano.prioridade === 'alta' ? 'Atenção' as const : 'Positiva' as const,
+    department: plano.departamento,
+    indicator: plano.indicador,
+    problem: plano.problema,
+    recommendation: plano.como || 'Executar a ação registrada e acompanhar a evidência.',
+    action: plano.acao,
+    how: plano.como || '',
+    owner: plano.responsavel_id || 'Responsável da unidade',
+    origin: plano.origem,
+    due: plano.prazo ? new Date(`${plano.prazo}T12:00:00`).toLocaleDateString('pt-BR') : 'Sem prazo',
+    status: plano.status === 'concluido' ? 'Concluída' : plano.status === 'em_andamento' ? 'Em andamento' : plano.status === 'atrasado' ? 'Atrasada' : plano.status === 'validando_eficacia' ? 'Validando eficácia' : 'Pendente',
+    efficacy: plano.eficacia_score == null ? 'Pendente' : `${plano.eficacia_score}%`,
+    evidence: plano.eficacia_nota || 'Sem evidência registrada',
+    tone: plano.status === 'atrasado' || plano.prioridade === 'critica' ? 'danger' as const : plano.prioridade === 'alta' ? 'warning' as const : 'info' as const,
+  })), [persistedPlans.planos])
   const mxScore = centralMx.scores.store.value
   const section = getOwnerSection(location.pathname, location.search)
   const selectedDepartmentCode = getOwnerDepartmentCode(location.pathname, location.search)
@@ -119,7 +133,7 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
           departments={departments}
           mxScore={mxScore}
           marginPercent={marginPercent}
-          onOpenConsultant={() => navigate('/falar-consultor')}
+          onOpenConsultant={() => navigate(`/falar-consultor?storeId=${encodeURIComponent(data.operationalStore?.id || '')}`)}
         />
       )}
 
@@ -133,7 +147,7 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
 
       {section === 'decisoes' && (
         <>
-          <OwnerDecisionCenter alerts={ownerAlerts} actions={actions} />
+          <OwnerDecisionCenter alerts={ownerAlerts} actions={actions} storeId={data.operationalStore?.id || null} />
           <CentralMxPersistedAlertsPanel storeId={data.operationalStore?.id || null} />
         </>
       )}
@@ -147,16 +161,9 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
 
       {section === 'plano-acao' && (
         <>
-          <ActionPlanView
-            actions={actions}
-            onNewAction={() => setPlanCreateRequest((current) => current + 1)}
-            disableNewAction={!data.operationalStore?.id}
-          />
           <CentralMxPlanoSegmentadoPanel
             storeId={data.operationalStore?.id || null}
-            createRequest={planCreateRequest}
           />
-          <CentralMxPersistedPlanosPanel storeId={data.operationalStore?.id || null} />
         </>
       )}
 
@@ -183,6 +190,7 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
             storeId={data.operationalStore?.id || null}
             code={(selectedDepartmentCode ?? 'comercial') as DepartamentoCode}
             periodLabel={periodLabel}
+            period={data.periodEndDate}
           />
           {selectedDepartmentCode === 'marketing' && (
             <MarketingModulo storeId={data.operationalStore?.id || null} />
@@ -196,7 +204,7 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
       {(section === 'mercado' || section === 'benchmarking') && (
         <>
           <BenchmarkingView data={data} mxScore={mxScore} marginPercent={marginPercent} />
-          <CentralMxBenchmarkInteractive storeId={data.operationalStore?.id || null} />
+          <CentralMxBenchmarkInteractive storeId={data.operationalStore?.id || null} period={data.periodEndDate} />
         </>
       )}
 

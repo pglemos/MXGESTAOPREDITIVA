@@ -9,7 +9,6 @@ import {
   Clock3,
   MessageSquareText,
   ShieldAlert,
-  Target,
   UserRoundCheck,
 } from 'lucide-react'
 import { Button } from '@/components/atoms/Button'
@@ -20,6 +19,7 @@ import type { OwnerPerformanceAlert } from '../PerformanceAlerts'
 import { ownerPath } from './format'
 import { SectionTitle } from './primitives'
 import { toneClasses, type ActionRow, type DashboardData } from './types'
+import { ConsultingProgramCard } from './ConsultingProgramCard'
 
 type ExecutiveItem = {
   id: string
@@ -209,9 +209,11 @@ function RoutineMetric({
 export function OwnerDecisionCenter({
   alerts,
   actions,
+  storeId,
 }: {
   alerts: OwnerPerformanceAlert[]
   actions: ActionRow[]
+  storeId?: string | null
 }) {
   const navigate = useNavigate()
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -274,7 +276,7 @@ export function OwnerDecisionCenter({
                     type="button"
                     variant="ghost"
                     className="rounded-mx-xl"
-                    onClick={() => navigate(`/falar-consultor?origem=central-decisoes&titulo=${encodeURIComponent(item.title)}`)}
+                    onClick={() => navigate(`/falar-consultor?storeId=${encodeURIComponent(storeId || '')}&origem=central-decisoes&titulo=${encodeURIComponent(item.title)}`)}
                   >
                     <MessageSquareText size={16} /> Falar com Consultor
                   </Button>
@@ -305,9 +307,8 @@ function DecisionMetric({ label, value, icon, tone }: { label: string; value: nu
 
 export function OwnerConsultingView({ data }: { data: DashboardData }) {
   const navigate = useNavigate()
-  const goal = data.metrics.goalValue
-  const achieved = data.metrics.totalSales
-  const attainment = goal > 0 ? Math.round((achieved / goal) * 100) : 0
+  const program = data.consultingProgram
+  const contextQuery = `storeId=${encodeURIComponent(data.operationalStore?.id || '')}&origem=consultoria`
 
   return (
     <div className="space-y-mx-md">
@@ -316,58 +317,17 @@ export function OwnerConsultingView({ data }: { data: DashboardData }) {
         subtitle="Jornada executiva, preparação dos encontros e decisões que precisam ser levadas ao Consultor MX."
       />
 
-      <Card className="overflow-hidden rounded-mx-2xl border border-border-subtle bg-white shadow-mx-sm">
-        <div className="border-b border-border-subtle bg-surface-alt p-mx-lg">
-          <div className="flex flex-col gap-mx-md md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-mx-tiny font-black uppercase tracking-mx-widest text-brand-primary">Ciclo estratégico atual</p>
-              <Typography variant="h2" className="mt-mx-xs text-2xl font-black">Organização e rentabilidade</Typography>
-              <Typography variant="p" tone="muted" className="mt-mx-xs font-bold">Foco em rentabilidade, capital parado e autonomia da gestão.</Typography>
-            </div>
-            <div className="min-w-[220px] rounded-mx-xl border border-border-subtle bg-white p-mx-md">
-              <div className="flex items-center justify-between text-sm font-black">
-                <span>Meta comercial</span>
-                <span className={attainment >= 100 ? 'text-status-success' : attainment >= 90 ? 'text-status-warning' : 'text-status-error'}>{attainment}%</span>
-              </div>
-              <div className="mt-mx-sm h-2 overflow-hidden rounded-mx-full bg-surface-alt">
-                <div className="h-full rounded-mx-full bg-brand-primary" style={{ width: `${Math.min(attainment, 100)}%` }} />
-              </div>
-              <p className="mt-mx-xs text-xs font-bold text-text-tertiary">{achieved} de {goal || 0} vendas no período.</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-mx-md p-mx-lg lg:grid-cols-3">
-          <ConsultingStep
-            icon={<Target size={20} />}
-            title="Preparação"
-            detail="Revisar indicadores, despesas extraordinárias e itens críticos do estoque."
-            status="Em andamento"
-          />
-          <ConsultingStep
-            icon={<MessageSquareText size={20} />}
-            title="Encontro"
-            detail="Levar decisões com contexto, impacto e recomendação, não apenas uma lista de problemas."
-            status="Próximo passo"
-          />
-          <ConsultingStep
-            icon={<ClipboardCheck size={20} />}
-            title="Execução"
-            detail="Converter decisões aprovadas em plano de ação, responsável, prazo e evidência."
-            status="Acompanhar"
-          />
-        </div>
-      </Card>
+      <ConsultingProgramCard program={program} loading={data.consultingLoading} error={data.consultingError} />
 
       <div className="grid grid-cols-1 gap-mx-md xl:grid-cols-[minmax(0,1fr)_340px]">
         <Card className="rounded-mx-2xl border border-border-subtle bg-white p-mx-lg shadow-mx-sm">
           <Typography variant="h3" className="text-xl font-black">Pauta executiva recomendada</Typography>
           <div className="mt-mx-md space-y-mx-sm">
             {[
-              'Projeção de vendas e distância para a meta.',
-              'Indicadores estratégicos incompletos ou fora do esperado.',
-              'Ações atrasadas, bloqueadas ou aguardando decisão do Dono.',
-              'Riscos de caixa, margem e estoque envelhecido.',
+              program?.nextVisitObjective || 'Definir pauta do próximo encontro a partir dos dados da unidade.',
+              `${data.metrics.totalSales} vendas registradas no período selecionado.`,
+              `${data.inventory?.agingOver90 ?? 0} veículos com aging acima de 90 dias.`,
+              `${data.pendingDisciplineSellers.length} vendedores sem registro no recorte selecionado.`,
             ].map((item, index) => (
               <div key={item} className="flex items-start gap-mx-sm rounded-mx-xl bg-surface-alt p-mx-md">
                 <span className="flex h-mx-7 w-mx-7 shrink-0 items-center justify-center rounded-mx-lg bg-brand-primary text-xs font-black text-white">{index + 1}</span>
@@ -383,26 +343,11 @@ export function OwnerConsultingView({ data }: { data: DashboardData }) {
           <Typography variant="p" tone="muted" className="mt-mx-xs text-sm font-bold leading-relaxed">
             Abra o atendimento com o contexto da loja e use os indicadores desta tela como base da solicitação.
           </Typography>
-          <Button type="button" className="mt-mx-md w-full rounded-mx-xl" onClick={() => navigate('/falar-consultor?origem=consultoria')}>
+          <Button type="button" className="mt-mx-md w-full rounded-mx-xl" onClick={() => navigate(`/falar-consultor?${contextQuery}`)}>
             Falar com Consultor <ArrowRight size={16} />
           </Button>
         </Card>
       </div>
-    </div>
-  )
-}
-
-function ConsultingStep({ icon, title, detail, status }: { icon: ReactNode; title: string; detail: string; status: string }) {
-  return (
-    <div className="rounded-mx-xl border border-border-subtle p-mx-md">
-      <div className="flex items-center gap-mx-sm">
-        <span className="flex h-mx-9 w-mx-9 items-center justify-center rounded-mx-lg bg-mx-indigo-50 text-brand-primary">{icon}</span>
-        <div>
-          <p className="font-black text-text-primary">{title}</p>
-          <p className="text-xs font-black uppercase tracking-mx-wide text-brand-primary">{status}</p>
-        </div>
-      </div>
-      <p className="mt-mx-sm text-sm font-bold leading-relaxed text-text-tertiary">{detail}</p>
     </div>
   )
 }

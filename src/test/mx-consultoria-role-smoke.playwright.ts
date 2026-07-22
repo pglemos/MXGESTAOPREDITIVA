@@ -28,6 +28,22 @@ async function login(page: Page, user: E2EUser) {
   await page.fill('input[type="password"]', user.password)
   await page.click('button[type="submit"]')
   await expect(page.locator('main#main-content').first()).toBeVisible({ timeout: 30_000 })
+  await expect.poll(async () => page.evaluate(() => {
+    for (const [key, value] of Object.entries(window.localStorage)) {
+      if (!key.startsWith('sb-') || !key.endsWith('-auth-token')) continue
+      try {
+        const session = JSON.parse(value) as { user?: { id?: string } }
+        if (session.user?.id) return session.user.id
+      } catch {
+        // Ignore unrelated or incomplete storage entries during auth hydration.
+      }
+    }
+    return null
+  }), { message: `login autenticou identidade diferente de ${user.email}`, timeout: 15_000 }).toBe(user.id)
+}
+
+async function navigateWithinApp(page: Page, route: string) {
+  await page.goto(route, { waitUntil: 'domcontentloaded', timeout: 30_000 })
 }
 
 async function auditAuthenticatedRole(browser: Browser, roleCase: RoleCase) {
@@ -40,24 +56,37 @@ async function auditAuthenticatedRole(browser: Browser, roleCase: RoleCase) {
     const pendingSupabaseRequests = new Set<Request>()
     const successfulBusinessRequestsByRoute = new Map<string, number>()
     let activeRoute = '/login'
+    let lastSupabaseActivityAt = Date.now()
+
+    const waitForSupabaseIdle = async (label: string) => {
+      await expect.poll(
+        () => pendingSupabaseRequests.size === 0 && Date.now() - lastSupabaseActivityAt >= 750,
+        { message: `${label} ainda possui consultas Supabase em voo`, timeout: 15_000 },
+      ).toBe(true)
+    }
 
     page.on('pageerror', error => pageErrors.push(error.message))
     page.on('console', message => {
       if (message.type() === 'error') consoleErrors.push(`${activeRoute}: ${message.text()}`)
     })
     page.on('request', request => {
-      if (request.url().includes('.supabase.co/')) pendingSupabaseRequests.add(request)
+      if (!request.url().includes('.supabase.co/')) return
+      lastSupabaseActivityAt = Date.now()
+      pendingSupabaseRequests.add(request)
     })
     page.on('requestfailed', request => {
+      if (!request.url().includes('.supabase.co/')) return
       pendingSupabaseRequests.delete(request)
+      lastSupabaseActivityAt = Date.now()
       const failure = request.failure()?.errorText || ''
-      if (!request.url().includes('.supabase.co/') || failure.includes('ERR_ABORTED')) return
+      if (failure.includes('ERR_ABORTED')) return
       apiErrors.push(`${activeRoute}: ${request.method()} ${request.url()} ${failure}`)
     })
     page.on('response', response => {
       pendingSupabaseRequests.delete(response.request())
       const url = response.url()
       if (!url.includes('.supabase.co/')) return
+      lastSupabaseActivityAt = Date.now()
       if (/\/(?:rest|functions)\/v1\//.test(url) && response.ok()) {
         successfulBusinessRequestsByRoute.set(activeRoute, (successfulBusinessRequestsByRoute.get(activeRoute) || 0) + 1)
       }
@@ -65,28 +94,35 @@ async function auditAuthenticatedRole(browser: Browser, roleCase: RoleCase) {
     })
 
     await login(page, roleCase.user)
+    await waitForSupabaseIdle(`${roleCase.role}: login`)
 
     for (const route of roleCase.routes) {
       activeRoute = route
       successfulBusinessRequestsByRoute.set(route, 0)
-      await page.goto(route, { waitUntil: 'domcontentloaded' })
+      await navigateWithinApp(page, route)
       await expect(page.locator('main#main-content').first(), `${roleCase.role}: ${route}`).toBeVisible({ timeout: 30_000 })
       await expect(page, `${roleCase.role}: ${route}`).not.toHaveURL(/\/login(?:[?#]|$)/)
       await expect(page.getByText(/Acesso não autorizado|Página não encontrada/i), `${roleCase.role}: ${route}`).toHaveCount(0)
       await expect(page.locator('body'), `${roleCase.role}: ${route}`).not.toContainText(/dados\s+fict[ií]cios|dados\s+demonstrativos|dados\s+de\s+demonstra[cç][aã]o|modelo\s+em\s+valida[cç][aã]o|valida[cç][aã]o\s+visual/i)
       await expect.poll(
-        () => pendingSupabaseRequests.size,
-        { message: `${roleCase.role}: ${route} ainda possui consultas Supabase em voo`, timeout: 15_000 },
-      ).toBe(0)
-      expect(
-        successfulBusinessRequestsByRoute.get(route) || 0,
-        `${roleCase.role}: ${route} não realizou leitura/escrita real no Supabase`,
+        () => successfulBusinessRequestsByRoute.get(route) || 0,
+        { message: `${roleCase.role}: ${route} não realizou leitura/escrita real no Supabase`, timeout: 15_000 },
       ).toBeGreaterThan(0)
+      await waitForSupabaseIdle(`${roleCase.role}: ${route}`)
+
+      if (route.startsWith('/simulacao/')) {
+        const stopSimulation = page.getByRole('button', { name: 'Voltar Admin MX' })
+        await expect(stopSimulation, `${roleCase.role}: ${route} não ativou a simulação`).toBeVisible()
+        await stopSimulation.click()
+        await expect(page).toHaveURL(/\/painel(?:[?#]|$)/)
+        await expect(page.getByRole('region', { name: 'Simulação ativa' })).toHaveCount(0)
+        await waitForSupabaseIdle(`${roleCase.role}: saída de ${route}`)
+      }
     }
 
     if (roleCase.visibleConsultingClientNames || roleCase.hiddenConsultingClientNames) {
       activeRoute = '/consultoria/clientes'
-      await page.goto(activeRoute, { waitUntil: 'domcontentloaded' })
+      await navigateWithinApp(page, activeRoute)
       for (const name of roleCase.visibleConsultingClientNames || []) {
         await expect(page.getByText(name, { exact: false }).first(), `${roleCase.role}: cliente atribuído/administrável ausente`).toBeVisible()
       }
@@ -142,6 +178,22 @@ test.describe('MX CONSULTORIA — todos os módulos autenticados usam dados reai
       result => (result as PromiseFulfilledResult<E2EUser>).value,
     )
 
+    const expectedRoles = new Map<string, UserRole>([
+      [vendedor.id, 'vendedor'],
+      [gerente.id, 'gerente'],
+      [dono.id, 'dono'],
+      [administradorGeral.id, 'administrador_geral'],
+      [administradorMx.id, 'administrador_mx'],
+      [consultorMx.id, 'consultor_mx'],
+    ])
+    const { data: createdProfiles, error: createdProfilesError } = await admin
+      .from('usuarios')
+      .select('id,role')
+      .in('id', [...expectedRoles.keys()])
+    expect(createdProfilesError).toBeNull()
+    expect(createdProfiles).toHaveLength(expectedRoles.size)
+    for (const profile of createdProfiles || []) expect(profile.role).toBe(expectedRoles.get(profile.id))
+
     const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
     const assignedClient = await createE2EConsultingClient({
       name: `E2E Cliente Atribuído ${uniqueSuffix}`,
@@ -184,6 +236,12 @@ test.describe('MX CONSULTORIA — todos os módulos autenticados usam dados reai
         hiddenConsultingClientNames: [unassignedClient.name],
       },
     ]
+
+    const roleFilter = process.env.MX_E2E_ROLE as UserRole | undefined
+    if (roleFilter) {
+      roleCases = roleCases.filter(roleCase => roleCase.role === roleFilter)
+      expect(roleCases, `Perfil E2E desconhecido: ${roleFilter}`).not.toHaveLength(0)
+    }
   })
 
   test.afterAll(async () => {

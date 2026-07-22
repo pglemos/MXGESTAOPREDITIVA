@@ -92,7 +92,7 @@ export function useDepartamentoDashboard(
         {
           p_loja_id: storeId,
           p_code: code,
-          p_period: period ?? null,
+          p_period: period ?? new Date().toISOString().slice(0, 10),
         },
       )
       if (rpcError) throw rpcError

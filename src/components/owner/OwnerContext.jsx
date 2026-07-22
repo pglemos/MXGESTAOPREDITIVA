@@ -13,9 +13,14 @@ export const useOwner = () => {
 // No MX, a "empresa" do Base44 mapeia para o grupo do dono e as "unidades" para as lojas ativas.
 export const OwnerProvider = ({ children }) => {
   const { user } = useAuth();
-  const { lojas, loading: storesLoading } = useStores();
+  const { lojas, loading: storesLoading, error: storesError } = useStores();
 
   const [period, setPeriod] = useState("month"); // month | quarter | year | custom
+  const [customStart, setCustomStart] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+  });
+  const [customEnd, setCustomEnd] = useState(() => new Date().toISOString().slice(0, 10));
   const [unitId, setUnitId] = useState("");
   const [consultantModal, setConsultantModal] = useState({ open: false, context: null });
 
@@ -52,19 +57,40 @@ export const OwnerProvider = ({ children }) => {
     window.dispatchEvent(new CustomEvent("owner:reload"));
   }, []);
 
+  const periodRange = useMemo(() => {
+    const today = new Date();
+    const toDate = (date) => date.toISOString().slice(0, 10);
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    if (period === "quarter") {
+      return { start: toDate(new Date(today.getFullYear(), today.getMonth() - (today.getMonth() % 3), 1)), end: toDate(today) };
+    }
+    if (period === "year") {
+      return { start: toDate(new Date(today.getFullYear(), 0, 1)), end: toDate(today) };
+    }
+    if (period === "custom" && customStart && customEnd && customStart <= customEnd) {
+      return { start: customStart, end: customEnd };
+    }
+    return { start: toDate(startOfMonth), end: toDate(today) };
+  }, [customEnd, customStart, period]);
+
   const value = {
     user,
     companies,
     memberships: [],
     unitsByCompany,
     loading: storesLoading,
-    error: null,
+    error: storesError,
     companyId: "mx",
     setCompanyId: () => {},
     unitId,
     setUnitId,
     period,
     setPeriod,
+    customStart,
+    customEnd,
+    setCustomStart,
+    setCustomEnd,
+    periodRange,
     currentCompany: company,
     currentUnits: units,
     currentMembership: null,

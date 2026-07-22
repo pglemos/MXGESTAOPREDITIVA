@@ -39,6 +39,7 @@ type Props = {
   storeId: string | null | undefined
   code: DepartamentoCode
   periodLabel: string
+  period?: string
 }
 
 const DEPARTAMENTO_LABEL: Record<DepartamentoCode, { name: string; icon: LucideIcon }> = {
@@ -55,8 +56,8 @@ function achievementPct(kpi: DepartamentoKpi): number | null {
   return (Number(kpi.realizado) / Number(kpi.meta)) * 100
 }
 
-export function DepartamentoDashboard({ storeId, code, periodLabel }: Props) {
-  const { data, loading, error, refresh } = useDepartamentoDashboard(storeId, code)
+export function DepartamentoDashboard({ storeId, code, periodLabel, period }: Props) {
+  const { data, loading, error, refresh } = useDepartamentoDashboard(storeId, code, period)
   const def = DEPARTAMENTO_LABEL[code]
 
   const score = useMemo(() => {

@@ -30,14 +30,20 @@ export function OwnerHome({
   onOpenConsultant: () => void
 }) {
   const grossProfit = data.latestDRE?.gross_profit
-  const confirmedAppointments = (data.checkins || [])
-    .filter(checkin => checkin.reference_date === data.referenceDate)
-    .reduce(
-      (total, checkin) => total + (checkin.agd_cart_today || 0) + (checkin.agd_net_today || 0),
-      0,
-    )
-  const salesForecast = confirmedAppointments / 3
-  const dailyNeed = data.metrics.goalValue > 0 ? data.metrics.goalValue / 25 : 0
+  const confirmedAppointments = data.metrics.totalAgd
+  const periodStart = new Date(`${data.periodStartDate || data.referenceDate}T12:00:00`)
+  const selectedEnd = new Date(`${data.periodEndDate || data.referenceDate}T12:00:00`)
+  const horizonEnd = data.period === 'month'
+    ? new Date(selectedEnd.getFullYear(), selectedEnd.getMonth() + 1, 0, 12)
+    : data.period === 'quarter'
+      ? new Date(selectedEnd.getFullYear(), selectedEnd.getMonth() - (selectedEnd.getMonth() % 3) + 3, 0, 12)
+      : data.period === 'year'
+        ? new Date(selectedEnd.getFullYear(), 11, 31, 12)
+        : selectedEnd
+  const elapsedDays = Math.max(1, Math.floor((selectedEnd.getTime() - periodStart.getTime()) / 86400000) + 1)
+  const periodDays = Math.max(elapsedDays, Math.floor((horizonEnd.getTime() - periodStart.getTime()) / 86400000) + 1)
+  const salesForecast = data.metrics.totalSales > 0 ? (data.metrics.totalSales / elapsedDays) * periodDays : 0
+  const dailyNeed = data.metrics.goalValue > 0 ? data.metrics.goalValue / periodDays : 0
   const forecastIsHealthy = dailyNeed <= 0 || salesForecast >= dailyNeed
   const forecastLabel = salesForecast.toLocaleString('pt-BR', {
     minimumFractionDigits: Number.isInteger(salesForecast) ? 0 : 1,
@@ -50,9 +56,9 @@ export function OwnerHome({
     <>
       <div className="grid grid-cols-1 gap-mx-md sm:grid-cols-2 xl:grid-cols-[repeat(4,minmax(0,1fr))_220px]">
         <OwnerKpiCard
-          title="Previsão de Vendas Hoje"
+          title="Previsão de Vendas no Período"
           value={`${forecastLabel} ${salesForecast === 1 ? 'venda' : 'vendas'}`}
-          detail={`${formatInteger(confirmedAppointments)} agendamentos do dia · necessidade ${dailyNeedLabel}`}
+          detail={`${formatInteger(confirmedAppointments)} agendamentos no período · necessidade ${dailyNeedLabel}`}
           trend={{
             label: forecastIsHealthy ? 'Acima da necessidade do dia' : 'Abaixo da necessidade do dia',
             tone: forecastIsHealthy ? 'success' : 'warning',
@@ -82,16 +88,15 @@ export function OwnerHome({
           chart="bars"
           seed={3}
         />
-        {/* TODO: sem pipeline de dado de estoque/veículos parados no app — nenhuma tabela/hook expõe idade de estoque hoje */}
         <OwnerKpiCard
           title="Estoque (Unid.)"
-          value="--"
-          detail="Dados indisponíveis"
+          value={formatInteger(data.inventory?.total ?? 0)}
+          detail={`${formatInteger(data.inventory?.agingOver90 ?? 0)} acima de 90 dias`}
           icon={<Box size={20} />}
-          tone="muted"
+          tone={(data.inventory?.agingOver90 ?? 0) > 0 ? 'warning' : 'success'}
           chart="line"
           seed={4}
-          showStatusDot={false}
+          showStatusDot
         />
         <MXScoreCompact score={mxScore} />
       </div>

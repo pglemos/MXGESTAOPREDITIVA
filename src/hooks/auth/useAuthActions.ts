@@ -147,9 +147,20 @@ export function useAuthActions(options: UseAuthActionsOptions): UseAuthActionsRe
 
     const changePassword = async (newPassword: string): Promise<{ error: string | null }> => {
       if (simulationRole) return { error: 'Troca de senha bloqueada durante a simulação.' }
-      if (!supabaseUser) return { error: 'Usuário não autenticado' }
 
       try {
+        // The auth listener can briefly lag behind Supabase after a recovery
+        // link or a token refresh. Resolve the source-of-truth session before
+        // rejecting the change, otherwise the forced-password modal remains
+        // visible and reports a false "Usuário não autenticado" error.
+        let currentUser = supabaseUser
+        if (!currentUser) {
+          const { data: sessionData } = await supabase.auth.getSession()
+          currentUser = sessionData.session?.user || null
+          if (currentUser) setSupabaseUser(currentUser)
+        }
+        if (!currentUser) return { error: 'Usuário não autenticado' }
+
         const { data: challengeData, error: challengeError } = await supabase.rpc('begin_password_change')
         const challengeResult = challengeData as { ok?: boolean; error?: string } | null
         if (challengeError || !challengeResult?.ok) {

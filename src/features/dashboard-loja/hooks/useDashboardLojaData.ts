@@ -13,6 +13,8 @@ import { somarVendas, calcularFunil, gerarDiagnosticoMX } from '@/lib/calculatio
 import { buildStoreSalesRules } from '@/lib/storeSalesRules'
 import { getManagerCalendarDate, getManagerMonthRange } from '@/features/manager/home/manager-home-parity'
 import { refreshManagerHomeData } from '@/features/manager/home/manager-home-refresh'
+import { useOwnerInventoryMetrics } from './useOwnerInventoryMetrics'
+import { useOwnerConsultingProgram } from './useOwnerConsultingProgram'
 import type { RankingEntry } from '@/types/database'
 import type { Database } from '@/types/database.generated'
 
@@ -23,6 +25,8 @@ type UseDashboardLojaDataInput = {
   selectedStoreId: string | null
   selectedStoreName: string
   managerCalendarMode?: boolean
+  period?: 'month' | 'quarter' | 'year' | 'custom'
+  periodRange?: { start: string; end: string }
 }
 
 type ExecutionActionRow = Pick<Database['public']['Tables']['execution_actions']['Row'], 'seller_id' | 'status'>
@@ -59,10 +63,14 @@ export function useDashboardLojaData({
   selectedStoreId,
   selectedStoreName,
   managerCalendarMode = false,
+  period,
+  periodRange,
 }: UseDashboardLojaDataInput) {
-  const { sellers, loading: sellersLoading, refetch: refetchSellers } = useSellersByStore(selectedStoreId)
+  const { sellers, loading: sellersLoading, error: sellersError, refetch: refetchSellers } = useSellersByStore(selectedStoreId)
   const { goal: storeGoal, refetch: refetchStoreGoal } = useStoreGoal(selectedStoreId)
   const operationalSettings = useOperationalSettings(selectedStoreId)
+  const inventory = useOwnerInventoryMetrics(selectedStoreId)
+  const consulting = useOwnerConsultingProgram(selectedStoreId)
   const {
     store: operationalStore,
     deliveryRules,
@@ -76,7 +84,7 @@ export function useDashboardLojaData({
   const [viewMode, setViewMode] = useState<ViewMode>('day')
   const [operationalReferenceDate, setReferenceDate] = useState(() => calculateReferenceDate())
   const managerReferenceDate = getManagerCalendarDate()
-  const referenceDate = managerCalendarMode ? managerReferenceDate : operationalReferenceDate
+  const referenceDate = periodRange?.end || (managerCalendarMode ? managerReferenceDate : operationalReferenceDate)
   const [startDate, setStartDate] = useState(() => format(startOfMonth(parseISO(referenceDate)), 'yyyy-MM-dd'))
   const [endDate, setEndDate] = useState(() => referenceDate)
   const [isRefetching, setIsRefetching] = useState(false)
@@ -86,8 +94,8 @@ export function useDashboardLojaData({
   const refetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const managerMonthRange = useMemo(() => getManagerMonthRange(managerReferenceDate), [managerReferenceDate])
-  const queryStartDate = managerCalendarMode ? managerReferenceDate : viewMode === 'day' ? referenceDate : startDate
-  const queryEndDate = managerCalendarMode ? managerReferenceDate : viewMode === 'day' ? referenceDate : endDate
+  const queryStartDate = periodRange?.start || (managerCalendarMode ? managerReferenceDate : viewMode === 'day' ? referenceDate : startDate)
+  const queryEndDate = periodRange?.end || (managerCalendarMode ? managerReferenceDate : viewMode === 'day' ? referenceDate : endDate)
   const {
     checkins,
     loading: checkinsLoading,
@@ -137,11 +145,13 @@ export function useDashboardLojaData({
       return
     }
 
-    await Promise.all([
-      refetchCheckins(),
-      refetchSellers(),
-      officialPerformance.refetch(),
-      officialMonthlyPerformance.refetch(),
+      await Promise.all([
+        refetchCheckins(),
+        refetchSellers(),
+        refetchStoreGoal(),
+        fetchSettings(),
+        officialPerformance.refetch(),
+        officialMonthlyPerformance.refetch(),
     ])
   }, [
     fetchSettings,
@@ -232,13 +242,19 @@ export function useDashboardLojaData({
   }, [refreshDashboardData])
 
   useEffect(() => {
+    const onOwnerReload = () => { void handleRefresh() }
+    window.addEventListener('owner:reload', onOwnerReload)
+    return () => window.removeEventListener('owner:reload', onOwnerReload)
+  }, [handleRefresh])
+
+  useEffect(() => {
     if (!selectedStoreId) {
       setRoutineExecutionBySeller({})
       return
     }
 
-    const rangeStart = viewMode === 'day' ? referenceDate : startDate
-    const rangeEnd = viewMode === 'day' ? referenceDate : endDate
+    const rangeStart = periodRange?.start || (viewMode === 'day' ? referenceDate : startDate)
+    const rangeEnd = periodRange?.end || (viewMode === 'day' ? referenceDate : endDate)
     let active = true
 
     void fetchExecutionActionRows(selectedStoreId, rangeStart, rangeEnd)
@@ -262,7 +278,7 @@ export function useDashboardLojaData({
       })
 
     return () => { active = false }
-  }, [endDate, referenceDate, selectedStoreId, startDate, viewMode])
+  }, [endDate, periodRange, referenceDate, selectedStoreId, startDate, viewMode])
 
   const effectiveMonthlyGoal = operationalMetaRules?.monthly_goal ?? storeGoal?.target ?? 0
 
@@ -286,9 +302,7 @@ export function useDashboardLojaData({
       checkins,
       ranking: (sellers || []).map(s => {
         const sellerCheckins = checkinsBySeller[s.id] || []
-        const officialRows = managerCalendarMode
-          ? officialPerformance.rows
-          : officialMonthlyPerformance.rows
+        const officialRows = managerCalendarMode ? officialPerformance.rows : officialPerformance.rows
         const officialRow = officialRows.find(row => row.seller_user_id === s.id)
         const disciplineValues = sellerCheckins
           .map(checkin => checkin.pontuacao_disciplina_final)
@@ -346,11 +360,14 @@ export function useDashboardLojaData({
 
   const latestDRE = useMemo(() => {
     if (!financials || financials.length === 0) return null
-    return computeDREFn(financials[0])
-  }, [financials, computeDREFn])
+    const inRange = financials.filter((financial) => financial.reference_date >= queryStartDate && financial.reference_date <= queryEndDate)
+    return computeDREFn((inRange[0] || financials[0]))
+  }, [financials, computeDREFn, queryEndDate, queryStartDate])
 
   const metrics = useMemo(() => {
-    const checkedInCount = (sellers || []).filter(s => s.checkin_today).length
+    const checkedInCount = periodRange
+      ? new Set((checkins || []).map(checkin => checkin.seller_user_id)).size
+      : (sellers || []).filter(s => s.checkin_today).length
     return {
       totalSales: storeSales.storeTotalVendas,
       totalLeads: storeSales.storeTotalLeads,
@@ -362,7 +379,7 @@ export function useDashboardLojaData({
       ranking: storeSales.processedRanking,
       storeName: selectedStoreName || 'Unidade MX',
     }
-  }, [storeSales, sellers, selectedStoreName, effectiveMonthlyGoal])
+  }, [checkins, periodRange, storeSales, sellers, selectedStoreName, effectiveMonthlyGoal])
 
   const funilData = useMemo(() => calcularFunil(checkins), [checkins])
   const diagnostics = useMemo(() => gerarDiagnosticoMX(funilData), [funilData])
@@ -377,14 +394,22 @@ export function useDashboardLojaData({
     return `Atualizado às ${lastSyncAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
   }, [lastSyncAt])
 
+  const periodLabel = useMemo(() => {
+    if (period === 'custom') {
+      return `${queryStartDate.split('-').reverse().join('/')} — ${queryEndDate.split('-').reverse().join('/')}`
+    }
+    const labels = { month: 'Mês atual', quarter: 'Trimestre atual', year: 'Ano atual' }
+    return labels[period || 'month'] || `${queryStartDate.split('-').reverse().join('/')} — ${queryEndDate.split('-').reverse().join('/')}`
+  }, [period, queryEndDate, queryStartDate])
+
   return {
     // dados brutos
     selectedStoreId,
     sellers,
     checkins,
     managerMonthlyCheckins,
-    loading: checkinsLoading || sellersLoading || officialPerformance.loading || officialMonthlyPerformance.loading || (managerCalendarMode && managerMonthlyLoading),
-    error: error || officialPerformance.error || officialMonthlyPerformance.error,
+    loading: checkinsLoading || sellersLoading || officialPerformance.loading || officialMonthlyPerformance.loading || operationalLoading || (managerCalendarMode && managerMonthlyLoading),
+    error: error || sellersError || officialPerformance.error || officialMonthlyPerformance.error || managerMonthlyError || operationalSettings.error || inventory.error,
     managerMonthlyError,
     officialPerformance: officialPerformance.rows,
     officialMonthlyPerformance: officialMonthlyPerformance.rows,
@@ -396,12 +421,24 @@ export function useDashboardLojaData({
     benchmark,
     operationalMetaRules,
     operationalLoading,
+    inventory: inventory.metrics,
+    inventoryLoading: inventory.loading,
+    refetchInventory: inventory.refetch,
+    consultingProgram: consulting.program,
+    consultingLoading: consulting.loading,
+    consultingError: consulting.error,
+    refetchConsulting: consulting.refresh,
     fetchSettings,
     saveSettings,
     // período
     viewMode,
     setViewMode,
     referenceDate,
+    period,
+    periodStartDate: queryStartDate,
+    periodEndDate: queryEndDate,
+    periodRange,
+    periodLabel,
     setReferenceDate,
     startDate,
     setStartDate,

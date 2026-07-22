@@ -36,8 +36,10 @@ export function useOperationalSettings(storeId: string | null) {
     const [sellerTenures, setSellerTenures] = useState<SellerTenure[]>([])
     const [sellerUsers, setSellerUsers] = useState<User[]>([])
     const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
 
     const canManage = isPerfilInternoMx(role)
+    const canReadSettings = canManage || role === 'dono' || role === 'gerente'
 
     const fetchSettings = useCallback(async () => {
         if (!storeId) {
@@ -47,11 +49,13 @@ export function useOperationalSettings(storeId: string | null) {
             setMetaRules(null)
             setSellerTenures([])
             setSellerUsers([])
+            setError(null)
             setLoading(false)
             return
         }
 
         setLoading(true)
+        setError(null)
 
         // A loja em si é necessária para identificação operacional (dono/gerente/admin):
         // sem store.id, a Central MX da loja não habilita ações (criar plano, etc.).
@@ -61,7 +65,7 @@ export function useOperationalSettings(storeId: string | null) {
         if (storeRes.error) console.error('Audit Error [useOperationalSettings]: store ->', storeRes.error.message)
 
         let deliveryData: StoreDeliveryRules | null = null
-        if (canManage) {
+        if (canReadSettings) {
             const [deliveryRes, benchmarkRes, metaRes, tenuresRes, usersRes] = await Promise.all([
                 supabase.from('regras_entrega_loja').select(DELIVERY_RULES_SELECT).eq('store_id', storeId).maybeSingle(),
                 supabase.from('benchmarks_loja').select(BENCHMARK_SELECT).eq('store_id', storeId).maybeSingle(),
@@ -86,6 +90,9 @@ export function useOperationalSettings(storeId: string | null) {
             if (tenuresRes.error) console.error('Audit Error [useOperationalSettings]: tenures ->', tenuresRes.error.message)
             if (usersRes.error) console.error('Audit Error [useOperationalSettings]: users ->', usersRes.error.message)
 
+            const firstError = [storeRes.error, deliveryRes.error, benchmarkRes.error, metaRes.error, tenuresRes.error, usersRes.error].find(Boolean)
+            setError(firstError?.message || null)
+
             deliveryData = (deliveryRes.data as StoreDeliveryRules) || null
             setDeliveryRules(deliveryData)
             setBenchmark((benchmarkRes.data as StoreBenchmark) || null)
@@ -101,11 +108,12 @@ export function useOperationalSettings(storeId: string | null) {
         }
 
         const storeData = (storeRes.data as Store) || null
+        if (storeRes.error) setError(storeRes.error.message)
         const derivedManagerEmail = deliveryData?.matinal_recipients?.[0] || storeData?.manager_email || null
 
         setStore(storeData ? { ...storeData, manager_email: derivedManagerEmail } : null)
         setLoading(false)
-    }, [storeId, canManage])
+    }, [storeId, canManage, canReadSettings])
 
     const saveSettings = async (payload: StoreSettingsPayload) => {
         if (!storeId || !profile || !canManage) return { error: 'Apenas perfis MX podem alterar configuração operacional.' }
@@ -186,6 +194,7 @@ export function useOperationalSettings(storeId: string | null) {
         sellerTenures,
         sellerUsers,
         loading,
+        error,
         canManage,
         fetchSettings,
         saveSettings,

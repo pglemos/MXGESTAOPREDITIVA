@@ -7,6 +7,8 @@ describe('password policy helpers', () => {
     expect(isStrongPassword('123456')).toBe(true)
     expect(isStrongPassword('ABCDEFGH')).toBe(true)
     expect(isStrongPassword('aaaaaa')).toBe(true)
+    expect(isStrongPassword('------')).toBe(true)
+    expect(isStrongPassword('senha!')).toBe(true)
   })
 
   test('generates compliant temporary passwords', () => {

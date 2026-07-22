@@ -70,11 +70,12 @@ export function SegurancaTab() {
                                 id="settings-new-password"
                                 name="new-password"
                                 type={showPasswords ? 'text' : 'password'}
+                                minLength={6}
                                 autoComplete="new-password"
                                 value={form.next}
                                 onChange={e => setForm(p => ({ ...p, next: e.target.value }))}
                                 className="!h-mx-14 !pl-mx-12 pr-mx-12 font-bold"
-                                placeholder="Mínimo 10, Aa1#"
+                                placeholder="Mínimo 6 caracteres"
                             />
                             <button
                                 type="button"

@@ -36,10 +36,11 @@ function Select({ value, onChange, options, icon: Icon, label, disabled }) {
 }
 
 export default function OwnerTopbar({ lastUpdated }) {
-  const { companies, currentCompany, setCompanyId, currentUnits, unitId, setUnitId, period, setPeriod, reload } =
+  const { companies, currentCompany, setCompanyId, currentUnits, unitId, setUnitId, period, setPeriod, customStart, customEnd, setCustomStart, setCustomEnd, reload } =
     useOwner();
   const { user, logout } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   const companyOptions = companies.map((c) => ({ value: c.id, label: c.name }));
   const unitOptions = currentUnits.map((u) => ({ value: u.id, label: u.name }));
@@ -86,6 +87,19 @@ export default function OwnerTopbar({ lastUpdated }) {
         </div>
       </div>
 
+      {period === "custom" && (
+        <div className="grid w-full grid-cols-2 gap-2 xl:w-auto xl:shrink-0">
+          <label className="flex min-w-0 flex-col gap-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
+            Início
+            <input aria-label="Início do período personalizado" type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="h-9 rounded-lg border border-border bg-card px-2 text-sm font-medium text-foreground" />
+          </label>
+          <label className="flex min-w-0 flex-col gap-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
+            Fim
+            <input aria-label="Fim do período personalizado" type="date" value={customEnd} min={customStart || undefined} onChange={(e) => setCustomEnd(e.target.value)} className="h-9 rounded-lg border border-border bg-card px-2 text-sm font-medium text-foreground" />
+          </label>
+        </div>
+      )}
+
       {/* Lado direito */}
       <div className="hidden shrink-0 items-center gap-2 xl:flex">
         <div className="hidden text-right lg:block">
@@ -95,10 +109,11 @@ export default function OwnerTopbar({ lastUpdated }) {
         <Button variant="ghost" size="icon" onClick={reload} aria-label="Atualizar dados">
           <RefreshCw className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="icon" className="relative" aria-label="Notificações">
+        <Button variant="ghost" size="icon" className="relative" aria-label="Notificações" onClick={() => setNotificationsOpen((value) => !value)}>
           <Bell className="h-4 w-4" />
           <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-destructive" />
         </Button>
+        {notificationsOpen && <div role="status" className="absolute right-24 top-14 z-20 w-64 rounded-xl border border-border bg-card p-3 text-sm text-muted-foreground shadow-lg">As notificações persistidas aparecem na Central de Decisões.</div>}
 
         {/* Perfil */}
         <div className="relative">

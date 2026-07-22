@@ -18,6 +18,7 @@ import { supabase } from '@/lib/supabase'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import type { useDashboardLojaData } from '@/features/dashboard-loja/hooks/useDashboardLojaData'
 import { ManagerHomeReturnLink } from '@/features/manager/home/ManagerHomeReturnLink'
+import { useAuth } from '@/hooks/useAuth'
 import { buildStoreGoalChannelRows, buildStoreGoalClosingRows, buildStoreGoalTeamRows, calculateStoreGoalMetrics, calculateSustainabilityPlan, formatStoreGoalMetric, operationalDayPredicate, type SustainabilityPlan } from './manager-store-goal'
 
 type DashboardData = ReturnType<typeof useDashboardLojaData>
@@ -55,6 +56,7 @@ const persistedHorizonByView: Record<Horizon, PersistedHorizon> = {
 
 export function ManagerStoreGoalReference({ data }: { data: DashboardData }) {
   const navigate = useNavigate()
+  const { baseRole } = useAuth()
   const [month, setMonth] = useState(data.referenceDate.slice(0, 7))
   const [horizon, setHorizon] = useState<Horizon>('semana')
   const [persistedPlans, setPersistedPlans] = useState<Partial<Record<PersistedHorizon, PersistedTargetPlan>>>({})
@@ -83,11 +85,13 @@ export function ManagerStoreGoalReference({ data }: { data: DashboardData }) {
 
     setTargetPlanRefreshing(true)
     try {
-      const consolidated = await supabase.rpc('consolidate_store_target_plan', {
-        p_store_id: data.selectedStoreId,
-        p_reference_date: activeReferenceDate,
-      })
-      if (consolidated.error) throw consolidated.error
+      if (baseRole !== 'consultor_mx') {
+        const consolidated = await supabase.rpc('consolidate_store_target_plan', {
+          p_store_id: data.selectedStoreId,
+          p_reference_date: activeReferenceDate,
+        })
+        if (consolidated.error) throw consolidated.error
+      }
 
       const { data: rows, error } = await supabase
         .from('store_target_plans')
@@ -108,7 +112,7 @@ export function ManagerStoreGoalReference({ data }: { data: DashboardData }) {
     } finally {
       setTargetPlanRefreshing(false)
     }
-  }, [activeReferenceDate, data.selectedStoreId])
+  }, [activeReferenceDate, baseRole, data.selectedStoreId])
 
   useEffect(() => {
     void refreshTargetPlans()

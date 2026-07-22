@@ -434,9 +434,10 @@ export default function Login() {
                                     id="recovery-password"
                                     label="Nova senha"
                                     type={showPassword ? 'text' : 'password'}
+                                    minLength={6}
                                     value={newPassword}
                                     onChange={e => { setNewPassword(e.target.value); if (fieldErrors.newPassword) setFieldErrors(prev => ({ ...prev, newPassword: '' })) }}
-                                    placeholder="Mínimo 10, Aa1#"
+                                    placeholder="Mínimo 6 caracteres"
                                     required
                                     autoComplete="new-password"
                                     icon={<KeyRound size={18} />}

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/hooks/useAuth'
 
 type StoreTargetPlanRow = {
   id: string
@@ -43,6 +44,7 @@ export function useManagerHomeOfficialSources({
   storeId: string | null
   referenceDate: string
 }) {
+  const { baseRole } = useAuth()
   const [plan, setPlan] = useState<OfficialManagerHomePlan | null>(null)
   const [appointmentRows, setAppointmentRows] = useState<AppointmentRow[]>([])
   const [loading, setLoading] = useState(false)
@@ -62,12 +64,14 @@ export function useManagerHomeOfficialSources({
     setLoading(true)
     setError(null)
     try {
-      const consolidation = await supabase.rpc('consolidate_store_target_plan', {
-        p_store_id: storeId,
-        p_reference_date: referenceDate,
-      })
-      if (requestId !== requestIdRef.current) return
-      if (consolidation.error) throw consolidation.error
+      if (baseRole !== 'consultor_mx') {
+        const consolidation = await supabase.rpc('consolidate_store_target_plan', {
+          p_store_id: storeId,
+          p_reference_date: referenceDate,
+        })
+        if (requestId !== requestIdRef.current) return
+        if (consolidation.error) throw consolidation.error
+      }
 
       const start = `${referenceDate}T00:00:00-03:00`
       const end = `${referenceDate}T23:59:59-03:00`
@@ -109,7 +113,7 @@ export function useManagerHomeOfficialSources({
         setLoading(false)
       }
     }
-  }, [referenceDate, storeId])
+  }, [baseRole, referenceDate, storeId])
 
   useEffect(() => {
     void refresh()

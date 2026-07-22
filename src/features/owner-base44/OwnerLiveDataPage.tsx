@@ -16,6 +16,8 @@ type OwnerContextValue = {
   unitId: string
   loading: boolean
   error: string | null
+  periodRange: { start: string; end: string }
+  period: 'month' | 'quarter' | 'year' | 'custom'
   openConsultantModal: (context: {
     title: string
     requestType: string
@@ -33,12 +35,16 @@ export default function OwnerLiveDataPage() {
     loading: storesLoading,
     error: storesError,
     openConsultantModal,
+    periodRange,
+    period,
   } = useOwner() as OwnerContextValue
 
   const selectedStore = currentUnits.find(unit => unit.id === unitId) ?? null
   const data = useDashboardLojaData({
     selectedStoreId: selectedStore?.id ?? null,
     selectedStoreName: selectedStore?.name ?? 'Unidade não selecionada',
+    period,
+    periodRange,
   })
   const { alerts } = usePerformanceAlerts({
     role: 'dono',
@@ -74,6 +80,16 @@ export default function OwnerLiveDataPage() {
       <section className="rounded-xl border border-destructive/30 bg-destructive/5 p-6" role="alert">
         <h1 className="text-lg font-semibold text-foreground">Não foi possível carregar as unidades</h1>
         <p className="mt-2 text-sm text-muted-foreground">{storesError}</p>
+      </section>
+    )
+  }
+
+  if (data.error) {
+    return (
+      <section className="rounded-xl border border-destructive/30 bg-destructive/5 p-6" role="alert">
+        <h1 className="text-lg font-semibold text-foreground">Não foi possível carregar o cockpit</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{data.error}</p>
+        <button type="button" onClick={() => void data.handleRefresh()} className="mt-4 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Tentar novamente</button>
       </section>
     )
   }

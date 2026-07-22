@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
 import type { DashboardData } from './types'
 import { formatPlanningValue, scoreStatus } from './format'
 import { MXScoreCompact, SectionTitle, SideList } from './primitives'
+import { useCentralMxBenchmark, type CentralMxBenchmarkPeerGroup, type CentralMxBenchmarkState } from '../../hooks/useCentralMxBenchmark'
 
 export function BenchmarkingView({
   data,
@@ -18,6 +19,9 @@ export function BenchmarkingView({
   const [size, setSize] = useState('Médio')
   const [brand, setBrand] = useState('Todas')
   const [segment, setSegment] = useState('Multimarcas')
+  const salesBenchmark = useCentralMxBenchmark()
+  const marginBenchmark = useCentralMxBenchmark()
+  const funnelBenchmark = useCentralMxBenchmark()
 
   const filterOptions = {
     Região: { current: region, set: setRegion, options: ['Sul', 'Sudeste', 'Nordeste', 'Centro-Oeste', 'Norte'] },
@@ -26,29 +30,43 @@ export function BenchmarkingView({
     Segmento: { current: segment, set: setSegment, options: ['Novos', 'Seminovos', 'Multimarcas'] },
   }
 
-  const isDefaultFilter = region === 'Sul' && size === 'Médio' && brand === 'Todas' && segment === 'Multimarcas'
+  const peerGroup: CentralMxBenchmarkPeerGroup = region !== 'Sul' ? 'regiao' : size !== 'Médio' ? 'porte' : segment !== 'Multimarcas' ? 'segmento' : 'mercado'
+
+  useEffect(() => {
+    const storeId = data.operationalStore?.id
+    if (!storeId) return
+    const query = { storeId, peerGroup, period: data.periodEndDate }
+    void Promise.all([
+      salesBenchmark.fetchBenchmark({ ...query, metricCode: 'sales_volume' }),
+      marginBenchmark.fetchBenchmark({ ...query, metricCode: 'gross_margin_pct' }),
+      funnelBenchmark.fetchBenchmark({ ...query, metricCode: 'lead_to_schedule_rate' }),
+    ])
+  }, [brand, data.operationalStore?.id, data.periodEndDate, funnelBenchmark.fetchBenchmark, marginBenchmark.fetchBenchmark, peerGroup, salesBenchmark.fetchBenchmark, segment, size, region])
+
+  const benchmarkValue = (state: CentralMxBenchmarkState) => state.data?.peer_avg ?? null
+  const bestValue = (state: CentralMxBenchmarkState) => state.data?.peer_top ?? null
 
   const rows = [
-    { 
+    {
       label: 'Vendas Totais (Unid.)', 
       store: data.metrics.totalSales, 
-      group: isDefaultFilter ? (data.metrics.goalValue || null) : null, 
-      best: null, 
-      status: data.metrics.goalValue && data.metrics.totalSales >= data.metrics.goalValue ? 'Bom' : 'Atenção' 
+      group: benchmarkValue(salesBenchmark),
+      best: bestValue(salesBenchmark),
+      status: benchmarkValue(salesBenchmark) == null ? 'Pendente' : data.metrics.totalSales >= benchmarkValue(salesBenchmark)! ? 'Bom' : 'Atenção'
     },
     { 
       label: 'Margem Média de Venda (%)', 
       store: marginPercent, 
-      group: null, 
-      best: null, 
+      group: benchmarkValue(marginBenchmark),
+      best: bestValue(marginBenchmark),
       status: marginPercent === null ? 'Pendente' : marginPercent >= 18 ? 'Bom' : 'Atenção' 
     },
     { 
       label: 'Conversão Leads > Agendamento (%)', 
       store: data.funilData.tx_lead_agd, 
-      group: isDefaultFilter ? data.funnelBenchmarks.leadAgd : null, 
-      best: null, 
-      status: data.funilData.tx_lead_agd >= data.funnelBenchmarks.leadAgd ? 'Bom' : 'Atenção' 
+      group: benchmarkValue(funnelBenchmark),
+      best: bestValue(funnelBenchmark),
+      status: benchmarkValue(funnelBenchmark) == null ? 'Pendente' : data.funilData.tx_lead_agd >= benchmarkValue(funnelBenchmark)! ? 'Bom' : 'Atenção'
     },
     { 
       label: 'Custo por Venda', 
@@ -66,9 +84,11 @@ export function BenchmarkingView({
     },
   ]
 
+  const opportunities = useMemo(() => rows.filter(row => row.status === 'Atenção').map(row => row.label), [rows])
+
   return (
     <div className="space-y-mx-md">
-      <SectionTitle title="Benchmarking" subtitle="Compare sua loja com metas, benchmarks configurados e melhores práticas." />
+      <SectionTitle title="Benchmarking" subtitle={`Compare sua loja com dados reais do recorte ${peerGroup}.`} />
       <Card className="rounded-mx-2xl p-mx-lg">
         <div className="grid grid-cols-1 gap-mx-sm md:grid-cols-4">
           {Object.entries(filterOptions).map(([label, { current, set, options }]) => (
@@ -117,7 +137,7 @@ export function BenchmarkingView({
         </Card>
         <div className="space-y-mx-md">
           <MXScoreCompact score={mxScore} />
-          <SideList title="Principais Oportunidades" items={['Reduzir estoque acima de 90 dias', 'Melhorar conversão de visitas em vendas', 'Aumentar giro de estoque']} />
+          <SideList title="Principais Oportunidades" items={opportunities.length ? opportunities : ['Nenhum desvio com benchmark disponível.']} />
         </div>
       </div>
     </div>

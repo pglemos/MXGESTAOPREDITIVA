@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getDaysInMonth, parseISO } from 'date-fns'
 import { AlertTriangle, Bell, CheckCircle2, Clock3, CircleHelp, ClipboardList, LineChart as LineChartIcon, MessageCircle, Search, Target, Users, Zap } from 'lucide-react'
@@ -236,6 +237,20 @@ export function OwnerPanoramaChart({
   goalValue: number
   attainment: number
 }) {
+  const [chartReady, setChartReady] = useState(false)
+
+  useEffect(() => {
+    setChartReady(false)
+    let secondFrame = 0
+    const firstFrame = requestAnimationFrame(() => {
+      secondFrame = requestAnimationFrame(() => setChartReady(true))
+    })
+    return () => {
+      cancelAnimationFrame(firstFrame)
+      cancelAnimationFrame(secondFrame)
+    }
+  }, [data.length, goalValue])
+
   return (
     <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">
       <div className="flex flex-col gap-mx-md md:flex-row md:items-start md:justify-between">
@@ -254,7 +269,7 @@ export function OwnerPanoramaChart({
 
       {data.length >= 2 && goalValue > 0 ? (
         <div className="mt-mx-md h-[250px]">
-          <ResponsiveContainer width="100%" height="100%">
+          {chartReady ? <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={250} initialDimension={{ width: 320, height: 250 }}>
             <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={chartTokens.gridStrong()} />
               <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fontWeight: 700 }} />
@@ -263,7 +278,7 @@ export function OwnerPanoramaChart({
               <Line type="monotone" dataKey="planejado" stroke={chartTokens.axisTickStrong()} strokeWidth={2} strokeDasharray="5 5" dot={false} name="Planejado" />
               <Line type="monotone" dataKey="realizado" stroke={chartTokens.series.s4()} strokeWidth={4} dot={{ r: 4 }} name="Realizado" />
             </LineChart>
-          </ResponsiveContainer>
+          </ResponsiveContainer> : null}
         </div>
       ) : (
         <div className="mt-mx-md min-h-[250px] rounded-mx-lg border border-dashed border-border-subtle bg-surface-alt flex flex-col items-center justify-center text-center p-mx-lg">

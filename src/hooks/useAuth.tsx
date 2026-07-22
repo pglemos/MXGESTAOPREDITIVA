@@ -18,7 +18,7 @@
  * @deprecated — Do NOT add new logic here. Compose sub-hooks under
  * `src/hooks/auth/` and merge into the context value.
  */
-import { createContext, useContext, useMemo, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useMemo, type ReactNode } from 'react'
 import { useAuthSession } from './auth/useAuthSession'
 import { useAuthProfile } from './auth/useAuthProfile'
 import { useAuthRBAC } from './auth/useAuthRBAC'
@@ -69,6 +69,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     lastLoadedUserIdRef: session.lastLoadedUserIdRef,
     devProfile: session.devProfile,
   })
+
+  useEffect(() => {
+    if (!session.initialized || session.supabaseUser || session.devProfile) return
+
+    // Do not leave a stale operational profile mounted after Supabase emits
+    // SIGNED_OUT. Otherwise Layout still renders ForcePasswordChange while
+    // actions correctly see that there is no authenticated user.
+    profileState.setProfile(null)
+    profileState.setMemberships([])
+    profileState.setActiveStoreId(null)
+  }, [session.initialized, session.supabaseUser, session.devProfile, profileState.setProfile, profileState.setMemberships, profileState.setActiveStoreId])
 
   // 3) RBAC + simulation.
   const rbac = useAuthRBAC({

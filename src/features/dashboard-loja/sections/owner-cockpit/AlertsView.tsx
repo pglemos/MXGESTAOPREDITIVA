@@ -1,15 +1,26 @@
-import { AlertTriangle, Bell, CheckCircle2, Clock3, MoreVertical, TrendingUp } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { AlertTriangle, Bell, CheckCircle2, Clock3, MoreVertical, Search, TrendingUp } from 'lucide-react'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
 import { cn } from '@/lib/utils'
 import type { OwnerPerformanceAlert } from '../PerformanceAlerts'
 import { toneClasses, type KpiTone } from './types'
-import { SectionTitle, SideList, SummaryCard, ToolbarPlaceholder } from './primitives'
+import { SectionTitle, SideList, SummaryCard } from './primitives'
 
 export function AlertsView({ alerts }: { alerts: OwnerPerformanceAlert[] }) {
+  const [statusFilter, setStatusFilter] = useState('todos')
+  const [departmentFilter, setDepartmentFilter] = useState('todos')
+  const [search, setSearch] = useState('')
   const critical = alerts.filter(alert => alert.variant === 'danger').length
   const warning = alerts.filter(alert => alert.variant === 'warning').length
   const positive = alerts.filter(alert => alert.variant === 'success').length
+  const departments = useMemo(() => [...new Set(alerts.map(alert => alert.department).filter(Boolean))] as string[], [alerts])
+  const filteredAlerts = alerts.filter(alert => {
+    const statusOk = statusFilter === 'todos' || alert.variant === statusFilter
+    const departmentOk = departmentFilter === 'todos' || alert.department === departmentFilter
+    const searchOk = !search.trim() || `${alert.title} ${alert.description} ${alert.recommendation}`.toLocaleLowerCase('pt-BR').includes(search.trim().toLocaleLowerCase('pt-BR'))
+    return statusOk && departmentOk && searchOk
+  })
   return (
     <div className="space-y-mx-md">
       <SectionTitle title="Alertas Inteligentes" subtitle="Monitore riscos, desvios e oportunidades em tempo real." />
@@ -22,9 +33,28 @@ export function AlertsView({ alerts }: { alerts: OwnerPerformanceAlert[] }) {
       </div>
       <div className="grid grid-cols-1 gap-mx-md xl:grid-cols-[minmax(0,1fr)_320px]">
         <Card className="rounded-mx-2xl p-mx-lg">
-          <ToolbarPlaceholder searchPlaceholder="Buscar alerta..." />
+          <div className="flex flex-col gap-mx-sm lg:flex-row lg:items-center lg:justify-between">
+            <div className="grid grid-cols-1 gap-mx-sm sm:grid-cols-3">
+              <select aria-label="Filtrar status dos alertas" value={statusFilter} onChange={event => setStatusFilter(event.target.value)} className="h-mx-10 rounded-mx-lg border border-border-subtle bg-white px-mx-sm text-xs font-black text-text-secondary">
+                <option value="todos">Todos os status</option>
+                <option value="danger">Críticos</option>
+                <option value="warning">Atenção</option>
+                <option value="success">Positivos</option>
+                <option value="outline">Informativos</option>
+              </select>
+              <select aria-label="Filtrar departamento dos alertas" value={departmentFilter} onChange={event => setDepartmentFilter(event.target.value)} className="h-mx-10 rounded-mx-lg border border-border-subtle bg-white px-mx-sm text-xs font-black text-text-secondary">
+                <option value="todos">Todos os departamentos</option>
+                {departments.map(department => <option key={department} value={department}>{department}</option>)}
+              </select>
+              <label className="relative min-w-0 lg:w-[280px]">
+                <span className="sr-only">Buscar alerta</span>
+                <Search size={16} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary" />
+                <input value={search} onChange={event => setSearch(event.target.value)} className="h-mx-10 w-full rounded-mx-lg border border-border-subtle bg-white pl-mx-xl pr-mx-sm text-sm font-bold outline-none focus:border-brand-primary" placeholder="Buscar alerta..." />
+              </label>
+            </div>
+          </div>
           <div className="mt-mx-md divide-y divide-border-subtle">
-            {alerts.map((alert, index) => {
+            {filteredAlerts.map((alert, index) => {
               const tone: KpiTone = alert.variant === 'danger' ? 'danger' : alert.variant === 'warning' ? 'warning' : alert.variant === 'success' ? 'success' : 'info'
               const classes = toneClasses[tone]
               return (
@@ -42,6 +72,7 @@ export function AlertsView({ alerts }: { alerts: OwnerPerformanceAlert[] }) {
                 </div>
               )
             })}
+            {filteredAlerts.length === 0 && <div className="rounded-mx-lg border border-dashed border-border-subtle p-mx-lg text-center text-sm font-bold text-text-tertiary">Nenhum alerta corresponde aos filtros.</div>}
           </div>
         </Card>
         <div className="space-y-mx-md">

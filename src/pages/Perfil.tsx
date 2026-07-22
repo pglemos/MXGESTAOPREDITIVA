@@ -244,7 +244,7 @@ export default function Perfil() {
             <div className="space-y-mx-md">
               <div>
                 <label htmlFor="profile-password-modal-new" className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-1">Nova Senha</label>
-                <Input id="profile-password-modal-new" name="new-password" autoComplete="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 10, Aa1#" className="w-full" />
+                <Input id="profile-password-modal-new" name="new-password" autoComplete="new-password" type="password" minLength={6} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 6 caracteres" className="w-full" />
               </div>
               <div>
                 <label htmlFor="profile-password-modal-confirm" className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-1">Confirmar Senha</label>

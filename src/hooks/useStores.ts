@@ -86,9 +86,11 @@ export function useStores() {
   const { role, vinculos_loja, storeId } = useAuth()
   const [lojas, setStores] = useState<Store[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const fetchStores = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       let query = supabase.from('lojas').select(STORES_SELECT).order('name')
 
@@ -114,6 +116,7 @@ export function useStores() {
       const message = err instanceof Error ? err.message : 'Erro desconhecido'
       console.error('Audit Error [useStores]: fetchStores fail ->', message)
       toast.error('Não foi possível carregar as lojas.')
+      setError(getSafeUserFacingDataError(err, 'Não foi possível carregar as unidades.'))
       setStores([])
     } finally {
       setLoading(false)
@@ -239,7 +242,7 @@ export function useStores() {
   useEffect(() => {
     fetchStores()
   }, [fetchStores])
-  return { lojas, loading, createStore, updateStore, deleteStore, toggleStoreStatus, refetch: fetchStores }
+  return { lojas, loading, error, createStore, updateStore, deleteStore, toggleStoreStatus, refetch: fetchStores }
 }
 
 export function useStoresStats() {

@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { Lock, ShieldCheck, RefreshCw, CheckCircle2, Eye, EyeOff, LogOut, ShieldAlert, Zap, KeyRound, Sparkles } from 'lucide-react'
+import { Lock, ShieldCheck, RefreshCw, Eye, EyeOff, LogOut, Zap, KeyRound, Sparkles } from 'lucide-react'
 import { Button } from '@/components/atoms/Button'
 import { Input } from '@/components/atoms/Input'
 import { Typography } from '@/components/atoms/Typography'
@@ -23,12 +23,8 @@ export function ForcePasswordChange() {
 
   const passwordStrength = useMemo(() => {
     if (!formData.password) return 0
-    let strength = 0
-    if (formData.password.length >= 6) strength += 1
-    if (/[A-Z]/.test(formData.password)) strength += 1
-    if (/[0-9]/.test(formData.password)) strength += 1
-    if (/[^A-Za-z0-9]/.test(formData.password)) strength += 1
-    return strength
+    if (formData.password.length < 6) return 1
+    return formData.password.length < 10 ? 2 : 4
   }, [formData.password])
 
   const strengthColor = [
@@ -40,11 +36,11 @@ export function ForcePasswordChange() {
   ][passwordStrength]
 
   const strengthLabel = [
-    'MUITO FRACA',
-    'FRACA',
-    'MÉDIA',
-    'FORTE',
-    'EXCELENTE'
+    '',
+    'MÍNIMO 6 CARACTERES',
+    'VÁLIDA',
+    '',
+    'VÁLIDA'
   ][passwordStrength]
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -138,6 +134,7 @@ export function ForcePasswordChange() {
                     <KeyRound size={20} className="absolute left-mx-sm top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within/input:text-brand-primary transition-colors z-10" />
                     <Input 
                       required 
+                      minLength={6}
                       type={showPassword ? 'text' : 'password'} 
                       placeholder="NOVA SENHA" 
                       value={formData.password} 
