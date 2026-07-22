@@ -36,7 +36,6 @@ handleExit: () => void
 historyOpen: boolean
   setHistoryOpen: (open: boolean) => void
   checkins?: DailyCheckin[]
-  userId?: string
   previousCard?: PreviousClosingCard | null
   activeClosingDate: string
   saveCheckin: (
@@ -56,7 +55,6 @@ setCustomReferenceDate,
 historyOpen,
 setHistoryOpen,
  checkins = [],
- userId = 'vendedor',
  previousCard = null,
  activeClosingDate,
  saveCheckin,
@@ -116,26 +114,15 @@ const { requestCorrection, fetchOwnRequests, loading: auditorLoading } = useChec
       const state = resolveHistoryRowState({ date, checkin: checkin ?? null, latestRequest, now: new Date(), isToday })
 
       if (checkin) {
-        // Read sales count (merge localStorage & DB)
-        let salesCount = 0
-        const localClients = localStorage.getItem(`mx-checkin-clientes:${userId}:${date}`)
-        if (localClients) {
-          try {
-            salesCount = JSON.parse(localClients).filter((c: any) => c.vendaRealizada === 'Sim').length
-          } catch {
-            salesCount = (checkin.vnd_porta_prev_day || 0) + (checkin.vnd_cart_prev_day || 0) + (checkin.vnd_net_prev_day || 0)
-          }
-        } else {
-          salesCount = (checkin.vnd_porta_prev_day || 0) + (checkin.vnd_cart_prev_day || 0) + (checkin.vnd_net_prev_day || 0)
-        }
+        const salesCount = (checkin.vnd_porta_prev_day || 0)
+          + (checkin.vnd_cart_prev_day || 0)
+          + (checkin.vnd_net_prev_day || 0)
 
-        // Disciplina (EV-1.5): valor oficial persistido pelo servidor em
-        // lancamentos_diarios.pontuacao_disciplina_final. Fallback para
-        // localStorage só para lançamentos antigos (pré EV-1.5) que não têm
-        // o campo preenchido.
+        // Disciplina oficial persistida pelo servidor. Registros antigos sem
+        // pontuação permanecem indisponíveis em vez de receber um valor local.
         const score = checkin.pontuacao_disciplina_final != null
           ? String(Math.round(checkin.pontuacao_disciplina_final))
-          : localStorage.getItem(`mx-checkin-score:${userId}:${date}`) || '70'
+          : null
 
         // Formatted time
         const finalized = isSubmittedClosing(checkin)
@@ -154,7 +141,7 @@ const { requestCorrection, fetchOwnRequests, loading: auditorLoading } = useChec
           status: HISTORY_ROW_STATE_LABEL[state],
           state,
           latestRequest,
-          score: finalized ? (score.includes('%') ? score : `${score}%`) : '—',
+          score: finalized && score ? (score.includes('%') ? score : `${score}%`) : '—',
           time: formattedTime,
           sales: salesCount,
           leads,
@@ -180,7 +167,7 @@ const { requestCorrection, fetchOwnRequests, loading: auditorLoading } = useChec
       }
     }
     return list
-  }, [checkins, userId, ownRequests])
+  }, [checkins, ownRequests])
 
   const handleSelectRow = (row: any) => {
     setSelectedRow(row)

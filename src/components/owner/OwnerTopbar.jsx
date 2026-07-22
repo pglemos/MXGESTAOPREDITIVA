@@ -42,10 +42,7 @@ export default function OwnerTopbar({ lastUpdated }) {
   const [profileOpen, setProfileOpen] = useState(false);
 
   const companyOptions = companies.map((c) => ({ value: c.id, label: c.name }));
-  const unitOptions = [
-    { value: "all", label: "Todas as unidades" },
-    ...currentUnits.map((u) => ({ value: u.id, label: u.name })),
-  ];
+  const unitOptions = currentUnits.map((u) => ({ value: u.id, label: u.name }));
 
   const firstName = (user?.full_name || user?.email || "Dono").split(" ")[0];
 

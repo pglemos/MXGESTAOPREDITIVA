@@ -17,6 +17,8 @@ describe('Rotina da Equipe canonical source', () => {
 
   test('consolidates and reads official immutable SellerRoutineSnapshots', () => {
     expect(canonicalSource).toContain("supabase.rpc('consolidate_seller_routine_snapshots'")
+    expect(canonicalSource).toContain('const consolidationRequests = new Map')
+    expect(canonicalSource).toContain("first.error?.code !== '23505'")
     expect(canonicalSource).toContain(".from('seller_routine_snapshots')")
     expect(canonicalSource).toContain('latestSnapshotsBySellerAndDate')
     expect(canonicalSource).toContain('buildOfficialScoreFromSnapshot')

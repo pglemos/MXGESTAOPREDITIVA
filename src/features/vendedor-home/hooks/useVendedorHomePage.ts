@@ -122,7 +122,7 @@ export function useVendedorHomePage() {
     vinculoTipo,
     atingimentoLojaPercentual: metrics?.atingimento || 0,
     carrosVendidosLoja: storeSales.storeTotalVendas,
-    nivelCarreira,
+    nivelCarreira: nivelCarreira ?? undefined,
   })
 
   const referenceDateLabel = useMemo(() => {

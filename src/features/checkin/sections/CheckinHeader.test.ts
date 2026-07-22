@@ -10,6 +10,13 @@ const formSource = readFileSync(new URL('./CheckinForm.tsx', import.meta.url), '
 // alterá-los. E a distribuição de leads/visitas por canal era perdida ao
 // somar tudo em leads_cart/visitas_porta antes de reabrir o drawer.
 describe('CheckinHeader — regularização (P0-02/P0-06)', () => {
+    test('histórico usa somente vendas e disciplina persistidas no fechamento', () => {
+        expect(headerSource).not.toContain('localStorage')
+        expect(headerSource).not.toContain("|| '70'")
+        expect(headerSource).toContain('checkin.pontuacao_disciplina_final')
+        expect(headerSource).toContain('checkin.vnd_porta_prev_day')
+    })
+
     test('não hardcoda agd_cart_prev_day/agd_net_prev_day em 0 no payload de solicitação (zerava agendamentos D-1 em toda regularização)', () => {
         expect(headerSource).not.toContain('agd_cart_prev_day: 0')
         expect(headerSource).not.toContain('agd_net_prev_day: 0')

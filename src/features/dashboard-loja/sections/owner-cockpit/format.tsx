@@ -10,7 +10,7 @@ import {
 } from '@/lib/central-mx-engine'
 import { classifyMxScore, type ExecutiveAlert, type MxDepartmentCode } from '@/lib/mx-executive-foundation'
 import type { OwnerPerformanceAlert } from '../PerformanceAlerts'
-import { resolveOwnerSection } from './ownerBase44Config'
+import { resolveOwnerDepartmentFromPath, resolveOwnerLocation } from './ownerBase44Config'
 import { toneClasses, type ActionRow, type DashboardData, type DepartmentScore, type OwnerSection } from './types'
 
 export function currentPeriodLabel(referenceDate: string) {
@@ -261,11 +261,13 @@ export function departmentLabel(code: MxDepartmentCode) {
   return labels[code]
 }
 
-export function getOwnerSection(search: string): OwnerSection {
-  return resolveOwnerSection(search)
+export function getOwnerSection(pathname: string, search: string): OwnerSection {
+  return resolveOwnerLocation(pathname, search)
 }
 
-export function getOwnerDepartmentCode(search: string): MxDepartmentCode | null {
+export function getOwnerDepartmentCode(pathname: string, search: string): MxDepartmentCode | null {
+  const pathCode = resolveOwnerDepartmentFromPath(pathname)
+  if (pathCode && pathCode !== 'visao-geral') return pathCode
   const value = new URLSearchParams(search).get('ownerSection')
   const code = value?.startsWith('departamentos-') ? value.replace('departamentos-', '') : null
   if (

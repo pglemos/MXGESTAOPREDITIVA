@@ -259,7 +259,7 @@ export function AgendaOptionsCatalog({ isReadOnly = false }: { isReadOnly?: bool
       {error && (
         <Card className="border-none bg-status-warning/10 p-mx-md shadow-mx-sm">
           <Typography variant="tiny" tone="muted" className="uppercase tracking-widest">
-            Usando lista padrão local. Banco retornou: {error}
+            Não foi possível carregar o catálogo oficial: {error}
           </Typography>
         </Card>
       )}

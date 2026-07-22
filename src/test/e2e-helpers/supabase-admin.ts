@@ -15,6 +15,8 @@ export interface E2EUser {
   password: string
 }
 
+type E2ERole = 'administrador_geral' | 'administrador_mx' | 'consultor_mx' | 'dono' | 'gerente' | 'vendedor'
+
 let cachedAdmin: SupabaseClient | null = null
 let cachedAnon: SupabaseClient | null = null
 
@@ -58,7 +60,7 @@ export async function createE2EAdminUser(options?: {
   name?: string
   password?: string
   mustChangePassword?: boolean
-  role?: 'administrador_geral' | 'administrador_mx' | 'consultor_mx'
+  role?: E2ERole
 }) {
   const admin = getSupabaseAdmin()
   const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -105,6 +107,41 @@ export async function createE2EAdminUser(options?: {
     email,
     password,
   } satisfies E2EUser
+}
+
+export async function createE2EStoreUser(options: {
+  storeId: string
+  role: 'dono' | 'gerente' | 'vendedor'
+  prefix: string
+  name: string
+}) {
+  const user = await createE2EAdminUser(options)
+  const admin = getSupabaseAdmin()
+  const { error: membershipError } = await admin.from('vinculos_loja').insert({
+    user_id: user.id,
+    store_id: options.storeId,
+    role: options.role,
+    is_active: true,
+  })
+
+  if (membershipError) {
+    await deleteE2EUser(user.id)
+    throw new Error(`Failed to create E2E store membership: ${membershipError.message}`)
+  }
+
+  if (options.role === 'vendedor') {
+    const { error: sellerError } = await admin.from('vendedores_loja').insert({
+      seller_user_id: user.id,
+      store_id: options.storeId,
+      is_active: true,
+    })
+    if (sellerError) {
+      await deleteE2EUser(user.id)
+      throw new Error(`Failed to create E2E store seller: ${sellerError.message}`)
+    }
+  }
+
+  return user
 }
 
 export async function createE2EConsultingClient(options: {
@@ -177,8 +214,33 @@ export async function deleteE2EConsultingData(clientIds: string[]) {
 
 export async function deleteE2EUser(userId: string) {
   const admin = getSupabaseAdmin()
-  await admin.from('usuarios').delete().eq('id', userId)
-  await admin.auth.admin.deleteUser(userId)
+  const scopedRows: Array<[string, string]> = [
+    ['manager_daily_tasks', 'manager_user_id'],
+    ['manager_daily_tasks', 'seller_user_id'],
+    ['seller_routine_snapshots', 'seller_user_id'],
+    ['seller_day_eligibility', 'seller_user_id'],
+    ['manager_routine_snapshots', 'manager_user_id'],
+    ['manager_lead_conference_items', 'seller_user_id'],
+    ['manager_lead_conferences', 'manager_user_id'],
+    ['d1_snapshot_items', 'seller_user_id'],
+    ['d1_snapshot_batches', 'seller_user_id'],
+    ['d1_contact_audit', 'manager_user_id'],
+    ['d1_contact_audit', 'seller_user_id'],
+    ['logs_rotina_gerente', 'manager_id'],
+    ['vendedores_loja', 'seller_user_id'],
+    ['vinculos_loja', 'user_id'],
+  ]
+
+  for (const [table, column] of scopedRows) {
+    const { error } = await admin.from(table).delete().eq(column, userId)
+    if (error) throw new Error(`Failed to clean E2E ${table}.${column}: ${error.message}`)
+  }
+
+  const { error: profileError } = await admin.from('usuarios').delete().eq('id', userId)
+  if (profileError) throw new Error(`Failed to delete E2E public profile: ${profileError.message}`)
+
+  const { error: authError } = await admin.auth.admin.deleteUser(userId)
+  if (authError) throw new Error(`Failed to delete E2E auth user: ${authError.message}`)
 }
 
 export async function getMustChangePassword(userId: string) {

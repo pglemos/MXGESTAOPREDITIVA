@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { z } from 'zod'
 import { toast } from '@/lib/toast'
 import { supabase } from '@/lib/supabase'
@@ -397,9 +397,13 @@ export function useSellersByStore(storeId: string | null) {
   const [sellers, setSellers] = useState<(User & { checkin_today: boolean })[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const requestSequence = useRef(0)
   const referenceDate = calculateReferenceDate()
 
   const fetch = useCallback(async () => {
+    const requestId = ++requestSequence.current
+    const isCurrentRequest = () => requestSequence.current === requestId
+
     if (!storeId) {
       setSellers([])
       setError(null)
@@ -426,6 +430,8 @@ export function useSellersByStore(storeId: string | null) {
     const sellersError = sellersRes.error
     const membershipsData = membershipsRes.data
     const membershipsError = membershipsRes.error
+
+    if (!isCurrentRequest()) return
 
     if (sellersError) {
       console.error('Audit Error [useSellersByStore]: sellers fail ->', sellersError.message)
@@ -463,6 +469,9 @@ export function useSellersByStore(storeId: string | null) {
       checkins = res.data
       checkinsError = res.error
     }
+
+    if (!isCurrentRequest()) return
+
     if (checkinsError)
       console.error('Audit Error [useSellersByStore]: checkins fail ->', checkinsError.message)
 
@@ -492,7 +501,10 @@ export function useSellersByStore(storeId: string | null) {
   }, [storeId, referenceDate])
 
   useEffect(() => {
-    fetch()
+    void fetch()
+    return () => {
+      requestSequence.current += 1
+    }
   }, [fetch])
   return { sellers, loading, error, refetch: fetch }
 }

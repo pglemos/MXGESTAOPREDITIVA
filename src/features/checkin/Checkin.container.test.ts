@@ -12,7 +12,7 @@ describe('Checkin.container — banner de conexão (MX-22.6)', () => {
     expect(source).toContain("import { useOnlineStatus } from '@/hooks/useOnlineStatus'")
     expect(source).toContain('const isOnline = useOnlineStatus()')
     expect(source).toContain('{!isOnline && (')
-    expect(source).toContain('Sem conexão. Suas alterações serão salvas assim que a conexão voltar.')
+    expect(source).toContain('Sem conexão. O envio pode falhar até a conexão ser restabelecida.')
   })
 
   test('banner de offline é role="status" (não bloqueia submissão, só informa)', () => {

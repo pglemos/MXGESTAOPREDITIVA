@@ -54,8 +54,8 @@ const PERFIL_VAZIO: PerfilVendedor = {
     available_plans: [],
     experience_years: 0,
     work_schedule_options: [],
-    work_start: '08:00',
-    work_end: '18:00',
+    work_start: '',
+    work_end: '',
     commission_per_unit: 0,
     salary_goal: 0,
     job_interest: 'Não',
@@ -94,8 +94,8 @@ export function useMeuPerfilVendedor() {
             ])
 
             const storeId = vendedorPerfil?.loja_id || vinculos?.[0]?.store_id || ''
-            const workStart = vendedorPerfil?.hora_entrada ? vendedorPerfil.hora_entrada.slice(0, 5) : '08:00'
-            const workEnd = vendedorPerfil?.hora_saida ? vendedorPerfil.hora_saida.slice(0, 5) : '18:00'
+            const workStart = vendedorPerfil?.hora_entrada ? vendedorPerfil.hora_entrada.slice(0, 5) : ''
+            const workEnd = vendedorPerfil?.hora_saida ? vendedorPerfil.hora_saida.slice(0, 5) : ''
 
             const [{ data: loja }, { data: planos }, { data: jornadas }] = await Promise.all([
                 storeId

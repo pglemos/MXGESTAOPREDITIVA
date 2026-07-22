@@ -282,10 +282,9 @@ export function OwnerActionPlanSummary({ actions }: { actions: ActionRow[] }) {
   const critical = actions.filter(action => action.tone === 'danger').length
   const completed = actions.filter(action => action.status === 'Concluída').length
   const inProgress = actions.filter(action => action.status === 'Em andamento').length
-  // Eficácia ratios — fallback para valores do mockup quando não há dados
-  const eficazesPct = total > 0 ? Math.round(((completed * 0.9 + inProgress * 0.5) / total) * 100) : 78
-  const parciaisPct = total > 0 ? Math.round((inProgress / total) * 100) : 15
-  const ineficazesPct = Math.max(0, 100 - eficazesPct - parciaisPct)
+  const eficazesPct = total > 0 ? Math.round((completed / total) * 100) : 0
+  const parciaisPct = total > 0 ? Math.round((inProgress / total) * 100) : 0
+  const ineficazesPct = total > 0 ? Math.max(0, 100 - eficazesPct - parciaisPct) : 0
 
   return (
     <Card className="rounded-mx-lg border border-border-subtle bg-white p-mx-md shadow-mx-sm">

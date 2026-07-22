@@ -329,37 +329,6 @@ export function sanitizeExecutiveAgendaEvent(
   }
 }
 
-export function buildAnonymousAlertFixtures(): ExecutiveAlert[] {
-  return [
-    {
-      scopeType: 'store',
-      scopeId: 'fixture-store',
-      type: 'critical',
-      problem: 'Conversao abaixo do minimo operacional.',
-      impact: 'Risco de perda de vendas no periodo.',
-      recommendation: 'Revisar rotina de primeiro contato e confirmacao.',
-      quickActionLabel: 'Abrir plano de acao',
-      status: 'open',
-      channels: ['system', 'push', 'whatsapp'],
-      ruleVersion: 'fixture-v1',
-      metadata: { anonymized: true },
-    },
-    {
-      scopeType: 'store',
-      scopeId: 'fixture-store',
-      type: 'consultive',
-      problem: 'Estoque parado acima do esperado.',
-      impact: 'Capital imobilizado e margem pressionada.',
-      recommendation: 'Priorizar plano de giro por faixa de aging.',
-      quickActionLabel: 'Ver recomendacao',
-      status: 'acknowledged',
-      channels: ['system'],
-      ruleVersion: 'fixture-v1',
-      metadata: { anonymized: true },
-    },
-  ]
-}
-
 export function validateExecutiveAlert(alert: ExecutiveAlert): string[] {
   const errors: string[] = []
 

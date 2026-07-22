@@ -6,18 +6,11 @@ const EXACT_COMPONENTS = [
   'ModoAtaque.jsx',
   'ProximaOportunidadeModal.jsx',
   'RetornoWhatsAppModal.jsx',
-  'carteiraUtils.jsx',
   'proximoPassoLib.js',
   'VeiculosChegaram.jsx',
 ]
 
 const INTEGRATED_COMPONENTS = {
-  'FichaClienteSheet.jsx': [
-    'w-full sm:max-w-xl overflow-y-auto p-0 flex flex-col',
-    'Mentor Comercial',
-    'Alterar próximo passo',
-    'sticky bottom-0 bg-white border-t border-slate-100',
-  ],
   'NovoClienteModal.jsx': [
     'max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl',
     'Novo Cliente',
@@ -54,11 +47,41 @@ describe('Base44 1:1 visual source parity', () => {
     })
   }
 
-  test('the plan tab preserves the exact Base44 renderer and only adds persistence around it', () => {
+  test('FichaClienteSheet.jsx keeps its content contract while intentionally using a centered Dialog instead of the Base44 side Sheet', () => {
+    // Divergência de layout deliberada: o painel de ficha abre centralizado (Dialog) no
+    // runtime, não mais lateral (Sheet) como no base44-reference, que segue congelado.
+    const runtime = readFileSync('src/components/carteira/FichaClienteSheet.jsx', 'utf8')
+    const reference = readFileSync('src/base44-reference/components/carteira/FichaClienteSheet.jsx', 'utf8')
+
+    for (const token of ['Mentor Comercial', 'Alterar próximo passo', 'sticky bottom-0 bg-white border-t border-slate-100']) {
+      expect(reference, `reference token: ${token}`).toContain(token)
+      expect(runtime, `runtime token: ${token}`).toContain(token)
+    }
+    expect(runtime).toContain('finally')
+    expect(runtime).toContain('toast({')
+
+    expect(reference).toContain('@/components/ui/sheet')
+    expect(runtime).toContain('@/components/ui/dialog')
+    expect(runtime).not.toContain('@/components/ui/sheet')
+  })
+
+  test('the plan tab keeps the Base44 visual language while using only persisted missions and real clients', () => {
     const source = readFileSync('src/components/carteira/PlanoAtaqueTab.jsx', 'utf8')
-    expect(source).toContain('PlanoAtaqueTabBase44')
-    expect(source).toContain('@/base44-reference/components/carteira/PlanoAtaqueTab.jsx')
-    expect(source).toContain('CarteiraMissao.filter')
+    expect(source).toContain('rounded-2xl')
+    expect(source).toContain('bg-[#005BFF]')
+    expect(source).toMatch(/CarteiraMissao\s*\.filter/)
+    expect(source).toContain('CarteiraMissao.create')
+    expect(source).toMatch(/if \(queue\.length > 0\)[\s\S]*?else[\s\S]*?setMissaoRecuperada\(null\)/)
+    expect(source).not.toContain('@/base44-reference/components/carteira/PlanoAtaqueTab.jsx')
+    expect(source).not.toMatch(/\bpotencial\s*:/)
+  })
+
+  test('mission catalog preserves its operational filters without invented sales projections', () => {
+    const source = readFileSync('src/components/carteira/carteiraUtils.jsx', 'utf8')
+    expect(source).toContain('export const MISSOES')
+    expect(source).toContain('filtro:')
+    expect(source).not.toMatch(/\bpotencial\s*:/)
+    expect(source).not.toMatch(/\d+\s+a\s+\d+\s+vendas/i)
   })
 
   test('mission execution preserves Base44 interaction tokens while persisting every action', () => {

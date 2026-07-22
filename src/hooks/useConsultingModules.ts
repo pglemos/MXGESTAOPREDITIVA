@@ -82,8 +82,7 @@ export function useConsultingModules(clientId?: string) {
 
   const isEnabled = useCallback((moduleKey: ConsultingClientModule['module_key']) => {
     const stored = moduleMap.get(moduleKey)
-    if (stored) return stored.enabled
-    return DEFAULT_CONSULTING_MODULES.find((item) => item.module_key === moduleKey)?.enabled ?? false
+    return stored?.enabled ?? false
   }, [moduleMap])
 
   return { modules, moduleMap, loading, error, canManage, isEnabled, upsertModule, refetch: fetchModules }

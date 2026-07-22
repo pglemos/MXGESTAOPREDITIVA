@@ -17,6 +17,7 @@ export function ConsultingModulesPanel({ modules, loading = false, canManage = f
   const moduleMap = new Map(modules.map((module) => [module.module_key, module]))
   const mergedModules = DEFAULT_CONSULTING_MODULES.map((defaultModule) => ({
     ...defaultModule,
+    enabled: false,
     ...(moduleMap.get(defaultModule.module_key) || {}),
   }))
 

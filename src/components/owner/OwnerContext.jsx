@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
 import { useAuth } from "@/lib/owner-b44/AuthContext";
 import { useStores } from "@/hooks/useStores";
 
@@ -16,13 +16,21 @@ export const OwnerProvider = ({ children }) => {
   const { lojas, loading: storesLoading } = useStores();
 
   const [period, setPeriod] = useState("month"); // month | quarter | year | custom
-  const [unitId, setUnitId] = useState("all"); // "all" | store id
+  const [unitId, setUnitId] = useState("");
   const [consultantModal, setConsultantModal] = useState({ open: false, context: null });
 
   const units = useMemo(
     () => (lojas || []).filter((store) => store.active !== false).map((store) => ({ id: store.id, name: store.name })),
     [lojas],
   );
+
+  useEffect(() => {
+    if (units.length === 0) {
+      setUnitId("");
+      return;
+    }
+    setUnitId((current) => units.some((unit) => unit.id === current) ? current : units[0].id);
+  }, [units]);
 
   const company = useMemo(
     () => ({ id: "mx", name: user?.full_name ? `${user.full_name.split(" ")[0]} • MX` : "MX Performance" }),

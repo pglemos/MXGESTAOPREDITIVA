@@ -67,7 +67,7 @@ function VendaTipoBadge({ vendaRealizada }: { vendaRealizada: string }) {
 }
 
 interface CheckinCrmSectionProps {
-  ctx?: CheckinCrmSectionCtx
+  ctx: CheckinCrmSectionCtx
   /** Reunião 09/07/2026: no Fechamento Diário ao vivo, a edição rápida
    * (data/status/observação) abaixo do cliente foi removida — o fluxo
    * correto passou a ser Rotina do Dia (reagendar/status) ou Histórico
@@ -193,17 +193,7 @@ export function CheckinCrmSection({ ctx, allowInlineQuickEdit = true }: CheckinC
   const { createOportunidade, updateOportunidade, updateMotivoPerda, deleteOportunidade } = useOportunidades()
   const { agendamentos, createAgendamento, updateAgendamento, deleteAgendamento } = useAgendamentos()
 
-  // Fallback mock context if ctx is undefined (e.g. in unit tests)
-  const fallbackCtx = {
-    clientesList: [],
-    refetchClientesList: async () => {},
-    selectedDate: '2026-06-16',
-    supabaseUser: { id: 'vendedor-id' },
-    finalizadoAposPrazo: false,
-    effectiveForm: { visitas_porta: 0, visitas_cart: 0, visitas_net: 0 },
-  }
-  const activeCtx = ctx || (fallbackCtx as any)
-  const { clientesList, refetchClientesList, selectedDate, supabaseUser, finalizadoAposPrazo, effectiveForm } = activeCtx
+  const { clientesList, refetchClientesList, selectedDate, supabaseUser, finalizadoAposPrazo, effectiveForm } = ctx
 
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [saving, setSaving] = useState(false)

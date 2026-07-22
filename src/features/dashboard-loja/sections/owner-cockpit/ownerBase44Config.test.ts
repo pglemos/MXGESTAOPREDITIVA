@@ -5,6 +5,8 @@ import {
   OWNER_LEGACY_SECTION_VALUES,
   ownerNavigationCanonicalPath,
   ownerNavigationSectionValue,
+  resolveOwnerDepartmentFromPath,
+  resolveOwnerLocation,
   resolveOwnerSection,
 } from './ownerBase44Config'
 
@@ -109,6 +111,21 @@ describe('contrato do módulo Dono inspirado no Base44', () => {
     for (const section of OWNER_LEGACY_SECTION_VALUES) {
       expect(resolveOwnerSection(`?ownerSection=${section}`)).toBe(section)
     }
+  })
+
+  test('resolve as rotas canônicas do Dono para o cockpit de dados reais', () => {
+    expect(resolveOwnerLocation('/dono', '')).toBe('home')
+    expect(resolveOwnerLocation('/dono/rotina', '')).toBe('rotina')
+    expect(resolveOwnerLocation('/dono/decisoes', '')).toBe('decisoes')
+    expect(resolveOwnerLocation('/dono/plano-estrategico', '')).toBe('planejamento')
+    expect(resolveOwnerLocation('/dono/plano-acao', '')).toBe('plano-acao')
+    expect(resolveOwnerLocation('/dono/consultoria', '')).toBe('consultoria')
+    expect(resolveOwnerLocation('/dono/departamentos/marketing', '')).toBe('departamentos')
+    expect(resolveOwnerLocation('/dono/mercado', '')).toBe('mercado')
+    expect(resolveOwnerLocation('/dono/universidade', '')).toBe('universidade')
+    expect(resolveOwnerDepartmentFromPath('/dono/departamentos/produto-e-estoque')).toBe('produto')
+    expect(resolveOwnerDepartmentFromPath('/dono/departamentos/pessoas-rh')).toBe('rh')
+    expect(resolveOwnerDepartmentFromPath('/dono/departamentos')).toBeNull()
   })
 
   test('mantém apenas departamentos canônicos no contexto executivo', () => {

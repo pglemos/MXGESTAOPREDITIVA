@@ -192,10 +192,8 @@ export function calcularObjetivoEProximoPasso(cliente) {
     return { objetivo: "Gerar visita", proximoPasso: "Convidar para visita" };
   if (s === "Visita agendada" && visita) {
     const diff = moment(visita).diff(moment(), "days");
-    if (diff <= 0) return { objetivo: "Confirmar visita", proximoPasso: "Confirmar visita hoje" };
-    if (diff === 1) return { objetivo: "Confirmar visita", proximoPasso: "Confirmar visita hoje" };
-    if (diff === 2) return { objetivo: "Confirmar visita", proximoPasso: "Confirmar visita amanhã" };
-    return { objetivo: "Confirmar visita", proximoPasso: "Visita agendada" };
+    if (diff <= 1) return { objetivo: "Confirmar visita", proximoPasso: "Confirmar visita hoje" };
+    return { objetivo: "Confirmar visita", proximoPasso: "Confirmar visita amanhã" };
   }
   if (s === "Visita a confirmar")
     return { objetivo: "Confirmar visita", proximoPasso: "Confirmar visita amanhã" };
@@ -444,7 +442,7 @@ export const SCRIPTS_BIBLIOTECA = {
     id: "S09",
     titulo: "Proposta enviada",
     objetivo: "Recuperar decisão",
-    texto: `Oi, {nome}! Tudo bem?\n\nConseguiu avaliar a proposta do {veiculo}?\n\nSe fizer sentido, posso revisar as condições com você e ver se existe algum ponto que ainda está travando sua decisão.`,
+    texto: `Oi, {nome}! Tudo bem?\n\nA proposta do {veiculo} que te passei foi montada com a melhor condição que consegui pra você.\n\nSe deixar pra depois eu corro o risco de não conseguir manter os mesmos números. Posso revisar com você agora?`,
   },
   "Converter financiamento aprovado": {
     id: "S10",
@@ -456,7 +454,7 @@ export const SCRIPTS_BIBLIOTECA = {
     id: "S11",
     titulo: "Cliente vai pensar",
     objetivo: "Descobrir objeção real",
-    texto: `Entendo, {nome}.\n\nSó para eu te ajudar melhor: o que ficou pesando mais na sua decisão?\n\nValor, entrada, parcela, troca ou ainda está comparando outras opções?`,
+    texto: `Entendo, {nome}.\n\nSó para eu te ajudar melhor: o que ficou pesando mais na sua decisão sobre o {veiculo}? Valor, entrada, parcela ou a troca?\n\nMe conta que eu vejo se ainda dá pra ajustar do jeito que você precisa.`,
   },
   "Reativar cliente antigo": {
     id: "S12",
@@ -480,13 +478,113 @@ export const SCRIPTS_BIBLIOTECA = {
     id: "S09",
     titulo: "Proposta",
     objetivo: "Enviar e recuperar decisão",
-    texto: `Oi, {nome}! Tudo bem?\n\nPreparei as melhores condições para o {veiculo}.\n\nPosso te enviar agora para você avaliar?`,
+    texto: `Oi, {nome}! Tudo bem?\n\nMontei a proposta do {veiculo} com a condição que consegui fechar pensando exatamente no que você me contou.\n\nQuero te passar agora enquanto essa condição ainda está valendo. Posso te enviar?`,
   },
   "Acompanhar financiamento": {
     id: "S10b",
     titulo: "Acompanhar financiamento",
     objetivo: "Manter cliente informado",
     texto: `Oi, {nome}! Tudo bem?\n\nPassando para te atualizar sobre o andamento do financiamento do {veiculo}.\n\nAssim que tiver novidades, te aviso imediatamente.`,
+  },
+
+  // Entradas abaixo cobrem os labels oficiais de PASSOS (PP01–PP17, ver proximoPassoLib.js).
+  // cliente.proximo_passo é gravado com esses labels após qualquer transição registrada,
+  // então precisam existir aqui com o texto EXATO para o lookup direto encontrar.
+  "Realizar diagnóstico": {
+    id: "S02b",
+    titulo: "Diagnóstico de necessidade",
+    objetivo: "Entender necessidade, urgência e forma de pagamento",
+    texto: `Legal, {nome}!\n\nPra te indicar a melhor opção: você pensa em comprar o {veiculo} à vista, financiado ou tem um veículo pra dar de entrada?\n\nE para quando você pretende fechar negócio?`,
+  },
+  "Enviar fotos ou vídeo": {
+    id: "S03",
+    titulo: "Fotos e vídeo do veículo",
+    objetivo: "Apresentar o veículo com destaque de valor",
+    texto: `{nome}, separei fotos e um vídeo do {veiculo} pra você ver os detalhes de perto.\n\nVou te enviar agora. Qualquer dúvida sobre o carro, me chama!`,
+  },
+  "Apresentar veículo ideal": {
+    id: "S04b",
+    titulo: "Apresentação do veículo ideal",
+    objetivo: "Conduzir à escolha certa",
+    texto: `{nome}, pelo que você me contou, o {veiculo} encaixa bem no que você está buscando.\n\nQuer que eu te explique as condições e os diferenciais dele?`,
+  },
+  "Simular financiamento": {
+    id: "S05b",
+    titulo: "Simulação de financiamento",
+    objetivo: "Apresentar condições de pagamento",
+    texto: `{nome}, fiz uma simulação de financiamento do {veiculo} pra você.\n\nPosso te mostrar as condições de entrada e parcela agora?`,
+  },
+  "Avaliar usado": {
+    id: "S06",
+    titulo: "Avaliação do usado",
+    objetivo: "Registrar e conduzir avaliação do veículo de troca",
+    texto: `{nome}, pra avançar com a troca, preciso de alguns dados do seu veículo atual: modelo, ano e quilometragem.\n\nPode me passar essas informações?`,
+  },
+  "Agendar visita ou videochamada": {
+    id: "S07",
+    titulo: "Convite para visita ou videochamada",
+    objetivo: "Transformar interesse em presença na loja",
+    texto: `{nome}, para você decidir com mais segurança, o ideal é ver o {veiculo} pessoalmente ou por videochamada.\n\nTenho horário hoje às {opcao1} ou amanhã às {opcao2}. Qual fica melhor para você?`,
+  },
+  "Confirmar agendamento": {
+    id: "S08",
+    titulo: "Confirmar agendamento",
+    objetivo: "Garantir comparecimento",
+    texto: `Oi, {nome}! Tudo bem?\n\nSua visita para ver o {veiculo} está confirmada para {data} às {hora}.\n\nVou deixar tudo organizado para te atender bem. Posso manter esse horário?`,
+  },
+  "Realizar atendimento comercial": {
+    id: "S09b",
+    titulo: "Atendimento presencial",
+    objetivo: "Conduzir o atendimento e avançar na negociação",
+    texto: `Oi, {nome}! Já estou te esperando aqui pra falarmos sobre o {veiculo}.\n\nConfirma que consegue vir no horário combinado?`,
+  },
+  "Trabalhar objeção": {
+    id: "S11b",
+    titulo: "Trabalhar objeção",
+    objetivo: "Identificar e superar a resistência do cliente",
+    texto: `Entendo, {nome}.\n\nVocê já chegou até aqui porque o {veiculo} faz sentido pra você. Geralmente quando trava, é só um ponto: valor, entrada, parcela ou a troca.\n\nQual desses tá pesando mais? Assim eu já ajusto pontualmente, sem você ter que recomeçar a conversa do zero.`,
+  },
+  "Solicitar documentos / ficha": {
+    id: "S13",
+    titulo: "Solicitar documentos",
+    objetivo: "Coletar documentação necessária para fechar",
+    texto: `{nome}, para darmos andamento à compra do {veiculo}, preciso de alguns documentos seus.\n\nPosso te enviar a lista agora pelo WhatsApp?`,
+  },
+  "Confirmar venda": {
+    id: "S14",
+    titulo: "Confirmar venda",
+    objetivo: "Registrar o fechamento e garantir entrega impecável",
+    texto: `Parabéns, {nome}! 🎉\n\nSeu {veiculo} está garantido exatamente do jeito que combinamos.\n\nVou cuidar pessoalmente de cada detalhe até a entrega. Qualquer dúvida até lá, me chama.`,
+  },
+  "Retomar contato": {
+    id: "S15",
+    titulo: "Retomar contato",
+    objetivo: "Reengajar cliente que ficou sem resposta",
+    texto: `Oi, {nome}! Passando só para confirmar se ainda faz sentido eu te enviar informações sobre o {veiculo}.\n\nSe não for o melhor momento, sem problema. Posso deixar anotado para te chamar depois.`,
+  },
+  "Reativar cliente": {
+    id: "S16",
+    titulo: "Reativar cliente",
+    objetivo: "Recuperar cliente frio ou inativo com nova abordagem",
+    texto: `Oi, {nome}! Tudo bem?\n\nEstou atualizando minha carteira e queria saber se a ideia de comprar ou trocar de veículo ainda está nos seus planos.\n\nSe não for pra agora, posso deixar anotado para te chamar no momento certo.`,
+  },
+  "Encerrar oportunidade": {
+    id: "S17",
+    titulo: "Encerrar oportunidade",
+    objetivo: "Finalizar a oportunidade de forma profissional",
+    texto: `Oi, {nome}! Agradeço muito o contato até aqui.\n\nSe no futuro fizer sentido retomar a conversa sobre um veículo, fico à disposição.\n\nTudo de bom pra você!`,
+  },
+  "Registrar motivo de perda": {
+    id: "S17b",
+    titulo: "Encerramento após perda",
+    objetivo: "Encerrar com profissionalismo e manter porta aberta",
+    texto: `Oi, {nome}! Tudo bem?\n\nEntendo que esse não era o momento certo. Agradeço por ter considerado a gente.\n\nSe mudar de ideia ou surgir uma nova necessidade, estou à disposição.`,
+  },
+  "Programar troca futura": {
+    id: "S18",
+    titulo: "Agendar retorno futuro",
+    objetivo: "Manter relacionamento para uma futura troca",
+    texto: `Oi, {nome}! Tudo bem?\n\nAnotei aqui que você pensa em trocar de veículo mais pra frente.\n\nVou te chamar quando surgir uma condição boa pra essa troca. Combinado?`,
   },
 };
 
@@ -532,7 +630,6 @@ export const MISSOES = [
     prioridade: "Alta",
     objetivo: "Retomar proposta e fechar negócio.",
     porqueAgora: "Clientes com proposta sem resposta têm alto potencial e risco crescente de perda.",
-    potencial: "2 a 4 vendas",
     scriptId: "Retomar proposta",
     filtro: c => (c.situacao_atual === "Proposta enviada" || c.situacao_atual === "Proposta sem retorno" || c.momento === "Proposta enviada"),
   },
@@ -543,7 +640,6 @@ export const MISSOES = [
     prioridade: "Máxima",
     objetivo: "Converter financiamento aprovado em venda.",
     porqueAgora: "Financiamento aprovado sem compra é a oportunidade mais quente da carteira.",
-    potencial: "2 a 4 vendas",
     scriptId: "Converter financiamento aprovado",
     filtro: c => c.situacao_atual === "Financiamento aprovado sem compra" || (c.interesse_financiamento && (c.situacao_atual === "Em negociação ativa" || c.momento === "Em negociação")),
   },
@@ -554,9 +650,8 @@ export const MISSOES = [
     prioridade: "Alta",
     objetivo: "Reagendar clientes que não compareceram.",
     porqueAgora: "Cada visita não realizada é uma oportunidade que pode ser recuperada rapidamente.",
-    potencial: "2 a 5 vendas",
     scriptId: "Reagendar visita",
-    filtro: c => c.situacao_atual === "Não compareceu" || (c.visita_agendada_em && moment(c.visita_agendada_em).isBefore(moment(), "day") && c.situacao_atual !== "Venda realizada"),
+    filtro: c => c.situacao_atual === "Não compareceu" || (c.visita_agendada_em && moment(c.visita_agendada_em).isBefore(moment(), "day") && c.situacao_atual !== "Venda realizada" && c.situacao_atual !== "Venda perdida" && c.situacao_atual !== "Cadência encerrada"),
   },
   {
     id: "confirmar_visita",
@@ -565,7 +660,6 @@ export const MISSOES = [
     prioridade: "Alta",
     objetivo: "Confirmar presença de clientes agendados.",
     porqueAgora: "Visitas confirmadas têm taxa muito maior de comparecimento.",
-    potencial: "3 a 6 vendas",
     scriptId: "Confirmar visita amanhã",
     filtro: c => c.situacao_atual === "Visita a confirmar" || (c.visita_agendada_em && moment(c.visita_agendada_em).diff(moment(), "days") <= 2 && moment(c.visita_agendada_em).diff(moment(), "days") >= 0),
   },
@@ -576,7 +670,6 @@ export const MISSOES = [
     prioridade: "Alta",
     objetivo: "Transformar interesse quente em visita.",
     porqueAgora: "Clientes quentes sem visita perdem temperatura a cada dia.",
-    potencial: "3 a 7 vendas",
     scriptId: "Convidar para visita",
     filtro: c => c.situacao_atual === "Cliente quente sem visita" || (c.temperatura === "Quente" && !c.visita_agendada_em && c.situacao_atual !== "Venda realizada" && c.situacao_atual !== "Venda perdida"),
   },
@@ -587,7 +680,6 @@ export const MISSOES = [
     prioridade: "Alta",
     objetivo: "Entender barreira e tentar fechar.",
     porqueAgora: "Quem visitou já tem intenção. Falta superar a barreira.",
-    potencial: "3 a 7 vendas",
     scriptId: "Retomar proposta",
     filtro: c => c.situacao_atual === "Visita realizada" || c.momento === "Visita realizada",
   },
@@ -598,7 +690,6 @@ export const MISSOES = [
     prioridade: "Média",
     objetivo: "Reativar leads sem resposta.",
     porqueAgora: "Leads frios podem ser reativados com abordagem correta.",
-    potencial: "1 a 3 vendas",
     scriptId: "Enviar segunda abordagem",
     filtro: c => ["Lead sem resposta", "Em cadência sem resposta", "Aguardando resposta do cliente"].includes(c.situacao_atual) || c.temperatura === "Frio" || c.momento === "Cliente frio em nutrição" || c.momento === "Novo contato",
   },
@@ -609,7 +700,6 @@ export const MISSOES = [
     prioridade: "Média",
     objetivo: "Descobrir objeção e converter.",
     porqueAgora: "Clientes 'vão pensar' precisam de follow-up inteligente.",
-    potencial: "2 a 4 vendas",
     scriptId: "Fazer follow-up de decisão",
     filtro: c => c.situacao_atual === "Vai pensar" || c.situacao_atual === "Em negociação ativa" || c.momento === "Em negociação",
   },
@@ -620,7 +710,6 @@ export const MISSOES = [
     prioridade: "Média",
     objetivo: "Retomar relacionamento com clientes antigos.",
     porqueAgora: "Clientes antigos compram mais rápido do que leads novos.",
-    potencial: "2 a 5 vendas",
     scriptId: "Reativar cliente antigo",
     filtro: c => (c.canal_comercial === "Carteira" || c.canal_origem === "Carteira") && ["Oportunidade futura", "Cliente frio em nutrição", "Venda realizada"].includes(c.situacao_atual || c.momento),
   },
@@ -631,7 +720,6 @@ export const MISSOES = [
     prioridade: "Média",
     objetivo: "Manter relacionamento e pedir indicação.",
     porqueAgora: "Clientes satisfeitos indicam. Não deixe essa janela fechar.",
-    potencial: "Indicações",
     scriptId: "Pedir indicação",
     filtro: c => c.situacao_atual === "Pós-venda ativo" || c.momento === "Pós-venda ativo",
   },
@@ -642,7 +730,6 @@ export const MISSOES = [
     prioridade: "Baixa",
     objetivo: "Proteger relacionamento pós-venda.",
     porqueAgora: "Clientes com garantia precisam de atenção para manter confiança.",
-    potencial: "Relacionamento",
     scriptId: "Acompanhar garantia",
     filtro: c => c.situacao_atual === "Garantia em acompanhamento" || c.momento === "Garantia em acompanhamento",
   },
@@ -653,7 +740,6 @@ export const MISSOES = [
     prioridade: "Baixa",
     objetivo: "Cultivar oportunidade de troca futura.",
     porqueAgora: "Clientes com intenção futura podem antecipar a compra.",
-    potencial: "2 a 5 vendas",
     scriptId: "Reativar cliente antigo",
     filtro: c => c.situacao_atual === "Oportunidade futura" || c.interesse_troca || c.momento === "Oportunidade futura de troca",
   },

@@ -68,11 +68,12 @@ export function CadastroCarreira({ lojaId }: { lojaId: string }) {
                   <td className="px-mx-md py-mx-sm font-black">{vendedor.name}</td>
                   <td className="px-mx-md py-mx-sm">
                     <select
-                      value={niveis[vendedor.id] || 'junior'}
+                      value={niveis[vendedor.id] || ''}
                       disabled={savingIds.has(vendedor.id)}
                       onChange={e => handleChange(vendedor.id, e.target.value as NivelCarreira)}
                       className="h-mx-12 px-mx-sm bg-white border border-border-default rounded-mx-xl font-black uppercase text-xs focus:outline-none focus:border-brand-primary appearance-none cursor-pointer"
                     >
+                      <option value="" disabled>Não definido</option>
                       {(Object.keys(NIVEL_LABEL) as NivelCarreira[]).map(nivel => (
                         <option key={nivel} value={nivel}>{NIVEL_LABEL[nivel]}</option>
                       ))}

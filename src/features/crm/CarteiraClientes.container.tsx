@@ -325,49 +325,6 @@ const EMPTY_FORM: ClienteInput = {
 
 const PRIORIDADE_ORDER: Record<Prioridade, number> = { maxima: 0, alta: 1, media: 2, baixa: 3 }
 
-const DEMO_TOTAL_CLIENTES = 128
-const DEMO_KPIS = {
-  total: 128,
-  emAndamento: 78,
-  aguardandoCliente: 22,
-  semResposta: 16,
-  vendidos: 12,
-  persistencia: 71,
-}
-
-function gerarDatasDemo() {
-  const hoje = new Date()
-  const ontem = new Date(hoje); ontem.setDate(hoje.getDate() - 1)
-  const amanha = new Date(hoje); amanha.setDate(hoje.getDate() + 1)
-  const fmt = (d: Date) => d.toISOString().slice(0, 10)
-  return { hoje: fmt(hoje), ontem: fmt(ontem), amanha: fmt(amanha) }
-}
-
-const DEMO_CLIENTES: Cliente[] = (() => {
-  const d = gerarDatasDemo()
-  return [
-    makeDemoCliente('11111111-1111-4111-8111-111111111111', 'João Santos', '(11) 98765-4321', 'Compass Longitude', 'internet', 'oportunidade', 'bom', 'Apresentar proposta', d.hoje, 120000),
-    makeDemoCliente('22222222-2222-4222-8222-222222222222', 'Maria Oliveira', '(11) 91234-5678', 'Compass Longitude', 'internet', 'aguardando_contato', 'neutro', 'Visita na concessionária', d.amanha, 120000),
-    makeDemoCliente('33333333-3333-4333-8333-333333333333', 'Carlos Almeida', '(11) 99887-6655', 'Corolla Cross', 'carteira', 'oportunidade', 'bom', 'Fazer proposta', d.hoje, 145900),
-    makeDemoCliente('44444444-4444-4444-8444-444444444444', 'Fernanda Lima', '(11) 97550-9876', 'HR-V Touring', 'porta', 'ativo', 'neutro', 'Ligação de follow-up', d.hoje, 132500),
-    makeDemoCliente('55555555-5555-4555-8555-555555555555', 'Ricardo Souza', '(11) 94444-3353', 'Hilux SRX 2021', 'internet', 'inativo', 'critico', 'Recontato pós-visita', d.ontem, 155000),
-    makeDemoCliente('66666666-6666-4666-8666-666666666666', 'Juliana Costa', '(11) 95335-2222', 'Creta Platinum', 'showroom', 'pos_venda', 'excelente', 'Pós-venda e pedido de indicação', d.amanha, 120000),
-    makeDemoCliente('77777777-7777-4777-8777-777777777777', 'Bruno Ferreira', '(11) 96666-7777', 'Onix Premier', 'internet', 'oportunidade', 'ruim', 'Enviar proposta', d.amanha, 109900),
-    makeDemoCliente('88888888-8888-4888-8888-888888888888', 'Patrícia Gomes', '(11) 97777-1212', 'T-Cross Highline', 'carteira', 'aguardando_contato', 'neutro', '', null, 139900),
-  ]
-})()
-
-const DEMO_OPORTUNIDADES: OportunidadeComCliente[] = [
-  makeDemoOportunidade(DEMO_CLIENTES[0], 'negociacao', true, 'aprovado'),
-  makeDemoOportunidade(DEMO_CLIENTES[1], 'apresentacao', false, 'pendente'),
-  makeDemoOportunidade(DEMO_CLIENTES[2], 'negociacao', true, 'pendente'),
-  makeDemoOportunidade(DEMO_CLIENTES[3], 'qualificacao', false, 'nao_aplica'),
-  makeDemoOportunidade(DEMO_CLIENTES[4], 'negociacao', true, 'aprovado'),
-  makeDemoOportunidade(DEMO_CLIENTES[5], 'ganho', true, 'aprovado'),
-  makeDemoOportunidade(DEMO_CLIENTES[6], 'negociacao', false, 'nao_aplica'),
-  makeDemoOportunidade(DEMO_CLIENTES[7], 'prospeccao', false, 'pendente'),
-]
-
 export function CarteiraClientes() {
   const { profile } = useAuth()
   const { clientes, metrics, loading, error, createCliente, updateCliente, registrarStatusCadencia } = useClientes()
@@ -399,11 +356,8 @@ export function CarteiraClientes() {
   const [proximaModalOpen, setProximaModalOpen] = useState(false)
   const [proximaOportunidade, setProximaOportunidade] = useState<ProximaInfo | null>(null)
   const hoje = useMemo(() => toDateOnlyBR(), [])
-  const runtimeUserAgent = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : ''
-  const isAutomatedTest = (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') || runtimeUserAgent.includes('happy-dom') || runtimeUserAgent.includes('jsdom')
-  const demoMode = clientes.length === 0 && !isAutomatedTest && import.meta.env.DEV
-  const carteiraClientes = demoMode ? DEMO_CLIENTES : clientes
-  const carteiraOportunidades = demoMode ? DEMO_OPORTUNIDADES : oportunidades
+  const carteiraClientes = clientes
+  const carteiraOportunidades = oportunidades
 
   const progressoPorCliente = useMemo(() => {
     const map = new Map<string, ProgressoCadencia>()
@@ -475,7 +429,7 @@ export function CarteiraClientes() {
     })
   }, [carteiraClientes, diaFiltro, diaPorCliente, hoje, prioridadePorCliente])
 
-  const totalClientes = demoMode ? DEMO_KPIS.total : metrics.total
+  const totalClientes = metrics.total
 
   const listaBuscada = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -536,11 +490,6 @@ export function CarteiraClientes() {
   }
 
   async function handleRegistrarStatusCadencia(clienteId: string, status: CadenciaResultadoAcao, canalContato?: CanalContato) {
-    if (demoMode) {
-      toast.success(status === 'nao_feito' ? 'Tentativa registrada e próxima ação enviada para a Central.' : 'Cadência atualizada no modo demonstração.')
-      abrirProximaOportunidade(clienteId)
-      return
-    }
     setCadenciaSaving(true)
     const { error: statusError } = await registrarStatusCadencia({ clienteId, status, canalContato: canalContato ?? null })
     setCadenciaSaving(false)
@@ -1413,69 +1362,6 @@ function getFichaLabel(value?: string | null) {
   return 'Não aplica'
 }
 
-
-function makeDemoCliente(
-  id: string,
-  nome: string,
-  telefone: string,
-  empresa: string,
-  canal_origem: CrmCanal,
-  status: CrmClienteStatus,
-  relacionamento: Cliente['relacionamento'],
-  proxima_acao: string,
-  proxima_acao_em: string | null,
-  potencial_negocio: number,
-): Cliente {
-  const now = new Date().toISOString()
-  return {
-    id,
-    loja_id: '99999999-9999-4999-8999-999999999999',
-    seller_user_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-    nome,
-    telefone,
-    empresa,
-    canal_origem,
-    status,
-    relacionamento,
-    ultima_interacao: new Date(Date.now() - 86400000).toISOString().slice(0, 10),
-    proxima_acao,
-    proxima_acao_em,
-    potencial_negocio,
-    observacoes: null,
-    created_at: now,
-    updated_at: now,
-  }
-}
-
-function makeDemoOportunidade(
-  cliente: Cliente,
-  etapa: OportunidadeComCliente['etapa'],
-  carro_avaliado: boolean,
-  financiamento: OportunidadeComCliente['financiamento'],
-): OportunidadeComCliente {
-  const now = new Date().toISOString()
-  return {
-    id: cliente.id.replace(/^./, '9'),
-    cliente_id: cliente.id,
-    loja_id: cliente.loja_id,
-    seller_user_id: cliente.seller_user_id,
-    veiculo_interesse: cliente.empresa,
-    tipo_veiculo: 'carro',
-    valor_negociado: cliente.potencial_negocio,
-    etapa,
-    canal: cliente.canal_origem,
-    sinal: etapa === 'ganho' ? 5000 : 0,
-    financiamento,
-    carro_avaliado,
-    motivo_perda: null,
-    placa_veiculo: null,
-    data_entrega_prevista: null,
-    created_at: now,
-    updated_at: now,
-    closed_at: etapa === 'ganho' ? now : null,
-    cliente: { nome: cliente.nome, telefone: cliente.telefone },
-  }
-}
 
 function ProximaOportunidadeModal({
   open,

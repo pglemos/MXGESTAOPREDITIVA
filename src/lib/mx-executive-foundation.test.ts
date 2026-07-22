@@ -4,7 +4,6 @@ import {
   buildPlanningPeriod,
   assertBenchmarkMutationAllowed,
   buildActionFromAlert,
-  buildAnonymousAlertFixtures,
   buildScoreHistorySnapshot,
   canReadMxDepartment,
   canReadExecutiveScopedResource,
@@ -22,11 +21,27 @@ import {
   getPlanningIndicatorStatus,
   sanitizeExecutiveAgendaEvent,
   assertScoreMutationAllowed,
+  validateExecutiveAlert,
   validateScoreCalculation,
   type ConsultiveRule,
   type ExecutiveAgendaEvent,
+  type ExecutiveAlert,
   type ScoreCalculation,
 } from './mx-executive-foundation'
+
+const anonymousAlertFixture: ExecutiveAlert = {
+  scopeType: 'store',
+  scopeId: 'test-store',
+  type: 'critical',
+  problem: 'Conversao abaixo do minimo operacional.',
+  impact: 'Risco de perda de vendas no periodo.',
+  recommendation: 'Revisar rotina de primeiro contato e confirmacao.',
+  quickActionLabel: 'Abrir plano de acao',
+  status: 'open',
+  channels: ['system', 'push', 'whatsapp'],
+  ruleVersion: 'test-v1',
+  metadata: { anonymized: true },
+}
 
 describe('mx executive foundation helpers', () => {
   test('normalizes annual and monthly planning periods', () => {
@@ -214,13 +229,10 @@ describe('mx executive foundation helpers', () => {
     })
   })
 
-  test('builds anonymous alert fixtures with mandatory PRD structure and channels', () => {
-    const fixtures = buildAnonymousAlertFixtures()
-
-    expect(fixtures.length).toBeGreaterThan(0)
-    expect(fixtures.every((alert) => alert.metadata?.anonymized === true)).toBe(true)
-    expect(fixtures.every((alert) => alert.problem.trim() && alert.impact.trim() && alert.recommendation.trim() && alert.quickActionLabel.trim())).toBe(true)
-    expect(fixtures[0].channels).toEqual(['system', 'push', 'whatsapp'])
+  test('validates an anonymous alert contract without shipping sample business records', () => {
+    expect(validateExecutiveAlert(anonymousAlertFixture)).toEqual([])
+    expect(anonymousAlertFixture.metadata?.anonymized).toBe(true)
+    expect(anonymousAlertFixture.channels).toEqual(['system', 'push', 'whatsapp'])
   })
 
   test('keeps scoped alert reads constrained by loja/responsible/internal access', () => {
@@ -241,7 +253,7 @@ describe('mx executive foundation helpers', () => {
   })
 
   test('creates action plan defaults from alerts with traceable origin', () => {
-    const alert = buildAnonymousAlertFixtures()[0]
+    const alert = anonymousAlertFixture
     const action = buildActionFromAlert(alert, 'owner-1')
 
     expect(action).toMatchObject({

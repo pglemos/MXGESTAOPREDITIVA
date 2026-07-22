@@ -64,103 +64,6 @@ function toNumberValue(value) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-// LocalStorage helpers for virtual tables
-const getLocal = (key, userId = '') => {
-  const raw = localStorage.getItem(`mx_b44_${key}`);
-  if (raw) return JSON.parse(raw);
-  
-  if (key === 'AtividadeExecucao') {
-    const todayStr = moment().format('YYYY-MM-DD');
-    const defaults = [
-      {
-        id: 'act_1',
-        vendedor_id: userId,
-        tipo_atividade: 'agendamento',
-        titulo: 'Confirmar test-drive com cliente João',
-        descricao: 'Ligar para confirmar se virá no horário agendado de hoje.',
-        objetivo: 'Atendimento',
-        data_hora_execucao: `${todayStr}T10:00:00Z`,
-        data_execucao: todayStr,
-        prioridade: 9,
-        status_atividade: 'Pendente',
-        ativo: true
-      },
-      {
-        id: 'act_2',
-        vendedor_id: userId,
-        tipo_atividade: 'retorno',
-        titulo: 'Enviar proposta final do Hatch 2024',
-        descricao: 'Seguir com negociação enviando a proposta revisada por WhatsApp.',
-        objetivo: 'Retorno',
-        data_hora_execucao: `${todayStr}T14:30:00Z`,
-        data_execucao: todayStr,
-        prioridade: 7,
-        status_atividade: 'Pendente',
-        ativo: true
-      },
-      {
-        id: 'act_3',
-        vendedor_id: userId,
-        tipo_atividade: 'garantia',
-        titulo: 'Verificar status da documentação do cliente Maria',
-        descricao: 'Acompanhar aprovação do despachante junto ao gerente.',
-        objetivo: 'Garantia',
-        data_hora_execucao: `${todayStr}T16:00:00Z`,
-        data_execucao: todayStr,
-        prioridade: 4,
-        status_atividade: 'Pendente',
-        ativo: true
-      }
-    ];
-    localStorage.setItem(`mx_b44_${key}`, JSON.stringify(defaults));
-    return defaults;
-  }
-
-  if (key === 'ExecutionOpportunity') {
-    const todayStr = moment().format('YYYY-MM-DD');
-    const defaults = [
-      {
-        id: 'op_1',
-        vendedor_id: userId,
-        tipo: 'Venda Perdida',
-        titulo: 'Ação Corretiva Hatch 2024',
-        descricao: 'Recuperar cliente que comprou no concorrente.',
-        objetivo: 'Ação Corretiva',
-        data_hora_execucao: `${todayStr}T11:00:00Z`,
-        prioridade: 5,
-        status: 'Pendente',
-        ativo: true
-      }
-    ];
-    localStorage.setItem(`mx_b44_${key}`, JSON.stringify(defaults));
-    return defaults;
-  }
-
-  if (key === 'ActionPlan') {
-    const defaults = [
-      { id: 'ap_1', pdi_id: 'pdi_1', title: 'Melhorar taxa de prospecção digital', status: 'Em Andamento', progress: 60, created_date: new Date().toISOString() },
-      { id: 'ap_2', pdi_id: 'pdi_1', title: 'Assistir curso de negociação avançada', status: 'Pendente', progress: 0, created_date: new Date().toISOString() }
-    ];
-    localStorage.setItem(`mx_b44_${key}`, JSON.stringify(defaults));
-    return defaults;
-  }
-
-  if (key === 'EventoComercial') {
-    const today = moment().format('YYYY-MM-DD');
-    const defaults = [
-      { id: 'evt_1', vendedor_id: userId, data_evento: today, tipo_evento: 'atendimento_comercial_realizado', canal_mx: 'Showroom', modalidade: 'Visita na loja', status_evento: 'Realizado', created_date: new Date().toISOString() },
-      { id: 'evt_2', vendedor_id: userId, data_evento: today, tipo_evento: 'atendimento_comercial_realizado', canal_mx: 'Internet', modalidade: 'Videochamada', status_evento: 'Realizado', created_date: new Date().toISOString() },
-      { id: 'evt_3', vendedor_id: userId, data_evento: today, tipo_evento: 'venda_realizada', canal_mx: 'Showroom', status_evento: 'Realizado', created_date: new Date().toISOString() },
-      { id: 'evt_4', vendedor_id: userId, data_evento: today, tipo_evento: 'proposta_enviada', canal_mx: 'Carteira', status_evento: 'Realizado', created_date: new Date().toISOString() }
-    ];
-    localStorage.setItem(`mx_b44_${key}`, JSON.stringify(defaults));
-    return defaults;
-  }
-  
-  return [];
-};
-const setLocal = (key, val) => localStorage.setItem(`mx_b44_${key}`, JSON.stringify(val));
-
 export const base44 = {
   auth: {
     me: async () => {
@@ -173,13 +76,15 @@ export const base44 = {
         .eq('id', user.id)
         .single();
 
+      if (!profile) throw new Error('Perfil autenticado não encontrado.');
+
       return {
         id: user.id,
         email: user.email,
-        full_name: profile?.name || 'Vendedor',
-        phone: profile?.phone || '',
-        avatar_url: profile?.avatar_url || '',
-        role: profile?.role || 'vendedor',
+        full_name: profile.name || '',
+        phone: profile.phone || '',
+        avatar_url: profile.avatar_url || '',
+        role: profile.role,
       };
     },
     logout: async () => {
@@ -234,8 +139,8 @@ export const base44 = {
               : { data: [] },
           ]);
 
-          const currentWorkStart = perf?.hora_entrada ? perf.hora_entrada.slice(0, 5) : '08:00';
-          const currentWorkEnd = perf?.hora_saida ? perf.hora_saida.slice(0, 5) : '18:00';
+          const currentWorkStart = perf?.hora_entrada ? perf.hora_entrada.slice(0, 5) : '';
+          const currentWorkEnd = perf?.hora_saida ? perf.hora_saida.slice(0, 5) : '';
           const scheduleByKey = new Map();
           [...(jornadas || []), { hora_entrada: currentWorkStart, hora_saida: currentWorkEnd }].forEach((jornada) => {
             const workStart = jornada?.hora_entrada ? jornada.hora_entrada.slice(0, 5) : '';
@@ -266,19 +171,30 @@ export const base44 = {
             remuneracao_plano_id: perf?.remuneracao_plano_id || selectedPlan?.id || '',
             available_plans: availablePlans,
             experience_years: perf?.tempo_mercado_anos || 0,
-            work_schedule_id: `${currentWorkStart}-${currentWorkEnd}`,
+            work_schedule_id: currentWorkStart && currentWorkEnd
+              ? `${currentWorkStart}-${currentWorkEnd}`
+              : '',
             work_schedule_options: Array.from(scheduleByKey.values()),
             work_start: currentWorkStart,
             work_end: currentWorkEnd,
-            monthly_goal: 10,
-            commission_per_unit: selectedPlan?.commission_per_unit || 500,
+            monthly_goal: null,
+            commission_per_unit: selectedPlan?.commission_per_unit ?? null,
             avg_sales_year: 0,
             salary_goal: selectedPlan?.salary_goal || perf?.pretensao_min || 0,
             education: '',
             job_interest: perf?.carreira_interesse === 'disponivel' ? 'Disponível para o mercado' : perf?.carreira_interesse === 'confidencial' ? 'Confidencial' : 'Não',
             avatar_url: me.avatar_url
           }];
-      },
+        },
+        filter: async (filter = {}, order, limit) => {
+          const me = await base44.auth.me();
+          const { created_by_id: requestedCreatorId, ...criteria } = filter;
+          if (requestedCreatorId && requestedCreatorId !== me.id) return [];
+          const rows = await base44.entities.UserProfile.list();
+          const filtered = rows.filter((row) => matchQuery(row, criteria));
+          const sorted = sortRows(filtered, order);
+          return Number.isFinite(limit) ? sorted.slice(0, limit) : sorted;
+        },
         update: async (id, data) => {
           const me = await base44.auth.me();
           const { data: vinculos } = await supabase
@@ -1066,24 +982,24 @@ export const base44 = {
           short_term_goal: r.meta_6m || '',
           medium_term_goal: r.meta_12m || '',
           long_term_goal: r.meta_24m || '',
-          tech_planejamento: r.comp_organizacao || 5,
-          tech_atendimento: r.comp_demonstracao || 5,
-          tech_agendamento: r.comp_negociacao || 5,
-          tech_fechamento: r.comp_fechamento || 5,
-          tech_carteira: r.comp_crm || 5,
-          tech_midias: r.comp_digital || 5,
-          tech_prospeccao: r.comp_prospeccao || 5,
-          tech_avaliacao: r.comp_abordagem || 5,
-          tech_financiamentos: r.comp_negociacao || 5,
-          tech_processos: r.comp_disciplina || 5,
-          behav_pontualidade: r.comp_disciplina || 5,
-          behav_urgencia: r.comp_disciplina || 5,
-          behav_iniciativa: r.comp_prospeccao || 5,
-          behav_organizacao: r.comp_organizacao || 5,
-          behav_lideranca: r.comp_produto || 5,
-          behav_relacionamento: r.comp_crm || 5,
-          behav_persistencia: r.comp_negociacao || 5,
-          behav_resiliencia: r.comp_negociacao || 5
+          tech_planejamento: r.comp_organizacao ?? null,
+          tech_atendimento: r.comp_demonstracao ?? null,
+          tech_agendamento: r.comp_negociacao ?? null,
+          tech_fechamento: r.comp_fechamento ?? null,
+          tech_carteira: r.comp_crm ?? null,
+          tech_midias: r.comp_digital ?? null,
+          tech_prospeccao: r.comp_prospeccao ?? null,
+          tech_avaliacao: r.comp_abordagem ?? null,
+          tech_financiamentos: r.comp_negociacao ?? null,
+          tech_processos: r.comp_disciplina ?? null,
+          behav_pontualidade: r.comp_disciplina ?? null,
+          behav_urgencia: r.comp_disciplina ?? null,
+          behav_iniciativa: r.comp_prospeccao ?? null,
+          behav_organizacao: r.comp_organizacao ?? null,
+          behav_lideranca: r.comp_produto ?? null,
+          behav_relacionamento: r.comp_crm ?? null,
+          behav_persistencia: r.comp_negociacao ?? null,
+          behav_resiliencia: r.comp_negociacao ?? null
         }));
       }
     },
@@ -1161,11 +1077,11 @@ export const base44 = {
             return 'Atendimento';
           })(),
           level: (r.curation_notes && r.curation_notes.startsWith('N')) ? r.curation_notes : (r.target_audience || 'N1 Iniciante'),
-          duration_minutes: r.duration_minutes || 10,
+          duration_minutes: r.duration_minutes ?? null,
           content_url: r.video_url || '',
           video_url: r.video_url || '',
           material_url: r.material_url || '',
-          thumbnail_url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60',
+          thumbnail_url: null,
           is_live: r.type === 'live',
           live_date: r.published_at,
           recording_url: r.video_url || ''
@@ -1189,122 +1105,55 @@ export const base44 = {
         return (rows || []).map(r => ({
           id: r.id,
           training_id: r.training_id,
-          completed: r.status === 'completed' || r.status === 'watched' || r.status === 'concluido' || Boolean(r.completed_at),
-          quiz_score: 100,
-          hours_studied: 0.5,
-          attended_live: true
+          completed: r.status === 'completed' || r.status === 'watched' || r.status === 'concluido' || Boolean(r.completed_at)
         }));
       }
     },
 
     PoliticaRemuneracao: {
-      filter: async (filter) => {
-        const list = [
-          {
-            id: 'pol_vendedor',
-            nome: 'Comissão Padrão MX',
-            descricao: 'Política de remuneração fixa mais faixas progressivas',
-            tipo_remuneracao: 'Faixas de Comissão',
-            valor_base: 2000,
-            status: 'Ativa'
-          }
-        ];
-        return list.filter(r => matchQuery(r, filter));
-      },
+      filter: async () => [],
       list: async (order, limit) => {
         const list = await base44.entities.PoliticaRemuneracao.filter(null);
         return limit ? list.slice(0, limit) : list;
-      }
+      },
+      create: async () => { throw new Error('Use o cadastro canônico de planos de remuneração.'); },
     },
 
     FaixaComissao: {
-      filter: async (filter) => {
-        const list = [
-          { id: 'fx1', politica_id: 'pol_vendedor', nome: 'Nível 1 (Até 5 vendas)', meta_min_unidades: 0, meta_max_unidades: 5, comissao_por_unidade: 400, status: 'Ativa' },
-          { id: 'fx2', politica_id: 'pol_vendedor', nome: 'Nível 2 (6 a 10 vendas)', meta_min_unidades: 6, meta_max_unidades: 10, comissao_por_unidade: 550, status: 'Ativa' },
-          { id: 'fx3', politica_id: 'pol_vendedor', nome: 'Nível 3 (11 a 15 vendas)', meta_min_unidades: 11, meta_max_unidades: 15, comissao_por_unidade: 700, status: 'Ativa' },
-          { id: 'fx4', politica_id: 'pol_vendedor', nome: 'Nível 4 (Mais de 15 vendas)', meta_min_unidades: 16, meta_max_unidades: 99, comissao_por_unidade: 900, status: 'Ativa' }
-        ];
-        return list.filter(r => matchQuery(r, filter));
-      },
+      filter: async () => [],
       list: async (order, limit) => {
         const list = await base44.entities.FaixaComissao.filter(null);
         return limit ? list.slice(0, limit) : list;
-      }
+      },
+      create: async () => { throw new Error('Use o cadastro canônico de regras de remuneração.'); },
     },
 
     PremiacaoRemuneracao: {
-      filter: async (filter) => {
-        const list = [
-          { id: 'pr1', politica_id: 'pol_vendedor', nome: 'Superação 10 Vendas', meta_unidades: 10, valor_premio: 1000, status: 'Ativa' },
-          { id: 'pr2', politica_id: 'pol_vendedor', nome: 'Superação 15 Vendas', meta_unidades: 15, valor_premio: 2000, status: 'Ativa' }
-        ];
-        return list.filter(r => matchQuery(r, filter));
-      },
+      filter: async () => [],
       list: async (order, limit) => {
         const list = await base44.entities.PremiacaoRemuneracao.filter(null);
         return limit ? list.slice(0, limit) : list;
-      }
+      },
+      create: async () => { throw new Error('Use o cadastro canônico de regras de remuneração.'); },
     },
 
     BonificacaoRemuneracao: {
-      filter: async (filter) => {
-        const list = [
-          { id: 'bn1', politica_id: 'pol_vendedor', nome: 'Bônus de Disciplina', descricao: 'Pontuação de disciplina no fechamento acima de 90%', valor_bonus: 500, status: 'Ativa' }
-        ];
-        return list.filter(r => matchQuery(r, filter));
-      },
+      filter: async () => [],
       list: async (order, limit) => {
         const list = await base44.entities.BonificacaoRemuneracao.filter(null);
         return limit ? list.slice(0, limit) : list;
-      }
+      },
+      create: async () => { throw new Error('Use o cadastro canônico de regras de remuneração.'); },
     },
 
     HistoricoRemuneracao: {
-      filter: async (filter) => {
-        const me = await base44.auth.me();
-        const list = [
-          { id: 'hist_1', vendedor_id: me.id, mes_competencia: moment().subtract(1, 'month').format('YYYY-MM'), fixo: 2000, comissao: 4500, premios: 1000, bonus: 500, total: 8000, status: 'Pago' },
-          { id: 'hist_2', vendedor_id: me.id, mes_competencia: moment().subtract(2, 'month').format('YYYY-MM'), fixo: 2000, comissao: 3800, premios: 0, bonus: 500, total: 6300, status: 'Pago' }
-        ];
-        return list.filter(r => matchQuery(r, filter));
-      },
+      filter: async () => [],
       list: async (order, limit) => {
         const list = await base44.entities.HistoricoRemuneracao.filter(null);
         const sorted = sortRows(list, order);
         return limit ? sorted.slice(0, limit) : sorted;
       },
-      create: async (data) => {
-        return { id: Math.random().toString(36).slice(2), ...data };
-      }
-    },
-
-    UserProfile: {
-      filter: async (filter) => {
-        const me = await base44.auth.me();
-        const { data } = await supabase.from('usuarios').select('*').eq('id', me.id).single();
-        const list = [{
-          id: me.id,
-          name: data?.name || me.name,
-          email: data?.email || me.email,
-          role: data?.role || me.role,
-          avatar_url: data?.avatar_url || me.avatar_url,
-          created_by_id: me.id,
-          start_hour: '08:00',
-          end_hour: '18:00',
-          target_salary: 5000
-        }];
-        return list.filter(r => matchQuery(r, filter));
-      },
-      list: async () => {
-        return base44.entities.UserProfile.filter(null);
-      },
-      create: async (data) => {
-        return { id: Math.random().toString(36).slice(2), ...data };
-      },
-      update: async (id, data) => {
-        return { id, ...data };
-      }
+      create: async () => { throw new Error('Histórico de remuneração não aceita gravação por este adaptador.'); },
     },
 
     ActionPlan: {
@@ -1329,7 +1178,7 @@ export const base44 = {
           description: r.description || '',
           deadline: r.prazo,
           status: r.status === 'concluido' ? 'Concluído' : r.status === 'em_andamento' ? 'Em Andamento' : 'Pendente',
-          progress: r.details_json?.progress || (r.status === 'concluido' ? 100 : r.status === 'em_andamento' ? 50 : 0)
+          progress: r.details_json?.progress ?? null
         }));
 
         const filtered = mapped.filter(r => matchQuery(r, filter));
@@ -1438,22 +1287,15 @@ export const base44 = {
     },
 
     RankingConfig: {
-      list: async () => [{ id: 'rc_1', mes_competencia: moment().format('YYYY-MM'), ativo: true }]
+      list: async () => []
     },
 
     BonificacaoRanking: {
-      list: async () => [
-        { id: 'br_1', posicao: 1, valor_premio: 1500, descricao: '1º Lugar Geral Concessionária' },
-        { id: 'br_2', posicao: 2, valor_premio: 1000, descricao: '2º Lugar Geral Concessionária' },
-        { id: 'br_3', posicao: 3, valor_premio: 500, descricao: '3º Lugar Geral Concessionária' }
-      ]
+      list: async () => []
     },
 
     MetaVendedor: {
-      list: async () => {
-        const me = await base44.auth.me();
-        return [{ id: 'mv_1', vendedor_id: me.id, meta_faturamento: 120000, meta_quantidade: 15, mes_competencia: moment().format('YYYY-MM') }];
-      }
+      list: async () => []
     },
 
     Appointment: {

@@ -26,6 +26,38 @@ type AppointmentRow = { id: string; seller_user_id: string }
 
 type SnapshotBySeller = Record<string, SellerRoutineSnapshotRow>
 type ScoreBySeller = Record<string, OfficialRoutineScore>
+type ConsolidationResult = { data: unknown; error: { code?: string; message: string } | null }
+
+const consolidationRequests = new Map<string, Promise<ConsolidationResult>>()
+
+async function consolidateRoutineSnapshots(storeId: string, referenceDate: string): Promise<ConsolidationResult> {
+  const key = `${storeId}:${referenceDate}`
+  const activeRequest = consolidationRequests.get(key)
+  if (activeRequest) return activeRequest
+
+  const request = (async () => {
+    const first = await supabase.rpc('consolidate_seller_routine_snapshots', {
+      p_store_id: storeId,
+      p_reference_date: referenceDate,
+    })
+    if (first.error?.code !== '23505') return first as ConsolidationResult
+
+    // A second browser/tab can reach the same immutable version while the
+    // first transaction is committing. Retry reads the version just stored.
+    await new Promise(resolve => setTimeout(resolve, 120))
+    return supabase.rpc('consolidate_seller_routine_snapshots', {
+      p_store_id: storeId,
+      p_reference_date: referenceDate,
+    }) as unknown as Promise<ConsolidationResult>
+  })()
+
+  consolidationRequests.set(key, request)
+  try {
+    return await request
+  } finally {
+    if (consolidationRequests.get(key) === request) consolidationRequests.delete(key)
+  }
+}
 
 export default function ManagerTeamRoutineCanonical() {
   const location = useLocation()
@@ -65,10 +97,7 @@ export default function ManagerTeamRoutineCanonical() {
     const selectedStart = `${date}T00:00:00-03:00`
     const selectedEnd = `${date}T23:59:59-03:00`
 
-    const consolidation = await supabase.rpc('consolidate_seller_routine_snapshots', {
-      p_store_id: storeId,
-      p_reference_date: date,
-    })
+    const consolidation = await consolidateRoutineSnapshots(storeId, date)
     if (consolidation.error) {
       setError(`Não foi possível consolidar a pontuação oficial: ${consolidation.error.message}`)
       setLoading(false)

@@ -111,7 +111,11 @@ describe('owner Base44 exact parity contract', () => {
       expect(route).toContain(segment)
     }
     expect(route).toContain('OwnerLayout')
-    expect(route).not.toContain('OwnerExecutiveCockpit')
+    expect(route).toContain('OwnerLiveDataPage')
+    expect(route).not.toContain("@/pages/owner/OwnerHome")
+    expect(route).not.toContain("@/pages/owner/PlanoEstrategico")
+    expect(route).not.toContain("@/pages/owner/PlanoDeAcao")
+    expect(route).not.toContain("@/pages/owner/Consultoria")
   })
 
   it('preserves the Base44 navigation anatomy in the universal sidebar', () => {
@@ -153,11 +157,11 @@ describe('owner Base44 exact parity contract', () => {
 
   it('keeps owner scope and consultation refresh boundaries explicit', () => {
     const appLayout = read('src/components/Layout.tsx')
-    const consultoria = read('src/pages/owner/Consultoria.jsx')
+    const ownerLiveData = read('src/features/owner-base44/OwnerLiveDataPage.tsx')
     const styles = read('src/styles/owner-base44-exact.css')
     expect(appLayout).toContain("location.pathname === '/dono' || location.pathname.startsWith('/dono/')")
-    expect(consultoria).toContain('const [refreshKey, setRefreshKey] = useState(0)')
-    expect(consultoria).toContain('[selectedProgramId, refreshKey]')
+    expect(ownerLiveData).toContain('useDashboardLojaData')
+    expect(ownerLiveData).toContain('OwnerExecutiveCockpit')
     for (let index = 1; index <= 5; index += 1) {
       expect(styles).toContain(`--color-chart-${index}: hsl(var(--chart-${index}))`)
     }

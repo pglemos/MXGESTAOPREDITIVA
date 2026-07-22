@@ -35,6 +35,26 @@ const GANCHO_POR_PASSO = {
   "Acompanhar garantia": "seu carro tá em garantia",
   "Enviar proposta": "já deixei as condições prontas",
   "Acompanhar financiamento": "seu financiamento tá em análise",
+
+  // Ganchos para os labels oficiais de PASSOS (PP01–PP17, ver proximoPassoLib.js).
+  // cliente.proximo_passo é gravado com esses labels após qualquer transição
+  // registrada — sem entrada aqui, cai no GANCHO_PADRAO genérico.
+  "Realizar diagnóstico": "a gente ainda não bateu o papo direito sobre o que você precisa",
+  "Enviar fotos ou vídeo": "separei fotos e vídeo do carro pra te mostrar",
+  "Apresentar veículo ideal": "encontrei uma opção que encaixa bem no que você me contou",
+  "Simular financiamento": "fiz uma simulação de financiamento pensando em você",
+  "Avaliar usado": "vamos avançar com a avaliação do seu usado",
+  "Agendar visita ou videochamada": "já entendi o que você procura",
+  "Confirmar agendamento": "combinamos sua visita",
+  "Realizar atendimento comercial": "você tá vindo aqui pra gente conversar",
+  "Trabalhar objeção": "ficou faltando resolver um ponto pra você fechar",
+  "Solicitar documentos / ficha": "tá quase tudo certo, só falta um detalhe",
+  "Confirmar venda": "seu negócio tá praticamente fechado",
+  "Retomar contato": "ainda não recebi seu retorno",
+  "Reativar cliente": "já faz um tempo que a gente não fecha negócio",
+  "Encerrar oportunidade": "chegamos ao fim dessa negociação",
+  "Registrar motivo de perda": "esse não era o momento certo pra você",
+  "Programar troca futura": "você comentou que pensa em trocar mais pra frente",
 };
 
 const GANCHO_PADRAO = "vi seu interesse";
@@ -59,7 +79,7 @@ function ganchoDoPasso(proximoPasso) {
 const VARIACOES_POR_TOM = {
   consultivo: [
     ({ nome, veiculoTxt, ganchoCap }) =>
-      `Oi, ${nome}! Tudo bem?\n\n${ganchoCap} e queria entender melhor o que ainda pesa na decisão sobre ${veiculoTxt} — preço, prazo ou o próprio carro?\n\nMe conta que eu ajusto certinho pra você.`,
+      `Oi, ${nome}! Tudo bem?\n\n${ganchoCap} e queria entender melhor o que ainda pesa na decisão sobre ${veiculoTxt}: preço, prazo ou o próprio carro?\n\nMe conta que eu ajusto certinho pra você.`,
     ({ nome, ganchoCap }) =>
       `${nome}, posso te fazer uma pergunta rápida?\n\n${ganchoCap}. O que faria você fechar com mais tranquilidade agora?`,
     ({ nome, veiculoTxt }) =>
@@ -73,7 +93,7 @@ const VARIACOES_POR_TOM = {
     ({ nome, gancho }) =>
       `${nome}, direto ao ponto: ${gancho}. Faz sentido a gente seguir com isso agora?`,
     ({ nome, ganchoCap }) =>
-      `Oi, ${nome}. ${ganchoCap}. Minha agenda essa semana tá cheia, mas separei um espaço pensando em você — confirma?`,
+      `Oi, ${nome}. ${ganchoCap}. Minha agenda essa semana tá cheia, mas separei um espaço pensando em você. Confirma?`,
     ({ nome, gancho }) =>
       `${nome}, sem enrolação: ${gancho} e já deixei encaminhado do jeito que faz sentido pra você. Topa avançar?`,
     ({ nome, ganchoCap }) =>
@@ -83,7 +103,7 @@ const VARIACOES_POR_TOM = {
   ],
   leve: [
     ({ nome, veiculoTxt, gancho }) =>
-      `Oi, ${nome}! Tudo certo por aí?\n\n${capitalizar(gancho)}, e lembrei de você aqui. Sem pressão nenhuma — só queria saber se ainda faz sentido a gente continuar essa conversa sobre ${veiculoTxt}.`,
+      `Oi, ${nome}! Tudo certo por aí?\n\n${capitalizar(gancho)}, e lembrei de você aqui. Sem pressão nenhuma, só queria saber se ainda faz sentido a gente continuar essa conversa sobre ${veiculoTxt}.`,
     ({ nome, gancho }) =>
       `${nome}, e aí, como vão as coisas?\n\n${capitalizar(gancho)}. Se ainda tiver interesse, me chama que eu te mostro os próximos passos com calma.`,
     ({ nome, gancho }) =>
@@ -91,11 +111,11 @@ const VARIACOES_POR_TOM = {
     ({ nome, veiculoTxt, ganchoCap }) =>
       `${nome}, tudo tranquilo?\n\n${ganchoCap}. Fico por aqui se quiser retomar ${veiculoTxt} sem compromisso.`,
     ({ nome, veiculoTxt, gancho }) =>
-      `Oi, ${nome}!\n\nPassando rapidinho: ${gancho}. Se quiser, seguimos com ${veiculoTxt} — sem pressa nenhuma.`,
+      `Oi, ${nome}!\n\nPassando rapidinho: ${gancho}. Se quiser, seguimos com ${veiculoTxt}, sem pressa nenhuma.`,
   ],
   reativacao: [
     ({ nome, veiculoTxt, gancho }) =>
-      `Oi, ${nome}! Faz um tempinho que a gente não troca ideia.\n\n${capitalizar(gancho)} — ainda faz sentido pra você retomar ${veiculoTxt}?`,
+      `Oi, ${nome}! Faz um tempinho que a gente não troca ideia.\n\n${capitalizar(gancho)}. Ainda faz sentido pra você retomar ${veiculoTxt}?`,
     ({ nome, gancho }) =>
       `${nome}, tudo bem?\n\nSei que ficou um tempo parado, mas ${gancho} e queria saber se ainda vale a pena eu separar uma condição pra você.`,
     ({ nome, ganchoCap }) =>

@@ -1,12 +1,14 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { base44 } from "@/api/base44Client";
 import { Zap, X, Edit2, ChevronDown, ChevronUp, AlertCircle, Clock, CheckCircle2, Pencil } from "lucide-react";
 import AlterarProximoPasso from "./AlterarProximoPasso";
-import moment from "moment";
+import moment from "moment/min/moment-with-locales";
 import { toast } from "@/components/ui/use-toast";
+
+moment.locale("pt-br");
 import {
   SITUACOES_ATUAIS, TEMPERATURAS, CANAIS_COMERCIAIS, STATUS_COMERCIAIS,
   calcularObjetivoEProximoPasso, calcularScore, explicacaoCliente, tempColor,
@@ -312,8 +314,8 @@ export default function FichaClienteSheet({ clienteId, open, onClose, onAtualiza
   const iniciais = (cliente?.nome || "?").split(" ").slice(0, 2).map(p => p[0]).join("").toUpperCase();
 
   return (
-    <Sheet open={open} onOpenChange={v => !v && onClose()}>
-      <SheetContent className="w-full sm:max-w-xl overflow-y-auto p-0 flex flex-col">
+    <Dialog open={open} onOpenChange={v => !v && onClose()}>
+      <DialogContent className="w-full sm:max-w-xl max-h-[90vh] overflow-y-auto p-0 flex flex-col">
         {loading ? (
           <div className="flex items-center justify-center h-48">
             <div className="w-6 h-6 border-4 border-slate-200 border-t-[#005BFF] rounded-full animate-spin" />
@@ -595,7 +597,7 @@ export default function FichaClienteSheet({ clienteId, open, onClose, onAtualiza
 
           </div>
         )}
-      </SheetContent>
+      </DialogContent>
 
       {cliente && (
         <AlterarProximoPasso
@@ -606,6 +608,6 @@ export default function FichaClienteSheet({ clienteId, open, onClose, onAtualiza
           onSalvo={handlePassoSalvo}
         />
       )}
-    </Sheet>
+    </Dialog>
   );
 }

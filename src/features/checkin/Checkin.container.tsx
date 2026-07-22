@@ -100,7 +100,7 @@ const previousCard = ctx.activeClosingContext.previousCard
             {!isOnline && (
                 <div role="status" className="flex items-center gap-2 rounded-mx-2xl border border-status-warning/20 bg-status-warning-surface px-mx-md py-mx-sm text-sm font-bold text-status-warning">
                     <WifiOff className="h-mx-md w-mx-md shrink-0" aria-hidden="true" />
-                    Sem conexão. Suas alterações serão salvas assim que a conexão voltar.
+                    Sem conexão. O envio pode falhar até a conexão ser restabelecida.
                 </div>
             )}
 
@@ -123,7 +123,6 @@ const previousCard = ctx.activeClosingContext.previousCard
                     historyOpen={historyOpen}
                     setHistoryOpen={setHistoryOpen}
                     checkins={ctx.checkins}
-                    userId={ctx.supabaseUser?.id}
                     saveCheckin={ctx.saveCheckin}
                     previousCard={previousCard}
                     activeClosingDate={ctx.activeClosingContext.mainDate}

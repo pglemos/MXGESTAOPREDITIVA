@@ -158,7 +158,16 @@ describe('CheckinCrmSection', () => {
   it('abre o NovoRegistroModal ao clicar em + Novo Cliente', () => {
     render(
       <MemoryRouter>
-        <CheckinCrmSection />
+        <CheckinCrmSection
+          ctx={{
+            clientesList: [],
+            refetchClientesList: async () => {},
+            selectedDate: '2026-06-16',
+            supabaseUser: { id: 'vendedor-id' },
+            finalizadoAposPrazo: false,
+            effectiveForm: { visitas_porta: 0, visitas_cart: 0, visitas_net: 0 },
+          } as any}
+        />
       </MemoryRouter>,
     )
 

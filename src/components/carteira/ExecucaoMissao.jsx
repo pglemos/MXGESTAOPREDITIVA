@@ -125,7 +125,7 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
       update.proxima_acao = calcularProximaAcao({ ...clienteAtual, ...update });
       update.historico = {
         missao_id: missao.id,
-        tipo: "Missão: " + missao.nome,
+        tipo: "Missão: " + missao.tipo_missao,
         descricao: `Resultado: ${resultado}`,
         resultado,
         momento_anterior: clienteAtual.momento,
@@ -208,7 +208,7 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
         <div className="bg-white border border-slate-100 rounded-2xl p-8 text-center space-y-4">
           <span className="text-5xl">🎯</span>
           <h2 className="text-xl font-black text-[#031B3D]">Envio concluído!</h2>
-          <p className="text-sm text-slate-400">A missão <strong>{missao.nome}</strong> está aguardando respostas.</p>
+          <p className="text-sm text-slate-400">A missão <strong>{missao.tipo_missao}</strong> está aguardando respostas.</p>
           <div className="grid grid-cols-3 gap-4 mt-4">
             <div className="bg-slate-50 rounded-xl p-3">
               <p className="text-2xl font-black text-[#031B3D]">{total}</p>
@@ -247,14 +247,14 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
         <ChevronRight className="w-3 h-3" />
         <span>Plano de Ataque</span>
         <ChevronRight className="w-3 h-3" />
-        <span className="text-[#031B3D] font-semibold">{missao.nome}</span>
+        <span className="text-[#031B3D] font-semibold">{missao.tipo_missao}</span>
       </div>
 
       <div className="bg-white border border-slate-100 rounded-2xl p-5 space-y-3">
         <div className="flex items-start justify-between">
           <div>
             <p className="text-xs font-black text-slate-400 uppercase tracking-wide">Missão</p>
-            <p className="text-base font-black text-[#031B3D]">{missao.nome}</p>
+            <p className="text-base font-black text-[#031B3D]">{missao.tipo_missao}</p>
           </div>
           <span className="text-xs bg-amber-50 text-amber-600 font-bold px-2.5 py-1 rounded-full border border-amber-100">Em execução</span>
         </div>

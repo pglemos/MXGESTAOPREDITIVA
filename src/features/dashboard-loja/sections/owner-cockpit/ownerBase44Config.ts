@@ -117,6 +117,35 @@ export function resolveOwnerSection(search: string): OwnerResolvedSection {
   return raw && sectionSet.has(raw) ? (raw as OwnerResolvedSection) : 'home'
 }
 
+const OWNER_PATH_SECTIONS: Array<[RegExp, OwnerResolvedSection]> = [
+  [/^\/dono\/rotina\/?$/, 'rotina'],
+  [/^\/dono\/decisoes\/?$/, 'decisoes'],
+  [/^\/dono\/plano-estrategico\/?$/, 'planejamento'],
+  [/^\/dono\/plano-acao\/?$/, 'plano-acao'],
+  [/^\/dono\/consultoria\/?$/, 'consultoria'],
+  [/^\/dono\/departamentos(?:\/.*)?$/, 'departamentos'],
+  [/^\/dono\/mercado\/?$/, 'mercado'],
+  [/^\/dono\/universidade\/?$/, 'universidade'],
+]
+
+export function resolveOwnerLocation(pathname: string, search: string): OwnerResolvedSection {
+  if (new URLSearchParams(search).has('ownerSection')) return resolveOwnerSection(search)
+  return OWNER_PATH_SECTIONS.find(([pattern]) => pattern.test(pathname))?.[1] ?? 'home'
+}
+
+export function resolveOwnerDepartmentFromPath(pathname: string): OwnerDepartmentNavigationCode | null {
+  const segment = pathname.match(/^\/dono\/departamentos\/([^/?#]+)/)?.[1]
+  const aliases: Record<string, OwnerDepartmentNavigationCode> = {
+    comercial: 'comercial',
+    marketing: 'marketing',
+    'produto-e-estoque': 'produto',
+    'pessoas-rh': 'rh',
+    financeiro: 'financeiro',
+    operacoes: 'operacional',
+  }
+  return segment ? aliases[segment] ?? null : null
+}
+
 export function ownerNavigationSectionValue(item: OwnerBase44NavigationItem): string {
   return item.departmentCode ? `departamentos-${item.departmentCode}` : item.section
 }

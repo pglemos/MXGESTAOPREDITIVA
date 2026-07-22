@@ -80,7 +80,6 @@ type MissaoDef = {
   prioridade: 'Máxima' | 'Alta' | 'Média' | 'Baixa'
   objetivo: string
   porqueAgora: string
-  potencial: string
   filtro: (ctx: ClienteContexto) => boolean
 }
 
@@ -89,84 +88,72 @@ const MISSOES: MissaoDef[] = [
     id: 'financiamento_aprovado', nome: 'Converter aprovações', icone: '💳', prioridade: 'Máxima',
     objetivo: 'Converter financiamento aprovado em venda.',
     porqueAgora: 'Financiamento aprovado sem compra é a oportunidade mais quente da carteira.',
-    potencial: '2 a 4 vendas',
     filtro: ctx => ctx.oportunidade?.financiamento === 'aprovado' && ctx.oportunidade?.etapa !== 'ganho' && ctx.oportunidade?.etapa !== 'perdido',
   },
   {
     id: 'nao_compareceu', nome: 'Reagendar visitas', icone: '📅', prioridade: 'Alta',
     objetivo: 'Reagendar clientes que não compareceram.',
     porqueAgora: 'Cada visita não realizada é uma oportunidade que pode ser recuperada rapidamente.',
-    potencial: '2 a 5 vendas',
     filtro: ctx => ctx.situacao === 'Agendamento em andamento' && (ctx.diasVencido ?? -1) > 0,
   },
   {
     id: 'confirmar_visita', nome: 'Confirmar visitas', icone: '✅', prioridade: 'Alta',
     objetivo: 'Confirmar presença de clientes agendados.',
     porqueAgora: 'Visitas confirmadas têm taxa muito maior de comparecimento.',
-    potencial: '3 a 6 vendas',
     filtro: ctx => ctx.situacao === 'Visita agendada' && (ctx.diasVencido ?? 1) <= 0,
   },
   {
     id: 'cliente_quente', nome: 'Agendar visitas (quentes)', icone: '🔥', prioridade: 'Alta',
     objetivo: 'Transformar interesse quente em visita.',
     porqueAgora: 'Clientes quentes sem visita perdem temperatura a cada dia.',
-    potencial: '3 a 7 vendas',
     filtro: ctx => ctx.temperatura === 'quente' && !['Visita agendada', 'Em negociação ativa', 'Fechamento em andamento', 'Venda realizada', 'Venda perdida'].includes(ctx.situacao),
   },
   {
     id: 'proposta_sem_retorno', nome: 'Recuperar propostas', icone: '📋', prioridade: 'Alta',
     objetivo: 'Retomar proposta e fechar negócio.',
     porqueAgora: 'Clientes com proposta sem resposta têm alto potencial e risco crescente de perda.',
-    potencial: '2 a 4 vendas',
     filtro: ctx => ctx.situacao === 'Fechamento em andamento',
   },
   {
     id: 'visitou_nao_comprou', nome: 'Recuperar visitas', icone: '🚗', prioridade: 'Alta',
     objetivo: 'Entender barreira e tentar fechar.',
     porqueAgora: 'Quem visitou já tem intenção. Falta superar a barreira.',
-    potencial: '3 a 7 vendas',
     filtro: ctx => ctx.situacao === 'Visita agendada' && (ctx.diasVencido ?? -1) > 0,
   },
   {
     id: 'lead_sem_resposta', nome: 'Retomar leads', icone: '👻', prioridade: 'Média',
     objetivo: 'Reativar leads sem resposta.',
     porqueAgora: 'Leads frios podem ser reativados com abordagem correta.',
-    potencial: '1 a 3 vendas',
     filtro: ctx => ['Lead sem resposta', 'Aguardando resposta do cliente', 'Primeiro contato pendente'].includes(ctx.situacao),
   },
   {
     id: 'vai_pensar', nome: 'Follow-up de decisão', icone: '🤔', prioridade: 'Média',
     objetivo: 'Descobrir objeção e converter.',
     porqueAgora: 'Clientes "vão pensar" precisam de follow-up inteligente.',
-    potencial: '2 a 4 vendas',
     filtro: ctx => ctx.situacao === 'Em negociação ativa',
   },
   {
     id: 'reativar_carteira', nome: 'Reativar carteira', icone: '🔄', prioridade: 'Média',
     objetivo: 'Retomar relacionamento com clientes antigos.',
     porqueAgora: 'Clientes antigos compram mais rápido do que leads novos.',
-    potencial: '2 a 5 vendas',
     filtro: ctx => ctx.situacao === 'Venda realizada' && (ctx.diasSemContato ?? 0) >= 60,
   },
   {
     id: 'pos_venda', nome: 'Pós-venda e indicação', icone: '⭐', prioridade: 'Média',
     objetivo: 'Manter relacionamento e pedir indicação.',
     porqueAgora: 'Clientes satisfeitos indicam. Não deixe essa janela fechar.',
-    potencial: 'Indicações',
     filtro: ctx => ctx.situacao === 'Venda realizada' && (ctx.diasSemContato ?? 0) < 60,
   },
   {
     id: 'garantia', nome: 'Acompanhar garantias', icone: '🛡️', prioridade: 'Baixa',
     objetivo: 'Proteger relacionamento pós-venda.',
     porqueAgora: 'Clientes com garantia precisam de atenção para manter confiança.',
-    potencial: 'Relacionamento',
     filtro: ctx => ctx.temGarantia,
   },
   {
     id: 'troca_futura', nome: 'Oportunidades de troca', icone: '🔁', prioridade: 'Baixa',
     objetivo: 'Cultivar oportunidade de troca futura.',
     porqueAgora: 'Clientes com intenção futura podem antecipar a compra.',
-    potencial: '2 a 5 vendas',
     filtro: ctx => ctx.situacao === 'Venda perdida',
   },
 ]
@@ -307,14 +294,10 @@ export function PlanoAtaqueTab({ clientes, oportunidadePorCliente, progressoPorC
               <p className="text-xs text-slate-400 mt-1 italic">{missao.porqueAgora}</p>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4 pt-2 border-t border-slate-50">
+          <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-50">
             <div className="text-center">
               <p className="text-2xl font-black text-slate-900">{missao.contextos.length}</p>
               <p className="text-xs text-slate-400">Clientes</p>
-            </div>
-            <div className="text-center">
-              <p className="text-sm font-bold text-[#005BFF]">{missao.potencial}</p>
-              <p className="text-xs text-slate-400">Potencial</p>
             </div>
             <div className="text-center">
               <p className="text-sm font-bold text-slate-600">{missao.prioridade}</p>
@@ -477,12 +460,11 @@ export function PlanoAtaqueTab({ clientes, oportunidadePorCliente, progressoPorC
                 <p className="text-sm font-bold text-slate-900 leading-tight">{missao.nome}</p>
                 <p className="text-xs text-slate-400 mt-1 leading-snug">{missao.objetivo}</p>
                 <p className="text-[10px] text-slate-300 mt-1 leading-snug italic">{missao.porqueAgora}</p>
-                <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-50">
+                <div className="flex items-center mt-3 pt-2 border-t border-slate-50">
                   <div className="flex items-center gap-1.5">
                     <Users className="w-3.5 h-3.5 text-slate-400" />
                     <span className="text-xs font-bold text-slate-600">{count} cliente{count !== 1 ? 's' : ''}</span>
                   </div>
-                  <span className="text-[11px] text-[#005BFF] font-semibold">{missao.potencial}</span>
                 </div>
               </button>
             )

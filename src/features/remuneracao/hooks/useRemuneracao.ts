@@ -268,13 +268,17 @@ export function useVendedoresNivelCarreira(lojaId: string | null) {
 
 /** Nível de carreira do próprio vendedor (leitura). */
 export function useMeuNivelCarreira(sellerUserId: string | null) {
-  const [nivel, setNivel] = useState<NivelCarreira>('junior')
+  const [nivel, setNivel] = useState<NivelCarreira | null>(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     let alive = true
     ;(async () => {
-      if (!sellerUserId) { setNivel('junior'); return }
+      if (!sellerUserId) {
+        setNivel(null)
+        setLoading(false)
+        return
+      }
       setLoading(true)
       const { data } = await supabase
         .from('vendedor_nivel_carreira')
@@ -282,7 +286,7 @@ export function useMeuNivelCarreira(sellerUserId: string | null) {
         .eq('seller_user_id', sellerUserId)
         .maybeSingle()
       if (!alive) return
-      setNivel((data?.nivel_carreira as NivelCarreira) || 'junior')
+      setNivel((data?.nivel_carreira as NivelCarreira) || null)
       setLoading(false)
     })()
     return () => { alive = false }

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
-import { AGENDA_TARGET_OPTIONS, VISIT_REASON_OPTIONS } from '@/features/agenda/constants'
 
 export type AgendaOptionKind = 'visit_reason' | 'target_audience'
 export type AgendaOptionStatus = 'ativo' | 'arquivado'
@@ -24,11 +23,6 @@ export type AgendaOptionInput = {
   sort_order?: number
 }
 
-const DEFAULT_OPTIONS: Record<AgendaOptionKind, readonly string[]> = {
-  visit_reason: VISIT_REASON_OPTIONS,
-  target_audience: AGENDA_TARGET_OPTIONS,
-}
-
 function normalizeOption(option: Partial<AgendaOption>): AgendaOption {
   return {
     id: option.id || `${option.kind}:${option.label}`,
@@ -48,17 +42,6 @@ function sortOptions(options: AgendaOption[]) {
     if (order !== 0) return order
     return a.label.localeCompare(b.label, 'pt-BR')
   })
-}
-
-function fallbackRows() {
-  return (Object.entries(DEFAULT_OPTIONS) as Array<[AgendaOptionKind, readonly string[]]>)
-    .flatMap(([kind, labels]) => labels.map((label, index): AgendaOption => ({
-      id: `fallback:${kind}:${label}`,
-      kind,
-      label,
-      status: 'ativo',
-      sort_order: (index + 1) * 10,
-    })))
 }
 
 export function mergeAgendaOptionLabels(baseLabels: string[], ...currentValues: Array<string | null | undefined>) {
@@ -89,7 +72,7 @@ export function useAgendaOptions() {
 
     if (fetchError) {
       setError(fetchError.message)
-      setOptions(fallbackRows())
+      setOptions([])
       setLoading(false)
       return
     }
@@ -98,7 +81,7 @@ export function useAgendaOptions() {
       .map(normalizeOption)
       .filter((option) => option.label)
 
-    setOptions(rows.length ? sortOptions(rows) : fallbackRows())
+    setOptions(sortOptions(rows))
     setLoading(false)
   }, [])
 

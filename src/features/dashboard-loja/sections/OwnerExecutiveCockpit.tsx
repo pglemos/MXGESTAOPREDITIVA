@@ -83,8 +83,8 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
   }, [alerts, centralMx.alerts])
   const actions = useMemo(() => centralMx.actionPlanItems.map(actionFromEngine), [centralMx.actionPlanItems])
   const mxScore = centralMx.scores.store.value
-  const section = getOwnerSection(location.search)
-  const selectedDepartmentCode = getOwnerDepartmentCode(location.search)
+  const section = getOwnerSection(location.pathname, location.search)
+  const selectedDepartmentCode = getOwnerDepartmentCode(location.pathname, location.search)
 
   const universityContent = (
     <>
