@@ -38,18 +38,11 @@ const exactComponents = [
   'ModoAtaque.jsx',
   'ProximaOportunidadeModal.jsx',
   'RetornoWhatsAppModal.jsx',
-  'carteiraUtils.jsx',
   'proximoPassoLib.js',
   'VeiculosChegaram.jsx',
 ]
 
 const integratedComponents = {
-  'FichaClienteSheet.jsx': [
-    'w-full sm:max-w-xl overflow-y-auto p-0 flex flex-col',
-    'Mentor Comercial',
-    'Alterar próximo passo',
-    'sticky bottom-0 bg-white border-t border-slate-100',
-  ],
   'NovoClienteModal.jsx': [
     'max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl',
     'Novo Cliente',
@@ -79,8 +72,33 @@ for (const [filename, visualTokens] of Object.entries(integratedComponents)) {
   }
 }
 
+// carteiraUtils.jsx deliberately diverges from the byte-for-byte Base44 reference: it
+// carries real bug fixes (PP01-17 script coverage, lost-sale filter exclusion, pt-br
+// locale). Check content survives instead of enforcing an exact match.
+const carteiraUtils = read('src/components/carteira/carteiraUtils.jsx')
+for (const token of ['export const MISSOES', 'filtro:', 'export const SCRIPTS_BIBLIOTECA', 'export function getScriptParaProximoPasso']) {
+  assert(carteiraUtils.includes(token), `carteiraUtils.jsx preserves ${token}`)
+}
+assert(!/\bpotencial\s*:/.test(carteiraUtils), 'carteiraUtils.jsx has no invented sales projections')
+
+// FichaClienteSheet.jsx deliberately opens as a centered Dialog instead of the Base44
+// side Sheet (product decision). base44-reference stays frozen with the original Sheet.
+const fichaReference = read('src/base44-reference/components/carteira/FichaClienteSheet.jsx')
+const fichaRuntime = read('src/components/carteira/FichaClienteSheet.jsx')
+for (const token of ['Mentor Comercial', 'Alterar próximo passo', 'sticky bottom-0 bg-white border-t border-slate-100']) {
+  assert(fichaReference.includes(token), `FichaClienteSheet.jsx reference includes ${token}`)
+  assert(fichaRuntime.includes(token), `FichaClienteSheet.jsx runtime preserves ${token}`)
+}
+assert(fichaReference.includes('@/components/ui/sheet'), 'FichaClienteSheet.jsx reference keeps the Base44 side Sheet')
+assert(fichaRuntime.includes('@/components/ui/dialog'), 'FichaClienteSheet.jsx runtime uses the centered Dialog')
+
+// PlanoAtaqueTab.jsx no longer wraps the frozen PlanoAtaqueTabBase44 reference: it's a
+// working reimplementation (persisted mission recovery, real client queues, mission
+// creation) built directly on MISSOES + CarteiraMissao instead of a props passthrough.
 const planTab = read('src/components/carteira/PlanoAtaqueTab.jsx')
-for (const token of ['PlanoAtaqueTabBase44', 'CarteiraMissao.filter', 'clientes_ids']) {
+assert(/CarteiraMissao\s*\.filter\(/.test(planTab), 'plan tab reads persisted missions via CarteiraMissao.filter')
+assert(/CarteiraMissao\s*\.create\(/.test(planTab), 'plan tab creates missions via CarteiraMissao.create')
+for (const token of ['clientes_ids', 'MISSOES']) {
   assert(planTab.includes(token), `plan tab includes ${token}`)
 }
 
