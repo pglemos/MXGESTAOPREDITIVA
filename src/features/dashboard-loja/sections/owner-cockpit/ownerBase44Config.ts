@@ -39,6 +39,10 @@ export type OwnerBase44NavigationItem = {
   label: string
   section: OwnerBase44Section
   departmentCode?: OwnerDepartmentNavigationCode
+  children?: OwnerBase44NavigationItem[]
+  defaultExpanded?: boolean
+  badge?: string
+  badgeTone?: 'default' | 'warning'
 }
 
 export type OwnerBase44NavigationSection = {
@@ -66,20 +70,31 @@ export const OWNER_BASE44_NAVIGATION: OwnerBase44NavigationSection[] = [
   {
     label: 'NEGÓCIO',
     items: [
-      { label: 'Departamentos', section: 'departamentos' },
-      { label: 'Visão Geral', section: 'departamentos', departmentCode: 'visao-geral' },
-      { label: 'Comercial', section: 'departamentos', departmentCode: 'comercial' },
-      { label: 'Marketing', section: 'departamentos', departmentCode: 'marketing' },
-      { label: 'Produto e Estoque', section: 'departamentos', departmentCode: 'produto' },
-      { label: 'Pessoas — RH', section: 'departamentos', departmentCode: 'rh' },
-      { label: 'Financeiro', section: 'departamentos', departmentCode: 'financeiro' },
-      { label: 'Operações', section: 'departamentos', departmentCode: 'operacional' },
-      { label: 'Mercado', section: 'mercado' },
+      {
+        label: 'Departamentos',
+        section: 'departamentos',
+        defaultExpanded: true,
+        children: [
+          { label: 'Visão Geral', section: 'departamentos', departmentCode: 'visao-geral' },
+          { label: 'Comercial', section: 'departamentos', departmentCode: 'comercial' },
+          { label: 'Marketing', section: 'departamentos', departmentCode: 'marketing' },
+          { label: 'Produto e Estoque', section: 'departamentos', departmentCode: 'produto' },
+          { label: 'Pessoas — RH', section: 'departamentos', departmentCode: 'rh' },
+          { label: 'Financeiro', section: 'departamentos', departmentCode: 'financeiro' },
+          { label: 'Operações', section: 'departamentos', departmentCode: 'operacional' },
+        ],
+      },
+      { label: 'Mercado', section: 'mercado', badge: 'Em construção', badgeTone: 'warning' },
     ],
   },
   {
     label: 'DESENVOLVIMENTO',
-    items: [{ label: 'Universidade MX', section: 'universidade' }],
+    items: [{
+      label: 'Universidade MX',
+      section: 'universidade',
+      badge: 'Em construção',
+      badgeTone: 'warning',
+    }],
   },
   {
     label: 'AÇÃO GLOBAL',

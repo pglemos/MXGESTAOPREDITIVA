@@ -48,6 +48,16 @@ describe('sidebar universal MX', () => {
     expect(shellSource).not.toContain('absolute bottom-2 left-0 top-2 w-1')
   })
 
+  test('suporta grupos hierárquicos com subitens recuados no desktop e no drawer', () => {
+    expect(shellSource).toContain('children?: MxSidebarNavItem[]')
+    expect(shellSource).toContain('flattenLeafItems')
+    expect(shellSource).toContain('data-sidebar-group={item.label}')
+    expect(shellSource).toContain('data-sidebar-subnav={item.label}')
+    expect(shellSource).toContain('aria-expanded={expanded}')
+    expect(shellSource).toContain('border-l border-gray-200')
+    expect(shellSource).toContain('bg-emerald-50 font-semibold text-emerald-700')
+  })
+
   test('mantém navegação, acessibilidade e drawer mobile', () => {
     expect(shellSource).toContain("aria-current={active ? 'page' : false}")
     expect(shellSource).toContain('aria-modal="true"')
@@ -80,7 +90,9 @@ describe('sidebar universal MX', () => {
     expect(shellSource).toContain('moduleLabel')
     expect(layoutSource).toContain('dono: ownerNavConfig')
     expect(layoutSource).toContain('path: ownerNavigationCanonicalPath(item)')
-    expect(layoutSource).toContain('key: `${section.label}:${item.label}`')
+    expect(layoutSource).toContain('children: item.children?.map')
+    expect(layoutSource).toContain("badge: item.badge ?? badgeForPath(item.path)")
+    expect(layoutSource).toContain('key: `${sectionLabel}:${item.label}`')
     expect(layoutSource).toContain('key: item.key')
   })
 })

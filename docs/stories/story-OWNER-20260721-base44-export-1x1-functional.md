@@ -92,6 +92,11 @@ quality_gate_tools: ["browser", "playwright", "coderabbit", "vitest"]
   - [x] Remover o sidebar paralelo do Dono sem alterar o conteúdo funcional Base44.
   - [x] Ligar toda a navegação executiva às rotas canônicas `/dono/*`.
   - [x] Revalidar desktop, tablet, mobile, drawer, item ativo e ausência de overflow/console errors.
+- [x] 6. Restaurar a hierarquia visual de Departamentos conforme a referência Base44 (correção do usuário em 2026-07-21)
+  - [x] Transformar Departamentos em grupo expansível, sem duplicar o item ativo.
+  - [x] Recuar os sete departamentos em subnavegação com trilho vertical e sem ícones individuais.
+  - [x] Manter Mercado e Universidade MX fora do grupo, com estado Em construção.
+  - [x] Validar expansão, item ativo, desktop e drawer mobile em navegador real.
 
 ## Dev Notes
 
@@ -117,6 +122,7 @@ quality_gate_tools: ["browser", "playwright", "coderabbit", "vitest"]
 | 2026-07-21 | 1.1 | Porte do Dono corrigido, integrado e validado; story mantida InProgress devido a quatro regressões globais preexistentes. | @dev |
 | 2026-07-21 | 1.2 | Sidebar do Dono unificado ao shell de Vendedor/Gerente e revalidado em 68 combinações responsivas. | @dev |
 | 2026-07-21 | 1.3 | Contratos globais obsoletos corrigidos, Playwright alinhado em 1.61.1 e todos os gates fechados para revisão. | @dev |
+| 2026-07-21 | 1.4 | Hierarquia visual de Departamentos restaurada no shell universal, incluindo subnavegação responsiva e estados Em construção. | @dev |
 
 ## Dev Agent Record
 
@@ -140,11 +146,14 @@ GPT-5 Codex / Dex
 - CodeRabbit: nenhuma revisão reportou CRITICAL. Os achados válidos foram corrigidos, incluindo contrato estrutural da rota, identidade da sessão, normalização estrita do teste de paridade, invalidação da jornada de Consultoria, fronteira exata de `/dono/*` e tokens semânticos de gráficos.
 - Playwright alinhado em `1.61.1` para runtime e test runner; a divergência `1.61.1`/`1.59.1` que impedia o E2E foi eliminada e os dois E2Es autenticados passaram.
 - DoD concluído: requisitos, estrutura, segurança, testes focados/globais/E2E, verificação visual, lint, typecheck e build passaram; story pronta para revisão e publicação pelo `@devops`.
+- Correção visual 1.4 validada localmente em 1440x900 e 390x844: Departamentos expansível, 7 filhos recuados, 0 ícones nos filhos, Visão Geral como único item ativo, 0 overflow e 0 erros de console.
+- Regressão da correção 1.4: `1317 pass / 0 fail`, lint com 0 erros e 7 warnings preexistentes, typecheck e build aprovados; matriz Playwright autenticada passou em 2 projetos (`2 passed`, 3,3 min) cobrindo 68 combinações por execução.
 
 ### Completion Notes List
 
 - `/dono/*` agora é exclusivo do papel `dono`, com deny-by-default e deep links legados normalizados sem aceitar propriedades herdadas como rotas.
 - `/dono/*` agora usa o mesmo `Layout` e `MxSidebarShell` de Vendedor/Gerente; o sidebar paralelo foi removido, enquanto o conteúdo Base44 permanece isolado em `.owner-b44`.
+- A seção Negócio preserva o shell universal, mas recupera a anatomia Base44: Departamentos é um grupo expansível e seus sete departamentos são subitens visuais, enquanto Mercado permanece independente.
 - Topbar, conteúdo e responsividade do Dono reproduzem a referência nos quatro viewports validados, com drawer universal no mobile e um único `main#main-content` acessível.
 - Plano Estratégico, Plano de Ação e Consultoria tiveram fluxos representativos exercitados no navegador real, incluindo persistência local, exportação, uploads e integração Supabase.
 - Solicitações ao consultor exigem unidade acessível, classificações canônicas válidas e identidade exclusivamente derivada da sessão autenticada; falhas fecham com mensagem sanitizada.
@@ -160,6 +169,7 @@ GPT-5 Codex / Dex
 - `src/App.tsx`
 - `src/components/Layout.tsx`
 - `src/components/MxSidebarShell.test.ts`
+- `src/components/MxSidebarShell.tsx`
 - `src/components/owner/ConsultantRequestModal.jsx`
 - `src/components/owner/OwnerLayout.jsx`
 - `src/components/owner/OwnerSidebar.jsx` (removido)

@@ -22,6 +22,7 @@ import { buildInternalMxNavigation } from '@/design-system/internal-mx/internalM
 import { MxRoleVisualScope } from '@/components/module/MxRoleVisualScope'
 import {
   OWNER_BASE44_NAVIGATION,
+  type OwnerBase44NavigationItem,
   ownerNavigationCanonicalPath,
 } from '@/features/dashboard-loja/sections/owner-cockpit/ownerBase44Config'
 
@@ -31,6 +32,10 @@ type SubItem = {
   path: string
   icon?: React.ReactNode
   activePaths?: string[]
+  children?: SubItem[]
+  defaultExpanded?: boolean
+  badge?: string
+  badgeTone?: 'default' | 'warning'
 }
 
 type NavCategory = {
@@ -72,9 +77,9 @@ const ownerItemIcons: Record<string, React.ReactNode> = {
   Início: <Home size={16} />,
   'Rotina do Dia': <CalendarClock size={16} />,
   'Central de Decisões': <ClipboardList size={16} />,
-  'Plano Estratégico': <BarChart3 size={16} />,
+  'Plano Estratégico': <Target size={16} />,
   'Plano de Ação': <CheckSquare size={16} />,
-  Consultoria: <MessageSquare size={16} />,
+  Consultoria: <Users size={16} />,
   Departamentos: <Grid size={16} />,
   'Visão Geral': <LayoutDashboard size={16} />,
   Comercial: <TrendingUp size={16} />,
@@ -83,20 +88,29 @@ const ownerItemIcons: Record<string, React.ReactNode> = {
   'Pessoas — RH': <Users size={16} />,
   Financeiro: <BriefcaseBusiness size={16} />,
   Operações: <Settings size={16} />,
-  Mercado: <BarChart3 size={16} />,
+  Mercado: <TrendingUp size={16} />,
   'Universidade MX': <GraduationCap size={16} />,
   'Falar com Consultor': <MessageSquare size={16} />,
 }
 
+const mapOwnerNavigationItem = (
+  sectionLabel: string,
+  item: OwnerBase44NavigationItem,
+): SubItem => ({
+  key: `${sectionLabel}:${item.label}`,
+  label: item.label,
+  path: ownerNavigationCanonicalPath(item),
+  icon: ownerItemIcons[item.label] ?? <Grid size={16} />,
+  defaultExpanded: item.defaultExpanded,
+  badge: item.badge,
+  badgeTone: item.badgeTone,
+  children: item.children?.map(child => mapOwnerNavigationItem(sectionLabel, child)),
+})
+
 const ownerNavConfig: NavCategory[] = OWNER_BASE44_NAVIGATION.map(section => ({
   category: section.label,
   icon: ownerCategoryIcons[section.label],
-  items: section.items.map(item => ({
-    key: `${section.label}:${item.label}`,
-    label: item.label,
-    path: ownerNavigationCanonicalPath(item),
-    icon: ownerItemIcons[item.label] ?? <Grid size={16} />,
-  })),
+  items: section.items.map(item => mapOwnerNavigationItem(section.label, item)),
 }))
 
 const navConfig: Record<string, NavCategory[]> = {
@@ -209,23 +223,28 @@ export default function Layout() {
       return count > 99 ? '99+' : String(count)
     }
 
+    const toSidebarItem = (item: SubItem): MxSidebarNavItem => {
+      const label = item.label.toLowerCase()
+      return {
+        key: item.key,
+        label: item.label,
+        path: item.path,
+        icon: item.icon,
+        badge: item.badge ?? badgeForPath(item.path),
+        badgeTone: item.badgeTone,
+        activePaths: item.activePaths ?? [item.path],
+        children: item.children?.map(toSidebarItem),
+        defaultExpanded: item.defaultExpanded,
+        special: item.path.includes('/consultor-ia') ||
+          label.includes('consultor ia') ||
+          label.includes('consultor mx ia') ||
+          label.includes('falar com consultor'),
+      }
+    }
+
     return categories.map((category): MxSidebarNavSection => ({
       label: category.category,
-      items: category.items.map((item): MxSidebarNavItem => {
-        const label = item.label.toLowerCase()
-        return {
-          key: item.key,
-          label: item.label,
-          path: item.path,
-          icon: item.icon,
-          badge: badgeForPath(item.path),
-          activePaths: item.activePaths ?? [item.path],
-          special: item.path.includes('/consultor-ia') ||
-            label.includes('consultor ia') ||
-            label.includes('consultor mx ia') ||
-            label.includes('falar com consultor'),
-        }
-      }),
+      items: category.items.map(toSidebarItem),
     }))
   }, [categories, pendingFeedbackCount, role, unreadCount])
 

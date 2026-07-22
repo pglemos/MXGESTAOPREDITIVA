@@ -9,6 +9,9 @@ import {
 } from './ownerBase44Config'
 
 describe('contrato do módulo Dono inspirado no Base44', () => {
+  const flattenItems = (items: (typeof OWNER_BASE44_NAVIGATION)[number]['items']): typeof items =>
+    items.flatMap(item => [item, ...(item.children ? flattenItems(item.children) : [])])
+
   test('mantém a arquitetura de informação aprovada em cinco grupos', () => {
     expect(OWNER_BASE44_NAVIGATION.map(section => section.label)).toEqual([
       'GESTÃO',
@@ -18,7 +21,7 @@ describe('contrato do módulo Dono inspirado no Base44', () => {
       'AÇÃO GLOBAL',
     ])
 
-    expect(OWNER_BASE44_NAVIGATION.flatMap(section => section.items.map(item => item.label))).toEqual([
+    expect(OWNER_BASE44_NAVIGATION.flatMap(section => flattenItems(section.items).map(item => item.label))).toEqual([
       'Início',
       'Rotina do Dia',
       'Central de Decisões',
@@ -41,14 +44,36 @@ describe('contrato do módulo Dono inspirado no Base44', () => {
 
   test('gera um destino único para cada item de negócio', () => {
     const business = OWNER_BASE44_NAVIGATION.find(section => section.label === 'NEGÓCIO')
-    const values = business?.items.map(ownerNavigationSectionValue) ?? []
+    const departmentGroup = business?.items.find(item => item.label === 'Departamentos')
+    const values = departmentGroup?.children?.map(ownerNavigationSectionValue) ?? []
     expect(new Set(values).size).toBe(values.length)
     expect(values).toContain('departamentos-visao-geral')
   })
 
+  test('mantém departamentos como grupo expansível e filhos semânticos', () => {
+    const business = OWNER_BASE44_NAVIGATION.find(section => section.label === 'NEGÓCIO')
+    expect(business?.items.map(item => item.label)).toEqual(['Departamentos', 'Mercado'])
+
+    const departments = business?.items[0]
+    expect(departments?.defaultExpanded).toBe(true)
+    expect(departments?.children?.map(item => item.label)).toEqual([
+      'Visão Geral',
+      'Comercial',
+      'Marketing',
+      'Produto e Estoque',
+      'Pessoas — RH',
+      'Financeiro',
+      'Operações',
+    ])
+    expect(business?.items[1]?.badge).toBe('Em construção')
+
+    const development = OWNER_BASE44_NAVIGATION.find(section => section.label === 'DESENVOLVIMENTO')
+    expect(development?.items[0]?.badge).toBe('Em construção')
+  })
+
   test('liga o sidebar universal às rotas canônicas do módulo Dono', () => {
     const paths = OWNER_BASE44_NAVIGATION.flatMap(section =>
-      section.items.map(item => [item.label, ownerNavigationCanonicalPath(item)] as const),
+      flattenItems(section.items).map(item => [item.label, ownerNavigationCanonicalPath(item)] as const),
     )
 
     expect(Object.fromEntries(paths)).toEqual({

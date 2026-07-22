@@ -23,8 +23,11 @@ export type MxSidebarNavItem = {
   path: string
   icon?: React.ElementType | React.ReactElement | React.ReactNode
   badge?: string
+  badgeTone?: 'default' | 'warning'
   activePaths?: string[]
   special?: boolean
+  children?: MxSidebarNavItem[]
+  defaultExpanded?: boolean
 }
 
 export type MxSidebarNavSection = {
@@ -66,6 +69,20 @@ function isNavItemActive(
     if (!pathMatches) return false
     return query ? location.search === `?${query}` : true
   })
+}
+
+function flattenLeafItems(items: MxSidebarNavItem[]): MxSidebarNavItem[] {
+  return items.flatMap(item => item.children?.length
+    ? flattenLeafItems(item.children)
+    : [item])
+}
+
+function containsNavItem(
+  parent: MxSidebarNavItem,
+  target: MxSidebarNavItem | undefined,
+): boolean {
+  if (!target || !parent.children?.length) return false
+  return parent.children.some(child => child === target || containsNavItem(child, target))
 }
 
 function NavItemIcon({
@@ -146,6 +163,7 @@ export default function MxSidebarShell({
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
   const location = useLocation()
   const navigate = useNavigate()
   const drawerRef = useRef<HTMLDivElement>(null)
@@ -164,7 +182,7 @@ export default function MxSidebarShell({
     .toUpperCase() || 'MX'
 
   const activeNavItem = useMemo(() => {
-    const candidates = navSections.flatMap((section) => section.items)
+    const candidates = navSections.flatMap((section) => flattenLeafItems(section.items))
     let selected: MxSidebarNavItem | undefined
     let selectedScore = -1
 
@@ -189,6 +207,26 @@ export default function MxSidebarShell({
   }, [location.pathname, location.search, navSections])
 
   const mobileTitle = activeNavItem?.label || 'MX Performance'
+
+  useEffect(() => {
+    if (!activeNavItem) return
+    const activeGroups = navSections
+      .flatMap(section => section.items)
+      .filter(item => containsNavItem(item, activeNavItem))
+    if (activeGroups.length === 0) return
+
+    setExpandedGroups(current => {
+      const next = { ...current }
+      let changed = false
+      for (const group of activeGroups) {
+        const key = group.key ?? group.path
+        if (next[key] === true) continue
+        next[key] = true
+        changed = true
+      }
+      return changed ? next : current
+    })
+  }, [activeNavItem, navSections])
 
   useEffect(() => {
     if (!mobileOpen && !userMenuOpen) return
@@ -255,12 +293,19 @@ export default function MxSidebarShell({
         />
         {!isCollapsed ? (
           <>
-            <span className="min-w-0 flex-1 truncate">{item.label}</span>
+            <span className={cn(
+              'min-w-0 flex-1',
+              item.badgeTone === 'warning' ? 'whitespace-normal leading-tight' : 'truncate',
+            )}>
+              {item.label}
+            </span>
             {item.badge ? (
               <span
                 className={cn(
-                  'inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold',
-                  active
+                  'inline-flex min-h-5 shrink-0 items-center justify-center rounded-full px-1.5 text-[10px] font-bold',
+                  item.badgeTone === 'warning'
+                    ? 'bg-amber-50 text-amber-700'
+                    : active
                     ? 'bg-white/20 text-white'
                     : 'bg-emerald-50 text-emerald-700',
                 )}
@@ -272,6 +317,87 @@ export default function MxSidebarShell({
         ) : null}
         {isCollapsed ? <CollapsedTooltip label={item.label} /> : null}
       </NavLink>
+    )
+  }
+
+  const renderNestedNavItem = (item: MxSidebarNavItem) => {
+    const active = item === activeNavItem
+
+    return (
+      <NavLink
+        key={item.key ?? item.path}
+        to={item.path}
+        aria-label={item.label}
+        aria-current={active ? 'page' : false}
+        onClick={() => setMobileOpen(false)}
+        className={cn(
+          'flex min-h-10 w-full items-center rounded-xl px-3 py-2 text-left text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500/30',
+          active
+            ? 'bg-emerald-50 font-semibold text-emerald-700'
+            : 'font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-800',
+        )}
+      >
+        <span className="min-w-0 flex-1 truncate">{item.label}</span>
+      </NavLink>
+    )
+  }
+
+  const renderNavGroup = (item: MxSidebarNavItem, isCollapsed: boolean) => {
+    const key = item.key ?? item.path
+    const containsActiveItem = containsNavItem(item, activeNavItem)
+    const expanded = expandedGroups[key] ?? item.defaultExpanded ?? containsActiveItem
+
+    const toggleGroup = () => {
+      if (isCollapsed) {
+        setCollapsed(false)
+        setExpandedGroups(current => ({ ...current, [key]: true }))
+        return
+      }
+      setExpandedGroups(current => ({ ...current, [key]: !expanded }))
+    }
+
+    return (
+      <div key={key} data-sidebar-group={item.label} className="space-y-1">
+        <button
+          type="button"
+          aria-label={item.label}
+          aria-expanded={expanded}
+          onClick={toggleGroup}
+          className={cn(
+            'group relative flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-gray-600 outline-none transition-colors hover:bg-gray-50 hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-emerald-500/30',
+            isCollapsed && 'justify-center px-0',
+          )}
+        >
+          <NavItemIcon
+            icon={item.icon}
+            size={18}
+            className="shrink-0 text-gray-500 transition-colors group-hover:text-gray-800"
+          />
+          {!isCollapsed ? (
+            <>
+              <span className="min-w-0 flex-1 truncate">{item.label}</span>
+              <ChevronDown
+                size={16}
+                className={cn(
+                  'shrink-0 text-gray-400 transition-transform duration-200',
+                  expanded && 'rotate-180',
+                )}
+                aria-hidden="true"
+              />
+            </>
+          ) : null}
+          {isCollapsed ? <CollapsedTooltip label={item.label} /> : null}
+        </button>
+
+        {!isCollapsed && expanded ? (
+          <div
+            data-sidebar-subnav={item.label}
+            className="ml-5 space-y-1 border-l border-gray-200 pl-2.5"
+          >
+            {item.children?.map(renderNestedNavItem)}
+          </div>
+        ) : null}
+      </div>
     )
   }
 
@@ -432,7 +558,9 @@ export default function MxSidebarShell({
               </p>
             ) : null}
             <div className="space-y-1">
-              {section.items.map((item) => renderNavItem(item, isCollapsed))}
+              {section.items.map(item => item.children?.length
+                ? renderNavGroup(item, isCollapsed)
+                : renderNavItem(item, isCollapsed))}
             </div>
           </section>
         ))}

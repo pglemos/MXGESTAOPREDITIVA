@@ -86,6 +86,23 @@ async function auditRoute(
     await expect(mobileDrawer).toHaveCount(0)
   }
 
+  const visibleSidebar = viewport.mobile ? mobileDrawer : desktopSidebar
+  const departmentsGroup = visibleSidebar.locator('[data-sidebar-group="Departamentos"]')
+  const departmentsToggle = departmentsGroup.getByRole('button', { name: 'Departamentos' })
+  const departmentsSubnav = departmentsGroup.locator('[data-sidebar-subnav="Departamentos"]')
+  await expect(departmentsToggle).toHaveAttribute('aria-expanded', 'true')
+  await expect(departmentsSubnav.getByRole('link')).toHaveCount(7)
+  await expect(departmentsSubnav.locator('svg')).toHaveCount(0)
+  expect(await departmentsSubnav.getByRole('link').allTextContents()).toEqual([
+    'Visão Geral',
+    'Comercial',
+    'Marketing',
+    'Produto e Estoque',
+    'Pessoas — RH',
+    'Financeiro',
+    'Operações',
+  ])
+
   const metric = await page.evaluate(
     ({ routeKey, viewportKey, collectedPageErrors, collectedConsoleErrors }) => {
       const ownerRoot = document.querySelector<HTMLElement>('.owner-base44-exact')
