@@ -298,21 +298,23 @@ export function StoreTeamPanel({ storeId, storeName }: StoreTeamPanelProps) {
           role: item.role,
         }),
       })
-      const payload = await response.json().catch(() => null) as { success?: boolean; error?: string; temporary_password?: unknown } | null
+      const payload = await response.json().catch(() => null) as { success?: boolean; error?: string; temporary_password?: unknown; email_status?: string } | null
       if (!payload) throw new Error('Não foi possível interpretar a resposta da aprovação.')
       if (!response.ok || !payload.success) throw new Error(payload.error || 'Não foi possível revisar o login.')
 
       const temporaryPassword = typeof payload.temporary_password === 'string' ? payload.temporary_password : ''
-      if (action === 'approve' && temporaryPassword) {
+      if (action === 'approve' && payload.email_status === 'sent') {
+        toast.success('Login aprovado. Link para criação de senha enviado ao e-mail cadastrado.')
+      } else if (action === 'approve' && temporaryPassword) {
         try {
           if (navigator.clipboard?.writeText) {
             await navigator.clipboard.writeText(temporaryPassword)
-            toast.success('Login aprovado. Senha temporária copiada para a área de transferência.')
+            toast.success('Login aprovado, mas o e-mail não foi entregue. Senha temporária copiada para a área de transferência.')
           } else {
-            toast.success('Login aprovado. Gere uma nova senha temporária em caso de perda.')
+            toast.success('Login aprovado, mas o e-mail não foi entregue. Gere uma nova senha temporária em caso de perda.')
           }
         } catch {
-          toast.success('Login aprovado. Gere uma nova senha temporária em caso de perda.')
+          toast.success('Login aprovado, mas o e-mail não foi entregue. Gere uma nova senha temporária em caso de perda.')
         }
       } else {
         toast.success(action === 'approve' ? 'Login aprovado e sincronizado.' : 'Login rejeitado.')

@@ -2,9 +2,12 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 import { corsHeaders } from '../_shared/cors.ts'
+import { sendReportEmail } from '../_shared/email.ts'
+import { createResendClient } from '../_shared/supabase-client.ts'
 
 const allowedRoles = ['dono', 'gerente', 'vendedor']
 const passwordChars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*'
+const recoveryRedirectTo = 'https://mxperformance.vercel.app/login?recovery=1'
 const PRE_REGISTRATION_SELECT = [
   'id',
   'status',
@@ -43,6 +46,16 @@ function generateTemporaryPassword(length = 18) {
   return Array.from(bytes, (byte) => passwordChars[byte % passwordChars.length]).join('')
 }
 
+function escapeHtml(value: string) {
+  return value.replace(/[&<>'"]/g, character => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#39;',
+    '"': '&quot;',
+  })[character] || character)
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
   if (req.method !== 'POST') return jsonResponse({ success: false, error: 'Method not allowed' }, 405)
@@ -57,6 +70,7 @@ serve(async (req) => {
   const adminClient = createClient(supabaseUrl, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   }) as unknown as SupabaseAdminClient
+  const resend = createResendClient()
 
   const { data: authData, error: authError } = await adminClient.auth.getUser(token)
   if (authError || !authData.user) return jsonResponse({ success: false, error: 'Sessão inválida.' }, 401)
@@ -208,5 +222,48 @@ serve(async (req) => {
 
   if (updateError) return jsonResponse({ success: false, error: updateError.message }, 500)
 
-  return jsonResponse({ success: true, status: 'synced', role: finalRole, login_email: preRegistration.email, temporary_password: temporaryPassword })
+  let emailStatus: 'sent' | 'failed' | 'not_sent' = 'not_sent'
+  let emailWarning = ''
+  let actionLink = ''
+
+  const { data: recoveryData, error: recoveryError } = await adminClient.auth.admin.generateLink({
+    type: 'recovery',
+    email: preRegistration.email,
+    options: { redirectTo: recoveryRedirectTo },
+  })
+
+  if (recoveryError || !recoveryData?.properties?.action_link) {
+    emailStatus = 'failed'
+    emailWarning = 'Não foi possível gerar o link de criação de senha.'
+    console.error('[ApproveStoreRegistration] recovery link failed:', recoveryError?.message || 'link ausente')
+  } else {
+    actionLink = recoveryData.properties.action_link
+    const emailResult = await sendReportEmail({
+      resend,
+      to: [preRegistration.email],
+      subject: 'Acesso aprovado | MX Performance',
+      storeName: 'MX Performance',
+      logPrefix: '[ApproveStoreRegistration]',
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:32px;color:#17231d">
+          <h1 style="color:#0d3b2e">Seu acesso foi aprovado</h1>
+          <p>Seu cadastro foi aprovado e o acesso ao MX Performance está pronto.</p>
+          <p><a href="${escapeHtml(actionLink)}" style="display:inline-block;background:#0d3b2e;color:#fff;padding:14px 20px;border-radius:10px;text-decoration:none;font-weight:700">Criar minha senha</a></p>
+          <p style="font-size:13px;color:#66736b">O link é individual e temporário. Se você não solicitou este cadastro, ignore este e-mail.</p>
+        </div>
+      `,
+    })
+    emailStatus = emailResult.status
+    if (emailStatus !== 'sent') emailWarning = 'O cadastro foi aprovado, mas não foi possível entregar o e-mail de criação de senha.'
+  }
+
+  return jsonResponse({
+    success: true,
+    status: 'synced',
+    role: finalRole,
+    login_email: preRegistration.email,
+    email_status: emailStatus,
+    ...(emailWarning ? { email_warning: emailWarning } : {}),
+    ...(emailStatus === 'sent' ? {} : { temporary_password: temporaryPassword }),
+  })
 })

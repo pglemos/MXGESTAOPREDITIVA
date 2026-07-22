@@ -201,9 +201,12 @@ export function useNotificacoesPage() {
           typeof payload.temporary_password === 'string'
             ? payload.temporary_password
             : ''
+        const emailSent = payload.email_status === 'sent'
         toast.success(
-          action === 'approve' && temporaryPassword
-            ? `Login aprovado. Senha temporária: ${temporaryPassword}`
+          action === 'approve' && emailSent
+            ? 'Login aprovado. Link para criação de senha enviado ao e-mail cadastrado.'
+            : action === 'approve' && temporaryPassword
+            ? `Login aprovado, mas o e-mail não foi entregue. Senha temporária: ${temporaryPassword}`
             : action === 'approve'
               ? 'Login aprovado e sincronizado.'
               : 'Login rejeitado.',
