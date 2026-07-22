@@ -177,6 +177,7 @@ OpenAI Codex (GPT-5)
 - Aliases de funil, subrotas de loja e a rotina da equipe agora seguem exatamente o `RoleSwitch` do App, mantendo o workspace legado do Dono exclusivo.
 - Identidades ausentes são exibidas como `Nome não informado`, sem inventar vendedor, dono ou diretor; Mercado e Universidade MX não carregam mais badge de construção.
 - A migration remota serializa a rotina e restringe o contato com consultor ao escopo de loja solicitado, sem autorização genérica por papel.
+- O histórico local de migrations inclui as duas versões da simulação de Carteira já aplicadas no projeto remoto, eliminando divergência no Supabase Preview.
 - O smoke cria identidades temporárias identificáveis, valida rede/console/rotas e sempre limpa por ID com `try/finally` e `Promise.allSettled`.
 - Regressões adicionais cobrem concorrência de `useSellersByStore`, loading do nível de carreira, percentuais do Dono e isolamento dos mocks Supabase entre arquivos.
 - Checklist DoD: 22/22 itens aplicáveis PASS, 6 N/A (sem dependências, variáveis/configurações novas, threshold formal de cobertura ou documentação de uso adicional), 0 FAIL. Story pronta para review; nenhum débito novo identificado.
@@ -257,6 +258,8 @@ OpenAI Codex (GPT-5)
 - `src/pages/VendedorConfiguracoes.tsx`
 - `src/pages/VendedorHome.tsx`
 - `supabase/migrations/20260722024951_serialize_routine_and_scope_consultant_contact.sql`
+- `supabase/migrations/20260721141658_carteira_simulacao_vendedor.sql`
+- `supabase/migrations/20260721142820_carteira_simulacao_inline_cleanup.sql`
 
 ## QA Results
 
