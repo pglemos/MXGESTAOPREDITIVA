@@ -161,6 +161,13 @@ describe("AgendaCalendar", () => {
     const eventTitle = screen.getByText("Aula");
     const eventBlockWrapper = eventTitle.closest('[style*="height"]') as HTMLElement;
     expect(eventBlockWrapper.style.height).toBe(`${3 * HOUR_HEIGHT - 6}px`);
+
+    // The colored card itself must stretch to fill the positioned wrapper,
+    // otherwise a 6h visit still renders as a 1h-tall badge visually.
+    const visitCard = visitTitle.closest(".group\\/event") as HTMLElement;
+    expect(visitCard.className).toContain("h-full");
+    const eventCard = eventTitle.closest(".group\\/event") as HTMLElement;
+    expect(eventCard.className).toContain("h-full");
   });
 
   test("falls back to 1h height when durationHours is missing/invalid", () => {

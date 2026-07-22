@@ -75,7 +75,7 @@ function GoogleEventBlock({
         item.kind === 'event'
           ? 'border-status-info/20 bg-status-info-surface text-status-info'
           : 'border-brand-primary/20 bg-mx-green-50 text-brand-secondary',
-        compact ? 'min-h-mx-6' : 'min-h-mx-8',
+        compact ? 'min-h-mx-6' : 'h-full min-h-mx-8',
       )}
     >
       <div className="flex min-w-0 items-center gap-mx-xs">
