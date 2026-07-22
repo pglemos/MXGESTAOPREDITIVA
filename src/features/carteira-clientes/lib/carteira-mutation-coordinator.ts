@@ -22,6 +22,7 @@ function defaultKeyFactory(scope: string): string {
 export function createCarteiraMutationCoordinator(
   keyFactory: KeyFactory = defaultKeyFactory,
   retryTtlMs = 60_000,
+  now: () => number = Date.now,
 ) {
   const inFlight = new Map<string, Promise<unknown>>()
   const recentKeys = new Map<string, { key: string; expiresAt: number }>()
@@ -32,16 +33,16 @@ export function createCarteiraMutationCoordinator(
       const active = inFlight.get(logicalKey) as Promise<T> | undefined
       if (active) return active
 
-      const now = Date.now()
+      const currentTime = now()
       for (const [key, value] of recentKeys) {
-        if (value.expiresAt <= now) recentKeys.delete(key)
+        if (value.expiresAt <= currentTime) recentKeys.delete(key)
       }
       const recent = recentKeys.get(logicalKey)
-      const idempotencyKey = recent && recent.expiresAt > now
+      const idempotencyKey = recent && recent.expiresAt > currentTime
         ? recent.key
         : keyFactory(scope)
 
-      recentKeys.set(logicalKey, { key: idempotencyKey, expiresAt: now + retryTtlMs })
+      recentKeys.set(logicalKey, { key: idempotencyKey, expiresAt: currentTime + retryTtlMs })
       let operationPromise: Promise<T>
       try {
         operationPromise = operation(idempotencyKey)
@@ -58,7 +59,7 @@ export function createCarteiraMutationCoordinator(
         .catch(error => {
           recentKeys.set(logicalKey, {
             key: idempotencyKey,
-            expiresAt: Date.now() + retryTtlMs,
+            expiresAt: now() + retryTtlMs,
           })
           throw error
         })

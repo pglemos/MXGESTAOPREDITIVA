@@ -42,12 +42,13 @@ describe('carteira mutation coordinator', () => {
 
   test('preserves the pending mutation key when failure happens after the nominal TTL', async () => {
     let sequence = 0
+    let currentTime = 0
     const seenKeys: string[] = []
-    const coordinator = createCarteiraMutationCoordinator(() => `key-${++sequence}`, 5)
+    const coordinator = createCarteiraMutationCoordinator(() => `key-${++sequence}`, 5, () => currentTime)
 
     await expect(coordinator.run('mission:update', { id: 'slow' }, async key => {
       seenKeys.push(key)
-      await new Promise(resolve => setTimeout(resolve, 10))
+      currentTime = 10
       throw new Error('late network failure')
     })).rejects.toThrow('late network failure')
 
