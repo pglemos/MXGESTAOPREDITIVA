@@ -63,7 +63,7 @@ describe('StoreRankingView', () => {
     render(<StoreRankingView />)
 
     expect(screen.getByRole('heading', { name: 'Ranking' })).toBeInTheDocument()
-    expect(screen.queryByText('Acompanhe sua posição, a corrida do período e as bonificações da loja.')).not.toBeInTheDocument()
+    expect(screen.getByText('Acompanhe sua posição, a corrida do período e as bonificações da loja.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Mensal' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Trimestral' })).toBeInTheDocument()
     expect(screen.getByText(/Critério configurado pela loja:/i)).toBeInTheDocument()

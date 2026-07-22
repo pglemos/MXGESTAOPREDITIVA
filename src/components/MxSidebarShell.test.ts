@@ -78,5 +78,9 @@ describe('sidebar universal MX', () => {
       expect(layoutSource).toContain(label)
     }
     expect(shellSource).toContain('moduleLabel')
+    expect(layoutSource).toContain('dono: ownerNavConfig')
+    expect(layoutSource).toContain('path: ownerNavigationCanonicalPath(item)')
+    expect(layoutSource).toContain('key: `${section.label}:${item.label}`')
+    expect(layoutSource).toContain('key: item.key')
   })
 })

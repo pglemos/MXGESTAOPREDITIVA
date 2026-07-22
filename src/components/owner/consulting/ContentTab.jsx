@@ -66,9 +66,6 @@ export default function ContentTab({ meeting, program, userRole, userId = "demo"
 
   const handleProgress = (payload) => {
     consultingRepository.saveLessonProgress(payload);
-    if (payload.status === "completed") {
-      onProgressSaved?.();
-    }
   };
 
   const handleComplete = () => {

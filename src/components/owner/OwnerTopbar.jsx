@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/owner-b44/AuthContext";
 import { PERIOD_LABELS } from "@/lib/owner-b44/period";
 import { formatDateTime } from "@/lib/owner-b44/format";
 import { Button } from "@/components/ui/button";
-import { Bell, RefreshCw, Menu, ChevronDown, Building2, MapPin, CalendarRange, ShieldCheck } from "lucide-react";
+import { Bell, RefreshCw, ChevronDown, Building2, MapPin, CalendarRange, ShieldCheck } from "lucide-react";
 
 const PERIODS = [
   { value: "month", label: "Mês atual" },
@@ -35,7 +35,7 @@ function Select({ value, onChange, options, icon: Icon, label, disabled }) {
   );
 }
 
-export default function OwnerTopbar({ onOpenSidebar, lastUpdated }) {
+export default function OwnerTopbar({ lastUpdated }) {
   const { companies, currentCompany, setCompanyId, currentUnits, unitId, setUnitId, period, setPeriod, reload } =
     useOwner();
   const { user, logout } = useAuth();
@@ -50,21 +50,16 @@ export default function OwnerTopbar({ onOpenSidebar, lastUpdated }) {
   const firstName = (user?.full_name || user?.email || "Dono").split(" ")[0];
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-card/90 px-4 backdrop-blur supports-[backdrop-filter]:bg-card/75 lg:px-6">
-      {/* Menu mobile */}
-      <Button variant="ghost" size="icon" className="lg:hidden" onClick={onOpenSidebar} aria-label="Abrir menu">
-        <Menu className="h-5 w-5" />
-      </Button>
-
+    <header className="owner-base44-exact__topbar sticky top-0 z-30 flex min-h-16 flex-col gap-2 border-b border-border bg-card/90 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-card/75 xl:h-16 xl:flex-row xl:items-center xl:py-0 2xl:px-6">
       {/* Identificação do contexto */}
-      <div className="hidden items-center gap-2 rounded-full bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground md:flex">
+      <div className="hidden shrink-0 items-center gap-2 rounded-full bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground 2xl:flex">
         <ShieldCheck className="h-3.5 w-3.5" />
         Visão do Dono
       </div>
 
       {/* Seletores */}
-      <div className="flex flex-1 flex-wrap items-center gap-2">
-        <div className="min-w-[160px] max-w-[220px]">
+      <div className="grid w-full min-w-0 flex-1 grid-cols-2 gap-2 lg:grid-cols-3">
+        <div className="col-span-2 min-w-0 lg:col-span-1">
           <Select
             label="Empresa"
             icon={Building2}
@@ -73,7 +68,7 @@ export default function OwnerTopbar({ onOpenSidebar, lastUpdated }) {
             options={companyOptions}
           />
         </div>
-        <div className="min-w-[150px] max-w-[200px]">
+        <div className="min-w-0">
           <Select
             label="Unidade"
             icon={MapPin}
@@ -83,7 +78,7 @@ export default function OwnerTopbar({ onOpenSidebar, lastUpdated }) {
             disabled={currentUnits.length === 0}
           />
         </div>
-        <div className="min-w-[150px] max-w-[190px]">
+        <div className="min-w-0">
           <Select
             label="Período"
             icon={CalendarRange}
@@ -95,7 +90,7 @@ export default function OwnerTopbar({ onOpenSidebar, lastUpdated }) {
       </div>
 
       {/* Lado direito */}
-      <div className="flex items-center gap-2">
+      <div className="hidden shrink-0 items-center gap-2 xl:flex">
         <div className="hidden text-right lg:block">
           <p className="text-[11px] text-muted-foreground/80">Última atualização</p>
           <p className="text-xs font-medium text-muted-foreground">{lastUpdated ? formatDateTime(lastUpdated) : "—"}</p>

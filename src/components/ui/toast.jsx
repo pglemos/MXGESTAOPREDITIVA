@@ -3,19 +3,21 @@ import { cva } from "class-variance-authority";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const ToastProvider = React.forwardRef(({ ...props }, ref) => (
+const viewportClasses = "pointer-events-none fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]";
+
+const ToastProvider = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className="fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]"
+    className={cn(viewportClasses, className)}
     {...props}
   />
 ));
 ToastProvider.displayName = "ToastProvider";
 
-const ToastViewport = React.forwardRef(({ ...props }, ref) => (
+const ToastViewport = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className="fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]"
+    className={cn(viewportClasses, className)}
     {...props}
   />
 ));
@@ -38,11 +40,17 @@ const toastVariants = cva(
 );
 
 const Toast = React.forwardRef(({ className, variant, ...props }, ref) => {
+  const domProps = { ...props };
+  const isOpen = domProps.open !== false;
+  delete domProps.open;
+  delete domProps.onOpenChange;
+
   return (
     <div
       ref={ref}
       className={cn(toastVariants({ variant }), className)}
-      {...props}
+      {...domProps}
+      data-state={isOpen ? "open" : "closed"}
     />
   );
 });
@@ -101,4 +109,4 @@ export {
   ToastDescription,
   ToastClose,
   ToastAction,
-}; 
+};

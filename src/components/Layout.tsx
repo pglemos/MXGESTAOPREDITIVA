@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
 import { useNotifications } from '@/hooks/useData'
@@ -22,10 +22,11 @@ import { buildInternalMxNavigation } from '@/design-system/internal-mx/internalM
 import { MxRoleVisualScope } from '@/components/module/MxRoleVisualScope'
 import {
   OWNER_BASE44_NAVIGATION,
-  ownerNavigationSectionValue,
+  ownerNavigationCanonicalPath,
 } from '@/features/dashboard-loja/sections/owner-cockpit/ownerBase44Config'
 
 type SubItem = {
+  key?: string
   label: string
   path: string
   icon?: React.ReactNode
@@ -41,20 +42,6 @@ type NavCategory = {
 const STORE_DASHBOARD_PATH = '__STORE_DASHBOARD__'
 const STORE_TEAM_PATH = '__STORE_TEAM__'
 const STORE_CONSULTOR_IA_PATH = '__STORE_CONSULTOR_IA__'
-const OWNER_SECTION_PREFIX = '__OWNER_SECTION__:'
-
-function ownerSectionPlaceholder(section: string) {
-  return `${OWNER_SECTION_PREFIX}${section}`
-}
-
-function appendQueryParam(path: string, key: string, value: string) {
-  const [pathname, search = ''] = path.split('?')
-  const params = new URLSearchParams(search)
-  params.set(key, value)
-  const query = params.toString()
-  return query ? `${pathname}?${query}` : pathname
-}
-
 const rotulosPerfil: Record<string, string> = {
   administrador_geral: 'Administrador geral',
   administrador_mx: 'Administrador MX',
@@ -105,12 +92,9 @@ const ownerNavConfig: NavCategory[] = OWNER_BASE44_NAVIGATION.map(section => ({
   category: section.label,
   icon: ownerCategoryIcons[section.label],
   items: section.items.map(item => ({
+    key: `${section.label}:${item.label}`,
     label: item.label,
-    path: item.section === 'home'
-      ? STORE_DASHBOARD_PATH
-      : item.section === 'consultor'
-        ? '/falar-consultor'
-        : ownerSectionPlaceholder(ownerNavigationSectionValue(item)),
+    path: ownerNavigationCanonicalPath(item),
     icon: ownerItemIcons[item.label] ?? <Grid size={16} />,
   })),
 }))
@@ -183,11 +167,6 @@ export default function Layout() {
   const storeConsultorIaPath = storeDashboardPath.startsWith('/lojas/')
     ? `${storeDashboardPath}/consultor-ia`
     : '/lojas'
-  const ownerSectionPath = useCallback(
-    (section: string) => appendQueryParam(storeDashboardPath, 'ownerSection', section),
-    [storeDashboardPath],
-  )
-
   const categories = React.useMemo(() => {
     const baseCategories = role ? (navConfig[role] || []) : []
     return baseCategories
@@ -200,16 +179,13 @@ export default function Layout() {
               if (!storeDashboardPath.startsWith('/lojas/')) return null
               return { ...item, path: storeConsultorIaPath }
             }
-            if (item.path.startsWith(OWNER_SECTION_PREFIX)) {
-              return { ...item, path: ownerSectionPath(item.path.slice(OWNER_SECTION_PREFIX.length)) }
-            }
             return item
           })
           .filter((item): item is SubItem => item !== null && canAccessPath(item.path, role))
         return { ...category, items }
       })
       .filter((category) => category.items.length > 0)
-  }, [ownerSectionPath, role, storeConsultorIaPath, storeDashboardPath, storeTeamPath])
+  }, [role, storeConsultorIaPath, storeDashboardPath, storeTeamPath])
 
   const perfilVisivel = role
     ? rotulosPerfil[role] || 'Perfil autorizado'
@@ -238,6 +214,7 @@ export default function Layout() {
       items: category.items.map((item): MxSidebarNavItem => {
         const label = item.label.toLowerCase()
         return {
+          key: item.key,
           label: item.label,
           path: item.path,
           icon: item.icon,
@@ -265,13 +242,19 @@ export default function Layout() {
   const isExactOwnerWorkspace = role === 'dono' && location.pathname.startsWith('/lojas/')
   if (isExactOwnerWorkspace) return <Outlet />
 
-  const pageContent = (
-    <MxRoleVisualScope manager={role !== 'vendedor'}>
-      <MotionPage key={location.pathname} className="h-full">
-        <Outlet />
-      </MotionPage>
-    </MxRoleVisualScope>
+  const pageOutlet = (
+    <MotionPage key={location.pathname} className="h-full">
+      <Outlet />
+    </MotionPage>
   )
+  const isOwnerRoute = location.pathname === '/dono' || location.pathname.startsWith('/dono/')
+  const pageContent = role === 'dono' && isOwnerRoute
+    ? pageOutlet
+    : (
+    <MxRoleVisualScope manager={role !== 'vendedor'}>
+      {pageOutlet}
+    </MxRoleVisualScope>
+      )
   const stopCurrentSimulation = () => {
     stopSimulation()
     navigate('/painel', { replace: true })

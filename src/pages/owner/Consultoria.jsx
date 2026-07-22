@@ -3,8 +3,9 @@
 // Layout em duas colunas: conteúdo principal + barra lateral direita.
 
 import { useState, useEffect, useMemo } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/lib/owner-b44/AuthContext";
+import { useOwner } from "@/components/owner/OwnerContext";
 import { TrendingUp } from "lucide-react";
 import { consultingRepository } from "@/components/owner/consulting/consultingRepository";
 import ProgramStatsCard from "@/components/owner/consulting/ProgramStatsCard";
@@ -17,7 +18,9 @@ import MeetingDrawer from "@/components/owner/consulting/MeetingDrawer";
 
 export default function Consultoria() {
   const { user } = useAuth();
+  const { openConsultantModal } = useOwner();
   const { setLastUpdated } = useOutletContext();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedProgramId, setSelectedProgramId] = useState("pmr");
   const [selectedMeetingId, setSelectedMeetingId] = useState(null);
   const [initialLessonId, setInitialLessonId] = useState(null);
@@ -28,10 +31,21 @@ export default function Consultoria() {
     setLastUpdated?.(new Date());
   }, [setLastUpdated]);
 
+  useEffect(() => {
+    if (searchParams.get("openConsultant") !== "1") return;
+    openConsultantModal(null);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("openConsultant");
+    setSearchParams(nextParams, { replace: true });
+  }, [openConsultantModal, searchParams, setSearchParams]);
+
   const clientProgram = consultingRepository.getClientProgram();
   const programs = consultingRepository.getPrograms();
   const program = consultingRepository.getProgram(selectedProgramId);
-  const journey = useMemo(() => consultingRepository.getProgramJourney(selectedProgramId), [selectedProgramId]);
+  const journey = useMemo(
+    () => consultingRepository.getProgramJourney(selectedProgramId),
+    [selectedProgramId, refreshKey],
+  );
   const progressBars = consultingRepository.getProgressBars();
   const nextStep = consultingRepository.getNextClientStep();
 
@@ -40,8 +54,9 @@ export default function Consultoria() {
   }, [journey, clientProgram]);
 
   const handlePrimaryAction = (step) => {
-    if (step.meetingId) {
-      setSelectedMeetingId(step.meetingId);
+    const targetMeetingId = step.meetingId || currentMeeting?.id;
+    if (targetMeetingId) {
+      setSelectedMeetingId(targetMeetingId);
       setInitialLessonId(step.lessonId || null);
       setInitialTab(step.type === "preparation_pending" ? "delivery" : "content");
     }
@@ -54,7 +69,7 @@ export default function Consultoria() {
   const userRole = user?.role || "owner";
 
   return (
-    <div className="space-y-5 pb-20 lg:pb-0" key={refreshKey}>
+    <div className="space-y-5 pb-20 lg:pb-0">
       {/* Cabeçalho */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>

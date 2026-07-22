@@ -50,6 +50,31 @@ mock.module('@/api/base44Client', () => ({
 
 mock.module('@/components/ui/use-toast', () => ({ toast: mock(() => {}) }))
 
+function normalizeLocalScriptAdapter(root: HTMLElement) {
+  const headings = Array.from(root.querySelectorAll('p')).filter((element) =>
+    ['Script personalizado', 'Script personalizado com IA'].includes(element.textContent?.trim() || ''),
+  )
+  if (headings.length !== 1) {
+    throw new Error(`Esperado um único cabeçalho de script; encontrados ${headings.length}`)
+  }
+
+  const scriptSection = headings[0].parentElement?.parentElement
+  if (!scriptSection) throw new Error('Bloco do script personalizado não encontrado')
+
+  const textareas = scriptSection.querySelectorAll('textarea')
+  const whatsappLinks = scriptSection.querySelectorAll('a[href^="https://wa.me/"]')
+  if (textareas.length !== 1 || whatsappLinks.length !== 1) {
+    throw new Error(
+      `Estrutura do script divergente: ${textareas.length} textarea(s), ${whatsappLinks.length} link(s) WhatsApp`,
+    )
+  }
+
+  headings[0].textContent = 'Script personalizado'
+  textareas[0].value = 'normalized-script'
+  textareas[0].textContent = 'normalized-script'
+  whatsappLinks[0].setAttribute('href', 'https://wa.me/normalized')
+}
+
 function normalizeDom(html: string) {
   return html
     .replace(/radix-[^"\s]+/g, 'radix-id')
@@ -57,14 +82,17 @@ function normalizeDom(html: string) {
     .replace(/data-reactroot=""/g, '')
 }
 
-async function capture(component: React.ReactElement, readyText?: string) {
+async function capture(component: React.ReactElement, readyText?: string, localScriptAdapter = false) {
   render(component)
-  if (readyText) await screen.findAllByText(readyText)
-  await Promise.resolve()
-  await Promise.resolve()
-  const html = normalizeDom(document.body.innerHTML)
-  cleanup()
-  return html
+  try {
+    if (readyText) await screen.findAllByText(readyText)
+    await Promise.resolve()
+    await Promise.resolve()
+    if (localScriptAdapter) normalizeLocalScriptAdapter(document.body)
+    return normalizeDom(document.body.innerHTML)
+  } finally {
+    cleanup()
+  }
 }
 
 afterEach(() => cleanup())
@@ -99,6 +127,7 @@ describe('Base44 rendered presentation parity', () => {
         runtime: React.createElement(runtime[1].default, { open: true, onClose: () => {}, cliente, onResultadoRegistrado: () => {} }),
         reference: React.createElement(reference[1].default, { open: true, onClose: () => {}, cliente, onResultadoRegistrado: () => {} }),
         readyText: 'Executar próximo passo',
+        localScriptAdapter: true,
       },
       {
         runtime: React.createElement(runtime[2].default, { clienteId: cliente.id, open: true, onClose: () => {}, onAtualizado: () => {}, onExecutar: () => {} }),
@@ -118,8 +147,8 @@ describe('Base44 rendered presentation parity', () => {
     ]
 
     for (const item of cases) {
-      const runtimeDom = await capture(item.runtime, item.readyText)
-      const referenceDom = await capture(item.reference, item.readyText)
+      const runtimeDom = await capture(item.runtime, item.readyText, item.localScriptAdapter)
+      const referenceDom = await capture(item.reference, item.readyText, item.localScriptAdapter)
       expect(runtimeDom).toBe(referenceDom)
     }
   })

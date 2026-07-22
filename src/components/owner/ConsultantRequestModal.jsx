@@ -32,6 +32,7 @@ export default function ConsultantRequestModal() {
   const [priority, setPriority] = useState("medium");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   // pré-preenche quando aberto a partir de um contexto
   useEffect(() => {
@@ -41,12 +42,14 @@ export default function ConsultantRequestModal() {
       setMessage(ctx.snapshot ? `Contexto anexado:\n${ctx.snapshot}\n\n` : "");
       setPriority(ctx.priority || "medium");
       setDone(false);
+      setSubmitError("");
     } else if (consultantModal.open && !ctx) {
       setSubject("");
       setRequestType("question");
       setMessage("");
       setPriority("medium");
       setDone(false);
+      setSubmitError("");
     }
   }, [consultantModal.open, ctx]);
 
@@ -56,11 +59,18 @@ export default function ConsultantRequestModal() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!currentCompany) return;
+    const targetUnitId = unitId === "all" ? currentUnits[0]?.id : unitId;
+    const canUseTargetUnit = targetUnitId && currentUnits.some((unit) => unit.id === targetUnitId);
+    if (!canUseTargetUnit) {
+      setSubmitError("Selecione uma unidade acessível antes de enviar a solicitação.");
+      return;
+    }
     setSubmitting(true);
+    setSubmitError("");
     try {
       await base44.entities.ConsultantRequest.create({
         company_id: currentCompany.id,
-        unit_id: unitId === "all" ? "" : unitId,
+        unit_id: targetUnitId,
         created_by: user?.id,
         created_by_name: user?.full_name || user?.email,
         request_type: requestType,
@@ -73,8 +83,8 @@ export default function ConsultantRequestModal() {
         status: "open",
       });
       setDone(true);
-    } catch (err) {
-      // erro tratado: mantém formulário
+    } catch {
+      setSubmitError("Não foi possível enviar a solicitação. Tente novamente.");
     } finally {
       setSubmitting(false);
     }
@@ -83,6 +93,7 @@ export default function ConsultantRequestModal() {
   const handleClose = () => {
     closeConsultantModal();
     setDone(false);
+    setSubmitError("");
   };
 
   return (
@@ -186,6 +197,12 @@ export default function ConsultantRequestModal() {
                 <Input value={unitName} disabled />
               </div>
             </div>
+
+            {submitError && (
+              <p role="alert" className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {submitError}
+              </p>
+            )}
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={handleClose}>

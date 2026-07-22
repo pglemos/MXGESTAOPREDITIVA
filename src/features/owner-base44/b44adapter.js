@@ -2,38 +2,27 @@
 // Entidades com efeito real são mapeadas para o Supabase do MX; o restante vira no-op
 // seguro (retorna listas vazias) para código legado do export que não é exercitado na UI.
 import { supabase } from '@/lib/supabase'
-
-async function resolveFallbackStoreId() {
-  const { data } = await supabase
-    .from('lojas')
-    .select('id')
-    .eq('active', true)
-    .order('name')
-    .limit(1)
-  return data?.[0]?.id || null
-}
+import { normalizeOwnerConsultantRequestPayload } from '@/lib/owner-b44/consultantRequest'
 
 const ConsultantRequest = {
   async create(payload) {
-    const { data: auth } = await supabase.auth.getUser()
-    const userId = auth?.user?.id || payload.created_by || null
-    const storeId = payload.unit_id || (await resolveFallbackStoreId())
-    if (!storeId || !userId) throw new Error('Loja ou usuário não identificados')
+    const normalizedPayload = normalizeOwnerConsultantRequestPayload(payload)
+    const { data: auth, error: authError } = await supabase.auth.getUser()
+    const userId = auth?.user?.id
+    if (authError || !userId) throw new Error('Usuário não identificado')
 
     const { data, error } = await supabase
       .from('solicitacoes_consultoria')
       .insert({
-        store_id: storeId,
+        store_id: normalizedPayload.storeId,
         created_by: userId,
-        request_type: payload.request_type || 'question',
+        request_type: normalizedPayload.requestType,
         subject: payload.subject || '',
         message: payload.message || '',
-        priority: payload.priority || 'medium',
-        context_type: payload.context_type || 'general',
+        priority: normalizedPayload.priority,
+        context_type: normalizedPayload.contextType,
         context_id: payload.context_id || null,
-        context_snapshot: payload.context_snapshot
-          ? { snapshot: payload.context_snapshot }
-          : null,
+        context_snapshot: normalizedPayload.contextSnapshot,
       })
       .select()
       .single()

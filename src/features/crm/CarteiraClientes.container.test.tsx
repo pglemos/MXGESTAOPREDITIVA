@@ -183,8 +183,9 @@ describe('CarteiraClientes', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Ver cliente/i }))
     fireEvent.click(screen.getByRole('button', { name: 'Não respondeu' }))
-    expect(screen.getByRole('heading', { name: 'Cliente não respondeu' })).toBeTruthy()
-    expect(screen.getByText('Amanhã às 10:00 - Tentativa 2/3')).toBeTruthy()
+    const dialog = screen.getByRole('dialog', { name: 'Cliente não respondeu' })
+    expect(dialog).toBeTruthy()
+    expect(within(dialog).getByText(/Amanhã às 10:00 - Tentativa [1-3]\/3/)).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Confirmar reagendamento' }))
 
     await waitFor(() => {

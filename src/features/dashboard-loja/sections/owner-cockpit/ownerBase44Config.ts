@@ -105,3 +105,32 @@ export function resolveOwnerSection(search: string): OwnerResolvedSection {
 export function ownerNavigationSectionValue(item: OwnerBase44NavigationItem): string {
   return item.departmentCode ? `departamentos-${item.departmentCode}` : item.section
 }
+
+const OWNER_CANONICAL_PATHS: Record<OwnerBase44Section, string> = {
+  home: '/dono',
+  rotina: '/dono/rotina',
+  decisoes: '/dono/decisoes',
+  planejamento: '/dono/plano-estrategico',
+  'plano-acao': '/dono/plano-acao',
+  consultoria: '/dono/consultoria',
+  departamentos: '/dono/departamentos',
+  mercado: '/dono/mercado',
+  universidade: '/dono/universidade',
+  consultor: '/dono/consultoria?openConsultant=1',
+}
+
+const OWNER_DEPARTMENT_PATHS: Record<OwnerDepartmentNavigationCode, string> = {
+  'visao-geral': '/dono/departamentos',
+  comercial: '/dono/departamentos/comercial',
+  marketing: '/dono/departamentos/marketing',
+  produto: '/dono/departamentos/produto-e-estoque',
+  rh: '/dono/departamentos/pessoas-rh',
+  financeiro: '/dono/departamentos/financeiro',
+  operacional: '/dono/departamentos/operacoes',
+}
+
+export function ownerNavigationCanonicalPath(item: OwnerBase44NavigationItem): string {
+  return item.departmentCode
+    ? OWNER_DEPARTMENT_PATHS[item.departmentCode]
+    : OWNER_CANONICAL_PATHS[item.section]
+}

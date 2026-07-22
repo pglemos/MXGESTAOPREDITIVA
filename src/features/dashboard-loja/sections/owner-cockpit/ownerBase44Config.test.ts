@@ -3,6 +3,7 @@ import {
   OWNER_BASE44_NAVIGATION,
   OWNER_BASE44_SECTION_VALUES,
   OWNER_LEGACY_SECTION_VALUES,
+  ownerNavigationCanonicalPath,
   ownerNavigationSectionValue,
   resolveOwnerSection,
 } from './ownerBase44Config'
@@ -43,6 +44,32 @@ describe('contrato do módulo Dono inspirado no Base44', () => {
     const values = business?.items.map(ownerNavigationSectionValue) ?? []
     expect(new Set(values).size).toBe(values.length)
     expect(values).toContain('departamentos-visao-geral')
+  })
+
+  test('liga o sidebar universal às rotas canônicas do módulo Dono', () => {
+    const paths = OWNER_BASE44_NAVIGATION.flatMap(section =>
+      section.items.map(item => [item.label, ownerNavigationCanonicalPath(item)] as const),
+    )
+
+    expect(Object.fromEntries(paths)).toEqual({
+      'Início': '/dono',
+      'Rotina do Dia': '/dono/rotina',
+      'Central de Decisões': '/dono/decisoes',
+      'Plano Estratégico': '/dono/plano-estrategico',
+      'Plano de Ação': '/dono/plano-acao',
+      Consultoria: '/dono/consultoria',
+      Departamentos: '/dono/departamentos',
+      'Visão Geral': '/dono/departamentos',
+      Comercial: '/dono/departamentos/comercial',
+      Marketing: '/dono/departamentos/marketing',
+      'Produto e Estoque': '/dono/departamentos/produto-e-estoque',
+      'Pessoas — RH': '/dono/departamentos/pessoas-rh',
+      Financeiro: '/dono/departamentos/financeiro',
+      Operações: '/dono/departamentos/operacoes',
+      Mercado: '/dono/mercado',
+      'Universidade MX': '/dono/universidade',
+      'Falar com Consultor': '/dono/consultoria?openConsultant=1',
+    })
   })
 
   test('resolve todas as seções sem criar nova árvore de rotas', () => {

@@ -24,7 +24,7 @@ describe('VendedorAjuda', () => {
 
   it('renders the page subtitle', () => {
     renderPage()
-    expect(screen.queryByText('Suporte operacional para o vendedor')).toBeNull()
+    expect(screen.getByText('Suporte operacional para o vendedor')).toBeTruthy()
   })
 
   it('renders all four help action cards', () => {

@@ -14,6 +14,8 @@ const INTERNAL_AND_OWNER = ['administrador_geral', 'administrador_mx', 'consulto
 const INTERNAL_AND_LEADERS = ['administrador_geral', 'administrador_mx', 'consultor_mx', 'dono', 'gerente'] as const satisfies readonly UserRole[]
 
 export const ROUTE_ACCESS_RULES = [
+  { pattern: '/dono', roles: ['dono'] },
+  { pattern: '/dono/*', roles: ['dono'] },
   { pattern: '/settings', roles: CONFIGURATION_ROLES, capability: 'view_configurations' },
   { pattern: '/team', capability: 'manage_team' },
   { pattern: '/equipe', capability: 'manage_team' },
