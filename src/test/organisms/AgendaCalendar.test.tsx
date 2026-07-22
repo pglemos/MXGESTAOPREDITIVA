@@ -121,4 +121,72 @@ describe("AgendaCalendar", () => {
     render(<AgendaCalendar {...defaultProps} />);
     expect(screen.getByText("Hoje")).toBeDefined();
   });
+
+  test("sizes week block height proportionally to duration (visit and event)", () => {
+    const HOUR_HEIGHT = 56;
+    const weekVisitsByDate = {
+      [todayKey]: [
+        {
+          id: "visit-6h",
+          status: "agendada",
+          title: "Vitrine",
+          startsAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 9).toISOString(),
+          durationHours: 6,
+          kind: "visit" as const,
+          subtitle: "Visita 6",
+        },
+        {
+          id: "event-3h",
+          status: "agendada",
+          title: "Aula",
+          startsAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 9).toISOString(),
+          durationHours: 3,
+          kind: "event" as const,
+          subtitle: "Responsável",
+        },
+      ],
+    };
+    render(
+      <AgendaCalendar
+        {...defaultProps}
+        calendarDays={[{ date: today, day: today.getDate(), isCurrentMonth: true }]}
+        visitsByDate={weekVisitsByDate}
+        viewMode="week"
+      />,
+    );
+    const visitTitle = screen.getByText("Vitrine");
+    const visitBlockWrapper = visitTitle.closest('[style*="height"]') as HTMLElement;
+    expect(visitBlockWrapper.style.height).toBe(`${6 * HOUR_HEIGHT - 6}px`);
+
+    const eventTitle = screen.getByText("Aula");
+    const eventBlockWrapper = eventTitle.closest('[style*="height"]') as HTMLElement;
+    expect(eventBlockWrapper.style.height).toBe(`${3 * HOUR_HEIGHT - 6}px`);
+  });
+
+  test("falls back to 1h height when durationHours is missing/invalid", () => {
+    const HOUR_HEIGHT = 56;
+    const weekVisitsByDate = {
+      [todayKey]: [
+        {
+          id: "visit-null-duration",
+          status: "agendada",
+          title: "Sem duracao",
+          startsAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 9).toISOString(),
+          durationHours: null as unknown as number,
+          kind: "visit" as const,
+        },
+      ],
+    };
+    render(
+      <AgendaCalendar
+        {...defaultProps}
+        calendarDays={[{ date: today, day: today.getDate(), isCurrentMonth: true }]}
+        visitsByDate={weekVisitsByDate}
+        viewMode="week"
+      />,
+    );
+    const title = screen.getByText("Sem duracao");
+    const wrapper = title.closest('[style*="height"]') as HTMLElement;
+    expect(wrapper.style.height).toBe(`${1 * HOUR_HEIGHT - 6}px`);
+  });
 });

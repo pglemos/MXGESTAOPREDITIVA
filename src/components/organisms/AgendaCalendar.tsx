@@ -50,7 +50,8 @@ function getEventPosition(item: CalendarAgendaItem) {
   const startDecimal = start.getHours() + start.getMinutes() / 60
   const rawTop = (startDecimal - START_HOUR) * HOUR_HEIGHT
   const top = Math.max(4, rawTop)
-  const height = Math.max(30, item.durationHours * HOUR_HEIGHT - 6)
+  const durationHours = item.durationHours && item.durationHours > 0 ? item.durationHours : 1
+  const height = Math.max(30, durationHours * HOUR_HEIGHT - 6)
 
   return { top, height }
 }
