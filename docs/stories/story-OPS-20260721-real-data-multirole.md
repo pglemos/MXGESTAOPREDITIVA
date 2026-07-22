@@ -172,7 +172,8 @@ OpenAI Codex (GPT-5)
 - Supabase remoto: migration `20260722024951` presente local/remoto; limpeza final confirmou 0 usuários `e2e-real-*` em `public.usuarios`, 0 em `auth.users` e 0 clientes de consultoria E2E.
 - Gates finais: lint 0 erros/7 warnings preexistentes; typecheck OK; 1340 testes passaram/0 falharam; build Vite OK; `git diff --check` OK.
 - Auditoria da reunião de 2026-07-22: `npm test` passou com 1358 testes/0 falhas; `npm run build` passou; `scripts/check_migration_reversibility.mjs --changed-only` passou; migration de troca/campanhas revisada com rollback e RLS versionados.
-- Status remoto por migration no projeto Supabase `mxperformance`: a saída de `supabase migration list` em 2026-07-22 mostrou `Local = Remote` para `20260721141658`, `20260721142820`, `20260722024951` e `20260722180000`; o comando também conectou ao banco remoto e terminou sem divergência. CI, deploy `READY` e smoke autenticado de produção permanecem gates do `@devops`.
+- Status remoto por migration no projeto Supabase `mxperformance`: a saída de `supabase migration list` em 2026-07-22 mostrou `Local = Remote` para `20260721141658`, `20260721142820`, `20260722024951` e `20260722180000`; o comando também conectou ao banco remoto e terminou sem divergência.
+- Prova final de entrega: `81361fd8` publicado em `main`; CI `29947800534` passou em typecheck e testes; Vercel `dpl_86L3tmLPv59eZrvo8EA96wgVcz4k` está `READY` com aliases oficiais; `/carteira-clientes` respondeu HTTP 200 e o smoke autenticado exibiu Mentor Comercial/dados reais, sem erros de console. Permanece somente o warning preexistente de Sentry DSN ausente em produção.
 
 ### Completion Notes List
 
