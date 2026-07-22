@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, mock, spyOn, test } from 'bun:test'
+import { afterEach, describe, expect, test } from 'bun:test'
 import { cleanup, renderHook, waitFor } from '@testing-library/react'
 import { supabase } from '@/lib/supabase'
 import { useMeuNivelCarreira } from './useRemuneracao'
@@ -13,9 +13,11 @@ describe('useMeuNivelCarreira', () => {
       eq: () => builder,
       maybeSingle: () => pending,
     }
-    const fromSpy = spyOn(supabase, 'from').mockImplementation(
-      (() => builder) as typeof supabase.from,
-    )
+    const originalFrom = Object.getOwnPropertyDescriptor(supabase, 'from')
+    Object.defineProperty(supabase, 'from', {
+      configurable: true,
+      value: () => builder,
+    })
 
     try {
       const { result, rerender } = renderHook(
@@ -29,7 +31,8 @@ describe('useMeuNivelCarreira', () => {
       await waitFor(() => expect(result.current.loading).toBe(false))
       expect(result.current.nivel).toBeNull()
     } finally {
-      fromSpy.mockRestore()
+      if (originalFrom) Object.defineProperty(supabase, 'from', originalFrom)
+      else Reflect.deleteProperty(supabase, 'from')
     }
   })
 })
