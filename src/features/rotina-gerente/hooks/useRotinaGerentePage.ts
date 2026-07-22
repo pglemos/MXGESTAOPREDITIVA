@@ -240,7 +240,7 @@ export function useRotinaGerentePage() {
         setRoutineNotice({
           tone: 'success',
           message: 'Correção aprovada.',
-          detail: `${req.seller?.name || 'Vendedor'} teve o ajuste aplicado ao histórico.`,
+          detail: `${req.seller?.name || 'Nome não informado'} teve o ajuste aplicado ao histórico.`,
           at: new Date(),
         })
         toast.success('Correção aprovada e aplicada ao histórico!')

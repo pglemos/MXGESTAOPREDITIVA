@@ -534,7 +534,7 @@ export function CarteiraClientes() {
             oportunidadePorCliente={oportunidadePorCliente}
             progressoPorCliente={progressoPorCliente}
             agendamentos={agendamentos}
-          vendedorNome={(profile?.name || 'Vendedor').split(' ')[0]}
+          vendedorNome={(profile?.name || 'Nome não informado').split(' ')[0]}
           onAbrirFicha={clienteId => {
             setActiveTab('ativa')
             setPanelClosed(false)
@@ -715,7 +715,7 @@ export function CarteiraClientes() {
               cliente={selectedCliente}
               oportunidade={oportunidadePorCliente.get(selectedCliente.id)}
                 progresso={progressoPorCliente.get(selectedCliente.id) || derivarProgresso(selectedCliente, carteiraOportunidades, agendamentos)}
-                vendedor={(profile?.name || 'vendedor').split(' ')[0]}
+                vendedor={(profile?.name || 'Nome não informado').split(' ')[0]}
                 statusSaving={cadenciaSaving}
                 onStatus={handleRegistrarStatusCadencia}
                 onNaoRespondeu={cliente => setNaoRespondeuCliente(cliente)}

@@ -11,7 +11,7 @@ export function useAuth() {
     return {
       id: profile.id,
       email: profile.email || '',
-      full_name: profile.name || profile.email || 'Dono',
+      full_name: profile.name || 'Nome não informado',
       role: role === 'admin' ? 'admin' : role,
     }
   }, [profile, role])

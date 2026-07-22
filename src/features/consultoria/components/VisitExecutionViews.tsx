@@ -220,7 +220,7 @@ export function VisitFiveExecution({ storeId, onGenerateSummary }: { storeId: st
         comp_produto: 3
       })
 
-      const sellerName = sellers.find(seller => seller.id === sellerId)?.name || 'Vendedor'
+      const sellerName = sellers.find(seller => seller.id === sellerId)?.name || 'Nome não informado'
       onGenerateSummary(`--- PDI VISITA 5: ${sellerName} ---\nObjetivo 6 meses: ${goal6m}\nObjetivo 12 meses: ${goal12m || 'A definir'}\nAção inicial: ${action}\nObservações: ${notes || 'Sem observações adicionais.'}`)
       toast.success('PDI registrado no sistema')
       setSellerId(''); setGoal6m(''); setGoal12m(''); setAction(''); setNotes('')

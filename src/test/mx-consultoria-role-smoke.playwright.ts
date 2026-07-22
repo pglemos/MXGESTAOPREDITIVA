@@ -1,53 +1,25 @@
 import { expect, test, type Browser, type Page, type Request } from '@playwright/test'
 import {
   createE2EAdminUser,
+  createE2EConsultingClient,
+  createE2EConsultingVisit,
   createE2EStoreUser,
+  deleteE2EConsultingData,
   deleteE2EUser,
+  getSupabaseAdmin,
   type E2EUser,
 } from './e2e-helpers/supabase-admin'
+import { MX_STORE_SLUG, routesForRole } from './e2e-helpers/real-data-role-routes'
+import type { UserRole } from '@/types/database'
 
 const STORE_ID = '467a19d1-af51-4b4f-9b05-d67187a2a759'
-const STORE_SLUG = 'mx-consultoria'
-
-const SELLER_ROUTES = [
-  '/home', '/terminal-mx', '/carteira-clientes', '/meu-funil', '/central-execucao',
-  '/relatorios-vendedor', '/universidade-mx', '/desenvolvimento', '/devolutivas',
-  '/pdi', '/perfil', '/configuracoes', '/notificacoes', '/ajuda', '/ranking',
-  `/lojas/${STORE_SLUG}/consultor-ia`,
-] as const
-
-const MANAGER_ROUTES = [
-  '/home', `/lojas/${STORE_SLUG}`, '/rotina', '/gerente/rotina-equipe',
-  '/gerente/minha-equipe', '/gerente/meta-loja', '/fechamento-diario', '/gerente/mentor',
-  '/gerente/feedbacks-pdis', '/devolutivas', '/pdi', '/funil-vendas', '/metas', '/ranking',
-  '/treinamentos', '/falar-consultor', '/configuracoes', '/configuracoes/remuneracao',
-  '/relatorio-matinal', '/relatorios/performance-vendas', '/relatorios/performance-vendedor',
-  '/auditoria', '/liberacao-fechamento',
-] as const
-
-const OWNER_ROUTES = [
-  '/dono', '/dono/rotina', '/dono/decisoes', '/dono/plano-estrategico', '/dono/plano-acao',
-  '/dono/consultoria', '/dono/departamentos', '/dono/departamentos/comercial',
-  '/dono/departamentos/marketing', '/dono/departamentos/produto-e-estoque',
-  '/dono/departamentos/pessoas-rh', '/dono/departamentos/financeiro',
-  '/dono/departamentos/operacoes', '/dono/mercado', '/dono/universidade', '/lojas',
-  '/funil-vendas', '/metas', '/organograma', '/banco-talentos', '/ranking', '/treinamentos',
-  '/devolutivas', '/pdi', '/configuracoes', '/configuracoes/remuneracao', '/fechamento-diario',
-] as const
-
-const INTERNAL_ROUTES = [
-  '/painel', '/simulacao', '/lojas', `/lojas/${STORE_SLUG}`, '/agenda', '/consultoria',
-  '/consultoria/clientes', '/produtos', '/configuracoes', '/configuracoes/remuneracao',
-  '/configuracoes/operacional', '/configuracoes/consultoria-pmr', '/configuracoes/reprocessamento',
-  '/relatorio-matinal', '/relatorios/performance-vendas', '/relatorios/performance-vendedor',
-  '/auditoria', '/ranking', '/treinamentos', '/devolutivas', '/pdi', '/notificacoes', '/perfil',
-  '/fechamento-diario', '/liberacao-fechamento',
-] as const
 
 type RoleCase = {
-  role: string
+  role: UserRole
   user: E2EUser
   routes: readonly string[]
+  visibleConsultingClientNames?: readonly string[]
+  hiddenConsultingClientNames?: readonly string[]
 }
 
 async function login(page: Page, user: E2EUser) {
@@ -66,7 +38,7 @@ async function auditAuthenticatedRole(browser: Browser, roleCase: RoleCase) {
     const consoleErrors: string[] = []
     const apiErrors: string[] = []
     const pendingSupabaseRequests = new Set<Request>()
-    let successfulBusinessRequests = 0
+    const successfulBusinessRequestsByRoute = new Map<string, number>()
     let activeRoute = '/login'
 
     page.on('pageerror', error => pageErrors.push(error.message))
@@ -86,7 +58,9 @@ async function auditAuthenticatedRole(browser: Browser, roleCase: RoleCase) {
       pendingSupabaseRequests.delete(response.request())
       const url = response.url()
       if (!url.includes('.supabase.co/')) return
-      if (/\/(?:rest|functions)\/v1\//.test(url) && response.ok()) successfulBusinessRequests += 1
+      if (/\/(?:rest|functions)\/v1\//.test(url) && response.ok()) {
+        successfulBusinessRequestsByRoute.set(activeRoute, (successfulBusinessRequestsByRoute.get(activeRoute) || 0) + 1)
+      }
       if (response.status() >= 400) apiErrors.push(`${activeRoute}: ${response.status()} ${response.request().method()} ${url}`)
     })
 
@@ -94,18 +68,33 @@ async function auditAuthenticatedRole(browser: Browser, roleCase: RoleCase) {
 
     for (const route of roleCase.routes) {
       activeRoute = route
+      successfulBusinessRequestsByRoute.set(route, 0)
       await page.goto(route, { waitUntil: 'domcontentloaded' })
       await expect(page.locator('main#main-content').first(), `${roleCase.role}: ${route}`).toBeVisible({ timeout: 30_000 })
       await expect(page, `${roleCase.role}: ${route}`).not.toHaveURL(/\/login(?:[?#]|$)/)
       await expect(page.getByText(/Acesso não autorizado|Página não encontrada/i), `${roleCase.role}: ${route}`).toHaveCount(0)
-      await expect(page.locator('body'), `${roleCase.role}: ${route}`).not.toContainText(/dados\s+fict[ií]cios|modelo\s+em\s+valida[cç][aã]o/i)
+      await expect(page.locator('body'), `${roleCase.role}: ${route}`).not.toContainText(/dados\s+fict[ií]cios|dados\s+demonstrativos|dados\s+de\s+demonstra[cç][aã]o|modelo\s+em\s+valida[cç][aã]o|valida[cç][aã]o\s+visual/i)
       await expect.poll(
         () => pendingSupabaseRequests.size,
         { message: `${roleCase.role}: ${route} ainda possui consultas Supabase em voo`, timeout: 15_000 },
       ).toBe(0)
+      expect(
+        successfulBusinessRequestsByRoute.get(route) || 0,
+        `${roleCase.role}: ${route} não realizou leitura/escrita real no Supabase`,
+      ).toBeGreaterThan(0)
     }
 
-    expect(successfulBusinessRequests, `${roleCase.role}: nenhuma leitura real Supabase`).toBeGreaterThan(0)
+    if (roleCase.visibleConsultingClientNames || roleCase.hiddenConsultingClientNames) {
+      activeRoute = '/consultoria/clientes'
+      await page.goto(activeRoute, { waitUntil: 'domcontentloaded' })
+      for (const name of roleCase.visibleConsultingClientNames || []) {
+        await expect(page.getByText(name, { exact: false }).first(), `${roleCase.role}: cliente atribuído/administrável ausente`).toBeVisible()
+      }
+      for (const name of roleCase.hiddenConsultingClientNames || []) {
+        await expect(page.getByText(name, { exact: false }), `${roleCase.role}: cliente fora do escopo ficou visível`).toHaveCount(0)
+      }
+    }
+
     expect(pageErrors, `${roleCase.role}: erros de página`).toEqual([])
     expect(apiErrors, `${roleCase.role}: falhas HTTP/rede Supabase`).toEqual([])
     expect(consoleErrors, `${roleCase.role}: console.error`).toEqual([])
@@ -117,9 +106,23 @@ async function auditAuthenticatedRole(browser: Browser, roleCase: RoleCase) {
 test.describe('MX CONSULTORIA — todos os módulos autenticados usam dados reais', () => {
   test.describe.configure({ mode: 'serial', timeout: 900_000 })
   const createdUsers: E2EUser[] = []
+  const consultingClientIds: string[] = []
   let roleCases: RoleCase[] = []
 
   test.beforeAll(async () => {
+    const admin = getSupabaseAdmin()
+    const [{ data: store, error: storeError }, { count: memberships, error: membershipError }, { count: sellers, error: sellersError }] = await Promise.all([
+      admin.from('lojas').select('id,name,active,source_mode').eq('id', STORE_ID).single(),
+      admin.from('vinculos_loja').select('user_id', { count: 'exact', head: true }).eq('store_id', STORE_ID).eq('is_active', true),
+      admin.from('vendedores_loja').select('seller_user_id', { count: 'exact', head: true }).eq('store_id', STORE_ID).eq('is_active', true),
+    ])
+    expect(storeError).toBeNull()
+    expect(membershipError).toBeNull()
+    expect(sellersError).toBeNull()
+    expect(store).toMatchObject({ id: STORE_ID, name: 'MX CONSULTORIA', active: true, source_mode: 'native_app' })
+    expect(memberships || 0).toBeGreaterThan(0)
+    expect(sellers || 0).toBeGreaterThan(0)
+
     const trackCreatedUser = async (create: () => Promise<E2EUser>) => {
       const user = await create()
       createdUsers.push(user)
@@ -138,17 +141,53 @@ test.describe('MX CONSULTORIA — todos os módulos autenticados usam dados reai
     const [vendedor, gerente, dono, administradorGeral, administradorMx, consultorMx] = creations.map(
       result => (result as PromiseFulfilledResult<E2EUser>).value,
     )
+
+    const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
+    const assignedClient = await createE2EConsultingClient({
+      name: `E2E Cliente Atribuído ${uniqueSuffix}`,
+      createdBy: administradorMx.id,
+    })
+    consultingClientIds.push(assignedClient.id)
+    const unassignedClient = await createE2EConsultingClient({
+      name: `E2E Cliente Não Atribuído ${uniqueSuffix}`,
+      createdBy: administradorMx.id,
+    })
+    consultingClientIds.push(unassignedClient.id)
+    await createE2EConsultingVisit({
+      clientId: assignedClient.id,
+      consultantId: consultorMx.id,
+      scheduledAt: new Date(Date.now() + 86_400_000),
+      objective: `E2E escopo real ${uniqueSuffix}`,
+    })
+
     roleCases = [
-      { role: 'vendedor', user: vendedor, routes: SELLER_ROUTES },
-      { role: 'gerente', user: gerente, routes: MANAGER_ROUTES },
-      { role: 'dono', user: dono, routes: OWNER_ROUTES },
-      { role: 'administrador_geral', user: administradorGeral, routes: INTERNAL_ROUTES },
-      { role: 'administrador_mx', user: administradorMx, routes: INTERNAL_ROUTES },
-      { role: 'consultor_mx', user: consultorMx, routes: INTERNAL_ROUTES },
+      { role: 'vendedor', user: vendedor, routes: routesForRole('vendedor') },
+      { role: 'gerente', user: gerente, routes: routesForRole('gerente') },
+      { role: 'dono', user: dono, routes: routesForRole('dono') },
+      {
+        role: 'administrador_geral',
+        user: administradorGeral,
+        routes: [...routesForRole('administrador_geral'), `/consultoria/clientes/${assignedClient.slug}`, `/consultoria/clientes/${unassignedClient.slug}`],
+        visibleConsultingClientNames: [assignedClient.name, unassignedClient.name],
+      },
+      {
+        role: 'administrador_mx',
+        user: administradorMx,
+        routes: [...routesForRole('administrador_mx'), `/consultoria/clientes/${assignedClient.slug}`, `/consultoria/clientes/${unassignedClient.slug}`],
+        visibleConsultingClientNames: [assignedClient.name, unassignedClient.name],
+      },
+      {
+        role: 'consultor_mx',
+        user: consultorMx,
+        routes: [...routesForRole('consultor_mx'), `/consultoria/clientes/${assignedClient.slug}`, `/consultoria/clientes/${assignedClient.slug}/visitas/1`],
+        visibleConsultingClientNames: [assignedClient.name],
+        hiddenConsultingClientNames: [unassignedClient.name],
+      },
     ]
   })
 
   test.afterAll(async () => {
+    await deleteE2EConsultingData(consultingClientIds)
     const cleanup = await Promise.allSettled(createdUsers.map(user => deleteE2EUser(user.id)))
     const failures = cleanup.filter(result => result.status === 'rejected')
     if (failures.length > 0) throw new Error(`Falha ao limpar ${failures.length} identidade(s) E2E temporária(s).`)

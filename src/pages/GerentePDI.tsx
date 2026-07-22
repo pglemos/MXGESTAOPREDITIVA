@@ -176,7 +176,7 @@ export default function GerentePDI() {
                                                     <div className="flex items-center gap-mx-sm min-w-0">
                                                         <Avatar
                                                             src={p.seller_avatar_url || undefined}
-                                                            alt={`Avatar de ${p.seller_name || 'vendedor'}`}
+                                                            alt={`Avatar de ${p.seller_name || 'nome não informado'}`}
                                                             fallback={p.seller_name || 'U'}
                                                             size="lg"
                                                             className="w-mx-14 h-mx-14 rounded-mx-lg shadow-mx-inner group-hover:border-brand-primary transition-all transform group-hover:rotate-3"
@@ -205,11 +205,11 @@ export default function GerentePDI() {
                                                             {formatSafeDate(p.due_date)}
                                                         </Typography>
                                                     </div>
-                                                    <Button type="button" variant="ghost" size="icon" onClick={() => navigate(`/pdi/${p.id}/print`)} className="w-mx-10 h-mx-10 rounded-mx-lg text-text-tertiary hover:text-brand-primary hover:bg-mx-indigo-50 bg-white shadow-sm border border-border-subtle" aria-label={`Imprimir PDI de ${p.seller_name || 'vendedor'}`}>
+                                                    <Button type="button" variant="ghost" size="icon" onClick={() => navigate(`/pdi/${p.id}/print`)} className="w-mx-10 h-mx-10 rounded-mx-lg text-text-tertiary hover:text-brand-primary hover:bg-mx-indigo-50 bg-white shadow-sm border border-border-subtle" aria-label={`Imprimir PDI de ${p.seller_name || 'nome não informado'}`}>
                                                         <Printer size={18} />
                                                     </Button>
                                                 </div>
-                                                <Button type="button" variant="secondary" size="icon" onClick={() => navigate(`/pdi/${p.id}/print`)} className="w-mx-xl h-mx-xl rounded-mx-lg shadow-mx-md hover:scale-110 active:scale-95 transition-all" aria-label={`Abrir PDI de ${p.seller_name || 'vendedor'}`}>
+                                                <Button type="button" variant="secondary" size="icon" onClick={() => navigate(`/pdi/${p.id}/print`)} className="w-mx-xl h-mx-xl rounded-mx-lg shadow-mx-md hover:scale-110 active:scale-95 transition-all" aria-label={`Abrir PDI de ${p.seller_name || 'nome não informado'}`}>
                                                     <ChevronRight size={24} strokeWidth={2} />
                                                 </Button>
                                             </footer>

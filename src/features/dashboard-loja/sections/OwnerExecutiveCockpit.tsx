@@ -107,7 +107,7 @@ export function OwnerExecutiveCockpit({ data, alerts }: OwnerExecutiveCockpitPro
   return (
     <section className="owner-base44-scope min-h-full space-y-mx-md bg-surface-alt p-mx-sm md:p-mx-lg">
       <OwnerCockpitHeader
-        name={profile?.name || 'Diretor'}
+        name={profile?.name || 'Nome não informado'}
         periodLabel={periodLabel}
       />
 

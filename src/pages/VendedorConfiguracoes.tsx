@@ -50,7 +50,7 @@ export default function VendedorConfiguracoes() {
           subtitle="Preferências e atalhos operacionais do vendedor."
           actions={
             <Badge variant="brand" className="rounded-mx-full px-mx-md py-mx-sm uppercase">
-              {role || 'vendedor'}
+              {role || 'Perfil não informado'}
             </Badge>
           }
         />
@@ -63,7 +63,7 @@ export default function VendedorConfiguracoes() {
               </span>
               <div className="min-w-0">
                 <Typography variant="h2" className="text-2xl">
-                  {profile?.name || 'Vendedor'}
+                  {profile?.name || 'Nome não informado'}
                 </Typography>
                 <Typography variant="p" tone="muted" className="mt-mx-xs">
                   {membership?.store?.name || 'Loja não vinculada'}

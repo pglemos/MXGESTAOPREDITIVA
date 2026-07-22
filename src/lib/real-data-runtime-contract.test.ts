@@ -45,7 +45,10 @@ function activeRuntimeSources() {
 
 const prohibitedRuntimePatterns: Array<[string, RegExp]> = [
   ['mensagem de dados fictícios', /dados\s+fict[ií]cios/i],
+  ['mensagem de dados demonstrativos', /dados\s+demonstrativos/i],
+  ['mensagem de dados de demonstração', /dados\s+de\s+demonstra[cç][aã]o/i],
   ['mensagem de modelo em validação', /modelo\s+em\s+valida[cç][aã]o/i],
+  ['mensagem de validação visual de negócio', /valida[cç][aã]o\s+visual/i],
   ['modo de demonstração de negócio', /\bdemoMode\b/],
   ['constante de dados demo', /\bDEMO_[A-Z0-9_]+\b/],
   ['mock de negócio instanciável', /\bMock[A-Z][A-Za-z0-9_]*/],
@@ -57,6 +60,9 @@ const prohibitedRuntimePatterns: Array<[string, RegExp]> = [
   ['meta mensal fixa', /\bmonthly_goal\s*:\s*10\b/],
   ['pretensão salarial fixa', /\btarget_salary\s*:\s*5000\b/],
   ['histórico de fechamento em armazenamento local', /\bmx-checkin-(?:clientes|score)\b/],
+  ['identidade genérica de vendedor', /(?:profile\?*\.name|users?\?*\.name|seller(?:_name|Name)|userName|vendedorNome|full_name|store_name)[^\n]{0,120}(?:\?\?|\|\|)\s*['"]vendedor['"]/i],
+  ['identidade genérica de dono', /(?:profile\?*\.name|user\?*\.full_name|full_name)[^\n]{0,120}(?:\?\?|\|\|)\s*['"]dono['"]/i],
+  ['identidade genérica de diretor', /(?:profile\?*\.name|user\?*\.full_name|full_name)[^\n]{0,120}(?:\?\?|\|\|)\s*['"]diretor['"]/i],
 ]
 
 describe('contrato de dados reais do runtime ativo', () => {
@@ -118,6 +124,15 @@ describe('contrato de dados reais do runtime ativo', () => {
     const base44 = readFileSync(resolve(root, 'src/api/base44Client.js'), 'utf8')
     expect(base44).toContain("full_name: profile.name || ''")
     expect(base44).toMatch(/work_schedule_id:\s*currentWorkStart && currentWorkEnd\s*\?[\s\S]*?: ''/)
+  })
+
+  test('agenda e navegação do Dono não fabricam compromissos nem módulos indisponíveis', () => {
+    const agenda = readFileSync(resolve(root, 'src/features/dashboard-loja/sections/owner-cockpit/AgendaView.tsx'), 'utf8')
+    const navigation = readFileSync(resolve(root, 'src/features/dashboard-loja/sections/owner-cockpit/ownerBase44Config.ts'), 'utf8')
+
+    expect(agenda).not.toMatch(/baseHour|Reunião Diretores|Visita a Concessionária|Treinamento Equipe|Reunião Conselho/)
+    expect(agenda).not.toMatch(/Enviar relatório semanal|Renovar seguro|Revisar contratos/)
+    expect(navigation).not.toContain('Em construção')
   })
 
   test('UserProfile.filter respeita critérios, ordenação e limite depois do escopo autenticado', () => {

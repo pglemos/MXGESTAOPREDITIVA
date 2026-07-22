@@ -114,7 +114,7 @@ export function useVendedorHomePage() {
   } = useRemuneracaoEstimadaVendedor({
     lojaId: storeId,
     planoId: vendedorPerfil.remuneracao_plano_id,
-    cargo: vendedorPerfil.cargo_atual || 'Vendedor',
+    cargo: vendedorPerfil.cargo_atual || undefined,
     vendasRealizadas: metrics?.vendasMes || 0,
     vendasProjetadas: Math.max(metrics?.projecao || 0, metrics?.vendasMes || 0),
     meta: metrics?.meta || 0,

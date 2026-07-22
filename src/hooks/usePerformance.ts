@@ -52,7 +52,7 @@ export function usePerformance() {
           const gapCategory = diag.gargalo ? categoryMap[diag.gargalo] : null
           const gapTrainings = (treinamentos || []).filter(t => t.type === gapCategory)
           const gapCompleted = gapTrainings.length > 0 ? gapTrainings.every(t => watchedIds.includes(t.id)) : true
-          return { seller_id: m.user_id, seller_name: m.users?.name || 'Vendedor', avatar_url: m.users?.avatar_url || null, watched: watchedIds, total_trainings: totalTrainings, percentage, current_gap: diag.gargalo, gap_training_completed: gapCompleted }
+          return { seller_id: m.user_id, seller_name: m.users?.name || 'Nome não informado', avatar_url: m.users?.avatar_url || null, watched: watchedIds, total_trainings: totalTrainings, percentage, current_gap: diag.gargalo, gap_training_completed: gapCompleted }
         }).sort((a, b) => b.percentage - a.percentage)
         return parseTeamProgressEntryArray(stats)
       }

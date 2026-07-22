@@ -10,6 +10,7 @@ type RouteRule = {
 
 const INTERNAL_ROLES = ['administrador_geral', 'administrador_mx', 'consultor_mx'] as const satisfies readonly UserRole[]
 const MANAGEMENT_ROLES = ['administrador_geral', 'administrador_mx', 'consultor_mx', 'dono', 'gerente'] as const satisfies readonly UserRole[]
+const MANAGER_AND_INTERNAL_ROLES = ['administrador_geral', 'administrador_mx', 'consultor_mx', 'gerente'] as const satisfies readonly UserRole[]
 const INTERNAL_AND_OWNER = ['administrador_geral', 'administrador_mx', 'consultor_mx', 'dono'] as const satisfies readonly UserRole[]
 const INTERNAL_AND_LEADERS = ['administrador_geral', 'administrador_mx', 'consultor_mx', 'dono', 'gerente'] as const satisfies readonly UserRole[]
 
@@ -27,10 +28,21 @@ export const ROUTE_ACCESS_RULES = [
   { pattern: '/configuracoes/consultoria-pmr', roles: INTERNAL_ROLES },
   { pattern: '/configuracoes/reprocessamento', roles: INTERNAL_ROLES },
   { pattern: '/lojas/:storeSlug/consultor-ia', roles: USER_ROLES },
+  { pattern: '/lojas/:storeSlug/rotina', roles: ['dono'] },
+  { pattern: '/lojas/:storeSlug/decisoes', roles: ['dono'] },
+  { pattern: '/lojas/:storeSlug/plano-estrategico', roles: ['dono'] },
+  { pattern: '/lojas/:storeSlug/plano-acao', roles: ['dono'] },
+  { pattern: '/lojas/:storeSlug/consultoria', roles: ['dono'] },
+  { pattern: '/lojas/:storeSlug/departamentos', roles: ['dono'] },
+  { pattern: '/lojas/:storeSlug/departamentos/*', roles: ['dono'] },
+  { pattern: '/lojas/:storeSlug/mercado', roles: ['dono'] },
+  { pattern: '/lojas/:storeSlug/universidade', roles: ['dono'] },
+  { pattern: '/lojas/:storeSlug/consultor', roles: ['dono'] },
   { pattern: '/lojas/:storeSlug', roles: INTERNAL_AND_LEADERS },
-  { pattern: '/lojas/:storeSlug/*', roles: ['dono'] },
+  { pattern: '/lojas/:storeSlug/*', roles: INTERNAL_AND_LEADERS },
   { pattern: '/lojas', roles: INTERNAL_AND_OWNER },
   { pattern: '/rotina', roles: ['administrador_geral', 'administrador_mx', 'consultor_mx', 'gerente'] },
+  { pattern: '/gerente/rotina-equipe', roles: MANAGER_AND_INTERNAL_ROLES },
   { pattern: '/gerente/*', roles: MANAGEMENT_ROLES },
   { pattern: '/configuracoes/operacional', roles: INTERNAL_ROLES },
   { pattern: '/relatorio-matinal', roles: INTERNAL_AND_LEADERS },
@@ -69,9 +81,9 @@ export const ROUTE_ACCESS_RULES = [
   { pattern: '/ranking', roles: RANKING_ROLES, capability: 'view_ranking' },
   { pattern: '/classificacao', roles: RANKING_ROLES, capability: 'view_ranking' },
   { pattern: '/feedback', roles: USER_ROLES },
-  { pattern: '/funil', roles: USER_ROLES },
-  { pattern: '/vendedor/funil', roles: USER_ROLES },
-  { pattern: '/vendedor/meu-funil', roles: USER_ROLES },
+  { pattern: '/funil', roles: ['vendedor'] },
+  { pattern: '/vendedor/funil', roles: ['vendedor'] },
+  { pattern: '/vendedor/meu-funil', roles: ['vendedor'] },
   { pattern: '/vendedor/feedback', roles: ['vendedor'] },
   { pattern: '/vendedor/devolutivas', roles: ['vendedor'] },
   { pattern: '/vendedor/desenvolvimento', roles: ['vendedor'] },

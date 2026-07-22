@@ -48,7 +48,7 @@ export default function MinhaRemuneracaoPage() {
     )
   }
 
-  const userName = data.profile?.name?.split(' ')[0] || 'Vendedor'
+  const userName = data.profile?.name?.split(' ')[0] || 'Nome não informado'
 
   return (
     <main className="h-full w-full min-w-0 overflow-y-auto bg-[#030B14] text-text-primary no-scrollbar px-mx-sm py-mx-md sm:px-mx-md lg:px-mx-lg">

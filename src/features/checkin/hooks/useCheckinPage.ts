@@ -384,7 +384,7 @@ const spTime = getSPHoursMinutes(currentTime)
         const linkSeguro = `${window.location.origin}/liberacao-fechamento?token=${result.data.token}`
         const msg = `Olá, preciso de liberação para realizar meu Fechamento Diário com atraso.
 
-Vendedor: ${profile?.name || 'Vendedor'}
+Vendedor: ${profile?.name || 'Nome não informado'}
 Data do fechamento: ${selectedDate.split('-').reverse().join('/')}
 Horário da solicitação: ${new Date().toLocaleTimeString('pt-BR')}
 Motivo: Fechamento não realizado até 09h30.

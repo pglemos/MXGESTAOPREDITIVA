@@ -348,7 +348,7 @@ async function fetchPDISessions360(params: {
             data_realizacao: sessao.data_realizacao,
             proxima_revisao_data: sessao.proxima_revisao_data,
             due_date: sessao.proxima_revisao_data,
-            seller_name: userNameById.get(sessao.colaborador_id) || 'Vendedor',
+            seller_name: userNameById.get(sessao.colaborador_id) || 'Nome não informado',
             seller_avatar_url: userAvatarById.get(sessao.colaborador_id) || null,
             manager_name: userNameById.get(sessao.gerente_id) || 'Gestor',
             store_name: sessao.loja_id ? storeNameById.get(sessao.loja_id) : undefined,

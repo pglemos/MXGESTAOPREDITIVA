@@ -180,7 +180,7 @@ export function useRanking(storeIdOverride?: string, filters?: { startDate?: str
             const user = (m as { users?: User }).users
             aggregated.set(m.user_id, { 
                 leads: 0, agd: 0, visitas: 0, vnd: 0, vnd_yesterday: 0,
-                name: user?.name || 'Vendedor',
+                name: user?.name || 'Nome não informado',
                 avatarUrl: user?.avatar_url || null,
                 isVendaLoja: user?.is_venda_loja || false
             })

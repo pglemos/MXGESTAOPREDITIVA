@@ -235,7 +235,15 @@ export default function ManagerTeamRoutineCanonical() {
     <RoutineTrendCard trend={trend} range={historyRange} onRange={setHistoryRange}/>
     <RoutineComparisonCard team={average} network={networkComparison.average} top={networkComparison.top}/>
     {selectedRow && <ManagerRoutineDetailModal open onClose={() => setSelectedSellerId(null)} sellerName={selectedRow.seller.name} date={date} actions={selectedActions} appointments={selectedRow.appointments} execution={selectedRow.execution} officialScore={selectedRow.officialScore}/>} 
-    {chargeSellerId && <ManagerRoutineChargeModal open sellerName={rows.find(row => row.seller.id === chargeSellerId)?.seller.name || 'Vendedor'} date={(() => { try { return format(parseISO(date), 'dd/MM/yyyy') } catch { return date } })()} onClose={() => setChargeSellerId(null)} onSave={(message) => remind(chargeSellerId, message)}/>} 
+    {chargeSellerId && (
+      <ManagerRoutineChargeModal
+        open
+        sellerName={rows.find(row => row.seller.id === chargeSellerId)?.seller.name || 'Nome não informado'}
+        date={(() => { try { return format(parseISO(date), 'dd/MM/yyyy') } catch { return date } })()}
+        onClose={() => setChargeSellerId(null)}
+        onSave={(message) => remind(chargeSellerId, message)}
+      />
+    )}
   </div></main>
 }
 

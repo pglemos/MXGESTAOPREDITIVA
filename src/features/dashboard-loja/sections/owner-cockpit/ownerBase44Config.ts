@@ -84,17 +84,12 @@ export const OWNER_BASE44_NAVIGATION: OwnerBase44NavigationSection[] = [
           { label: 'Operações', section: 'departamentos', departmentCode: 'operacional' },
         ],
       },
-      { label: 'Mercado', section: 'mercado', badge: 'Em construção', badgeTone: 'warning' },
+      { label: 'Mercado', section: 'mercado' },
     ],
   },
   {
     label: 'DESENVOLVIMENTO',
-    items: [{
-      label: 'Universidade MX',
-      section: 'universidade',
-      badge: 'Em construção',
-      badgeTone: 'warning',
-    }],
+    items: [{ label: 'Universidade MX', section: 'universidade' }],
   },
   {
     label: 'AÇÃO GLOBAL',

@@ -191,7 +191,7 @@ function RegularizationDecisionModal({
   onSubmit: () => void;
 }) {
   const approve = decision?.action === "approve";
-  const sellerName = decision?.request.seller?.name || decision?.request.seller_id || "Vendedor";
+  const sellerName = decision?.request.seller?.name || decision?.request.seller_id || "Nome não informado";
   const referenceDate = decision?.request.requested_values.reference_date;
   const actionLabel = approve ? "Aprovar" : "Recusar";
   const confirmationLabel = approve

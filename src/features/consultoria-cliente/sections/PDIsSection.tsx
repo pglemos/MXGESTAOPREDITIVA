@@ -91,7 +91,7 @@ export function PDIsSection({ storeId, visits = [] }: Props) {
           <Card key={pdi.id} className="p-mx-lg bg-white border border-border-default shadow-mx-md hover:border-brand-primary/30 transition-all group rounded-mx-2xl">
             <div className="flex justify-between items-start mb-mx-md">
               <div>
-                <Typography variant="h3" className="text-lg group-hover:text-brand-primary transition-colors">{pdi.seller_name || 'Vendedor'}</Typography>
+                <Typography variant="h3" className="text-lg group-hover:text-brand-primary transition-colors">{pdi.seller_name || 'Nome não informado'}</Typography>
                 <Typography variant="tiny" tone="muted">Plano criado em {format(new Date(pdi.created_at), 'dd/MM/yyyy')}</Typography>
               </div>
               <Badge variant={pdi.status === 'ativo' ? 'success' : 'outline'}>{pdi.status.toUpperCase()}</Badge>

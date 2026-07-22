@@ -42,6 +42,29 @@ describe('route access matrix', () => {
     expect(canAccessPath('/lojas', 'gerente')).toBe(false)
   })
 
+  it('allows scoped store subroutes only to leaders and internal MX profiles', () => {
+    for (const role of ['gerente', 'dono', 'administrador_geral', 'administrador_mx', 'consultor_mx'] as const) {
+      expect(canAccessPath('/lojas/mx-consultoria/equipe', role)).toBe(true)
+    }
+    expect(canAccessPath('/lojas/mx-consultoria/equipe', 'vendedor')).toBe(false)
+    expect(canAccessPath('/lojas/mx-consultoria/consultor-ia', 'vendedor')).toBe(true)
+  })
+
+  it('keeps legacy owner workspace subroutes exclusive while allowing regular store tabs', () => {
+    for (const route of [
+      '/lojas/mx-consultoria/plano-acao',
+      '/lojas/mx-consultoria/departamentos/comercial',
+      '/lojas/mx-consultoria/mercado',
+      '/lojas/mx-consultoria/universidade',
+    ]) {
+      expect(canAccessPath(route, 'dono')).toBe(true)
+      expect(canAccessPath(route, 'gerente')).toBe(false)
+      expect(canAccessPath(route, 'administrador_mx')).toBe(false)
+    }
+    expect(canAccessPath('/lojas/mx-consultoria/equipe', 'gerente')).toBe(true)
+    expect(canAccessPath('/lojas/mx-consultoria/equipe', 'administrador_mx')).toBe(true)
+  })
+
   it('protects every canonical manager route from sellers', () => {
     const routes = [
       '/gerente/fechamento-diario',
@@ -55,7 +78,7 @@ describe('route access matrix', () => {
     ]
     for (const route of routes) {
       expect(canAccessPath(route, 'gerente')).toBe(true)
-      expect(canAccessPath(route, 'dono')).toBe(true)
+      expect(canAccessPath(route, 'dono')).toBe(route !== '/gerente/rotina-equipe')
       expect(canAccessPath(route, 'administrador_mx')).toBe(true)
       expect(canAccessPath(route, 'vendedor')).toBe(false)
     }
@@ -198,5 +221,14 @@ describe('route access matrix', () => {
     expect(canAccessPath('/vendedor/perfil', 'gerente')).toBe(false)
     expect(canAccessPath('/configuracoes', 'vendedor')).toBe(true)
     expect(canAccessPath('/configuracoes/operacional', 'vendedor')).toBe(false)
+  })
+
+  it('keeps seller funnel aliases exclusive to the seller flow rendered by App', () => {
+    for (const route of ['/funil', '/vendedor/funil', '/vendedor/meu-funil']) {
+      expect(canAccessPath(route, 'vendedor')).toBe(true)
+      for (const role of ['gerente', 'dono', 'administrador_geral', 'administrador_mx', 'consultor_mx'] as const) {
+        expect(canAccessPath(route, role)).toBe(false)
+      }
+    }
   })
 })

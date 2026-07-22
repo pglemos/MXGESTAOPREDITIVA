@@ -69,7 +69,7 @@ export function AdminFeedbackModal({
 }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null)
   useFocusTrap(dialogRef, open)
-  const selectedSellerName = filteredSellers.find(s => s.id === formData.seller_id)?.name || 'Vendedor'
+  const selectedSellerName = filteredSellers.find(s => s.id === formData.seller_id)?.name || 'Nome não informado'
 
   const handleFeedbackActionSelect = (actionId: string) => {
     const actionText = applyFeedbackActionTemplate(actionId, {

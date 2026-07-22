@@ -67,10 +67,11 @@ describe('contrato do módulo Dono inspirado no Base44', () => {
       'Financeiro',
       'Operações',
     ])
-    expect(business?.items[1]?.badge).toBe('Em construção')
+    expect(business?.items[1]?.badge).toBeUndefined()
+    expect(OWNER_BASE44_NAVIGATION.find(section => section.label === 'DESENVOLVIMENTO')?.items[0]?.badge).toBeUndefined()
 
     const development = OWNER_BASE44_NAVIGATION.find(section => section.label === 'DESENVOLVIMENTO')
-    expect(development?.items[0]?.badge).toBe('Em construção')
+    expect(development?.items[0]?.section).toBe('universidade')
   })
 
   test('liga o sidebar universal às rotas canônicas do módulo Dono', () => {

@@ -86,13 +86,13 @@ export function RotinaAjustesTab({
                       <div className="flex items-center gap-mx-sm">
                         <Avatar
                           src={req.seller?.avatar_url || undefined}
-                          alt={`Avatar de ${req.seller?.name || 'vendedor'}`}
+                          alt={`Avatar de ${req.seller?.name || 'nome não informado'}`}
                           fallback={req.seller?.name || '?'}
                           className="w-mx-10 h-mx-10 rounded-mx-lg bg-brand-primary text-white shadow-inner"
                         />
                         <div>
                           <Typography variant="h3" className="text-base uppercase font-black">
-                            {req.seller?.name || 'Vendedor'}
+                            {req.seller?.name || 'Nome não informado'}
                           </Typography>
                           <Typography
                             variant="tiny"

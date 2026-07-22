@@ -48,7 +48,7 @@ export default function VendedorHomePage() {
   const home = useVendedorHomePage()
   const { agendamentos, metrics: agendaMetrics } = useAgendamentos()
 
-  const firstName = profile?.name?.trim().split(/\s+/)[0] || 'Vendedor'
+  const firstName = profile?.name?.trim().split(/\s+/)[0] || 'Nome não informado'
 
   const today = new Date()
   const weekday = capitalize(

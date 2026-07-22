@@ -71,7 +71,7 @@ export function SellerProfileModal({ seller, onClose }: SellerProfileModalProps)
                     </div>
                     
                     <h2 id="seller-profile-title" className="font-display font-black text-2xl text-white mb-1 text-center">{seller.user_name}</h2>
-                    <p className="text-xs font-bold text-text-tertiary uppercase tracking-widest mb-6">{seller.store_name || 'Vendedor'}</p>
+                    <p className="text-xs font-bold text-text-tertiary uppercase tracking-widest mb-6">{seller.store_name || 'Loja não informada'}</p>
 
                     <div className="flex gap-mx-xs justify-center w-full flex-wrap mb-8">
                         {badge === 'fire' && <div className="p-mx-xs bg-status-warning-surface text-status-warning rounded-xl border border-status-warning/30" title="On Fire"><Flame className="w-mx-sm h-mx-sm" /></div>}

@@ -75,6 +75,6 @@ export function applyFeedbackActionTemplate(
   const template = findFeedbackActionTemplate(actionId)
   if (!template) return null
   return template.actionTemplate
-    .replaceAll('{{sellerName}}', context.sellerName.trim() || 'Vendedor')
+    .replaceAll('{{sellerName}}', context.sellerName.trim() || 'Nome não informado')
     .replaceAll('{{weekReference}}', context.weekReference)
 }

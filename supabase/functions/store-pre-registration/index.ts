@@ -80,6 +80,76 @@ async function findAuthUserByEmail(adminClient: any, email: string) {
   return null
 }
 
+async function reactivateApprovedStoreAccess(
+  adminClient: any,
+  userId: string,
+  storeId: string,
+  role: string,
+  existingAuthUser: any,
+) {
+  const { data: previousRegistration, error: previousRegistrationError } = await adminClient
+    .from('pre_cadastros_loja')
+    .select('id, role')
+    .eq('auth_user_id', userId)
+    .eq('store_id', storeId)
+    .eq('status', 'synced')
+    .maybeSingle()
+
+  if (previousRegistrationError) throw previousRegistrationError
+  if (!previousRegistration || previousRegistration.role !== role) return false
+
+  const { error: profileError } = await adminClient
+    .from('usuarios')
+    .update({ active: true, must_change_password: true })
+    .eq('id', userId)
+  if (profileError) throw profileError
+
+  const { error: membershipError } = await adminClient
+    .from('vinculos_loja')
+    .upsert({ user_id: userId, store_id: storeId, role, is_active: true, ended_at: null }, { onConflict: 'user_id,store_id' })
+  if (membershipError) throw membershipError
+
+  if (role === 'vendedor') {
+    const { data: existingSeller, error: existingSellerError } = await adminClient
+      .from('vendedores_loja')
+      .select('id')
+      .eq('seller_user_id', userId)
+      .eq('store_id', storeId)
+      .maybeSingle()
+    if (existingSellerError) throw existingSellerError
+
+    const sellerMutation = existingSeller
+      ? adminClient
+          .from('vendedores_loja')
+          .update({ is_active: true, ended_at: null })
+          .eq('id', existingSeller.id)
+      : adminClient
+          .from('vendedores_loja')
+          .insert({
+            seller_user_id: userId,
+            store_id: storeId,
+            started_at: new Date().toISOString().slice(0, 10),
+            ended_at: null,
+            is_active: true,
+            closing_month_grace: false,
+          })
+    const { error: sellerError } = await sellerMutation
+    if (sellerError) throw sellerError
+  }
+
+  const { error: authError } = await adminClient.auth.admin.updateUserById(userId, {
+    user_metadata: {
+      ...(existingAuthUser?.user_metadata || {}),
+      role,
+      store_id: storeId,
+      must_change_password: true,
+    },
+  })
+  if (authError) throw authError
+
+  return true
+}
+
 async function cleanupPendingUser(
   adminClient: any,
   userId: string,
@@ -262,10 +332,34 @@ serve(async (req) => {
   }
 
   if (existingUser || existingAuthUser) {
+    let reactivated = false
+    if (
+      existingUser &&
+      existingAuthUser &&
+      existingUser.id === existingAuthUser.id &&
+      existingUser.active === false
+    ) {
+      try {
+        reactivated = await reactivateApprovedStoreAccess(
+          adminClient,
+          existingAuthUser.id,
+          store.id,
+          role,
+          existingAuthUser,
+        )
+      } catch (err) {
+        return jsonResponse({
+          success: false,
+          error: err instanceof Error ? err.message : 'Não foi possível reativar o acesso existente.',
+        }, 500)
+      }
+    }
+
     return jsonResponse({
       success: false,
       code: 'existing_user',
       requires_password_reset: true,
+      reactivated,
       login_email: email,
       error: 'Este e-mail já possui cadastro. Não criamos outro usuário. Enviamos um link para redefinir sua senha.',
     }, 409)
