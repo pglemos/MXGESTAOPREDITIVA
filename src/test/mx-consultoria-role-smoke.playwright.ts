@@ -46,6 +46,10 @@ async function navigateWithinApp(page: Page, route: string) {
   await page.goto(route, { waitUntil: 'domcontentloaded', timeout: 30_000 })
 }
 
+function isFiniteSupabaseRequest(request: Request) {
+  return request.url().includes('.supabase.co/') && !request.url().includes('/realtime/v1/')
+}
+
 async function auditAuthenticatedRole(browser: Browser, roleCase: RoleCase) {
   const context = await browser.newContext()
   try {
@@ -70,12 +74,12 @@ async function auditAuthenticatedRole(browser: Browser, roleCase: RoleCase) {
       if (message.type() === 'error') consoleErrors.push(`${activeRoute}: ${message.text()}`)
     })
     page.on('request', request => {
-      if (!request.url().includes('.supabase.co/')) return
+      if (!isFiniteSupabaseRequest(request)) return
       lastSupabaseActivityAt = Date.now()
       pendingSupabaseRequests.add(request)
     })
     page.on('requestfailed', request => {
-      if (!request.url().includes('.supabase.co/')) return
+      if (!isFiniteSupabaseRequest(request)) return
       pendingSupabaseRequests.delete(request)
       lastSupabaseActivityAt = Date.now()
       const failure = request.failure()?.errorText || ''
@@ -85,7 +89,7 @@ async function auditAuthenticatedRole(browser: Browser, roleCase: RoleCase) {
     page.on('response', response => {
       pendingSupabaseRequests.delete(response.request())
       const url = response.url()
-      if (!url.includes('.supabase.co/')) return
+      if (!isFiniteSupabaseRequest(response.request())) return
       lastSupabaseActivityAt = Date.now()
       if (/\/(?:rest|functions)\/v1\//.test(url) && response.ok()) {
         successfulBusinessRequestsByRoute.set(activeRoute, (successfulBusinessRequestsByRoute.get(activeRoute) || 0) + 1)

@@ -33,6 +33,7 @@ describe('smoke autenticado multi-role — contratos de limpeza', () => {
   test('exige Supabase por rota, Loja MX real e isolamento de consultoria', () => {
     expect(source).toContain('successfulBusinessRequestsByRoute')
     expect(source).toMatch(/successfulBusinessRequestsByRoute\.get\(route\)[\s\S]*?toBeGreaterThan\(0\)/)
+    expect(source).toContain("!request.url().includes('/realtime/v1/')")
     expect(source).toContain("name: 'MX CONSULTORIA'")
     expect(source).toContain('createE2EConsultingClient')
     expect(source).toContain('hiddenConsultingClientNames')

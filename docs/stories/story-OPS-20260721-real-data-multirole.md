@@ -190,6 +190,7 @@ OpenAI Codex (GPT-5)
 - O resumo do programa de consultoria é carregado somente no cockpit do Dono; gerente e demais consumidores do dashboard não chamam a RPC exclusiva nem geram 403 em navegação autenticada.
 - A simulação interna da Carteira mantém vendedor e loja reais no contexto de sessão e envia esse escopo à RPC canônica; cadastro, troca, financiamento, proposta e transições de próximo passo permanecem persistidos sem fallback local.
 - O smoke cria identidades temporárias identificáveis, valida rede/console/rotas e sempre limpa por ID com `try/finally` e `Promise.allSettled`.
+- O gate de rede ignora somente o canal Supabase Realtime, que é persistente por definição; requests finitos continuam obrigados a concluir e cada rota deve comprovar ao menos uma leitura REST/Function real.
 - Regressões adicionais cobrem concorrência de `useSellersByStore`, loading do nível de carreira, percentuais do Dono e isolamento dos mocks Supabase entre arquivos.
 - Checklist DoD: 22/22 itens aplicáveis PASS, 6 N/A (sem dependências, variáveis/configurações novas, threshold formal de cobertura ou documentação de uso adicional), 0 FAIL. Story pronta para review; nenhum débito novo identificado.
 
