@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { isPerfilInternoMx, useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/hooks/useAuth'
 import { DashboardErrorBoundary } from '@/features/dashboard-loja/components/DashboardErrorBoundary'
 import { Toaster as OwnerToaster } from '@/components/ui/toaster'
 import OwnerLayout from '@/components/owner/OwnerLayout'
@@ -25,7 +25,7 @@ import '@/styles/owner-base44-exact.css'
 // Espelha o módulo do Dono do Base44 (paths /dono/*) montado dentro do MX.
 export default function OwnerModule() {
   const { role } = useAuth()
-  if (role !== 'dono' && !isPerfilInternoMx(role)) {
+  if (role !== 'dono') {
     return <Navigate to="/lojas" replace />
   }
 

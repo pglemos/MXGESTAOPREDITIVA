@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/owner-b44/AuthContext";
 import { PERIOD_LABELS } from "@/lib/owner-b44/period";
 import { formatDateTime } from "@/lib/owner-b44/format";
 import { Button } from "@/components/ui/button";
-import { Bell, RefreshCw, Menu, ChevronDown, Building2, MapPin, CalendarRange, ShieldCheck } from "lucide-react";
+import { Bell, RefreshCw, ChevronDown, Building2, MapPin, CalendarRange, ShieldCheck } from "lucide-react";
 
 const PERIODS = [
   { value: "month", label: "Mês atual" },
@@ -16,17 +16,17 @@ const PERIODS = [
 function Select({ value, onChange, options, icon: Icon, label, disabled }) {
   return (
     <div className="relative flex items-center">
-      {Icon && <Icon className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-muted-foreground/80" />}
+      <Icon className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-muted-foreground/80" />
       <select
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className="h-8 w-full rounded-md border border-input bg-background pl-8 pr-7 text-xs font-medium text-foreground shadow-xs transition-colors hover:bg-accent/50 focus:outline-hidden focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+        aria-label={label}
+        className="h-9 w-full appearance-none rounded-lg border border-border bg-card pl-8 pr-8 text-sm font-medium text-foreground hover:border-primary/40 focus:border-primary/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {!value && <option value="">Selecione {label}...</option>}
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
           </option>
         ))}
       </select>
@@ -35,27 +35,22 @@ function Select({ value, onChange, options, icon: Icon, label, disabled }) {
   );
 }
 
-export default function OwnerTopbar({ onOpenSidebar, lastUpdated }) {
-  const { companies, currentCompany, setCompanyId, currentUnits, unitId, setUnitId, period, setPeriod, customStart, customEnd, setCustomStart, setCustomEnd, reload } =
+export default function OwnerTopbar({ lastUpdated }) {
+  const { companies, currentCompany, setCompanyId, currentUnits, unitId, setUnitId, period, setPeriod, reload } =
     useOwner();
   const { user, logout } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   const companyOptions = companies.map((c) => ({ value: c.id, label: c.name }));
-  const unitOptions = currentUnits.map((u) => ({ value: u.id, label: u.name }));
+  const unitOptions = [
+    { value: "all", label: "Todas as unidades" },
+    ...currentUnits.map((u) => ({ value: u.id, label: u.name })),
+  ];
 
-  const firstName = (user?.full_name || "Nome não informado").split(" ")[0];
+  const firstName = (user?.full_name || user?.email || "Dono").split(" ")[0];
 
   return (
     <header className="owner-base44-exact__topbar sticky top-0 z-30 flex min-h-16 flex-col gap-2 border-b border-border bg-card/90 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-card/75 xl:h-16 xl:flex-row xl:items-center xl:py-0 2xl:px-6">
-      {/* Menu mobile */}
-      {onOpenSidebar && (
-        <Button variant="ghost" size="icon" className="lg:hidden shrink-0" onClick={onOpenSidebar} aria-label="Abrir menu">
-          <Menu className="h-5 w-5" />
-        </Button>
-      )}
-
       {/* Identificação do contexto */}
       <div className="hidden shrink-0 items-center gap-2 rounded-full bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground 2xl:flex">
         <ShieldCheck className="h-3.5 w-3.5" />
@@ -94,19 +89,6 @@ export default function OwnerTopbar({ onOpenSidebar, lastUpdated }) {
         </div>
       </div>
 
-      {period === "custom" && (
-        <div className="grid w-full grid-cols-2 gap-2 xl:w-auto xl:shrink-0">
-          <label className="flex min-w-0 flex-col gap-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
-            Início
-            <input aria-label="Início do período personalizado" type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="h-9 rounded-lg border border-border bg-card px-2 text-sm font-medium text-foreground" />
-          </label>
-          <label className="flex min-w-0 flex-col gap-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
-            Fim
-            <input aria-label="Fim do período personalizado" type="date" value={customEnd} min={customStart || undefined} onChange={(e) => setCustomEnd(e.target.value)} className="h-9 rounded-lg border border-border bg-card px-2 text-sm font-medium text-foreground" />
-          </label>
-        </div>
-      )}
-
       {/* Lado direito */}
       <div className="hidden shrink-0 items-center gap-2 xl:flex">
         <div className="hidden text-right lg:block">
@@ -116,11 +98,10 @@ export default function OwnerTopbar({ onOpenSidebar, lastUpdated }) {
         <Button variant="ghost" size="icon" onClick={reload} aria-label="Atualizar dados">
           <RefreshCw className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="icon" className="relative" aria-label="Notificações" onClick={() => setNotificationsOpen((value) => !value)}>
+        <Button variant="ghost" size="icon" className="relative" aria-label="Notificações">
           <Bell className="h-4 w-4" />
           <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-destructive" />
         </Button>
-        {notificationsOpen && <div role="status" className="absolute right-24 top-14 z-20 w-64 rounded-xl border border-border bg-card p-3 text-sm text-muted-foreground shadow-lg">As notificações persistidas aparecem na Central de Decisões.</div>}
 
         {/* Perfil */}
         <div className="relative">
@@ -139,7 +120,7 @@ export default function OwnerTopbar({ onOpenSidebar, lastUpdated }) {
               <div className="fixed inset-0 z-10" onClick={() => setProfileOpen(false)} />
               <div className="absolute right-0 top-11 z-20 w-56 rounded-xl border border-border bg-card p-2 shadow-lg">
                 <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium text-foreground">{user?.full_name || "Nome não informado"}</p>
+                  <p className="text-sm font-medium text-foreground">{user?.full_name || "Dono"}</p>
                   <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
                 </div>
                 <div className="my-1 h-px bg-border" />
