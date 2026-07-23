@@ -15,28 +15,28 @@ import { AgendaSearchBar } from '../components/AgendaSearchBar'
 import type { AdminCalendarViewMode } from './AgendaFiltersBar'
 
 interface AgendaHeaderProps {
-  monthLabel: string
-  onPrevMonth: () => void
-  onNextMonth: () => void
-  onTodayClick: () => void
-  calendarViewMode: AdminCalendarViewMode
-  setCalendarViewMode: (mode: AdminCalendarViewMode) => void
-  dateFilter: DateFilter
-  setDateFilter: (filter: DateFilter) => void
-  searchQuery: string
-  onSearchChange: (query: string) => void
-  onRefresh: () => void
-  onCreateVisit: () => void
-  onCreateEvent: () => void
-  onCreateBlock: () => void
-  statusFilter: string
-  setStatusFilter: (status: string) => void
-  consultantFilter: string
-  setConsultantFilter: (consultantId: string) => void
-  activeFilters: number
-  clearFilters: () => void
-  consultants: AgendaConsultant[]
-  canViewAllAgendas: boolean
+  monthLabel?: string
+  onPrevMonth?: () => void
+  onNextMonth?: () => void
+  onTodayClick?: () => void
+  calendarViewMode?: AdminCalendarViewMode
+  setCalendarViewMode?: (mode: AdminCalendarViewMode) => void
+  dateFilter?: DateFilter
+  setDateFilter?: (filter: DateFilter) => void
+  searchQuery?: string
+  onSearchChange?: (query: string) => void
+  onRefresh?: () => void
+  onCreateVisit?: () => void
+  onCreateEvent?: () => void
+  onCreateBlock?: () => void
+  statusFilter?: string
+  setStatusFilter?: (status: string) => void
+  consultantFilter?: string
+  setConsultantFilter?: (consultantId: string) => void
+  activeFilters?: number
+  clearFilters?: () => void
+  consultants?: AgendaConsultant[]
+  canViewAllAgendas?: boolean
 }
 
 const VIEW_OPTIONS: { key: AdminCalendarViewMode; label: string }[] = [
@@ -47,28 +47,28 @@ const VIEW_OPTIONS: { key: AdminCalendarViewMode; label: string }[] = [
 ]
 
 export function AgendaHeader({
-  monthLabel,
-  onPrevMonth,
-  onNextMonth,
-  onTodayClick,
-  calendarViewMode,
-  setCalendarViewMode,
-  dateFilter,
-  setDateFilter,
-  searchQuery,
-  onSearchChange,
-  onRefresh,
-  onCreateVisit,
-  onCreateEvent,
-  onCreateBlock,
-  statusFilter,
-  setStatusFilter,
-  consultantFilter,
-  setConsultantFilter,
-  activeFilters,
-  clearFilters,
-  consultants,
-  canViewAllAgendas,
+  monthLabel = '',
+  onPrevMonth = () => {},
+  onNextMonth = () => {},
+  onTodayClick = () => {},
+  calendarViewMode = 'week',
+  setCalendarViewMode = () => {},
+  dateFilter = 'semana',
+  setDateFilter = () => {},
+  searchQuery = '',
+  onSearchChange = () => {},
+  onRefresh = () => {},
+  onCreateVisit = () => {},
+  onCreateEvent = () => {},
+  onCreateBlock = () => {},
+  statusFilter = 'todos',
+  setStatusFilter = () => {},
+  consultantFilter = 'todos',
+  setConsultantFilter = () => {},
+  activeFilters = 0,
+  clearFilters = () => {},
+  consultants = [],
+  canViewAllAgendas = false,
 }: AgendaHeaderProps) {
   const handleViewModeChange = (mode: AdminCalendarViewMode) => {
     setCalendarViewMode(mode)
