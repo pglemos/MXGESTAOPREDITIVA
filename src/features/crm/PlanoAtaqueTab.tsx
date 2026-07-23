@@ -359,6 +359,42 @@ export function PlanoAtaqueTab({ clientes, oportunidadePorCliente, progressoPorC
     )
   }
 
+  const [faixaPrecoAtiva, setFaixaPrecoAtiva] = useState('todas')
+
+  const FAIXAS_PRECO = useMemo(() => [
+    { id: 'todas', label: 'Todas as faixas', min: 0, max: Infinity },
+    { id: 'ate_50k', label: 'Até R$ 50k', min: 0, max: 50000 },
+    { id: '50k_80k', label: 'R$ 50k - 80k', min: 50000, max: 80000 },
+    { id: '80k_120k', label: 'R$ 80k - 120k', min: 80000, max: 120000 },
+    { id: '120k_180k', label: 'R$ 120k - 180k', min: 120000, max: 180000 },
+    { id: 'acima_180k', label: 'Acima de R$ 180k', min: 180000, max: Infinity },
+  ], [])
+
+  const countsFaixa = useMemo(() => {
+    const map: Record<string, number> = {}
+    for (const f of FAIXAS_PRECO) {
+      if (f.id === 'todas') {
+        map[f.id] = veiculos.length
+      } else {
+        map[f.id] = veiculos.filter(v => {
+          const p = Number(v.preco) || 0
+          return p >= f.min && p <= f.max
+        }).length
+      }
+    }
+    return map
+  }, [veiculos, FAIXAS_PRECO])
+
+  const veiculosFiltrados = useMemo(() => {
+    if (faixaPrecoAtiva === 'todas') return veiculos
+    const f = FAIXAS_PRECO.find(x => x.id === faixaPrecoAtiva)
+    if (!f) return veiculos
+    return veiculos.filter(v => {
+      const p = Number(v.preco) || 0
+      return p >= f.min && p <= f.max
+    })
+  }, [veiculos, faixaPrecoAtiva, FAIXAS_PRECO])
+
   return (
     <div className="space-y-6">
       <div>
@@ -381,23 +417,62 @@ export function PlanoAtaqueTab({ clientes, oportunidadePorCliente, progressoPorC
           </button>
         </div>
 
+        {/* Categorização por Faixa de Preço */}
+        {veiculos.length > 0 && (
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide mr-1 shrink-0">Faixa de preço:</span>
+            {FAIXAS_PRECO.map(f => {
+              const count = countsFaixa[f.id] ?? 0
+              const ativo = faixaPrecoAtiva === f.id
+              return (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => setFaixaPrecoAtiva(f.id)}
+                  className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all ${
+                    ativo
+                      ? 'bg-[#005BFF] text-white shadow-sm'
+                      : 'bg-slate-50 text-slate-600 border border-slate-100 hover:bg-slate-100'
+                  }`}
+                >
+                  {f.label} ({count})
+                </button>
+              )
+            })}
+          </div>
+        )}
+
         {loading ? (
           <p className="text-sm text-slate-400">Carregando veículos...</p>
-        ) : veiculos.length === 0 ? (
+        ) : veiculosFiltrados.length === 0 ? (
           <div className="bg-slate-50 border border-slate-100 rounded-2xl p-10 text-center">
             <Car className="mx-auto text-slate-300" size={28} />
-            <p className="mt-3 text-sm font-bold text-slate-600">Nenhum veículo recém-chegado registrado no momento.</p>
-            <button
-              type="button"
-              onClick={() => setModalOpen(true)}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-[#005BFF] px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
-            >
-              <Plus size={16} /> Registrar veículo que chegou
-            </button>
+            <p className="mt-3 text-sm font-bold text-slate-600">
+              {veiculos.length === 0
+                ? 'Nenhum veículo recém-chegado registrado no momento.'
+                : 'Nenhum veículo encontrado nesta faixa de preço.'}
+            </p>
+            {veiculos.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => setFaixaPrecoAtiva('todas')}
+                className="mt-3 text-xs text-[#005BFF] font-bold hover:underline"
+              >
+                Ver todas as faixas de preço
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setModalOpen(true)}
+                className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-[#005BFF] px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
+              >
+                <Plus size={16} /> Registrar veículo que chegou
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            {veiculos.map(veiculo => {
+            {veiculosFiltrados.map(veiculo => {
               const compat = clientesCompativeis(clientes, oportunidadePorCliente, veiculo).length
               return (
                 <div key={veiculo.id} className="bg-white border border-slate-100 rounded-2xl p-4 space-y-3">
