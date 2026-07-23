@@ -42,11 +42,10 @@ test.describe('Agenda MX Page', () => {
     }
   });
 
-  test('status filter buttons exist (behind the filter popover)', async ({ page }) => {
+  test('status filter buttons exist', async ({ page }) => {
     await loginAsAdmin(page);
     await page.goto('/agenda');
-    await page.getByRole('button', { name: /Filtros de status e consultor/ }).click();
-    const statuses = ['Agendadas', 'Em Andamento', 'Concluídas', 'Canceladas'];
+    const statuses = ['Todos', 'Agendadas', 'Em Andamento', 'Concluídas', 'Canceladas'];
     for (const label of statuses) {
       await expect(page.getByRole('button', { name: new RegExp(label) }).first()).toBeVisible({ timeout: 10000 });
     }
@@ -75,19 +74,18 @@ test.describe('Agenda MX Page', () => {
     expect(typeof isActive).toBe('boolean');
   });
 
-  test('"Criar" dropdown opens with an "Agendar visita" option', async ({ page }) => {
+  test('"AGENDAR VISITA" button exists', async ({ page }) => {
     await loginAsAdmin(page);
     await page.goto('/agenda');
-    await page.getByRole('button', { name: /Criar/ }).first().click({ timeout: 10000 });
-    await expect(page.getByText('Agendar visita')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('button', { name: /AGENDAR VISITA/ }).first()).toBeVisible({ timeout: 10000 });
   });
 
   test('schedule modal opens with form fields', async ({ page }) => {
     await loginAsAdmin(page);
     await page.goto('/agenda');
 
-    await page.getByRole('button', { name: /Criar/ }).first().click({ timeout: 10000 });
-    await page.getByText('Agendar visita').click({ timeout: 10000 });
+    const scheduleBtn = page.getByRole('button', { name: /AGENDAR VISITA/ }).first();
+    await scheduleBtn.click({ timeout: 10000 });
 
     await expect(page.getByText('Agendar Visita de Consultoria')).toBeVisible({ timeout: 5000 });
 
@@ -108,8 +106,8 @@ test.describe('Agenda MX Page', () => {
     await loginAsAdmin(page);
     await page.goto('/agenda');
 
-    await page.getByRole('button', { name: /Criar/ }).first().click({ timeout: 10000 });
-    await page.getByText('Agendar visita').click({ timeout: 10000 });
+    const scheduleBtn = page.getByRole('button', { name: /AGENDAR VISITA/ }).first();
+    await scheduleBtn.click({ timeout: 10000 });
 
     await expect(page.getByText('Agendar Visita de Consultoria')).toBeVisible({ timeout: 5000 });
 

@@ -127,7 +127,7 @@ export function buildCentralMx(data: DashboardData, marginPercent: number | null
   return buildCentralMxEngine({
     storeId: data.operationalStore?.id || data.metrics.storeName || 'loja-mx',
     storeName: data.metrics.storeName,
-    period: data.periodEndDate || data.referenceDate,
+    period: data.referenceDate.slice(0, 7),
     metrics: {
       totalSales: data.metrics.totalSales,
       totalLeads: data.metrics.totalLeads,
@@ -148,12 +148,6 @@ export function buildCentralMx(data: DashboardData, marginPercent: number | null
       scheduleToVisit: data.funnelBenchmarks.agdVisita,
       visitToSale: data.funnelBenchmarks.visitaVnd,
     },
-    inventory: data.inventory
-      ? {
-        total: data.inventory.total,
-        agingOver90: data.inventory.agingOver90,
-      }
-      : null,
     financial: data.latestDRE
       ? {
         grossProfit: data.latestDRE.gross_profit,

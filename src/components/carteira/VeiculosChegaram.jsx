@@ -5,63 +5,30 @@ import { base44 } from "@/api/base44Client";
 import { calcularPrioridade } from "./carteiraUtils";
 
 // ─── COMPATIBILIDADE ──────────────────────────────────────────────────────────
-const FAIXA_PRECO_TOLERANCIA = 0.15; // ±15%
-
-export const CATEGORIAS_VEICULO = [
-  { value: "", label: "Não informado" },
-  { value: "hatch", label: "Hatch" },
-  { value: "sedan", label: "Sedã" },
-  { value: "suv", label: "SUV" },
-  { value: "picape", label: "Picape" },
-  { value: "minivan", label: "Minivan" },
-  { value: "utilitario", label: "Utilitário" },
-  { value: "moto", label: "Moto" },
-  { value: "outro", label: "Outro" },
-];
-
-const CATEGORIA_LABEL = Object.fromEntries(CATEGORIAS_VEICULO.filter(c => c.value).map(c => [c.value, c.label]));
-
 function normalizar(str) {
   return (str || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9 ]/g, " ").trim();
 }
 
-function precoCompativel(precoCliente, precoVeiculo) {
-  if (!precoCliente || !precoVeiculo) return false;
-  return Math.abs(precoCliente - precoVeiculo) / precoVeiculo <= FAIXA_PRECO_TOLERANCIA;
-}
-
-// Compatível por texto exato do veículo de interesse, mesma categoria, ou
-// faixa de preço próxima (quando o texto não bate literal). O motivo do
-// match fica em _matchType pra priorizar e sinalizar na UI.
 function clientesCompativeis(clientes, veiculo) {
   const termos = [veiculo.marca, veiculo.modelo, veiculo.versao, veiculo.ano]
     .filter(Boolean)
     .map(normalizar);
-  const precoVeiculo = Number(veiculo.preco) || 0;
 
-  return clientes
-    .map(c => {
-      const interesse = normalizar(c.veiculo_interesse || "");
-      const textoBate = Boolean(interesse) && termos.some(t => t && interesse.includes(t));
-      const categoriaBate = Boolean(veiculo.categoria) && veiculo.categoria === c.categoria_veiculo;
-      const precoBate = precoCompativel(Number(c.valor_negociado) || 0, precoVeiculo);
-      const matchType = textoBate ? "texto" : categoriaBate ? "categoria" : precoBate ? "preco" : null;
-      return matchType ? { ...c, _matchType: matchType } : null;
-    })
-    .filter(Boolean)
-    .sort((a, b) => {
-      const ordM = { texto: 0, categoria: 1, preco: 2 };
-      if (ordM[a._matchType] !== ordM[b._matchType]) return ordM[a._matchType] - ordM[b._matchType];
-      const ordP = { Máxima: 0, Alta: 1, Média: 2, Baixa: 3 };
-      return (ordP[calcularPrioridade(a)] ?? 3) - (ordP[calcularPrioridade(b)] ?? 3);
-    });
+  return clientes.filter(c => {
+    const interesse = normalizar(c.veiculo_interesse || "");
+    if (!interesse) return false;
+    return termos.some(t => t && interesse.includes(t));
+  }).sort((a, b) => {
+    const ordP = { Máxima: 0, Alta: 1, Média: 2, Baixa: 3 };
+    return (ordP[calcularPrioridade(a)] ?? 3) - (ordP[calcularPrioridade(b)] ?? 3);
+  });
 }
 
 // ─── MODAL REGISTRAR VEÍCULO ─────────────────────────────────────────────────
 function ModalRegistrarVeiculo({ onClose, onSalvo }) {
   const [form, setForm] = useState({
     marca: "", modelo: "", versao: "", ano: new Date().getFullYear().toString(),
-    categoria: "", preco: "", data_entrada: new Date().toISOString().split("T")[0], observacao: "",
+    preco: "", data_entrada: new Date().toISOString().split("T")[0], observacao: "",
   });
   const [salvando, setSalvando] = useState(false);
 
@@ -104,16 +71,6 @@ function ModalRegistrarVeiculo({ onClose, onSalvo }) {
               />
             </div>
           ))}
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Categoria</p>
-            <select value={form.categoria} onChange={e => set("categoria", e.target.value)}
-              className="w-full h-9 rounded-xl border border-slate-200 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-[#005BFF]">
-              {CATEGORIAS_VEICULO.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-            </select>
-          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -167,7 +124,7 @@ function CardVeiculo({ veiculo, compatíveis, onClick }) {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-black text-[#031B3D] truncate">{veiculo.marca} {veiculo.modelo} {veiculo.versao}</p>
-          <p className="text-xs text-slate-400">{veiculo.ano}{veiculo.categoria ? ` · ${CATEGORIA_LABEL[veiculo.categoria] || veiculo.categoria}` : ""}{veiculo.preco ? ` · R$ ${veiculo.preco.toLocaleString("pt-BR")}` : ""}</p>
+          <p className="text-xs text-slate-400">{veiculo.ano}{veiculo.preco ? ` · R$ ${veiculo.preco.toLocaleString("pt-BR")}` : ""}</p>
           <p className="text-[11px] text-[#005BFF] font-semibold mt-0.5">{entradaLabel}</p>
         </div>
       </div>
@@ -205,7 +162,7 @@ function AtaqueVeiculo({ veiculo, clientes, onVoltar, onExecutar, onFicha }) {
       <div className="bg-gradient-to-r from-[#005BFF] to-blue-600 rounded-2xl p-5 text-white">
         <p className="text-[10px] font-bold text-blue-300 uppercase tracking-wider">Veículo que chegou</p>
         <p className="text-xl font-black mt-1">{veiculo.marca} {veiculo.modelo} {veiculo.versao}</p>
-        <p className="text-sm text-blue-200">{veiculo.ano}{veiculo.categoria ? ` · ${CATEGORIA_LABEL[veiculo.categoria] || veiculo.categoria}` : ""}{veiculo.preco ? ` · R$ ${veiculo.preco.toLocaleString("pt-BR")}` : ""}</p>
+        <p className="text-sm text-blue-200">{veiculo.ano}{veiculo.preco ? ` · R$ ${veiculo.preco.toLocaleString("pt-BR")}` : ""}</p>
         <p className="text-xs text-blue-300 mt-2">Próximo passo sugerido: <strong className="text-white">Apresentar veículo recém-chegado</strong></p>
       </div>
 
@@ -222,9 +179,6 @@ function AtaqueVeiculo({ veiculo, clientes, onVoltar, onExecutar, onFicha }) {
             const situacao = c.situacao_atual || c.momento || "—";
             const iniciais = (c.nome || "?").split(" ").slice(0, 2).map(p => p[0]).join("").toUpperCase();
             const temUrgente = ["Visita hoje", "Em negociação ativa", "Proposta enviada", "Financiamento aprovado sem compra"].includes(situacao);
-            const matchLabel = c._matchType === "categoria" ? "Mesma categoria"
-              : c._matchType === "preco" ? "Faixa de preço parecida"
-              : "Veículo compatível chegou";
 
             return (
               <div key={c.id} className="bg-white border border-slate-100 rounded-2xl px-4 py-3 flex items-center gap-3">
@@ -238,7 +192,7 @@ function AtaqueVeiculo({ veiculo, clientes, onVoltar, onExecutar, onFicha }) {
                       </span>
                     )}
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 shrink-0">
-                      {matchLabel}
+                      Veículo compatível chegou
                     </span>
                   </div>
                   <p className="text-xs text-slate-400 truncate">{c.veiculo_interesse} · {situacao}</p>

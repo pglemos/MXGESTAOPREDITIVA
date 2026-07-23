@@ -4,7 +4,6 @@ type OpportunityRow = {
   updated_at?: string | null
   created_at?: string | null
   veiculo_interesse?: string | null
-  categoria_veiculo?: string | null
   valor_negociado?: number | string | null
   sinal?: number | string | null
   financiamento?: string | null
@@ -23,7 +22,6 @@ type AppointmentRow = {
   tipo?: string | null
   proxima_acao?: string | null
   observacoes?: string | null
-  created_at?: string | null
 }
 
 type ClientRow = {
@@ -86,8 +84,6 @@ export function selectRelevantAppointment(
   appointments: AppointmentRow[] = [],
   now = new Date(),
 ): AppointmentRow | null {
-  if (appointments.length === 0) return null
-
   const open = appointments.filter(item => OPEN_APPOINTMENT_STATUSES.has(String(item.status || '')))
   const future = open
     .filter(item => timestamp(item.data_hora) >= now.getTime())
@@ -95,20 +91,10 @@ export function selectRelevantAppointment(
 
   if (future.length > 0) return future[0]
 
-  // Um agendamento passado com status ainda "aberto" (confirmado/aguardando)
-  // só é confiável se nenhum registro mais novo (por criação) já existir pra
-  // esse cliente. Sem essa checagem, um agendamento antigo que nunca foi
-  // marcado como concluído/cancelado/não-compareceu trava a situação em
-  // "Visita agendada" pra sempre, mesmo depois de um novo agendamento —
-  // resolvido ou não — já ter substituído aquele contato.
-  const maisRecente = [...appointments].sort((left, right) => timestamp(right.created_at) - timestamp(left.created_at))[0]
-  const openPast = open
-    .filter(item => timestamp(item.data_hora) < now.getTime())
-    .sort((left, right) => timestamp(right.data_hora) - timestamp(left.data_hora))
+  const openPast = open.sort((left, right) => timestamp(right.data_hora) - timestamp(left.data_hora))
+  if (openPast.length > 0) return openPast[0]
 
-  if (openPast.length > 0 && openPast[0].id === maisRecente?.id) return openPast[0]
-
-  return maisRecente ?? null
+  return [...appointments].sort((left, right) => timestamp(right.data_hora) - timestamp(left.data_hora))[0] ?? null
 }
 
 function deriveSituation(client: ClientRow, opportunity: OpportunityRow | null, appointment: AppointmentRow | null, now: Date): string {
@@ -193,7 +179,6 @@ export function mapMxClientToCarteiraVisual(client: ClientRow, now = new Date())
     momento: situation,
     temperatura: deriveTemperature(situation),
     veiculo_interesse: opportunity?.veiculo_interesse || '',
-    categoria_veiculo: opportunity?.categoria_veiculo || '',
     valor_negociado: Number(opportunity?.valor_negociado || client.potencial_negocio || 0),
     sinal: Number(opportunity?.sinal || 0),
     financiamento: financingLabel(opportunity?.financiamento),

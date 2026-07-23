@@ -11,7 +11,6 @@ import { useDRE } from '@/hooks/useDRE'
 import { useOfficialSellerPerformance } from '@/hooks/useOfficialSellerPerformance'
 import { somarVendas, calcularFunil, gerarDiagnosticoMX } from '@/lib/calculations'
 import { buildStoreSalesRules } from '@/lib/storeSalesRules'
-import { resolveOwnerPeriodGoal } from '@/lib/owner-period'
 import { getManagerCalendarDate, getManagerMonthRange } from '@/features/manager/home/manager-home-parity'
 import { refreshManagerHomeData } from '@/features/manager/home/manager-home-refresh'
 import { useOwnerInventoryMetrics } from './useOwnerInventoryMetrics'
@@ -70,11 +69,10 @@ export function useDashboardLojaData({
   periodRange,
 }: UseDashboardLojaDataInput) {
   const { sellers, loading: sellersLoading, error: sellersError, refetch: refetchSellers } = useSellersByStore(selectedStoreId)
-  const { goal: storeGoal, error: storeGoalError, refetch: refetchStoreGoal } = useStoreGoal(selectedStoreId)
+  const { goal: storeGoal, refetch: refetchStoreGoal } = useStoreGoal(selectedStoreId)
   const operationalSettings = useOperationalSettings(selectedStoreId)
   const inventory = useOwnerInventoryMetrics(selectedStoreId)
   const consulting = useOwnerConsultingProgram(selectedStoreId, loadOwnerConsultingProgram)
-  const { financials, computeDRE: computeDREFn, error: dreError, refresh: refetchDRE } = useDRE(undefined, selectedStoreId || undefined)
   const {
     store: operationalStore,
     deliveryRules,
@@ -95,7 +93,6 @@ export function useDashboardLojaData({
   const [syncWarning, setSyncWarning] = useState<string | null>(null)
   const [lastSyncAt, setLastSyncAt] = useState<Date | null>(null)
   const [routineExecutionBySeller, setRoutineExecutionBySeller] = useState<Record<string, number | null>>({})
-  const [routineExecutionError, setRoutineExecutionError] = useState<string | null>(null)
   const refetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const managerMonthRange = useMemo(() => getManagerMonthRange(managerReferenceDate), [managerReferenceDate])
@@ -146,9 +143,6 @@ export function useDashboardLojaData({
       await Promise.all([
         officialPerformance.refetch(),
         officialMonthlyPerformance.refetch(),
-        inventory.refetch(),
-        consulting.refresh(),
-        refetchDRE(),
       ])
       return
     }
@@ -160,18 +154,12 @@ export function useDashboardLojaData({
         fetchSettings(),
         officialPerformance.refetch(),
         officialMonthlyPerformance.refetch(),
-        inventory.refetch(),
-        consulting.refresh(),
-        refetchDRE(),
     ])
   }, [
-    consulting.refresh,
     fetchSettings,
-    inventory.refetch,
     managerCalendarMode,
     officialMonthlyPerformance.refetch,
     officialPerformance.refetch,
-    refetchDRE,
     refetchCheckins,
     refetchManagerMonthlyCheckins,
     refetchSellers,
@@ -264,7 +252,6 @@ export function useDashboardLojaData({
   useEffect(() => {
     if (!selectedStoreId) {
       setRoutineExecutionBySeller({})
-      setRoutineExecutionError(null)
       return
     }
 
@@ -275,7 +262,6 @@ export function useDashboardLojaData({
     void fetchExecutionActionRows(selectedStoreId, rangeStart, rangeEnd)
       .then(actionRows => {
         if (!active) return
-        setRoutineExecutionError(null)
         const totals = new Map<string, { completed: number; total: number }>()
         for (const action of actionRows) {
           const current = totals.get(action.seller_id) || { completed: 0, total: 0 }
@@ -290,7 +276,6 @@ export function useDashboardLojaData({
       .catch(error => {
         if (!active) return
         console.error('Audit Error [useDashboardLojaData]: routine actions fail ->', error)
-        setRoutineExecutionError('Não foi possível carregar a execução da rotina no período selecionado.')
         setRoutineExecutionBySeller({})
       })
 
@@ -298,10 +283,6 @@ export function useDashboardLojaData({
   }, [endDate, periodRange, referenceDate, selectedStoreId, startDate, viewMode])
 
   const effectiveMonthlyGoal = operationalMetaRules?.monthly_goal ?? storeGoal?.target ?? 0
-  const projectionMode = operationalMetaRules?.projection_mode ?? storeGoal?.projection_mode ?? 'calendar'
-  const effectivePeriodGoal = period && periodRange
-    ? resolveOwnerPeriodGoal(effectiveMonthlyGoal, period, periodRange, projectionMode)
-    : effectiveMonthlyGoal
 
   const funnelBenchmarks = useMemo(
     () => ({
@@ -323,7 +304,8 @@ export function useDashboardLojaData({
       checkins,
       ranking: (sellers || []).map(s => {
         const sellerCheckins = checkinsBySeller[s.id] || []
-        const officialRow = officialPerformance.rows.find(row => row.seller_user_id === s.id)
+        const officialRows = managerCalendarMode ? officialPerformance.rows : officialPerformance.rows
+        const officialRow = officialRows.find(row => row.seller_user_id === s.id)
         const disciplineValues = sellerCheckins
           .map(checkin => checkin.pontuacao_disciplina_final)
           .filter((value): value is number => typeof value === 'number')
@@ -342,7 +324,7 @@ export function useDashboardLojaData({
             0
           ),
           visitas: sellerCheckins.reduce((acc, c) => acc + (c.visit_prev_day || 0), 0),
-          meta: effectivePeriodGoal,
+          meta: effectiveMonthlyGoal,
           atingimento: 0,
           projecao: 0,
           ritmo: 0,
@@ -359,13 +341,15 @@ export function useDashboardLojaData({
       }),
       rules: buildStoreSalesRules({
         storeId: selectedStoreId,
-        monthlyGoal: effectivePeriodGoal,
+        monthlyGoal: effectiveMonthlyGoal,
         metaRules: operationalMetaRules,
       }),
     }
   }, [
     checkins,
-    effectivePeriodGoal,
+    effectiveMonthlyGoal,
+    managerCalendarMode,
+    officialMonthlyPerformance.rows,
     officialPerformance.rows,
     operationalMetaRules,
     routineExecutionBySeller,
@@ -374,6 +358,7 @@ export function useDashboardLojaData({
   ])
 
   const storeSales = useStoreSales(storeSalesParams)
+  const { financials, computeDRE: computeDREFn } = useDRE(undefined, selectedStoreId || undefined)
 
   const latestDRE = useMemo(() => {
     if (!financials || financials.length === 0) return null
@@ -391,12 +376,12 @@ export function useDashboardLojaData({
       totalAgd: storeSales.storeTotalAgd,
       totalVis: storeSales.storeTotalVis,
       attainment: storeSales.storeAttainment,
-      goalValue: storeSales.storeGoal || effectivePeriodGoal,
+      goalValue: effectiveMonthlyGoal || storeSales.storeGoal,
       checkedInCount,
       ranking: storeSales.processedRanking,
       storeName: selectedStoreName || 'Unidade MX',
     }
-  }, [checkins, effectivePeriodGoal, periodRange, storeSales, sellers, selectedStoreName])
+  }, [checkins, periodRange, storeSales, sellers, selectedStoreName, effectiveMonthlyGoal])
 
   const funilData = useMemo(() => calcularFunil(checkins), [checkins])
   const diagnostics = useMemo(() => gerarDiagnosticoMX(funilData), [funilData])
@@ -425,8 +410,8 @@ export function useDashboardLojaData({
     sellers,
     checkins,
     managerMonthlyCheckins,
-    loading: checkinsLoading || sellersLoading || officialPerformance.loading || officialMonthlyPerformance.loading || operationalLoading || inventory.loading || (managerCalendarMode && managerMonthlyLoading),
-    error: error || sellersError || storeGoalError || officialPerformance.error || officialMonthlyPerformance.error || managerMonthlyError || operationalSettings.error || dreError || inventory.error || routineExecutionError,
+    loading: checkinsLoading || sellersLoading || officialPerformance.loading || officialMonthlyPerformance.loading || operationalLoading || (managerCalendarMode && managerMonthlyLoading),
+    error: error || sellersError || officialPerformance.error || officialMonthlyPerformance.error || managerMonthlyError || operationalSettings.error || inventory.error,
     managerMonthlyError,
     officialPerformance: officialPerformance.rows,
     officialMonthlyPerformance: officialMonthlyPerformance.rows,
@@ -469,7 +454,6 @@ export function useDashboardLojaData({
     handleRefresh,
     // derivados
     effectiveMonthlyGoal,
-    effectivePeriodGoal,
     funnelBenchmarks,
     metrics,
     funilData,

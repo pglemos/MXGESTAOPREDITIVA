@@ -68,13 +68,12 @@ export function useAgendaAdminForms(deps: Deps) {
   const [scheduleForm, setScheduleForm] = useState<ScheduleForm>(initialSchedule)
   const [eventForm, setEventForm] = useState<EventForm>(initialEvent)
 
-  const handleOpenSchedule = (presetDate?: Date, presetTime?: string) => {
+  const handleOpenSchedule = (presetDate?: Date) => {
     const dateStr = presetDate ? format(presetDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd')
     setEditingVisitId(null)
     setScheduleForm({
       ...initialSchedule,
       scheduled_at: dateStr,
-      scheduled_time: presetTime || initialSchedule.scheduled_time,
       consultant_id: canViewAllAgendas ? '' : consultants[0]?.id || '',
     })
     setShowScheduleModal(true)

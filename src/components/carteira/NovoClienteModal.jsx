@@ -20,18 +20,6 @@ const MOMENTOS_CADASTRO = [
   { value: "Oportunidade futura de troca", label: "É oportunidade futura" },
 ];
 
-const CATEGORIAS_VEICULO = [
-  { value: "", label: "Não informado" },
-  { value: "hatch", label: "Hatch" },
-  { value: "sedan", label: "Sedã" },
-  { value: "suv", label: "SUV" },
-  { value: "picape", label: "Picape" },
-  { value: "minivan", label: "Minivan" },
-  { value: "utilitario", label: "Utilitário" },
-  { value: "moto", label: "Moto" },
-  { value: "outro", label: "Outro" },
-];
-
 const TEMP_AUTO = {
   "Novo contato": "Morno",
   "Cliente morno em aquecimento": "Morno",
@@ -64,7 +52,7 @@ function situacaoDoMomento(momento) {
 export default function NovoClienteModal({ open, onClose, onCriado, vendedorId }) {
   const [form, setForm] = useState({
     nome: "", whatsapp: "", canal_comercial: "Internet", canal_origem: "Internet",
-    veiculo_interesse: "", categoria_veiculo: "", valor_negociado: "", momento: "Novo contato", situacao_atual: "Novo contato",
+    veiculo_interesse: "", valor_negociado: "", momento: "Novo contato", situacao_atual: "Novo contato",
     visita_agendada_em: "", proposta_enviada: false, financiamento: "nao_aplica",
     interesse_troca: false, veiculo_troca: "", valor_troca: "", interesse_financiamento: false, observacoes: "",
   });
@@ -116,7 +104,7 @@ export default function NovoClienteModal({ open, onClose, onCriado, vendedorId }
 
     onCriado(criado);
     onClose();
-    setForm({ nome: "", whatsapp: "", canal_comercial: "Internet", canal_origem: "Internet", veiculo_interesse: "", categoria_veiculo: "", valor_negociado: "", momento: "Novo contato", situacao_atual: "Novo contato", visita_agendada_em: "", proposta_enviada: false, financiamento: "nao_aplica", interesse_troca: false, veiculo_troca: "", valor_troca: "", interesse_financiamento: false, observacoes: "" });
+    setForm({ nome: "", whatsapp: "", canal_comercial: "Internet", canal_origem: "Internet", veiculo_interesse: "", valor_negociado: "", momento: "Novo contato", situacao_atual: "Novo contato", visita_agendada_em: "", proposta_enviada: false, financiamento: "nao_aplica", interesse_troca: false, veiculo_troca: "", valor_troca: "", interesse_financiamento: false, observacoes: "" });
   }
 
   return (
@@ -143,20 +131,16 @@ export default function NovoClienteModal({ open, onClose, onCriado, vendedorId }
                 {["Internet", "Carteira", "Porta"].map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
-            <div>
+            <div className="col-span-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Veículo de Interesse</label>
               <Input value={form.veiculo_interesse} onChange={e => set("veiculo_interesse", e.target.value)} placeholder="Ex: Corolla XEI 2023" className="rounded-xl" />
             </div>
-            <div>
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Categoria</label>
-              <select value={form.categoria_veiculo} onChange={e => set("categoria_veiculo", e.target.value)} className="w-full h-9 rounded-xl border border-input bg-transparent px-3 text-sm">
-                {CATEGORIAS_VEICULO.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-              </select>
-            </div>
-            <div className="col-span-2">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Orçamento (opcional)</label>
-              <Input type="number" min="0" value={form.valor_negociado} onChange={e => set("valor_negociado", e.target.value)} placeholder="Ex: 60000" className="rounded-xl" />
-            </div>
+            {["Proposta enviada", "Em negociação", "Venda realizada"].includes(form.momento) && (
+              <div className="col-span-2">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 block">Orçamento</label>
+                <Input type="number" min="0" value={form.valor_negociado} onChange={e => set("valor_negociado", e.target.value)} placeholder="Ex: 60000" className="rounded-xl" />
+              </div>
+            )}
           </div>
 
           <div>

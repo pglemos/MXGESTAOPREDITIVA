@@ -123,7 +123,6 @@ export function buildRpcPayload(data, clientId) {
   put(payload, 'nova_oportunidade', data.nova_oportunidade)
 
   put(payload, 'veiculo_interesse', data.veiculo_interesse)
-  put(payload, 'categoria_veiculo', data.categoria_veiculo)
   put(payload, 'valor_negociado', data.valor_negociado)
   if (data.situacao_atual !== undefined || data.momento !== undefined || data.status_comercial !== undefined) {
     payload.etapa = situationToStage(data)
@@ -367,7 +366,6 @@ async function createArrivedVehicle(data) {
     modelo: data.modelo,
     versao: data.versao || null,
     ano: data.ano || null,
-    categoria: data.categoria || null,
     preco: price,
     data_entrada: data.data_entrada || new Date().toISOString().slice(0, 10),
     observacao: data.observacao || null,
