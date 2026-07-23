@@ -323,19 +323,35 @@ export function AgendaAdmin() {
 
   return (
     <main className="flex h-full w-full flex-col overflow-y-auto bg-white p-4 lg:p-6 no-scrollbar">
-      {/* Top Header */}
+      {/* Unified Top Header */}
       <AgendaErrorBoundary sectionName="header">
         <AgendaHeader
+          monthLabel={monthLabel}
+          onPrevMonth={goToPrevMonth}
+          onNextMonth={goToNextMonth}
+          onTodayClick={() => { goToToday(); setDateFilter('hoje'); setCalendarViewMode('day') }}
+          calendarViewMode={calendarViewMode}
+          setCalendarViewMode={setCalendarViewMode}
+          dateFilter={dateFilter}
+          setDateFilter={setDateFilter}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
           onRefresh={() => refetch()}
           onCreateVisit={() => forms.handleOpenSchedule()}
           onCreateEvent={() => forms.handleOpenEvent()}
           onCreateBlock={() => forms.handleOpenBlock()}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          consultantFilter={consultantFilter}
+          setConsultantFilter={setConsultantFilter}
+          activeFilters={activeFilters}
+          clearFilters={clearFilters}
+          consultants={consultants}
+          canViewAllAgendas={canViewAllAgendas}
         />
       </AgendaErrorBoundary>
 
-      {/* Date Period & View Filters Bar */}
+      {/* Active Filters Banner if active */}
       <AgendaErrorBoundary sectionName="filters">
         <AgendaFiltersBar
           dateFilter={dateFilter} setDateFilter={setDateFilter}
@@ -405,7 +421,7 @@ export function AgendaAdmin() {
           {/* Sync Footer Badge */}
           <div className="mt-4 flex items-center justify-between border-t border-border-default pt-3">
             <GoogleCalendarStatus compact />
-            <span className="text-[10px] text-text-tertiary font-mono">
+            <span className="text-[10px] text-text-tertiary font-mono hidden md:inline">
               Atalhos: [T] Hoje • [D] Dia • [W] Semana • [M] Mês • [L] Lista • [/] Buscar
             </span>
           </div>

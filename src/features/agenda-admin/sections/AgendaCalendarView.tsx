@@ -38,8 +38,8 @@ export function AgendaCalendarView({
       onToday={onTodayClick}
       getVisitDotColor={getVisitDotColor}
       viewMode={calendarViewMode}
-      showNavigation
-      showTodayButton={dateFilter !== 'hoje'}
+      showNavigation={false}
+      showTodayButton={false}
       onSlotClick={onSlotClick}
       onReschedule={onReschedule}
       onResize={onResize}
