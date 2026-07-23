@@ -13,7 +13,8 @@ import { AgendaHeader } from './sections/AgendaHeader'
 import { AgendaFiltersBar, type AdminCalendarViewMode } from './sections/AgendaFiltersBar'
 import { AgendaCalendarView } from './sections/AgendaCalendarView'
 import { AgendaListView } from './sections/AgendaListView'
-import { VisitaDetailPanel } from './sections/VisitaDetailPanel'
+import { AgendaSidebar } from './components/AgendaSidebar'
+import { AgendaEventDrawer } from './components/AgendaEventDrawer'
 import { VisitaModal } from './modals/VisitaModal'
 import { EventoModal } from './modals/EventoModal'
 import { AgendaErrorBoundary } from './components/AgendaErrorBoundary'
@@ -47,9 +48,9 @@ export function AgendaAdmin() {
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [calendarViewMode, setCalendarViewMode] = useState<AdminCalendarViewMode>('week')
+  const [searchQuery, setSearchQuery] = useState('')
 
-  // Período (Hoje/Semana/Mês/...) picks a sensible default presentation;
-  // the user can still override to any view (including Lista) afterwards.
+  // Period filter picking default presentation mode
   useEffect(() => {
     setCalendarViewMode(
       dateFilter === 'hoje'
@@ -60,8 +61,41 @@ export function AgendaAdmin() {
     )
   }, [dateFilter])
 
-  // Derived straight from calendarDays (not reconstructed from `new Date()`)
-  // so the label always matches what prev/next navigation is showing.
+  // Keyboard shortcut navigation (T: Today, D: Day, W: Week, M: Month, L: List)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        document.activeElement?.tagName === 'INPUT' ||
+        document.activeElement?.tagName === 'TEXTAREA' ||
+        document.activeElement?.tagName === 'SELECT'
+      ) {
+        return
+      }
+
+      if (e.key === 't' || e.key === 'T') {
+        e.preventDefault()
+        goToToday()
+        setDateFilter('hoje')
+        setSelectedDate(new Date())
+      } else if (e.key === 'd' || e.key === 'D') {
+        e.preventDefault()
+        setCalendarViewMode('day')
+      } else if (e.key === 'w' || e.key === 'W') {
+        e.preventDefault()
+        setCalendarViewMode('week')
+      } else if (e.key === 'm' || e.key === 'M') {
+        e.preventDefault()
+        setCalendarViewMode('month')
+      } else if (e.key === 'l' || e.key === 'L') {
+        e.preventDefault()
+        setCalendarViewMode('list')
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [goToToday, setDateFilter])
+
+  // Month & Period label
   const monthLabel = useMemo(() => {
     if (dateFilter === 'hoje') {
       const day = calendarDays[0]?.date ?? new Date()
@@ -80,14 +114,46 @@ export function AgendaAdmin() {
     setSelectedDate(dateFilter === 'hoje' ? new Date() : null)
   }, [dateFilter])
 
+  // Filtered visits & events by search query
+  const searchFilteredVisits = useMemo(() => {
+    if (!searchQuery.trim()) return visits
+    const q = searchQuery.toLowerCase().trim()
+    return visits.filter(
+      (v) =>
+        v.client_name?.toLowerCase().includes(q) ||
+        v.consultant?.name?.toLowerCase().includes(q) ||
+        v.objective?.toLowerCase().includes(q) ||
+        v.visit_reason?.toLowerCase().includes(q) ||
+        v.product_name?.toLowerCase().includes(q) ||
+        String(v.visit_number).includes(q),
+    )
+  }, [visits, searchQuery])
+
+  const searchFilteredEvents = useMemo(() => {
+    if (!searchQuery.trim()) return scheduleEvents
+    const q = searchQuery.toLowerCase().trim()
+    return scheduleEvents.filter(
+      (e) =>
+        e.title?.toLowerCase().includes(q) ||
+        e.responsible_name?.toLowerCase().includes(q) ||
+        e.topic?.toLowerCase().includes(q) ||
+        e.product_name?.toLowerCase().includes(q),
+    )
+  }, [scheduleEvents, searchQuery])
+
   const selectedDayVisits = useMemo(
-    () => !selectedDate ? [] : visits.filter((v) => isSameDay(parseISO(v.scheduled_at), selectedDate)),
-    [selectedDate, visits],
+    () => (!selectedDate ? [] : searchFilteredVisits.filter((v) => isSameDay(parseISO(v.scheduled_at), selectedDate))),
+    [selectedDate, searchFilteredVisits],
   )
   const selectedDayEvents = useMemo(
-    () => !selectedDate ? [] : scheduleEvents.filter((e) => isSameDay(parseISO(e.starts_at), selectedDate)),
-    [selectedDate, scheduleEvents],
+    () => (!selectedDate ? [] : searchFilteredEvents.filter((e) => isSameDay(parseISO(e.starts_at), selectedDate))),
+    [selectedDate, searchFilteredEvents],
   )
+
+  const hasEventsOnDate = (date: Date) => {
+    const key = format(date, 'yyyy-MM-dd')
+    return Boolean(visitsByDate[key] && visitsByDate[key].length > 0)
+  }
 
   const productSelectOptions = useMemo(() => {
     const names = new Set(products.map((p) => p.name).filter(Boolean))
@@ -106,21 +172,21 @@ export function AgendaAdmin() {
   )
 
   const groupedVisits = useMemo(() => {
-    const groups: Record<string, { date: Date; label: string; visits: typeof visits; events: typeof scheduleEvents }> = {}
-    for (const visit of visits) {
+    const groups: Record<string, { date: Date; label: string; visits: typeof searchFilteredVisits; events: typeof searchFilteredEvents }> = {}
+    for (const visit of searchFilteredVisits) {
       const date = parseISO(visit.scheduled_at)
       const key = format(date, 'yyyy-MM-dd')
       if (!groups[key]) groups[key] = { date, label: getRelativeDateLabel(date), visits: [], events: [] }
       groups[key].visits.push(visit)
     }
-    for (const event of scheduleEvents) {
+    for (const event of searchFilteredEvents) {
       const date = parseISO(event.starts_at)
       const key = format(date, 'yyyy-MM-dd')
       if (!groups[key]) groups[key] = { date, label: getRelativeDateLabel(date), visits: [], events: [] }
       groups[key].events.push(event)
     }
     return Object.values(groups).sort((a, b) => a.date.getTime() - b.date.getTime())
-  }, [visits, scheduleEvents])
+  }, [searchFilteredVisits, searchFilteredEvents])
 
   const handleSlotClick = (date: Date, hour: number, minute: number) => {
     const time = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
@@ -248,17 +314,22 @@ export function AgendaAdmin() {
   }
 
   return (
-  <main className="h-full w-full overflow-y-auto bg-white p-mx-lg no-scrollbar">
+    <main className="flex h-full w-full flex-col overflow-y-auto bg-white p-4 lg:p-6 no-scrollbar">
+      {/* Top Header */}
       <AgendaErrorBoundary sectionName="header">
         <AgendaHeader
-          metrics={metrics}
           onRefresh={() => refetch()}
           onCreateVisit={() => forms.handleOpenSchedule()}
           onCreateEvent={() => forms.handleOpenEvent()}
           onCreateBlock={() => forms.handleOpenBlock()}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          calendarViewMode={calendarViewMode}
+          setCalendarViewMode={setCalendarViewMode}
         />
       </AgendaErrorBoundary>
 
+      {/* Date Period Filters Bar */}
       <AgendaErrorBoundary sectionName="filters">
         <AgendaFiltersBar
           dateFilter={dateFilter} setDateFilter={setDateFilter}
@@ -270,14 +341,31 @@ export function AgendaAdmin() {
         />
       </AgendaErrorBoundary>
 
+      {/* Error Notice */}
       {error && (
-        <Card className="p-mx-lg bg-status-error-surface border border-status-error/20">
+        <Card className="mb-4 p-4 bg-status-error-surface border border-status-error/20">
           <Typography variant="p" tone="error">Falha ao carregar agenda: {error}</Typography>
         </Card>
       )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-mx-lg">
-        <div className="xl:col-span-2 flex flex-col gap-mx-lg">
+      {/* Main Workspace Layout (Sidebar + Calendar Canvas) */}
+      <div className="mt-2 flex flex-col gap-6 lg:flex-row flex-1 min-h-0">
+        {/* Left Sidebar Navigation */}
+        <AgendaSidebar
+          selectedDate={selectedDate}
+          onDateSelect={(date) => setSelectedDate(date)}
+          hasEventsOnDate={hasEventsOnDate}
+          consultants={consultants}
+          consultantFilter={consultantFilter}
+          onConsultantChange={setConsultantFilter}
+          statusFilter={statusFilter}
+          onStatusChange={setStatusFilter}
+          metrics={metrics}
+          canViewAllAgendas={canViewAllAgendas}
+        />
+
+        {/* Center Main Calendar View */}
+        <div className="flex-1 flex flex-col min-w-0">
           {calendarViewMode === 'list' ? (
             <AgendaErrorBoundary sectionName="list">
               <AgendaListView
@@ -307,24 +395,34 @@ export function AgendaAdmin() {
               />
             </AgendaErrorBoundary>
           )}
-        </div>
 
-        <div className="xl:sticky xl:top-mx-0 xl:self-start space-y-mx-lg">
-          <GoogleCalendarStatus compact />
-          <AgendaErrorBoundary sectionName="detail">
-            <VisitaDetailPanel
-              selectedDate={selectedDate}
-              selectedDayVisits={selectedDayVisits}
-              selectedDayEvents={selectedDayEvents}
-              onClearSelection={() => setSelectedDate(null)}
-              onScheduleVisit={forms.handleOpenSchedule}
-              onBlockDate={forms.handleOpenBlock}
-              onEditEvent={forms.handleOpenEditEvent}
-            />
-          </AgendaErrorBoundary>
+          {/* Sync Footer Badge */}
+          <div className="mt-4 flex items-center justify-between border-t border-border-default pt-3">
+            <GoogleCalendarStatus compact />
+            <span className="text-[10px] text-text-tertiary font-mono">
+              Atalhos: [T] Hoje • [D] Dia • [W] Semana • [M] Mês • [L] Lista • [/] Buscar
+            </span>
+          </div>
         </div>
       </div>
 
+      {/* Slide-over Detail Drawer */}
+      <AgendaEventDrawer
+        selectedDate={selectedDate}
+        selectedDayVisits={selectedDayVisits}
+        selectedDayEvents={selectedDayEvents}
+        onClose={() => setSelectedDate(null)}
+        onScheduleVisit={forms.handleOpenSchedule}
+        onBlockDate={forms.handleOpenBlock}
+        onEditVisit={forms.handleOpenEditVisit}
+        onEditEvent={forms.handleOpenEditEvent}
+        onStartVisit={forms.handleStartVisit}
+        onCancelVisit={forms.handleCancelVisit}
+        onDeleteVisit={forms.handleDeleteVisit}
+        onDeleteEvent={forms.handleDeleteEvent}
+      />
+
+      {/* Modals */}
       <VisitaModal
         open={forms.showScheduleModal} onClose={forms.closeScheduleModal}
         editingVisitId={forms.editingVisitId}
