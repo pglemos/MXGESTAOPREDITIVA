@@ -1,4 +1,5 @@
-import { Ban, CalendarDays, Plus, RefreshCw } from 'lucide-react'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import { Ban, CalendarDays, ChevronDown, Plus, RefreshCw, Users } from 'lucide-react'
 import { Button } from '@/components/atoms/Button'
 import { Typography } from '@/components/atoms/Typography'
 import { cn } from '@/lib/utils'
@@ -32,7 +33,7 @@ export function AgendaHeader({ metrics, onRefresh, onCreateVisit, onCreateEvent,
             Agenda MX
           </Typography>
           <Typography variant="tiny" tone="muted" className="block text-xs font-medium normal-case tracking-normal">
-            Agendamentos, visitas e eventos sincronizados
+            Agendamentos e visitas de consultoria
           </Typography>
         </div>
       </div>
@@ -54,23 +55,47 @@ export function AgendaHeader({ metrics, onRefresh, onCreateVisit, onCreateEvent,
           ))}
         </div>
 
-        <div className="grid w-full grid-cols-[auto_1fr] gap-mx-xs sm:flex sm:w-auto sm:flex-wrap sm:items-center sm:justify-end sm:gap-mx-sm">
-          <Button variant="outline" size="icon" onClick={onRefresh} aria-label="Atualizar" className="rounded-mx-lg bg-white">
+        <div className="flex w-full items-center gap-mx-xs sm:w-auto sm:justify-end">
+          <Button variant="outline" size="icon" onClick={onRefresh} aria-label="Atualizar" className="shrink-0 rounded-mx-lg bg-white">
             <RefreshCw size={18} />
           </Button>
 
-          <Button className="min-w-0 rounded-mx-lg bg-brand-secondary px-4" onClick={onCreateVisit}>
-            <Plus size={18} className="mr-2" />
-            Agendar visita
-          </Button>
-          <Button variant="outline" className="col-span-2 min-w-0 rounded-mx-lg bg-white px-4 sm:col-span-1" onClick={onCreateBlock}>
-            <Ban size={18} className="mr-2" />
-            Bloquear agenda
-          </Button>
-          <Button variant="outline" className="col-span-2 min-w-0 rounded-mx-lg bg-white px-4 sm:col-span-1" onClick={onCreateEvent}>
-            <Plus size={18} className="mr-2" />
-            Evento/aula
-          </Button>
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger asChild>
+              <Button className="min-w-0 flex-1 rounded-mx-lg bg-brand-secondary px-4 sm:flex-none">
+                <Plus size={18} className="mr-2" />
+                Criar
+                <ChevronDown size={14} className="ml-2 opacity-70" />
+              </Button>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Portal>
+              <DropdownMenu.Content
+                align="end"
+                sideOffset={6}
+                className="z-[90] w-56 rounded-mx-lg border border-border-strong bg-white p-1 shadow-mx-lg"
+              >
+                <DropdownMenu.Item
+                  onSelect={onCreateVisit}
+                  className="flex cursor-pointer items-center gap-mx-xs rounded-mx-md px-3 py-2 text-sm font-semibold text-text-primary outline-none transition-colors data-[highlighted]:bg-surface-alt"
+                >
+                  <Plus size={16} className="text-brand-primary" /> Agendar visita
+                </DropdownMenu.Item>
+                <DropdownMenu.Item
+                  onSelect={onCreateEvent}
+                  className="flex cursor-pointer items-center gap-mx-xs rounded-mx-md px-3 py-2 text-sm font-semibold text-text-primary outline-none transition-colors data-[highlighted]:bg-surface-alt"
+                >
+                  <Users size={16} className="text-status-info" /> Evento / aula
+                </DropdownMenu.Item>
+                <DropdownMenu.Separator className="my-1 h-px bg-border-default" />
+                <DropdownMenu.Item
+                  onSelect={onCreateBlock}
+                  className="flex cursor-pointer items-center gap-mx-xs rounded-mx-md px-3 py-2 text-sm font-semibold text-text-primary outline-none transition-colors data-[highlighted]:bg-surface-alt"
+                >
+                  <Ban size={16} className="text-status-error" /> Bloquear agenda
+                </DropdownMenu.Item>
+              </DropdownMenu.Content>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Root>
         </div>
       </div>
     </header>
