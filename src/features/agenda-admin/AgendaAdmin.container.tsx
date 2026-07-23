@@ -21,11 +21,16 @@ import { AgendaErrorBoundary } from './components/AgendaErrorBoundary'
 import { getRelativeDateLabel } from './data/agendaHelpers'
 
 export function AgendaAdmin() {
+  const [calendarViewMode, setCalendarViewMode] = useState<AdminCalendarViewMode>('week')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+
   const {
     visitReasonOptions: agendaVisitReasonOptions,
     targetAudienceOptions: agendaTargetAudienceOptions,
   } = useAgendaOptions()
-  const page = useAgendaAdminPage()
+
+  const page = useAgendaAdminPage(calendarViewMode)
   const {
     visits, clients, consultants, products, scheduleEvents,
     metrics, loading, error,
@@ -46,22 +51,20 @@ export function AgendaAdmin() {
     getNextVisitNumber,
   })
 
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
-  const [calendarViewMode, setCalendarViewMode] = useState<AdminCalendarViewMode>('week')
-  const [searchQuery, setSearchQuery] = useState('')
-
-  // Period filter picking default presentation mode
+  // Synchronize view mode with date filter updates
   useEffect(() => {
     setCalendarViewMode(
       dateFilter === 'hoje'
         ? 'day'
         : dateFilter === 'semana' || dateFilter === 'proxima_semana'
           ? 'week'
-          : 'month',
+          : dateFilter === 'mes'
+            ? 'month'
+            : 'list',
     )
   }, [dateFilter])
 
-  // Keyboard shortcut navigation (T: Today, D: Day, W: Week, M: Month, L: List)
+  // Global Keyboard Shortcuts (T: Today, D: Day, W: Week, M: Month, L: List)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -76,45 +79,50 @@ export function AgendaAdmin() {
         e.preventDefault()
         goToToday()
         setDateFilter('hoje')
+        setCalendarViewMode('day')
         setSelectedDate(new Date())
       } else if (e.key === 'd' || e.key === 'D') {
         e.preventDefault()
         setCalendarViewMode('day')
+        setDateFilter('hoje')
       } else if (e.key === 'w' || e.key === 'W') {
         e.preventDefault()
         setCalendarViewMode('week')
+        setDateFilter('semana')
       } else if (e.key === 'm' || e.key === 'M') {
         e.preventDefault()
         setCalendarViewMode('month')
+        setDateFilter('mes')
       } else if (e.key === 'l' || e.key === 'L') {
         e.preventDefault()
         setCalendarViewMode('list')
+        setDateFilter('todos')
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [goToToday, setDateFilter])
 
-  // Month & Period label
+  // Label for current month / range
   const monthLabel = useMemo(() => {
-    if (dateFilter === 'hoje') {
+    if (calendarViewMode === 'day' || dateFilter === 'hoje') {
       const day = calendarDays[0]?.date ?? new Date()
       const prefix = isToday(day) ? 'Hoje' : format(day, 'EEEE', { locale: ptBR })
       return `${prefix} · ${format(day, "dd 'de' MMMM", { locale: ptBR })}`
     }
-    if (dateFilter === 'semana' || dateFilter === 'proxima_semana') {
+    if (calendarViewMode === 'week' || dateFilter === 'semana' || dateFilter === 'proxima_semana') {
       const start = calendarDays[0]?.date ?? new Date()
       const end = calendarDays[calendarDays.length - 1]?.date ?? new Date()
       return `Semana · ${format(start, 'dd/MM')} a ${format(end, 'dd/MM')}`
     }
     return format(new Date(calendarMonth.year, calendarMonth.month, 1), "MMMM 'de' yyyy", { locale: ptBR })
-  }, [calendarDays, calendarMonth, dateFilter])
+  }, [calendarDays, calendarMonth, dateFilter, calendarViewMode])
 
   useEffect(() => {
     setSelectedDate(dateFilter === 'hoje' ? new Date() : null)
   }, [dateFilter])
 
-  // Filtered visits & events by search query
+  // Search filter
   const searchFilteredVisits = useMemo(() => {
     if (!searchQuery.trim()) return visits
     const q = searchQuery.toLowerCase().trim()
@@ -324,12 +332,10 @@ export function AgendaAdmin() {
           onCreateBlock={() => forms.handleOpenBlock()}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          calendarViewMode={calendarViewMode}
-          setCalendarViewMode={setCalendarViewMode}
         />
       </AgendaErrorBoundary>
 
-      {/* Date Period Filters Bar */}
+      {/* Date Period & View Filters Bar */}
       <AgendaErrorBoundary sectionName="filters">
         <AgendaFiltersBar
           dateFilter={dateFilter} setDateFilter={setDateFilter}
@@ -343,13 +349,13 @@ export function AgendaAdmin() {
 
       {/* Error Notice */}
       {error && (
-        <Card className="mb-4 p-4 bg-status-error-surface border border-status-error/20">
+        <Card className="my-2 p-4 bg-status-error-surface border border-status-error/20">
           <Typography variant="p" tone="error">Falha ao carregar agenda: {error}</Typography>
         </Card>
       )}
 
       {/* Main Workspace Layout (Sidebar + Calendar Canvas) */}
-      <div className="mt-2 flex flex-col gap-6 lg:flex-row flex-1 min-h-0">
+      <div className="mt-3 flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
         {/* Left Sidebar Navigation */}
         <AgendaSidebar
           selectedDate={selectedDate}
@@ -385,7 +391,7 @@ export function AgendaAdmin() {
                 selectedDate={selectedDate} onDateSelect={setSelectedDate}
                 monthLabel={monthLabel}
                 onPrevMonth={goToPrevMonth} onNextMonth={goToNextMonth}
-                onTodayClick={() => { goToToday(); setDateFilter('hoje') }}
+                onTodayClick={() => { goToToday(); setDateFilter('hoje'); setCalendarViewMode('day') }}
                 calendarViewMode={calendarViewMode} dateFilter={dateFilter}
                 onSlotClick={handleSlotClick}
                 onReschedule={handleReschedule}

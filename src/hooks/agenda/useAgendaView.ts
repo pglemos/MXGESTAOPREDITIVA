@@ -14,6 +14,7 @@ export type UseAgendaViewInput = {
   dateFilter: DateFilter
   calendarMonth: CalendarMonth
   setCalendarMonth: (next: CalendarMonth | ((prev: CalendarMonth) => CalendarMonth)) => void
+  viewMode?: 'day' | 'week' | 'month' | 'list'
 }
 
 export type UseAgendaViewReturn = {
@@ -43,6 +44,7 @@ export function useAgendaView({
   dateFilter,
   calendarMonth,
   setCalendarMonth,
+  viewMode,
 }: UseAgendaViewInput): UseAgendaViewReturn {
 
   // Anchors let the prev/next arrows step through arbitrary days/weeks —
@@ -57,11 +59,14 @@ export function useAgendaView({
   }, [dateFilter])
 
   const calendarDays = useMemo(() => {
-    if (dateFilter === 'hoje') {
+    // Explicit viewMode takes precedence if provided, falling back to dateFilter
+    const effectiveView = viewMode ?? (dateFilter === 'hoje' ? 'day' : dateFilter === 'semana' || dateFilter === 'proxima_semana' ? 'week' : 'month')
+
+    if (effectiveView === 'day') {
       return [{ date: dayAnchor, day: dayAnchor.getDate(), isCurrentMonth: true }]
     }
 
-    if (dateFilter === 'semana' || dateFilter === 'proxima_semana') {
+    if (effectiveView === 'week') {
       const weekStart = startOfWeek(weekAnchor, { weekStartsOn: 1 })
       return Array.from({ length: 7 }, (_, index) => {
         const date = addDays(weekStart, index)
@@ -69,6 +74,7 @@ export function useAgendaView({
       })
     }
 
+    // Month view (effectiveView === 'month' or 'list')
     const { year, month } = calendarMonth
     const firstDay = new Date(year, month, 1)
     const lastDay = new Date(year, month + 1, 0)
@@ -88,7 +94,7 @@ export function useAgendaView({
       days.push({ date: new Date(year, month + 1, d), day: d, isCurrentMonth: false })
     }
     return days
-  }, [calendarMonth, dateFilter, dayAnchor, weekAnchor])
+  }, [calendarMonth, dateFilter, dayAnchor, weekAnchor, viewMode])
 
   const visitsByDate = useMemo(() => {
     const map: Record<string, CalendarAgendaItem[]> = {}
@@ -131,24 +137,26 @@ export function useAgendaView({
   }, [filteredVisits, filteredScheduleEvents])
 
   const goToPrevMonth = useCallback(() => {
-    if (dateFilter === 'hoje') { setDayAnchor((prev) => addDays(prev, -1)); return }
-    if (dateFilter === 'semana' || dateFilter === 'proxima_semana') { setWeekAnchor((prev) => addWeeks(prev, -1)); return }
+    const effectiveView = viewMode ?? (dateFilter === 'hoje' ? 'day' : dateFilter === 'semana' || dateFilter === 'proxima_semana' ? 'week' : 'month')
+    if (effectiveView === 'day') { setDayAnchor((prev) => addDays(prev, -1)); return }
+    if (effectiveView === 'week') { setWeekAnchor((prev) => addWeeks(prev, -1)); return }
     setCalendarMonth((prev) => {
       const m = prev.month === 0 ? 11 : prev.month - 1
       const y = prev.month === 0 ? prev.year - 1 : prev.year
       return { year: y, month: m }
     })
-  }, [dateFilter, setCalendarMonth])
+  }, [dateFilter, viewMode, setCalendarMonth])
 
   const goToNextMonth = useCallback(() => {
-    if (dateFilter === 'hoje') { setDayAnchor((prev) => addDays(prev, 1)); return }
-    if (dateFilter === 'semana' || dateFilter === 'proxima_semana') { setWeekAnchor((prev) => addWeeks(prev, 1)); return }
+    const effectiveView = viewMode ?? (dateFilter === 'hoje' ? 'day' : dateFilter === 'semana' || dateFilter === 'proxima_semana' ? 'week' : 'month')
+    if (effectiveView === 'day') { setDayAnchor((prev) => addDays(prev, 1)); return }
+    if (effectiveView === 'week') { setWeekAnchor((prev) => addWeeks(prev, 1)); return }
     setCalendarMonth((prev) => {
       const m = prev.month === 11 ? 0 : prev.month + 1
       const y = prev.month === 11 ? prev.year + 1 : prev.year
       return { year: y, month: m }
     })
-  }, [dateFilter, setCalendarMonth])
+  }, [dateFilter, viewMode, setCalendarMonth])
 
   const goToToday = useCallback(() => {
     const now = new Date()

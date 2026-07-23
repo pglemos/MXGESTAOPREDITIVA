@@ -7,14 +7,7 @@ import {
   type CalendarMonth,
 } from '@/hooks/agenda'
 
-/**
- * Aggregator hook específico da page AgendaAdmin — compõe os 4 sub-hooks
- * (`useAgendaEvents`, `useAgendaFilters`, `useAgendaView`, `useAgendaCRUD`)
- * diretamente, sem passar pelo shim deprecated `useAgendaAdmin`.
- *
- * Mantém o mesmo formato de retorno consumido pela page (Story 2.6, ADR-0050/0051).
- */
-export function useAgendaAdminPage() {
+export function useAgendaAdminPage(viewMode?: 'day' | 'week' | 'month' | 'list') {
   const events = useAgendaEvents()
 
   const [calendarMonth, setCalendarMonth] = useState<CalendarMonth>(() => {
@@ -36,6 +29,7 @@ export function useAgendaAdminPage() {
     dateFilter: filters.dateFilter,
     calendarMonth,
     setCalendarMonth,
+    viewMode,
   })
 
   const crud = useAgendaCRUD({
