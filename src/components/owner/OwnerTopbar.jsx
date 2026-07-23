@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/owner-b44/AuthContext";
 import { PERIOD_LABELS } from "@/lib/owner-b44/period";
 import { formatDateTime } from "@/lib/owner-b44/format";
 import { Button } from "@/components/ui/button";
-import { Bell, RefreshCw, ChevronDown, Building2, MapPin, CalendarRange, ShieldCheck } from "lucide-react";
+import { Bell, Menu, RefreshCw, ChevronDown, Building2, MapPin, CalendarRange, ShieldCheck } from "lucide-react";
 
 const PERIODS = [
   { value: "month", label: "Mês atual" },
@@ -35,7 +35,7 @@ function Select({ value, onChange, options, icon: Icon, label, disabled }) {
   );
 }
 
-export default function OwnerTopbar({ lastUpdated }) {
+export default function OwnerTopbar({ lastUpdated, onOpenSidebar }) {
   const { companies, currentCompany, setCompanyId, currentUnits, unitId, setUnitId, period, setPeriod, reload } =
     useOwner();
   const { user, logout } = useAuth();
@@ -51,6 +51,16 @@ export default function OwnerTopbar({ lastUpdated }) {
 
   return (
     <header className="owner-base44-exact__topbar sticky top-0 z-30 flex min-h-16 flex-col gap-2 border-b border-border bg-card/90 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-card/75 xl:h-16 xl:flex-row xl:items-center xl:py-0 2xl:px-6">
+      <div className="flex items-center gap-2 xl:hidden">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onOpenSidebar}
+          aria-label="Abrir menu principal"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+      </div>
       {/* Identificação do contexto */}
       <div className="hidden shrink-0 items-center gap-2 rounded-full bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground 2xl:flex">
         <ShieldCheck className="h-3.5 w-3.5" />
