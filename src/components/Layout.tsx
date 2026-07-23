@@ -261,13 +261,19 @@ export default function Layout() {
   const isExactOwnerWorkspace = role === 'dono' && location.pathname.startsWith('/lojas/')
   if (isExactOwnerWorkspace) return <Outlet />
 
-  const pageContent = (
-    <MxRoleVisualScope manager={role !== 'vendedor'}>
-      <MotionPage key={location.pathname} className="h-full">
-        <Outlet />
-      </MotionPage>
-    </MxRoleVisualScope>
+  const pageOutlet = (
+    <MotionPage key={location.pathname} className="h-full">
+      <Outlet />
+    </MotionPage>
   )
+  const isOwnerRoute = location.pathname === '/dono' || location.pathname.startsWith('/dono/')
+  const pageContent = role === 'dono' && isOwnerRoute
+    ? pageOutlet
+    : (
+      <MxRoleVisualScope manager={role !== 'vendedor'}>
+        {pageOutlet}
+      </MxRoleVisualScope>
+      )
   const stopCurrentSimulation = () => {
     stopSimulation()
     navigate('/painel', { replace: true })
