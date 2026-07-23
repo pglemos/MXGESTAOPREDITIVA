@@ -75,12 +75,17 @@ export function useAgendaEvents(): UseAgendaEventsReturn {
       eventsQuery = eventsQuery.or(`responsible_user_id.eq.${supabaseUser.id},and(responsible_user_id.is.null,created_by.eq.${supabaseUser.id})`)
     }
 
-    const [visitsRes, eventsRes, clientsRes, usersRes, productsRes] = await Promise.all([
+    const [visitsRes, eventsRes, clientsRes, storesRes, usersRes, productsRes] = await Promise.all([
       visitsQuery,
       eventsQuery,
       supabase
         .from('clientes_consultoria')
-        .select('id, name, slug, status, current_visit_step')
+        .select('id, name, slug, status, current_visit_step, primary_store_id')
+        .order('name', { ascending: true }),
+      supabase
+        .from('lojas')
+        .select('id, name, active')
+        .eq('active', true)
         .order('name', { ascending: true }),
       supabase
         .from('usuarios')
@@ -156,7 +161,35 @@ export function useAgendaEvents(): UseAgendaEventsReturn {
     setVisits(mappedVisits)
     setScheduleEvents(mappedEvents)
 
-    setClients((clientsRes.data || []) as AgendaClient[])
+    const rawClients = (clientsRes.data || []) as (AgendaClient & { primary_store_id?: string | null })[]
+    const existingPrimaryStoreIds = new Set(rawClients.map((c) => c.primary_store_id).filter(Boolean))
+    const existingClientIds = new Set(rawClients.map((c) => c.id))
+    const existingNames = new Set(rawClients.map((c) => c.name.toLowerCase().trim()))
+
+    const fallbackStoreClients: AgendaClient[] = []
+    if (storesRes.data) {
+      for (const store of storesRes.data) {
+        const isAlreadyPresent =
+          existingClientIds.has(store.id) ||
+          existingPrimaryStoreIds.has(store.id) ||
+          existingNames.has(store.name.toLowerCase().trim())
+
+        if (!isAlreadyPresent) {
+          fallbackStoreClients.push({
+            id: store.id,
+            name: store.name,
+            status: 'ativo',
+            current_visit_step: 0,
+            primary_store_id: store.id,
+          })
+        }
+      }
+    }
+
+    const allSelectableClients = [...rawClients, ...fallbackStoreClients].sort((a, b) =>
+      a.name.localeCompare(b.name, 'pt-BR'),
+    )
+    setClients(allSelectableClients)
     const loadedConsultants = (usersRes.data || []) as AgendaConsultant[]
     setConsultants(canViewAllAgendas
       ? loadedConsultants

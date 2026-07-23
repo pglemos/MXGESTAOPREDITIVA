@@ -53,10 +53,46 @@ export function useAgendaCRUD({
     const consultantId = canViewAllAgendas ? input.consultant_id : supabaseUser.id
     const auxiliaryConsultantId = canViewAllAgendas ? input.auxiliary_consultant_id : null
 
+    let targetClientId = input.client_id
+    const { data: existingClient } = await supabase
+      .from('clientes_consultoria')
+      .select('id')
+      .or(`id.eq.${input.client_id},primary_store_id.eq.${input.client_id}`)
+      .maybeSingle()
+
+    if (existingClient?.id) {
+      targetClientId = existingClient.id
+    } else {
+      const { data: storeData } = await supabase
+        .from('lojas')
+        .select('id, name')
+        .eq('id', input.client_id)
+        .maybeSingle()
+
+      if (storeData) {
+        const { data: createdClient } = await supabase
+          .from('clientes_consultoria')
+          .insert({
+            name: storeData.name,
+            slug: storeData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            status: 'ativo',
+            primary_store_id: storeData.id,
+            created_by: supabaseUser.id,
+            current_visit_step: 0,
+          })
+          .select('id')
+          .single()
+
+        if (createdClient?.id) {
+          targetClientId = createdClient.id
+        }
+      }
+    }
+
     const { data: insertedVisit, error: insertError } = await supabase
       .from('visitas_consultoria')
       .insert({
-        client_id: input.client_id,
+        client_id: targetClientId,
         visit_number: input.visit_number,
         scheduled_at: input.scheduled_at,
         duration_hours: input.duration_hours,
