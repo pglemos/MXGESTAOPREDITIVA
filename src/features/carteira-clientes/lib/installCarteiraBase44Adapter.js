@@ -180,21 +180,52 @@ export function buildRpcPayload(data, clientId) {
 }
 
 async function listVisualClients(query, order, limit) {
-  const simulation = readSimulationContext()
-  const userId = simulation?.sellerUserId || await getCurrentUserId()
-  if (!userId) return []
+  try {
+    const simulation = readSimulationContext()
+    const userId = simulation?.sellerUserId || await getCurrentUserId()
+    if (!userId) return []
 
-  const { data, error } = await supabase
-    .from('clientes')
-    .select('*, oportunidades(*), agendamentos(*)')
-    .eq('seller_user_id', userId)
+    const { data: userProfile } = await supabase
+      .from('usuarios')
+      .select('role')
+      .eq('id', userId)
+      .maybeSingle()
 
-  if (error) throw error
+    const role = userProfile?.role || 'vendedor'
 
-  const mapped = (data || []).map(row => mapMxClientToCarteiraVisual(row))
-  const filtered = mapped.filter(row => matchesQuery(row, query))
-  const sorted = sortRows(filtered, order)
-  return typeof limit === 'number' ? sorted.slice(0, limit) : sorted
+    let dbQuery = supabase
+      .from('clientes')
+      .select('*, oportunidades(*), agendamentos(*)')
+
+    if (role === 'vendedor') {
+      dbQuery = dbQuery.eq('seller_user_id', userId)
+    } else if (role === 'gerente') {
+      const { data: storeLink } = await supabase
+        .from('vinculos_loja')
+        .select('store_id')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle()
+      if (storeLink?.store_id) {
+        dbQuery = dbQuery.eq('loja_id', storeLink.store_id)
+      }
+    }
+
+    const { data, error } = await dbQuery
+    if (error) {
+      console.error('[CarteiraAdapter] Error fetching clients:', error)
+      return []
+    }
+
+    const mapped = (data || []).map(row => mapMxClientToCarteiraVisual(row))
+    const filtered = mapped.filter(row => matchesQuery(row, query))
+    const sorted = sortRows(filtered, order)
+    return typeof limit === 'number' ? sorted.slice(0, limit) : sorted
+  } catch (err) {
+    console.error('[CarteiraAdapter] Exception in listVisualClients:', err)
+    return []
+  }
 }
 
 async function getVisualClient(id) {

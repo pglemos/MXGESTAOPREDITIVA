@@ -21,12 +21,14 @@ function isMesmodia(dateStr, offset) {
   const ref = new Date();
   ref.setDate(ref.getDate() + offset);
   const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return false;
   return d.getFullYear() === ref.getFullYear() && d.getMonth() === ref.getMonth() && d.getDate() === ref.getDate();
 }
 
 function isVencido(dateStr) {
   if (!dateStr) return false;
   const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return false;
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
   return d < hoje;
@@ -34,6 +36,7 @@ function isVencido(dateStr) {
 
 // ─── LÓGICA DOS CARDS DE AGENDA ───────────────────────────────────────────────
 function filtrarHoje(c) {
+  if (!c) return false;
   const proxData = c.proxima_acao_data;
   const visitaData = c.visita_agendada_em;
   if (isVencido(proxData)) return true;
@@ -44,6 +47,7 @@ function filtrarHoje(c) {
 }
 
 function filtrarAmanha(c) {
+  if (!c) return false;
   const proxData = c.proxima_acao_data;
   const visitaData = c.visita_agendada_em;
   return isMesmodia(proxData, 1) || isMesmodia(visitaData, 1);
@@ -51,6 +55,7 @@ function filtrarAmanha(c) {
 
 function filtrarDia(offset) {
   return (c) => {
+    if (!c) return false;
     const proxData = c.proxima_acao_data;
     const visitaData = c.visita_agendada_em;
     return isMesmodia(proxData, offset) || isMesmodia(visitaData, offset);
@@ -334,13 +339,15 @@ function ChipsFiltrosAtivos({ filtros, onRemover }) {
 }
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
-export default function CarteiraAtivaTab({ clientes, onNovoCliente, onWhatsApp, onFicha }) {
+export default function CarteiraAtivaTab({ clientes = [], onNovoCliente, onWhatsApp, onFicha }) {
+  const safeClientes = useMemo(() => Array.isArray(clientes) ? clientes : [], [clientes]);
+
   const CARDS = useMemo(() => [
     { id: "hoje",  label: "Prioridade Hoje",              sublabel: "pendentes agora",     filtro: filtrarHoje,    vazio: "Você concluiu as prioridades de hoje." },
     { id: "amanha",label: "Prioridade Amanhã",            sublabel: "próximas ações",       filtro: filtrarAmanha,  vazio: "Nenhuma prioridade programada para amanhã." },
     { id: "d2",    label: `Prioridade ${diaDaSemana(2)}`, sublabel: "ações programadas",   filtro: filtrarDia(2),  vazio: "Nenhuma prioridade programada para este dia." },
     { id: "d3",    label: `Prioridade ${diaDaSemana(3)}`, sublabel: "ações programadas",   filtro: filtrarDia(3),  vazio: "Nenhuma prioridade programada para este dia." },
-    { id: "compraram", label: "Compraram",                sublabel: "vendas realizadas",    filtro: c => c.situacao_atual === "Venda realizada" || c.status_comercial === "Vendido" || c.sale_status === "Sim" || c.momento === "Venda realizada", vazio: "Nenhum cliente com venda realizada." },
+    { id: "compraram", label: "Compraram",                sublabel: "vendas realizadas",    filtro: c => c && (c.situacao_atual === "Venda realizada" || c.status_comercial === "Vendido" || c.sale_status === "Sim" || c.momento === "Venda realizada"), vazio: "Nenhum cliente com venda realizada." },
     { id: "todos", label: "Ver Todos",                    sublabel: "lista por prioridade", filtro: () => true,     vazio: "Nenhum cliente ativo no momento." },
   ], []);
 
@@ -350,12 +357,14 @@ export default function CarteiraAtivaTab({ clientes, onNovoCliente, onWhatsApp, 
   const [filtrosAvancados, setFiltrosAvancados] = useState({});
 
   const isComprador = useCallback(c => {
+    if (!c) return false;
     const s = c.situacao_atual || c.momento || "";
     return s === "Venda realizada" || c.status_comercial === "Vendido" || c.sale_status === "Sim" || s === "Comprou" || s === "ganho";
   }, []);
 
   const counts = useMemo(() => {
-    const activeN = clientes.filter(c => {
+    const activeN = safeClientes.filter(c => {
+      if (!c) return false;
       const s = c.situacao_atual || c.momento || "";
       return c.ativo !== false && !isComprador(c) && !["Venda perdida", "Cadência encerrada"].includes(s);
     });
@@ -364,33 +373,34 @@ export default function CarteiraAtivaTab({ clientes, onNovoCliente, onWhatsApp, 
       amanha: activeN.filter(CARDS[1].filtro).length,
       d2: activeN.filter(CARDS[2].filtro).length,
       d3: activeN.filter(CARDS[3].filtro).length,
-      compraram: clientes.filter(isComprador).length,
-      todos: clientes.filter(c => c.ativo !== false).length,
+      compraram: safeClientes.filter(isComprador).length,
+      todos: safeClientes.filter(c => c && c.ativo !== false).length,
     };
-  }, [clientes, CARDS, isComprador]);
+  }, [safeClientes, CARDS, isComprador]);
 
   const cardConfig = useMemo(() => CARDS.find(c => c.id === cardAtivo) || CARDS[0], [cardAtivo, CARDS]);
 
   const clientesFiltrados = useMemo(() => {
-    let lista = clientes;
+    let lista = safeClientes;
     if (cardAtivo === "compraram") {
       lista = lista.filter(isComprador);
     } else if (cardAtivo === "todos") {
-      lista = lista.filter(c => c.ativo !== false);
+      lista = lista.filter(c => c && c.ativo !== false);
     } else {
       lista = lista.filter(c => {
+        if (!c) return false;
         const s = c.situacao_atual || c.momento || "";
         return c.ativo !== false && !isComprador(c) && !["Venda perdida", "Cadência encerrada"].includes(s);
       }).filter(cardConfig.filtro);
     }
 
     if (busca) lista = lista.filter(c =>
-      c.nome?.toLowerCase().includes(busca.toLowerCase()) ||
-      c.whatsapp?.includes(busca) || c.telefone?.includes(busca)
+      c?.nome?.toLowerCase().includes(busca.toLowerCase()) ||
+      c?.whatsapp?.includes(busca) || c?.telefone?.includes(busca)
     );
     lista = aplicarFiltrosAvancados(lista, filtrosAvancados);
     return cardAtivo === "hoje" ? ordenarHoje(lista) : ordenarGeral(lista);
-  }, [clientes, cardConfig, busca, filtrosAvancados, cardAtivo, isComprador]);
+  }, [safeClientes, cardConfig, busca, filtrosAvancados, cardAtivo, isComprador]);
 
   function removerFiltro(key) {
     const [campo, valor] = key.split(":");

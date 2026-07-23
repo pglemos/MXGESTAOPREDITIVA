@@ -232,6 +232,7 @@ const { requestCorrection, fetchOwnRequests, loading: auditorLoading } = useChec
     }
 
     handleSelectRow(row)
+    setActiveView('form')
     setHistoryOpen(true)
   }
 
