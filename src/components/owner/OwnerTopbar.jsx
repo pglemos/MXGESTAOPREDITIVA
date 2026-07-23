@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/owner-b44/AuthContext";
 import { PERIOD_LABELS } from "@/lib/owner-b44/period";
 import { formatDateTime } from "@/lib/owner-b44/format";
 import { Button } from "@/components/ui/button";
-import { Bell, RefreshCw, ChevronDown, Building2, MapPin, CalendarRange, ShieldCheck } from "lucide-react";
+import { Bell, RefreshCw, Menu, ChevronDown, Building2, MapPin, CalendarRange, ShieldCheck } from "lucide-react";
 
 const PERIODS = [
   { value: "month", label: "Mês atual" },
@@ -16,17 +16,17 @@ const PERIODS = [
 function Select({ value, onChange, options, icon: Icon, label, disabled }) {
   return (
     <div className="relative flex items-center">
-      <Icon className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-muted-foreground/80" />
+      {Icon && <Icon className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-muted-foreground/80" />}
       <select
         value={value}
         onChange={onChange}
         disabled={disabled}
-        aria-label={label}
-        className="h-9 w-full appearance-none rounded-lg border border-border bg-card pl-8 pr-8 text-sm font-medium text-foreground hover:border-primary/40 focus:border-primary/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+        className="h-8 w-full rounded-md border border-input bg-background pl-8 pr-7 text-xs font-medium text-foreground shadow-xs transition-colors hover:bg-accent/50 focus:outline-hidden focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
+        {!value && <option value="">Selecione {label}...</option>}
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
           </option>
         ))}
       </select>
@@ -35,7 +35,7 @@ function Select({ value, onChange, options, icon: Icon, label, disabled }) {
   );
 }
 
-export default function OwnerTopbar({ lastUpdated }) {
+export default function OwnerTopbar({ onOpenSidebar, lastUpdated }) {
   const { companies, currentCompany, setCompanyId, currentUnits, unitId, setUnitId, period, setPeriod, customStart, customEnd, setCustomStart, setCustomEnd, reload } =
     useOwner();
   const { user, logout } = useAuth();
@@ -49,6 +49,13 @@ export default function OwnerTopbar({ lastUpdated }) {
 
   return (
     <header className="owner-base44-exact__topbar sticky top-0 z-30 flex min-h-16 flex-col gap-2 border-b border-border bg-card/90 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-card/75 xl:h-16 xl:flex-row xl:items-center xl:py-0 2xl:px-6">
+      {/* Menu mobile */}
+      {onOpenSidebar && (
+        <Button variant="ghost" size="icon" className="lg:hidden shrink-0" onClick={onOpenSidebar} aria-label="Abrir menu">
+          <Menu className="h-5 w-5" />
+        </Button>
+      )}
+
       {/* Identificação do contexto */}
       <div className="hidden shrink-0 items-center gap-2 rounded-full bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground 2xl:flex">
         <ShieldCheck className="h-3.5 w-3.5" />

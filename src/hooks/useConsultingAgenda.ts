@@ -39,23 +39,12 @@ export function useConsultingAgenda(clientId?: string) {
     setError(null)
 
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        throw new Error('Sessão inválida. Faça login novamente.')
-      }
-
-      const response = await fetch(getSupabaseFunctionUrl('google-oauth-handler'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ clientId }),
+      const { data: result, error } = await supabase.functions.invoke<{ authUrl?: string; error?: string }>('google-oauth-handler', {
+        body: { clientId },
       })
 
-      const result = await response.json()
-      if (!response.ok || !result.authUrl) {
-        throw new Error(result.error || 'Não foi possível iniciar a autorização Google.')
+      if (error || !result?.authUrl) {
+        throw new Error(result?.error || error?.message || 'Não foi possível iniciar a autorização Google.')
       }
 
       const width = 500
@@ -184,29 +173,18 @@ export function useConsultingAgenda(clientId?: string) {
     setError(null)
 
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        throw new Error('Sessão inválida. Faça login novamente.')
-      }
-
-      const response = await fetch(getSupabaseFunctionUrl('google-calendar-events'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
+      const { data: result, error } = await supabase.functions.invoke<{ events?: any[]; error?: string }>('google-calendar-events', {
+        body: {
           clientId,
           maxResults: 15,
-        }),
+        },
       })
 
-      const result = await response.json()
-      if (!response.ok) {
-        throw new Error(result.error || 'Falha ao buscar eventos.')
+      if (error) {
+        throw new Error(result?.error || error.message || 'Falha ao buscar eventos.')
       }
 
-      setEvents(result.events || [])
+      setEvents(result?.events || [])
     } catch (err) {
       setEvents([])
       setError(err instanceof Error ? err.message : 'Não foi possível carregar a agenda.')

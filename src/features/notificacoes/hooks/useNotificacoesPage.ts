@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from '@/lib/toast'
 import { useNotifications } from '@/hooks/useData'
-import { getSupabaseFunctionUrl, supabase } from '@/lib/supabase'
+import { getSupabaseFunctionUrl, resolveFunctionInvokeError, supabase } from '@/lib/supabase'
 import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
 import type { StorePreRegistration } from '@/types/database'
 import { requestToastConfirmation } from '@/lib/ui/confirmAction'
@@ -176,25 +176,26 @@ export function useNotificacoesPage() {
 
       setReviewingPreRegistrationId(item.id)
       try {
-        const { data: sessionData } = await supabase.auth.getSession()
-        const token = sessionData.session?.access_token
-        if (!token) throw new Error('Sessão expirada. Entre novamente.')
-
-        const response = await fetch(approvalFunctionUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
+        const { data: payload, error: invokeError } = await supabase.functions.invoke<{
+          success?: boolean
+          error?: string
+          temporary_password?: string
+          email_status?: string
+        }>('approve-store-registration', {
+          body: {
             pre_registration_id: item.id,
             action,
             role: item.role,
-          }),
+          },
         })
-        const payload = await response.json()
-        if (!response.ok || !payload.success)
-          throw new Error(payload.error || 'Não foi possível revisar o login.')
+
+        if (invokeError) {
+          const msg = await resolveFunctionInvokeError(invokeError, payload, 'Falha ao revisar login.')
+          throw new Error(msg)
+        }
+        if (!payload?.success) {
+          throw new Error(payload?.error || 'Não foi possível revisar o login.')
+        }
 
         if (notificationId) await markRead(notificationId)
         const temporaryPassword =
@@ -224,7 +225,6 @@ export function useNotificacoesPage() {
       }
     },
     [
-      approvalFunctionUrl,
       fetchNotifications,
       isAdminMx,
       markRead,

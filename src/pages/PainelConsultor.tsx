@@ -195,27 +195,12 @@ export default function PainelConsultor() {
   const triggerReport = async (type: keyof typeof reportLabels) => {
     setIsTriggering(type)
     try {
-      const {
-        data: { session },
-      } = await originalSupabase.auth.getSession()
-      if (!session?.access_token) {
-        toast.error('Sessão expirada. Entre novamente.')
-        return
-      }
+      const { data: errorBody, error } = await originalSupabase.functions.invoke(`relatorio-${type}`)
 
-      const response = await fetch(getSupabaseFunctionUrl(`relatorio-${type}`), {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (response.ok) {
+      if (!error) {
         toast.success(`${reportLabels[type]} disparado com sucesso.`)
       } else {
-        const errorBody = await response.json()
-        toast.error(`Falha ao disparar: ${errorBody.error || response.statusText}`)
+        toast.error(`Falha ao disparar: ${errorBody?.error || error.message}`)
       }
     } catch {
       toast.error('Erro de conexão com o servidor de automação.')

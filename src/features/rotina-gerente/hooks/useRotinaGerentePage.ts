@@ -272,17 +272,8 @@ export function useRotinaGerentePage() {
   const handleTriggerMatinal = useCallback(async () => {
     setExecuting(true)
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      const response = await fetch(getSupabaseFunctionUrl('relatorio-matinal'), {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-      if (response.ok) {
+      const { data, error } = await supabase.functions.invoke('relatorio-matinal')
+      if (!error) {
         const notice = {
           tone: 'success' as const,
           message: 'Relatório Matinal disparado.',
@@ -296,24 +287,23 @@ export function useRotinaGerentePage() {
         const notice = {
           tone: 'error' as const,
           message: 'Falha no disparo do Matinal.',
-          detail: `Edge Function retornou status ${response.status}.`,
+          detail: error.message || 'Edge Function retornou erro.',
           at: new Date(),
         }
         setMatinalAudit(notice)
         setRoutineNotice(notice)
-        toast.error('Falha no disparo.')
+        toast.error('Falha ao disparar Relatório Matinal.')
       }
-    } catch (e) {
+    } catch {
       const notice = {
         tone: 'error' as const,
-        message: 'Erro de conexão no Matinal.',
-        detail:
-          e instanceof Error ? e.message : 'Não foi possível conectar à Edge Function.',
+        message: 'Erro de conexão no disparo.',
+        detail: 'Não foi possível se comunicar com o serviço do Relatório Matinal.',
         at: new Date(),
       }
       setMatinalAudit(notice)
       setRoutineNotice(notice)
-      toast.error('Erro de conexão.')
+      toast.error('Erro de conexão ao disparar Relatório Matinal.')
     } finally {
       setExecuting(false)
     }

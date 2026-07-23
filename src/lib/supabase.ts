@@ -29,7 +29,9 @@ export function getSupabaseFunctionHeaders(extraHeaders: Record<string, string> 
 
     if (supabaseAnonKey) {
         headers.apikey = supabaseAnonKey
-        headers.Authorization = `Bearer ${supabaseAnonKey}`
+        if (!headers.Authorization && !headers.authorization) {
+            headers.Authorization = `Bearer ${supabaseAnonKey}`
+        }
     }
 
     return headers

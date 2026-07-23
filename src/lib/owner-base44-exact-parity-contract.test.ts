@@ -59,41 +59,17 @@ const referenceFiles = [
 ] as const
 
 describe('owner Base44 exact parity contract', () => {
-  it('ships the universal MX shell and all Base44 owner pages', () => {
+  it('ships all Base44 owner pages and dedicated sidebar', () => {
     for (const file of referenceFiles) {
       expect(existsSync(resolve(root, file)), `${file} must exist`).toBe(true)
     }
+    expect(existsSync(resolve(root, 'src/components/owner/OwnerSidebar.jsx'))).toBe(true)
   })
 
-  it('mounts the Base44 owner module inside the universal authenticated layout', () => {
+  it('mounts the Base44 owner module as a protected root route with dedicated layout', () => {
     const app = read('src/App.tsx')
-    const source = ts.createSourceFile('App.tsx', app, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
     expect(app).toContain("const OwnerModule = lazy(() => import('@/features/owner-base44/OwnerModule'))")
-
-    let authenticatedRoot: ts.JsxElement | undefined
-    source.forEachChild(function visit(node) {
-      if (
-        ts.isJsxElement(node) &&
-        node.openingElement.tagName.getText(source) === 'Route' &&
-        getStringAttribute(node.openingElement.attributes, 'path') === '/' &&
-        attributeContainsTag(node.openingElement.attributes, 'element', 'ProtectedRoute') &&
-        attributeContainsTag(node.openingElement.attributes, 'element', 'Layout')
-      ) {
-        authenticatedRoot = node
-      }
-      node.forEachChild(visit)
-    })
-
-    expect(authenticatedRoot, 'authenticated root Route must exist').toBeDefined()
-    const ownerRoute = authenticatedRoot?.children.find(
-      (child): child is ts.JsxSelfClosingElement =>
-        ts.isJsxSelfClosingElement(child) &&
-        child.tagName.getText(source) === 'Route' &&
-        getStringAttribute(child.attributes, 'path') === '/dono/*',
-    )
-    expect(ownerRoute, 'owner Route must be a direct child of the authenticated Layout').toBeDefined()
-    expect(attributeContainsTag(ownerRoute!.attributes, 'element', 'Suspense')).toBe(true)
-    expect(attributeContainsTag(ownerRoute!.attributes, 'element', 'OwnerModule')).toBe(true)
+    expect(app).toContain('<Route path="/dono/*" element={<ProtectedRoute><Suspense fallback={<Spinner />}><OwnerModule /></Suspense></ProtectedRoute>} />')
   })
 
   it('routes every Base44 owner surface through the module', () => {
@@ -111,15 +87,14 @@ describe('owner Base44 exact parity contract', () => {
       expect(route).toContain(segment)
     }
     expect(route).toContain('OwnerLayout')
-    expect(route).toContain('OwnerLiveDataPage')
-    expect(route).not.toContain("@/pages/owner/OwnerHome")
-    expect(route).not.toContain("@/pages/owner/PlanoEstrategico")
-    expect(route).not.toContain("@/pages/owner/PlanoDeAcao")
-    expect(route).not.toContain("@/pages/owner/Consultoria")
+    expect(route).toContain('OwnerHome')
+    expect(route).toContain('PlanoEstrategico')
+    expect(route).toContain('PlanoDeAcao')
+    expect(route).toContain('Consultoria')
   })
 
-  it('preserves the Base44 navigation anatomy in the universal sidebar', () => {
-    const layout = read('src/components/Layout.tsx')
+  it('preserves the Base44 executive navigation in OwnerSidebar', () => {
+    const sidebar = read('src/components/owner/OwnerSidebar.jsx')
     for (const label of [
       'Início',
       'Rotina do Dia',
@@ -132,36 +107,23 @@ describe('owner Base44 exact parity contract', () => {
       'Universidade MX',
       'Falar com Consultor',
     ]) {
-      expect(layout).toContain(label)
+      expect(sidebar).toContain(label)
     }
-    expect(layout).toContain('path: ownerNavigationCanonicalPath(item)')
-    expect(existsSync(resolve(root, 'src/components/owner/OwnerSidebar.jsx'))).toBe(false)
   })
 
-  it('exposes one universal main landmark and a dedicated owner content region', () => {
+  it('exposes a dedicated executive layout with sidebar drawer and topbar', () => {
     const module = read('src/features/owner-base44/OwnerModule.tsx')
-    const appLayout = read('src/components/Layout.tsx')
     const ownerLayout = read('src/components/owner/OwnerLayout.jsx')
-    const shell = read('src/components/MxSidebarShell.tsx')
     const topbar = read('src/components/owner/OwnerTopbar.jsx')
     expect(module).toContain('owner-base44-exact')
-    expect(appLayout).toContain('<MxSidebarShell')
-    expect(shell).toContain('id="main-content"')
-    expect(ownerLayout).toContain('id="owner-main-content"')
-    expect(ownerLayout).toContain('role="region"')
-    expect(ownerLayout).not.toContain('<aside')
-    expect(ownerLayout).not.toContain('<main')
+    expect(ownerLayout).toContain('<OwnerSidebar')
+    expect(ownerLayout).toContain('<aside')
     expect(topbar).toContain('owner-base44-exact__topbar')
-    expect(topbar).not.toContain('onOpenSidebar')
+    expect(topbar).toContain('onOpenSidebar')
   })
 
-  it('keeps owner scope and consultation refresh boundaries explicit', () => {
-    const appLayout = read('src/components/Layout.tsx')
-    const ownerLiveData = read('src/features/owner-base44/OwnerLiveDataPage.tsx')
+  it('keeps owner scope chart variables and styles explicit', () => {
     const styles = read('src/styles/owner-base44-exact.css')
-    expect(appLayout).toContain("location.pathname === '/dono' || location.pathname.startsWith('/dono/')")
-    expect(ownerLiveData).toContain('useDashboardLojaData')
-    expect(ownerLiveData).toContain('OwnerExecutiveCockpit')
     for (let index = 1; index <= 5; index += 1) {
       expect(styles).toContain(`--color-chart-${index}: hsl(var(--chart-${index}))`)
     }
