@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useOwner } from "@/components/owner/OwnerContext";
 import { useAuth } from "@/lib/owner-b44/AuthContext";
 import { PERIOD_LABELS } from "@/lib/owner-b44/period";
@@ -39,8 +40,8 @@ export default function OwnerTopbar({ lastUpdated }) {
   const { companies, currentCompany, setCompanyId, currentUnits, unitId, setUnitId, period, setPeriod, customStart, customEnd, setCustomStart, setCustomEnd, reload } =
     useOwner();
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   const companyOptions = companies.map((c) => ({ value: c.id, label: c.name }));
   const unitOptions = currentUnits.map((u) => ({ value: u.id, label: u.name }));
@@ -109,11 +110,10 @@ export default function OwnerTopbar({ lastUpdated }) {
         <Button variant="ghost" size="icon" onClick={reload} aria-label="Atualizar dados">
           <RefreshCw className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="icon" className="relative" aria-label="Notificações" onClick={() => setNotificationsOpen((value) => !value)}>
+        <Button variant="ghost" size="icon" className="relative" aria-label="Notificações" onClick={() => navigate('/dono/alertas')}>
           <Bell className="h-4 w-4" />
           <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-destructive" />
         </Button>
-        {notificationsOpen && <div role="status" className="absolute right-24 top-14 z-20 w-64 rounded-xl border border-border bg-card p-3 text-sm text-muted-foreground shadow-lg">As notificações persistidas aparecem na Central de Decisões.</div>}
 
         {/* Perfil */}
         <div className="relative">

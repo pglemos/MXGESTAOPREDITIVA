@@ -161,21 +161,27 @@ export function useStoreGoal(storeIdOverride?: string | null) {
     const storeId = storeIdOverride !== undefined ? storeIdOverride : authStoreId
     const [goal, setGoal] = useState<{ target: number; projection_mode: 'calendar' | 'business' } | null>(null)
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
 
     const fetch = useCallback(async () => {
         if (!storeId) {
             setGoal(null)
+            setError(null)
             setLoading(false)
             return
         }
         setLoading(true)
-        const { data } = await supabase
+        setError(null)
+        const { data, error: queryError } = await supabase
             .from('regras_metas_loja')
             .select('monthly_goal, projection_mode')
             .eq('store_id', storeId)
             .maybeSingle()
 
-        if (data) setGoal({ target: data.monthly_goal || 0, projection_mode: data.projection_mode || 'calendar' })
+        if (queryError) {
+            setGoal(null)
+            setError('Não foi possível carregar a meta da loja.')
+        } else if (data) setGoal({ target: data.monthly_goal || 0, projection_mode: data.projection_mode || 'calendar' })
         else setGoal({ target: 0, projection_mode: 'calendar' })
         setLoading(false)
     }, [storeId])
@@ -193,5 +199,5 @@ export function useStoreGoal(storeIdOverride?: string | null) {
     }
 
     useEffect(() => { fetch() }, [fetch])
-    return { goal, loading, refetch: fetch, updateGoal }
+    return { goal, loading, error, refetch: fetch, updateGoal }
 }

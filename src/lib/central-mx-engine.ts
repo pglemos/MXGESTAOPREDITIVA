@@ -101,6 +101,10 @@ export type CentralMxEngineInput = {
     scheduleToVisit: number
     visitToSale: number
   }
+  inventory?: {
+    total?: number | null
+    agingOver90?: number | null
+  } | null
   financial?: {
     grossProfit?: number | null
     grossMarginPct?: number | null
@@ -280,8 +284,8 @@ function getBaseValues(input: CentralMxEngineInput): Record<string, { meta: numb
     marketing_positioning_score: { meta: 100, realizado: null, anoAnterior: null },
     cost_per_lead: { meta: null, realizado: null, anoAnterior: null },
 
-    inventory_total: { meta: null, realizado: null, anoAnterior: null },
-    inventory_over_90_days: { meta: 0, realizado: null, anoAnterior: null },
+    inventory_total: { meta: null, realizado: input.inventory?.total ?? null, anoAnterior: null },
+    inventory_over_90_days: { meta: 0, realizado: input.inventory?.agingOver90 ?? null, anoAnterior: null },
     stock_turnover_rate: { meta: null, realizado: null, anoAnterior: null },
     average_vehicle_margin: { meta: 18, realizado: input.financial?.grossMarginPct ?? null, anoAnterior: null },
     pricing_accuracy_score: { meta: 100, realizado: null, anoAnterior: null },

@@ -2,7 +2,12 @@ import { AgendaCalendar } from '@/components/organisms/AgendaCalendar'
 import { getVisitDotColor } from '../data/agendaHelpers'
 import type { DateFilter } from '@/hooks/agenda'
 
-interface AgendaCalendarViewProps {
+type PassthroughProps = Pick<
+  React.ComponentProps<typeof AgendaCalendar>,
+  'onSlotClick' | 'onReschedule' | 'onResize' | 'onEventClick' | 'quickActions'
+>
+
+interface AgendaCalendarViewProps extends PassthroughProps {
   calendarDays: React.ComponentProps<typeof AgendaCalendar>['calendarDays']
   visitsByDate: React.ComponentProps<typeof AgendaCalendar>['visitsByDate']
   selectedDate: Date | null
@@ -19,6 +24,7 @@ export function AgendaCalendarView({
   calendarDays, visitsByDate, selectedDate, onDateSelect,
   monthLabel, onPrevMonth, onNextMonth, onTodayClick,
   calendarViewMode, dateFilter,
+  onSlotClick, onReschedule, onResize, onEventClick, quickActions,
 }: AgendaCalendarViewProps) {
   return (
     <AgendaCalendar
@@ -32,8 +38,13 @@ export function AgendaCalendarView({
       onToday={onTodayClick}
       getVisitDotColor={getVisitDotColor}
       viewMode={calendarViewMode}
-      showNavigation={calendarViewMode === 'month'}
+      showNavigation
       showTodayButton={dateFilter !== 'hoje'}
+      onSlotClick={onSlotClick}
+      onReschedule={onReschedule}
+      onResize={onResize}
+      onEventClick={onEventClick}
+      quickActions={quickActions}
     />
   )
 }

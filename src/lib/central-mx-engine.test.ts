@@ -30,6 +30,10 @@ const baseInput = {
     scheduleToVisit: 60,
     visitToSale: 33,
   },
+  inventory: {
+    total: 47,
+    agingOver90: 6,
+  },
   financial: {
     grossProfit: 220000,
     grossMarginPct: 16,
@@ -78,10 +82,12 @@ describe('central MX engine', () => {
     expect(engine.alerts.every(alert => alert.problem && alert.impact && alert.recommendation && alert.quickActionLabel)).toBe(true)
     expect(engine.actionPlanItems).toHaveLength(engine.alerts.length)
     expect(engine.actionPlanItems.every(item => item.department && item.indicator && item.problem && item.action && item.how && item.origin && item.priority)).toBe(true)
+    expect(engine.planningIndicators.find(item => item.code === 'inventory_total')?.realizado).toBe(47)
+    expect(engine.planningIndicators.find(item => item.code === 'inventory_over_90_days')?.realizado).toBe(6)
   })
 
   test('does not invent missing strategic values but still exposes every row for the annual table', () => {
-    const engine = buildCentralMxEngine({ ...baseInput, financial: null, previousYear: {} })
+    const engine = buildCentralMxEngine({ ...baseInput, inventory: null, financial: null, previousYear: {} })
     const inventory = engine.planningIndicators.find(item => item.code === 'inventory_total')
     const dre = engine.planningIndicators.find(item => item.code === 'dre_completion_rate')
 

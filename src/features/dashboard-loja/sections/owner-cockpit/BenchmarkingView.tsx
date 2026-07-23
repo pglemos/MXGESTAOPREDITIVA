@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Typography } from '@/components/atoms/Typography'
 import { Card } from '@/components/molecules/Card'
 import type { DashboardData } from './types'
@@ -15,22 +15,17 @@ export function BenchmarkingView({
   mxScore: number | null
   marginPercent: number | null
 }) {
-  const [region, setRegion] = useState('Sul')
-  const [size, setSize] = useState('Médio')
-  const [brand, setBrand] = useState('Todas')
-  const [segment, setSegment] = useState('Multimarcas')
+  const [peerGroup, setPeerGroup] = useState<CentralMxBenchmarkPeerGroup>('mercado')
   const salesBenchmark = useCentralMxBenchmark()
   const marginBenchmark = useCentralMxBenchmark()
   const funnelBenchmark = useCentralMxBenchmark()
 
-  const filterOptions = {
-    Região: { current: region, set: setRegion, options: ['Sul', 'Sudeste', 'Nordeste', 'Centro-Oeste', 'Norte'] },
-    'Porte da Loja': { current: size, set: setSize, options: ['Pequeno', 'Médio', 'Grande'] },
-    'Marca / Grupo': { current: brand, set: setBrand, options: ['Todas', 'Chevrolet', 'Fiat', 'Volkswagen'] },
-    Segmento: { current: segment, set: setSegment, options: ['Novos', 'Seminovos', 'Multimarcas'] },
-  }
-
-  const peerGroup: CentralMxBenchmarkPeerGroup = region !== 'Sul' ? 'regiao' : size !== 'Médio' ? 'porte' : segment !== 'Multimarcas' ? 'segmento' : 'mercado'
+  const peerOptions: Array<{ value: CentralMxBenchmarkPeerGroup; label: string }> = [
+    { value: 'mercado', label: 'Mercado geral' },
+    { value: 'regiao', label: 'Região da loja' },
+    { value: 'porte', label: 'Porte da loja' },
+    { value: 'segmento', label: 'Segmento da loja' },
+  ]
 
   useEffect(() => {
     const storeId = data.operationalStore?.id
@@ -41,7 +36,7 @@ export function BenchmarkingView({
       marginBenchmark.fetchBenchmark({ ...query, metricCode: 'gross_margin_pct' }),
       funnelBenchmark.fetchBenchmark({ ...query, metricCode: 'lead_to_schedule_rate' }),
     ])
-  }, [brand, data.operationalStore?.id, data.periodEndDate, funnelBenchmark.fetchBenchmark, marginBenchmark.fetchBenchmark, peerGroup, salesBenchmark.fetchBenchmark, segment, size, region])
+  }, [data.operationalStore?.id, data.periodEndDate, funnelBenchmark.fetchBenchmark, marginBenchmark.fetchBenchmark, peerGroup, salesBenchmark.fetchBenchmark])
 
   const benchmarkValue = (state: CentralMxBenchmarkState) => state.data?.peer_avg ?? null
   const bestValue = (state: CentralMxBenchmarkState) => state.data?.peer_top ?? null
@@ -59,7 +54,7 @@ export function BenchmarkingView({
       store: marginPercent, 
       group: benchmarkValue(marginBenchmark),
       best: bestValue(marginBenchmark),
-      status: marginPercent === null ? 'Pendente' : marginPercent >= 18 ? 'Bom' : 'Atenção' 
+      status: marginPercent === null || benchmarkValue(marginBenchmark) == null ? 'Pendente' : marginPercent >= benchmarkValue(marginBenchmark)! ? 'Bom' : 'Atenção'
     },
     { 
       label: 'Conversão Leads > Agendamento (%)', 
@@ -84,28 +79,32 @@ export function BenchmarkingView({
     },
   ]
 
-  const opportunities = useMemo(() => rows.filter(row => row.status === 'Atenção').map(row => row.label), [rows])
+  const opportunities = rows.filter(row => row.status === 'Atenção').map(row => row.label)
+  const benchmarkError = salesBenchmark.error || marginBenchmark.error || funnelBenchmark.error
+  const benchmarkLoading = salesBenchmark.loading || marginBenchmark.loading || funnelBenchmark.loading
 
   return (
     <div className="space-y-mx-md">
       <SectionTitle title="Benchmarking" subtitle={`Compare sua loja com dados reais do recorte ${peerGroup}.`} />
       <Card className="rounded-mx-2xl p-mx-lg">
-        <div className="grid grid-cols-1 gap-mx-sm md:grid-cols-4">
-          {Object.entries(filterOptions).map(([label, { current, set, options }]) => (
-            <div key={label} className="rounded-mx-xl border border-border-default bg-white px-mx-md py-mx-sm flex flex-col gap-1">
-              <Typography variant="tiny" tone="muted" className="block font-black uppercase text-xs">{label}</Typography>
-              <select
-                value={current}
-                onChange={(e) => set(e.target.value)}
-                className="mt-mx-xs w-full bg-transparent font-black text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary rounded-mx-md p-1 border border-border-subtle cursor-pointer"
-              >
-                {options.map((opt) => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
-            </div>
-          ))}
+        <div className="grid grid-cols-1 gap-mx-sm md:grid-cols-[minmax(0,320px)_1fr] md:items-end">
+          <label className="rounded-mx-xl border border-border-default bg-white px-mx-md py-mx-sm flex flex-col gap-1">
+            <Typography variant="tiny" tone="muted" className="block font-black uppercase text-xs">Grupo de comparação</Typography>
+            <select
+              aria-label="Grupo de comparação do benchmarking"
+              value={peerGroup}
+              onChange={(event) => setPeerGroup(event.target.value as CentralMxBenchmarkPeerGroup)}
+              className="mt-mx-xs w-full bg-transparent font-black text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary rounded-mx-md p-1 border border-border-subtle cursor-pointer"
+            >
+              {peerOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+          </label>
+          <Typography variant="p" tone="muted" className="text-sm font-bold">
+            O recorte usa o grupo persistido no snapshot da sua loja; detalhes individuais são ocultados quando houver menos de cinco lojas.
+          </Typography>
         </div>
+        {benchmarkLoading && <p role="status" className="mt-mx-sm text-sm font-bold text-text-tertiary">Atualizando comparação…</p>}
+        {benchmarkError && <p role="alert" className="mt-mx-sm rounded-mx-lg border border-status-error/30 bg-status-error-surface p-mx-sm text-sm font-bold text-status-error">Não foi possível carregar o benchmark: {benchmarkError}</p>}
       </Card>
       <div className="grid grid-cols-1 gap-mx-md xl:grid-cols-[minmax(0,1fr)_320px]">
         <Card className="rounded-mx-2xl p-mx-lg">

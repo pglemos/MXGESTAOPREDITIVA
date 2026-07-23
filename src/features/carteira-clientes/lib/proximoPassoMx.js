@@ -65,13 +65,22 @@ export function detectarCodigo(proximoPasso) {
   return PASSO_ALIASES[normalizarRotulo(proximoPasso)] || detectarCodigoBase(proximoPasso)
 }
 
+// getResultadosBase/aplicarTransicaoBase/getInstrucaoScriptBase resolvem o código
+// sozinhos por dentro, usando o detectarCodigo BASE (sem os aliases de vocabulário
+// legado acima). Sem normalizar pro rótulo oficial antes de delegar, um proximo_passo
+// salvo em vocabulário antigo nunca é reconhecido lá dentro.
+function rotuloCanonico(proximoPasso) {
+  const codigo = detectarCodigo(proximoPasso)
+  return codigo && BASE_PASSOS[codigo] ? BASE_PASSOS[codigo].label : proximoPasso
+}
+
 export function getResultados(proximoPasso) {
-  return detectarCodigo(proximoPasso) === 'PP18' ? RESULTADOS_PP18 : getResultadosBase(proximoPasso)
+  return detectarCodigo(proximoPasso) === 'PP18' ? RESULTADOS_PP18 : getResultadosBase(rotuloCanonico(proximoPasso))
 }
 
 export function aplicarTransicao(proximoPassoAtual, resultado) {
   if (detectarCodigo(proximoPassoAtual) !== 'PP18') {
-    const transition = aplicarTransicaoBase(proximoPassoAtual, resultado)
+    const transition = aplicarTransicaoBase(rotuloCanonico(proximoPassoAtual), resultado)
     if (transition.patch?.ativo !== false) return transition
     return {
       ...transition,
@@ -115,5 +124,5 @@ export function getInstrucaoScript(proximoPasso) {
   if (detectarCodigo(proximoPasso) === 'PP18') {
     return 'Tom objetivo e acolhedor. O financiamento foi aprovado; confirme a condição que falta para o cliente decidir e conduza para o fechamento sem pressionar.'
   }
-  return getInstrucaoScriptBase(proximoPasso)
+  return getInstrucaoScriptBase(rotuloCanonico(proximoPasso))
 }

@@ -1,4 +1,5 @@
 import { Box, CalendarCheck2, DollarSign, ShoppingCart } from 'lucide-react'
+import { countOwnerProjectionDays, toOwnerDateOnly, type OwnerProjectionMode } from '@/lib/owner-period'
 import type { OwnerPerformanceAlert } from '../PerformanceAlerts'
 import type { ActionRow, DashboardData, DepartmentScore } from './types'
 import { formatCurrency, formatInteger, formatPercent } from './format'
@@ -40,8 +41,9 @@ export function OwnerHome({
       : data.period === 'year'
         ? new Date(selectedEnd.getFullYear(), 11, 31, 12)
         : selectedEnd
-  const elapsedDays = Math.max(1, Math.floor((selectedEnd.getTime() - periodStart.getTime()) / 86400000) + 1)
-  const periodDays = Math.max(elapsedDays, Math.floor((horizonEnd.getTime() - periodStart.getTime()) / 86400000) + 1)
+  const projectionMode = (data.operationalMetaRules?.projection_mode || data.storeGoal?.projection_mode || 'calendar') as OwnerProjectionMode
+  const elapsedDays = Math.max(1, countOwnerProjectionDays(toOwnerDateOnly(periodStart), toOwnerDateOnly(selectedEnd), projectionMode))
+  const periodDays = Math.max(elapsedDays, countOwnerProjectionDays(toOwnerDateOnly(periodStart), toOwnerDateOnly(horizonEnd), projectionMode))
   const salesForecast = data.metrics.totalSales > 0 ? (data.metrics.totalSales / elapsedDays) * periodDays : 0
   const salesRunRate = data.metrics.totalSales / elapsedDays
   const dailyNeed = data.metrics.goalValue > 0 ? data.metrics.goalValue / periodDays : 0

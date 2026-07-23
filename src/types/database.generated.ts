@@ -1453,6 +1453,72 @@ export type Database = {
         }
         Relationships: []
       }
+      carteira_campanhas: {
+        Row: {
+          bonus_troca: number | null
+          created_at: string
+          created_by: string
+          descricao: string | null
+          fim_em: string | null
+          id: string
+          idempotency_key: string | null
+          inicio_em: string
+          loja_id: string
+          status: string
+          tipo: string
+          titulo: string
+          updated_at: string
+          valor_desconto: number | null
+        }
+        Insert: {
+          bonus_troca?: number | null
+          created_at?: string
+          created_by: string
+          descricao?: string | null
+          fim_em?: string | null
+          id?: string
+          idempotency_key?: string | null
+          inicio_em?: string
+          loja_id: string
+          status?: string
+          tipo: string
+          titulo: string
+          updated_at?: string
+          valor_desconto?: number | null
+        }
+        Update: {
+          bonus_troca?: number | null
+          created_at?: string
+          created_by?: string
+          descricao?: string | null
+          fim_em?: string | null
+          id?: string
+          idempotency_key?: string | null
+          inicio_em?: string
+          loja_id?: string
+          status?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+          valor_desconto?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carteira_campanhas_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "carteira_campanhas_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       carteira_empresa: {
         Row: {
           canal: string | null
@@ -6858,6 +6924,9 @@ export type Database = {
         Row: {
           canal: Database["public"]["Enums"]["crm_canal"] | null
           carro_avaliado: boolean
+          categoria_veiculo:
+            | Database["public"]["Enums"]["crm_categoria_veiculo"]
+            | null
           cliente_id: string
           closed_at: string | null
           created_at: string
@@ -6879,11 +6948,16 @@ export type Database = {
           updated_at: string
           updated_by: string | null
           valor_negociado: number
+          valor_troca: number | null
           veiculo_interesse: string | null
+          veiculo_troca: string | null
         }
         Insert: {
           canal?: Database["public"]["Enums"]["crm_canal"] | null
           carro_avaliado?: boolean
+          categoria_veiculo?:
+            | Database["public"]["Enums"]["crm_categoria_veiculo"]
+            | null
           cliente_id: string
           closed_at?: string | null
           created_at?: string
@@ -6905,11 +6979,16 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
           valor_negociado?: number
+          valor_troca?: number | null
           veiculo_interesse?: string | null
+          veiculo_troca?: string | null
         }
         Update: {
           canal?: Database["public"]["Enums"]["crm_canal"] | null
           carro_avaliado?: boolean
+          categoria_veiculo?:
+            | Database["public"]["Enums"]["crm_categoria_veiculo"]
+            | null
           cliente_id?: string
           closed_at?: string | null
           created_at?: string
@@ -6931,7 +7010,9 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
           valor_negociado?: number
+          valor_troca?: number | null
           veiculo_interesse?: string | null
+          veiculo_troca?: string | null
         }
         Relationships: [
           {
@@ -11394,6 +11475,7 @@ export type Database = {
       veiculos_estoque: {
         Row: {
           ano: string | null
+          categoria: Database["public"]["Enums"]["crm_categoria_veiculo"] | null
           created_at: string
           created_by: string
           data_entrada: string
@@ -11410,6 +11492,9 @@ export type Database = {
         }
         Insert: {
           ano?: string | null
+          categoria?:
+            | Database["public"]["Enums"]["crm_categoria_veiculo"]
+            | null
           created_at?: string
           created_by: string
           data_entrada?: string
@@ -11426,6 +11511,9 @@ export type Database = {
         }
         Update: {
           ano?: string | null
+          categoria?:
+            | Database["public"]["Enums"]["crm_categoria_veiculo"]
+            | null
           created_at?: string
           created_by?: string
           data_entrada?: string
@@ -12254,12 +12342,53 @@ export type Database = {
             }
             Returns: Json
           }
+      carteira_contexto_vendedor: {
+        Args: { p_acting_seller_user_id?: string; p_acting_store_id?: string }
+        Returns: {
+          store_id: string
+          user_id: string
+        }[]
+      }
       carteira_iniciar_missao: {
         Args: { p_idempotency_key?: string; p_payload: Json }
         Returns: Json
       }
       carteira_iniciar_missao_v2: {
         Args: { p_idempotency_key: string; p_payload: Json }
+        Returns: Json
+      }
+      carteira_listar_campanhas: {
+        Args: { p_acting_seller_user_id?: string; p_acting_store_id?: string }
+        Returns: {
+          bonus_troca: number | null
+          created_at: string
+          created_by: string
+          descricao: string | null
+          fim_em: string | null
+          id: string
+          idempotency_key: string | null
+          inicio_em: string
+          loja_id: string
+          status: string
+          tipo: string
+          titulo: string
+          updated_at: string
+          valor_desconto: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "carteira_campanhas"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      carteira_salvar_campanha: {
+        Args: {
+          p_acting_seller_user_id?: string
+          p_acting_store_id?: string
+          p_idempotency_key?: string
+          p_payload: Json
+        }
         Returns: Json
       }
       carteira_salvar_cliente: {
@@ -13074,6 +13203,22 @@ export type Database = {
           consultant_user_id: string
         }[]
       }
+      get_owner_consulting_program_summary: {
+        Args: { p_store_id: string }
+        Returns: {
+          client_id: string
+          client_modality: string
+          client_status: string
+          next_visit_meet_link: string
+          next_visit_number: number
+          next_visit_objective: string
+          next_visit_scheduled_at: string
+          program_key: string
+          program_name: string
+          total_visits: number
+          visits_completed: number
+        }[]
+      }
       get_pdi_form_template: { Args: { p_cargo_id: string }; Returns: Json }
       get_pdi_print_bundle: { Args: { p_sessao_id: string }; Returns: Json }
       get_prova_aula: { Args: { p_aula_id: string }; Returns: Json }
@@ -13657,6 +13802,15 @@ export type Database = {
         | "garantia"
         | "pos_venda"
       crm_canal: "carteira" | "internet" | "showroom" | "porta"
+      crm_categoria_veiculo:
+        | "hatch"
+        | "sedan"
+        | "suv"
+        | "picape"
+        | "minivan"
+        | "utilitario"
+        | "moto"
+        | "outro"
       crm_cliente_status:
         | "oportunidade"
         | "ativo"
@@ -13888,6 +14042,16 @@ export const Constants = {
         "pos_venda",
       ],
       crm_canal: ["carteira", "internet", "showroom", "porta"],
+      crm_categoria_veiculo: [
+        "hatch",
+        "sedan",
+        "suv",
+        "picape",
+        "minivan",
+        "utilitario",
+        "moto",
+        "outro",
+      ],
       crm_cliente_status: [
         "oportunidade",
         "ativo",

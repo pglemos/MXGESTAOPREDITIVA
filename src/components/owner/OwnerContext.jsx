@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
 import { useAuth } from "@/lib/owner-b44/AuthContext";
 import { useStores } from "@/hooks/useStores";
-import { resolveOwnerPeriodRange } from "@/lib/owner-period";
+import { resolveOwnerPeriodRange, toOwnerDateOnly } from "@/lib/owner-period";
 
 const OwnerContext = createContext(null);
 
@@ -19,9 +19,9 @@ export const OwnerProvider = ({ children }) => {
   const [period, setPeriod] = useState("month"); // month | quarter | year | custom
   const [customStart, setCustomStart] = useState(() => {
     const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+    return toOwnerDateOnly(new Date(now.getFullYear(), now.getMonth(), 1, 12));
   });
-  const [customEnd, setCustomEnd] = useState(() => new Date().toISOString().slice(0, 10));
+  const [customEnd, setCustomEnd] = useState(() => toOwnerDateOnly(new Date()));
   const [unitId, setUnitId] = useState("");
   const [consultantModal, setConsultantModal] = useState({ open: false, context: null });
 
@@ -58,6 +58,11 @@ export const OwnerProvider = ({ children }) => {
     window.dispatchEvent(new CustomEvent("owner:reload"));
   }, []);
 
+  const updateCustomStart = useCallback((nextStart) => {
+    setCustomStart(nextStart);
+    setCustomEnd((currentEnd) => currentEnd && currentEnd < nextStart ? nextStart : currentEnd);
+  }, []);
+
   const periodRange = useMemo(() => {
     return resolveOwnerPeriodRange(period, new Date(), customStart, customEnd);
   }, [customEnd, customStart, period]);
@@ -77,7 +82,7 @@ export const OwnerProvider = ({ children }) => {
     setPeriod,
     customStart,
     customEnd,
-    setCustomStart,
+    setCustomStart: updateCustomStart,
     setCustomEnd,
     periodRange,
     currentCompany: company,

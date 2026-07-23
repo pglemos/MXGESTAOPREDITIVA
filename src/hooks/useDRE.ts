@@ -56,27 +56,37 @@ export function useDRE(clientId?: string, storeId?: string) {
 
   // Bridge storeId to clientId if provided
   useEffect(() => {
+    let cancelled = false
     if (clientId) {
+      setFinancials([])
       setActiveClientId(clientId)
       return
     }
     
     if (storeId) {
+      setFinancials([])
       setLoading(true)
+      setError(null)
       supabase
         .from('clientes_consultoria')
         .select('id')
         .eq('primary_store_id', storeId)
         .maybeSingle()
         .then(({ data, error: bridgeError }) => {
-          if (data) {
+          if (cancelled) return
+          if (bridgeError) {
+            setActiveClientId(undefined)
+            setError('Não foi possível localizar o vínculo financeiro da loja.')
+            setLoading(false)
+          } else if (data) {
             setActiveClientId(data.id)
           } else {
             setActiveClientId(undefined)
-            if (!bridgeError) setLoading(false) // No client linked
+            setLoading(false) // No client linked
           }
         })
     }
+    return () => { cancelled = true }
   }, [clientId, storeId])
 
   const fetchFinancials = useCallback(async () => {
