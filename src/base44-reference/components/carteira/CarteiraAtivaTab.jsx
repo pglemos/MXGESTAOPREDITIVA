@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Search, Zap, FileText, Star, SlidersHorizontal, X } from "lucide-react";
 import moment from "moment";
