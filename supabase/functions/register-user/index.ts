@@ -26,6 +26,26 @@ function todayISO() {
   return new Date().toISOString().slice(0, 10)
 }
 
+async function findAuthUserByEmail(adminClient: SupabaseClient, email: string) {
+  const normalized = email.trim().toLowerCase()
+  let page = 1
+  const perPage = 1000
+
+  while (page < 50) {
+    const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage })
+    if (error) throw error
+
+    const users = data?.users || []
+    const found = users.find((user) => (user.email || '').toLowerCase() === normalized)
+    if (found) return found
+    if (users.length < perPage) return null
+
+    page += 1
+  }
+
+  return null
+}
+
 function jsonResponse(body: Record<string, unknown>, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -33,14 +53,14 @@ function jsonResponse(body: Record<string, unknown>, status = 200) {
   })
 }
 
-async function rollbackCreatedUser(adminClient: SupabaseClient, userId: string) {
+async function rollbackCreatedUser(adminClient: SupabaseClient, userId: string, deleteAuthUser = true) {
   const rollbackErrors: string[] = []
 
   const steps = [
     () => adminClient.from('vendedores_loja').delete().eq('seller_user_id', userId),
     () => adminClient.from('vinculos_loja').update({ is_active: false, ended_at: todayISO() }).eq('user_id', userId),
     () => adminClient.from('usuarios').delete().eq('id', userId),
-    () => adminClient.auth.admin.deleteUser(userId),
+    ...(deleteAuthUser ? [() => adminClient.auth.admin.deleteUser(userId)] : []),
   ]
 
   for (const step of steps) {
@@ -146,31 +166,71 @@ serve(async (req) => {
     }
   }
 
-  const { data: created, error: createError } = await adminClient.auth.admin.createUser({
-    email: email.trim().toLowerCase(),
-    password,
-    email_confirm: true,
-    user_metadata: {
-        name,
-        role,
-        phone: phone || null,
-        must_change_password: true,
-        is_venda_loja: is_venda_loja ?? false,
-      },
-  })
+  const normalizedEmail = email.trim().toLowerCase()
 
-  if (createError || !created?.user) {
-    return jsonResponse({ success: false, error: createError?.message || 'Failed to create auth user' }, 400)
+  const { data: existingProfile } = await adminClient
+    .from('usuarios')
+    .select('id')
+    .ilike('email', normalizedEmail)
+    .maybeSingle()
+
+  if (existingProfile) {
+    return jsonResponse({ success: false, error: 'Este e-mail já possui cadastro no sistema.' }, 409)
   }
 
-  const newUserId = created.user.id
+  let existingAuthUser: Awaited<ReturnType<typeof findAuthUserByEmail>> = null
+  try {
+    existingAuthUser = await findAuthUserByEmail(adminClient, normalizedEmail)
+  } catch (err) {
+    return jsonResponse({ success: false, error: err instanceof Error ? err.message : 'Não foi possível validar o e-mail no Auth.' }, 500)
+  }
+
+  const userMetadata = {
+    name,
+    role,
+    phone: phone || null,
+    must_change_password: true,
+    is_venda_loja: is_venda_loja ?? false,
+  }
+
+  let newUserId: string
+  let createdAuthUser = true
+
+  if (existingAuthUser) {
+    // Identidade órfã: existe em auth.users mas sem linha em usuarios (ex.: import antigo
+    // que falhou no meio do caminho). Em vez de barrar com "e-mail já registrado", adota
+    // a identidade existente e completa o cadastro nela.
+    createdAuthUser = false
+    newUserId = existingAuthUser.id
+    const { error: updateAuthError } = await adminClient.auth.admin.updateUserById(newUserId, {
+      password,
+      email_confirm: true,
+      user_metadata: userMetadata,
+    })
+    if (updateAuthError) {
+      return jsonResponse({ success: false, error: updateAuthError.message }, 500)
+    }
+  } else {
+    const { data: created, error: createError } = await adminClient.auth.admin.createUser({
+      email: normalizedEmail,
+      password,
+      email_confirm: true,
+      user_metadata: userMetadata,
+    })
+
+    if (createError || !created?.user) {
+      return jsonResponse({ success: false, error: createError?.message || 'Failed to create auth user' }, 400)
+    }
+
+    newUserId = created.user.id
+  }
 
   const { error: profileError } = await adminClient
     .from('usuarios')
     .upsert(
       {
         id: newUserId,
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         name,
         role,
         phone: phone || null,
@@ -182,7 +242,7 @@ serve(async (req) => {
     )
 
   if (profileError) {
-    await rollbackCreatedUser(adminClient, newUserId)
+    await rollbackCreatedUser(adminClient, newUserId, createdAuthUser)
     return jsonResponse({ success: false, error: `User created but profile insert failed: ${profileError.message}` }, 500)
   }
 
@@ -196,7 +256,7 @@ serve(async (req) => {
       )
 
     if (membershipError) {
-      await rollbackCreatedUser(adminClient, newUserId)
+      await rollbackCreatedUser(adminClient, newUserId, createdAuthUser)
       return jsonResponse({ success: false, error: `Profile created but membership insert failed: ${membershipError.message}` }, 500)
     }
     membershipCreated = true
@@ -217,7 +277,7 @@ serve(async (req) => {
         )
 
       if (tenureError) {
-        await rollbackCreatedUser(adminClient, newUserId)
+        await rollbackCreatedUser(adminClient, newUserId, createdAuthUser)
         return jsonResponse({ success: false, error: `Profile created but seller tenure insert failed: ${tenureError.message}` }, 500)
       }
     }

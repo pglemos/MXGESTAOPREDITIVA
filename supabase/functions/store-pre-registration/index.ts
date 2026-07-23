@@ -155,15 +155,15 @@ async function cleanupPendingUser(
   userId: string,
   storeId: string,
   avatarStoragePath: string | null,
-  deleteCreatedAuthUser = true,
+  deleteAuthUser = true,
 ) {
-  if (deleteCreatedAuthUser) {
-    await adminClient.from('vendedores_loja').delete().eq('seller_user_id', userId).eq('store_id', storeId)
-    await adminClient.from('vinculos_loja').update({ is_active: false, ended_at: new Date().toISOString().slice(0, 10) }).eq('user_id', userId).eq('store_id', storeId)
-    await adminClient.from('usuarios').delete().eq('id', userId)
-  }
+  await adminClient.from('vendedores_loja').delete().eq('seller_user_id', userId).eq('store_id', storeId)
+  await adminClient.from('vinculos_loja').update({ is_active: false, ended_at: new Date().toISOString().slice(0, 10) }).eq('user_id', userId).eq('store_id', storeId)
+  await adminClient.from('usuarios').delete().eq('id', userId)
   if (avatarStoragePath) await adminClient.storage.from('pre-cadastro-avatares').remove([avatarStoragePath])
-  if (deleteCreatedAuthUser) await adminClient.auth.admin.deleteUser(userId)
+  // Identidade órfã adotada (auth.users pré-existente sem linha em usuarios): nunca deletar
+  // o auth user nesse caso, só o que criamos nesta chamada (profile/vínculo/avatar acima).
+  if (deleteAuthUser) await adminClient.auth.admin.deleteUser(userId)
 }
 
 serve(async (req) => {
@@ -331,7 +331,12 @@ serve(async (req) => {
     }, 409)
   }
 
-  if (existingUser || existingAuthUser) {
+  // Identidade órfã: existe em auth.users mas sem linha em usuarios (ex.: import antigo que
+  // nunca completou o perfil). Não é um cadastro real em uso — adota a identidade em vez de
+  // barrar o pré-cadastro com "e-mail já existe".
+  const isOrphanAuthUser = !existingUser && Boolean(existingAuthUser)
+
+  if ((existingUser || existingAuthUser) && !isOrphanAuthUser) {
     let reactivated = false
     if (
       existingUser &&
@@ -366,7 +371,7 @@ serve(async (req) => {
   }
 
   let userId = ''
-  const createdAuthUser = true
+  let createdAuthUser = true
 
   const userMetadata = {
     name: fullName,
@@ -377,22 +382,36 @@ serve(async (req) => {
   }
 
   const temporaryPassword = generateTemporaryPassword()
-  const { data: createdUser, error: createUserError } = await adminClient.auth.admin.createUser({
-    email,
-    password: temporaryPassword,
-    email_confirm: true,
-    user_metadata: userMetadata,
-  })
 
-  if (createUserError || !createdUser.user) {
+  if (isOrphanAuthUser) {
+    createdAuthUser = false
+    userId = existingAuthUser.id
+    const { error: updateAuthError } = await adminClient.auth.admin.updateUserById(userId, {
+      password: temporaryPassword,
+      email_confirm: true,
+      user_metadata: userMetadata,
+    })
+    if (updateAuthError) {
+      return jsonResponse({ success: false, error: updateAuthError.message }, 500)
+    }
+  }
+
+  const { data: createdUser, error: createUserError } = isOrphanAuthUser
+    ? { data: null, error: null }
+    : await adminClient.auth.admin.createUser({
+        email,
+        password: temporaryPassword,
+        email_confirm: true,
+        user_metadata: userMetadata,
+      })
+
+  if (!isOrphanAuthUser && (createUserError || !createdUser?.user)) {
     const createMessage = createUserError?.message?.toLowerCase() || ''
     let existingAuthAfterRace: any = null
-    if (createUserError || !createdUser.user) {
-      try {
-        existingAuthAfterRace = await findAuthUserByEmail(adminClient, email)
-      } catch {
-        existingAuthAfterRace = null
-      }
+    try {
+      existingAuthAfterRace = await findAuthUserByEmail(adminClient, email)
+    } catch {
+      existingAuthAfterRace = null
     }
     if (existingAuthAfterRace || createMessage.includes('already') || createMessage.includes('exists') || createMessage.includes('registered') || createMessage.includes('database error creating new user')) {
       return jsonResponse({
@@ -406,7 +425,9 @@ serve(async (req) => {
     return jsonResponse({ success: false, error: createUserError?.message || 'Não foi possível criar o login provisório.' }, 500)
   }
 
-  userId = createdUser.user.id
+  if (!isOrphanAuthUser) {
+    userId = createdUser!.user!.id
+  }
 
   let avatarUrl: string | null = null
   let avatarStoragePath: string | null = null

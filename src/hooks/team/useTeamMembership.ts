@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { resolveFunctionInvokeError, supabase } from '@/lib/supabase'
 import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
 import {
   isInternalRole,
@@ -70,7 +70,7 @@ export function useTeamMembership({
       await refetchMembers()
       return { error: null }
     }
-    return { error: error?.message || response?.error || 'Erro ao alterar vigência.' }
+    return { error: await resolveFunctionInvokeError(error, response, 'Erro ao alterar vigência.') }
   }
 
   const updateTeamMember = async (userId: string, updates: TeamMemberUpdateFields) => {
@@ -100,7 +100,7 @@ export function useTeamMembership({
       await refetchMembers()
       return { error: null }
     }
-    return { error: error?.message || data?.error || 'Erro ao editar integrante.' }
+    return { error: await resolveFunctionInvokeError(error, data, 'Erro ao editar integrante.') }
   }
 
   const deleteTeamMember = async (userId: string, targetStoreId?: string | null) => {
@@ -120,7 +120,7 @@ export function useTeamMembership({
       await refetchMembers()
       return { error: null }
     }
-    return { error: error?.message || data?.error || 'Erro ao excluir integrante.' }
+    return { error: await resolveFunctionInvokeError(error, data, 'Erro ao excluir integrante.') }
   }
 
   return { updateVigencia, updateTeamMember, deleteTeamMember }

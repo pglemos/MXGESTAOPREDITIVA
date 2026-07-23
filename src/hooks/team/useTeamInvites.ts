@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { resolveFunctionInvokeError, supabase } from '@/lib/supabase'
 import { isAdministradorMx, useAuth } from '@/hooks/useAuth'
 import type { RegisterUserInput } from './types'
 
@@ -28,7 +28,7 @@ export function useTeamInvites({ refetchMembers }: UseTeamInvitesInput): UseTeam
       await refetchMembers()
       return { success: true }
     }
-    return { error: error?.message || data?.error || 'Erro desconhecido' }
+    return { error: await resolveFunctionInvokeError(error, data, 'Erro ao criar integrante.') }
   }
 
   return { registerUser }

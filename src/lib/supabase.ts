@@ -57,6 +57,39 @@ export function checkSupabaseCredentials(url?: string, anonKey?: string): boolea
     return true
 }
 
+/**
+ * Extrai a mensagem real de erro de uma chamada `supabase.functions.invoke`.
+ *
+ * Quando a Edge Function responde com status não-2xx, o supabase-js lança
+ * FunctionsHttpError com `.message` genérico ("Edge Function returned a
+ * non-2xx status code") — o corpo JSON real (com o motivo de negócio) fica em
+ * `error.context`, uma Response ainda não lida.
+ */
+export async function resolveFunctionInvokeError(
+    error: unknown,
+    data: unknown,
+    fallback = 'Erro desconhecido',
+): Promise<string> {
+    const dataError = (data as { error?: string } | null)?.error
+    if (dataError) return dataError
+
+    if (error && typeof error === 'object') {
+        const context = (error as { context?: unknown }).context
+        if (context instanceof Response) {
+            try {
+                const body = await context.clone().json()
+                if (body?.error) return body.error
+            } catch {
+                // corpo não é JSON ou já foi consumido — segue pro fallback
+            }
+        }
+        const message = (error as { message?: string }).message
+        if (message) return message
+    }
+
+    return fallback
+}
+
 // Bloqueio inicial para evitar falhas silenciosas difíceis de diagnosticar
 if (!supabaseUrl || !supabaseAnonKey) {
     checkSupabaseCredentials(supabaseUrl, supabaseAnonKey)
