@@ -340,6 +340,7 @@ export default function CarteiraAtivaTab({ clientes, onNovoCliente, onWhatsApp, 
     { id: "amanha",label: "Prioridade Amanhã",            sublabel: "próximas ações",       filtro: filtrarAmanha,  vazio: "Nenhuma prioridade programada para amanhã." },
     { id: "d2",    label: `Prioridade ${diaDaSemana(2)}`, sublabel: "ações programadas",   filtro: filtrarDia(2),  vazio: "Nenhuma prioridade programada para este dia." },
     { id: "d3",    label: `Prioridade ${diaDaSemana(3)}`, sublabel: "ações programadas",   filtro: filtrarDia(3),  vazio: "Nenhuma prioridade programada para este dia." },
+    { id: "compraram", label: "Compraram",                sublabel: "vendas realizadas",    filtro: c => c.situacao_atual === "Venda realizada" || c.status_comercial === "Vendido" || c.sale_status === "Sim" || c.momento === "Venda realizada", vazio: "Nenhum cliente com venda realizada." },
     { id: "todos", label: "Ver Todos",                    sublabel: "lista por prioridade", filtro: () => true,     vazio: "Nenhum cliente ativo no momento." },
   ], []);
 
@@ -348,25 +349,48 @@ export default function CarteiraAtivaTab({ clientes, onNovoCliente, onWhatsApp, 
   const [filtrosPanelOpen, setFiltrosPanelOpen] = useState(false);
   const [filtrosAvancados, setFiltrosAvancados] = useState({});
 
-  const clientesAtivos = useMemo(() =>
-    clientes.filter(c => {
+  const isComprador = useCallback(c => {
+    const s = c.situacao_atual || c.momento || "";
+    return s === "Venda realizada" || c.status_comercial === "Vendido" || c.sale_status === "Sim" || s === "Comprou" || s === "ganho";
+  }, []);
+
+  const counts = useMemo(() => {
+    const activeN = clientes.filter(c => {
       const s = c.situacao_atual || c.momento || "";
-      return c.ativo !== false && !["Venda perdida", "Cadência encerrada", "Venda realizada"].includes(s);
-    }),
-    [clientes]
-  );
+      return c.ativo !== false && !isComprador(c) && !["Venda perdida", "Cadência encerrada"].includes(s);
+    });
+    return {
+      hoje: activeN.filter(CARDS[0].filtro).length,
+      amanha: activeN.filter(CARDS[1].filtro).length,
+      d2: activeN.filter(CARDS[2].filtro).length,
+      d3: activeN.filter(CARDS[3].filtro).length,
+      compraram: clientes.filter(isComprador).length,
+      todos: clientes.filter(c => c.ativo !== false).length,
+    };
+  }, [clientes, CARDS, isComprador]);
 
   const cardConfig = useMemo(() => CARDS.find(c => c.id === cardAtivo) || CARDS[0], [cardAtivo, CARDS]);
 
   const clientesFiltrados = useMemo(() => {
-    let lista = clientesAtivos.filter(cardConfig.filtro);
+    let lista = clientes;
+    if (cardAtivo === "compraram") {
+      lista = lista.filter(isComprador);
+    } else if (cardAtivo === "todos") {
+      lista = lista.filter(c => c.ativo !== false);
+    } else {
+      lista = lista.filter(c => {
+        const s = c.situacao_atual || c.momento || "";
+        return c.ativo !== false && !isComprador(c) && !["Venda perdida", "Cadência encerrada"].includes(s);
+      }).filter(cardConfig.filtro);
+    }
+
     if (busca) lista = lista.filter(c =>
       c.nome?.toLowerCase().includes(busca.toLowerCase()) ||
       c.whatsapp?.includes(busca) || c.telefone?.includes(busca)
     );
     lista = aplicarFiltrosAvancados(lista, filtrosAvancados);
     return cardAtivo === "hoje" ? ordenarHoje(lista) : ordenarGeral(lista);
-  }, [clientesAtivos, cardConfig, busca, filtrosAvancados, cardAtivo]);
+  }, [clientes, cardConfig, busca, filtrosAvancados, cardAtivo, isComprador]);
 
   function removerFiltro(key) {
     const [campo, valor] = key.split(":");
@@ -411,9 +435,9 @@ export default function CarteiraAtivaTab({ clientes, onNovoCliente, onWhatsApp, 
       </div>
 
       {/* Cards de agenda */}
-      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
         {CARDS.map(card => {
-          const count = card.id === "todos" ? clientesAtivos.length : clientesAtivos.filter(card.filtro).length;
+          const count = counts[card.id] ?? 0;
           const ativo = cardAtivo === card.id;
           return (
             <button key={card.id} onClick={() => setCardAtivo(card.id)}

@@ -379,14 +379,46 @@ export const base44 = {
     CarteiraCliente: {
       filter: async (filter, order, limit) => {
         const me = await base44.auth.me();
-        const { data: clients } = await supabase
+        let query = supabase
           .from('clientes')
-          .select('*, oportunidades(*), agendamentos(*)')
-          .eq('seller_user_id', me.id);
+          .select('*, oportunidades(*), agendamentos(*)');
+
+        if (me.role === 'vendedor') {
+          query = query.eq('seller_user_id', me.id);
+        } else if (me.role === 'gerente') {
+          const storeId = await resolveStoreId(supabase, me.id);
+          if (storeId) {
+            query = query.eq('loja_id', storeId);
+          }
+        }
+
+        if (filter?.seller_user_id) {
+          query = query.eq('seller_user_id', filter.seller_user_id);
+        } else if (filter?.vendedor_id) {
+          query = query.eq('seller_user_id', filter.vendedor_id);
+        }
+
+        const { data: clients } = await query;
 
         const mapped = (clients || []).map(r => {
           const op = r.oportunidades?.[0] || {};
           const agd = r.agendamentos?.[0] || {};
+
+          const isGanho = op.etapa === 'ganho' || r.situacao_atual === 'Venda realizada' || r.status_comercial === 'Vendido' || r.status === 'ganho';
+          const isPerdido = op.etapa === 'perdido' || r.situacao_atual === 'Venda perdida' || r.status === 'inativo';
+
+          const situacaoMapped = isGanho
+            ? 'Venda realizada'
+            : isPerdido
+            ? 'Venda perdida'
+            : op.etapa || r.situacao_atual || 'prospeccao';
+
+          const statusComercialMapped = isGanho
+            ? 'Vendido'
+            : isPerdido
+            ? 'Perdido'
+            : 'Em Negociação';
+
           return {
             id: r.id,
             vendedor_id: r.seller_user_id,
@@ -398,14 +430,14 @@ export const base44 = {
             canal_comercial: r.canal_origem || 'Carteira',
             canal_entrada: r.canal_origem || 'Carteira',
             canal_venda: op.canal || r.canal_origem || 'Carteira',
-            status_comercial: op.etapa === 'ganho' ? 'Vendido' : op.etapa === 'perdido' ? 'Perdido' : 'Em Negociação',
-            situacao_atual: op.etapa || 'prospeccao',
+            status_comercial: statusComercialMapped,
+            situacao_atual: situacaoMapped,
             veiculo_interesse: op.veiculo_interesse || '',
             valor_negociado: op.valor_negociado || 0,
             sinal: op.sinal || 0,
             financiamento: op.financiamento || 'Não se aplica',
             carro_avaliado: op.carro_avaliado ? 'Sim' : 'Não',
-            data_venda: op.closed_at,
+            data_venda: op.closed_at || r.updated_at,
             valor_venda: op.valor_negociado || 0,
             veiculo_comprado: op.veiculo_interesse || '',
             ativo: r.status !== 'inativo',
@@ -417,12 +449,12 @@ export const base44 = {
             // Base44 translated keys
             name: r.nome,
             phone: r.telefone,
-            sale_status: op.etapa === 'ganho' ? 'Sim' : op.etapa === 'perdido' ? 'Não' : 'Em Negociação',
+            sale_status: isGanho ? 'Sim' : isPerdido ? 'Não' : 'Em Negociação',
             appointment_datetime: agd.data_hora || r.proxima_acao_em,
             vehicle_sought: op.veiculo_interesse || '',
             birth_date: null,
             dataAniversario: null,
-            momento: op.etapa || 'prospeccao'
+            momento: situacaoMapped
           };
         });
 

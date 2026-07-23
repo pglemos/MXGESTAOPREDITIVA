@@ -282,7 +282,7 @@ export default function App() {
                 </Suspense>} />
                 <Route path="liberacao-fechamento" element={<Suspense fallback={<Spinner />}><LiberacaoFechamento /></Suspense>} />
                 <Route path="carteira-clientes" element={<Suspense fallback={<Spinner />}>
-                  <RoleSwitch vendedor={<CarteiraClientes />} gerente={<ForbiddenRoute />} dono={<ForbiddenRoute />} admin={<ForbiddenRoute />} />
+                  <RoleSwitch vendedor={<CarteiraClientes />} gerente={<CarteiraClientes />} dono={<CarteiraClientes />} admin={<CarteiraClientes />} />
                 </Suspense>} />
                 <Route path="carteira" element={<RedirectWithSearch to="/carteira-clientes" />} />
                 <Route path="vendedor/carteira" element={<RedirectWithSearch to="/carteira-clientes" />} />
