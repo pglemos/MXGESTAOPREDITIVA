@@ -30,16 +30,18 @@ export function MonthGrid({
   onEventClick,
 }: MonthGridProps) {
   return (
-    <div className="overflow-hidden rounded-mx-lg border border-border-strong bg-white">
-      <div className="grid grid-cols-7 border-b border-border-strong bg-white">
+    <div className="overflow-hidden rounded-mx-lg border border-border-strong bg-white shadow-2xs">
+      {/* Weekday Labels Header */}
+      <div className="grid grid-cols-7 border-b border-border-strong bg-surface-alt/40 select-none">
         {WEEKDAY_LABELS.map((label) => (
-          <div key={label} className="border-r border-border-default py-mx-xs text-center last:border-r-0 sm:py-mx-sm">
-            <Typography variant="tiny" tone="muted" className="text-[10px] font-semibold uppercase tracking-normal">{label}</Typography>
+          <div key={label} className="border-r border-border-default py-1.5 text-center last:border-r-0">
+            <Typography variant="tiny" tone="muted" className="text-[10px] font-bold uppercase tracking-wider">{label}</Typography>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7">
+      {/* 6-Week Month Day Grid */}
+      <div className="grid grid-cols-7 auto-rows-fr">
         {days.map((dayInfo) => {
           const dateKey = format(dayInfo.date, 'yyyy-MM-dd')
           const dayVisits = [...(visitsByDate[dateKey] || [])].sort(
@@ -65,24 +67,26 @@ export function MonthGrid({
                 if (dayInfo.isCurrentMonth) onDateClick?.(dayInfo.date)
               }}
               className={cn(
-                'relative flex min-h-mx-24 flex-col items-start gap-mx-xs border-b border-r border-border-subtle p-mx-xs text-left transition-colors overflow-hidden sm:min-h-mx-32',
-                !dayInfo.isCurrentMonth && 'bg-surface-alt/60 text-text-tertiary',
-                dayInfo.isCurrentMonth && 'hover:bg-surface-alt cursor-pointer',
-                isSelected && 'bg-mx-green-50 ring-1 ring-brand-primary/30 ring-inset',
-                isTodayDate && !isSelected && 'bg-mx-green-50/50',
+                'relative flex min-h-[90px] md:min-h-[105px] flex-col items-start gap-1 border-b border-r border-border-subtle p-1.5 text-left transition-colors',
+                !dayInfo.isCurrentMonth && 'bg-surface-alt/40 text-text-tertiary/40',
+                dayInfo.isCurrentMonth && 'hover:bg-surface-alt/50',
+                isSelected && 'bg-brand-primary/10 ring-1 ring-brand-primary ring-inset',
+                isTodayDate && !isSelected && 'bg-brand-primary/5',
               )}
             >
+              {/* Day Number Badge */}
               <span className={cn(
-                'flex h-mx-lg min-w-mx-lg items-center justify-center rounded-mx-full px-2 text-xs font-semibold',
-                isTodayDate && 'bg-brand-primary text-white',
+                'flex h-6 min-w-6 items-center justify-center rounded-full text-xs font-bold transition-all',
+                isTodayDate && 'bg-brand-primary text-white shadow-2xs',
                 !isTodayDate && dayInfo.isCurrentMonth && 'text-text-primary',
-                !dayInfo.isCurrentMonth && 'text-text-tertiary',
+                !dayInfo.isCurrentMonth && 'text-text-tertiary/40',
               )}>
                 {dayInfo.day}
               </span>
 
+              {/* Day Events List */}
               {hasVisits && (
-                <div className="flex w-full flex-col gap-mx-tiny">
+                <div className="flex w-full flex-col gap-0.5 overflow-hidden">
                   {dayVisits.slice(0, 3).map((item) => (
                     <AgendaEventCompactChip
                       key={`${item.kind}-${item.id}`}
@@ -92,7 +96,7 @@ export function MonthGrid({
                     />
                   ))}
                   {dayVisits.length > 3 && (
-                    <Typography variant="tiny" className="px-1 text-[11px] font-semibold leading-none text-text-secondary">
+                    <Typography variant="tiny" className="px-1 text-[10px] font-bold leading-none text-brand-primary hover:underline">
                       +{dayVisits.length - 3} mais
                     </Typography>
                   )}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { format, isSameDay, isToday, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Card } from '@/components/molecules/Card'
@@ -24,6 +24,7 @@ export function AgendaAdmin() {
   const [calendarViewMode, setCalendarViewMode] = useState<AdminCalendarViewMode>('week')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
   const {
     visitReasonOptions: agendaVisitReasonOptions,
@@ -50,6 +51,19 @@ export function AgendaAdmin() {
     createScheduleEvent, updateScheduleEvent, deleteScheduleEvent,
     getNextVisitNumber,
   })
+
+  // Synchronize view mode with date filter updates
+  useEffect(() => {
+    setCalendarViewMode(
+      dateFilter === 'hoje'
+        ? 'day'
+        : dateFilter === 'semana' || dateFilter === 'proxima_semana'
+          ? 'week'
+          : dateFilter === 'mes'
+            ? 'month'
+            : 'list',
+    )
+  }, [dateFilter])
 
   // Global Keyboard Shortcuts (T: Today, D: Day, W: Week, M: Month, L: List)
   useEffect(() => {
@@ -145,10 +159,10 @@ export function AgendaAdmin() {
     [selectedDate, searchFilteredEvents],
   )
 
-  const hasEventsOnDate = useCallback((date: Date) => {
+  const hasEventsOnDate = (date: Date) => {
     const key = format(date, 'yyyy-MM-dd')
     return Boolean(visitsByDate[key] && visitsByDate[key].length > 0)
-  }, [visitsByDate])
+  }
 
   const productSelectOptions = useMemo(() => {
     const names = new Set(products.map((p) => p.name).filter(Boolean))
@@ -341,7 +355,8 @@ export function AgendaAdmin() {
       {/* Active Filters Banner if active */}
       <AgendaErrorBoundary sectionName="filters">
         <AgendaFiltersBar
-          activeFilters={activeFilters} clearFilters={clearFilters}
+          activeFilters={activeFilters}
+          clearFilters={clearFilters}
         />
       </AgendaErrorBoundary>
 
@@ -366,6 +381,8 @@ export function AgendaAdmin() {
           onStatusChange={setStatusFilter}
           metrics={metrics}
           canViewAllAgendas={canViewAllAgendas}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         />
 
         {/* Center Main Calendar View */}
@@ -404,7 +421,7 @@ export function AgendaAdmin() {
           <div className="mt-4 flex items-center justify-between border-t border-border-default pt-3">
             <GoogleCalendarStatus compact />
             <span className="text-[10px] text-text-tertiary font-mono hidden md:inline">
-              Atalhos: [T] Hoje • [D] Dia • [W] Semana • [M] Mês • [L] Lista
+              Atalhos: [T] Hoje • [D] Dia • [W] Semana • [M] Mês • [L] Lista • [/] Buscar
             </span>
           </div>
         </div>

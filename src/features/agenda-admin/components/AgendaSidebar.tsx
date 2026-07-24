@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Calendar, Users, CheckCircle2, Clock, PlayCircle, XCircle, ChevronDown, ChevronUp } from 'lucide-react'
+import { Calendar, Users, CheckCircle2, Clock, PlayCircle, XCircle, ChevronDown, ChevronUp, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { AgendaConsultant } from '@/hooks/agenda'
 import { MiniCalendar } from './MiniCalendar'
@@ -23,6 +23,8 @@ interface AgendaSidebarProps {
   onStatusChange: (status: string) => void
   metrics: Metrics
   canViewAllAgendas: boolean
+  isCollapsed?: boolean
+  onToggleCollapse?: () => void
 }
 
 export function AgendaSidebar({
@@ -36,6 +38,8 @@ export function AgendaSidebar({
   onStatusChange,
   metrics,
   canViewAllAgendas,
+  isCollapsed = false,
+  onToggleCollapse,
 }: AgendaSidebarProps) {
   const [consultantsExpanded, setConsultantsExpanded] = useState(true)
 
@@ -47,8 +51,40 @@ export function AgendaSidebar({
     { key: 'cancelada', label: 'Canceladas', count: metrics.canceladas, color: 'bg-status-error', icon: XCircle },
   ]
 
+  if (isCollapsed) {
+    return (
+      <div className="hidden lg:flex flex-col items-center gap-3 w-10 shrink-0 py-1">
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          title="Expandir painel lateral"
+          className="flex h-8 w-8 items-center justify-center rounded-mx-lg border border-border-strong bg-white text-text-secondary hover:bg-surface-alt hover:text-text-primary transition-colors shadow-2xs"
+        >
+          <PanelLeftOpen size={16} />
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex flex-col gap-3 w-full lg:w-56 shrink-0">
+    <div className="flex flex-col gap-3 w-full lg:w-56 shrink-0 transition-all">
+      {/* Toggle Collapse Bar */}
+      <div className="hidden lg:flex items-center justify-between px-1">
+        <span className="text-[10px] font-extrabold uppercase tracking-wider text-text-tertiary">
+          Painel Lateral
+        </span>
+        {onToggleCollapse && (
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            title="Recolher painel lateral"
+            className="flex h-6 w-6 items-center justify-center rounded-mx-md text-text-tertiary hover:bg-surface-alt hover:text-text-primary transition-colors"
+          >
+            <PanelLeftClose size={15} />
+          </button>
+        )}
+      </div>
+
       {/* Interactive Mini Calendar */}
       <MiniCalendar
         selectedDate={selectedDate}
@@ -57,7 +93,7 @@ export function AgendaSidebar({
       />
 
       {/* Status Filters - Compact */}
-      <div className="rounded-mx-xl border border-border-strong bg-white p-3 shadow-sm">
+      <div className="rounded-mx-xl border border-border-strong bg-white p-3 shadow-2xs">
         <h4 className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary mb-2">
           Status
         </h4>
@@ -96,7 +132,7 @@ export function AgendaSidebar({
 
       {/* Consultant Filter - Collapsible */}
       {canViewAllAgendas && consultants.length > 0 && (
-        <div className="rounded-mx-xl border border-border-strong bg-white p-3 shadow-sm">
+        <div className="rounded-mx-xl border border-border-strong bg-white p-3 shadow-2xs">
           <button
             type="button"
             onClick={() => setConsultantsExpanded(!consultantsExpanded)}
