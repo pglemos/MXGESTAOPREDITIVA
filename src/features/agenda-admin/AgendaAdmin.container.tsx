@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { format, isSameDay, isToday, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Card } from '@/components/molecules/Card'
@@ -50,19 +50,6 @@ export function AgendaAdmin() {
     createScheduleEvent, updateScheduleEvent, deleteScheduleEvent,
     getNextVisitNumber,
   })
-
-  // Synchronize view mode with date filter updates
-  useEffect(() => {
-    setCalendarViewMode(
-      dateFilter === 'hoje'
-        ? 'day'
-        : dateFilter === 'semana' || dateFilter === 'proxima_semana'
-          ? 'week'
-          : dateFilter === 'mes'
-            ? 'month'
-            : 'list',
-    )
-  }, [dateFilter])
 
   // Global Keyboard Shortcuts (T: Today, D: Day, W: Week, M: Month, L: List)
   useEffect(() => {
@@ -158,10 +145,10 @@ export function AgendaAdmin() {
     [selectedDate, searchFilteredEvents],
   )
 
-  const hasEventsOnDate = (date: Date) => {
+  const hasEventsOnDate = useCallback((date: Date) => {
     const key = format(date, 'yyyy-MM-dd')
     return Boolean(visitsByDate[key] && visitsByDate[key].length > 0)
-  }
+  }, [visitsByDate])
 
   const productSelectOptions = useMemo(() => {
     const names = new Set(products.map((p) => p.name).filter(Boolean))
@@ -354,12 +341,7 @@ export function AgendaAdmin() {
       {/* Active Filters Banner if active */}
       <AgendaErrorBoundary sectionName="filters">
         <AgendaFiltersBar
-          dateFilter={dateFilter} setDateFilter={setDateFilter}
-          statusFilter={statusFilter} setStatusFilter={setStatusFilter}
-          consultantFilter={consultantFilter} setConsultantFilter={setConsultantFilter}
           activeFilters={activeFilters} clearFilters={clearFilters}
-          consultants={consultants} canViewAllAgendas={canViewAllAgendas}
-          calendarViewMode={calendarViewMode} setCalendarViewMode={setCalendarViewMode}
         />
       </AgendaErrorBoundary>
 
@@ -422,7 +404,7 @@ export function AgendaAdmin() {
           <div className="mt-4 flex items-center justify-between border-t border-border-default pt-3">
             <GoogleCalendarStatus compact />
             <span className="text-[10px] text-text-tertiary font-mono hidden md:inline">
-              Atalhos: [T] Hoje • [D] Dia • [W] Semana • [M] Mês • [L] Lista • [/] Buscar
+              Atalhos: [T] Hoje • [D] Dia • [W] Semana • [M] Mês • [L] Lista
             </span>
           </div>
         </div>

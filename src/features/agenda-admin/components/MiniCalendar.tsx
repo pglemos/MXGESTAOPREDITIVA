@@ -53,7 +53,7 @@ export function MiniCalendar({ selectedDate, onDateSelect, hasEventsOnDate }: Mi
       <div className="grid grid-cols-7 mb-1 text-center">
         {weekDays.map((day) => (
           <span key={day} className="text-[10px] font-semibold text-text-tertiary uppercase">
-            {day[0]}
+            {day}
           </span>
         ))}
       </div>

@@ -1,24 +1,12 @@
 import { Filter, X } from 'lucide-react'
-import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
-import type { AgendaConsultant, DateFilter } from '@/hooks/agenda'
 import type { CalendarViewMode } from '@/components/organisms/AgendaCalendar'
 
 export type AdminCalendarViewMode = CalendarViewMode | 'list'
 
 interface AgendaFiltersBarProps {
-  dateFilter: DateFilter
-  setDateFilter: (value: DateFilter) => void
-  statusFilter: string
-  setStatusFilter: (value: string) => void
-  consultantFilter: string
-  setConsultantFilter: (value: string) => void
   activeFilters: number
   clearFilters: () => void
-  consultants: AgendaConsultant[]
-  canViewAllAgendas: boolean
-  calendarViewMode: AdminCalendarViewMode
-  setCalendarViewMode: (value: AdminCalendarViewMode) => void
 }
 
 export function AgendaFiltersBar({

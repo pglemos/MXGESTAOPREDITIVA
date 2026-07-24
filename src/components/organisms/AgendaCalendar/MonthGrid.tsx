@@ -65,9 +65,9 @@ export function MonthGrid({
                 if (dayInfo.isCurrentMonth) onDateClick?.(dayInfo.date)
               }}
               className={cn(
-                'relative flex min-h-mx-24 flex-col items-start gap-mx-xs border-b border-r border-border-subtle p-mx-xs text-left transition-colors sm:min-h-mx-32',
+                'relative flex min-h-mx-24 flex-col items-start gap-mx-xs border-b border-r border-border-subtle p-mx-xs text-left transition-colors overflow-hidden sm:min-h-mx-32',
                 !dayInfo.isCurrentMonth && 'bg-surface-alt/60 text-text-tertiary',
-                dayInfo.isCurrentMonth && 'hover:bg-surface-alt',
+                dayInfo.isCurrentMonth && 'hover:bg-surface-alt cursor-pointer',
                 isSelected && 'bg-mx-green-50 ring-1 ring-brand-primary/30 ring-inset',
                 isTodayDate && !isSelected && 'bg-mx-green-50/50',
               )}

@@ -108,7 +108,7 @@ export default function OwnerTopbar({ lastUpdated, onOpenSidebar }) {
         <Button variant="ghost" size="icon" onClick={reload} aria-label="Atualizar dados">
           <RefreshCw className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="icon" className="relative" aria-label="Notificações">
+        <Button variant="ghost" size="icon" className="relative" aria-label="Notificações" title="As notificações persistidas aparecem na Central de Decisões.">
           <Bell className="h-4 w-4" />
           <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-destructive" />
         </Button>

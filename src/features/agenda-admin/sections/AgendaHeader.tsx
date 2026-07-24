@@ -2,7 +2,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as Popover from '@radix-ui/react-popover'
 import {
   Ban, CalendarDays, ChevronDown, ChevronLeft, ChevronRight,
-  Filter, List, Plus, RefreshCw, Users, X
+  Filter, List, Plus, RefreshCw, Users
 } from 'lucide-react'
 import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
@@ -79,62 +79,50 @@ export function AgendaHeader({
   }
 
   return (
-    <header className="flex shrink-0 flex-col gap-3 border-b border-border-strong pb-3 bg-white select-none">
-      {/* Unified Main Navigation Bar */}
+    <header className="flex shrink-0 flex-col gap-3 border-b border-border-strong pb-3 bg-white">
+      {/* Main Row: Navigation + Month Label + Controls */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        {/* Left Section: Title & Date Navigation Controls */}
+        {/* Left: Navigation Controls */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* Brand Badge */}
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-mx-lg bg-brand-primary text-white shadow-xs">
-              <CalendarDays size={19} />
-            </div>
-            <Typography variant="h1" className="text-xl font-extrabold tracking-tight text-text-primary">
-              Agenda
-            </Typography>
-          </div>
-
-          <div className="h-5 w-px bg-border-default hidden sm:block" />
-
-          {/* Date Navigation (< Hoje > Month Name) */}
-          <div className="flex items-center gap-1.5">
+          {/* Date Navigation: < Hoje > */}
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={onPrevMonth}
+              aria-label="Anterior"
+              className="flex h-8 w-8 items-center justify-center rounded-mx-lg text-text-secondary hover:bg-surface-alt hover:text-text-primary transition-colors"
+            >
+              <ChevronLeft size={18} />
+            </button>
             <button
               type="button"
               onClick={onTodayClick}
-              className="rounded-mx-lg border border-border-strong bg-white px-2.5 py-1 text-xs font-bold text-text-primary hover:bg-surface-alt transition-colors shadow-2xs"
+              className="rounded-mx-lg border border-border-strong bg-white px-3 py-1.5 text-xs font-bold text-text-primary hover:bg-surface-alt transition-colors"
             >
               Hoje
             </button>
-            <div className="flex items-center">
-              <button
-                type="button"
-                onClick={onPrevMonth}
-                aria-label="Anterior"
-                className="flex h-7 w-7 items-center justify-center rounded-mx-md text-text-secondary hover:bg-surface-alt hover:text-text-primary transition-colors"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <button
-                type="button"
-                onClick={onNextMonth}
-                aria-label="Próximo"
-                className="flex h-7 w-7 items-center justify-center rounded-mx-md text-text-secondary hover:bg-surface-alt hover:text-text-primary transition-colors"
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
-            <span className="text-sm font-bold text-text-primary capitalize min-w-[140px]">
-              {monthLabel}
-            </span>
+            <button
+              type="button"
+              onClick={onNextMonth}
+              aria-label="Próximo"
+              className="flex h-8 w-8 items-center justify-center rounded-mx-lg text-text-secondary hover:bg-surface-alt hover:text-text-primary transition-colors"
+            >
+              <ChevronRight size={18} />
+            </button>
           </div>
+
+          {/* Month/Period Label */}
+          <h1 className="text-lg font-extrabold text-text-primary capitalize">
+            {monthLabel}
+          </h1>
         </div>
 
-        {/* Right Section: Search, View Mode, Filters, Refresh, Create Action */}
+        {/* Right: Search, View Toggle, Filters, Create */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Search Input */}
+          {/* Search */}
           <AgendaSearchBar searchQuery={searchQuery} onSearchChange={onSearchChange} />
 
-          {/* View Mode Segmented Control */}
+          {/* View Mode Toggle */}
           <div className="flex rounded-mx-lg border border-border-strong bg-surface-alt/60 p-0.5 shrink-0">
             {VIEW_OPTIONS.map((option) => (
               <button
@@ -143,7 +131,7 @@ export function AgendaHeader({
                 onClick={() => handleViewModeChange(option.key)}
                 aria-pressed={calendarViewMode === option.key}
                 className={cn(
-                  'flex items-center gap-1 rounded-mx-md px-2.5 py-1 text-xs font-bold transition-all',
+                  'flex items-center gap-1 rounded-mx-md px-2.5 py-1.5 text-xs font-bold transition-all',
                   calendarViewMode === option.key
                     ? 'bg-brand-primary text-white shadow-2xs'
                     : 'text-text-secondary hover:bg-surface-alt hover:text-text-primary',
@@ -155,12 +143,12 @@ export function AgendaHeader({
             ))}
           </div>
 
-          {/* Advanced Filters Popover */}
+          {/* Filters Popover */}
           <Popover.Root>
             <Popover.Trigger asChild>
               <button
                 type="button"
-                aria-label="Filtros avançados"
+                aria-label="Filtros"
                 className={cn(
                   'relative flex h-8 items-center gap-1.5 rounded-mx-lg border px-2.5 text-xs font-bold transition-colors',
                   activeFilters > 0
@@ -187,7 +175,7 @@ export function AgendaHeader({
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center justify-between border-b border-border-subtle pb-2">
                     <span className="text-xs font-bold uppercase tracking-wider text-text-tertiary">
-                      Filtros Avançados
+                      Filtros
                     </span>
                     {activeFilters > 0 && (
                       <button type="button" onClick={clearFilters} className="text-xs text-brand-primary font-semibold hover:underline">
@@ -217,7 +205,7 @@ export function AgendaHeader({
 
                   <div>
                     <span className="block text-xs font-semibold text-text-secondary mb-1">
-                      Status da Visita
+                      Status
                     </span>
                     <div className="flex flex-wrap gap-1">
                       {statusFilters.map((f) => (
@@ -242,7 +230,7 @@ export function AgendaHeader({
             </Popover.Portal>
           </Popover.Root>
 
-          {/* Refresh Button */}
+          {/* Refresh */}
           <Button
             variant="outline"
             size="icon"
@@ -272,7 +260,7 @@ export function AgendaHeader({
                   onSelect={onCreateVisit}
                   className="flex cursor-pointer items-center gap-2 rounded-mx-lg px-3 py-2 text-xs font-bold text-text-primary outline-none transition-colors hover:bg-surface-alt"
                 >
-                  <Plus size={15} className="text-brand-primary" /> Agendar Visita
+                  <CalendarDays size={15} className="text-brand-primary" /> Agendar Visita
                 </DropdownMenu.Item>
                 <DropdownMenu.Item
                   onSelect={onCreateEvent}

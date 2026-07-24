@@ -109,14 +109,32 @@ export function useStores() {
         query = query.eq('active', true)
       }
 
-      const { data, error } = await query
+      let { data, error } = await query
+
+      if (error) {
+        const msg = (error.message || '').toLowerCase()
+        const isJwt = msg.includes('jwt') || msg.includes('token') || msg.includes('unauthorized')
+        if (isJwt) {
+          const { error: refreshError } = await supabase.auth.refreshSession()
+          if (!refreshError) {
+            ;({ data, error } = await query)
+          }
+        }
+      }
+
       if (error) throw error
       setStores(data || [])
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro desconhecido'
-      console.error('Audit Error [useStores]: fetchStores fail ->', message)
-      toast.error('Não foi possível carregar as lojas.')
-      setError(getSafeUserFacingDataError(err, 'Não foi possível carregar as unidades.'))
+      const isJwt = message.toLowerCase().includes('jwt') || message.toLowerCase().includes('unauthorized')
+      if (isJwt) {
+        toast.error('Sessão expirada. Faça login novamente.')
+        setError('Sessão expirada. Faça login novamente.')
+      } else {
+        console.error('Audit Error [useStores]: fetchStores fail ->', message)
+        toast.error('Não foi possível carregar as lojas.')
+        setError(getSafeUserFacingDataError(err, 'Não foi possível carregar as unidades.'))
+      }
       setStores([])
     } finally {
       setLoading(false)
@@ -162,10 +180,33 @@ export function useStores() {
       partners: normalizePartners(details?.partners),
       monthly_goal: DEFAULT_INITIAL_MONTHLY_GOAL,
     }
-    const { data, error } = await supabase.rpc('admin_create_store', { p_payload: storePayload })
+
+    const isJwtError = (err: unknown) => {
+      const msg = (err instanceof Error ? err.message : String(err)).toLowerCase()
+      return msg.includes('jwt') || msg.includes('token') || msg.includes('unauthorized') || msg.includes('invalid JWT')
+    }
+
+    const callRpc = () =>
+      supabase.rpc('admin_create_store', { p_payload: storePayload })
+
+    let { data, error } = await callRpc()
+
+    if (isJwtError(error) || isJwtError(data)) {
+      const { error: refreshError } = await supabase.auth.refreshSession()
+      if (!refreshError) {
+        ;({ data, error } = await callRpc())
+      }
+    }
+
     const payload = data as { ok?: boolean; error?: string } | null
 
-    if (error) return { error: error.message }
+    if (error) {
+      if (isJwtError(error)) {
+        toast.error('Sessão expirada. Faça login novamente.')
+        return { error: 'Sessão expirada. Faça login novamente.' }
+      }
+      return { error: error.message }
+    }
     if (!payload?.ok) return { error: payload?.error || 'Não foi possível criar a loja.' }
 
     await fetchStores()
@@ -200,15 +241,35 @@ export function useStores() {
       payload.partners = normalizePartners(validation.data.partners)
     if (typeof validation.data.active !== 'undefined') payload.active = validation.data.active
 
-    const { data, error } = await supabase.rpc('admin_update_store', {
-      p_store_id: id,
-      p_payload: payload,
-    })
+    const isJwtError = (err: unknown) => {
+      const msg = (err instanceof Error ? err.message : String(err)).toLowerCase()
+      return msg.includes('jwt') || msg.includes('token') || msg.includes('unauthorized') || msg.includes('invalid JWT')
+    }
+
+    const callRpc = () =>
+      supabase.rpc('admin_update_store', {
+        p_store_id: id,
+        p_payload: payload,
+      })
+
+    let { data, error } = await callRpc()
+
+    if (isJwtError(error) || isJwtError(data)) {
+      const { error: refreshError } = await supabase.auth.refreshSession()
+      if (!refreshError) {
+        ;({ data, error } = await callRpc())
+      }
+    }
+
     const result = data as { ok?: boolean; error?: string } | null
     if (error || !result?.ok) {
-      const message = error?.message || result?.error || 'Não foi possível atualizar a loja.'
-      toast.error(message)
-      return { error: message }
+      const rawMessage = error?.message || result?.error || 'Não foi possível atualizar a loja.'
+      if (isJwtError(rawMessage)) {
+        toast.error('Sessão expirada. Faça login novamente.')
+        return { error: 'Sessão expirada. Faça login novamente.' }
+      }
+      toast.error(rawMessage)
+      return { error: rawMessage }
     }
 
     await fetchStores()
@@ -219,10 +280,32 @@ export function useStores() {
   const deleteStore = async (id: string) => {
     if (!isAdministradorMx(role))
       return { error: 'Apenas administradores MX podem arquivar lojas.' }
-    const { data, error } = await supabase.rpc('admin_archive_store', { p_store_id: id })
+
+    const isJwtError = (err: unknown) => {
+      const msg = (err instanceof Error ? err.message : String(err)).toLowerCase()
+      return msg.includes('jwt') || msg.includes('token') || msg.includes('unauthorized') || msg.includes('invalid JWT')
+    }
+
+    const callRpc = () => supabase.rpc('admin_archive_store', { p_store_id: id })
+
+    let { data, error } = await callRpc()
+
+    if (isJwtError(error) || isJwtError(data)) {
+      const { error: refreshError } = await supabase.auth.refreshSession()
+      if (!refreshError) {
+        ;({ data, error } = await callRpc())
+      }
+    }
+
     const result = data as { ok?: boolean; error?: string } | null
-    if (error || !result?.ok)
-      return { error: error?.message || result?.error || 'Não foi possível arquivar a loja.' }
+    if (error || !result?.ok) {
+      const rawMessage = error?.message || result?.error || 'Não foi possível arquivar a loja.'
+      if (isJwtError(rawMessage)) {
+        toast.error('Sessão expirada. Faça login novamente.')
+        return { error: 'Sessão expirada. Faça login novamente.' }
+      }
+      return { error: rawMessage }
+    }
     await fetchStores()
     return { error: null }
   }
@@ -231,10 +314,32 @@ export function useStores() {
     if (!active) return deleteStore(id)
     if (!isAdministradorMx(role))
       return { error: 'Apenas administradores MX podem restaurar lojas.' }
-    const { data, error } = await supabase.rpc('admin_restore_store', { p_store_id: id })
+
+    const isJwtError = (err: unknown) => {
+      const msg = (err instanceof Error ? err.message : String(err)).toLowerCase()
+      return msg.includes('jwt') || msg.includes('token') || msg.includes('unauthorized') || msg.includes('invalid JWT')
+    }
+
+    const callRpc = () => supabase.rpc('admin_restore_store', { p_store_id: id })
+
+    let { data, error } = await callRpc()
+
+    if (isJwtError(error) || isJwtError(data)) {
+      const { error: refreshError } = await supabase.auth.refreshSession()
+      if (!refreshError) {
+        ;({ data, error } = await callRpc())
+      }
+    }
+
     const result = data as { ok?: boolean; error?: string } | null
-    if (error || !result?.ok)
-      return { error: error?.message || result?.error || 'Não foi possível restaurar a loja.' }
+    if (error || !result?.ok) {
+      const rawMessage = error?.message || result?.error || 'Não foi possível restaurar a loja.'
+      if (isJwtError(rawMessage)) {
+        toast.error('Sessão expirada. Faça login novamente.')
+        return { error: 'Sessão expirada. Faça login novamente.' }
+      }
+      return { error: rawMessage }
+    }
     await fetchStores()
     return { error: null }
   }
