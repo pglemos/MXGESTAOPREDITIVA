@@ -529,7 +529,6 @@ export default function FichaClienteSheet({ clienteId, open, onClose, onAtualiza
                         <FieldRow label="WhatsApp" value={cliente.whatsapp} />
                         <FieldRow label="Telefone" value={cliente.telefone} />
                         <FieldRow label="E-mail" value={cliente.email} />
-                        <FieldRow label="Aniversário" value={cliente.data_nascimento ? moment(cliente.data_nascimento).format("DD/MM/YYYY") : null} />
                         <FieldRow label="Último contato" value={cliente.ultimo_contato ? moment(cliente.ultimo_contato).fromNow() : null} />
                       </div>
                     </div>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, MessageCircle, Copy, Check, ChevronRight, SkipForward } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import { getScriptParaMissao, preencherScript, resultadoParaMomento, calcularProximaAcao, RESULTADOS } from "./carteiraUtils";
+import { getScriptParaMissao, preencherScript, resultadoParaMomento, calcularProximaAcao, RESULTADOS, normalizarTelefoneWhatsApp } from "./carteiraUtils";
 
 export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida }) {
   const [indice, setIndice] = useState(missao?.indice_atual || 0);
@@ -25,11 +25,11 @@ export default function ExecucaoMissao({ missao, clientes, onVoltar, onConcluida
   const clienteAtual = clientes[indice];
   const progresso = total > 0 ? Math.round(((enviados + pulados) / total) * 100) : 0;
 
-  const scriptBase = getScriptParaMissao(missao.id);
+  const scriptBase = getScriptParaMissao(missao.tipo_missao);
   const scriptPreenchido = clienteAtual ? preencherScript(scriptBase, clienteAtual) : scriptBase;
   const script = scriptEditado || scriptPreenchido;
-  const tel = (clienteAtual?.whatsapp || "").replace(/\D/g, "");
-  const waUrl = tel ? `https://wa.me/55${tel}?text=${encodeURIComponent(script)}` : null;
+  const tel = normalizarTelefoneWhatsApp(clienteAtual?.whatsapp || "");
+  const waUrl = tel ? `https://wa.me/${tel}?text=${encodeURIComponent(script)}` : null;
 
   async function persistirMissao(patch) {
     if (!missao?.id) return false;

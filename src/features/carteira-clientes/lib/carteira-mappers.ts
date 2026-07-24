@@ -119,6 +119,7 @@ function deriveSituation(client: ClientRow, opportunity: OpportunityRow | null, 
   if (opportunity?.etapa === 'fechamento' || opportunity?.etapa === 'negociacao') return 'Em negociação ativa'
   if (opportunity?.etapa === 'apresentacao') return 'Proposta enviada'
   if (opportunity?.etapa === 'qualificacao') return opportunity.veiculo_interesse ? 'Veículo definido' : 'Necessidade em qualificação'
+  if (appointment?.status === 'compareceu') return 'Visita realizada'
   if (opportunity?.veiculo_interesse) return 'Veículo definido'
   return 'Primeiro contato pendente'
 }
@@ -138,6 +139,7 @@ function deriveTemperature(situation: string): 'Frio' | 'Morno' | 'Quente' {
     'Necessidade em qualificação',
     'Veículo definido',
     'Não compareceu',
+    'Visita realizada',
   ].includes(situation)) return 'Morno'
 
   return 'Frio'
@@ -147,6 +149,7 @@ function deriveCommercialStatus(situation: string): string {
   if (situation === 'Venda realizada') return 'Vendido'
   if (situation === 'Venda perdida' || situation === 'Cadência encerrada') return 'Perdido'
   if (situation === 'Oportunidade futura') return 'Futuro'
+  if (situation === 'Visita realizada') return 'Em negociação'
   if (situation.startsWith('Visita')) return 'Agendado'
   return 'Em negociação'
 }

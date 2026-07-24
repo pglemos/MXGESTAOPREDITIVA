@@ -171,7 +171,7 @@ function ClienteCard({ cliente, onExecutar, onFicha }) {
           </div>
           <ScoreBadge score={score} motivos={motivos} />
         </div>
-        <div className="flex-1 px-4 py-3.5 bg-blue-50/30 space-y-1.5">
+        <div className="min-w-0 flex-1 px-4 py-3.5 bg-blue-50/30 space-y-1.5">
           <div>
             <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wide">Objetivo</p>
             <p className="text-[11px] font-semibold text-slate-600 leading-snug mt-0.5">{objetivo}</p>
@@ -301,6 +301,20 @@ function aplicarFiltrosAvancados(lista, filtros) {
     return filtros.origens.some(o => canal.toLowerCase().includes(o.toLowerCase()));
   });
   if (filtros.prioridades?.length) r = r.filter(c => filtros.prioridades.includes(calcularPrioridade(c)));
+  if (filtros.situacoes?.length) {
+    r = r.filter(c => {
+      const s = c.situacao_atual || c.momento || "";
+      return filtros.situacoes.some(sit => {
+        if (sit === "Sem visita") return !["Visita agendada", "Visita hoje", "Visita realizada", "Não compareceu"].includes(s);
+        if (sit === "Visita agendada") return s === "Visita agendada" || s === "Visita hoje";
+        if (sit === "Proposta enviada") return s === "Proposta enviada";
+        if (sit === "Recuperação") return s === "Não compareceu" || s === "Visita realizada";
+        if (sit === "Sem próximo passo") return !c.proxima_acao_data;
+        if (sit === "Próximo passo vencido") return isVencido(c.proxima_acao_data);
+        return false;
+      });
+    });
+  }
   if (filtros.periodos?.length) {
     r = r.filter(c => {
       const d = c.proxima_acao_data;

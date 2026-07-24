@@ -12,8 +12,11 @@ function getMissionBlock(activeMission) {
   if (!activeMission || !BLOCKING_STATUSES.includes(activeMission.status)) return null;
   const sent = Number(activeMission.mensagens_enviadas || 0);
   const total = Number(activeMission.total_clientes || 0);
-  const awaiting = Number(activeMission.aguardando_sua_resposta || 0);
-  if (awaiting > 0) return `${awaiting} cliente(s) responderam e aguardam sua ação.`;
+  // `aguardando_resposta` é o campo que ExecucaoMissao realmente grava (mensagens enviadas
+  // ainda sem retorno). `aguardando_sua_resposta` existe na tabela mas nenhum fluxo escreve
+  // nele hoje — usá-lo aqui deixava esse aviso sempre mudo.
+  const awaiting = Number(activeMission.aguardando_resposta || 0);
+  if (awaiting > 0) return `${awaiting} cliente(s) aguardando retorno de contato.`;
   if (sent < total) return "Finalize os contatos da missão atual antes de iniciar uma nova.";
   return "Conclua a missão atual antes de iniciar outra.";
 }
@@ -38,23 +41,26 @@ export default function PlanoAtaqueTab({ clientes = [], missaoAtiva, onIniciarMi
       .filter({ status: { $in: BLOCKING_STATUSES } }, "-updated_at", 1)
       .then((missions) => {
         if (cancelled) return;
-        const mission = missions?.[0] || null;
-        setMissaoRecuperada(mission);
-        if (!mission || !RESUMABLE_STATUSES.includes(mission.status)) return;
-        const ids = new Set(mission.clientes_ids || []);
-        const queue = clientes.filter((client) => ids.has(client.id));
-        if (queue.length > 0) {
-          onIniciarMissao(mission, queue);
-        } else {
-          setMissaoRecuperada(null);
-        }
+        setMissaoRecuperada(missions?.[0] || null);
       })
       .catch((cause) => {
         if (!cancelled) setError(cause instanceof Error ? cause.message : "Não foi possível carregar a missão em andamento.");
       });
 
     return () => { cancelled = true; };
-  }, [clientes, missaoAtiva, onIniciarMissao]);
+  }, [missaoAtiva]);
+
+  function retomarMissaoRecuperada() {
+    if (!missaoRecuperada) return;
+    const ids = new Set(missaoRecuperada.clientes_ids || []);
+    const queue = clientes.filter((client) => ids.has(client.id));
+    if (queue.length > 0) {
+      onIniciarMissao(missaoRecuperada, queue);
+    } else {
+      setError("Não foi possível localizar os clientes desta missão.");
+      setMissaoRecuperada(null);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -205,8 +211,19 @@ export default function PlanoAtaqueTab({ clientes = [], missaoAtiva, onIniciarMi
         </div>
         {campanhas.length === 0 && <p className="mt-4 rounded-xl border border-dashed border-slate-200 p-5 text-center text-sm text-slate-400">Nenhuma campanha ativa cadastrada para esta loja.</p>}
       </section>
-      <div className="rounded-2xl border border-slate-100 bg-white p-5"><VeiculosChegaram clientes={clientes} onExecutar={(client) => onWhatsApp?.(client, null)} onFicha={onFicha} /></div>
-      {activeMission && <section className="rounded-2xl bg-[#005BFF] p-5 text-white"><p className="text-xs font-semibold uppercase text-blue-100">Missão em andamento</p><p className="font-bold">{activeMission.tipo_missao}</p><p className="mt-1 text-sm text-blue-100">{activeMission.mensagens_enviadas || 0}/{activeMission.total_clientes || 0} contatos registrados</p></section>}
+      <div className="rounded-2xl border border-slate-100 bg-white p-5"><VeiculosChegaram clientes={clientes} onExecutar={(client, missaoId) => onWhatsApp?.(client, missaoId || null)} onFicha={onFicha} /></div>
+      {activeMission && (
+        <section className="rounded-2xl bg-[#005BFF] p-5 text-white">
+          <p className="text-xs font-semibold uppercase text-blue-100">Missão em andamento</p>
+          <p className="font-bold">{activeMission.tipo_missao}</p>
+          <p className="mt-1 text-sm text-blue-100">{activeMission.mensagens_enviadas || 0}/{activeMission.total_clientes || 0} contatos registrados</p>
+          {RESUMABLE_STATUSES.includes(activeMission.status) && missaoRecuperada && (
+            <button type="button" onClick={retomarMissaoRecuperada} className="mt-3 rounded-xl bg-white px-4 py-2 text-xs font-bold text-[#005BFF] hover:bg-blue-50">
+              Continuar missão
+            </button>
+          )}
+        </section>
+      )}
       {missionBlock && <Warning message={missionBlock} />}
       {error && <Warning message={error} />}
       {missions.every((mission) => mission.clientes.length === 0) ? (

@@ -291,7 +291,7 @@ export function calcularScore(cliente) {
   const agora = moment();
 
   // Sem próximo passo definido - corrigido para usar proxima_acao_data
-  const temProximoPasso = !!(cliente.proxima_acao_data || cliente.situacao_atual);
+  const temProximoPasso = !!cliente.proxima_acao_data;
   if (!temProximoPasso) { score -= 20; motivos.push("Sem próxima ação definida."); }
 
   // Próxima ação vencida
@@ -586,25 +586,39 @@ export const SCRIPTS_BIBLIOTECA = {
     objetivo: "Manter relacionamento para uma futura troca",
     texto: `Oi, {nome}! Tudo bem?\n\nAnotei aqui que você pensa em trocar de veículo mais pra frente.\n\nVou te chamar quando surgir uma condição boa pra essa troca. Combinado?`,
   },
+  "Avisar sobre veículo recém-chegado": {
+    id: "S19",
+    titulo: "Veículo recém-chegado",
+    objetivo: "Aproveitar a chegada do veículo para reengajar o cliente",
+    texto: `Oi, {nome}! Chegou aqui um {veiculo} que combina com o que você procurava.\n\nQuer que eu separe mais detalhes e fotos pra você dar uma olhada?`,
+  },
 };
 
 export function getScriptParaProximoPasso(proximoPasso) {
   return SCRIPTS_BIBLIOTECA[proximoPasso]?.texto || SCRIPTS_BIBLIOTECA["Enviar primeira abordagem"].texto;
 }
 
-// Compatibilidade legada para missões
+// Scripts fora do catálogo de missões (gatilhos avulsos, não uma missão do Plano de Ataque)
+const SCRIPT_TEMPLATES_EXTRAS = {
+  veiculo_chegou: "Avisar sobre veículo recém-chegado",
+};
+
+// `missaoId` chega aqui como o `tipo_missao` persistido (rótulo da missão, ex.:
+// "Recuperar propostas") ou uma chave avulsa de SCRIPT_TEMPLATES_EXTRAS — nunca
+// o uuid da linha em CarteiraMissao, que não tem como casar com nenhum script.
 export function getScriptParaMissao(missaoId) {
-  const map = {
-    avaliacoes: SCRIPTS_BIBLIOTECA["Convidar para visita"].texto,
-    visitou: SCRIPTS_BIBLIOTECA["Enviar resumo do atendimento"].texto,
-    confirmar_visita: SCRIPTS_BIBLIOTECA["Confirmar visita hoje"].texto,
-    mornos: SCRIPTS_BIBLIOTECA["Fazer pergunta consultiva"].texto,
-    frios: SCRIPTS_BIBLIOTECA["Reativar cliente antigo"].texto,
-    propostas: SCRIPTS_BIBLIOTECA["Retomar proposta"].texto,
-    pos_venda: SCRIPTS_BIBLIOTECA["Pedir indicação"].texto,
-    padrao: SCRIPTS_BIBLIOTECA["Enviar primeira abordagem"].texto,
-  };
-  return map[missaoId] || map.padrao;
+  const scriptIdDoCatalogo = MISSOES.find(m => m.nome === missaoId)?.scriptId;
+  const scriptId = scriptIdDoCatalogo || SCRIPT_TEMPLATES_EXTRAS[missaoId];
+  return SCRIPTS_BIBLIOTECA[scriptId]?.texto || SCRIPTS_BIBLIOTECA["Enviar primeira abordagem"].texto;
+}
+
+// DDD 55 é real (Santa Maria/RS), então não dá pra decidir só pelo prefixo se o
+// número já tem DDI — o comprimento total desambigua (com DDI: 12-13 dígitos).
+export function normalizarTelefoneWhatsApp(raw) {
+  const digitos = (raw || "").replace(/\D/g, "");
+  if (!digitos) return "";
+  if ((digitos.length === 12 || digitos.length === 13) && digitos.startsWith("55")) return digitos;
+  return `55${digitos}`;
 }
 
 export function preencherScript(script, cliente) {

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Sparkles, Copy, Check, MessageCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { gerarScriptLocal } from "./scriptTemplatesLocal";
+import { normalizarTelefoneWhatsApp } from "./carteiraUtils";
 
 const TONS = [
   { id: "consultivo", label: "Consultivo", desc: "Perguntativo, orientado a entender a necessidade" },
@@ -45,8 +46,8 @@ export default function ScriptIA({ cliente, proximoPasso, onWhatsAppClick }) {
     setTimeout(() => setCopiado(false), 2000);
   }, [script]);
 
-  const tel = (cliente?.whatsapp || cliente?.telefone || "").replace(/\D/g, "");
-  const waUrl = tel && script ? `https://wa.me/55${tel}?text=${encodeURIComponent(script)}` : null;
+  const tel = normalizarTelefoneWhatsApp(cliente?.whatsapp || cliente?.telefone || "");
+  const waUrl = tel && script ? `https://wa.me/${tel}?text=${encodeURIComponent(script)}` : null;
 
   return (
     <div className="border border-dashed border-violet-200 rounded-2xl bg-violet-50/40 p-4 space-y-3">

@@ -105,26 +105,26 @@ describe('Base44 rendered presentation parity', () => {
     // passou a abrir como Dialog centralizado em vez do Sheet lateral do Base44 original
     // (base44-reference/components/carteira/FichaClienteSheet.jsx continua com o Sheet
     // lateral, propositalmente congelado). Divergência estrutural intencional, não bug.
+    //
+    // ExecucaoMissao também NÃO entra: o runtime seleciona o script pelo tipo_missao real
+    // (campo gravado por CarteiraMissao.create, ver PlanoAtaqueTab.jsx) usando o scriptId
+    // de cada missão do catálogo — corrige um bug em que toda missão mostrava o mesmo
+    // script genérico de primeira abordagem. A referência congelada preserva o comportamento
+    // antigo (lookup por missao.id, que nunca bate com nada e cai sempre no script padrão).
+    // Divergência de conteúdo de script intencional, não bug.
     const [runtime, reference] = await Promise.all([
       Promise.all([
         import('@/components/carteira/NovoClienteModal.jsx'),
         import('@/components/carteira/WhatsAppRoteiro.jsx'),
         import('@/components/carteira/AlterarProximoPasso.jsx'),
-        import('@/components/carteira/ExecucaoMissao.jsx'),
       ]),
       Promise.all([
         import('@/base44-reference/components/carteira/NovoClienteModal.jsx'),
         import('@/base44-reference/components/carteira/WhatsAppRoteiro.jsx'),
         import('@/base44-reference/components/carteira/AlterarProximoPasso.jsx'),
-        import('@/base44-reference/components/carteira/ExecucaoMissao.jsx'),
       ]),
     ])
 
-    // tipo_missao é o campo real gravado pelo CarteiraMissao.create (ver PlanoAtaqueTab.jsx).
-    // O runtime lê tipo_missao; a cópia congelada do Base44 original lê nome (bug preservado
-    // de propósito na referência). Os dois campos aqui garantem o mesmo texto renderizado
-    // nas duas versões, sem alterar o comportamento real de nenhuma delas.
-    const mission = { id: 'missao-parity', nome: 'Retomar leads', tipo_missao: 'Retomar leads', indice_atual: 0 }
     const cases = [
       {
         runtime: React.createElement(runtime[0].default, { open: true, onClose: () => {}, onCriado: () => {}, vendedorId: 'seller-parity' }),
@@ -141,11 +141,6 @@ describe('Base44 rendered presentation parity', () => {
         runtime: React.createElement(runtime[2].default, { open: true, onClose: () => {}, cliente, pendencias: [], onSalvo: () => {} }),
         reference: React.createElement(reference[2].default, { open: true, onClose: () => {}, cliente, pendencias: [], onSalvo: () => {} }),
         readyText: 'Alterar próximo passo',
-      },
-      {
-        runtime: React.createElement(runtime[3].default, { missao: mission, clientes: [cliente], onVoltar: () => {}, onConcluida: () => {} }),
-        reference: React.createElement(reference[3].default, { missao: mission, clientes: [cliente], onVoltar: () => {}, onConcluida: () => {} }),
-        readyText: 'Retomar leads',
       },
     ]
 

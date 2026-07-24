@@ -276,8 +276,8 @@ export default function VeiculosChegaram({ clientes, onExecutar, onFicha }) {
   }
 
   function handleExecutarCompativel(cliente, veiculo) {
-    // Sobrescreve a prop extra do veículo sem alterar o próximo passo se urgente
-    onExecutar(cliente, null);
+    // Usa o script dedicado de "veículo chegou" em vez do próximo passo genérico do cliente
+    onExecutar(cliente, "veiculo_chegou");
   }
 
   if (veiculoAtaque) {
