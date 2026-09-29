@@ -23,6 +23,15 @@ export function buildStoreSalesRules({ storeId, monthlyGoal, metaRules }: StoreS
   }
 }
 
+export function parseWholeSalesGoal(value: string): number | null {
+  const normalized = value.trim().replace(/\s/g, '')
+  const decimal = normalized.includes(',')
+    ? normalized.replace(/\./g, '').replace(',', '.')
+    : normalized
+  const parsed = Number(decimal)
+  return Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ? parsed : null
+}
+
 export type ResolveCanonicalIndividualGoalInput = {
   /** Meta individual devolvida pelo read model oficial, quando disponível. */
   officialGoal?: number | null
@@ -50,14 +59,15 @@ export function resolveCanonicalIndividualGoal({
 
   if (officialGoal !== null && officialGoal !== undefined) {
     const canonical = Number(officialGoal)
-    if (Number.isFinite(canonical) && canonical >= 0) return canonical
+    if (Number.isFinite(canonical) && canonical >= 0) return Math.ceil(canonical)
   }
 
   const storeGoal = Number(storeMonthlyGoal)
   const sellerCount = Number(activeSellersCount)
   if (!Number.isFinite(storeGoal) || storeGoal <= 0 || !Number.isFinite(sellerCount) || sellerCount <= 0) return 0
 
-  return storeGoal / sellerCount
+  // ponytail: per-seller ceiling can exceed the store total; use remainder allocation if aggregate quotas must match exactly.
+  return Math.ceil(storeGoal / sellerCount)
 }
 
 /**
@@ -109,7 +119,7 @@ export function resolveIndividualGoal({
   // `0` is a valid explicit decision. Never use truthiness to decide whether
   // a manager/owner/Admin MX saved an individual target.
   const custom = customGoal === null || customGoal === undefined ? NaN : Number(customGoal)
-  if (Number.isFinite(custom) && custom >= 0) return custom
+  if (Number.isFinite(custom) && custom >= 0) return Math.ceil(custom)
 
   const storeGoal = typeof storeMonthlyGoal === 'number' ? storeMonthlyGoal : Number(storeMonthlyGoal)
   if (!Number.isFinite(storeGoal) || storeGoal <= 0) return null
@@ -117,11 +127,11 @@ export function resolveIndividualGoal({
   const resolvedMode = String(mode || 'even')
   if (resolvedMode === 'proportional') {
     const share = proportionalShare === null || proportionalShare === undefined ? NaN : Number(proportionalShare)
-    if (Number.isFinite(share) && share >= 0) return storeGoal * Math.min(share, 1)
+    if (Number.isFinite(share) && share >= 0) return Math.ceil(storeGoal * Math.min(share, 1))
   }
 
   const sellerCount = typeof activeSellersCount === 'number' ? activeSellersCount : Number(activeSellersCount)
-  if (Number.isFinite(sellerCount) && sellerCount > 0) return storeGoal / sellerCount
+  if (Number.isFinite(sellerCount) && sellerCount > 0) return Math.ceil(storeGoal / sellerCount)
 
   // A missing divisor must not leak the store total into each seller row.
   return null

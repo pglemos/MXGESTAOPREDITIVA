@@ -1,5 +1,15 @@
 import { describe, expect, test } from 'bun:test'
-import { buildStoreSalesRules, resolveCanonicalIndividualGoal, resolveIndividualGoal } from './storeSalesRules'
+import { buildStoreSalesRules, parseWholeSalesGoal, resolveCanonicalIndividualGoal, resolveIndividualGoal } from './storeSalesRules'
+
+describe('parseWholeSalesGoal', () => {
+  test('accepts whole sales counts and rejects fractions or invalid values', () => {
+    expect(parseWholeSalesGoal('8')).toBe(8)
+    expect(parseWholeSalesGoal('8,5')).toBeNull()
+    expect(parseWholeSalesGoal('8.333333333333334')).toBeNull()
+    expect(parseWholeSalesGoal('-1')).toBeNull()
+    expect(parseWholeSalesGoal('x')).toBeNull()
+  })
+})
 
 describe('buildStoreSalesRules', () => {
   test('normalizes partial store meta rules with explicit monthly goal', () => {
@@ -70,6 +80,10 @@ describe('resolveIndividualGoal', () => {
     expect(value).toBe(18)
   })
 
+  test('custom seller target is rounded up to a whole sale', () => {
+    expect(resolveIndividualGoal({ mode: 'custom', customGoal: 17.5 })).toBe(18)
+  })
+
   test('falls back to the eligible-seller division when no custom target is configured', () => {
     const value = resolveIndividualGoal({
       mode: 'custom',
@@ -96,6 +110,10 @@ describe('resolveIndividualGoal', () => {
       proportionalShare: 0.4,
     })
     expect(value).toBe(40)
+  })
+
+  test('proportional sales target is rounded up to a whole sale', () => {
+    expect(resolveIndividualGoal({ mode: 'proportional', storeMonthlyGoal: 25, proportionalShare: 0.25 })).toBe(7)
   })
 
   test('proportional mode: falls back to the eligible-seller division without a configured share', () => {
@@ -144,19 +162,19 @@ describe('resolveIndividualGoal', () => {
 })
 
 describe('resolveCanonicalIndividualGoal', () => {
-  test('preserves the official individual goal, including fractional division', () => {
+  test('rounds an official individual goal up to a whole sale', () => {
     expect(resolveCanonicalIndividualGoal({
       officialGoal: 5.5,
       storeMonthlyGoal: 44,
       activeSellersCount: 8,
-    })).toBe(5.5)
+    })).toBe(6)
   })
 
-  test('falls back to the store goal divided by active eligible sellers', () => {
+  test('rounds the equal share up to a whole sale', () => {
     expect(resolveCanonicalIndividualGoal({
-      storeMonthlyGoal: 44,
-      activeSellersCount: 8,
-    })).toBe(5.5)
+      storeMonthlyGoal: 25,
+      activeSellersCount: 3,
+    })).toBe(9)
   })
 
   test('does not assign a goal to the Venda Loja operational account', () => {

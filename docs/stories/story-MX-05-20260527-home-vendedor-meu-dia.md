@@ -83,17 +83,24 @@ Esta story formaliza a Home pessoal do vendedor. O working tree atual ja indica 
 - `src/features/vendedor-home/hooks/useVendedorHomePage.ts`
 - `src/features/remuneracao/hooks/useRemuneracao.ts`
 - `src/features/remuneracao/lib/comparativo.ts`
+- `src/lib/storeSalesRules.ts`
+- `src/lib/storeSalesRules.test.ts`
+- `src/features/lojas/components/SellerGoalsEditor.tsx`
+- `supabase/migrations/20260929120000_integer_sales_goals.sql`
 
 ## Dev Agent Record
 
 ### Debug Log
 
+- 2026-09-29: Corrigido o rateio de meta de vendas que mostrava contagens fracionárias; metas individuais calculadas ou salvas agora sobem para o próximo número inteiro e a tela bloqueia valores decimais.
+- 2026-09-29: Verificação local aprovada — 21 testes focados, 4.831 testes do projeto, typecheck, lint e build. O smoke agent-browser capturou desktop/mobile e redirecionou `/home` para login sem sessão; a Home autenticada não foi revalidada. Migration preparada, sem aplicação remota.
 - 2026-06-17: Retomada apos comparacao com a tela pedida e a tela gerada. A versao valida da Home usa saudacao `Bom dia, Consultor!`, plano de ataque fixo com `5 retornos de carteira`, `3 novos agendamentos` e `2 prospeccoes`, score de referencia `Critico` com `400 / 1000 pts`, Central de Execucao sem bloco extra de proxima melhor acao, CTA `Fechar meu dia`, treinamentos de fallback e feedback vazio com acao vinculada, prazo, status e confirmacao de leitura.
 - 2026-06-17: Validacao Playwright autenticada com dev bypass em `/home`, desktop `1366x768` e mobile `390x844`, sem overflow horizontal e com capturas em `/tmp/vendedor-home-desktop.png` e `/tmp/vendedor-home-mobile.png`.
 - 2026-06-17: Gates finais executados: `bun test src/features/vendedor-home/VendedorHome.container.test.tsx`, `npm run typecheck`, `npm run lint`, `npm test` e `npm run build`.
 
 ### Completion Notes
 
+- Metas individuais de vendas são inteiras, incluindo rateio igual, valores personalizados e resultados do read model oficial.
 - Home Vendedor segue sem pipeline de CRM e direciona fechamento diario para `/lancamento-diario`.
 - Comissao estimada permanece dependente de regra/fonte real; esta retomada nao altera regra de remuneracao.
 - Estados vazios foram ajustados para reproduzir a referencia visual sem introduzir card ou requisito novo.
@@ -101,6 +108,7 @@ Esta story formaliza a Home pessoal do vendedor. O working tree atual ja indica 
 
 ### Change Log
 
+- 2026-09-29: Corrigida meta fracionária de vendas na Home, gestão de metas e read model oficial.
 - 2026-05-27: Ajuste responsivo no card "Minha Meta" da Home Vendedor e registro de validacoes.
 - 2026-05-28: Finalizacao D1-T5. Home Vendedor marcada `Done` com trava N3 operacional, gates completos e smoke local mobile/desktop.
 - 2026-06-03: Card de comissao hardcoded substituido por estado calculado por plano real e regras reais, mantendo pendente quando nao houver fonte.

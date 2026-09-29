@@ -7,6 +7,7 @@ import { useSellersByStore } from '@/hooks/useStores'
 import { useStoreMetaRules } from '@/hooks/useGoals'
 import { useOfficialSellerPerformance } from '@/hooks/useOfficialSellerPerformance'
 import { useSellerGoals } from '@/hooks/useSellerGoals'
+import { parseWholeSalesGoal } from '@/lib/storeSalesRules'
 import {
   attainmentOf,
   buildSellerGoalRecommendation,
@@ -45,15 +46,6 @@ const ATTAINMENT_TONE = {
   sem_meta: 'text-muted-foreground',
 } as const
 
-function parseGoalInput(value: string): number | null {
-  const normalized = value.trim().replace(/\s/g, '')
-  const decimal = normalized.includes(',')
-    ? normalized.replace(/\./g, '').replace(',', '.')
-    : normalized
-  const parsed = Number(decimal)
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null
-}
-
 interface SellerGoalsEditorProps {
   storeId: string | null
   storeName?: string
@@ -80,7 +72,7 @@ export function SellerGoalsEditor({ storeId, storeName, embedded = false }: Sell
   const canEdit = isPerfilInternoMx(role) || role === 'dono' || role === 'gerente'
   const storeGoal = metaRules?.monthly_goal ?? 0
   const eligibleSellerCount = sellers.filter(seller => !seller.is_venda_loja).length
-  const evenShare = eligibleSellerCount > 0 ? storeGoal / eligibleSellerCount : 0
+  const evenShare = eligibleSellerCount > 0 ? Math.ceil(storeGoal / eligibleSellerCount) : 0
 
   const [edits, setEdits] = useState<Record<string, string>>({})
   const [hasChanges, setHasChanges] = useState(false)
@@ -99,7 +91,7 @@ export function SellerGoalsEditor({ storeId, storeName, embedded = false }: Sell
   const resetEdits = useCallback(() => {
     const reset: Record<string, string> = {}
     for (const seller of sellers) {
-      const current = seller.is_venda_loja ? 0 : goals[seller.id] ?? evenShare
+      const current = seller.is_venda_loja ? 0 : Math.ceil(goals[seller.id] ?? evenShare)
       reset[seller.id] = String(current)
     }
     setEdits(reset)
@@ -111,9 +103,17 @@ export function SellerGoalsEditor({ storeId, storeName, embedded = false }: Sell
     const updates: Record<string, number> = {}
     for (const [userId, value] of Object.entries(edits)) {
       const seller = sellers.find(item => item.id === userId)
-      const parsed = parseGoalInput(value)
-      if (!seller || parsed === null) continue
-      updates[userId] = seller.is_venda_loja ? 0 : parsed
+      if (!seller) continue
+      if (seller.is_venda_loja) {
+        updates[userId] = 0
+        continue
+      }
+      const parsed = parseWholeSalesGoal(value)
+      if (parsed === null) {
+        toast.error('A meta deve ser um número inteiro de vendas.')
+        return
+      }
+      updates[userId] = parsed
     }
     if (Object.keys(updates).length === 0) return
 
@@ -151,8 +151,11 @@ export function SellerGoalsEditor({ storeId, storeName, embedded = false }: Sell
 
   /** "Aplicar a todos" do Base44: preenche o campo de todos sem salvar sozinho. */
   const handleApplyToAll = useCallback((value: string) => {
-    const parsed = parseGoalInput(value)
-    if (parsed === null) return
+    const parsed = parseWholeSalesGoal(value)
+    if (parsed === null) {
+      if (value.trim()) toast.error('A meta deve ser um número inteiro de vendas.')
+      return
+    }
     const next: Record<string, string> = {}
     for (const seller of sellers) next[seller.id] = String(seller.is_venda_loja ? 0 : parsed)
     setEdits(next)
@@ -164,9 +167,9 @@ export function SellerGoalsEditor({ storeId, storeName, embedded = false }: Sell
    * não a salva — é o que o gerente enxerga enquanto simula o rateio.
    */
   const insightRows: SellerGoalRow[] = useMemo(() => sellers.map(seller => {
-    const currentGoal = seller.is_venda_loja ? 0 : goals[seller.id] ?? evenShare
+    const currentGoal = seller.is_venda_loja ? 0 : Math.ceil(goals[seller.id] ?? evenShare)
     const editValue = edits[seller.id]
-    const parsed = editValue === undefined ? currentGoal : parseGoalInput(editValue)
+    const parsed = editValue === undefined ? currentGoal : parseWholeSalesGoal(editValue)
     return {
       id: seller.id,
       name: seller.name || 'Vendedor',
@@ -300,6 +303,7 @@ export function SellerGoalsEditor({ storeId, storeName, embedded = false }: Sell
                   id="seller-goals-apply-all"
                   type="number"
                   min={0}
+                  step={1}
                   placeholder="Ex: 8"
                   onKeyDown={event => {
                     if (event.key !== 'Enter') return
@@ -340,7 +344,7 @@ export function SellerGoalsEditor({ storeId, storeName, embedded = false }: Sell
                   sellers.map((seller, index) => {
                     const perf = sellerPerformances[seller.id]
                     const realized = perf?.realized ?? 0
-                    const currentGoal = seller.is_venda_loja ? 0 : goals[seller.id] ?? evenShare
+                    const currentGoal = seller.is_venda_loja ? 0 : Math.ceil(goals[seller.id] ?? evenShare)
                     const insightRow = insightRows[index]
                     const attainment = attainmentOf(insightRow)
                     const status = classifySellerGoal(insightRow)
@@ -373,8 +377,8 @@ export function SellerGoalsEditor({ storeId, storeName, embedded = false }: Sell
                           <td className="whitespace-nowrap px-4 py-3 text-right">
                             <input
                               type="number"
-                              inputMode="decimal"
-                              step="any"
+                              inputMode="numeric"
+                              step={1}
                               value={editValue}
                               onChange={(e) => handleValueChange(seller.id, e.target.value)}
                               className="w-20 rounded-lg border border-border px-2 py-1.5 text-right font-mono text-sm outline-none focus:border-status-success focus:ring-1 focus:ring-status-success"
